@@ -36,7 +36,9 @@ export default function AuthPage() {
 
     if (isLogin) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) toast({ title: 'Inloggningsfel', description: error.message, variant: 'destructive' });
+      if (error) {
+        toast({ title: 'Inloggningsfel', description: error.message, variant: 'destructive' });
+      }
     } else {
       const { error } = await supabase.auth.signUp({
         email,

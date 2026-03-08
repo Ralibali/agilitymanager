@@ -6,7 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { MoreHorizontal } from 'lucide-react';
 
 const mainTabs = [
-  { path: '/', icon: Home, label: 'Hem' },
+  { path: '/dashboard', icon: Home, label: 'Hem' },
   { path: '/dogs', icon: Dog, label: 'Hundar' },
   { path: '/training', icon: Dumbbell, label: 'Träning' },
   { path: '/competition', icon: Trophy, label: 'Tävling' },

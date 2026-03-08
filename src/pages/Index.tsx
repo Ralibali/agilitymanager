@@ -5,7 +5,7 @@ import { AddTrainingDialog } from '@/components/AddTrainingDialog';
 import { AddCompetitionDialog } from '@/components/AddCompetitionDialog';
 import { DogAvatar } from '@/components/DogAvatar';
 import { store } from '@/lib/store';
-import { Dog, TrainingSession, CompetitionResult, PlannedCompetition } from '@/types';
+import type { Dog, TrainingSession, CompetitionResult, PlannedCompetition } from '@/types';
 import { Dumbbell, Trophy, Flame, Calendar, Sparkles, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -17,23 +17,32 @@ const Index = () => {
   const [training, setTraining] = useState<TrainingSession[]>([]);
   const [competitions, setCompetitions] = useState<CompetitionResult[]>([]);
   const [planned, setPlanned] = useState<PlannedCompetition[]>([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const refresh = () => {
-    setDogs(store.getDogs());
-    setTraining(store.getTraining());
-    setCompetitions(store.getCompetitions());
-    setPlanned(store.getPlanned());
+  const refresh = async () => {
+    const [d, t, c, p] = await Promise.all([
+      store.getDogs(),
+      store.getTraining(),
+      store.getCompetitions(),
+      store.getPlanned(),
+    ]);
+    setDogs(d);
+    setTraining(t);
+    setCompetitions(c);
+    setPlanned(p);
+    setLoading(false);
   };
 
-  useEffect(refresh, []);
+  useEffect(() => { refresh(); }, []);
 
-  const latestTraining = [...training].sort((a, b) => b.date.localeCompare(a.date))[0];
-  const nextCompetition = [...planned]
-    .filter(p => new Date(p.date) >= new Date())
-    .sort((a, b) => a.date.localeCompare(b.date))[0];
+  if (loading) {
+    return <PageContainer><div className="flex items-center justify-center min-h-[60vh] text-muted-foreground">Laddar...</div></PageContainer>;
+  }
 
-  // Streak calc
+  const latestTraining = training[0]; // already sorted desc
+  const nextCompetition = planned.find(p => new Date(p.date) >= new Date());
+
   const getStreak = () => {
     const dates = [...new Set(training.map(t => t.date))].sort().reverse();
     if (!dates.length) return 0;
@@ -82,7 +91,6 @@ const Index = () => {
 
   return (
     <PageContainer title="Dashboard" subtitle={`${dogs.length} hund${dogs.length > 1 ? 'ar' : ''} registrerad${dogs.length > 1 ? 'e' : ''}`}>
-      {/* Quick actions */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <AddTrainingDialog dogs={dogs} onAdded={refresh} trigger={
           <button className="flex items-center gap-2 p-4 rounded-xl gradient-primary text-primary-foreground font-semibold shadow-card text-left">
@@ -98,7 +106,6 @@ const Index = () => {
         } />
       </div>
 
-      {/* Streak & Stats Row */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <motion.div whileHover={{ scale: 1.02 }} className="bg-card p-3 rounded-xl shadow-card text-center">
           <Flame size={20} className="text-accent mx-auto mb-1" />
@@ -125,14 +132,13 @@ const Index = () => {
         </motion.div>
       </div>
 
-      {/* Next competition */}
       {nextCompetition && (
         <div className="bg-card p-4 rounded-xl shadow-card mb-4 border-l-4 border-accent">
           <div className="flex items-center gap-2 mb-1">
             <Calendar size={16} className="text-accent" />
             <span className="text-xs font-medium text-accent">Nästa tävling</span>
           </div>
-          <div className="font-semibold text-foreground">{nextCompetition.eventName}</div>
+          <div className="font-semibold text-foreground">{nextCompetition.event_name}</div>
           <div className="text-sm text-muted-foreground">
             {format(new Date(nextCompetition.date), 'd MMMM yyyy', { locale: sv })} · {nextCompetition.location}
           </div>
@@ -142,7 +148,6 @@ const Index = () => {
         </div>
       )}
 
-      {/* Latest training */}
       {latestTraining && (
         <div className="bg-card p-4 rounded-xl shadow-card mb-4">
           <div className="flex items-center justify-between mb-2">
@@ -152,12 +157,12 @@ const Index = () => {
             </button>
           </div>
           <div className="flex items-center gap-3">
-            {dogs.find(d => d.id === latestTraining.dogId) && (
-              <DogAvatar dog={dogs.find(d => d.id === latestTraining.dogId)!} size="sm" />
+            {dogs.find(d => d.id === latestTraining.dog_id) && (
+              <DogAvatar dog={dogs.find(d => d.id === latestTraining.dog_id)!} size="sm" />
             )}
             <div>
               <div className="font-medium text-foreground text-sm">
-                {latestTraining.type} · {latestTraining.durationMin} min
+                {latestTraining.type} · {latestTraining.duration_min} min
               </div>
               <div className="text-xs text-muted-foreground">
                 {format(new Date(latestTraining.date), 'd MMM', { locale: sv })}
@@ -167,7 +172,6 @@ const Index = () => {
         </div>
       )}
 
-      {/* Dogs */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
           <h2 className="font-display font-semibold text-foreground">Mina hundar</h2>
@@ -185,7 +189,7 @@ const Index = () => {
             >
               <DogAvatar dog={dog} />
               <div className="mt-2 font-semibold text-foreground text-sm">{dog.name}</div>
-              <div className="text-[10px] text-muted-foreground">{dog.breed} · {dog.sizeClass}</div>
+              <div className="text-[10px] text-muted-foreground">{dog.breed} · {dog.size_class}</div>
             </motion.div>
           ))}
         </div>

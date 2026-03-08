@@ -6,10 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Dumbbell, Star } from 'lucide-react';
-import { TrainingSession, TrainingType, Dog } from '@/types';
-import { store, generateId } from '@/lib/store';
+import type { TrainingType, Dog } from '@/types';
+import { store } from '@/lib/store';
+import { Constants } from '@/integrations/supabase/types';
 
-const TRAINING_TYPES: TrainingType[] = ['Bana', 'Hinder', 'Kontakt', 'Vändning', 'Distans', 'Freestyle', 'Annan'];
+const TRAINING_TYPES = Constants.public.Enums.training_type;
 const COMMON_TAGS = ['A-ram', 'Tunneln', 'Kontaktzoner', 'Slalom', 'Snabba vändningar', 'Inkall', 'Distans', 'Gångbro'];
 
 interface Props {
@@ -42,28 +43,28 @@ export function AddTrainingDialog({ onAdded, dogs, trigger }: Props) {
   const [dogEnergy, setDogEnergy] = useState(3);
   const [handlerEnergy, setHandlerEnergy] = useState(3);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!dogId) return;
-    const session: TrainingSession = {
-      id: generateId(),
-      dogId,
+    setLoading(true);
+    await store.addTraining({
+      dog_id: dogId,
       date,
-      durationMin: parseInt(duration) || 0,
+      duration_min: parseInt(duration) || 0,
       type,
       reps: parseInt(reps) || 0,
-      notesGood: notesGood.trim(),
-      notesImprove: notesImprove.trim(),
-      dogEnergy,
-      handlerEnergy,
+      notes_good: notesGood.trim(),
+      notes_improve: notesImprove.trim(),
+      dog_energy: dogEnergy,
+      handler_energy: handlerEnergy,
       tags: selectedTags,
-      createdAt: new Date().toISOString(),
-    };
-    store.addTraining(session);
+    });
+    setLoading(false);
     setOpen(false);
     onAdded();
   };
@@ -153,8 +154,8 @@ export function AddTrainingDialog({ onAdded, dogs, trigger }: Props) {
               ))}
             </div>
           </div>
-          <Button onClick={handleSubmit} className="w-full gradient-primary text-primary-foreground" disabled={!dogId}>
-            Spara träning
+          <Button onClick={handleSubmit} className="w-full gradient-primary text-primary-foreground" disabled={!dogId || loading}>
+            {loading ? 'Sparar...' : 'Spara träning'}
           </Button>
         </div>
       </DialogContent>

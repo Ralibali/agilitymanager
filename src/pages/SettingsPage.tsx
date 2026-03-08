@@ -1,5 +1,7 @@
 import { PageContainer } from '@/components/PageContainer';
-import { Lock, Sparkles, Crown } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Crown, Sparkles, LogOut, ExternalLink } from 'lucide-react';
 
 const premiumFeatures = [
   { title: 'AI-coach Axel', desc: 'Personliga träningstips baserat på dina loggar' },
@@ -11,8 +13,19 @@ const premiumFeatures = [
 ];
 
 export default function SettingsPage() {
+  const { user, signOut } = useAuth();
+
   return (
     <PageContainer title="Inställningar">
+      {/* User info */}
+      <div className="bg-card rounded-xl p-4 shadow-card mb-4">
+        <h3 className="font-display font-semibold text-foreground mb-1">Konto</h3>
+        <p className="text-sm text-muted-foreground">{user?.email}</p>
+        <Button variant="outline" size="sm" className="mt-3 gap-1.5" onClick={signOut}>
+          <LogOut size={14} /> Logga ut
+        </Button>
+      </div>
+
       {/* Premium CTA */}
       <div className="bg-card rounded-xl p-5 shadow-elevated mb-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 gradient-accent opacity-10 rounded-full -translate-y-10 translate-x-10" />
@@ -38,16 +51,29 @@ export default function SettingsPage() {
         </div>
         <div className="flex gap-2">
           <button className="flex-1 py-2.5 rounded-xl gradient-accent text-accent-foreground font-semibold text-sm">
-            49 kr/mån
+            19 kr/mån
           </button>
           <button className="flex-1 py-2.5 rounded-xl bg-secondary text-secondary-foreground font-semibold text-sm">
-            349 kr/år
+            149 kr/år
           </button>
         </div>
       </div>
 
-      {/* App info */}
+      {/* Regelbok-länk */}
       <div className="space-y-3">
+        <a
+          href="https://agilityklubben.se/regler/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-card rounded-xl p-4 shadow-card flex items-center justify-between"
+        >
+          <div>
+            <h3 className="font-display font-semibold text-foreground mb-0.5">SAgiK Regelbok</h3>
+            <p className="text-xs text-muted-foreground">Gällande regler 2022–2026</p>
+          </div>
+          <ExternalLink size={16} className="text-muted-foreground" />
+        </a>
+
         <div className="bg-card rounded-xl p-4 shadow-card">
           <h3 className="font-display font-semibold text-foreground mb-1">Om appen</h3>
           <p className="text-sm text-muted-foreground">
@@ -58,7 +84,7 @@ export default function SettingsPage() {
         <div className="bg-card rounded-xl p-4 shadow-card">
           <h3 className="font-display font-semibold text-foreground mb-1">Data</h3>
           <p className="text-sm text-muted-foreground">
-            All data lagras lokalt på din enhet. Koppla till Lovable Cloud för molnlagring och synk.
+            All data lagras säkert i molnet och synkas automatiskt mellan dina enheter.
           </p>
         </div>
       </div>

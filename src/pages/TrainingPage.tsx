@@ -3,7 +3,7 @@ import { PageContainer } from '@/components/PageContainer';
 import { AddTrainingDialog } from '@/components/AddTrainingDialog';
 import { DogAvatar } from '@/components/DogAvatar';
 import { store } from '@/lib/store';
-import { Dog, TrainingSession } from '@/types';
+import type { Dog, TrainingSession } from '@/types';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { Star, Clock, RotateCcw } from 'lucide-react';
@@ -12,13 +12,18 @@ import { motion } from 'framer-motion';
 export default function TrainingPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
-  const refresh = () => {
-    setDogs(store.getDogs());
-    setSessions(store.getTraining().sort((a, b) => b.date.localeCompare(a.date)));
+  const [loading, setLoading] = useState(true);
+  const refresh = async () => {
+    const [d, t] = await Promise.all([store.getDogs(), store.getTraining()]);
+    setDogs(d);
+    setSessions(t);
+    setLoading(false);
   };
-  useEffect(refresh, []);
+  useEffect(() => { refresh(); }, []);
 
   const getDog = (id: string) => dogs.find(d => d.id === id);
+
+  if (loading) return <PageContainer title="Träning"><div className="text-center py-20 text-muted-foreground">Laddar...</div></PageContainer>;
 
   return (
     <PageContainer
@@ -38,7 +43,7 @@ export default function TrainingPage() {
       ) : (
         <div className="space-y-3">
           {sessions.map((s, i) => {
-            const dog = getDog(s.dogId);
+            const dog = getDog(s.dog_id);
             return (
               <motion.div
                 key={s.id}
@@ -58,26 +63,26 @@ export default function TrainingPage() {
                     </div>
                     {dog && <div className="text-xs text-muted-foreground">{dog.name}</div>}
                     <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1"><Clock size={12} /> {s.durationMin} min</span>
+                      <span className="flex items-center gap-1"><Clock size={12} /> {s.duration_min} min</span>
                       <span className="flex items-center gap-1"><RotateCcw size={12} /> {s.reps} rep</span>
                     </div>
-                    {(s.notesGood || s.notesImprove) && (
+                    {(s.notes_good || s.notes_improve) && (
                       <div className="mt-2 space-y-1 text-xs">
-                        {s.notesGood && <p className="text-success">✓ {s.notesGood}</p>}
-                        {s.notesImprove && <p className="text-accent">↑ {s.notesImprove}</p>}
+                        {s.notes_good && <p className="text-success">✓ {s.notes_good}</p>}
+                        {s.notes_improve && <p className="text-accent">↑ {s.notes_improve}</p>}
                       </div>
                     )}
                     <div className="flex items-center gap-3 mt-2">
                       <div className="flex items-center gap-0.5">
                         <span className="text-[10px] text-muted-foreground">🐕</span>
                         {[1, 2, 3, 4, 5].map(n => (
-                          <Star key={n} size={10} className={n <= s.dogEnergy ? 'fill-accent text-accent' : 'text-muted'} />
+                          <Star key={n} size={10} className={n <= s.dog_energy ? 'fill-accent text-accent' : 'text-muted'} />
                         ))}
                       </div>
                       <div className="flex items-center gap-0.5">
                         <span className="text-[10px] text-muted-foreground">🧑</span>
                         {[1, 2, 3, 4, 5].map(n => (
-                          <Star key={n} size={10} className={n <= s.handlerEnergy ? 'fill-primary text-primary' : 'text-muted'} />
+                          <Star key={n} size={10} className={n <= s.handler_energy ? 'fill-primary text-primary' : 'text-muted'} />
                         ))}
                       </div>
                     </div>

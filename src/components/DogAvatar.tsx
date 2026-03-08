@@ -1,5 +1,5 @@
 import { Dog as DogIcon } from 'lucide-react';
-import { Dog } from '@/types';
+import type { Dog } from '@/types';
 
 export function DogAvatar({ dog, size = 'md' }: { dog: Dog; size?: 'sm' | 'md' | 'lg' }) {
   const sizeMap = { sm: 'w-8 h-8', md: 'w-12 h-12', lg: 'w-16 h-16' };
@@ -8,10 +8,10 @@ export function DogAvatar({ dog, size = 'md' }: { dog: Dog; size?: 'sm' | 'md' |
   return (
     <div
       className={`${sizeMap[size]} rounded-full flex items-center justify-center flex-shrink-0`}
-      style={{ backgroundColor: dog.themeColor + '22', color: dog.themeColor }}
+      style={{ backgroundColor: dog.theme_color + '22', color: dog.theme_color }}
     >
-      {dog.photoUrl ? (
-        <img src={dog.photoUrl} alt={dog.name} className={`${sizeMap[size]} rounded-full object-cover`} />
+      {dog.photo_url ? (
+        <img src={dog.photo_url} alt={dog.name} className={`${sizeMap[size]} rounded-full object-cover`} />
       ) : (
         <DogIcon size={iconSize[size]} />
       )}

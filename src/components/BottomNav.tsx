@@ -1,6 +1,7 @@
 import { Home, Dog, Dumbbell, Trophy, BarChart3, Settings } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { forwardRef } from 'react';
 
 const tabs = [
   { path: '/', icon: Home, label: 'Hem' },
@@ -11,12 +12,12 @@ const tabs = [
   { path: '/settings', icon: Settings, label: 'Inställningar' },
 ];
 
-export function BottomNav() {
+export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref) {
   const location = useLocation();
   const navigate = useNavigate();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border safe-bottom">
+    <nav ref={ref} className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border safe-bottom">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-1">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.path;
@@ -47,4 +48,4 @@ export function BottomNav() {
       </div>
     </nav>
   );
-}
+});

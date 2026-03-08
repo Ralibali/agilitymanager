@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Dog } from '@/types';
 import { Plus, Stethoscope, Syringe, Weight, Calendar, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { WeightChart } from '@/components/WeightChart';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { toast } from 'sonner';

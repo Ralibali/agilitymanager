@@ -142,11 +142,25 @@ export default function CoursePlannerPage() {
         ctx.fillRect(-hw, -hh, info.width, info.height);
       }
 
-      // Selection border
+      // Selection border + drag handle
       if (selected === obs.id) {
         ctx.strokeStyle = 'hsl(221, 79%, 48%)';
         ctx.lineWidth = 2;
-        ctx.strokeRect(-hw - 3, -hh - 3, info.width + 6, info.height + 6);
+        ctx.setLineDash([4, 3]);
+        ctx.strokeRect(-hw - 4, -hh - 4, info.width + 8, info.height + 8);
+        ctx.setLineDash([]);
+        // Move icon hint
+        ctx.fillStyle = 'hsl(221, 79%, 48%)';
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.arc(hw + 2, -hh - 2, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 8px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('✥', hw + 2, -hh - 2);
       }
 
       ctx.restore();

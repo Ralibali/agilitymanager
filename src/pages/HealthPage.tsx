@@ -183,6 +183,7 @@ export default function HealthPage() {
         </div>
       ) : (
         <div className="space-y-3">
+          <WeightChart logs={logs} dogs={dogs} />
           {logs.map((log, i) => {
             const dog = getDog(log.dog_id);
             const typeInfo = getTypeInfo(log.type);

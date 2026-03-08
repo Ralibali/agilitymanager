@@ -3,15 +3,21 @@ import { PageContainer } from '@/components/PageContainer';
 import { AddDogDialog } from '@/components/AddDogDialog';
 import { DogAvatar } from '@/components/DogAvatar';
 import { store } from '@/lib/store';
-import { Dog } from '@/types';
+import type { Dog } from '@/types';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { motion } from 'framer-motion';
 
 export default function DogsPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
-  const refresh = () => setDogs(store.getDogs());
-  useEffect(refresh, []);
+  const [loading, setLoading] = useState(true);
+  const refresh = async () => {
+    setDogs(await store.getDogs());
+    setLoading(false);
+  };
+  useEffect(() => { refresh(); }, []);
+
+  if (loading) return <PageContainer title="Mina hundar"><div className="text-center py-20 text-muted-foreground">Laddar...</div></PageContainer>;
 
   return (
     <PageContainer
@@ -43,10 +49,10 @@ export default function DogsPage() {
                   </div>
                   <div className="flex gap-2 mt-1.5 flex-wrap">
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                      {dog.sizeClass}
+                      {dog.size_class}
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-medium">
-                      {dog.competitionLevel}
+                      {dog.competition_level}
                     </span>
                     {dog.birthdate && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">

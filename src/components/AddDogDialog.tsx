@@ -6,8 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
-import { Dog, SizeClass, CompetitionLevel, Gender } from '@/types';
-import { store, generateId, getNextDogColor } from '@/lib/store';
+import type { SizeClass, CompetitionLevel, Gender } from '@/types';
+import { store, getNextDogColor } from '@/lib/store';
 
 interface Props {
   onAdded: () => void;
@@ -21,26 +21,28 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
   const [gender, setGender] = useState<Gender>('Tik');
   const [color, setColor] = useState('');
   const [birthdate, setBirthdate] = useState('');
-  const [sizeClass, setSizeClass] = useState<SizeClass>('Medium');
-  const [competitionLevel, setCompetitionLevel] = useState<CompetitionLevel>('Öppen');
+  const [sizeClass, setSizeClass] = useState<SizeClass>('L');
+  const [competitionLevel, setCompetitionLevel] = useState<CompetitionLevel>('Nollklass');
   const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name.trim()) return;
-    const dog: Dog = {
-      id: generateId(),
+    setLoading(true);
+    const themeColor = await getNextDogColor();
+    await store.addDog({
       name: name.trim(),
       breed: breed.trim(),
       gender,
       color: color.trim(),
-      birthdate,
-      sizeClass,
-      competitionLevel,
+      birthdate: birthdate || null,
+      photo_url: null,
+      size_class: sizeClass,
+      competition_level: competitionLevel,
       notes: notes.trim(),
-      themeColor: getNextDogColor(),
-      createdAt: new Date().toISOString(),
-    };
-    store.addDog(dog);
+      theme_color: themeColor,
+    });
+    setLoading(false);
     setOpen(false);
     resetForm();
     onAdded();
@@ -100,21 +102,22 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
               <Select value={sizeClass} onValueChange={v => setSizeClass(v as SizeClass)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="XSmall">XSmall</SelectItem>
-                  <SelectItem value="Small">Small</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Large">Large</SelectItem>
+                  <SelectItem value="XS">XS (≤28 cm)</SelectItem>
+                  <SelectItem value="S">S (≤35 cm)</SelectItem>
+                  <SelectItem value="M">M (≤43 cm)</SelectItem>
+                  <SelectItem value="L">L (&gt;43 cm)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Tävlingsnivå</Label>
+              <Label>Tävlingsklass</Label>
               <Select value={competitionLevel} onValueChange={v => setCompetitionLevel(v as CompetitionLevel)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Öppen">Öppen</SelectItem>
-                  <SelectItem value="Mellan">Mellan</SelectItem>
-                  <SelectItem value="Elite">Elite</SelectItem>
+                  <SelectItem value="Nollklass">Nollklass</SelectItem>
+                  <SelectItem value="K1">Klass 1</SelectItem>
+                  <SelectItem value="K2">Klass 2</SelectItem>
+                  <SelectItem value="K3">Klass 3</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -123,8 +126,8 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
             <Label>Anteckningar</Label>
             <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Fritext om hunden..." rows={2} />
           </div>
-          <Button onClick={handleSubmit} className="w-full gradient-primary text-primary-foreground" disabled={!name.trim()}>
-            Spara hund
+          <Button onClick={handleSubmit} className="w-full gradient-primary text-primary-foreground" disabled={!name.trim() || loading}>
+            {loading ? 'Sparar...' : 'Spara hund'}
           </Button>
         </div>
       </DialogContent>

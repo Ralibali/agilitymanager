@@ -1,64 +1,16 @@
-export type SizeClass = 'XSmall' | 'Small' | 'Medium' | 'Large';
-export type CompetitionLevel = 'Öppen' | 'Mellan' | 'Elite';
-export type Gender = 'Hane' | 'Tik';
-export type TrainingType = 'Bana' | 'Hinder' | 'Kontakt' | 'Vändning' | 'Distans' | 'Freestyle' | 'Annan';
-export type Discipline = 'Agility' | 'Jumping' | 'Hinder';
-export type CompetitionStatus = 'planerad' | 'anmäld' | 'bekräftad' | 'genomförd';
+import { Tables, Enums } from '@/integrations/supabase/types';
 
-export interface Dog {
-  id: string;
-  name: string;
-  breed: string;
-  gender: Gender;
-  color: string;
-  birthdate: string;
-  photoUrl?: string;
-  sizeClass: SizeClass;
-  competitionLevel: CompetitionLevel;
-  notes: string;
-  themeColor: string;
-  createdAt: string;
-}
+// DB row types
+export type Dog = Tables<'dogs'>;
+export type TrainingSession = Tables<'training_sessions'>;
+export type CompetitionResult = Tables<'competition_results'>;
+export type PlannedCompetition = Tables<'planned_competitions'>;
+export type Profile = Tables<'profiles'>;
 
-export interface TrainingSession {
-  id: string;
-  dogId: string;
-  date: string;
-  durationMin: number;
-  type: TrainingType;
-  reps: number;
-  notesGood: string;
-  notesImprove: string;
-  dogEnergy: number;
-  handlerEnergy: number;
-  tags: string[];
-  createdAt: string;
-}
-
-export interface CompetitionResult {
-  id: string;
-  dogId: string;
-  date: string;
-  eventName: string;
-  organizer: string;
-  discipline: Discipline;
-  sizeClass: SizeClass;
-  faults: number;
-  timeSec: number;
-  passed: boolean;
-  placement?: number;
-  notes: string;
-  createdAt: string;
-}
-
-export interface PlannedCompetition {
-  id: string;
-  dogId: string;
-  date: string;
-  eventName: string;
-  location: string;
-  signupUrl: string;
-  status: CompetitionStatus;
-  reminderDaysBefore: number;
-  createdAt: string;
-}
+// Enum types from DB
+export type SizeClass = Enums<'size_class'>;
+export type CompetitionLevel = Enums<'competition_level'>;
+export type Gender = Enums<'dog_gender'>;
+export type TrainingType = Enums<'training_type'>;
+export type Discipline = Enums<'discipline'>;
+export type CompetitionStatus = Enums<'competition_status'>;

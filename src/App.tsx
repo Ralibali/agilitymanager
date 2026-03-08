@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { BottomNav } from "@/components/BottomNav";
 import Index from "./pages/Index";
 import DogsPage from "./pages/DogsPage";
@@ -10,27 +11,55 @@ import TrainingPage from "./pages/TrainingPage";
 import CompetitionPage from "./pages/CompetitionPage";
 import StatsPage from "./pages/StatsPage";
 import SettingsPage from "./pages/SettingsPage";
+import AuthPage from "./pages/AuthPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+function ProtectedRoutes() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-muted-foreground font-display">Laddar...</div>
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/auth" replace />;
+
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/dogs" element={<DogsPage />} />
+        <Route path="/training" element={<TrainingPage />} />
+        <Route path="/competition" element={<CompetitionPage />} />
+        <Route path="/stats" element={<StatsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <BottomNav />
+    </>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dogs" element={<DogsPage />} />
-          <Route path="/training" element={<TrainingPage />} />
-          <Route path="/competition" element={<CompetitionPage />} />
-          <Route path="/stats" element={<StatsPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <BottomNav />
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/*" element={<ProtectedRoutes />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

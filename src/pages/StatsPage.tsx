@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/PageContainer';
 import { store } from '@/lib/store';
-import { Dog, TrainingSession, CompetitionResult } from '@/types';
+import type { Dog, TrainingSession, CompetitionResult } from '@/types';
 import { DogAvatar } from '@/components/DogAvatar';
 import { Lock, Trophy, Dumbbell, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
@@ -11,12 +11,15 @@ export default function StatsPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [training, setTraining] = useState<TrainingSession[]>([]);
   const [competitions, setCompetitions] = useState<CompetitionResult[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setDogs(store.getDogs());
-    setTraining(store.getTraining());
-    setCompetitions(store.getCompetitions());
+    Promise.all([store.getDogs(), store.getTraining(), store.getCompetitions()]).then(([d, t, c]) => {
+      setDogs(d); setTraining(t); setCompetitions(c); setLoading(false);
+    });
   }, []);
+
+  if (loading) return <PageContainer title="Statistik"><div className="text-center py-20 text-muted-foreground">Laddar...</div></PageContainer>;
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -25,7 +28,7 @@ export default function StatsPage() {
     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
   });
 
-  const recentComps = [...competitions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
+  const recentComps = competitions.slice(0, 5);
   const passRate = competitions.length > 0
     ? Math.round(competitions.filter(c => c.passed).length / competitions.length * 100)
     : 0;
@@ -34,7 +37,6 @@ export default function StatsPage() {
 
   return (
     <PageContainer title="Statistik">
-      {/* Free stats */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <div className="bg-card p-4 rounded-xl shadow-card">
           <Dumbbell size={20} className="text-primary mb-2" />
@@ -48,7 +50,6 @@ export default function StatsPage() {
         </div>
       </div>
 
-      {/* Recent 5 */}
       <div className="mb-6">
         <h2 className="font-display font-semibold text-foreground mb-3">Senaste 5 tävlingsresultat</h2>
         {recentComps.length === 0 ? (
@@ -56,14 +57,14 @@ export default function StatsPage() {
         ) : (
           <div className="space-y-2">
             {recentComps.map(r => {
-              const dog = getDog(r.dogId);
+              const dog = getDog(r.dog_id);
               return (
                 <div key={r.id} className="bg-card p-3 rounded-xl shadow-card flex items-center gap-3">
                   {dog && <DogAvatar dog={dog} size="sm" />}
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-foreground truncate">{r.eventName}</div>
+                    <div className="text-sm font-medium text-foreground truncate">{r.event_name}</div>
                     <div className="text-[10px] text-muted-foreground">
-                      {format(new Date(r.date), 'd MMM', { locale: sv })} · {r.timeSec}s · {r.faults} fel
+                      {format(new Date(r.date), 'd MMM', { locale: sv })} · {r.time_sec}s · {r.faults} fel
                     </div>
                   </div>
                   <span className={`text-xs font-medium ${r.passed ? 'text-success' : 'text-destructive'}`}>
@@ -76,7 +77,6 @@ export default function StatsPage() {
         )}
       </div>
 
-      {/* Premium teaser */}
       <div className="bg-card rounded-xl p-5 shadow-card border border-accent/20 text-center">
         <div className="w-12 h-12 rounded-full gradient-accent flex items-center justify-center mx-auto mb-3">
           <TrendingUp size={24} className="text-accent-foreground" />

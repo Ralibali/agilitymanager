@@ -7,8 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Trophy } from 'lucide-react';
-import { CompetitionResult, Discipline, SizeClass, Dog } from '@/types';
-import { store, generateId } from '@/lib/store';
+import type { Discipline, SizeClass, CompetitionLevel, Dog } from '@/types';
+import { store } from '@/lib/store';
 
 interface Props {
   onAdded: () => void;
@@ -23,31 +23,33 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
   const [eventName, setEventName] = useState('');
   const [organizer, setOrganizer] = useState('');
   const [discipline, setDiscipline] = useState<Discipline>('Agility');
-  const [sizeClass, setSizeClass] = useState<SizeClass>('Medium');
+  const [sizeClass, setSizeClass] = useState<SizeClass>('L');
+  const [competitionLevel, setCompetitionLevel] = useState<CompetitionLevel>('K1');
   const [faults, setFaults] = useState('0');
   const [timeSec, setTimeSec] = useState('');
   const [passed, setPassed] = useState(false);
   const [placement, setPlacement] = useState('');
   const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!dogId || !eventName.trim()) return;
-    const result: CompetitionResult = {
-      id: generateId(),
-      dogId,
+    setLoading(true);
+    await store.addCompetition({
+      dog_id: dogId,
       date,
-      eventName: eventName.trim(),
+      event_name: eventName.trim(),
       organizer: organizer.trim(),
       discipline,
-      sizeClass,
+      size_class: sizeClass,
+      competition_level: competitionLevel,
       faults: parseInt(faults) || 0,
-      timeSec: parseFloat(timeSec) || 0,
+      time_sec: parseFloat(timeSec) || 0,
       passed,
-      placement: placement ? parseInt(placement) : undefined,
+      placement: placement ? parseInt(placement) : null,
       notes: notes.trim(),
-      createdAt: new Date().toISOString(),
-    };
-    store.addCompetition(result);
+    });
+    setLoading(false);
     setOpen(false);
     onAdded();
   };
@@ -81,13 +83,13 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
               <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
             </div>
             <div>
-              <Label>Disciplin</Label>
+              <Label>Gren</Label>
               <Select value={discipline} onValueChange={v => setDiscipline(v as Discipline)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Agility">Agility</SelectItem>
                   <SelectItem value="Jumping">Jumping</SelectItem>
-                  <SelectItem value="Hinder">Hinder</SelectItem>
+                  <SelectItem value="Nollklass">Nollklass</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -99,6 +101,32 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
           <div>
             <Label>Arrangör</Label>
             <Input value={organizer} onChange={e => setOrganizer(e.target.value)} placeholder="T.ex. SKK" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Storleksklass</Label>
+              <Select value={sizeClass} onValueChange={v => setSizeClass(v as SizeClass)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="XS">XS</SelectItem>
+                  <SelectItem value="S">S</SelectItem>
+                  <SelectItem value="M">M</SelectItem>
+                  <SelectItem value="L">L</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Tävlingsklass</Label>
+              <Select value={competitionLevel} onValueChange={v => setCompetitionLevel(v as CompetitionLevel)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Nollklass">Nollklass</SelectItem>
+                  <SelectItem value="K1">Klass 1</SelectItem>
+                  <SelectItem value="K2">Klass 2</SelectItem>
+                  <SelectItem value="K3">Klass 3</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
@@ -116,26 +144,14 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
           </div>
           <div className="flex items-center gap-3">
             <Switch checked={passed} onCheckedChange={setPassed} />
-            <Label>Godkänd</Label>
-          </div>
-          <div>
-            <Label>Klass</Label>
-            <Select value={sizeClass} onValueChange={v => setSizeClass(v as SizeClass)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="XSmall">XSmall</SelectItem>
-                <SelectItem value="Small">Small</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="Large">Large</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label>Godkänd (nolla)</Label>
           </div>
           <div>
             <Label>Notering</Label>
             <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} />
           </div>
-          <Button onClick={handleSubmit} className="w-full gradient-accent text-accent-foreground" disabled={!dogId || !eventName.trim()}>
-            Spara resultat
+          <Button onClick={handleSubmit} className="w-full gradient-accent text-accent-foreground" disabled={!dogId || !eventName.trim() || loading}>
+            {loading ? 'Sparar...' : 'Spara resultat'}
           </Button>
         </div>
       </DialogContent>

@@ -396,7 +396,7 @@ export default function CoursePlannerPage() {
       <div className="bg-card rounded-xl shadow-elevated overflow-hidden mb-4">
         <canvas
           ref={canvasRef}
-          style={{ width: canvasWidth, height: canvasHeight, touchAction: 'none', display: 'block', margin: '0 auto' }}
+          style={{ width: canvasWidth, height: canvasHeight, touchAction: 'none', display: 'block', margin: '0 auto', cursor: dragging ? 'grabbing' : 'grab' }}
           onMouseDown={handlePointerDown}
           onMouseMove={handlePointerMove}
           onMouseUp={handlePointerUp}

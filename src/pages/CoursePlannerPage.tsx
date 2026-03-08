@@ -199,7 +199,6 @@ export default function CoursePlannerPage() {
       if (Math.abs(x - obs.x) <= hw + 10 && Math.abs(y - obs.y) <= hh + 10) {
         return obs;
       }
-      }
     }
     return null;
   };

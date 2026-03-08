@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Dog } from '@/types';
 import { Plus, Stethoscope, Syringe, Weight, Calendar, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { WeightChart } from '@/components/WeightChart';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -182,6 +183,7 @@ export default function HealthPage() {
         </div>
       ) : (
         <div className="space-y-3">
+          <WeightChart logs={logs} dogs={dogs} />
           {logs.map((log, i) => {
             const dog = getDog(log.dog_id);
             const typeInfo = getTypeInfo(log.type);

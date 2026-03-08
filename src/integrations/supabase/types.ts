@@ -14,7 +14,252 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      competition_results: {
+        Row: {
+          competition_level: Database["public"]["Enums"]["competition_level"]
+          created_at: string
+          date: string
+          discipline: Database["public"]["Enums"]["discipline"]
+          dog_id: string
+          event_name: string
+          faults: number
+          id: string
+          notes: string
+          organizer: string
+          passed: boolean
+          placement: number | null
+          size_class: Database["public"]["Enums"]["size_class"]
+          time_sec: number
+          user_id: string
+        }
+        Insert: {
+          competition_level?: Database["public"]["Enums"]["competition_level"]
+          created_at?: string
+          date?: string
+          discipline?: Database["public"]["Enums"]["discipline"]
+          dog_id: string
+          event_name: string
+          faults?: number
+          id?: string
+          notes?: string
+          organizer?: string
+          passed?: boolean
+          placement?: number | null
+          size_class?: Database["public"]["Enums"]["size_class"]
+          time_sec?: number
+          user_id: string
+        }
+        Update: {
+          competition_level?: Database["public"]["Enums"]["competition_level"]
+          created_at?: string
+          date?: string
+          discipline?: Database["public"]["Enums"]["discipline"]
+          dog_id?: string
+          event_name?: string
+          faults?: number
+          id?: string
+          notes?: string
+          organizer?: string
+          passed?: boolean
+          placement?: number | null
+          size_class?: Database["public"]["Enums"]["size_class"]
+          time_sec?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competition_results_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dogs: {
+        Row: {
+          birthdate: string | null
+          breed: string
+          color: string
+          competition_level: Database["public"]["Enums"]["competition_level"]
+          created_at: string
+          gender: Database["public"]["Enums"]["dog_gender"]
+          id: string
+          name: string
+          notes: string
+          photo_url: string | null
+          size_class: Database["public"]["Enums"]["size_class"]
+          theme_color: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          birthdate?: string | null
+          breed?: string
+          color?: string
+          competition_level?: Database["public"]["Enums"]["competition_level"]
+          created_at?: string
+          gender?: Database["public"]["Enums"]["dog_gender"]
+          id?: string
+          name: string
+          notes?: string
+          photo_url?: string | null
+          size_class?: Database["public"]["Enums"]["size_class"]
+          theme_color?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          birthdate?: string | null
+          breed?: string
+          color?: string
+          competition_level?: Database["public"]["Enums"]["competition_level"]
+          created_at?: string
+          gender?: Database["public"]["Enums"]["dog_gender"]
+          id?: string
+          name?: string
+          notes?: string
+          photo_url?: string | null
+          size_class?: Database["public"]["Enums"]["size_class"]
+          theme_color?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      planned_competitions: {
+        Row: {
+          created_at: string
+          date: string
+          dog_id: string
+          event_name: string
+          id: string
+          location: string
+          reminder_days_before: number
+          signup_url: string
+          status: Database["public"]["Enums"]["competition_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          dog_id: string
+          event_name: string
+          id?: string
+          location?: string
+          reminder_days_before?: number
+          signup_url?: string
+          status?: Database["public"]["Enums"]["competition_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          dog_id?: string
+          event_name?: string
+          id?: string
+          location?: string
+          reminder_days_before?: number
+          signup_url?: string
+          status?: Database["public"]["Enums"]["competition_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planned_competitions_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      training_sessions: {
+        Row: {
+          created_at: string
+          date: string
+          dog_energy: number
+          dog_id: string
+          duration_min: number
+          handler_energy: number
+          id: string
+          notes_good: string
+          notes_improve: string
+          reps: number
+          tags: string[]
+          type: Database["public"]["Enums"]["training_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          dog_energy?: number
+          dog_id: string
+          duration_min?: number
+          handler_energy?: number
+          id?: string
+          notes_good?: string
+          notes_improve?: string
+          reps?: number
+          tags?: string[]
+          type?: Database["public"]["Enums"]["training_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          dog_energy?: number
+          dog_id?: string
+          duration_min?: number
+          handler_energy?: number
+          id?: string
+          notes_good?: string
+          notes_improve?: string
+          reps?: number
+          tags?: string[]
+          type?: Database["public"]["Enums"]["training_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_sessions_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +268,19 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      competition_level: "Nollklass" | "K1" | "K2" | "K3"
+      competition_status: "sparad" | "anmäld" | "bekräftad" | "genomförd"
+      discipline: "Agility" | "Jumping" | "Nollklass"
+      dog_gender: "Hane" | "Tik"
+      size_class: "XS" | "S" | "M" | "L"
+      training_type:
+        | "Bana"
+        | "Hinder"
+        | "Kontakt"
+        | "Vändning"
+        | "Distans"
+        | "Freestyle"
+        | "Annan"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +407,21 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      competition_level: ["Nollklass", "K1", "K2", "K3"],
+      competition_status: ["sparad", "anmäld", "bekräftad", "genomförd"],
+      discipline: ["Agility", "Jumping", "Nollklass"],
+      dog_gender: ["Hane", "Tik"],
+      size_class: ["XS", "S", "M", "L"],
+      training_type: [
+        "Bana",
+        "Hinder",
+        "Kontakt",
+        "Vändning",
+        "Distans",
+        "Freestyle",
+        "Annan",
+      ],
+    },
   },
 } as const

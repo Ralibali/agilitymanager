@@ -6,7 +6,7 @@ import { AddCompetitionDialog } from '@/components/AddCompetitionDialog';
 import { DogAvatar } from '@/components/DogAvatar';
 import { store } from '@/lib/store';
 import type { Dog, TrainingSession, CompetitionResult, PlannedCompetition } from '@/types';
-import { Dumbbell, Trophy, Flame, Calendar, Sparkles, ArrowRight } from 'lucide-react';
+import { Dumbbell, Trophy, Flame, Calendar, Sparkles, ArrowRight, Timer, Heart, Map } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { format, differenceInDays } from 'date-fns';

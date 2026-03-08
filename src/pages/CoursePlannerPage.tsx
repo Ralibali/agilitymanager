@@ -58,7 +58,7 @@ export default function CoursePlannerPage() {
   // Load saved courses
   useEffect(() => {
     supabase.from('saved_courses').select('*').order('created_at', { ascending: false }).then(({ data }) => {
-      if (data) setSavedCourses(data as SavedCourse[]);
+    if (data) setSavedCourses(data as unknown as SavedCourse[]);
     });
   }, []);
 

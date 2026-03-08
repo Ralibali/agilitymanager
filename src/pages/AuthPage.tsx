@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,12 +37,14 @@ export default function AuthPage() {
     }
 
     if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast({ title: 'Inloggningsfel', description: error.message, variant: 'destructive' });
+      } else if (data.user) {
+        navigate('/dashboard', { replace: true });
       }
     } else {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -50,8 +54,12 @@ export default function AuthPage() {
       });
       if (error) {
         toast({ title: 'Registreringsfel', description: error.message, variant: 'destructive' });
+      } else if (data.session) {
+        toast({ title: 'Konto skapat!', description: 'Du är nu inloggad.' });
+        navigate('/dashboard', { replace: true });
       } else {
-        toast({ title: 'Konto skapat!', description: 'Kolla din e-post för att verifiera kontot.' });
+        toast({ title: 'Konto skapat!', description: 'Du kan logga in direkt nu.' });
+        setIsLogin(true);
       }
     }
     setLoading(false);

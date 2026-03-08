@@ -9,6 +9,9 @@ import Index from "./pages/Index";
 import DogsPage from "./pages/DogsPage";
 import TrainingPage from "./pages/TrainingPage";
 import CompetitionPage from "./pages/CompetitionPage";
+import StopwatchPage from "./pages/StopwatchPage";
+import HealthPage from "./pages/HealthPage";
+import CoursePlannerPage from "./pages/CoursePlannerPage";
 import StatsPage from "./pages/StatsPage";
 import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
@@ -37,6 +40,9 @@ function ProtectedRoutes() {
         <Route path="/dogs" element={<DogsPage />} />
         <Route path="/training" element={<TrainingPage />} />
         <Route path="/competition" element={<CompetitionPage />} />
+        <Route path="/stopwatch" element={<StopwatchPage />} />
+        <Route path="/health" element={<HealthPage />} />
+        <Route path="/course-planner" element={<CoursePlannerPage />} />
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFound />} />

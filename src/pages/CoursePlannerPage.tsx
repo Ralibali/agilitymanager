@@ -39,6 +39,13 @@ const OBSTACLE_TYPES = [
   { type: 'finish', label: 'Mål', color: 'hsl(0, 70%, 50%)', width: 30, height: 6 },
 ];
 
+const CANVAS_SIZES = [
+  { label: 'Liten (320×400)', width: 320, height: 400 },
+  { label: 'Medium (360×500)', width: 360, height: 500 },
+  { label: 'Stor (420×600)', width: 420, height: 600 },
+  { label: 'XL (500×700)', width: 500, height: 700 },
+];
+
 let idCounter = 0;
 const nextId = () => `obs_${++idCounter}_${Date.now()}`;
 
@@ -52,9 +59,10 @@ export default function CoursePlannerPage() {
   const [courseName, setCourseName] = useState('');
   const [saveOpen, setSaveOpen] = useState(false);
   const [loadOpen, setLoadOpen] = useState(false);
+  const [canvasSize, setCanvasSize] = useState(CANVAS_SIZES[1]); // Medium default
 
-  const canvasWidth = 360;
-  const canvasHeight = 500;
+  const canvasWidth = canvasSize.width;
+  const canvasHeight = canvasSize.height;
 
   // Load saved courses
   useEffect(() => {

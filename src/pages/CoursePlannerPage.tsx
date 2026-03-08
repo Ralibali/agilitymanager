@@ -6,8 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Trash2, RotateCcw, Plus, FolderOpen } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 type Obstacle = {
@@ -23,18 +22,23 @@ type SavedCourse = {
   id: string;
   name: string;
   course_data: Obstacle[];
+  canvas_width: number;
+  canvas_height: number;
   created_at: string;
 };
 
 const OBSTACLE_TYPES = [
   { type: 'jump', label: 'Hopp', color: 'hsl(221, 79%, 48%)', width: 40, height: 8 },
+  { type: 'long_jump', label: 'Långhopp', color: 'hsl(221, 60%, 58%)', width: 50, height: 16 },
+  { type: 'oxer', label: 'Oxer', color: 'hsl(200, 70%, 45%)', width: 40, height: 14 },
+  { type: 'wall', label: 'Muren', color: 'hsl(30, 30%, 50%)', width: 36, height: 20 },
   { type: 'tunnel', label: 'Tunnel', color: 'hsl(152, 60%, 42%)', width: 60, height: 20 },
   { type: 'a_frame', label: 'A-hinder', color: 'hsl(16, 100%, 60%)', width: 36, height: 36 },
   { type: 'dog_walk', label: 'Brygga', color: 'hsl(45, 90%, 50%)', width: 80, height: 12 },
   { type: 'seesaw', label: 'Vipp', color: 'hsl(270, 60%, 55%)', width: 60, height: 10 },
+  { type: 'balance', label: 'Balans', color: 'hsl(180, 50%, 45%)', width: 70, height: 10 },
   { type: 'weave', label: 'Slalom', color: 'hsl(340, 70%, 55%)', width: 50, height: 10 },
   { type: 'tire', label: 'Däck', color: 'hsl(200, 70%, 50%)', width: 24, height: 24 },
-  { type: 'table', label: 'Bord', color: 'hsl(30, 60%, 45%)', width: 30, height: 30 },
   { type: 'start', label: 'Start', color: 'hsl(120, 60%, 40%)', width: 30, height: 6 },
   { type: 'finish', label: 'Mål', color: 'hsl(0, 70%, 50%)', width: 30, height: 6 },
 ];
@@ -44,6 +48,56 @@ const CANVAS_SIZES = [
   { label: 'Medium (360×500)', width: 360, height: 500 },
   { label: 'Stor (420×600)', width: 420, height: 600 },
   { label: 'XL (500×700)', width: 500, height: 700 },
+];
+
+// Scale factor: 1 canvas pixel ≈ 0.05m (adjustable per canvas size)
+const METERS_PER_PX = 0.05;
+
+const PRESET_COURSES: { name: string; obstacles: Obstacle[] }[] = [
+  {
+    name: 'Nybörjarbana (6 hinder)',
+    obstacles: [
+      { id: 'p1', type: 'start', x: 180, y: 450, rotation: 0, label: 'Start' },
+      { id: 'p2', type: 'jump', x: 180, y: 380, rotation: 0, label: 'Hopp' },
+      { id: 'p3', type: 'tunnel', x: 180, y: 300, rotation: 0, label: 'Tunnel' },
+      { id: 'p4', type: 'jump', x: 120, y: 220, rotation: 45, label: 'Hopp' },
+      { id: 'p5', type: 'weave', x: 180, y: 140, rotation: 0, label: 'Slalom' },
+      { id: 'p6', type: 'jump', x: 240, y: 80, rotation: 0, label: 'Hopp' },
+      { id: 'p7', type: 'finish', x: 180, y: 30, rotation: 0, label: 'Mål' },
+    ],
+  },
+  {
+    name: 'Kontaktbana (8 hinder)',
+    obstacles: [
+      { id: 'c1', type: 'start', x: 80, y: 460, rotation: 0, label: 'Start' },
+      { id: 'c2', type: 'jump', x: 80, y: 390, rotation: 0, label: 'Hopp' },
+      { id: 'c3', type: 'a_frame', x: 160, y: 330, rotation: 0, label: 'A-hinder' },
+      { id: 'c4', type: 'tunnel', x: 260, y: 270, rotation: 90, label: 'Tunnel' },
+      { id: 'c5', type: 'dog_walk', x: 180, y: 200, rotation: 0, label: 'Brygga' },
+      { id: 'c6', type: 'seesaw', x: 100, y: 140, rotation: 0, label: 'Vipp' },
+      { id: 'c7', type: 'jump', x: 200, y: 80, rotation: 30, label: 'Hopp' },
+      { id: 'c8', type: 'weave', x: 280, y: 40, rotation: 0, label: 'Slalom' },
+      { id: 'c9', type: 'finish', x: 280, y: 10, rotation: 0, label: 'Mål' },
+    ],
+  },
+  {
+    name: 'Tävlingsbana K1 (12 hinder)',
+    obstacles: [
+      { id: 't1', type: 'start', x: 60, y: 470, rotation: 0, label: 'Start' },
+      { id: 't2', type: 'jump', x: 60, y: 420, rotation: 0, label: 'Hopp' },
+      { id: 't3', type: 'jump', x: 130, y: 370, rotation: 30, label: 'Hopp' },
+      { id: 't4', type: 'tunnel', x: 240, y: 340, rotation: 90, label: 'Tunnel' },
+      { id: 't5', type: 'a_frame', x: 300, y: 270, rotation: 0, label: 'A-hinder' },
+      { id: 't6', type: 'jump', x: 220, y: 220, rotation: 0, label: 'Hopp' },
+      { id: 't7', type: 'weave', x: 120, y: 190, rotation: 0, label: 'Slalom' },
+      { id: 't8', type: 'dog_walk', x: 180, y: 140, rotation: 0, label: 'Brygga' },
+      { id: 't9', type: 'long_jump', x: 280, y: 110, rotation: 0, label: 'Långhopp' },
+      { id: 't10', type: 'tire', x: 200, y: 70, rotation: 0, label: 'Däck' },
+      { id: 't11', type: 'seesaw', x: 100, y: 40, rotation: 0, label: 'Vipp' },
+      { id: 't12', type: 'jump', x: 60, y: 15, rotation: 0, label: 'Hopp' },
+      { id: 't13', type: 'finish', x: 60, y: 5, rotation: 0, label: 'Mål' },
+    ],
+  },
 ];
 
 let idCounter = 0;
@@ -59,19 +113,25 @@ export default function CoursePlannerPage() {
   const [courseName, setCourseName] = useState('');
   const [saveOpen, setSaveOpen] = useState(false);
   const [loadOpen, setLoadOpen] = useState(false);
-  const [canvasSize, setCanvasSize] = useState(CANVAS_SIZES[1]); // Medium default
+  const [showDistances, setShowDistances] = useState(true);
+  const [canvasSize, setCanvasSize] = useState(CANVAS_SIZES[1]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canvasWidth = canvasSize.width;
   const canvasHeight = canvasSize.height;
 
-  // Load saved courses
   useEffect(() => {
     supabase.from('saved_courses').select('*').order('created_at', { ascending: false }).then(({ data }) => {
-    if (data) setSavedCourses(data as unknown as SavedCourse[]);
+      if (data) setSavedCourses(data as unknown as SavedCourse[]);
     });
   }, []);
 
-  // Draw canvas
+  const distBetween = (a: Obstacle, b: Obstacle) => {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy) * METERS_PER_PX;
+  };
+
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -83,7 +143,7 @@ export default function CoursePlannerPage() {
     canvas.height = canvasHeight * dpr;
     ctx.scale(dpr, dpr);
 
-    // Background - grass green
+    // Background
     ctx.fillStyle = 'hsl(120, 30%, 92%)';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
@@ -97,20 +157,38 @@ export default function CoursePlannerPage() {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvasWidth, y); ctx.stroke();
     }
 
-    // Draw numbered path
+    // Path lines + distance labels
     if (obstacles.length > 1) {
       ctx.strokeStyle = 'hsl(0, 0%, 60%)';
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 4]);
       ctx.beginPath();
       obstacles.forEach((obs, i) => {
-        const cx = obs.x;
-        const cy = obs.y;
-        if (i === 0) ctx.moveTo(cx, cy);
-        else ctx.lineTo(cx, cy);
+        if (i === 0) ctx.moveTo(obs.x, obs.y);
+        else ctx.lineTo(obs.x, obs.y);
       });
       ctx.stroke();
       ctx.setLineDash([]);
+
+      // Distance labels between consecutive obstacles
+      if (showDistances) {
+        ctx.font = '9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (let i = 1; i < obstacles.length; i++) {
+          const a = obstacles[i - 1];
+          const b = obstacles[i];
+          const mx = (a.x + b.x) / 2;
+          const my = (a.y + b.y) / 2;
+          const dist = distBetween(a, b);
+          ctx.fillStyle = 'hsla(0, 0%, 100%, 0.85)';
+          const text = `${dist.toFixed(1)}m`;
+          const tw = ctx.measureText(text).width + 6;
+          ctx.fillRect(mx - tw / 2, my - 6, tw, 12);
+          ctx.fillStyle = 'hsl(0, 0%, 35%)';
+          ctx.fillText(text, mx, my);
+        }
+      }
     }
 
     // Draw obstacles
@@ -125,12 +203,18 @@ export default function CoursePlannerPage() {
       const hw = info.width / 2;
       const hh = info.height / 2;
 
-      // Shape
       ctx.fillStyle = info.color;
+
+      // Draw shapes by type
       if (obs.type === 'tire') {
         ctx.beginPath();
         ctx.arc(0, 0, hw, 0, Math.PI * 2);
         ctx.fill();
+        ctx.strokeStyle = 'hsla(0,0%,0%,0.3)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, hw * 0.6, 0, Math.PI * 2);
+        ctx.stroke();
       } else if (obs.type === 'a_frame') {
         ctx.beginPath();
         ctx.moveTo(-hw, hh);
@@ -138,29 +222,65 @@ export default function CoursePlannerPage() {
         ctx.lineTo(hw, hh);
         ctx.closePath();
         ctx.fill();
+      } else if (obs.type === 'wall') {
+        ctx.fillRect(-hw, -hh, info.width, info.height);
+        // Brick pattern
+        ctx.strokeStyle = 'hsla(0,0%,100%,0.3)';
+        ctx.lineWidth = 0.5;
+        for (let r = -hh + 5; r < hh; r += 5) {
+          ctx.beginPath(); ctx.moveTo(-hw, r); ctx.lineTo(hw, r); ctx.stroke();
+        }
+      } else if (obs.type === 'long_jump') {
+        // Multiple bars
+        for (let j = 0; j < 3; j++) {
+          ctx.fillRect(-hw, -hh + j * 6, info.width, 3);
+        }
+      } else if (obs.type === 'oxer') {
+        ctx.fillRect(-hw, -hh, info.width, 4);
+        ctx.fillRect(-hw, hh - 4, info.width, 4);
+      } else if (obs.type === 'balance') {
+        ctx.fillRect(-hw, -hh, info.width, info.height);
+        ctx.strokeStyle = 'hsla(0,0%,100%,0.4)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0);
+        ctx.stroke();
       } else {
         ctx.fillRect(-hw, -hh, info.width, info.height);
       }
 
-      // Selection border + drag handle
+      // Rotation indicator arrow
+      if (obs.rotation !== 0) {
+        ctx.fillStyle = 'hsla(0,0%,100%,0.8)';
+        ctx.beginPath();
+        ctx.moveTo(0, -hh - 2);
+        ctx.lineTo(-4, -hh - 8);
+        ctx.lineTo(4, -hh - 8);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Selection border
       if (selected === obs.id) {
         ctx.strokeStyle = 'hsl(221, 79%, 48%)';
         ctx.lineWidth = 2;
         ctx.setLineDash([4, 3]);
         ctx.strokeRect(-hw - 4, -hh - 4, info.width + 8, info.height + 8);
         ctx.setLineDash([]);
-        // Move icon hint
-        ctx.fillStyle = 'hsl(221, 79%, 48%)';
-        ctx.globalAlpha = 0.7;
-        ctx.beginPath();
-        ctx.arc(hw + 2, -hh - 2, 6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 8px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('✥', hw + 2, -hh - 2);
+        // Rotation angle badge
+        if (obs.rotation !== 0) {
+          ctx.fillStyle = 'hsl(221, 79%, 48%)';
+          ctx.globalAlpha = 0.85;
+          const badge = `${obs.rotation}°`;
+          ctx.font = 'bold 9px sans-serif';
+          const bw = ctx.measureText(badge).width + 6;
+          ctx.fillRect(hw + 2, -hh - 10, bw, 14);
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = '#fff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(badge, hw + 2 + bw / 2, -hh - 3);
+        }
       }
 
       ctx.restore();
@@ -169,24 +289,18 @@ export default function CoursePlannerPage() {
       ctx.fillStyle = 'hsl(0, 0%, 20%)';
       ctx.font = 'bold 11px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`${i + 1}`, obs.x, obs.y - (OBSTACLE_TYPES.find(o => o.type === obs.type)?.height || 10) / 2 - 6);
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(`${i + 1}`, obs.x, obs.y - (info.height || 10) / 2 - 4);
     });
-  }, [obstacles, selected]);
+  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight]);
 
   useEffect(() => { draw(); }, [draw]);
 
   const addObstacle = (type: string) => {
     const info = OBSTACLE_TYPES.find(o => o.type === type)!;
-    const newObs: Obstacle = {
-      id: nextId(),
-      type,
-      x: canvasWidth / 2,
-      y: canvasHeight / 2,
-      rotation: 0,
-      label: info.label,
-    };
-    setObstacles(prev => [...prev, newObs]);
-    setSelected(newObs.id);
+    setObstacles(prev => [...prev, {
+      id: nextId(), type, x: canvasWidth / 2, y: canvasHeight / 2, rotation: 0, label: info.label,
+    }]);
   };
 
   const findObstacleAt = (x: number, y: number): Obstacle | null => {
@@ -196,9 +310,7 @@ export default function CoursePlannerPage() {
       if (!info) continue;
       const hw = Math.max(info.width, 24) / 2;
       const hh = Math.max(info.height, 24) / 2;
-      if (Math.abs(x - obs.x) <= hw + 10 && Math.abs(y - obs.y) <= hh + 10) {
-        return obs;
-      }
+      if (Math.abs(x - obs.x) <= hw + 10 && Math.abs(y - obs.y) <= hh + 10) return obs;
     }
     return null;
   };
@@ -208,21 +320,13 @@ export default function CoursePlannerPage() {
     const rect = canvas.getBoundingClientRect();
     let clientX: number, clientY: number;
     if ('touches' in e && e.touches.length > 0) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
+      clientX = e.touches[0].clientX; clientY = e.touches[0].clientY;
     } else if ('changedTouches' in e && e.changedTouches.length > 0) {
-      clientX = e.changedTouches[0].clientX;
-      clientY = e.changedTouches[0].clientY;
+      clientX = e.changedTouches[0].clientX; clientY = e.changedTouches[0].clientY;
     } else if ('clientX' in e) {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    } else {
-      return { x: 0, y: 0 };
-    }
-    return {
-      x: (clientX - rect.left) * (canvasWidth / rect.width),
-      y: (clientY - rect.top) * (canvasHeight / rect.height),
-    };
+      clientX = e.clientX; clientY = e.clientY;
+    } else return { x: 0, y: 0 };
+    return { x: (clientX - rect.left) * (canvasWidth / rect.width), y: (clientY - rect.top) * (canvasHeight / rect.height) };
   };
 
   const handlePointerDown = (e: React.MouseEvent | React.TouchEvent) => {
@@ -246,12 +350,12 @@ export default function CoursePlannerPage() {
     ));
   };
 
-  const handlePointerUp = () => { setDragging(null); };
+  const handlePointerUp = () => setDragging(null);
 
   const rotateSelected = () => {
     if (!selected) return;
     setObstacles(prev => prev.map(o =>
-      o.id === selected ? { ...o, rotation: (o.rotation + 45) % 360 } : o
+      o.id === selected ? { ...o, rotation: (o.rotation + 15) % 360 } : o
     ));
   };
 
@@ -266,26 +370,24 @@ export default function CoursePlannerPage() {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) return;
     const { error } = await supabase.from('saved_courses').insert({
-      user_id: userId,
-      name: courseName.trim(),
-      course_data: obstacles as any,
-      canvas_width: canvasWidth,
-      canvas_height: canvasHeight,
+      user_id: userId, name: courseName.trim(), course_data: obstacles as any,
+      canvas_width: canvasWidth, canvas_height: canvasHeight,
     });
-    if (error) {
-      toast.error('Kunde inte spara');
-    } else {
+    if (error) { toast.error('Kunde inte spara'); }
+    else {
       toast.success('Bana sparad!');
-      setSaveOpen(false);
-      setCourseName('');
-      supabase.from('saved_courses').select('*').order('created_at', { ascending: false }).then(({ data }) => {
-        if (data) setSavedCourses(data as unknown as SavedCourse[]);
-      });
+      setSaveOpen(false); setCourseName('');
+      const { data } = await supabase.from('saved_courses').select('*').order('created_at', { ascending: false });
+      if (data) setSavedCourses(data as unknown as SavedCourse[]);
     }
   };
 
   const loadCourse = (course: SavedCourse) => {
     setObstacles(course.course_data);
+    if (course.canvas_width && course.canvas_height) {
+      const match = CANVAS_SIZES.find(s => s.width === course.canvas_width && s.height === course.canvas_height);
+      if (match) setCanvasSize(match);
+    }
     setLoadOpen(false);
     toast.success(`Laddade "${course.name}"`);
   };
@@ -296,10 +398,61 @@ export default function CoursePlannerPage() {
     toast.success('Bana raderad');
   };
 
+  const exportPNG = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const link = document.createElement('a');
+    link.download = 'agility-bana.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    toast.success('Bana exporterad som PNG');
+  };
+
+  const exportJSON = () => {
+    const data = JSON.stringify({ obstacles, canvasWidth, canvasHeight }, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = 'agility-bana.json';
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success('Bana exporterad som JSON');
+  };
+
+  const importJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.target?.result as string);
+        if (parsed.obstacles && Array.isArray(parsed.obstacles)) {
+          setObstacles(parsed.obstacles);
+          if (parsed.canvasWidth && parsed.canvasHeight) {
+            const match = CANVAS_SIZES.find(s => s.width === parsed.canvasWidth && s.height === parsed.canvasHeight);
+            if (match) setCanvasSize(match);
+          }
+          toast.success('Bana importerad!');
+        } else {
+          toast.error('Ogiltig fil');
+        }
+      } catch { toast.error('Kunde inte läsa filen'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const loadPreset = (preset: typeof PRESET_COURSES[0]) => {
+    setObstacles(preset.obstacles.map(o => ({ ...o, id: nextId() })));
+    setLoadOpen(false);
+    toast.success(`Laddade "${preset.name}"`);
+  };
+
   return (
     <PageContainer title="Banplanerare" subtitle="Rita agility-banor">
-      {/* Size selector + Toolbar */}
-      <div className="flex gap-2 mb-3 items-center flex-wrap">
+      {/* Toolbar row 1 */}
+      <div className="flex gap-2 mb-2 items-center flex-wrap">
         <Select
           value={`${canvasSize.width}x${canvasSize.height}`}
           onValueChange={(v) => {
@@ -307,7 +460,7 @@ export default function CoursePlannerPage() {
             if (s) setCanvasSize(s);
           }}
         >
-          <SelectTrigger className="w-[160px] h-8 text-xs">
+          <SelectTrigger className="w-[140px] h-8 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -316,66 +469,98 @@ export default function CoursePlannerPage() {
             ))}
           </SelectContent>
         </Select>
+
         <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1" disabled={obstacles.length === 0}>
+            <Button variant="outline" size="sm" className="gap-1 h-8" disabled={obstacles.length === 0}>
               <Save size={14} /> Spara
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle className="font-display">Spara bana</DialogTitle></DialogHeader>
             <div className="space-y-3 pt-2">
-              <div>
-                <Label>Namn</Label>
-                <Input value={courseName} onChange={e => setCourseName(e.target.value)} placeholder="T.ex. Söndagsträning" />
-              </div>
-              <Button onClick={handleSave} className="w-full gradient-primary text-primary-foreground" disabled={!courseName.trim()}>
-                Spara
-              </Button>
+              <div><Label>Namn</Label><Input value={courseName} onChange={e => setCourseName(e.target.value)} placeholder="T.ex. Söndagsträning" /></div>
+              <Button onClick={handleSave} className="w-full gradient-primary text-primary-foreground" disabled={!courseName.trim()}>Spara</Button>
             </div>
           </DialogContent>
         </Dialog>
 
         <Dialog open={loadOpen} onOpenChange={setLoadOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1">
+            <Button variant="outline" size="sm" className="gap-1 h-8">
               <FolderOpen size={14} /> Ladda
             </Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle className="font-display">Sparade banor</DialogTitle></DialogHeader>
-            {savedCourses.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">Inga sparade banor.</p>
-            ) : (
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {savedCourses.map(c => (
-                  <div key={c.id} className="flex items-center justify-between bg-secondary rounded-lg p-3">
-                    <button onClick={() => loadCourse(c)} className="text-sm font-medium text-foreground text-left flex-1">
-                      {c.name}
-                    </button>
-                    <button onClick={() => handleDeleteCourse(c.id)} className="text-muted-foreground hover:text-destructive ml-2">
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+          <DialogContent className="max-h-[80vh] overflow-y-auto">
+            <DialogHeader><DialogTitle className="font-display">Ladda bana</DialogTitle></DialogHeader>
+
+            {/* Presets */}
+            <div className="mb-4">
+              <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1"><Sparkles size={12} /> Färdiga exempelbanor</h3>
+              <div className="space-y-1.5">
+                {PRESET_COURSES.map((p, i) => (
+                  <button key={i} onClick={() => loadPreset(p)}
+                    className="w-full text-left text-sm font-medium text-foreground bg-primary/5 hover:bg-primary/10 rounded-lg p-2.5 transition-colors">
+                    {p.name}
+                  </button>
                 ))}
               </div>
-            )}
+            </div>
+
+            {/* Saved courses */}
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground mb-2">Dina sparade banor</h3>
+              {savedCourses.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-2 text-center">Inga sparade banor.</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {savedCourses.map(c => (
+                    <div key={c.id} className="flex items-center justify-between bg-secondary rounded-lg p-2.5">
+                      <button onClick={() => loadCourse(c)} className="text-sm font-medium text-foreground text-left flex-1">{c.name}</button>
+                      <button onClick={() => handleDeleteCourse(c.id)} className="text-muted-foreground hover:text-destructive ml-2"><Trash2 size={14} /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
 
         {selected && (
           <>
-            <Button variant="outline" size="sm" onClick={rotateSelected} className="gap-1">
-              <RotateCcw size={14} /> Rotera
+            <Button variant="outline" size="sm" onClick={rotateSelected} className="gap-1 h-8">
+              <RotateCcw size={14} /> 15°
             </Button>
-            <Button variant="outline" size="sm" onClick={deleteSelected} className="gap-1 text-destructive">
-              <Trash2 size={14} /> Ta bort
+            <Button variant="outline" size="sm" onClick={deleteSelected} className="gap-1 h-8 text-destructive">
+              <Trash2 size={14} />
             </Button>
           </>
         )}
-        <Button variant="outline" size="sm" onClick={() => { setObstacles([]); setSelected(null); }} className="gap-1 ml-auto">
+
+        <Button variant="outline" size="sm" onClick={() => { setObstacles([]); setSelected(null); }} className="gap-1 h-8 ml-auto">
           Rensa
         </Button>
+      </div>
+
+      {/* Toolbar row 2: export/import + distance toggle */}
+      <div className="flex gap-2 mb-3 items-center flex-wrap">
+        <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={exportPNG} disabled={obstacles.length === 0}>
+          <Download size={12} /> PNG
+        </Button>
+        <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={exportJSON} disabled={obstacles.length === 0}>
+          <Download size={12} /> JSON
+        </Button>
+        <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => fileInputRef.current?.click()}>
+          <Upload size={12} /> Importera
+        </Button>
+        <input ref={fileInputRef} type="file" accept=".json" onChange={importJSON} className="hidden" />
+
+        <button
+          onClick={() => setShowDistances(!showDistances)}
+          className={`ml-auto text-xs px-2 py-0.5 rounded-full border transition-colors ${showDistances ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
+        >
+          {showDistances ? '📏 Mått på' : '📏 Mått av'}
+        </button>
       </div>
 
       {/* Obstacle palette */}
@@ -393,7 +578,7 @@ export default function CoursePlannerPage() {
       </div>
 
       {/* Canvas */}
-      <div className="bg-card rounded-xl shadow-elevated overflow-hidden mb-4">
+      <div className="bg-card rounded-xl shadow-elevated overflow-auto mb-4">
         <canvas
           ref={canvasRef}
           style={{ width: canvasWidth, height: canvasHeight, touchAction: 'none', display: 'block', margin: '0 auto', cursor: dragging ? 'grabbing' : 'grab' }}
@@ -408,7 +593,7 @@ export default function CoursePlannerPage() {
       </div>
 
       <p className="text-xs text-muted-foreground text-center">
-        Tryck på ett hinder i paletten för att lägga till. Dra för att flytta. {obstacles.length} hinder på banan.
+        Dra hinder för att flytta. Rotera i 15°-steg. {obstacles.length} hinder på banan.
       </p>
     </PageContainer>
   );

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Crown, Sparkles, LogOut, ExternalLink } from 'lucide-react';
 
 const premiumFeatures = [
-  { title: 'AI-coach Axel', desc: 'Personliga träningstips baserat på dina loggar' },
+  
   { title: 'Avancerad statistik', desc: 'Diagram, trender och felanalys' },
   { title: 'Banplanerare', desc: 'Rita och spara egna träningsbanor' },
   { title: 'Videoanteckningar', desc: 'Tidsstämplade anteckningar i träningsvideo' },

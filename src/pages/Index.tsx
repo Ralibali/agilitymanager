@@ -107,6 +107,42 @@ const Index = () => {
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-6">
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => navigate('/stopwatch')}
+          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center"
+        >
+          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+            <Timer size={18} className="text-primary" />
+          </div>
+          <span className="text-xs font-medium text-foreground">Tidtagarur</span>
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => navigate('/health')}
+          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center"
+        >
+          <div className="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center">
+            <Heart size={18} className="text-accent" />
+          </div>
+          <span className="text-xs font-medium text-foreground">Hälsa</span>
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => navigate('/course-planner')}
+          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center"
+        >
+          <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center">
+            <Map size={18} className="text-foreground" />
+          </div>
+          <span className="text-xs font-medium text-foreground">Banplanerare</span>
+        </motion.button>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3 mb-6">
         <motion.div whileHover={{ scale: 1.02 }} className="bg-card p-3 rounded-xl shadow-card text-center">
           <Flame size={20} className="text-accent mx-auto mb-1" />
           <div className="text-xl font-bold font-display text-foreground">{streak}</div>

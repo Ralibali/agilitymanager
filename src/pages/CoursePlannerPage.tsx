@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, Trash2, RotateCcw, Plus, FolderOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -38,6 +39,13 @@ const OBSTACLE_TYPES = [
   { type: 'finish', label: 'Mål', color: 'hsl(0, 70%, 50%)', width: 30, height: 6 },
 ];
 
+const CANVAS_SIZES = [
+  { label: 'Liten (320×400)', width: 320, height: 400 },
+  { label: 'Medium (360×500)', width: 360, height: 500 },
+  { label: 'Stor (420×600)', width: 420, height: 600 },
+  { label: 'XL (500×700)', width: 500, height: 700 },
+];
+
 let idCounter = 0;
 const nextId = () => `obs_${++idCounter}_${Date.now()}`;
 
@@ -51,9 +59,10 @@ export default function CoursePlannerPage() {
   const [courseName, setCourseName] = useState('');
   const [saveOpen, setSaveOpen] = useState(false);
   const [loadOpen, setLoadOpen] = useState(false);
+  const [canvasSize, setCanvasSize] = useState(CANVAS_SIZES[1]); // Medium default
 
-  const canvasWidth = 360;
-  const canvasHeight = 500;
+  const canvasWidth = canvasSize.width;
+  const canvasHeight = canvasSize.height;
 
   // Load saved courses
   useEffect(() => {
@@ -264,8 +273,24 @@ export default function CoursePlannerPage() {
 
   return (
     <PageContainer title="Banplanerare" subtitle="Rita agility-banor">
-      {/* Toolbar */}
-      <div className="flex gap-2 mb-3 flex-wrap">
+      {/* Size selector + Toolbar */}
+      <div className="flex gap-2 mb-3 items-center flex-wrap">
+        <Select
+          value={`${canvasSize.width}x${canvasSize.height}`}
+          onValueChange={(v) => {
+            const s = CANVAS_SIZES.find(s => `${s.width}x${s.height}` === v);
+            if (s) setCanvasSize(s);
+          }}
+        >
+          <SelectTrigger className="w-[160px] h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {CANVAS_SIZES.map(s => (
+              <SelectItem key={`${s.width}x${s.height}`} value={`${s.width}x${s.height}`}>{s.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="gap-1" disabled={obstacles.length === 0}>

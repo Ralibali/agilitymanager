@@ -194,10 +194,11 @@ export default function CoursePlannerPage() {
       const obs = obstacles[i];
       const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
       if (!info) continue;
-      const hw = Math.max(info.width, 20) / 2;
-      const hh = Math.max(info.height, 20) / 2;
-      if (Math.abs(x - obs.x) <= hw + 5 && Math.abs(y - obs.y) <= hh + 5) {
+      const hw = Math.max(info.width, 24) / 2;
+      const hh = Math.max(info.height, 24) / 2;
+      if (Math.abs(x - obs.x) <= hw + 10 && Math.abs(y - obs.y) <= hh + 10) {
         return obs;
+      }
       }
     }
     return null;

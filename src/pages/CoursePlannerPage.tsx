@@ -142,11 +142,25 @@ export default function CoursePlannerPage() {
         ctx.fillRect(-hw, -hh, info.width, info.height);
       }
 
-      // Selection border
+      // Selection border + drag handle
       if (selected === obs.id) {
         ctx.strokeStyle = 'hsl(221, 79%, 48%)';
         ctx.lineWidth = 2;
-        ctx.strokeRect(-hw - 3, -hh - 3, info.width + 6, info.height + 6);
+        ctx.setLineDash([4, 3]);
+        ctx.strokeRect(-hw - 4, -hh - 4, info.width + 8, info.height + 8);
+        ctx.setLineDash([]);
+        // Move icon hint
+        ctx.fillStyle = 'hsl(221, 79%, 48%)';
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.arc(hw + 2, -hh - 2, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 8px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('✥', hw + 2, -hh - 2);
       }
 
       ctx.restore();
@@ -180,9 +194,9 @@ export default function CoursePlannerPage() {
       const obs = obstacles[i];
       const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
       if (!info) continue;
-      const hw = Math.max(info.width, 20) / 2;
-      const hh = Math.max(info.height, 20) / 2;
-      if (Math.abs(x - obs.x) <= hw + 5 && Math.abs(y - obs.y) <= hh + 5) {
+      const hw = Math.max(info.width, 24) / 2;
+      const hh = Math.max(info.height, 24) / 2;
+      if (Math.abs(x - obs.x) <= hw + 10 && Math.abs(y - obs.y) <= hh + 10) {
         return obs;
       }
     }
@@ -192,8 +206,19 @@ export default function CoursePlannerPage() {
   const getCanvasPos = (e: React.TouchEvent | React.MouseEvent) => {
     const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    let clientX: number, clientY: number;
+    if ('touches' in e && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else if ('changedTouches' in e && e.changedTouches.length > 0) {
+      clientX = e.changedTouches[0].clientX;
+      clientY = e.changedTouches[0].clientY;
+    } else if ('clientX' in e) {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    } else {
+      return { x: 0, y: 0 };
+    }
     return {
       x: (clientX - rect.left) * (canvasWidth / rect.width),
       y: (clientY - rect.top) * (canvasHeight / rect.height),
@@ -371,7 +396,7 @@ export default function CoursePlannerPage() {
       <div className="bg-card rounded-xl shadow-elevated overflow-hidden mb-4">
         <canvas
           ref={canvasRef}
-          style={{ width: canvasWidth, height: canvasHeight, touchAction: 'none', display: 'block', margin: '0 auto' }}
+          style={{ width: canvasWidth, height: canvasHeight, touchAction: 'none', display: 'block', margin: '0 auto', cursor: dragging ? 'grabbing' : 'grab' }}
           onMouseDown={handlePointerDown}
           onMouseMove={handlePointerMove}
           onMouseUp={handlePointerUp}

@@ -127,6 +127,53 @@ export type Database = {
         }
         Relationships: []
       }
+      health_logs: {
+        Row: {
+          created_at: string
+          date: string
+          description: string
+          dog_id: string
+          id: string
+          next_date: string | null
+          title: string
+          type: string
+          user_id: string
+          weight_kg: number | null
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          description?: string
+          dog_id: string
+          id?: string
+          next_date?: string | null
+          title: string
+          type?: string
+          user_id: string
+          weight_kg?: number | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string
+          dog_id?: string
+          id?: string
+          next_date?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_logs_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       planned_competitions: {
         Row: {
           created_at: string
@@ -203,6 +250,86 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      saved_courses: {
+        Row: {
+          canvas_height: number
+          canvas_width: number
+          course_data: Json
+          created_at: string
+          description: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          canvas_height?: number
+          canvas_width?: number
+          course_data?: Json
+          created_at?: string
+          description?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          canvas_height?: number
+          canvas_width?: number
+          course_data?: Json
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      stopwatch_results: {
+        Row: {
+          created_at: string
+          date: string
+          dog_id: string
+          faults: number
+          id: string
+          notes: string
+          refusals: number
+          time_ms: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          dog_id: string
+          faults?: number
+          id?: string
+          notes?: string
+          refusals?: number
+          time_ms: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          dog_id?: string
+          faults?: number
+          id?: string
+          notes?: string
+          refusals?: number
+          time_ms?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stopwatch_results_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       training_sessions: {
         Row: {

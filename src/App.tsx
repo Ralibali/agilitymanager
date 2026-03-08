@@ -75,6 +75,7 @@ const App = () => (
               <Route path="/course-planner" element={<CoursePlannerPage />} />
               <Route path="/stats" element={<StatsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/index" element={<Navigate to="/dashboard" replace />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

@@ -273,8 +273,24 @@ export default function CoursePlannerPage() {
 
   return (
     <PageContainer title="Banplanerare" subtitle="Rita agility-banor">
-      {/* Toolbar */}
-      <div className="flex gap-2 mb-3 flex-wrap">
+      {/* Size selector + Toolbar */}
+      <div className="flex gap-2 mb-3 items-center flex-wrap">
+        <Select
+          value={`${canvasSize.width}x${canvasSize.height}`}
+          onValueChange={(v) => {
+            const s = CANVAS_SIZES.find(s => `${s.width}x${s.height}` === v);
+            if (s) setCanvasSize(s);
+          }}
+        >
+          <SelectTrigger className="w-[160px] h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {CANVAS_SIZES.map(s => (
+              <SelectItem key={`${s.width}x${s.height}`} value={`${s.width}x${s.height}`}>{s.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="gap-1" disabled={obstacles.length === 0}>

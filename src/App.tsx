@@ -2,9 +2,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { BottomNav } from "@/components/BottomNav";
+import LandingPage from "./pages/LandingPage";
 import Index from "./pages/Index";
 import DogsPage from "./pages/DogsPage";
 import TrainingPage from "./pages/TrainingPage";
@@ -20,7 +21,7 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoutes() {
+function ProtectedLayout() {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -35,21 +36,17 @@ function ProtectedRoutes() {
 
   return (
     <>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/dogs" element={<DogsPage />} />
-        <Route path="/training" element={<TrainingPage />} />
-        <Route path="/competition" element={<CompetitionPage />} />
-        <Route path="/stopwatch" element={<StopwatchPage />} />
-        <Route path="/health" element={<HealthPage />} />
-        <Route path="/course-planner" element={<CoursePlannerPage />} />
-        <Route path="/stats" element={<StatsPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Outlet />
       <BottomNav />
     </>
   );
+}
+
+function AuthGuard() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <Outlet />;
 }
 
 const App = () => (
@@ -60,9 +57,27 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/auth" element={<AuthPage />} />
+            {/* Public routes */}
+            <Route element={<AuthGuard />}>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/auth" element={<AuthPage />} />
+            </Route>
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/*" element={<ProtectedRoutes />} />
+
+            {/* Protected routes */}
+            <Route element={<ProtectedLayout />}>
+              <Route path="/dashboard" element={<Index />} />
+              <Route path="/dogs" element={<DogsPage />} />
+              <Route path="/training" element={<TrainingPage />} />
+              <Route path="/competition" element={<CompetitionPage />} />
+              <Route path="/stopwatch" element={<StopwatchPage />} />
+              <Route path="/health" element={<HealthPage />} />
+              <Route path="/course-planner" element={<CoursePlannerPage />} />
+              <Route path="/stats" element={<StatsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Route>
+
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

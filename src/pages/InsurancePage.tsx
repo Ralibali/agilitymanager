@@ -180,6 +180,15 @@ export default function InsurancePage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Jämför Hundförsäkring 2025 – Bästa Försäkringen för Agilityhundar | AgilityManager</title>
+        <meta name="description" content="Jämför hundförsäkringar för agilityhundar. Se priser, ersättningsnivåer och villkor från Lassie, Hedvig, Petson, Svedea och Sveland. Hitta bästa skyddet för din hund." />
+        <link rel="canonical" href="https://agilitymanager.lovable.app/hundforsakring" />
+        <meta property="og:title" content="Jämför Hundförsäkring 2025 – Bästa för Agilityhundar" />
+        <meta property="og:description" content="Interaktivt jämförelseverktyg för hundförsäkringar. Hitta rätt försäkring baserat på ras, ålder och om din hund tävlar i agility." />
+        <meta property="og:url" content="https://agilitymanager.lovable.app/hundforsakring" />
+        <meta property="og:type" content="website" />
+      </Helmet>
       {/* Header */}
       <header className="sticky top-0 z-40 bg-card/80 backdrop-blur-lg border-b border-border">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">

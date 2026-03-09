@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, Dumbbell, Trophy, Timer, Heart, Map, BarChart3, ArrowRight } from 'lucide-react';
+import { Sparkles, Dumbbell, Trophy, Timer, Heart, Map, BarChart3, ArrowRight, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const features = [

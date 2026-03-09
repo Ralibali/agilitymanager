@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/PageContainer';
 import { AddDogDialog } from '@/components/AddDogDialog';
 import { DogAvatar } from '@/components/DogAvatar';
+import { DogPhotoUpload } from '@/components/DogPhotoUpload';
 import { store } from '@/lib/store';
 import type { Dog } from '@/types';
 import { format } from 'date-fns';
@@ -41,7 +42,14 @@ export default function DogsPage() {
               className="bg-card rounded-xl p-4 shadow-card"
             >
               <div className="flex items-center gap-3">
-                <DogAvatar dog={dog} size="lg" />
+                <DogPhotoUpload
+                  dogId={dog.id}
+                  currentUrl={dog.photo_url}
+                  onUploaded={(url) => {
+                    setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, photo_url: url } : d));
+                  }}
+                  size="lg"
+                />
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display font-bold text-foreground text-lg">{dog.name}</h3>
                   <div className="text-sm text-muted-foreground">

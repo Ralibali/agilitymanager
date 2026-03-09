@@ -34,7 +34,13 @@ export default function CompetitionPage() {
   const [planned, setPlanned] = useState<PlannedCompetition[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
-
+  const [customItems, setCustomItems] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('custom-checklist');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [newItem, setNewItem] = useState('');
   const refresh = async () => {
     const [d, r, p] = await Promise.all([
       store.getDogs(),

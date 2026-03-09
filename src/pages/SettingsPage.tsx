@@ -3,10 +3,11 @@ import { PageContainer } from '@/components/PageContainer';
 import { useAuth, PLANS } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Crown, Sparkles, LogOut, ExternalLink, Check, Loader2, Settings } from 'lucide-react';
+import { Crown, Sparkles, LogOut, ExternalLink, Check, Loader2, Settings, Moon, Sun } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useSearchParams } from 'react-router-dom';
+import { useTheme } from 'next-themes';
 
 const premiumFeatures = [
   { title: 'Avancerad statistik', desc: 'Diagram, trender och felanalys' },

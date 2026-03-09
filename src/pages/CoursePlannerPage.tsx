@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
 
 type Obstacle = {
   id: string;
@@ -449,8 +450,11 @@ export default function CoursePlannerPage() {
     toast.success(`Laddade "${preset.name}"`);
   };
 
+  const isPremium = usePremium();
+
   return (
     <PageContainer title="Banplanerare" subtitle="Rita agility-banor">
+      <PremiumGate fullPage featureName="Banplaneraren">
       {/* Toolbar row 1 */}
       <div className="flex gap-2 mb-2 items-center flex-wrap">
         <Select
@@ -544,11 +548,11 @@ export default function CoursePlannerPage() {
 
       {/* Toolbar row 2: export/import + distance toggle */}
       <div className="flex gap-2 mb-3 items-center flex-wrap">
-        <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={exportPNG} disabled={obstacles.length === 0}>
-          <Download size={12} /> PNG
+        <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportPNG(); }} disabled={obstacles.length === 0}>
+          <Download size={12} /> PNG {!isPremium && <PremiumBadge />}
         </Button>
-        <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={exportJSON} disabled={obstacles.length === 0}>
-          <Download size={12} /> JSON
+        <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportJSON(); }} disabled={obstacles.length === 0}>
+          <Download size={12} /> JSON {!isPremium && <PremiumBadge />}
         </Button>
         <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => fileInputRef.current?.click()}>
           <Upload size={12} /> Importera
@@ -595,6 +599,7 @@ export default function CoursePlannerPage() {
       <p className="text-xs text-muted-foreground text-center">
         Dra hinder för att flytta. Rotera i 15°-steg. {obstacles.length} hinder på banan.
       </p>
+      </PremiumGate>
     </PageContainer>
   );
 }

@@ -90,6 +90,24 @@ export default function LandingPage() {
         </button>
       </section>
 
+      {/* Blog banner */}
+      <section className="px-4 pb-8 max-w-lg mx-auto">
+        <button
+          onClick={() => navigate('/blogg')}
+          className="w-full bg-card rounded-2xl p-6 shadow-card text-left hover:shadow-elevated transition-shadow"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <BookOpen size={20} className="text-primary" />
+            </div>
+            <div>
+              <h3 className="font-display font-semibold text-foreground text-sm">Kunskapsbank</h3>
+              <p className="text-xs text-muted-foreground">Agility-tips, guider och träningsråd →</p>
+            </div>
+          </div>
+        </button>
+      </section>
+
       {/* CTA */}
       <section className="px-4 pb-20 text-center">
         <div className="bg-card rounded-2xl p-8 max-w-lg mx-auto shadow-card">

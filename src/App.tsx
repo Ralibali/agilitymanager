@@ -69,6 +69,8 @@ const App = () => (
             </Route>
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/hundforsakring" element={<InsurancePage />} />
+            <Route path="/blogg" element={<BlogPage />} />
+            <Route path="/blogg/:slug" element={<BlogPostPage />} />
 
             {/* Protected routes */}
             <Route element={<ProtectedLayout />}>

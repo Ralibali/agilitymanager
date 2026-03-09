@@ -1,0 +1,184 @@
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { ArrowLeft, ArrowRight, Clock, BookOpen } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { getPostBySlug, blogPosts } from '@/lib/blogData';
+
+// Simple markdown-ish renderer for our content
+function renderContent(content: string) {
+  const lines = content.trim().split('\n');
+  const elements: JSX.Element[] = [];
+  let listItems: string[] = [];
+  let tableRows: string[][] = [];
+  let inTable = false;
+
+  const flushList = () => {
+    if (listItems.length > 0) {
+      elements.push(
+        <ul key={`ul-${elements.length}`} className="list-disc list-inside space-y-1 text-foreground/90 text-sm leading-relaxed mb-4">
+          {listItems.map((item, i) => {
+            const boldMatch = item.match(/\*\*(.+?)\*\*(.*)$/);
+            return (
+              <li key={i}>
+                {boldMatch ? <><strong className="text-foreground">{boldMatch[1]}</strong>{boldMatch[2]}</> : item}
+              </li>
+            );
+          })}
+        </ul>
+      );
+      listItems = [];
+    }
+  };
+
+  const flushTable = () => {
+    if (tableRows.length > 1) {
+      const [header, ...rows] = tableRows;
+      elements.push(
+        <div key={`table-${elements.length}`} className="overflow-x-auto mb-4">
+          <table className="w-full text-sm border border-border rounded-lg">
+            <thead>
+              <tr className="bg-muted">
+                {header.map((cell, i) => <th key={i} className="px-3 py-2 text-left font-semibold text-foreground">{cell}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, i) => (
+                <tr key={i} className="border-t border-border">
+                  {row.map((cell, j) => <td key={j} className="px-3 py-2 text-muted-foreground">{cell}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+      tableRows = [];
+      inTable = false;
+    }
+  };
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      flushList();
+      const cells = trimmed.split('|').filter(Boolean).map(c => c.trim());
+      if (cells.every(c => /^[-:]+$/.test(c))) continue; // separator row
+      tableRows.push(cells);
+      inTable = true;
+      continue;
+    } else if (inTable) {
+      flushTable();
+    }
+
+    if (trimmed.startsWith('## ')) {
+      flushList();
+      elements.push(<h2 key={`h2-${elements.length}`} className="font-display font-bold text-foreground text-lg mt-6 mb-3">{trimmed.slice(3)}</h2>);
+    } else if (trimmed.startsWith('### ')) {
+      flushList();
+      elements.push(<h3 key={`h3-${elements.length}`} className="font-display font-semibold text-foreground mt-4 mb-2">{trimmed.slice(4)}</h3>);
+    } else if (/^\d+\.\s/.test(trimmed)) {
+      flushList();
+      const text = trimmed.replace(/^\d+\.\s/, '');
+      const boldMatch = text.match(/\*\*(.+?)\*\*(.*)$/);
+      elements.push(
+        <div key={`ol-${elements.length}`} className="flex gap-2 text-sm text-foreground/90 mb-1.5 ml-1">
+          <span className="text-primary font-semibold">{trimmed.match(/^\d+/)![0]}.</span>
+          <span>{boldMatch ? <><strong className="text-foreground">{boldMatch[1]}</strong>{boldMatch[2]}</> : text}</span>
+        </div>
+      );
+    } else if (trimmed.startsWith('- ')) {
+      listItems.push(trimmed.slice(2));
+    } else if (trimmed === '') {
+      flushList();
+    } else {
+      flushList();
+      elements.push(<p key={`p-${elements.length}`} className="text-sm text-foreground/90 leading-relaxed mb-3">{trimmed}</p>);
+    }
+  }
+
+  flushList();
+  flushTable();
+  return elements;
+}
+
+export default function BlogPostPage() {
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const post = slug ? getPostBySlug(slug) : undefined;
+
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="font-display font-bold text-foreground text-xl mb-2">Artikeln hittades inte</h1>
+          <Button variant="ghost" onClick={() => navigate('/blogg')}>← Tillbaka till kunskapsbanken</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const otherPosts = blogPosts.filter(p => p.slug !== post.slug).slice(0, 3);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{post.title} | AgilityManager</title>
+        <meta name="description" content={post.excerpt} />
+        <link rel="canonical" href={`https://agilitymanager.lovable.app/blogg/${post.slug}`} />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": post.title,
+          "description": post.excerpt,
+          "datePublished": post.date,
+          "author": { "@type": "Organization", "name": post.author },
+          "publisher": { "@type": "Organization", "name": "AgilityManager" },
+          "url": `https://agilitymanager.lovable.app/blogg/${post.slug}`
+        })}</script>
+      </Helmet>
+
+      <article className="px-4 pt-8 pb-12 max-w-2xl mx-auto">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/blogg')} className="mb-6 -ml-2 text-muted-foreground">
+          <ArrowLeft size={16} className="mr-1" /> Kunskapsbank
+        </Button>
+
+        <header className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">{post.category}</span>
+            <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={12} /> {post.readTime} min läsning</span>
+          </div>
+          <h1 className="font-display font-bold text-foreground text-2xl leading-tight mb-2">{post.title}</h1>
+          <p className="text-muted-foreground text-sm">{post.excerpt}</p>
+        </header>
+
+        <div className="bg-card rounded-xl p-5 sm:p-8 shadow-card">
+          {renderContent(post.content)}
+        </div>
+      </article>
+
+      {/* Related */}
+      <section className="px-4 pb-8 max-w-2xl mx-auto">
+        <h2 className="font-display font-semibold text-foreground mb-4">Fler artiklar</h2>
+        <div className="space-y-3">
+          {otherPosts.map(p => (
+            <Link key={p.slug} to={`/blogg/${p.slug}`} className="block bg-card rounded-xl p-4 shadow-card hover:shadow-elevated transition-shadow">
+              <h3 className="font-display font-semibold text-foreground text-sm mb-1">{p.title}</h3>
+              <p className="text-xs text-muted-foreground">{p.excerpt}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="px-4 pb-16 max-w-2xl mx-auto">
+        <div className="bg-card rounded-2xl p-6 shadow-card text-center">
+          <h2 className="font-display font-bold text-foreground mb-2">Redo att börja träna smartare?</h2>
+          <p className="text-sm text-muted-foreground mb-4">Skapa ett gratis konto och använd alla verktyg i AgilityManager.</p>
+          <Button className="gradient-primary text-primary-foreground font-semibold gap-2" onClick={() => navigate('/auth')}>
+            Kom igång gratis <ArrowRight size={16} />
+          </Button>
+        </div>
+      </section>
+    </div>
+  );
+}

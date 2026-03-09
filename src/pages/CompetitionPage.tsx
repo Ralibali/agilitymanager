@@ -209,24 +209,67 @@ export default function CompetitionPage() {
           <div className="bg-card rounded-xl p-4 shadow-card">
             <h3 className="font-display font-semibold text-foreground mb-3">Checklista inför tävling</h3>
             <div className="space-y-2">
-              {CHECKLIST_ITEMS.map(item => (
-                <button
-                  key={item}
-                  onClick={() => toggleCheck(item)}
-                  className="flex items-center gap-2.5 w-full text-left py-1"
-                >
-                  {checkedItems.has(item)
-                    ? <CheckSquare size={18} className="text-primary flex-shrink-0" />
-                    : <Square size={18} className="text-muted-foreground flex-shrink-0" />}
-                  <span className={`text-sm ${checkedItems.has(item) ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                    {item}
-                  </span>
-                </button>
+              {[...CHECKLIST_ITEMS, ...customItems].map(item => (
+                <div key={item} className="flex items-center gap-2.5 w-full">
+                  <button
+                    onClick={() => toggleCheck(item)}
+                    className="flex items-center gap-2.5 flex-1 text-left py-1"
+                  >
+                    {checkedItems.has(item)
+                      ? <CheckSquare size={18} className="text-primary flex-shrink-0" />
+                      : <Square size={18} className="text-muted-foreground flex-shrink-0" />}
+                    <span className={`text-sm ${checkedItems.has(item) ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                      {item}
+                    </span>
+                  </button>
+                  {customItems.includes(item) && (
+                    <button
+                      onClick={() => {
+                        const updated = customItems.filter(ci => ci !== item);
+                        setCustomItems(updated);
+                        localStorage.setItem('custom-checklist', JSON.stringify(updated));
+                        const next = new Set(checkedItems);
+                        next.delete(item);
+                        setCheckedItems(next);
+                      }}
+                      className="text-muted-foreground hover:text-destructive p-1"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
-            <div className="mt-4 pt-3 border-t border-border text-center">
+
+            {/* Add custom item */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const trimmed = newItem.trim();
+                if (!trimmed) return;
+                if ([...CHECKLIST_ITEMS, ...customItems].includes(trimmed)) {
+                  toast.error('Finns redan i listan');
+                  return;
+                }
+                const updated = [...customItems, trimmed];
+                setCustomItems(updated);
+                localStorage.setItem('custom-checklist', JSON.stringify(updated));
+                setNewItem('');
+              }}
+              className="flex items-center gap-2 mt-4 pt-3 border-t border-border"
+            >
+              <Plus size={18} className="text-muted-foreground flex-shrink-0" />
+              <Input
+                value={newItem}
+                onChange={(e) => setNewItem(e.target.value)}
+                placeholder="Lägg till egen punkt..."
+                className="h-8 text-sm"
+              />
+            </form>
+
+            <div className="mt-3 pt-3 border-t border-border text-center">
               <span className="text-xs text-muted-foreground">
-                {checkedItems.size}/{CHECKLIST_ITEMS.length} klart
+                {checkedItems.size}/{CHECKLIST_ITEMS.length + customItems.length} klart
               </span>
               {checkedItems.size > 0 && (
                 <button onClick={() => setCheckedItems(new Set())} className="text-xs text-primary ml-3">

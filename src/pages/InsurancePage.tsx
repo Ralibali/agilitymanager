@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Star, Shield, RotateCcw, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';

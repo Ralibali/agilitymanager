@@ -58,14 +58,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await supabase.functions.invoke('check-subscription');
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       setSubscription({
-        subscribed: data.subscribed ?? false,
-        productId: data.product_id ?? null,
-        priceId: data.price_id ?? null,
-        subscriptionEnd: data.subscription_end ?? null,
+        subscribed: data?.subscribed ?? false,
+        productId: data?.product_id ?? null,
+        priceId: data?.price_id ?? null,
+        subscriptionEnd: data?.subscription_end ?? null,
         loading: false,
       });
-    } catch {
+    } catch (err) {
+      console.error('check-subscription error:', err);
       setSubscription(prev => ({ ...prev, loading: false }));
     }
   }, []);

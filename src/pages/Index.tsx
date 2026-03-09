@@ -4,9 +4,10 @@ import { AddDogDialog } from '@/components/AddDogDialog';
 import { AddTrainingDialog } from '@/components/AddTrainingDialog';
 import { AddCompetitionDialog } from '@/components/AddCompetitionDialog';
 import { DogAvatar } from '@/components/DogAvatar';
+import { MeritBadge, MeritProgress, calculateMerit } from '@/components/MeritTracker';
 import { store } from '@/lib/store';
 import type { Dog, TrainingSession, CompetitionResult, PlannedCompetition } from '@/types';
-import { Dumbbell, Trophy, Flame, Calendar, Sparkles, ArrowRight, Timer, Heart, Map } from 'lucide-react';
+import { Dumbbell, Trophy, Flame, Calendar, Sparkles, ArrowRight, Timer, Heart, Map, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { format, differenceInDays } from 'date-fns';
@@ -40,7 +41,7 @@ const Index = () => {
     return <PageContainer><div className="flex items-center justify-center min-h-[60vh] text-muted-foreground">Laddar...</div></PageContainer>;
   }
 
-  const latestTraining = training[0]; // already sorted desc
+  const latestTraining = training[0];
   const nextCompetition = planned.find(p => new Date(p.date) >= new Date());
 
   const getStreak = () => {
@@ -56,6 +57,19 @@ const Index = () => {
     return streak;
   };
   const streak = getStreak();
+
+  // Training this week
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const trainingThisWeek = training.filter(t => new Date(t.date) >= weekAgo).length;
+
+  // Total training minutes this month
+  const now = new Date();
+  const trainingThisMonth = training.filter(t => {
+    const d = new Date(t.date);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const totalMinutes = trainingThisMonth.reduce((sum, t) => sum + t.duration_min, 0);
 
   if (dogs.length === 0) {
     return (
@@ -91,7 +105,8 @@ const Index = () => {
 
   return (
     <PageContainer title="Dashboard" subtitle={`${dogs.length} hund${dogs.length > 1 ? 'ar' : ''} registrerad${dogs.length > 1 ? 'e' : ''}`}>
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      {/* Quick actions */}
+      <div className="grid grid-cols-2 gap-3 mb-5">
         <AddTrainingDialog dogs={dogs} onAdded={refresh} trigger={
           <button className="flex items-center gap-2 p-4 rounded-xl gradient-primary text-primary-foreground font-semibold shadow-card text-left">
             <Dumbbell size={20} />
@@ -106,35 +121,50 @@ const Index = () => {
         } />
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => navigate('/stopwatch')}
-          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center"
-        >
+      {/* Stats grid */}
+      <div className="grid grid-cols-4 gap-2 mb-5">
+        <motion.div whileHover={{ scale: 1.02 }} className="bg-card p-2.5 rounded-xl shadow-card text-center">
+          <Flame size={16} className="text-accent mx-auto mb-0.5" />
+          <div className="text-lg font-bold font-display text-foreground">{streak}</div>
+          <div className="text-[9px] text-muted-foreground">Dagar i rad</div>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.02 }} className="bg-card p-2.5 rounded-xl shadow-card text-center">
+          <Dumbbell size={16} className="text-primary mx-auto mb-0.5" />
+          <div className="text-lg font-bold font-display text-foreground">{trainingThisWeek}</div>
+          <div className="text-[9px] text-muted-foreground">Denna vecka</div>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.02 }} className="bg-card p-2.5 rounded-xl shadow-card text-center">
+          <Timer size={16} className="text-primary mx-auto mb-0.5" />
+          <div className="text-lg font-bold font-display text-foreground">{totalMinutes}</div>
+          <div className="text-[9px] text-muted-foreground">Min i mån</div>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.02 }} className="bg-card p-2.5 rounded-xl shadow-card text-center">
+          <Trophy size={16} className="text-accent mx-auto mb-0.5" />
+          <div className="text-lg font-bold font-display text-foreground">
+            {competitions.length > 0 ? Math.round(competitions.filter(c => c.passed).length / competitions.length * 100) : 0}%
+          </div>
+          <div className="text-[9px] text-muted-foreground">Godkänd</div>
+        </motion.div>
+      </div>
+
+      {/* Shortcuts */}
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => navigate('/stopwatch')}
+          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center">
           <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
             <Timer size={18} className="text-primary" />
           </div>
           <span className="text-xs font-medium text-foreground">Tidtagarur</span>
         </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => navigate('/health')}
-          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center"
-        >
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => navigate('/health')}
+          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center">
           <div className="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center">
             <Heart size={18} className="text-accent" />
           </div>
           <span className="text-xs font-medium text-foreground">Hälsa</span>
         </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => navigate('/course-planner')}
-          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center"
-        >
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => navigate('/course-planner')}
+          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center">
           <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center">
             <Map size={18} className="text-foreground" />
           </div>
@@ -142,32 +172,7 @@ const Index = () => {
         </motion.button>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <motion.div whileHover={{ scale: 1.02 }} className="bg-card p-3 rounded-xl shadow-card text-center">
-          <Flame size={20} className="text-accent mx-auto mb-1" />
-          <div className="text-xl font-bold font-display text-foreground">{streak}</div>
-          <div className="text-[10px] text-muted-foreground">Dagar i rad</div>
-        </motion.div>
-        <motion.div whileHover={{ scale: 1.02 }} className="bg-card p-3 rounded-xl shadow-card text-center">
-          <Dumbbell size={20} className="text-primary mx-auto mb-1" />
-          <div className="text-xl font-bold font-display text-foreground">
-            {training.filter(t => {
-              const d = new Date(t.date);
-              const now = new Date();
-              return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-            }).length}
-          </div>
-          <div className="text-[10px] text-muted-foreground">Träningar i mån</div>
-        </motion.div>
-        <motion.div whileHover={{ scale: 1.02 }} className="bg-card p-3 rounded-xl shadow-card text-center">
-          <Trophy size={20} className="text-accent mx-auto mb-1" />
-          <div className="text-xl font-bold font-display text-foreground">
-            {competitions.length > 0 ? Math.round(competitions.filter(c => c.passed).length / competitions.length * 100) : 0}%
-          </div>
-          <div className="text-[10px] text-muted-foreground">Godkänd</div>
-        </motion.div>
-      </div>
-
+      {/* Next competition */}
       {nextCompetition && (
         <div className="bg-card p-4 rounded-xl shadow-card mb-4 border-l-4 border-accent">
           <div className="flex items-center gap-2 mb-1">
@@ -184,6 +189,7 @@ const Index = () => {
         </div>
       )}
 
+      {/* Latest training */}
       {latestTraining && (
         <div className="bg-card p-4 rounded-xl shadow-card mb-4">
           <div className="flex items-center justify-between mb-2">
@@ -208,6 +214,39 @@ const Index = () => {
         </div>
       )}
 
+      {/* Merit tracking per dog */}
+      {dogs.length > 0 && competitions.length > 0 && (
+        <div className="bg-card p-4 rounded-xl shadow-card mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <TrendingUp size={16} className="text-primary" />
+              <span className="text-xs font-semibold text-foreground">Meriter</span>
+            </div>
+            <button onClick={() => navigate('/stats')} className="text-xs text-primary flex items-center gap-0.5">
+              Statistik <ArrowRight size={12} />
+            </button>
+          </div>
+          <div className="space-y-3">
+            {dogs.map(dog => {
+              const dogResults = competitions.filter(c => c.dog_id === dog.id);
+              if (dogResults.length === 0) return null;
+              const merit = calculateMerit(dogResults, dog.competition_level);
+              return (
+                <div key={dog.id} className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <DogAvatar dog={dog} size="sm" />
+                    <span className="text-sm font-medium text-foreground">{dog.name}</span>
+                    <MeritBadge merit={merit} />
+                  </div>
+                  <MeritProgress merit={merit} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Dogs */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
           <h2 className="font-display font-semibold text-foreground">Mina hundar</h2>

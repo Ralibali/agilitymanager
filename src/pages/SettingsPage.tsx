@@ -84,6 +84,20 @@ export default function SettingsPage() {
         </Button>
       </div>
 
+      {/* Dark mode */}
+      <div className="bg-card rounded-xl p-4 shadow-card mb-4 flex items-center justify-between">
+        <div>
+          <h3 className="font-display font-semibold text-foreground">Utseende</h3>
+          <p className="text-xs text-muted-foreground">Växla mellan ljust och mörkt läge</p>
+        </div>
+        <button
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+        >
+          {theme === 'dark' ? <Sun size={18} className="text-accent" /> : <Moon size={18} className="text-primary" />}
+        </button>
+      </div>
+
       {/* Premium section */}
       <div className="bg-card rounded-xl p-5 shadow-elevated mb-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 gradient-accent opacity-10 rounded-full -translate-y-10 translate-x-10" />

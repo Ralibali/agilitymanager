@@ -450,8 +450,11 @@ export default function CoursePlannerPage() {
     toast.success(`Laddade "${preset.name}"`);
   };
 
+  const isPremium = usePremium();
+
   return (
     <PageContainer title="Banplanerare" subtitle="Rita agility-banor">
+      <PremiumGate fullPage featureName="Banplaneraren">
       {/* Toolbar row 1 */}
       <div className="flex gap-2 mb-2 items-center flex-wrap">
         <Select

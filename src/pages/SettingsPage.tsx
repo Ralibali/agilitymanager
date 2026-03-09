@@ -22,6 +22,7 @@ export default function SettingsPage() {
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [searchParams] = useSearchParams();
+  const { theme, setTheme } = useTheme();
 
   // Handle checkout return
   useEffect(() => {

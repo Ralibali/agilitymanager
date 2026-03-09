@@ -548,11 +548,11 @@ export default function CoursePlannerPage() {
 
       {/* Toolbar row 2: export/import + distance toggle */}
       <div className="flex gap-2 mb-3 items-center flex-wrap">
-        <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={exportPNG} disabled={obstacles.length === 0}>
-          <Download size={12} /> PNG
+        <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportPNG(); }} disabled={obstacles.length === 0}>
+          <Download size={12} /> PNG {!isPremium && <PremiumBadge />}
         </Button>
-        <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={exportJSON} disabled={obstacles.length === 0}>
-          <Download size={12} /> JSON
+        <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportJSON(); }} disabled={obstacles.length === 0}>
+          <Download size={12} /> JSON {!isPremium && <PremiumBadge />}
         </Button>
         <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => fileInputRef.current?.click()}>
           <Upload size={12} /> Importera

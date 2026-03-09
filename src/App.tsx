@@ -17,6 +17,7 @@ import StatsPage from "./pages/StatsPage";
 import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import InsurancePage from "./pages/InsurancePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

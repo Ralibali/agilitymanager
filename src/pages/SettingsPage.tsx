@@ -1,10 +1,14 @@
+import { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/PageContainer';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, PLANS } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Crown, Sparkles, LogOut, ExternalLink } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Crown, Sparkles, LogOut, ExternalLink, Check, Loader2, Settings } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useSearchParams } from 'react-router-dom';
 
 const premiumFeatures = [
-  
   { title: 'Avancerad statistik', desc: 'Diagram, trender och felanalys' },
   { title: 'Banplanerare', desc: 'Rita och spara egna träningsbanor' },
   { title: 'Videoanteckningar', desc: 'Tidsstämplade anteckningar i träningsvideo' },
@@ -13,7 +17,59 @@ const premiumFeatures = [
 ];
 
 export default function SettingsPage() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, subscription, checkSubscription } = useAuth();
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  // Handle checkout return
+  useEffect(() => {
+    const checkout = searchParams.get('checkout');
+    if (checkout === 'success') {
+      toast.success('Betalning genomförd! Premium aktiveras inom kort.');
+      checkSubscription();
+    } else if (checkout === 'cancel') {
+      toast.info('Betalningen avbröts.');
+    }
+  }, [searchParams, checkSubscription]);
+
+  const handleCheckout = async (priceId: string) => {
+    setCheckoutLoading(priceId);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { priceId },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (err: any) {
+      toast.error('Kunde inte starta betalning');
+      console.error(err);
+    } finally {
+      setCheckoutLoading(null);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (err: any) {
+      toast.error('Kunde inte öppna prenumerationshantering');
+      console.error(err);
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
+  const activePlan = subscription.subscribed
+    ? Object.values(PLANS).find(p => p.priceId === subscription.priceId)
+    : null;
 
   return (
     <PageContainer title="Inställningar">
@@ -26,7 +82,7 @@ export default function SettingsPage() {
         </Button>
       </div>
 
-      {/* Premium CTA */}
+      {/* Premium section */}
       <div className="bg-card rounded-xl p-5 shadow-elevated mb-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 gradient-accent opacity-10 rounded-full -translate-y-10 translate-x-10" />
         <div className="flex items-center gap-3 mb-3">
@@ -35,13 +91,31 @@ export default function SettingsPage() {
           </div>
           <div>
             <h2 className="font-display font-bold text-foreground">Premium</h2>
-            <p className="text-xs text-muted-foreground">Lås upp alla funktioner</p>
+            {subscription.subscribed ? (
+              <div className="flex items-center gap-1.5">
+                <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-[10px]">Aktiv</Badge>
+                {activePlan && <span className="text-xs text-muted-foreground">{activePlan.label}</span>}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">Lås upp alla funktioner</p>
+            )}
           </div>
         </div>
+
+        {subscription.subscribed && subscription.subscriptionEnd && (
+          <p className="text-xs text-muted-foreground mb-3">
+            Förnyas: {new Date(subscription.subscriptionEnd).toLocaleDateString('sv-SE')}
+          </p>
+        )}
+
         <div className="space-y-2 mb-4">
           {premiumFeatures.map(f => (
             <div key={f.title} className="flex items-start gap-2">
-              <Sparkles size={14} className="text-accent mt-0.5 flex-shrink-0" />
+              {subscription.subscribed ? (
+                <Check size={14} className="text-green-500 mt-0.5 flex-shrink-0" />
+              ) : (
+                <Sparkles size={14} className="text-accent mt-0.5 flex-shrink-0" />
+              )}
               <div>
                 <span className="text-sm font-medium text-foreground">{f.title}</span>
                 <span className="text-xs text-muted-foreground ml-1">– {f.desc}</span>
@@ -49,17 +123,38 @@ export default function SettingsPage() {
             </div>
           ))}
         </div>
-        <div className="flex gap-2">
-          <button className="flex-1 py-2.5 rounded-xl gradient-accent text-accent-foreground font-semibold text-sm">
-            19 kr/mån
-          </button>
-          <button className="flex-1 py-2.5 rounded-xl bg-secondary text-secondary-foreground font-semibold text-sm">
-            149 kr/år
-          </button>
-        </div>
+
+        {subscription.subscribed ? (
+          <Button variant="outline" className="w-full gap-2" onClick={handleManageSubscription} disabled={portalLoading}>
+            {portalLoading ? <Loader2 size={14} className="animate-spin" /> : <Settings size={14} />}
+            Hantera prenumeration
+          </Button>
+        ) : (
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleCheckout(PLANS.monthly.priceId)}
+              disabled={!!checkoutLoading}
+              className="flex-1 py-2.5 rounded-xl gradient-accent text-accent-foreground font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
+            >
+              {checkoutLoading === PLANS.monthly.priceId ? <Loader2 size={14} className="animate-spin" /> : null}
+              19 kr/mån
+            </button>
+            <button
+              onClick={() => handleCheckout(PLANS.yearly.priceId)}
+              disabled={!!checkoutLoading}
+              className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-1.5 relative"
+            >
+              {checkoutLoading === PLANS.yearly.priceId ? <Loader2 size={14} className="animate-spin" /> : null}
+              99 kr/år
+              <span className="absolute -top-2 -right-1 text-[9px] bg-accent text-accent-foreground px-1.5 py-0.5 rounded-full font-bold">
+                Spara 57%
+              </span>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Regelbok-länk */}
+      {/* Links */}
       <div className="space-y-3">
         <a
           href="https://agilityklubben.se/regler/"
@@ -77,8 +172,7 @@ export default function SettingsPage() {
         <div className="bg-card rounded-xl p-4 shadow-card">
           <h3 className="font-display font-semibold text-foreground mb-1">Om appen</h3>
           <p className="text-sm text-muted-foreground">
-            AgilityManager – Din digitala agility-dagbok.
-            Version 1.0.0
+            AgilityManager – Din digitala agility-dagbok. Version 1.0.0
           </p>
         </div>
         <div className="bg-card rounded-xl p-4 shadow-card">

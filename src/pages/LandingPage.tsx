@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, Dumbbell, Trophy, Timer, Heart, Map, BarChart3, ArrowRight, Shield } from 'lucide-react';
+import { Sparkles, Dumbbell, Trophy, Timer, Heart, Map, BarChart3, ArrowRight, Shield, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const features = [
@@ -85,6 +85,24 @@ export default function LandingPage() {
             <div>
               <h3 className="font-display font-semibold text-foreground text-sm">Jämför hundförsäkringar</h3>
               <p className="text-xs text-muted-foreground">Hitta rätt försäkring för din agilityhund →</p>
+            </div>
+          </div>
+        </button>
+      </section>
+
+      {/* Blog banner */}
+      <section className="px-4 pb-8 max-w-lg mx-auto">
+        <button
+          onClick={() => navigate('/blogg')}
+          className="w-full bg-card rounded-2xl p-6 shadow-card text-left hover:shadow-elevated transition-shadow"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <BookOpen size={20} className="text-primary" />
+            </div>
+            <div>
+              <h3 className="font-display font-semibold text-foreground text-sm">Kunskapsbank</h3>
+              <p className="text-xs text-muted-foreground">Agility-tips, guider och träningsråd →</p>
             </div>
           </div>
         </button>

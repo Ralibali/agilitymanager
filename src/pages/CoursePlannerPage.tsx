@@ -598,7 +598,7 @@ export default function CoursePlannerPage() {
 
       <p className="text-xs text-muted-foreground text-center">
         Dra hinder för att flytta. Rotera i 15°-steg. {obstacles.length} hinder på banan.
-      </p>
+      </PremiumGate>
     </PageContainer>
   );
 }

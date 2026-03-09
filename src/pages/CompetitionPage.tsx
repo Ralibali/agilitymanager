@@ -7,9 +7,10 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Dog, CompetitionResult, PlannedCompetition } from '@/types';
 import { format, differenceInDays } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { CheckCircle2, XCircle, Medal, ExternalLink, Calendar, CheckSquare, Square, Trash2 } from 'lucide-react';
+import { CheckCircle2, XCircle, Medal, ExternalLink, Calendar, CheckSquare, Square, Trash2, Plus, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
 const CHECKLIST_ITEMS = [

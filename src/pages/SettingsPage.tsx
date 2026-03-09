@@ -3,10 +3,11 @@ import { PageContainer } from '@/components/PageContainer';
 import { useAuth, PLANS } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Crown, Sparkles, LogOut, ExternalLink, Check, Loader2, Settings } from 'lucide-react';
+import { Crown, Sparkles, LogOut, ExternalLink, Check, Loader2, Settings, Moon, Sun } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useSearchParams } from 'react-router-dom';
+import { useTheme } from 'next-themes';
 
 const premiumFeatures = [
   { title: 'Avancerad statistik', desc: 'Diagram, trender och felanalys' },
@@ -21,6 +22,7 @@ export default function SettingsPage() {
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [searchParams] = useSearchParams();
+  const { theme, setTheme } = useTheme();
 
   // Handle checkout return
   useEffect(() => {
@@ -80,6 +82,20 @@ export default function SettingsPage() {
         <Button variant="outline" size="sm" className="mt-3 gap-1.5" onClick={signOut}>
           <LogOut size={14} /> Logga ut
         </Button>
+      </div>
+
+      {/* Dark mode */}
+      <div className="bg-card rounded-xl p-4 shadow-card mb-4 flex items-center justify-between">
+        <div>
+          <h3 className="font-display font-semibold text-foreground">Utseende</h3>
+          <p className="text-xs text-muted-foreground">Växla mellan ljust och mörkt läge</p>
+        </div>
+        <button
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+        >
+          {theme === 'dark' ? <Sun size={18} className="text-accent" /> : <Moon size={18} className="text-primary" />}
+        </button>
       </div>
 
       {/* Premium section */}

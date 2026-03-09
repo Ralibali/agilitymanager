@@ -72,6 +72,24 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Insurance banner */}
+      <section className="px-4 pb-8 max-w-lg mx-auto">
+        <button
+          onClick={() => navigate('/hundforsakring')}
+          className="w-full bg-card rounded-2xl p-6 shadow-card text-left hover:shadow-elevated transition-shadow"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+              <Shield size={20} className="text-accent" />
+            </div>
+            <div>
+              <h3 className="font-display font-semibold text-foreground text-sm">Jämför hundförsäkringar</h3>
+              <p className="text-xs text-muted-foreground">Hitta rätt försäkring för din agilityhund →</p>
+            </div>
+          </div>
+        </button>
+      </section>
+
       {/* CTA */}
       <section className="px-4 pb-20 text-center">
         <div className="bg-card rounded-2xl p-8 max-w-lg mx-auto shadow-card">

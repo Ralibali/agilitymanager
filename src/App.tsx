@@ -64,6 +64,7 @@ const App = () => (
               <Route path="/auth" element={<AuthPage />} />
             </Route>
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/hundforsakring" element={<InsurancePage />} />
 
             {/* Protected routes */}
             <Route element={<ProtectedLayout />}>

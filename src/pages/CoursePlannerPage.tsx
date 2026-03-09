@@ -563,15 +563,15 @@ export default function CoursePlannerPage() {
         </button>
       </div>
 
-      {/* Obstacle palette */}
-      <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
+      {/* Obstacle palette – compact grid */}
+      <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 mb-3">
         {OBSTACLE_TYPES.map(o => (
           <button
             key={o.type}
             onClick={() => addObstacle(o.type)}
-            className="flex-shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-card shadow-card border border-border hover:border-primary transition-colors"
-            style={{ borderLeftColor: o.color, borderLeftWidth: 3 }}
+            className="flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-lg text-[10px] font-medium bg-card shadow-card border border-border hover:border-primary transition-colors"
           >
+            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: o.color }} />
             {o.label}
           </button>
         ))}

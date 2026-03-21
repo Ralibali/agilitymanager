@@ -16,7 +16,7 @@ export const blogPosts: BlogPost[] = [
     excerpt: 'Allt du behöver veta för att komma igång med agility. Från val av klubb till första träningen.',
     category: 'Nybörjare',
     readTime: 8,
-    date: '2026-03-01',
+    date: '2025-03-01',
     author: 'AgilityManager',
     content: `
 ## Vad är agility?
@@ -59,7 +59,7 @@ De flesta hundar kan träna agility. Det viktigaste är att hunden är frisk, r�
     excerpt: 'Lär dig de vanligaste metoderna för kontaktzonskträning: 2on2off, running contact och fler.',
     category: 'Teknik',
     readTime: 6,
-    date: '2026-02-20',
+    date: '2025-02-20',
     author: 'AgilityManager',
     content: `
 ## Varför är kontaktzoner viktiga?
@@ -112,7 +112,7 @@ Använd en target (platta/duk) i kontaktzonen som hunden springer till.
     excerpt: 'Så hanterar du nerver, fokuserar rätt och presterar ditt bästa på tävlingsdagen.',
     category: 'Tävling',
     readTime: 5,
-    date: '2026-02-15',
+    date: '2025-02-15',
     author: 'AgilityManager',
     content: `
 ## Nervositet är normalt
@@ -160,7 +160,7 @@ Alla blir nervösa – även rutinerade tävlande. Nyckeln är att lära sig han
     excerpt: 'Vanliga skador i agility och hur du förebygger dem med rätt uppvärmning och träning.',
     category: 'Hälsa',
     readTime: 7,
-    date: '2026-02-10',
+    date: '2025-02-10',
     author: 'AgilityManager',
     content: `
 ## Vanliga skador i agility
@@ -214,7 +214,7 @@ Att hålla koll på hundens vikt hjälper dig upptäcka förändringar tidigt. A
     excerpt: 'Förstå det svenska tävlingssystemet med Nollklass, K1, K2 och K3. Krav och regler.',
     category: 'Tävling',
     readTime: 6,
-    date: '2026-02-05',
+    date: '2025-02-05',
     author: 'AgilityManager',
     content: `
 ## Det svenska tävlingssystemet
@@ -287,7 +287,7 @@ Hundar delas in i storleksklasser baserat på mankhöjd:
     excerpt: 'Strukturera din träning med periodisering, målsättning och smart variation.',
     category: 'Träning',
     readTime: 7,
-    date: '2026-01-28',
+    date: '2025-01-28',
     author: 'AgilityManager',
     content: `
 ## Varför planera?

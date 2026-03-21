@@ -402,9 +402,96 @@ export default function CoursePlannerPage() {
   const exportPNG = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const padding = 40;
+    const headerH = 48;
+    const footerH = 36;
+    const totalW = canvasWidth + padding * 2;
+    const totalH = canvasHeight + padding * 2 + headerH + footerH;
+
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = totalW * dpr;
+    exportCanvas.height = totalH * dpr;
+    const ctx = exportCanvas.getContext('2d')!;
+    ctx.scale(dpr, dpr);
+
+    // Background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, totalW, totalH);
+
+    // Header
+    ctx.fillStyle = 'hsl(221, 79%, 48%)';
+    ctx.fillRect(0, 0, totalW, headerH);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 16px "Space Grotesk", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🐕 AgilityManager – Banplanerare', padding, headerH / 2);
+
+    // Canvas size in meters
+    const widthM = (canvasWidth * METERS_PER_PX).toFixed(0);
+    const heightM = (canvasHeight * METERS_PER_PX).toFixed(0);
+    ctx.font = '12px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${widthM} × ${heightM} m`, totalW - padding, headerH / 2);
+
+    // Draw course canvas content
+    ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, padding, headerH + padding, canvasWidth, canvasHeight);
+
+    // Dimension labels on sides
+    ctx.fillStyle = 'hsl(0, 0%, 45%)';
+    ctx.font = '11px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`${widthM} m`, totalW / 2, headerH + padding + canvasHeight + 4);
+
+    ctx.save();
+    ctx.translate(padding - 6, headerH + padding + canvasHeight / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(`${heightM} m`, 0, 0);
+    ctx.restore();
+
+    // Obstacle legend
+    const legendY = headerH + padding + canvasHeight + 18;
+    const usedTypes = [...new Set(obstacles.map(o => o.type))];
+    if (usedTypes.length > 0 && legendY + 14 < totalH - footerH) {
+      ctx.font = '9px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      let lx = padding;
+      usedTypes.forEach(t => {
+        const info = OBSTACLE_TYPES.find(o => o.type === t);
+        if (!info) return;
+        const count = obstacles.filter(o => o.type === t).length;
+        ctx.fillStyle = info.color;
+        ctx.fillRect(lx, legendY, 8, 8);
+        ctx.fillStyle = 'hsl(0, 0%, 35%)';
+        const label = `${info.label} (${count})`;
+        ctx.fillText(label, lx + 11, legendY);
+        lx += ctx.measureText(label).width + 22;
+      });
+    }
+
+    // Footer
+    const footerY = totalH - footerH;
+    ctx.fillStyle = 'hsl(210, 22%, 96%)';
+    ctx.fillRect(0, footerY, totalW, footerH);
+    ctx.fillStyle = 'hsl(0, 0%, 45%)';
+    ctx.font = '11px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Skapad med AgilityManager · agilitymanager.lovable.app', totalW / 2, footerY + footerH / 2);
+
+    // Orange accent line
+    ctx.fillStyle = 'hsl(16, 100%, 60%)';
+    ctx.fillRect(0, footerY, totalW, 2);
+
     const link = document.createElement('a');
     link.download = 'agility-bana.png';
-    link.href = canvas.toDataURL('image/png');
+    link.href = exportCanvas.toDataURL('image/png');
     link.click();
     toast.success('Bana exporterad som PNG');
   };

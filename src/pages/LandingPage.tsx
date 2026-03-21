@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { Sparkles, Dumbbell, Trophy, Timer, Heart, Map, BarChart3, ArrowRight, Shield, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,11 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>AgilityManager – Träna & Tävla i Agility | Hundförsäkring Jämförelse</title>
+        <meta name="description" content="Sveriges smartaste agility-app. Logga träning, tävlingsresultat, jämför hundförsäkringar och följ din utveckling. Gratis att börja!" />
+        <link rel="canonical" href="https://agilitymanager.lovable.app/" />
+      </Helmet>
       {/* Hero */}
       <section className="relative overflow-hidden px-4 pt-16 pb-20">
         <div className="absolute inset-0 gradient-primary opacity-5" />

@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,23 +7,27 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { BottomNav } from "@/components/BottomNav";
+
+// Eager: landing + auth (first paint)
 import LandingPage from "./pages/LandingPage";
-import Index from "./pages/Index";
-import DogsPage from "./pages/DogsPage";
-import TrainingPage from "./pages/TrainingPage";
-import CompetitionPage from "./pages/CompetitionPage";
-import StopwatchPage from "./pages/StopwatchPage";
-import HealthPage from "./pages/HealthPage";
-import CoursePlannerPage from "./pages/CoursePlannerPage";
-import StatsPage from "./pages/StatsPage";
-import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import InsurancePage from "./pages/InsurancePage";
-import BlogPage from "./pages/BlogPage";
-import BlogPostPage from "./pages/BlogPostPage";
-import AdminPage from "./pages/AdminPage";
-import NotFound from "./pages/NotFound";
+
+// Lazy: everything else
+const Index = React.lazy(() => import("./pages/Index"));
+const DogsPage = React.lazy(() => import("./pages/DogsPage"));
+const TrainingPage = React.lazy(() => import("./pages/TrainingPage"));
+const CompetitionPage = React.lazy(() => import("./pages/CompetitionPage"));
+const StopwatchPage = React.lazy(() => import("./pages/StopwatchPage"));
+const HealthPage = React.lazy(() => import("./pages/HealthPage"));
+const CoursePlannerPage = React.lazy(() => import("./pages/CoursePlannerPage"));
+const StatsPage = React.lazy(() => import("./pages/StatsPage"));
+const SettingsPage = React.lazy(() => import("./pages/SettingsPage"));
+const ResetPasswordPage = React.lazy(() => import("./pages/ResetPasswordPage"));
+const InsurancePage = React.lazy(() => import("./pages/InsurancePage"));
+const BlogPage = React.lazy(() => import("./pages/BlogPage"));
+const BlogPostPage = React.lazy(() => import("./pages/BlogPostPage"));
+const AdminPage = React.lazy(() => import("./pages/AdminPage"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -54,6 +59,12 @@ function AuthGuard() {
   return <Outlet />;
 }
 
+const LazyFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="text-muted-foreground font-display">Laddar...</div>
+  </div>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
@@ -62,34 +73,36 @@ const App = () => (
         <Sonner />
         <AuthProvider>
         <BrowserRouter>
-          <Routes>
-            {/* Public routes */}
-            <Route element={<AuthGuard />}>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/auth" element={<AuthPage />} />
-            </Route>
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/hundforsakring" element={<InsurancePage />} />
-            <Route path="/blogg" element={<BlogPage />} />
-            <Route path="/blogg/:slug" element={<BlogPostPage />} />
+          <Suspense fallback={<LazyFallback />}>
+            <Routes>
+              {/* Public routes */}
+              <Route element={<AuthGuard />}>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+              </Route>
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/hundforsakring" element={<InsurancePage />} />
+              <Route path="/blogg" element={<BlogPage />} />
+              <Route path="/blogg/:slug" element={<BlogPostPage />} />
 
-            {/* Protected routes */}
-            <Route element={<ProtectedLayout />}>
-              <Route path="/dashboard" element={<Index />} />
-              <Route path="/dogs" element={<DogsPage />} />
-              <Route path="/training" element={<TrainingPage />} />
-              <Route path="/competition" element={<CompetitionPage />} />
-              <Route path="/stopwatch" element={<StopwatchPage />} />
-              <Route path="/health" element={<HealthPage />} />
-              <Route path="/course-planner" element={<CoursePlannerPage />} />
-              <Route path="/stats" element={<StatsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="/index" element={<Navigate to="/dashboard" replace />} />
-            </Route>
+              {/* Protected routes */}
+              <Route element={<ProtectedLayout />}>
+                <Route path="/dashboard" element={<Index />} />
+                <Route path="/dogs" element={<DogsPage />} />
+                <Route path="/training" element={<TrainingPage />} />
+                <Route path="/competition" element={<CompetitionPage />} />
+                <Route path="/stopwatch" element={<StopwatchPage />} />
+                <Route path="/health" element={<HealthPage />} />
+                <Route path="/course-planner" element={<CoursePlannerPage />} />
+                <Route path="/stats" element={<StatsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/admin" element={<AdminPage />} />
+                <Route path="/index" element={<Navigate to="/dashboard" replace />} />
+              </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </AuthProvider>
       </TooltipProvider>

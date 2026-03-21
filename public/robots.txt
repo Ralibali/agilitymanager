@@ -12,3 +12,15 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /dogs
+Disallow: /training
+Disallow: /competition
+Disallow: /stopwatch
+Disallow: /health
+Disallow: /course-planner
+Disallow: /stats
+Disallow: /settings
+Disallow: /admin
+
+Sitemap: https://agilitymanager.lovable.app/sitemap.xml

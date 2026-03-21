@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { Sparkles, Dumbbell, Trophy, Timer, Heart, Map, BarChart3, ArrowRight, Shield, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';

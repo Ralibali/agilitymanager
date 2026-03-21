@@ -26,8 +26,21 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
   const location = useLocation();
   const navigate = useNavigate();
   const [moreOpen, setMoreOpen] = useState(false);
+  const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const isMoreActive = moreTabs.some(t => t.path === location.pathname);
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' }).then(({ data }) => {
+      setIsAdmin(!!data);
+    });
+  }, [user?.id]);
+
+  const allMoreTabs = isAdmin
+    ? [...moreTabs, { path: '/admin', icon: Shield, label: 'Admin' }]
+    : moreTabs;
+
+  const isMoreActive = allMoreTabs.some(t => t.path === location.pathname);
 
   return (
     <nav ref={ref} className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border safe-bottom">

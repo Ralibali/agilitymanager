@@ -59,6 +59,12 @@ function AuthGuard() {
   return <Outlet />;
 }
 
+const LazyFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="text-muted-foreground font-display">Laddar...</div>
+  </div>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
@@ -67,34 +73,36 @@ const App = () => (
         <Sonner />
         <AuthProvider>
         <BrowserRouter>
-          <Routes>
-            {/* Public routes */}
-            <Route element={<AuthGuard />}>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/auth" element={<AuthPage />} />
-            </Route>
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/hundforsakring" element={<InsurancePage />} />
-            <Route path="/blogg" element={<BlogPage />} />
-            <Route path="/blogg/:slug" element={<BlogPostPage />} />
+          <Suspense fallback={<LazyFallback />}>
+            <Routes>
+              {/* Public routes */}
+              <Route element={<AuthGuard />}>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+              </Route>
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/hundforsakring" element={<InsurancePage />} />
+              <Route path="/blogg" element={<BlogPage />} />
+              <Route path="/blogg/:slug" element={<BlogPostPage />} />
 
-            {/* Protected routes */}
-            <Route element={<ProtectedLayout />}>
-              <Route path="/dashboard" element={<Index />} />
-              <Route path="/dogs" element={<DogsPage />} />
-              <Route path="/training" element={<TrainingPage />} />
-              <Route path="/competition" element={<CompetitionPage />} />
-              <Route path="/stopwatch" element={<StopwatchPage />} />
-              <Route path="/health" element={<HealthPage />} />
-              <Route path="/course-planner" element={<CoursePlannerPage />} />
-              <Route path="/stats" element={<StatsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="/index" element={<Navigate to="/dashboard" replace />} />
-            </Route>
+              {/* Protected routes */}
+              <Route element={<ProtectedLayout />}>
+                <Route path="/dashboard" element={<Index />} />
+                <Route path="/dogs" element={<DogsPage />} />
+                <Route path="/training" element={<TrainingPage />} />
+                <Route path="/competition" element={<CompetitionPage />} />
+                <Route path="/stopwatch" element={<StopwatchPage />} />
+                <Route path="/health" element={<HealthPage />} />
+                <Route path="/course-planner" element={<CoursePlannerPage />} />
+                <Route path="/stats" element={<StatsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/admin" element={<AdminPage />} />
+                <Route path="/index" element={<Navigate to="/dashboard" replace />} />
+              </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </AuthProvider>
       </TooltipProvider>

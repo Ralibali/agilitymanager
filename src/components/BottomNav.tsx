@@ -43,7 +43,7 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
   const isMoreActive = allMoreTabs.some(t => t.path === location.pathname);
 
   return (
-    <nav ref={ref} className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border safe-bottom">
+    <nav ref={ref} aria-label="Huvudnavigering" className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border safe-bottom">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-1">
         {mainTabs.map((tab) => {
           const isActive = location.pathname === tab.path;

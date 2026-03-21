@@ -88,7 +88,7 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
           </SheetTrigger>
           <SheetContent side="bottom" className="rounded-t-2xl pb-safe">
             <div className="grid grid-cols-3 gap-4 py-4">
-              {moreTabs.map(tab => {
+              {allMoreTabs.map(tab => {
                 const Icon = tab.icon;
                 const isActive = location.pathname === tab.path;
                 return (

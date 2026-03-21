@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,23 +7,27 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { BottomNav } from "@/components/BottomNav";
+
+// Eager: landing + auth (first paint)
 import LandingPage from "./pages/LandingPage";
-import Index from "./pages/Index";
-import DogsPage from "./pages/DogsPage";
-import TrainingPage from "./pages/TrainingPage";
-import CompetitionPage from "./pages/CompetitionPage";
-import StopwatchPage from "./pages/StopwatchPage";
-import HealthPage from "./pages/HealthPage";
-import CoursePlannerPage from "./pages/CoursePlannerPage";
-import StatsPage from "./pages/StatsPage";
-import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import InsurancePage from "./pages/InsurancePage";
-import BlogPage from "./pages/BlogPage";
-import BlogPostPage from "./pages/BlogPostPage";
-import AdminPage from "./pages/AdminPage";
-import NotFound from "./pages/NotFound";
+
+// Lazy: everything else
+const Index = React.lazy(() => import("./pages/Index"));
+const DogsPage = React.lazy(() => import("./pages/DogsPage"));
+const TrainingPage = React.lazy(() => import("./pages/TrainingPage"));
+const CompetitionPage = React.lazy(() => import("./pages/CompetitionPage"));
+const StopwatchPage = React.lazy(() => import("./pages/StopwatchPage"));
+const HealthPage = React.lazy(() => import("./pages/HealthPage"));
+const CoursePlannerPage = React.lazy(() => import("./pages/CoursePlannerPage"));
+const StatsPage = React.lazy(() => import("./pages/StatsPage"));
+const SettingsPage = React.lazy(() => import("./pages/SettingsPage"));
+const ResetPasswordPage = React.lazy(() => import("./pages/ResetPasswordPage"));
+const InsurancePage = React.lazy(() => import("./pages/InsurancePage"));
+const BlogPage = React.lazy(() => import("./pages/BlogPage"));
+const BlogPostPage = React.lazy(() => import("./pages/BlogPostPage"));
+const AdminPage = React.lazy(() => import("./pages/AdminPage"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 

@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  Users, Crown, BarChart3, Loader2, Trash2, Shield, Dog, Dumbbell, Trophy,
+  Users, Loader2, Trash2, Shield, Dog, Dumbbell, Trophy, Heart, Timer,
   Search, Eye, CalendarDays
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -19,12 +18,13 @@ import {
   AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
 import { PageContainer } from '@/components/PageContainer';
+import UserDetailModal from '@/components/admin/UserDetailModal';
 
 export default function AdminPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [userSearch, setUserSearch] = useState('');
-  const [premiumDurations, setPremiumDurations] = useState<Record<string, string>>({});
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
   // Check admin
   const { data: isAdmin, isLoading: checkLoading } = useQuery({
@@ -41,17 +41,21 @@ export default function AdminPage() {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const [profiles, dogs, training, competitions] = await Promise.all([
+      const [profiles, dogs, training, competitions, health, stopwatch] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact' }),
         supabase.from('dogs').select('id', { count: 'exact' }),
         supabase.from('training_sessions').select('id', { count: 'exact' }),
         supabase.from('competition_results').select('id', { count: 'exact' }),
+        supabase.from('health_logs').select('id', { count: 'exact' }),
+        supabase.from('stopwatch_results').select('id', { count: 'exact' }),
       ]);
       return {
         user_count: profiles.count || 0,
         dog_count: dogs.count || 0,
         training_count: training.count || 0,
         competition_count: competitions.count || 0,
+        health_count: health.count || 0,
+        stopwatch_count: stopwatch.count || 0,
       };
     },
     enabled: !!isAdmin,
@@ -111,7 +115,7 @@ export default function AdminPage() {
 
   return (
     <PageContainer>
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
@@ -127,12 +131,14 @@ export default function AdminPage() {
         {statsLoading ? (
           <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
         ) : stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {[
               { icon: Users, value: stats.user_count, label: 'Användare', color: 'text-primary', bg: 'bg-primary/10' },
               { icon: Dog, value: stats.dog_count, label: 'Hundar', color: 'text-accent', bg: 'bg-accent/10' },
               { icon: Dumbbell, value: stats.training_count, label: 'Träningar', color: 'text-primary', bg: 'bg-primary/10' },
               { icon: Trophy, value: stats.competition_count, label: 'Tävlingar', color: 'text-accent', bg: 'bg-accent/10' },
+              { icon: Heart, value: stats.health_count, label: 'Hälsologgar', color: 'text-destructive', bg: 'bg-destructive/10' },
+              { icon: Timer, value: stats.stopwatch_count, label: 'Tidtagningar', color: 'text-primary', bg: 'bg-primary/10' },
             ].map(({ icon: Icon, value, label, color, bg }, i) => (
               <Card key={i}>
                 <CardContent className="p-3 text-center">
@@ -147,9 +153,9 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Users */}
+        {/* Tabs */}
         <Tabs defaultValue="users" className="space-y-4">
-          <TabsList className="w-full rounded-xl">
+          <TabsList className="flex w-full overflow-x-auto rounded-xl">
             <TabsTrigger value="users" className="text-xs sm:text-sm gap-1 rounded-lg flex-1">
               <Users className="h-3.5 w-3.5" /> Användare
             </TabsTrigger>
@@ -183,34 +189,48 @@ export default function AdminPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">{u.display_name || 'Namnlös'}</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            Registrerad {new Date(u.created_at).toLocaleDateString('sv-SE')}
-                          </p>
+                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <CalendarDays className="h-2.5 w-2.5" />
+                              {new Date(u.created_at).toLocaleDateString('sv-SE')}
+                            </span>
+                          </div>
                         </div>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/50 hover:text-destructive">
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="rounded-2xl">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="font-display">Radera användare?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Detta raderar profilen för <strong>{u.display_name}</strong> permanent.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="rounded-xl">Avbryt</AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
-                                onClick={() => deleteUserMutation.mutate(u.user_id)}
-                              >
-                                Radera
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <div className="flex gap-1 shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-primary/60 hover:text-primary"
+                            onClick={() => setSelectedUser(u)}
+                            title="Visa detaljer"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/50 hover:text-destructive">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="rounded-2xl">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="font-display">Radera användare?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Detta raderar profilen för <strong>{u.display_name}</strong> permanent.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="rounded-xl">Avbryt</AlertDialogCancel>
+                                <AlertDialogAction
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
+                                  onClick={() => deleteUserMutation.mutate(u.user_id)}
+                                >
+                                  Radera
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -219,6 +239,13 @@ export default function AdminPage() {
             )}
           </TabsContent>
         </Tabs>
+
+        <UserDetailModal
+          userId={selectedUser?.user_id || null}
+          userName={selectedUser?.display_name || 'Namnlös'}
+          open={!!selectedUser}
+          onOpenChange={(open) => { if (!open) setSelectedUser(null); }}
+        />
       </div>
     </PageContainer>
   );

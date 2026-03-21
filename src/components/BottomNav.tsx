@@ -1,9 +1,11 @@
-import { Home, Dog, Dumbbell, Trophy, Timer, Heart, BarChart3, Settings, PencilRuler } from 'lucide-react';
+import { Home, Dog, Dumbbell, Trophy, Timer, Heart, BarChart3, Settings, PencilRuler, Shield } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { forwardRef, useState } from 'react';
+import { forwardRef, useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { MoreHorizontal } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const mainTabs = [
   { path: '/dashboard', icon: Home, label: 'Hem' },
@@ -24,8 +26,21 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
   const location = useLocation();
   const navigate = useNavigate();
   const [moreOpen, setMoreOpen] = useState(false);
+  const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const isMoreActive = moreTabs.some(t => t.path === location.pathname);
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' }).then(({ data }) => {
+      setIsAdmin(!!data);
+    });
+  }, [user?.id]);
+
+  const allMoreTabs = isAdmin
+    ? [...moreTabs, { path: '/admin', icon: Shield, label: 'Admin' }]
+    : moreTabs;
+
+  const isMoreActive = allMoreTabs.some(t => t.path === location.pathname);
 
   return (
     <nav ref={ref} className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border safe-bottom">
@@ -73,7 +88,7 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
           </SheetTrigger>
           <SheetContent side="bottom" className="rounded-t-2xl pb-safe">
             <div className="grid grid-cols-3 gap-4 py-4">
-              {moreTabs.map(tab => {
+              {allMoreTabs.map(tab => {
                 const Icon = tab.icon;
                 const isActive = location.pathname === tab.path;
                 return (

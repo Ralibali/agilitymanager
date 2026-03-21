@@ -18,7 +18,7 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
-import PageContainer from '@/components/PageContainer';
+import { PageContainer } from '@/components/PageContainer';
 
 export default function AdminPage() {
   const { user } = useAuth();

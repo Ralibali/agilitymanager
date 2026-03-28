@@ -12,7 +12,7 @@ import { CountUp } from '@/components/CountUp';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 
 /* ────── animation helpers ────── */
 const fadeUp = (delay = 0) => ({

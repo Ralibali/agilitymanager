@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { PageContainer } from '@/components/PageContainer';
 import { AddTrainingDialog } from '@/components/AddTrainingDialog';
 import { DogAvatar } from '@/components/DogAvatar';

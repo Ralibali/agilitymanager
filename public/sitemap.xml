@@ -1,52 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://agilitymanager.lovable.app/</loc>
+    <loc>https://agilitymanager.se/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.lovable.app/blogg</loc>
+    <loc>https://agilitymanager.se/blogg</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.lovable.app/blogg/borja-med-agility</loc>
+    <loc>https://agilitymanager.se/blogg/borja-med-agility</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.lovable.app/blogg/kontaktzoner-traning</loc>
+    <loc>https://agilitymanager.se/blogg/kontaktzoner-traning</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.lovable.app/blogg/mentala-foreberedelser-tavling</loc>
+    <loc>https://agilitymanager.se/blogg/mentala-foreberedelser-tavling</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.lovable.app/blogg/undvik-skador-agility</loc>
+    <loc>https://agilitymanager.se/blogg/undvik-skador-agility</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.lovable.app/blogg/sagik-klasser-forklarat</loc>
+    <loc>https://agilitymanager.se/blogg/sagik-klasser-forklarat</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.lovable.app/blogg/effektiv-traningsplanering</loc>
+    <loc>https://agilitymanager.se/blogg/effektiv-traningsplanering</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.lovable.app/hundforsakring</loc>
+    <loc>https://agilitymanager.se/hundforsakring</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.lovable.app/auth</loc>
+    <loc>https://agilitymanager.se/auth</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

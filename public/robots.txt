@@ -23,4 +23,4 @@ Disallow: /stats
 Disallow: /settings
 Disallow: /admin
 
-Sitemap: https://agilitymanager.lovable.app/sitemap.xml
+Sitemap: https://agilitymanager.se/sitemap.xml

@@ -7,11 +7,13 @@ import { DogAvatar } from '@/components/DogAvatar';
 import { MeritBadge, MeritProgress, calculateMerit } from '@/components/MeritTracker';
 import { store } from '@/lib/store';
 import type { Dog, TrainingSession, CompetitionResult, PlannedCompetition } from '@/types';
-import { Dumbbell, Trophy, Flame, Calendar, Sparkles, ArrowRight, Timer, Heart, Map, TrendingUp } from 'lucide-react';
+import { Dumbbell, Trophy, Flame, Calendar, Sparkles, ArrowRight, Timer, Heart, Map, TrendingUp, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { format, differenceInDays } from 'date-fns';
 import { sv } from 'date-fns/locale';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const [dogs, setDogs] = useState<Dog[]>([]);
@@ -19,7 +21,9 @@ const Index = () => {
   const [competitions, setCompetitions] = useState<CompetitionResult[]>([]);
   const [planned, setPlanned] = useState<PlannedCompetition[]>([]);
   const [loading, setLoading] = useState(true);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const refresh = async () => {
     const [d, t, c, p] = await Promise.all([
@@ -36,6 +40,13 @@ const Index = () => {
   };
 
   useEffect(() => { refresh(); }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.from('profiles').select('display_name').eq('user_id', user.id).maybeSingle().then(({ data }) => {
+      if (data?.display_name) setDisplayName(data.display_name);
+    });
+  }, [user?.id]);
 
   if (loading) {
     return <PageContainer><div className="flex items-center justify-center min-h-[60vh] text-muted-foreground">Laddar...</div></PageContainer>;
@@ -104,7 +115,7 @@ const Index = () => {
   }
 
   return (
-    <PageContainer title="Dashboard" subtitle={`${dogs.length} hund${dogs.length > 1 ? 'ar' : ''} registrerad${dogs.length > 1 ? 'e' : ''}`}>
+    <PageContainer title={displayName ? `Hej ${displayName} 👋` : 'Dashboard'} subtitle={`${dogs.length} hund${dogs.length > 1 ? 'ar' : ''} registrerad${dogs.length > 1 ? 'e' : ''}`}>
       {/* Quick actions */}
       <div className="grid grid-cols-2 gap-3 mb-5">
         <AddTrainingDialog dogs={dogs} onAdded={refresh} trigger={

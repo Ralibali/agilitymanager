@@ -66,8 +66,8 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
       <Helmet>
-        <title>AgilityManager – Träna & Tävla i Agility | Hundförsäkring Jämförelse</title>
-        <meta name="description" content="Sveriges smartaste agility-app. Logga träning, tävlingsresultat, jämför hundförsäkringar och följ din utveckling. Gratis att börja!" />
+        <title>AgilityManager – Träningslogg & Tävlingsresultat för Agility | Gratis app</title>
+        <meta name="description" content="Logga träningspass, planera agilitybanor och följ dina tävlingsresultat. Sveriges träningsapp för agility – gratis att börja." />
         <link rel="canonical" href="https://agilitymanager.se/" />
       </Helmet>
 

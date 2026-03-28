@@ -21,7 +21,9 @@ const Index = () => {
   const [competitions, setCompetitions] = useState<CompetitionResult[]>([]);
   const [planned, setPlanned] = useState<PlannedCompetition[]>([]);
   const [loading, setLoading] = useState(true);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const refresh = async () => {
     const [d, t, c, p] = await Promise.all([

@@ -27,6 +27,12 @@ export default function TrainingPage() {
   if (loading) return <PageContainer title="Träning"><div className="text-center py-20 text-muted-foreground">Laddar...</div></PageContainer>;
 
   return (
+    <>
+    <Helmet>
+      <title>Träningslogg Agility – Logga varje pass | AgilityManager</title>
+      <meta name="description" content="Strukturera din agilityträning med AgilityManagers träningslogg. Logga datum, hund, fokusområde och notat. Bygg historik pass för pass." />
+      <link rel="canonical" href="https://agilitymanager.se/traning" />
+    </Helmet>
     <PageContainer
       title="Träning"
       subtitle={`${sessions.length} träningspass`}

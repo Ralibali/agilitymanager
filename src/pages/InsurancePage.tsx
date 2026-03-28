@@ -458,6 +458,33 @@ export default function InsurancePage() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* FAQ Section */}
+      <div className="max-w-lg mx-auto px-4 py-8">
+        <h2 className="font-display font-bold text-foreground text-lg mb-4">Vanliga frågor om hundförsäkring för agilityhundar</h2>
+        <div className="space-y-4">
+          <div className="bg-card rounded-xl p-4 shadow-sm">
+            <h3 className="font-semibold text-foreground text-sm mb-1">Vilken hundförsäkring är bäst för agilityhundar?</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">Petson och Sveland rekommenderas ofta för tävlingshundar tack vare hög maxersättning och specialskydd. Petson erbjuder upp till 175 000 kr/år och täcker vård utomlands.</p>
+          </div>
+          <div className="bg-card rounded-xl p-4 shadow-sm">
+            <h3 className="font-semibold text-foreground text-sm mb-1">Vilken är billigaste hundförsäkringen 2026?</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">Hedvig från ~119 kr/mån och Lassie från ~138 kr/mån är de prisvärdaste alternativen med bra grundskydd och upp till 160 000 kr/år i maxersättning.</p>
+          </div>
+          <div className="bg-card rounded-xl p-4 shadow-sm">
+            <h3 className="font-semibold text-foreground text-sm mb-1">Kan man försäkra en äldre hund?</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">Ja, Lassie har inget ålderstak, Hedvig tar hundar upp till 20 år och Svedea har inget ålderskrav vid teckning. Sveland kräver dock att hunden är max 7 år.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Contact */}
+      <div className="max-w-lg mx-auto px-4 pb-12 text-center">
+        <p className="text-xs text-muted-foreground">
+          Frågor om försäkringsjämförelsen? Kontakta oss på{' '}
+          <a href="mailto:info@auroramedia.se" className="text-primary underline">info@auroramedia.se</a>
+        </p>
+      </div>
     </div>
   );
 }

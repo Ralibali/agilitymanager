@@ -230,6 +230,24 @@ export default function InsurancePage() {
         </div>
       </header>
 
+      {/* SEO Intro */}
+      <div className="max-w-lg mx-auto px-4 pt-6 pb-4">
+        <h2 className="font-display font-bold text-foreground text-lg mb-2">Varför behöver agilityhundar ett extra bra försäkringsskydd?</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+          Agilityhundar rör sig snabbt och intensivt – de hoppar, vänder, accelererar och bromsar i hög fart genom hela banan. Skaderisken är betydligt högre än för inaktiva hundar, och vanliga skador inkluderar senor, ledband och muskelproblem. En operation för ett korsbandsbrott kan kosta 30 000–50 000 kr, och rehabilitering med fysioterapi tillkommer utöver det.
+        </p>
+        <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+          Tävlande hundar som deltar i internationella mästerskap behöver dessutom täckning för veterinärkostnader utomlands. Maxersättning per år och självrisknivå varierar kraftigt mellan försäkringsbolagen – från 120 000 kr hos Sveland till 175 000 kr hos Petson. Vissa bolag har kort karenstid medan andra kräver upp till ett år innan full ersättning gäller.
+        </p>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Att jämföra villkor noggrant innan du tecknar är avgörande – rätt försäkring kan spara dig tiotusentals kronor om olyckan är framme. Nedan hjälper vi dig hitta den försäkring som passar just din agilityhund bäst.
+        </p>
+      </div>
+
+      <div className="max-w-lg mx-auto px-4 pb-2">
+        <h2 className="font-display font-bold text-foreground text-lg mb-3">Jämförelse av hundförsäkringar för tävlingshundar</h2>
+      </div>
+
       {/* Step indicator */}
       <div className="max-w-lg mx-auto px-4 pt-6 pb-2">
         <div className="flex items-center gap-2 justify-center mb-1">

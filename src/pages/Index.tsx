@@ -115,7 +115,7 @@ const Index = () => {
   }
 
   return (
-    <PageContainer title="Dashboard" subtitle={`${dogs.length} hund${dogs.length > 1 ? 'ar' : ''} registrerad${dogs.length > 1 ? 'e' : ''}`}>
+    <PageContainer title={displayName ? `Hej ${displayName} 👋` : 'Dashboard'} subtitle={`${dogs.length} hund${dogs.length > 1 ? 'ar' : ''} registrerad${dogs.length > 1 ? 'e' : ''}`}>
       {/* Quick actions */}
       <div className="grid grid-cols-2 gap-3 mb-5">
         <AddTrainingDialog dogs={dogs} onAdded={refresh} trigger={

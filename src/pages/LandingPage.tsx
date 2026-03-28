@@ -105,8 +105,8 @@ export default function LandingPage() {
             {...fadeUp(0)}
             className="font-display font-bold text-white text-4xl sm:text-5xl lg:text-7xl tracking-tight leading-[1.1] mb-6"
           >
-            Träna smartare.{' '}
-            <span className="text-primary">Tävla bättre.</span>
+            Agilityträning &amp; tävling{' '}
+            <span className="text-primary">i en app.</span>
           </motion.h1>
 
           <motion.p

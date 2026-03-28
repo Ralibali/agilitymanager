@@ -16,16 +16,16 @@ import { useRef, useState } from 'react';
 
 /* ────── animation helpers ────── */
 const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, delay, ease: 'easeOut' },
+  initial: { opacity: 0, y: 30 } as const,
+  animate: { opacity: 1, y: 0 } as const,
+  transition: { duration: 0.5, delay, ease: 'easeOut' as const },
 });
 
 const inViewFadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 24 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: '-60px' },
-  transition: { duration: 0.5, delay, ease: 'easeOut' },
+  initial: { opacity: 0, y: 24 } as const,
+  whileInView: { opacity: 1, y: 0 } as const,
+  viewport: { once: true, margin: '-60px' as const },
+  transition: { duration: 0.5, delay, ease: 'easeOut' as const },
 });
 
 /* ────── data ────── */

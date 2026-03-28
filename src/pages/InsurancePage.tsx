@@ -225,7 +225,7 @@ export default function InsurancePage() {
           <button onClick={() => navigate('/')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             ← Tillbaka
           </button>
-          <h1 className="font-display font-bold text-foreground text-base">Hundförsäkring</h1>
+          <h1 className="font-display font-bold text-foreground text-base">Hundförsäkring för agilityhundar</h1>
           <div className="w-16" />
         </div>
       </header>

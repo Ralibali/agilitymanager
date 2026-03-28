@@ -695,5 +695,6 @@ export default function CoursePlannerPage() {
       </p>
       </PremiumGate>
     </PageContainer>
+    </>
   );
 }

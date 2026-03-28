@@ -181,13 +181,43 @@ export default function InsurancePage() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Jämför Hundförsäkring 2025 – Bästa Försäkringen för Agilityhundar | AgilityManager</title>
-        <meta name="description" content="Jämför hundförsäkringar för agilityhundar. Se priser, ersättningsnivåer och villkor från Lassie, Hedvig, Petson, Svedea och Sveland. Hitta bästa skyddet för din hund." />
+        <title>Hundförsäkring för Agilityhundar – Jämför 2026 | AgilityManager</title>
+        <meta name="description" content="Jämför hundförsäkringar för agilityhundar. Petson, Hedvig, Lassie, Sveland och fler – hitta rätt skydd för din tävlingshund." />
         <link rel="canonical" href="https://agilitymanager.se/hundforsakring" />
-        <meta property="og:title" content="Jämför Hundförsäkring 2025 – Bästa för Agilityhundar" />
-        <meta property="og:description" content="Interaktivt jämförelseverktyg för hundförsäkringar. Hitta rätt försäkring baserat på ras, ålder och om din hund tävlar i agility." />
+        <meta property="og:title" content="Hundförsäkring för Agilityhundar – Jämför 2026" />
+        <meta property="og:description" content="Jämför hundförsäkringar för agilityhundar. Hitta rätt försäkring baserat på ras, ålder och om din hund tävlar i agility." />
         <meta property="og:url" content="https://agilitymanager.se/hundforsakring" />
         <meta property="og:type" content="website" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Vilken hundförsäkring är bäst för agilityhundar?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Petson och Sveland rekommenderas ofta för tävlingshundar tack vare hög maxersättning och specialskydd. Petson erbjuder upp till 175 000 kr/år och täcker vård utomlands."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Vilken är billigaste hundförsäkringen 2026?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Hedvig från ~119 kr/mån och Lassie från ~138 kr/mån är de prisvärdaste alternativen med bra grundskydd och upp till 160 000 kr/år i maxersättning."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Kan man försäkra en äldre hund?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Ja, Lassie har inget ålderstak, Hedvig tar hundar upp till 20 år och Svedea har inget ålderskrav vid teckning. Sveland kräver dock att hunden är max 7 år."
+              }
+            }
+          ]
+        })}</script>
       </Helmet>
       {/* Header */}
       <header className="sticky top-0 z-40 bg-card/80 backdrop-blur-lg border-b border-border">
@@ -195,10 +225,28 @@ export default function InsurancePage() {
           <button onClick={() => navigate('/')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             ← Tillbaka
           </button>
-          <h1 className="font-display font-bold text-foreground text-base">Hundförsäkring</h1>
+          <h1 className="font-display font-bold text-foreground text-base">Hundförsäkring för agilityhundar</h1>
           <div className="w-16" />
         </div>
       </header>
+
+      {/* SEO Intro */}
+      <div className="max-w-lg mx-auto px-4 pt-6 pb-4">
+        <h2 className="font-display font-bold text-foreground text-lg mb-2">Varför behöver agilityhundar ett extra bra försäkringsskydd?</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+          Agilityhundar rör sig snabbt och intensivt – de hoppar, vänder, accelererar och bromsar i hög fart genom hela banan. Skaderisken är betydligt högre än för inaktiva hundar, och vanliga skador inkluderar senor, ledband och muskelproblem. En operation för ett korsbandsbrott kan kosta 30 000–50 000 kr, och rehabilitering med fysioterapi tillkommer utöver det.
+        </p>
+        <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+          Tävlande hundar som deltar i internationella mästerskap behöver dessutom täckning för veterinärkostnader utomlands. Maxersättning per år och självrisknivå varierar kraftigt mellan försäkringsbolagen – från 120 000 kr hos Sveland till 175 000 kr hos Petson. Vissa bolag har kort karenstid medan andra kräver upp till ett år innan full ersättning gäller.
+        </p>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Att jämföra villkor noggrant innan du tecknar är avgörande – rätt försäkring kan spara dig tiotusentals kronor om olyckan är framme. Nedan hjälper vi dig hitta den försäkring som passar just din agilityhund bäst.
+        </p>
+      </div>
+
+      <div className="max-w-lg mx-auto px-4 pb-2">
+        <h2 className="font-display font-bold text-foreground text-lg mb-3">Jämförelse av hundförsäkringar för tävlingshundar</h2>
+      </div>
 
       {/* Step indicator */}
       <div className="max-w-lg mx-auto px-4 pt-6 pb-2">
@@ -409,6 +457,33 @@ export default function InsurancePage() {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* FAQ Section */}
+      <div className="max-w-lg mx-auto px-4 py-8">
+        <h2 className="font-display font-bold text-foreground text-lg mb-4">Vanliga frågor om hundförsäkring för agilityhundar</h2>
+        <div className="space-y-4">
+          <div className="bg-card rounded-xl p-4 shadow-sm">
+            <h3 className="font-semibold text-foreground text-sm mb-1">Vilken hundförsäkring är bäst för agilityhundar?</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">Petson och Sveland rekommenderas ofta för tävlingshundar tack vare hög maxersättning och specialskydd. Petson erbjuder upp till 175 000 kr/år och täcker vård utomlands.</p>
+          </div>
+          <div className="bg-card rounded-xl p-4 shadow-sm">
+            <h3 className="font-semibold text-foreground text-sm mb-1">Vilken är billigaste hundförsäkringen 2026?</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">Hedvig från ~119 kr/mån och Lassie från ~138 kr/mån är de prisvärdaste alternativen med bra grundskydd och upp till 160 000 kr/år i maxersättning.</p>
+          </div>
+          <div className="bg-card rounded-xl p-4 shadow-sm">
+            <h3 className="font-semibold text-foreground text-sm mb-1">Kan man försäkra en äldre hund?</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">Ja, Lassie har inget ålderstak, Hedvig tar hundar upp till 20 år och Svedea har inget ålderskrav vid teckning. Sveland kräver dock att hunden är max 7 år.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Contact */}
+      <div className="max-w-lg mx-auto px-4 pb-12 text-center">
+        <p className="text-xs text-muted-foreground">
+          Frågor om försäkringsjämförelsen? Kontakta oss på{' '}
+          <a href="mailto:info@auroramedia.se" className="text-primary underline">info@auroramedia.se</a>
+        </p>
       </div>
     </div>
   );

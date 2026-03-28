@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { PageContainer } from '@/components/PageContainer';
 import { AddTrainingDialog } from '@/components/AddTrainingDialog';
 import { DogAvatar } from '@/components/DogAvatar';
@@ -26,6 +27,12 @@ export default function TrainingPage() {
   if (loading) return <PageContainer title="Träning"><div className="text-center py-20 text-muted-foreground">Laddar...</div></PageContainer>;
 
   return (
+    <>
+    <Helmet>
+      <title>Träningslogg Agility – Logga varje pass | AgilityManager</title>
+      <meta name="description" content="Strukturera din agilityträning med AgilityManagers träningslogg. Logga datum, hund, fokusområde och notat. Bygg historik pass för pass." />
+      <link rel="canonical" href="https://agilitymanager.se/traning" />
+    </Helmet>
     <PageContainer
       title="Träning"
       subtitle={`${sessions.length} träningspass`}
@@ -101,5 +108,6 @@ export default function TrainingPage() {
         </div>
       )}
     </PageContainer>
+    </>
   );
 }

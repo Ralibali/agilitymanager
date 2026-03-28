@@ -6,6 +6,7 @@ const productLinks = [
   { label: 'Banplanerare', href: '/auth' },
   { label: 'Tävlingsresultat', href: '/auth' },
   { label: 'Försäkringsjämförelse', href: '/hundforsakring' },
+  { label: 'Priser', href: '/#pricing' },
 ];
 
 const supportLinks = [
@@ -15,8 +16,8 @@ const supportLinks = [
 ];
 
 const sportLinks = [
-  { label: 'Om agility', href: '/blogg' },
-  { label: 'SAgiK', href: 'https://www.brukshundklubben.se/', external: true },
+  { label: 'Om agility', href: '/om-agility' },
+  { label: 'SAgiK', href: 'https://agilityklubben.se', external: true },
   { label: 'Agilitydata.se', href: 'https://agilitydata.se/', external: true },
   { label: 'SKK', href: 'https://www.skk.se/', external: true },
 ];
@@ -31,12 +32,15 @@ export function LandingFooter() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center" role="img" aria-label="AgilityManager logotyp – träningsapp för agility">
                 <Zap size={18} className="text-primary-foreground" />
               </div>
               <span className="font-display font-bold text-lg text-white">AgilityManager</span>
             </div>
-            <p className="text-sm text-white/60 mb-4">Träna smartare. Tävla bättre.</p>
+            <p className="text-sm text-white/60 mb-3">Träna smartare. Tävla bättre.</p>
+            <p className="text-xs text-white/50 mb-4">Frågor eller feedback? Hör av dig till{' '}
+              <a href="mailto:info@auroramedia.se" className="underline hover:text-white transition-colors">info@auroramedia.se</a>
+            </p>
             <p className="text-xs text-white/40">© 2025 AgilityManager</p>
           </div>
 

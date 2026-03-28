@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { PageContainer } from '@/components/PageContainer';
 import { Button } from '@/components/ui/button';
@@ -130,6 +131,11 @@ export default function StopwatchPage() {
   };
 
   return (
+    <>
+    <Helmet>
+      <title>Tidtagarur Agility | AgilityManager</title>
+      <meta name="description" content="Mät tider med fel- och vägringsregistrering. Spara resultat per hund." />
+    </Helmet>
     <PageContainer title="Tidtagarur" subtitle="Mät dina banor">
       {/* Dog selector */}
       {dogs.length > 0 && (
@@ -241,5 +247,6 @@ export default function StopwatchPage() {
         </div>
       )}
     </PageContainer>
+    </>
   );
 }

@@ -66,8 +66,8 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
       <Helmet>
-        <title>AgilityManager – Träna & Tävla i Agility | Hundförsäkring Jämförelse</title>
-        <meta name="description" content="Sveriges smartaste agility-app. Logga träning, tävlingsresultat, jämför hundförsäkringar och följ din utveckling. Gratis att börja!" />
+        <title>AgilityManager – Träningslogg & Tävlingsresultat för Agility | Gratis app</title>
+        <meta name="description" content="Logga träningspass, planera agilitybanor och följ dina tävlingsresultat. Sveriges träningsapp för agility – gratis att börja." />
         <link rel="canonical" href="https://agilitymanager.se/" />
       </Helmet>
 
@@ -105,8 +105,8 @@ export default function LandingPage() {
             {...fadeUp(0)}
             className="font-display font-bold text-white text-4xl sm:text-5xl lg:text-7xl tracking-tight leading-[1.1] mb-6"
           >
-            Träna smartare.{' '}
-            <span className="text-primary">Tävla bättre.</span>
+            Agilityträning &amp; tävling{' '}
+            <span className="text-primary">i en app.</span>
           </motion.h1>
 
           <motion.p
@@ -172,7 +172,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <motion.div {...inViewFadeUp()} className="text-center mb-14">
             <h2 className="font-display font-bold text-foreground text-2xl sm:text-3xl mb-3">
-              Allt du behöver – oavsett om du precis börjat eller jagar SM-pinnar
+              Träningslogg, banplanerare och tävlingsresultat – allt du behöver
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               AgilityManager fungerar för nybörjaren som vill strukturera träningen och för tävlaren i klass 3 som vill optimera varje sekund.

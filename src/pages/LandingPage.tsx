@@ -352,7 +352,7 @@ export default function LandingPage() {
               <h3 className="font-display font-bold text-foreground text-xl mb-1">Pro</h3>
               <p className="text-muted-foreground text-sm mb-6">För den seriösa tävlaren</p>
               <div className="font-display font-bold text-3xl text-foreground mb-6">
-                {annual ? '799 kr' : '99 kr'}
+                {annual ? '99 kr' : '19 kr'}
                 <span className="text-base font-normal text-muted-foreground">/{annual ? 'år' : 'mån'}</span>
               </div>
               <ul className="space-y-3 mb-8">

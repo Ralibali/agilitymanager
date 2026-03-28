@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/PageContainer';
 import { AddCompetitionDialog } from '@/components/AddCompetitionDialog';
@@ -77,6 +78,12 @@ export default function CompetitionPage() {
   const past = planned.filter(p => new Date(p.date) < new Date());
 
   return (
+    <>
+    <Helmet>
+      <title>Tävlingsresultat Agility – Följ pinnar och klass | AgilityManager</title>
+      <meta name="description" content="Logga dina agilitytävlingar, håll koll på pinnar per klass och följ din väg mot agilitychampionat. För klass 1, 2 och 3." />
+      <link rel="canonical" href="https://agilitymanager.se/tavlingsresultat" />
+    </Helmet>
     <PageContainer
       title="Tävling"
       action={dogs.length > 0 ? <AddCompetitionDialog dogs={dogs} onAdded={refresh} /> : undefined}
@@ -281,5 +288,6 @@ export default function CompetitionPage() {
         </TabsContent>
       </Tabs>
     </PageContainer>
+    </>
   );
 }

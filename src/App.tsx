@@ -27,6 +27,7 @@ const InsurancePage = React.lazy(() => import("./pages/InsurancePage"));
 const BlogPage = React.lazy(() => import("./pages/BlogPage"));
 const BlogPostPage = React.lazy(() => import("./pages/BlogPostPage"));
 const AdminPage = React.lazy(() => import("./pages/AdminPage"));
+const AboutAgilityPage = React.lazy(() => import("./pages/AboutAgilityPage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();

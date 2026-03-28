@@ -172,7 +172,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <motion.div {...inViewFadeUp()} className="text-center mb-14">
             <h2 className="font-display font-bold text-foreground text-2xl sm:text-3xl mb-3">
-              Allt du behöver – oavsett om du precis börjat eller jagar SM-pinnar
+              Träningslogg, banplanerare och tävlingsresultat – allt du behöver
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               AgilityManager fungerar för nybörjaren som vill strukturera träningen och för tävlaren i klass 3 som vill optimera varje sekund.

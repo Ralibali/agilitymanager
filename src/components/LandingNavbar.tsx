@@ -44,8 +44,8 @@ export function LandingNavbar() {
     >
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
-        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2" aria-label="AgilityManager logotyp – träningsapp för agility">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center" role="img" aria-label="AgilityManager logotyp – träningsapp för agility">
             <Zap size={18} className="text-primary-foreground" />
           </div>
           <span className={`font-display font-bold text-lg ${scrolled ? 'text-foreground' : 'text-white'}`}>

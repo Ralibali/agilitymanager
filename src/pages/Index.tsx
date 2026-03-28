@@ -41,6 +41,13 @@ const Index = () => {
 
   useEffect(() => { refresh(); }, []);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.from('profiles').select('display_name').eq('user_id', user.id).maybeSingle().then(({ data }) => {
+      if (data?.display_name) setDisplayName(data.display_name);
+    });
+  }, [user?.id]);
+
   if (loading) {
     return <PageContainer><div className="flex items-center justify-center min-h-[60vh] text-muted-foreground">Laddar...</div></PageContainer>;
   }

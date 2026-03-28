@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { PageContainer } from '@/components/PageContainer';
 import { Button } from '@/components/ui/button';
@@ -540,6 +541,12 @@ export default function CoursePlannerPage() {
   const isPremium = usePremium();
 
   return (
+    <>
+    <Helmet>
+      <title>Banplanerare Agility – Rita och spara banor | AgilityManager</title>
+      <meta name="description" content="Designa agilitybanor med alla SAgiK-godkända hinder. Spara, återanvänd och dela dina banor. Fungerar på mobil och desktop." />
+      <link rel="canonical" href="https://agilitymanager.se/banplanerare" />
+    </Helmet>
     <PageContainer title="Banplanerare" subtitle="Rita agility-banor">
       <PremiumGate fullPage featureName="Banplaneraren">
       {/* Toolbar row 1 */}

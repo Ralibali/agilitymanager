@@ -483,7 +483,7 @@ export default function CoursePlannerPage() {
     ctx.font = '11px "Plus Jakarta Sans", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Skapad med AgilityManager · agilitymanager.lovable.app', totalW / 2, footerY + footerH / 2);
+    ctx.fillText('Skapad med AgilityManager · agilitymanager.se', totalW / 2, footerY + footerH / 2);
 
     // Orange accent line
     ctx.fillStyle = 'hsl(16, 100%, 60%)';

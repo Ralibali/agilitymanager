@@ -23,13 +23,13 @@ export default function BlogPage() {
       <Helmet>
         <title>Agility-tips & kunskap | AgilityManager</title>
         <meta name="description" content="Lär dig allt om agility: nybörjarguider, träningstekniker, tävlingstips och hundhälsa. Gratis artiklar från AgilityManager." />
-        <link rel="canonical" href="https://agilitymanager.lovable.app/blogg" />
+        <link rel="canonical" href="https://agilitymanager.se/blogg" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Blog",
           "name": "AgilityManager Kunskapsbank",
           "description": "Tips och guider för agility",
-          "url": "https://agilitymanager.lovable.app/blogg",
+          "url": "https://agilitymanager.se/blogg",
           "publisher": { "@type": "Organization", "name": "AgilityManager" },
           "blogPost": blogPosts.map(p => ({
             "@type": "BlogPosting",
@@ -37,7 +37,7 @@ export default function BlogPage() {
             "description": p.excerpt,
             "datePublished": p.date,
             "author": { "@type": "Organization", "name": p.author },
-            "url": `https://agilitymanager.lovable.app/blogg/${p.slug}`
+            "url": `https://agilitymanager.se/blogg/${p.slug}`
           }))
         })}</script>
       </Helmet>

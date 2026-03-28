@@ -124,7 +124,7 @@ export default function BlogPostPage() {
       <Helmet>
         <title>{post.title} | AgilityManager</title>
         <meta name="description" content={post.excerpt} />
-        <link rel="canonical" href={`https://agilitymanager.lovable.app/blogg/${post.slug}`} />
+        <link rel="canonical" href={`https://agilitymanager.se/blogg/${post.slug}`} />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "BlogPosting",
@@ -133,7 +133,7 @@ export default function BlogPostPage() {
           "datePublished": post.date,
           "author": { "@type": "Organization", "name": post.author },
           "publisher": { "@type": "Organization", "name": "AgilityManager" },
-          "url": `https://agilitymanager.lovable.app/blogg/${post.slug}`
+          "url": `https://agilitymanager.se/blogg/${post.slug}`
         })}</script>
       </Helmet>
 

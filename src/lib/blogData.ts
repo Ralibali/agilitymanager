@@ -329,14 +329,14 @@ Strukturerad träning ger snabbare framsteg än slumpmässig träning. Med en pl
 ## Sätt tydliga mål
 
 ### Långsiktiga mål (6-12 månader)
-- Avancera till nästa klass
+- Avancera till [nästa klass](/blogg/sagik-klasser-forklarat)
 - Förbättra godkännandegrad till 70%
 - Minska genomsnittlig feltid
 
 ### Kortsiktiga mål (1-4 veckor)
-- Träna kontakter 3 gånger per vecka
-- Förbättra slalomingångar från båda håll
-- Jobba med distanshantering
+- Träna [kontaktzoner](/blogg/kontaktzoner-traning) 3 gånger per vecka
+- Förbättra [slalomingångar](/blogg/slalom-traning-agility) från båda håll
+- Jobba med [distanshantering](/blogg/distanshantering-agility)
 
 ## Periodisering
 
@@ -355,7 +355,7 @@ Dela upp din träningssäsong i perioder:
 ### Tävlingsperiod (sommar)
 - Bibehåll form
 - Korta, intensiva pass
-- Fokus på banläsning
+- Fokus på banläsning – [mentala förberedelser](/blogg/mentala-foreberedelser-tavling) är lika viktiga
 
 ### Vila och återhämtning (höst)
 - Minska intensiteten
@@ -374,10 +374,16 @@ Använd AgilityManagers träningsdagbok för att spåra all denna data automatis
 
 ## Variation är nyckeln
 
-- Träna på olika platser
+- Träna på olika platser – [bygg hinder hemma](/blogg/agility-hinder-hemma) för mer flexibilitet
 - Variera hinderkombinationer
 - Byt belöningsmetoder
 - Träna med olika människor
+
+## Läs vidare
+
+- [Uppvärmning för agilityhundar](/blogg/uppvarmning-hund-agility)
+- [Undvik skador i agility](/blogg/undvik-skador-agility)
+- [Börja med agility – komplett guide](/blogg/borja-med-agility)
     `,
   },
   {

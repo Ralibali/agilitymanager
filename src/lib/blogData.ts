@@ -21,11 +21,11 @@ export const blogPosts: BlogPost[] = [
     content: `
 ## Vad är agility?
 
-Agility är en hundsport där hund och förare tillsammans tar sig igenom en bana med olika hinder. Det handlar om samarbete, kommunikation och framför allt – att ha kul tillsammans!
+Agility är en hundsport där hund och förare tillsammans tar sig igenom en bana med olika hinder. Det handlar om samarbete, kommunikation och framför allt – att ha kul tillsammans! Vill du veta mer om sportens historia och regler? Läs vår [kompletta guide om agility](/om-agility).
 
 ## Passar agility min hund?
 
-De flesta hundar kan träna agility. Det viktigaste är att hunden är frisk, rörlig och motiverad. Några saker att tänka på:
+De flesta hundar kan träna agility. Det viktigaste är att hunden är frisk, rörlig och motiverad. Läs mer om [vilka raser som passar bäst för agility](/blogg/basta-hundraser-agility). Några saker att tänka på:
 
 - **Ålder**: Hunden bör vara minst 12 månader innan den hoppar fulla höjder
 - **Hälsa**: En veterinärundersökning rekommenderas innan start
@@ -35,15 +35,15 @@ De flesta hundar kan träna agility. Det viktigaste är att hunden är frisk, r�
 
 1. **Hitta en klubb** – Kontakta din lokala brukshundsklubb eller agilityklubb
 2. **Nybörjarkurs** – De flesta klubbar erbjuder nybörjarkurser
-3. **Utrustning** – Du behöver bekväma kläder och godis/leksak som belöning
+3. **Utrustning** – Du behöver bekväma kläder och godis/leksak som belöning. Du kan också [bygga egna hinder hemma](/blogg/agility-hinder-hemma)
 4. **Tålamod** – Det tar tid att bygga upp grunderna
 
 ## Grundläggande hinder
 
 - **Språnghinder** – Hunden hoppar över en ribba
 - **Tunnel** – Hunden springer genom en tunnel
-- **Kontakthinder** – A-bom, vipp och gångbro med kontaktzoner
-- **Slalom** – Hunden väver mellan pinnar
+- **Kontakthinder** – A-bom, vipp och gångbro med [kontaktzoner som kräver speciell träning](/blogg/kontaktzoner-traning)
+- **Slalom** – Hunden väver mellan pinnar. Läs vår [guide till slalomträning](/blogg/slalom-traning-agility)
 
 ## Tips för första träningen
 
@@ -51,6 +51,12 @@ De flesta hundar kan träna agility. Det viktigaste är att hunden är frisk, r�
 - Belöna ofta och generöst
 - Avsluta alltid på en positiv not
 - Fokusera på relation, inte prestation
+
+## Läs vidare
+
+- [SAgiK-klasser förklarade – Nollklass till K3](/blogg/sagik-klasser-forklarat)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Uppvärmning för agilityhundar](/blogg/uppvarmning-hund-agility)
     `,
   },
   {

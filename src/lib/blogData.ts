@@ -667,7 +667,7 @@ Hunden skickas runt ett hinder som du inte kan se – kräver stort förtroende.
     content: `
 ## Varför värma upp?
 
-Uppvärmning ökar blodflödet till musklerna, förbereder lederna och minskar risken för skador markant. Studier visar att uppvärmda hundar presterar bättre och återhämtar sig snabbare.
+Uppvärmning ökar blodflödet till musklerna, förbereder lederna och minskar risken för [skador](/blogg/undvik-skador-agility) markant. Studier visar att uppvärmda hundar presterar bättre och återhämtar sig snabbare.
 
 ## Steg-för-steg uppvärmning (10–15 minuter)
 
@@ -690,11 +690,11 @@ Låt hunden springa fritt eller jaga en leksak i lugnt tempo. Inga skarpa vändn
 
 - Ett par hopp på låg höjd
 - En tunnelgenomgång
-- Kort slalomsekvens i lugnt tempo
+- Kort [slalomsekvens](/blogg/slalom-traning-agility) i lugnt tempo
 
 ## Uppvärmning inför tävling
 
-Inför tävling bör uppvärmningen vara mer strukturerad:
+Inför tävling bör uppvärmningen vara mer strukturerad. Läs även om [mentala förberedelser inför tävling](/blogg/mentala-foreberedelser-tavling).
 
 1. **30 min innan start**: Lugn promenad och toalettbesök
 2. **15 min innan start**: Aktiva rörelser och stretching
@@ -720,6 +720,12 @@ Efter träning eller tävling:
 ## Logga hundens hälsa
 
 Notera hur hunden rör sig efter uppvärmning och efter träning. AgilityManagers hälsologg hjälper dig upptäcka mönster och förändringar i hundens rörlighet över tid.
+
+## Läs vidare
+
+- [Undvik skador i agility – förebygg och skydda din hund](/blogg/undvik-skador-agility)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Börja med agility – komplett guide](/blogg/borja-med-agility)
     `,
   },
 ];

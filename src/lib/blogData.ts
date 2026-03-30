@@ -70,7 +70,7 @@ De flesta hundar kan träna agility. Det viktigaste är att hunden är frisk, r�
     content: `
 ## Varför är kontaktzoner viktiga?
 
-Kontaktzonerna är målade områden på A-bom, vipp och gångbro. Hunden måste röra zonerna – annars blir det fel i tävling. Bra kontakter kan vara skillnaden mellan godkänt och icke godkänt.
+Kontaktzonerna är målade områden på A-bom, vipp och gångbro. Hunden måste röra zonerna – annars blir det fel i tävling. Bra kontakter kan vara skillnaden mellan godkänt och icke godkänt. Läs mer om [SAgiK:s klasser och regler](/blogg/sagik-klasser-forklarat).
 
 ## Metod 1: 2on2off
 
@@ -110,6 +110,13 @@ Använd en target (platta/duk) i kontaktzonen som hunden springer till.
 - Träna kontakter separat från hela banor
 - Belöna rätt position, inte bara att hunden är klar
 - Filma din träning för att analysera
+- [Värm alltid upp hunden ordentligt](/blogg/uppvarmning-hund-agility) innan kontaktträning
+
+## Läs vidare
+
+- [Undvik skador i agility – förebygg och skydda din hund](/blogg/undvik-skador-agility)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Bygg agilityhinder hemma](/blogg/agility-hinder-hemma)
     `,
   },
   {

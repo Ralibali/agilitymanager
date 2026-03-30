@@ -104,18 +104,17 @@ function renderContent(content: string) {
 
     if (trimmed.startsWith('## ')) {
       flushList();
-      elements.push(<h2 key={`h2-${elements.length}`} className="font-display font-bold text-foreground text-lg mt-6 mb-3">{trimmed.slice(3)}</h2>);
+      elements.push(<h2 key={`h2-${elements.length}`} className="font-display font-bold text-foreground text-lg mt-6 mb-3">{parseInline(trimmed.slice(3))}</h2>);
     } else if (trimmed.startsWith('### ')) {
       flushList();
-      elements.push(<h3 key={`h3-${elements.length}`} className="font-display font-semibold text-foreground mt-4 mb-2">{trimmed.slice(4)}</h3>);
+      elements.push(<h3 key={`h3-${elements.length}`} className="font-display font-semibold text-foreground mt-4 mb-2">{parseInline(trimmed.slice(4))}</h3>);
     } else if (/^\d+\.\s/.test(trimmed)) {
       flushList();
       const text = trimmed.replace(/^\d+\.\s/, '');
-      const boldMatch = text.match(/\*\*(.+?)\*\*(.*)$/);
       elements.push(
         <div key={`ol-${elements.length}`} className="flex gap-2 text-sm text-foreground/90 mb-1.5 ml-1">
           <span className="text-primary font-semibold">{trimmed.match(/^\d+/)![0]}.</span>
-          <span>{boldMatch ? <><strong className="text-foreground">{boldMatch[1]}</strong>{boldMatch[2]}</> : text}</span>
+          <span>{parseInline(text)}</span>
         </div>
       );
     } else if (trimmed.startsWith('- ')) {

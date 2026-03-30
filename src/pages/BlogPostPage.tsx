@@ -48,14 +48,9 @@ function renderContent(content: string) {
     if (listItems.length > 0) {
       elements.push(
         <ul key={`ul-${elements.length}`} className="list-disc list-inside space-y-1 text-foreground/90 text-sm leading-relaxed mb-4">
-          {listItems.map((item, i) => {
-            const boldMatch = item.match(/\*\*(.+?)\*\*(.*)$/);
-            return (
-              <li key={i}>
-                {boldMatch ? <><strong className="text-foreground">{boldMatch[1]}</strong>{boldMatch[2]}</> : item}
-              </li>
-            );
-          })}
+          {listItems.map((item, i) => (
+            <li key={i}>{parseInline(item)}</li>
+          ))}
         </ul>
       );
       listItems = [];

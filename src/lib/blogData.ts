@@ -397,7 +397,7 @@ Använd AgilityManagers träningsdagbok för att spåra all denna data automatis
     content: `
 ## Varför är slalom så svårt?
 
-Slalom (weave poles) är det hinder som tar längst tid att lära ut i agility. Hunden ska väva genom 12 pinnar i rätt ordning, alltid med den första pinnen till vänster. Hastighet, rytm och självständighet krävs – och det tar ofta flera månader att träna upp.
+Slalom (weave poles) är det hinder som tar längst tid att lära ut i agility. Hunden ska väva genom 12 pinnar i rätt ordning, alltid med den första pinnen till vänster. Hastighet, rytm och självständighet krävs – och det tar ofta flera månader att träna upp. Läs mer om [alla hindertyper i agility](/om-agility).
 
 ## Tre populära metoder för att lära ut slalom
 
@@ -423,7 +423,7 @@ Föraren leder hunden genom pinnarna med godis eller leksak. Enklast att komma i
 
 - **Öka svårigheten för snabbt** – hunden tappar förståelse
 - **Dåliga ingångar** – träna ingångar från alla vinklar tidigt
-- **Glömma att träna fart** – precision utan hastighet räcker inte i tävling
+- **Glömma att träna fart** – precision utan hastighet räcker inte i [tävling](/blogg/sagik-klasser-forklarat)
 - **Straffa missade pinnar** – bygg motivation istället
 
 ## Hur snabbt ska hunden kunna slalom?
@@ -432,11 +432,17 @@ I klass 3 förväntas slalom ta cirka 3–4 sekunder. I klass 1 är 5–6 sekund
 
 ## Utrustning för hemmabruk
 
-Du kan köpa slalompinnar för hemmaträning – antingen fasta eller vikbara. Minst 6 pinnar rekommenderas för meningsfull träning. Pinnarna ska ha 60 cm avstånd (SAgiK-standard).
+Du kan köpa slalompinnar för hemmaträning – antingen fasta eller vikbara. Minst 6 pinnar rekommenderas för meningsfull träning. Pinnarna ska ha 60 cm avstånd (SAgiK-standard). Läs vår guide om att [bygga agilityhinder hemma](/blogg/agility-hinder-hemma).
 
 ## Träna slalom regelbundet
 
-Slalom kräver muskelminne. 3–5 minuters slalomträning varje dag ger bättre resultat än ett långt pass per vecka. Logga dina pass i AgilityManager för att följa utvecklingen.
+Slalom kräver muskelminne. 3–5 minuters slalomträning varje dag ger bättre resultat än ett långt pass per vecka. [Värm upp hunden](/blogg/uppvarmning-hund-agility) ordentligt innan intensiv slalomträning. Logga dina pass i AgilityManager för att följa utvecklingen.
+
+## Läs vidare
+
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Kontaktzonskträning – 5 metoder](/blogg/kontaktzoner-traning)
+- [Distanshantering i agility](/blogg/distanshantering-agility)
     `,
   },
   {

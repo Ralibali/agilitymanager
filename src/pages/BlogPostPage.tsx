@@ -1,8 +1,40 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, ArrowRight, Clock, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getPostBySlug, blogPosts } from '@/lib/blogData';
+
+// Parse inline markdown: **bold** and [link](/url)
+function parseInline(text: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  // Match **bold** or [text](url)
+  const regex = /\*\*(.+?)\*\*|\[([^\]]+)\]\(([^)]+)\)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let i = 0;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    if (match[1]) {
+      parts.push(<strong key={`b${i}`} className="text-foreground">{match[1]}</strong>);
+    } else if (match[2] && match[3]) {
+      const isExternal = match[3].startsWith('http');
+      parts.push(
+        isExternal
+          ? <a key={`a${i}`} href={match[3]} className="text-primary underline hover:text-primary/80" target="_blank" rel="noopener noreferrer">{match[2]}</a>
+          : <Link key={`a${i}`} to={match[3]} className="text-primary underline hover:text-primary/80">{match[2]}</Link>
+      );
+    }
+    lastIndex = match.index + match[0].length;
+    i++;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  return parts.length > 0 ? parts : [text];
+}
 
 // Simple markdown-ish renderer for our content
 function renderContent(content: string) {

@@ -193,7 +193,7 @@ Agility är en intensiv sport och skador kan tyvärr förekomma. De vanligaste �
 
 ## Uppvärmning är A och O
 
-En ordentlig uppvärmning minskar skaderisken dramatiskt:
+En ordentlig [uppvärmning minskar skaderisken](/blogg/uppvarmning-hund-agility) dramatiskt:
 
 1. **5 min lugn promenad**
 2. **Stretching** – försiktiga rörelser genom hela rörelseomfånget
@@ -212,7 +212,7 @@ Lika viktigt som uppvärmning:
 ## Underlag och miljö
 
 - Undvik halt eller hårt underlag
-- Kontrollera att hinder är säkra och stabila
+- Kontrollera att hinder är säkra och stabila – läs om [säkra hinder för hemmabruk](/blogg/agility-hinder-hemma)
 - Anpassa träningen efter väder (halt vid regn, hårt vid frost)
 
 ## När ska du vila?
@@ -220,11 +220,17 @@ Lika viktigt som uppvärmning:
 - Hunden haltar eller rör sig annorlunda
 - Hunden undviker vissa hinder
 - Svullnad eller ömhet
-- Vid tveksamhet – kontakta veterinär!
+- Vid tveksamhet – kontakta veterinär! Har du rätt [försäkringsskydd för din agilityhund](/hundforsakring)?
 
 ## Viktregistrering
 
 Att hålla koll på hundens vikt hjälper dig upptäcka förändringar tidigt. Använd AgilityManagers hälsologg för att följa vikten över tid.
+
+## Läs vidare
+
+- [Uppvärmning för agilityhundar – så gör du rätt](/blogg/uppvarmning-hund-agility)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Börja med agility – komplett guide](/blogg/borja-med-agility)
     `,
   },
   {

@@ -1,8 +1,40 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, ArrowRight, Clock, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getPostBySlug, blogPosts } from '@/lib/blogData';
+
+// Parse inline markdown: **bold** and [link](/url)
+function parseInline(text: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  // Match **bold** or [text](url)
+  const regex = /\*\*(.+?)\*\*|\[([^\]]+)\]\(([^)]+)\)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let i = 0;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    if (match[1]) {
+      parts.push(<strong key={`b${i}`} className="text-foreground">{match[1]}</strong>);
+    } else if (match[2] && match[3]) {
+      const isExternal = match[3].startsWith('http');
+      parts.push(
+        isExternal
+          ? <a key={`a${i}`} href={match[3]} className="text-primary underline hover:text-primary/80" target="_blank" rel="noopener noreferrer">{match[2]}</a>
+          : <Link key={`a${i}`} to={match[3]} className="text-primary underline hover:text-primary/80">{match[2]}</Link>
+      );
+    }
+    lastIndex = match.index + match[0].length;
+    i++;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  return parts.length > 0 ? parts : [text];
+}
 
 // Simple markdown-ish renderer for our content
 function renderContent(content: string) {
@@ -16,14 +48,9 @@ function renderContent(content: string) {
     if (listItems.length > 0) {
       elements.push(
         <ul key={`ul-${elements.length}`} className="list-disc list-inside space-y-1 text-foreground/90 text-sm leading-relaxed mb-4">
-          {listItems.map((item, i) => {
-            const boldMatch = item.match(/\*\*(.+?)\*\*(.*)$/);
-            return (
-              <li key={i}>
-                {boldMatch ? <><strong className="text-foreground">{boldMatch[1]}</strong>{boldMatch[2]}</> : item}
-              </li>
-            );
-          })}
+          {listItems.map((item, i) => (
+            <li key={i}>{parseInline(item)}</li>
+          ))}
         </ul>
       );
       listItems = [];
@@ -72,18 +99,17 @@ function renderContent(content: string) {
 
     if (trimmed.startsWith('## ')) {
       flushList();
-      elements.push(<h2 key={`h2-${elements.length}`} className="font-display font-bold text-foreground text-lg mt-6 mb-3">{trimmed.slice(3)}</h2>);
+      elements.push(<h2 key={`h2-${elements.length}`} className="font-display font-bold text-foreground text-lg mt-6 mb-3">{parseInline(trimmed.slice(3))}</h2>);
     } else if (trimmed.startsWith('### ')) {
       flushList();
-      elements.push(<h3 key={`h3-${elements.length}`} className="font-display font-semibold text-foreground mt-4 mb-2">{trimmed.slice(4)}</h3>);
+      elements.push(<h3 key={`h3-${elements.length}`} className="font-display font-semibold text-foreground mt-4 mb-2">{parseInline(trimmed.slice(4))}</h3>);
     } else if (/^\d+\.\s/.test(trimmed)) {
       flushList();
       const text = trimmed.replace(/^\d+\.\s/, '');
-      const boldMatch = text.match(/\*\*(.+?)\*\*(.*)$/);
       elements.push(
         <div key={`ol-${elements.length}`} className="flex gap-2 text-sm text-foreground/90 mb-1.5 ml-1">
           <span className="text-primary font-semibold">{trimmed.match(/^\d+/)![0]}.</span>
-          <span>{boldMatch ? <><strong className="text-foreground">{boldMatch[1]}</strong>{boldMatch[2]}</> : text}</span>
+          <span>{parseInline(text)}</span>
         </div>
       );
     } else if (trimmed.startsWith('- ')) {
@@ -92,7 +118,7 @@ function renderContent(content: string) {
       flushList();
     } else {
       flushList();
-      elements.push(<p key={`p-${elements.length}`} className="text-sm text-foreground/90 leading-relaxed mb-3">{trimmed}</p>);
+      elements.push(<p key={`p-${elements.length}`} className="text-sm text-foreground/90 leading-relaxed mb-3">{parseInline(trimmed)}</p>);
     }
   }
 

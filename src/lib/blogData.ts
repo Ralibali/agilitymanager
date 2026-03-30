@@ -21,11 +21,11 @@ export const blogPosts: BlogPost[] = [
     content: `
 ## Vad är agility?
 
-Agility är en hundsport där hund och förare tillsammans tar sig igenom en bana med olika hinder. Det handlar om samarbete, kommunikation och framför allt – att ha kul tillsammans!
+Agility är en hundsport där hund och förare tillsammans tar sig igenom en bana med olika hinder. Det handlar om samarbete, kommunikation och framför allt – att ha kul tillsammans! Vill du veta mer om sportens historia och regler? Läs vår [kompletta guide om agility](/om-agility).
 
 ## Passar agility min hund?
 
-De flesta hundar kan träna agility. Det viktigaste är att hunden är frisk, rörlig och motiverad. Några saker att tänka på:
+De flesta hundar kan träna agility. Det viktigaste är att hunden är frisk, rörlig och motiverad. Läs mer om [vilka raser som passar bäst för agility](/blogg/basta-hundraser-agility). Några saker att tänka på:
 
 - **Ålder**: Hunden bör vara minst 12 månader innan den hoppar fulla höjder
 - **Hälsa**: En veterinärundersökning rekommenderas innan start
@@ -35,15 +35,15 @@ De flesta hundar kan träna agility. Det viktigaste är att hunden är frisk, r�
 
 1. **Hitta en klubb** – Kontakta din lokala brukshundsklubb eller agilityklubb
 2. **Nybörjarkurs** – De flesta klubbar erbjuder nybörjarkurser
-3. **Utrustning** – Du behöver bekväma kläder och godis/leksak som belöning
+3. **Utrustning** – Du behöver bekväma kläder och godis/leksak som belöning. Du kan också [bygga egna hinder hemma](/blogg/agility-hinder-hemma)
 4. **Tålamod** – Det tar tid att bygga upp grunderna
 
 ## Grundläggande hinder
 
 - **Språnghinder** – Hunden hoppar över en ribba
 - **Tunnel** – Hunden springer genom en tunnel
-- **Kontakthinder** – A-bom, vipp och gångbro med kontaktzoner
-- **Slalom** – Hunden väver mellan pinnar
+- **Kontakthinder** – A-bom, vipp och gångbro med [kontaktzoner som kräver speciell träning](/blogg/kontaktzoner-traning)
+- **Slalom** – Hunden väver mellan pinnar. Läs vår [guide till slalomträning](/blogg/slalom-traning-agility)
 
 ## Tips för första träningen
 
@@ -51,6 +51,12 @@ De flesta hundar kan träna agility. Det viktigaste är att hunden är frisk, r�
 - Belöna ofta och generöst
 - Avsluta alltid på en positiv not
 - Fokusera på relation, inte prestation
+
+## Läs vidare
+
+- [SAgiK-klasser förklarade – Nollklass till K3](/blogg/sagik-klasser-forklarat)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Uppvärmning för agilityhundar](/blogg/uppvarmning-hund-agility)
     `,
   },
   {
@@ -64,7 +70,7 @@ De flesta hundar kan träna agility. Det viktigaste är att hunden är frisk, r�
     content: `
 ## Varför är kontaktzoner viktiga?
 
-Kontaktzonerna är målade områden på A-bom, vipp och gångbro. Hunden måste röra zonerna – annars blir det fel i tävling. Bra kontakter kan vara skillnaden mellan godkänt och icke godkänt.
+Kontaktzonerna är målade områden på A-bom, vipp och gångbro. Hunden måste röra zonerna – annars blir det fel i tävling. Bra kontakter kan vara skillnaden mellan godkänt och icke godkänt. Läs mer om [SAgiK:s klasser och regler](/blogg/sagik-klasser-forklarat).
 
 ## Metod 1: 2on2off
 
@@ -104,6 +110,13 @@ Använd en target (platta/duk) i kontaktzonen som hunden springer till.
 - Träna kontakter separat från hela banor
 - Belöna rätt position, inte bara att hunden är klar
 - Filma din träning för att analysera
+- [Värm alltid upp hunden ordentligt](/blogg/uppvarmning-hund-agility) innan kontaktträning
+
+## Läs vidare
+
+- [Undvik skador i agility – förebygg och skydda din hund](/blogg/undvik-skador-agility)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Bygg agilityhinder hemma](/blogg/agility-hinder-hemma)
     `,
   },
   {
@@ -131,13 +144,13 @@ Alla blir nervösa – även rutinerade tävlande. Nyckeln är att lära sig han
 ### Innan start
 1. Kom i god tid
 2. Gå banan noggrant – minst 2 varv
-3. Värm upp hunden ordentligt
+3. [Värm upp hunden ordentligt](/blogg/uppvarmning-hund-agility) – det förbättrar prestationen och minskar skaderisken
 4. Ha en rutin som skapar fokus
 
 ### Under loppet
 - Andas! Djupa andetag innan start
 - Fokusera på din plan, inte resultatet
-- Kommunicera tydligt med hunden
+- Kommunicera tydligt med hunden – [distanshantering](/blogg/distanshantering-agility) är en viktig del
 - Hav kul – hunden märker din sinnesstämning
 
 ### Efter loppet
@@ -152,6 +165,12 @@ Alla blir nervösa – även rutinerade tävlande. Nyckeln är att lära sig han
 - Bli arg på hunden efter ett misstag
 - Jämföra sig med andra ekipage
 - Glömma att det ska vara roligt
+
+## Läs vidare
+
+- [SAgiK-klasser förklarade – Nollklass till K3](/blogg/sagik-klasser-forklarat)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Undvik skador i agility](/blogg/undvik-skador-agility)
     `,
   },
   {
@@ -174,7 +193,7 @@ Agility är en intensiv sport och skador kan tyvärr förekomma. De vanligaste �
 
 ## Uppvärmning är A och O
 
-En ordentlig uppvärmning minskar skaderisken dramatiskt:
+En ordentlig [uppvärmning minskar skaderisken](/blogg/uppvarmning-hund-agility) dramatiskt:
 
 1. **5 min lugn promenad**
 2. **Stretching** – försiktiga rörelser genom hela rörelseomfånget
@@ -193,7 +212,7 @@ Lika viktigt som uppvärmning:
 ## Underlag och miljö
 
 - Undvik halt eller hårt underlag
-- Kontrollera att hinder är säkra och stabila
+- Kontrollera att hinder är säkra och stabila – läs om [säkra hinder för hemmabruk](/blogg/agility-hinder-hemma)
 - Anpassa träningen efter väder (halt vid regn, hårt vid frost)
 
 ## När ska du vila?
@@ -201,11 +220,17 @@ Lika viktigt som uppvärmning:
 - Hunden haltar eller rör sig annorlunda
 - Hunden undviker vissa hinder
 - Svullnad eller ömhet
-- Vid tveksamhet – kontakta veterinär!
+- Vid tveksamhet – kontakta veterinär! Har du rätt [försäkringsskydd för din agilityhund](/hundforsakring)?
 
 ## Viktregistrering
 
 Att hålla koll på hundens vikt hjälper dig upptäcka förändringar tidigt. Använd AgilityManagers hälsologg för att följa vikten över tid.
+
+## Läs vidare
+
+- [Uppvärmning för agilityhundar – så gör du rätt](/blogg/uppvarmning-hund-agility)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Börja med agility – komplett guide](/blogg/borja-med-agility)
     `,
   },
   {
@@ -219,11 +244,11 @@ Att hålla koll på hundens vikt hjälper dig upptäcka förändringar tidigt. A
     content: `
 ## Det svenska tävlingssystemet
 
-I Sverige organiseras agilitytävlingar av Svenska Agilityklubben (SAgiK) under Svenska Kennelklubben. Systemet har fyra klasser som ekipaget avancerar genom.
+I Sverige organiseras agilitytävlingar av Svenska Agilityklubben (SAgiK) under Svenska Kennelklubben. Systemet har fyra klasser som ekipaget avancerar genom. Läs mer i vår [kompletta guide om agility](/om-agility).
 
 ## Nollklass
 
-**Ingångsklassen** för alla nya ekipage.
+**Ingångsklassen** för alla nya ekipage. Perfekt om du precis [börjat med agility](/blogg/borja-med-agility).
 
 - Inga godkännanden krävs för start
 - Lägre krav på hastighet
@@ -239,7 +264,7 @@ I Sverige organiseras agilitytävlingar av Svenska Agilityklubben (SAgiK) under 
 
 - Fler hinder och svårare sekvenser
 - Högre hastighetskrav
-- Alla kontakthinder ingår
+- Alla kontakthinder ingår – [träna kontaktzoner](/blogg/kontaktzoner-traning) noggrant
 
 ### Krav för att avancera:
 3 godkända resultat i K1 → uppflyttning till K2
@@ -250,7 +275,7 @@ I Sverige organiseras agilitytävlingar av Svenska Agilityklubben (SAgiK) under 
 
 - Komplexa sekvenser och vändningar
 - Höga hastighetskrav
-- Kräver god distanshantering
+- Kräver god [distanshantering](/blogg/distanshantering-agility)
 
 ### Krav för att avancera:
 3 godkända resultat i K2 → uppflyttning till K3
@@ -265,7 +290,7 @@ I Sverige organiseras agilitytävlingar av Svenska Agilityklubben (SAgiK) under 
 
 ## Storleksklasser
 
-Hundar delas in i storleksklasser baserat på mankhöjd:
+Hundar delas in i storleksklasser baserat på mankhöjd. Läs mer om [vilka raser som passar bäst](/blogg/basta-hundraser-agility) i respektive klass.
 
 | Klass | Mankhöjd |
 |-------|----------|
@@ -279,6 +304,13 @@ Hundar delas in i storleksklasser baserat på mankhöjd:
 - Fokusera på nollfel snarare än hastighet
 - Öva banläsning och planering
 - Använd AgilityManagers meritspårning för att följa dina godkännanden
+- Förbered dig mentalt – läs om [mentala förberedelser inför tävling](/blogg/mentala-foreberedelser-tavling)
+
+## Läs vidare
+
+- [Mentala förberedelser inför agilitytävling](/blogg/mentala-foreberedelser-tavling)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Slalomträning i agility](/blogg/slalom-traning-agility)
     `,
   },
   {
@@ -297,14 +329,14 @@ Strukturerad träning ger snabbare framsteg än slumpmässig träning. Med en pl
 ## Sätt tydliga mål
 
 ### Långsiktiga mål (6-12 månader)
-- Avancera till nästa klass
+- Avancera till [nästa klass](/blogg/sagik-klasser-forklarat)
 - Förbättra godkännandegrad till 70%
 - Minska genomsnittlig feltid
 
 ### Kortsiktiga mål (1-4 veckor)
-- Träna kontakter 3 gånger per vecka
-- Förbättra slalomingångar från båda håll
-- Jobba med distanshantering
+- Träna [kontaktzoner](/blogg/kontaktzoner-traning) 3 gånger per vecka
+- Förbättra [slalomingångar](/blogg/slalom-traning-agility) från båda håll
+- Jobba med [distanshantering](/blogg/distanshantering-agility)
 
 ## Periodisering
 
@@ -323,7 +355,7 @@ Dela upp din träningssäsong i perioder:
 ### Tävlingsperiod (sommar)
 - Bibehåll form
 - Korta, intensiva pass
-- Fokus på banläsning
+- Fokus på banläsning – [mentala förberedelser](/blogg/mentala-foreberedelser-tavling) är lika viktiga
 
 ### Vila och återhämtning (höst)
 - Minska intensiteten
@@ -342,10 +374,16 @@ Använd AgilityManagers träningsdagbok för att spåra all denna data automatis
 
 ## Variation är nyckeln
 
-- Träna på olika platser
+- Träna på olika platser – [bygg hinder hemma](/blogg/agility-hinder-hemma) för mer flexibilitet
 - Variera hinderkombinationer
 - Byt belöningsmetoder
 - Träna med olika människor
+
+## Läs vidare
+
+- [Uppvärmning för agilityhundar](/blogg/uppvarmning-hund-agility)
+- [Undvik skador i agility](/blogg/undvik-skador-agility)
+- [Börja med agility – komplett guide](/blogg/borja-med-agility)
     `,
   },
   {
@@ -359,7 +397,7 @@ Använd AgilityManagers träningsdagbok för att spåra all denna data automatis
     content: `
 ## Varför är slalom så svårt?
 
-Slalom (weave poles) är det hinder som tar längst tid att lära ut i agility. Hunden ska väva genom 12 pinnar i rätt ordning, alltid med den första pinnen till vänster. Hastighet, rytm och självständighet krävs – och det tar ofta flera månader att träna upp.
+Slalom (weave poles) är det hinder som tar längst tid att lära ut i agility. Hunden ska väva genom 12 pinnar i rätt ordning, alltid med den första pinnen till vänster. Hastighet, rytm och självständighet krävs – och det tar ofta flera månader att träna upp. Läs mer om [alla hindertyper i agility](/om-agility).
 
 ## Tre populära metoder för att lära ut slalom
 
@@ -385,7 +423,7 @@ Föraren leder hunden genom pinnarna med godis eller leksak. Enklast att komma i
 
 - **Öka svårigheten för snabbt** – hunden tappar förståelse
 - **Dåliga ingångar** – träna ingångar från alla vinklar tidigt
-- **Glömma att träna fart** – precision utan hastighet räcker inte i tävling
+- **Glömma att träna fart** – precision utan hastighet räcker inte i [tävling](/blogg/sagik-klasser-forklarat)
 - **Straffa missade pinnar** – bygg motivation istället
 
 ## Hur snabbt ska hunden kunna slalom?
@@ -394,11 +432,17 @@ I klass 3 förväntas slalom ta cirka 3–4 sekunder. I klass 1 är 5–6 sekund
 
 ## Utrustning för hemmabruk
 
-Du kan köpa slalompinnar för hemmaträning – antingen fasta eller vikbara. Minst 6 pinnar rekommenderas för meningsfull träning. Pinnarna ska ha 60 cm avstånd (SAgiK-standard).
+Du kan köpa slalompinnar för hemmaträning – antingen fasta eller vikbara. Minst 6 pinnar rekommenderas för meningsfull träning. Pinnarna ska ha 60 cm avstånd (SAgiK-standard). Läs vår guide om att [bygga agilityhinder hemma](/blogg/agility-hinder-hemma).
 
 ## Träna slalom regelbundet
 
-Slalom kräver muskelminne. 3–5 minuters slalomträning varje dag ger bättre resultat än ett långt pass per vecka. Logga dina pass i AgilityManager för att följa utvecklingen.
+Slalom kräver muskelminne. 3–5 minuters slalomträning varje dag ger bättre resultat än ett långt pass per vecka. [Värm upp hunden](/blogg/uppvarmning-hund-agility) ordentligt innan intensiv slalomträning. Logga dina pass i AgilityManager för att följa utvecklingen.
+
+## Läs vidare
+
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Kontaktzonskträning – 5 metoder](/blogg/kontaktzoner-traning)
+- [Distanshantering i agility](/blogg/distanshantering-agility)
     `,
   },
   {
@@ -412,7 +456,7 @@ Slalom kräver muskelminne. 3–5 minuters slalomträning varje dag ger bättre 
     content: `
 ## Varför träna agility hemma?
 
-Att ha egna hinder hemma gör att du kan träna oftare och mer flexibelt. Korta pass på 5–10 minuter i trädgården kan vara mer effektiva än ett enstaka klubbpass i veckan.
+Att ha egna hinder hemma gör att du kan träna oftare och mer flexibelt. Korta pass på 5–10 minuter i trädgården kan vara mer effektiva än ett enstaka klubbpass i veckan. Läs mer om [effektiv träningsplanering](/blogg/effektiv-traningsplanering).
 
 ## Vilka hinder kan du bygga själv?
 
@@ -424,11 +468,11 @@ Det enklaste hindret att bygga. Du behöver:
 - En ribba (PVC-rör, bambupinne eller broomstick)
 - Höjden ska vara justerbar
 
-**Viktigt**: Ribban måste kunna falla av vid kontakt – annars riskerar hunden att skada sig.
+**Viktigt**: Ribban måste kunna falla av vid kontakt – annars riskerar hunden att [skada sig](/blogg/undvik-skador-agility).
 
 ### Slalompinnar
 
-Köp 6–12 trädgårdspinnar och ett mätband. Avståndet mellan pinnarna ska vara 60 cm (SAgiK-standard). Pinnarna ska vara minst 100 cm höga.
+Köp 6–12 trädgårdspinnar och ett mätband. Avståndet mellan pinnarna ska vara 60 cm (SAgiK-standard). Pinnarna ska vara minst 100 cm höga. Se vår [guide till slalomträning](/blogg/slalom-traning-agility) för att lära ut slalom effektivt.
 
 ### Tunnel
 
@@ -436,13 +480,13 @@ Tunnlar är svårare att bygga själv. En lektunnel för barn (3–4 meter) fung
 
 ### Kavalletti
 
-Enkla att bygga med låga stänger och koner. Perfekta för uppvärmning, kroppskontroll och konditionsträning.
+Enkla att bygga med låga stänger och koner. Perfekta för [uppvärmning](/blogg/uppvarmning-hund-agility), kroppskontroll och konditionsträning.
 
 ## Säkerhet vid hemmaträning
 
 - **Underlag**: Gräsmatta är bäst. Undvik betong och asfalt.
 - **Fästning**: Förankra hinder så de inte välter åt fel håll
-- **Mått**: Följ SAgiK:s mått om du vill att träningen ska överföras till tävling
+- **Mått**: Följ [SAgiK:s mått](/blogg/sagik-klasser-forklarat) om du vill att träningen ska överföras till tävling
 - **Ribba-avhopp**: Språngribban MÅSTE kunna trilla av
 
 ## Kostnad
@@ -455,6 +499,12 @@ Ett enklare hemmaset med 2 språnghinder + 6 slalompinnar kan byggas för under 
 - Träna korta sekvenser, inte hela banor
 - Fokusera på ett moment i taget
 - Filma och analysera – använd AgilityManagers träningsdagbok för att logga framsteg
+
+## Läs vidare
+
+- [Börja med agility – komplett guide för nybörjare](/blogg/borja-med-agility)
+- [Kontaktzonskträning – 5 metoder](/blogg/kontaktzoner-traning)
+- [Distanshantering i agility](/blogg/distanshantering-agility)
     `,
   },
   {
@@ -468,7 +518,7 @@ Ett enklare hemmaset med 2 språnghinder + 6 slalompinnar kan byggas för under 
     content: `
 ## Kan alla hundar träna agility?
 
-Ja, i princip alla hundar kan träna agility på hobbynivå. Men vissa raser har egenskaper som gör dem extra lämpade för tävling. Det handlar framför allt om:
+Ja, i princip alla hundar kan träna agility på hobbynivå. Men vissa raser har egenskaper som gör dem extra lämpade för tävling. Läs vår [guide om att börja med agility](/blogg/borja-med-agility) om du är nybörjare. Det handlar framför allt om:
 
 - **Drivkraft** – viljan att arbeta och springa
 - **Samarbetsvilja** – vilja att jobba med sin förare
@@ -479,7 +529,7 @@ Ja, i princip alla hundar kan träna agility på hobbynivå. Men vissa raser har
 
 ### Border collie
 
-Den absolut vanligaste rasen i agility, särskilt i klass 3 och på SM-nivå. Extremt drivna, snabba och samarbetsvilliga.
+Den absolut vanligaste rasen i agility, särskilt i [klass 3](/blogg/sagik-klasser-forklarat) och på SM-nivå. Extremt drivna, snabba och samarbetsvilliga.
 
 **Passar för**: Den som vill satsa på tävling
 **Tänk på**: Kräver mycket mental och fysisk stimulans
@@ -512,7 +562,7 @@ Många framgångsrika agilityekipage har blandrashundar! Det viktigaste är hund
 
 ## Hundar som kan ha svårare med agility
 
-Mycket tunga raser (t.ex. Sankt Bernhard) eller extremt korta raser kan ha svårare med de fysiska momenten. Trubbnosiga raser (brakycefala) bör vara försiktiga med intensiv träning.
+Mycket tunga raser (t.ex. Sankt Bernhard) eller extremt korta raser kan ha svårare med de fysiska momenten. Trubbnosiga raser (brakycefala) bör vara försiktiga med intensiv träning. Läs mer om att [förebygga skador](/blogg/undvik-skador-agility).
 
 ## Storleksklass och ras
 
@@ -520,7 +570,13 @@ I Sverige tävlar hundar i fyra storleksklasser (XS, S, M, L) baserat på mankh�
 
 ## Det viktigaste
 
-Den bästa agilityhunden är en frisk, motiverad hund med en förare som tycker det är roligt. Oavsett ras kan du nå långt med rätt träning och engagemang. Logga din resa i AgilityManager!
+Den bästa agilityhunden är en frisk, motiverad hund med en förare som tycker det är roligt. Oavsett ras kan du nå långt med rätt träning och engagemang. Se till att ha rätt [försäkring för din agilityhund](/hundforsakring). Logga din resa i AgilityManager!
+
+## Läs vidare
+
+- [Börja med agility – komplett guide](/blogg/borja-med-agility)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Hundförsäkring för agilityhundar](/hundforsakring)
     `,
   },
   {
@@ -534,7 +590,7 @@ Den bästa agilityhunden är en frisk, motiverad hund med en förare som tycker 
     content: `
 ## Vad är distanshantering?
 
-Distanshantering innebär att du styr hunden på avstånd – utan att springa bredvid varje hinder. Det är en av de viktigaste färdigheterna i agility, särskilt i högre klasser.
+Distanshantering innebär att du styr hunden på avstånd – utan att springa bredvid varje hinder. Det är en av de viktigaste färdigheterna i agility, särskilt i [högre klasser](/blogg/sagik-klasser-forklarat).
 
 ## Varför behövs distans?
 
@@ -546,7 +602,7 @@ Distanshantering innebär att du styr hunden på avstånd – utan att springa b
 
 ### 1. Skicka till hinder
 
-Börja med ETT hinder. Stå nära och skicka hunden framåt. Öka avståndet gradvis.
+Börja med ETT hinder. Stå nära och skicka hunden framåt. Öka avståndet gradvis. Har du inga hinder? [Bygg egna hemma](/blogg/agility-hinder-hemma).
 
 - Använd tydlig armgest framåt
 - Belöna vid hindret, inte hos dig
@@ -587,10 +643,17 @@ Hunden skickas runt ett hinder som du inte kan se – kräver stort förtroende.
 
 ## Tips för att lyckas
 
-- Träna distans som ett eget moment, inte bara som del av en bana
+- Träna distans som ett eget moment – [planera det i din träning](/blogg/effektiv-traningsplanering)
 - Filma dina pass för att se hundens linjer
 - Jobba med motivation – distans ska vara lika kul som att jobba nära
+- [Värm upp ordentligt](/blogg/uppvarmning-hund-agility) innan intensiva distanspass
 - Logga dina distansträningar i AgilityManager för att följa framstegen
+
+## Läs vidare
+
+- [Slalomträning i agility](/blogg/slalom-traning-agility)
+- [Kontaktzonskträning – 5 metoder](/blogg/kontaktzoner-traning)
+- [Mentala förberedelser inför tävling](/blogg/mentala-foreberedelser-tavling)
     `,
   },
   {
@@ -604,7 +667,7 @@ Hunden skickas runt ett hinder som du inte kan se – kräver stort förtroende.
     content: `
 ## Varför värma upp?
 
-Uppvärmning ökar blodflödet till musklerna, förbereder lederna och minskar risken för skador markant. Studier visar att uppvärmda hundar presterar bättre och återhämtar sig snabbare.
+Uppvärmning ökar blodflödet till musklerna, förbereder lederna och minskar risken för [skador](/blogg/undvik-skador-agility) markant. Studier visar att uppvärmda hundar presterar bättre och återhämtar sig snabbare.
 
 ## Steg-för-steg uppvärmning (10–15 minuter)
 
@@ -627,11 +690,11 @@ Låt hunden springa fritt eller jaga en leksak i lugnt tempo. Inga skarpa vändn
 
 - Ett par hopp på låg höjd
 - En tunnelgenomgång
-- Kort slalomsekvens i lugnt tempo
+- Kort [slalomsekvens](/blogg/slalom-traning-agility) i lugnt tempo
 
 ## Uppvärmning inför tävling
 
-Inför tävling bör uppvärmningen vara mer strukturerad:
+Inför tävling bör uppvärmningen vara mer strukturerad. Läs även om [mentala förberedelser inför tävling](/blogg/mentala-foreberedelser-tavling).
 
 1. **30 min innan start**: Lugn promenad och toalettbesök
 2. **15 min innan start**: Aktiva rörelser och stretching
@@ -657,6 +720,12 @@ Efter träning eller tävling:
 ## Logga hundens hälsa
 
 Notera hur hunden rör sig efter uppvärmning och efter träning. AgilityManagers hälsologg hjälper dig upptäcka mönster och förändringar i hundens rörlighet över tid.
+
+## Läs vidare
+
+- [Undvik skador i agility – förebygg och skydda din hund](/blogg/undvik-skador-agility)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Börja med agility – komplett guide](/blogg/borja-med-agility)
     `,
   },
 ];

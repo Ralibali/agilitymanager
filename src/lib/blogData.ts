@@ -244,11 +244,11 @@ Att hålla koll på hundens vikt hjälper dig upptäcka förändringar tidigt. A
     content: `
 ## Det svenska tävlingssystemet
 
-I Sverige organiseras agilitytävlingar av Svenska Agilityklubben (SAgiK) under Svenska Kennelklubben. Systemet har fyra klasser som ekipaget avancerar genom.
+I Sverige organiseras agilitytävlingar av Svenska Agilityklubben (SAgiK) under Svenska Kennelklubben. Systemet har fyra klasser som ekipaget avancerar genom. Läs mer i vår [kompletta guide om agility](/om-agility).
 
 ## Nollklass
 
-**Ingångsklassen** för alla nya ekipage.
+**Ingångsklassen** för alla nya ekipage. Perfekt om du precis [börjat med agility](/blogg/borja-med-agility).
 
 - Inga godkännanden krävs för start
 - Lägre krav på hastighet
@@ -264,7 +264,7 @@ I Sverige organiseras agilitytävlingar av Svenska Agilityklubben (SAgiK) under 
 
 - Fler hinder och svårare sekvenser
 - Högre hastighetskrav
-- Alla kontakthinder ingår
+- Alla kontakthinder ingår – [träna kontaktzoner](/blogg/kontaktzoner-traning) noggrant
 
 ### Krav för att avancera:
 3 godkända resultat i K1 → uppflyttning till K2
@@ -275,7 +275,7 @@ I Sverige organiseras agilitytävlingar av Svenska Agilityklubben (SAgiK) under 
 
 - Komplexa sekvenser och vändningar
 - Höga hastighetskrav
-- Kräver god distanshantering
+- Kräver god [distanshantering](/blogg/distanshantering-agility)
 
 ### Krav för att avancera:
 3 godkända resultat i K2 → uppflyttning till K3
@@ -290,7 +290,7 @@ I Sverige organiseras agilitytävlingar av Svenska Agilityklubben (SAgiK) under 
 
 ## Storleksklasser
 
-Hundar delas in i storleksklasser baserat på mankhöjd:
+Hundar delas in i storleksklasser baserat på mankhöjd. Läs mer om [vilka raser som passar bäst](/blogg/basta-hundraser-agility) i respektive klass.
 
 | Klass | Mankhöjd |
 |-------|----------|
@@ -304,6 +304,13 @@ Hundar delas in i storleksklasser baserat på mankhöjd:
 - Fokusera på nollfel snarare än hastighet
 - Öva banläsning och planering
 - Använd AgilityManagers meritspårning för att följa dina godkännanden
+- Förbered dig mentalt – läs om [mentala förberedelser inför tävling](/blogg/mentala-foreberedelser-tavling)
+
+## Läs vidare
+
+- [Mentala förberedelser inför agilitytävling](/blogg/mentala-foreberedelser-tavling)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Slalomträning i agility](/blogg/slalom-traning-agility)
     `,
   },
   {

@@ -118,7 +118,7 @@ function renderContent(content: string) {
       flushList();
     } else {
       flushList();
-      elements.push(<p key={`p-${elements.length}`} className="text-sm text-foreground/90 leading-relaxed mb-3">{trimmed}</p>);
+      elements.push(<p key={`p-${elements.length}`} className="text-sm text-foreground/90 leading-relaxed mb-3">{parseInline(trimmed)}</p>);
     }
   }
 

@@ -51,6 +51,31 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://agilitymanager.se/blogg/slalom-traning-agility</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/agility-hinder-hemma</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/basta-hundraser-agility</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/distanshantering-agility</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/uppvarmning-hund-agility</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://agilitymanager.se/auth</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

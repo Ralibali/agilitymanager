@@ -518,7 +518,7 @@ Ett enklare hemmaset med 2 språnghinder + 6 slalompinnar kan byggas för under 
     content: `
 ## Kan alla hundar träna agility?
 
-Ja, i princip alla hundar kan träna agility på hobbynivå. Men vissa raser har egenskaper som gör dem extra lämpade för tävling. Det handlar framför allt om:
+Ja, i princip alla hundar kan träna agility på hobbynivå. Men vissa raser har egenskaper som gör dem extra lämpade för tävling. Läs vår [guide om att börja med agility](/blogg/borja-med-agility) om du är nybörjare. Det handlar framför allt om:
 
 - **Drivkraft** – viljan att arbeta och springa
 - **Samarbetsvilja** – vilja att jobba med sin förare
@@ -529,7 +529,7 @@ Ja, i princip alla hundar kan träna agility på hobbynivå. Men vissa raser har
 
 ### Border collie
 
-Den absolut vanligaste rasen i agility, särskilt i klass 3 och på SM-nivå. Extremt drivna, snabba och samarbetsvilliga.
+Den absolut vanligaste rasen i agility, särskilt i [klass 3](/blogg/sagik-klasser-forklarat) och på SM-nivå. Extremt drivna, snabba och samarbetsvilliga.
 
 **Passar för**: Den som vill satsa på tävling
 **Tänk på**: Kräver mycket mental och fysisk stimulans
@@ -562,7 +562,7 @@ Många framgångsrika agilityekipage har blandrashundar! Det viktigaste är hund
 
 ## Hundar som kan ha svårare med agility
 
-Mycket tunga raser (t.ex. Sankt Bernhard) eller extremt korta raser kan ha svårare med de fysiska momenten. Trubbnosiga raser (brakycefala) bör vara försiktiga med intensiv träning.
+Mycket tunga raser (t.ex. Sankt Bernhard) eller extremt korta raser kan ha svårare med de fysiska momenten. Trubbnosiga raser (brakycefala) bör vara försiktiga med intensiv träning. Läs mer om att [förebygga skador](/blogg/undvik-skador-agility).
 
 ## Storleksklass och ras
 
@@ -570,7 +570,13 @@ I Sverige tävlar hundar i fyra storleksklasser (XS, S, M, L) baserat på mankh�
 
 ## Det viktigaste
 
-Den bästa agilityhunden är en frisk, motiverad hund med en förare som tycker det är roligt. Oavsett ras kan du nå långt med rätt träning och engagemang. Logga din resa i AgilityManager!
+Den bästa agilityhunden är en frisk, motiverad hund med en förare som tycker det är roligt. Oavsett ras kan du nå långt med rätt träning och engagemang. Se till att ha rätt [försäkring för din agilityhund](/hundforsakring). Logga din resa i AgilityManager!
+
+## Läs vidare
+
+- [Börja med agility – komplett guide](/blogg/borja-med-agility)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Hundförsäkring för agilityhundar](/hundforsakring)
     `,
   },
   {

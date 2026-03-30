@@ -144,13 +144,13 @@ Alla blir nervösa – även rutinerade tävlande. Nyckeln är att lära sig han
 ### Innan start
 1. Kom i god tid
 2. Gå banan noggrant – minst 2 varv
-3. Värm upp hunden ordentligt
+3. [Värm upp hunden ordentligt](/blogg/uppvarmning-hund-agility) – det förbättrar prestationen och minskar skaderisken
 4. Ha en rutin som skapar fokus
 
 ### Under loppet
 - Andas! Djupa andetag innan start
 - Fokusera på din plan, inte resultatet
-- Kommunicera tydligt med hunden
+- Kommunicera tydligt med hunden – [distanshantering](/blogg/distanshantering-agility) är en viktig del
 - Hav kul – hunden märker din sinnesstämning
 
 ### Efter loppet
@@ -165,6 +165,12 @@ Alla blir nervösa – även rutinerade tävlande. Nyckeln är att lära sig han
 - Bli arg på hunden efter ett misstag
 - Jämföra sig med andra ekipage
 - Glömma att det ska vara roligt
+
+## Läs vidare
+
+- [SAgiK-klasser förklarade – Nollklass till K3](/blogg/sagik-klasser-forklarat)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Undvik skador i agility](/blogg/undvik-skador-agility)
     `,
   },
   {

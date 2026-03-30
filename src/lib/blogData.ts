@@ -456,7 +456,7 @@ Slalom kräver muskelminne. 3–5 minuters slalomträning varje dag ger bättre 
     content: `
 ## Varför träna agility hemma?
 
-Att ha egna hinder hemma gör att du kan träna oftare och mer flexibelt. Korta pass på 5–10 minuter i trädgården kan vara mer effektiva än ett enstaka klubbpass i veckan.
+Att ha egna hinder hemma gör att du kan träna oftare och mer flexibelt. Korta pass på 5–10 minuter i trädgården kan vara mer effektiva än ett enstaka klubbpass i veckan. Läs mer om [effektiv träningsplanering](/blogg/effektiv-traningsplanering).
 
 ## Vilka hinder kan du bygga själv?
 
@@ -468,11 +468,11 @@ Det enklaste hindret att bygga. Du behöver:
 - En ribba (PVC-rör, bambupinne eller broomstick)
 - Höjden ska vara justerbar
 
-**Viktigt**: Ribban måste kunna falla av vid kontakt – annars riskerar hunden att skada sig.
+**Viktigt**: Ribban måste kunna falla av vid kontakt – annars riskerar hunden att [skada sig](/blogg/undvik-skador-agility).
 
 ### Slalompinnar
 
-Köp 6–12 trädgårdspinnar och ett mätband. Avståndet mellan pinnarna ska vara 60 cm (SAgiK-standard). Pinnarna ska vara minst 100 cm höga.
+Köp 6–12 trädgårdspinnar och ett mätband. Avståndet mellan pinnarna ska vara 60 cm (SAgiK-standard). Pinnarna ska vara minst 100 cm höga. Se vår [guide till slalomträning](/blogg/slalom-traning-agility) för att lära ut slalom effektivt.
 
 ### Tunnel
 
@@ -480,13 +480,13 @@ Tunnlar är svårare att bygga själv. En lektunnel för barn (3–4 meter) fung
 
 ### Kavalletti
 
-Enkla att bygga med låga stänger och koner. Perfekta för uppvärmning, kroppskontroll och konditionsträning.
+Enkla att bygga med låga stänger och koner. Perfekta för [uppvärmning](/blogg/uppvarmning-hund-agility), kroppskontroll och konditionsträning.
 
 ## Säkerhet vid hemmaträning
 
 - **Underlag**: Gräsmatta är bäst. Undvik betong och asfalt.
 - **Fästning**: Förankra hinder så de inte välter åt fel håll
-- **Mått**: Följ SAgiK:s mått om du vill att träningen ska överföras till tävling
+- **Mått**: Följ [SAgiK:s mått](/blogg/sagik-klasser-forklarat) om du vill att träningen ska överföras till tävling
 - **Ribba-avhopp**: Språngribban MÅSTE kunna trilla av
 
 ## Kostnad
@@ -499,6 +499,12 @@ Ett enklare hemmaset med 2 språnghinder + 6 slalompinnar kan byggas för under 
 - Träna korta sekvenser, inte hela banor
 - Fokusera på ett moment i taget
 - Filma och analysera – använd AgilityManagers träningsdagbok för att logga framsteg
+
+## Läs vidare
+
+- [Börja med agility – komplett guide för nybörjare](/blogg/borja-med-agility)
+- [Kontaktzonskträning – 5 metoder](/blogg/kontaktzoner-traning)
+- [Distanshantering i agility](/blogg/distanshantering-agility)
     `,
   },
   {

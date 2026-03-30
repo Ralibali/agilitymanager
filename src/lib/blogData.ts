@@ -590,7 +590,7 @@ Den bästa agilityhunden är en frisk, motiverad hund med en förare som tycker 
     content: `
 ## Vad är distanshantering?
 
-Distanshantering innebär att du styr hunden på avstånd – utan att springa bredvid varje hinder. Det är en av de viktigaste färdigheterna i agility, särskilt i högre klasser.
+Distanshantering innebär att du styr hunden på avstånd – utan att springa bredvid varje hinder. Det är en av de viktigaste färdigheterna i agility, särskilt i [högre klasser](/blogg/sagik-klasser-forklarat).
 
 ## Varför behövs distans?
 
@@ -602,7 +602,7 @@ Distanshantering innebär att du styr hunden på avstånd – utan att springa b
 
 ### 1. Skicka till hinder
 
-Börja med ETT hinder. Stå nära och skicka hunden framåt. Öka avståndet gradvis.
+Börja med ETT hinder. Stå nära och skicka hunden framåt. Öka avståndet gradvis. Har du inga hinder? [Bygg egna hemma](/blogg/agility-hinder-hemma).
 
 - Använd tydlig armgest framåt
 - Belöna vid hindret, inte hos dig
@@ -643,10 +643,17 @@ Hunden skickas runt ett hinder som du inte kan se – kräver stort förtroende.
 
 ## Tips för att lyckas
 
-- Träna distans som ett eget moment, inte bara som del av en bana
+- Träna distans som ett eget moment – [planera det i din träning](/blogg/effektiv-traningsplanering)
 - Filma dina pass för att se hundens linjer
 - Jobba med motivation – distans ska vara lika kul som att jobba nära
+- [Värm upp ordentligt](/blogg/uppvarmning-hund-agility) innan intensiva distanspass
 - Logga dina distansträningar i AgilityManager för att följa framstegen
+
+## Läs vidare
+
+- [Slalomträning i agility](/blogg/slalom-traning-agility)
+- [Kontaktzonskträning – 5 metoder](/blogg/kontaktzoner-traning)
+- [Mentala förberedelser inför tävling](/blogg/mentala-foreberedelser-tavling)
     `,
   },
   {

@@ -13,6 +13,7 @@ const categoryColors: Record<string, string> = {
   'Tävling': 'bg-success/10 text-success',
   'Hälsa': 'bg-destructive/10 text-destructive',
   'Träning': 'bg-warning/10 text-warning-foreground',
+  'Utrustning': 'bg-secondary/80 text-secondary-foreground',
 };
 
 export default function BlogPage() {

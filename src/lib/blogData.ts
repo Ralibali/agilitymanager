@@ -728,6 +728,443 @@ Notera hur hunden rör sig efter uppvärmning och efter träning. AgilityManager
 - [Börja med agility – komplett guide](/blogg/borja-med-agility)
     `,
   },
+  {
+    slug: 'agility-regler-sverige',
+    title: 'Agilityregler i Sverige – komplett guide till SAgiK:s regelverk',
+    excerpt: 'Allt om regler, bedömning, fel och diskvalificering i svensk agility. Uppdaterat för 2026.',
+    category: 'Tävling',
+    readTime: 8,
+    date: '2026-03-20',
+    author: 'AgilityManager',
+    content: `
+## Grundläggande regler i agility
+
+Agility i Sverige regleras av Svenska Agilityklubben (SAgiK) under Svenska Kennelklubben (SKK). Här går vi igenom de viktigaste reglerna du behöver känna till. Läs även vår [guide till SAgiK-klasser](/blogg/sagik-klasser-forklarat) för att förstå tävlingssystemet.
+
+## Banans uppbyggnad
+
+En tävlingsbana består av 15–22 hinder beroende på klass. Domaren designar banan och sätter en standardtid baserad på banans längd och svårighetsgrad.
+
+- **Banlängd**: Vanligtvis 150–220 meter
+- **Antal hinder**: 15–22 stycken
+- **Standardtid**: Baseras på banlängd delat med hastighet (m/s)
+
+## Typer av fel
+
+### Rivning (5 fel)
+
+När hunden river en ribba på ett språnghinder. Varje rivet hinder ger 5 fel.
+
+### Vägran (5 fel)
+
+När hunden stannar framför, viker av eller springer förbi ett hinder. Hunden ska ta hindret vid nästa försök.
+
+### Felordning (diskvalificering)
+
+Att ta hinder i fel ordning leder till diskvalificering.
+
+### Kontaktfel (5 fel)
+
+Om hunden missar [kontaktzonen](/blogg/kontaktzoner-traning) på A-bom, vipp eller gångbro.
+
+### Tidsfel
+
+Varje sekund över standardtiden ger felprickar. I vissa klasser är det 1 fel per sekund.
+
+## Godkänt resultat
+
+För att få ett godkänt resultat krävs:
+
+- 0 fel (inga rivningar, vägringar eller kontaktfel)
+- Tid under standardtiden
+- Inga diskvalificeringsorsaker
+
+## Diskvalificering
+
+Du blir diskvalificerad om:
+
+- Hunden tar hinder i fel ordning
+- Föraren rör vid hunden eller hinder
+- Hunden lämnar banan
+- Föraren bär mat/leksak synligt på banan
+- Tre vägringar (i vissa klasser)
+
+## Discipliner
+
+### Agility
+
+Den traditionella grenen med alla hindertyper – språng, kontakthinder, tunnel och slalom.
+
+### Jumping
+
+Enbart språnghinder, tunnlar och slalom. Inga kontakthinder. Snabbare och mer flödesinriktad.
+
+### Nollklass
+
+Förenklad bana för [nybörjare](/blogg/borja-med-agility). Färre hinder och lägre krav.
+
+## Tips för att undvika fel
+
+- Gå banan noggrant – planera din [hantering](/blogg/distanshantering-agility)
+- Öva på svaga punkter inför tävling
+- [Mentala förberedelser](/blogg/mentala-foreberedelser-tavling) minskar nervösa misstag
+- Filma dina lopp och analysera efteråt med AgilityManager
+
+## Läs vidare
+
+- [SAgiK-klasser förklarade](/blogg/sagik-klasser-forklarat)
+- [Mentala förberedelser inför tävling](/blogg/mentala-foreberedelser-tavling)
+- [Börja med agility – komplett guide](/blogg/borja-med-agility)
+    `,
+  },
+  {
+    slug: 'agility-kurs-nybörjare',
+    title: 'Agilitykurs för nybörjare – vad du kan förvänta dig',
+    excerpt: 'Så fungerar en agilitykurs för nybörjare. Innehåll, kostnad, förberedelser och vad din hund lär sig.',
+    category: 'Nybörjare',
+    readTime: 7,
+    date: '2026-03-22',
+    author: 'AgilityManager',
+    content: `
+## Vad ingår i en nybörjarkurs?
+
+En agilitykurs för nybörjare varar vanligtvis 8–12 veckor med ett pass per vecka. Kursen ger dig och din hund en stabil grund att bygga vidare på. Läs vår [kompletta nybörjarguide](/blogg/borja-med-agility) för att förbereda dig.
+
+## Typiskt kursinnehåll
+
+### Vecka 1–3: Grunderna
+
+- Introduktion till hindertyper
+- Tunnelträning – de flesta hundar älskar tunnlar!
+- Låga språnghinder
+- Fokus på motivation och belöning
+
+### Vecka 4–6: Byggstenar
+
+- Kontakthinder i låg höjd – [lär dig kontaktzonskträning](/blogg/kontaktzoner-traning)
+- Introduktion till [slalom](/blogg/slalom-traning-agility) (kanalmetoden)
+- Enkel hantering – höger och vänster sväng
+
+### Vecka 7–10: Sekvenser
+
+- Hinder i sekvens (2–4 hinder)
+- Grundläggande banläsning
+- Start- och stopp-signaler
+
+### Vecka 11–12: Avslutning
+
+- Minibana med 8–10 hinder
+- Utvärdering och tips framåt
+- Information om fortsättningskurser och [tävlingsklasser](/blogg/sagik-klasser-forklarat)
+
+## Vad kostar en agilitykurs?
+
+Priset varierar beroende på ort och arrangör:
+
+| Typ | Pris (ungefärligt) |
+|-----|-------------------|
+| Brukshundsklubb | 800–1 500 kr |
+| Privat instruktör | 2 000–4 000 kr |
+| Intensivkurs (helg) | 1 500–3 000 kr |
+
+## Förberedelser inför kursen
+
+- **Grundlydnad**: Hunden bör kunna sitt namn, enkel inkallning
+- **Hälsa**: Se till att hunden är frisk – läs om att [förebygga skador](/blogg/undvik-skador-agility)
+- **Utrustning**: Bekväma skor, godis/leksak, vattenflaska
+- **Ålder**: Hunden bör vara minst 10–12 månader
+
+## Vad lär sig hunden?
+
+- Förtroende för nya föremål
+- Att samarbeta med dig i rörelse
+- Grundläggande hinderförståelse
+- Att det är kul att "jobba"
+
+## Vad lär sig föraren?
+
+- Kroppsspråkets betydelse
+- Timing av belöning
+- Grundläggande banplanering
+- Att läsa hundens signaler
+
+## Efter kursen
+
+Många fortsätter med tävlingsförberedande kurs. Du kan också [bygga hinder hemma](/blogg/agility-hinder-hemma) och träna på egen hand. Använd AgilityManager för att logga dina träningspass och följa utvecklingen.
+
+## Läs vidare
+
+- [Börja med agility – komplett guide](/blogg/borja-med-agility)
+- [Bästa hundraserna för agility](/blogg/basta-hundraser-agility)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+    `,
+  },
+  {
+    slug: 'agility-tavling-forsta-gangen',
+    title: 'Din första agilitytävling – steg-för-steg-guide',
+    excerpt: 'Allt du behöver veta inför din första agilitytävling. Anmälan, packlista, schema och tips på plats.',
+    category: 'Tävling',
+    readTime: 8,
+    date: '2026-03-25',
+    author: 'AgilityManager',
+    content: `
+## Är du redo för din första tävling?
+
+Du och din hund har tränat hårt och det är dags att ta steget ut på tävlingsbanan. Din [första tävling är i Nollklass](/blogg/sagik-klasser-forklarat) – det är den enklaste nivån och perfekt för att lära sig tävlingsformatet.
+
+## Anmälan
+
+1. **Hitta tävlingar**: Sök på SAgiK:s hemsida eller lokala klubbar
+2. **Anmäl dig i tid**: Populära tävlingar fylls snabbt
+3. **Kontrollera krav**: Hunden måste vara registrerad och minst 18 månader
+4. **Betala**: Startavgift är vanligtvis 150–300 kr per start
+
+## Packlista för tävlingsdagen
+
+### Hunden
+- Koppel och halsband/sele
+- Vatten och skål
+- Godis och leksak (belöning UTANFÖR banan)
+- Hundtäcke eller bur
+- Bajspåsar
+
+### Föraren
+- Bekväma, sportiga kläder
+- Bra skor med grepp
+- Startkort / ID
+- Solskydd / regnkläder
+
+## Tävlingsdagens schema
+
+### 1. Incheckning
+Kom minst 1 timme innan din start. Checka in, hämta startnummer och kolla schemat.
+
+### 2. Banvandring
+Du får gå banan UTAN hund innan start. Detta är din chans att planera din [hantering](/blogg/distanshantering-agility).
+
+- Gå minst 2 varv
+- Notera svåra sekvenser
+- Bestäm var du byter sida
+- Hitta potentiella fällor
+
+### 3. Uppvärmning
+[Värm upp hunden ordentligt](/blogg/uppvarmning-hund-agility) 15–20 minuter innan start.
+
+### 4. Starttid
+- Stå redo vid ingången i god tid
+- Hunden ska vara kopplad tills det är er tur
+- Andas – det är normalt att vara nervös!
+
+### 5. Loppet
+- Fokusera på din plan
+- Kommunicera tydligt med hunden
+- Ha kul – hunden känner din sinnesstämning
+- Belöna hunden DIREKT efter målgång (utanför banan)
+
+## Vanliga nybörjarmisstag
+
+- **Springa för fort**: Anpassa dig till hundens nivå
+- **Glömma planen**: Håll dig till det du övat
+- **Stressa hunden**: Ge hunden tid att landa
+- **Bli besviken**: Det viktigaste är att ni har kul och samlar erfarenhet
+
+## Efter tävlingen
+
+- Fira med hunden – ni har tävlat!
+- Skriv ner vad som gick bra och vad ni kan förbättra
+- Logga resultatet i AgilityManager för att spåra din utveckling
+- Planera nästa tävling
+
+## Läs vidare
+
+- [Mentala förberedelser inför tävling](/blogg/mentala-foreberedelser-tavling)
+- [SAgiK-klasser förklarade](/blogg/sagik-klasser-forklarat)
+- [Agilityregler i Sverige](/blogg/agility-regler-sverige)
+    `,
+  },
+  {
+    slug: 'hundkondition-agility',
+    title: 'Konditionsträning för agilityhundar – bygg styrka och uthållighet',
+    excerpt: 'Så tränar du din hunds kondition för agility. Övningar för styrka, balans och uthållighet.',
+    category: 'Hälsa',
+    readTime: 7,
+    date: '2026-03-28',
+    author: 'AgilityManager',
+    content: `
+## Varför behöver agilityhundar konditionsträning?
+
+Agility ställer höga krav på hundens kropp – explosiva starter, skarpa vändningar och hopp efter hopp. Utan god grundkondition ökar risken för [skador](/blogg/undvik-skador-agility) och prestationen blir lidande.
+
+## Grundläggande kondition
+
+### Promenader och löpning
+
+Dagliga promenader bygger baskonditionen. Variera mellan:
+
+- **Lugna promenader** (30–60 min) – grundläggande uthållighet
+- **Intervallöpning** – springa/gå i intervaller, 10–15 min
+- **Kuperad terräng** – bygger styrka i bakpartiet
+
+### Simning
+
+Fantastisk konditionsträning som är skonsam för lederna. Perfekt för hundar med ledproblem eller under rehabilitering.
+
+## Styrkeövningar
+
+### Bakpartsövningar
+
+Bakpartiet är motorn i agility. Starka bakben ger kraftigare avstamp och bättre kontroll.
+
+- **Sits-stå-plats**: Repetitioner bygger muskler i bak- och frampart
+- **Bakåt-gång**: Aktiverar bakpartiet intensivt – 5–10 steg, 3–5 repetitioner
+- **Uppförsbacke**: Gå/springa i backe stärker hela bakkedjan
+
+### Coreträning
+
+En stark core ger bättre balans och kroppskontroll.
+
+- **Balansdyna/kudde**: Hunden står med framtassar på en instabil yta
+- **Cavaletti**: Stång-övningar som kräver kontrollerad rörelse
+- **Pivotövning**: Hunden svänger runt med bakdelen stillastående
+
+### Frampartsövningar
+
+- **Höga handtouchar**: Sträcker och stärker frampartiet
+- **Kontrollerade nedhopp**: Från låg höjd, bygger stötdämpning
+
+## Balansträning
+
+Balans är avgörande för kontakthinder och vändningar.
+
+- **Balansbräda**: Hunden står och balanserar
+- **Gångbro i långsam fart**: Kontrollerat, inte snabbt
+- **Enmetersgång**: Smal yta som kräver precision
+
+## Veckoschema – exempel
+
+| Dag | Aktivitet |
+|-----|----------|
+| Måndag | Intervallöpning + core |
+| Tisdag | Agilityträning |
+| Onsdag | Lugn promenad + balans |
+| Torsdag | Styrka (bakpart + frampart) |
+| Fredag | Agilityträning |
+| Lördag | Simning eller terränglöp |
+| Söndag | Vila eller lugn promenad |
+
+## Viktiga principer
+
+- **Gradvis ökning**: Öka inte mer än 10% per vecka
+- **Vila**: Minst 1 vilodag per vecka
+- **Åldersanpassning**: Unghundar och seniorer behöver anpassat program
+- **[Uppvärmning](/blogg/uppvarmning-hund-agility) alltid**: Innan alla pass
+- **Logga träningen**: Använd AgilityManagers träningsdagbok
+
+## Läs vidare
+
+- [Uppvärmning för agilityhundar](/blogg/uppvarmning-hund-agility)
+- [Undvik skador i agility](/blogg/undvik-skador-agility)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+    `,
+  },
+  {
+    slug: 'agility-vandringar-handling',
+    title: 'Vändningar och handling i agility – kompletta tekniker',
+    excerpt: 'Lär dig front cross, rear cross, blind cross och threadle. Tekniker som gör dig snabbare på banan.',
+    category: 'Teknik',
+    readTime: 8,
+    date: '2026-04-01',
+    author: 'AgilityManager',
+    content: `
+## Varför är handling så viktig?
+
+Handling – hur du rör dig och kommunicerar med hunden på banan – är det som skiljer bra ekipage från riktigt bra ekipage. Rätt vändningsteknik sparar tid och minskar fel. I [högre klasser](/blogg/sagik-klasser-forklarat) krävs att du behärskar flera tekniker.
+
+## Grundläggande principer
+
+- **Hunden läser din kropp** – inte dina ord
+- **Acceleration = fortsätt framåt** – hunden drivs framåt
+- **Deceleration = stanna/sväng** – signalerar att något ändras
+- **Armgest = riktning** – den arm som är närmast hunden visar vägen
+
+## Front cross
+
+Den vanligaste vändningen. Du byter sida FRAMFÖR hunden.
+
+### Så gör du:
+1. Spring mot den punkt där du vill vända
+2. Vänd dig mot hunden (180 grader)
+3. Byt ledande arm
+4. Fortsätt i ny riktning
+
+**Fördelar**: Hunden ser dig hela tiden, tydlig signal
+**Nackdelar**: Du måste hinna före hunden till vändpunkten
+
+### Vanliga misstag:
+- Vända för sent – hunden har redan passerat
+- Otydlig armbyte – hunden blir förvirrad
+- Stå still och vända – du måste vara i rörelse
+
+## Rear cross
+
+Du byter sida BAKOM hunden medan den tar ett hinder.
+
+### Så gör du:
+1. Hunden tar hindret
+2. Du korsar bakom hunden till andra sidan
+3. Den nya ledande armen tar över
+
+**Fördelar**: Kräver inte att du hinner före hunden
+**Nackdelar**: Hunden ser dig inte under bytet – kräver träning
+
+## Blind cross
+
+Du vänder ryggen mot hunden under bytet. Snabbt men riskabelt.
+
+### Så gör du:
+1. Signalera riktning med armen
+2. Sväng bort från hunden (rygg mot hund)
+3. Byt arm och fortsätt i ny riktning
+
+**Fördelar**: Mycket snabbt, du tappar inte fart
+**Nackdelar**: Du tappar ögonkontakt – kräver erfaren hund
+
+## Threadle
+
+Hunden tar hindret från "fel" sida – utifrån och in.
+
+### Vanliga situationer:
+- Hunden ska runda en stolpe och ta hindret bakifrån
+- Används för att undvika att hunden tar fel hinder
+
+## Ketschup
+
+En kombinationsteknik där du använder en push (tryck bort) följt av en pull (dra till dig) för att guida hunden genom en sväng.
+
+## Vilken teknik ska du välja?
+
+| Situation | Rekommenderad teknik |
+|-----------|---------------------|
+| Du hinner före hunden | Front cross |
+| Hunden är snabbare | Rear cross |
+| Du behöver maximal fart | Blind cross |
+| Hunden ska runda ett hinder | Threadle |
+
+## Träna vändningar effektivt
+
+- Börja UTAN hinder – träna fotarbete och timing
+- Lägg till ett hinder i taget
+- [Planera vändningsträning](/blogg/effektiv-traningsplanering) som separata pass
+- Filma och analysera – AgilityManagers träningsdagbok hjälper dig följa utvecklingen
+- [Distanshantering](/blogg/distanshantering-agility) kompletterar vändningsteknik
+
+## Läs vidare
+
+- [Distanshantering i agility](/blogg/distanshantering-agility)
+- [Kontaktzonskträning – 5 metoder](/blogg/kontaktzoner-traning)
+- [Slalomträning i agility](/blogg/slalom-traning-agility)
+    `,
+  },
 ];
 
 export function getPostBySlug(slug: string): BlogPost | undefined {

@@ -76,6 +76,31 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://agilitymanager.se/blogg/agility-regler-sverige</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/agility-kurs-nybörjare</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/agility-tavling-forsta-gangen</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/hundkondition-agility</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/agility-vandringar-handling</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://agilitymanager.se/auth</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

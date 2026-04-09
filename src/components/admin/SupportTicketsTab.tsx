@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, MessageCircle, Send, CheckCircle2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 export default function SupportTicketsTab() {
   const queryClient = useQueryClient();
@@ -35,7 +35,7 @@ export default function SupportTicketsTab() {
   });
 
   const replyMutation = useMutation({
-    mutationFn: async ({ id, reply, status }: { id: string; reply: string; status: string }) => {
+    mutationFn: async ({ id, reply, status }: { id: string; reply: string; status: 'open' | 'answered' | 'closed' }) => {
       const { error } = await supabase
         .from('support_tickets')
         .update({ admin_reply: reply, status })

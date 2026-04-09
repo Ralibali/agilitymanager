@@ -69,3 +69,4 @@ export const MeritProgress = React.memo(React.forwardRef<HTMLDivElement, { merit
     </div>
   );
 }
+));

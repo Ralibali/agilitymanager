@@ -240,6 +240,7 @@ export type Database = {
           created_at: string
           gender: Database["public"]["Enums"]["dog_gender"]
           id: string
+          is_active_competition_dog: boolean
           jumping_level: Database["public"]["Enums"]["competition_level"]
           name: string
           notes: string
@@ -257,6 +258,7 @@ export type Database = {
           created_at?: string
           gender?: Database["public"]["Enums"]["dog_gender"]
           id?: string
+          is_active_competition_dog?: boolean
           jumping_level?: Database["public"]["Enums"]["competition_level"]
           name: string
           notes?: string
@@ -274,6 +276,7 @@ export type Database = {
           created_at?: string
           gender?: Database["public"]["Enums"]["dog_gender"]
           id?: string
+          is_active_competition_dog?: boolean
           jumping_level?: Database["public"]["Enums"]["competition_level"]
           name?: string
           notes?: string

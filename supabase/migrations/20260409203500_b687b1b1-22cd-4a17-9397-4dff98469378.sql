@@ -1,0 +1,1 @@
+ALTER TABLE public.dogs ADD COLUMN is_active_competition_dog boolean NOT NULL DEFAULT true;

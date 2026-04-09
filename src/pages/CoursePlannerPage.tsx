@@ -1035,7 +1035,11 @@ export default function CoursePlannerPage() {
     setObstacles(prev => prev.map(o => {
       if (o.id !== last.obsId) return o;
       // Remove the last occurrence of this num+color
-      const idx = (o.colorNumbers || []).findLastIndex(e => e.num === last.num && e.color === last.color);
+      const arr = o.colorNumbers || [];
+      let idx = -1;
+      for (let i = arr.length - 1; i >= 0; i--) {
+        if (arr[i].num === last.num && arr[i].color === last.color) { idx = i; break; }
+      }
       if (idx < 0) return o;
       const newColorNums = [...(o.colorNumbers || [])];
       newColorNums.splice(idx, 1);

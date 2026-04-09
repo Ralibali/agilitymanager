@@ -3,7 +3,8 @@ import { PageContainer } from '@/components/PageContainer';
 import { useAuth, PLANS } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Crown, Sparkles, LogOut, ExternalLink, Check, Loader2, Settings, Moon, Sun } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Crown, Sparkles, LogOut, ExternalLink, Check, Loader2, Settings, Moon, Sun, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useSearchParams } from 'react-router-dom';
@@ -199,6 +200,10 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+
+
+      {/* Privacy Settings */}
+      <PrivacySettings userId={user?.id} />
 
       {/* Support */}
       <SupportForm />

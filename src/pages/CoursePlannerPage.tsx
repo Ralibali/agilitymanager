@@ -255,11 +255,11 @@ export default function CoursePlannerPage() {
     const bendAngle = obs.bendAngle || 0;
     const tubeWidth = 0.6 * PX_PER_METER;
 
-    ctx.strokeStyle = 'hsl(152, 50%, 35%)';
-    ctx.lineWidth = tubeWidth;
-    ctx.lineCap = 'round';
-
     if (Math.abs(bendAngle) < 5) {
+      // Straight tunnel
+      ctx.strokeStyle = 'hsl(152, 50%, 35%)';
+      ctx.lineWidth = tubeWidth;
+      ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(0, -length / 2);
       ctx.lineTo(0, length / 2);
@@ -270,26 +270,41 @@ export default function CoursePlannerPage() {
       ctx.moveTo(0, -length / 2);
       ctx.lineTo(0, length / 2);
       ctx.stroke();
+      // Entry/exit dots
+      ctx.fillStyle = 'hsl(152, 60%, 25%)';
+      ctx.beginPath(); ctx.arc(0, -length / 2, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(0, length / 2, 4, 0, Math.PI * 2); ctx.fill();
     } else {
+      // Curved tunnel
       const bendRad = (bendAngle * Math.PI) / 180;
       const radius = length / Math.abs(bendRad);
       const cx = bendAngle > 0 ? radius : -radius;
       const startAngle = bendAngle > 0 ? Math.PI : 0;
       const endAngle = startAngle - bendRad;
+      const ccw = bendAngle > 0;
+
+      // Outer wall
+      ctx.strokeStyle = 'hsl(152, 50%, 35%)';
+      ctx.lineWidth = tubeWidth;
+      ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.arc(cx, 0, radius, startAngle, endAngle, bendAngle > 0);
+      ctx.arc(cx, 0, radius, startAngle, endAngle, ccw);
       ctx.stroke();
+      // Inner wall (lighter)
       ctx.strokeStyle = 'hsl(152, 40%, 55%)';
       ctx.lineWidth = tubeWidth - 4;
       ctx.beginPath();
-      ctx.arc(cx, 0, radius, startAngle, endAngle, bendAngle > 0);
+      ctx.arc(cx, 0, radius, startAngle, endAngle, ccw);
       ctx.stroke();
-    }
 
-    ctx.fillStyle = 'hsl(152, 60%, 25%)';
-    if (Math.abs(bendAngle) < 5) {
-      ctx.beginPath(); ctx.arc(0, -length / 2, 4, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(0, length / 2, 4, 0, Math.PI * 2); ctx.fill();
+      // Entry/exit dots
+      ctx.fillStyle = 'hsl(152, 60%, 25%)';
+      const entryX = cx + radius * Math.cos(startAngle);
+      const entryY = radius * Math.sin(startAngle);
+      const exitX = cx + radius * Math.cos(endAngle);
+      const exitY = radius * Math.sin(endAngle);
+      ctx.beginPath(); ctx.arc(entryX, entryY, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(exitX, exitY, 4, 0, Math.PI * 2); ctx.fill();
     }
   };
 

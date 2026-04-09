@@ -41,6 +41,7 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
       size_class: sizeClass,
       competition_level: agilityLevel,
       jumping_level: jumpingLevel,
+      is_active_competition_dog: true,
       notes: notes.trim(),
       theme_color: themeColor,
     });

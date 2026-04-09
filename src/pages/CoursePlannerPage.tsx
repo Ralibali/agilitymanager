@@ -7,9 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser } from 'lucide-react';
+import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash } from 'lucide-react';
 import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
+
+/* ───── Types ───── */
 
 type Obstacle = {
   id: string;
@@ -18,9 +20,11 @@ type Obstacle = {
   y: number;
   rotation: number;
   label: string;
-  number?: number;
+  numbers: number[];
   tunnelLength?: 4 | 6;
-  bendAngle?: number; // degrees, 0 = straight, positive = curve right
+  bendAngle?: number;
+  // legacy compat
+  number?: number;
 };
 
 type PathPoint = { x: number; y: number };
@@ -34,63 +38,88 @@ type SavedCourse = {
   created_at: string;
 };
 
+/* ───── Constants ───── */
+
+// 1 grid step = 1 meter. 20px per meter.
+const PX_PER_METER = 20;
+const GRID_STEP = PX_PER_METER;
+const METERS_PER_PX = 1 / PX_PER_METER;
+
+// Real SAgiK obstacle dimensions in meters → pixels
 const OBSTACLE_TYPES = [
-  { type: 'jump', label: 'Hopp', symbol: '┃', width: 40, height: 8 },
-  { type: 'long_jump', label: 'Långhopp', symbol: '═', width: 50, height: 16 },
-  { type: 'oxer', label: 'Oxer', symbol: '‖', width: 40, height: 14 },
-  { type: 'wall', label: 'Muren', symbol: '▬', width: 36, height: 20 },
-  { type: 'tunnel', label: 'Tunnel', symbol: '⌒', width: 60, height: 20 },
-  { type: 'a_frame', label: 'A-hinder', symbol: '△', width: 36, height: 36 },
-  { type: 'dog_walk', label: 'Brygga', symbol: '━', width: 80, height: 12 },
-  { type: 'seesaw', label: 'Vipp', symbol: '⏤', width: 60, height: 10 },
-  { type: 'balance', label: 'Balans', symbol: '─', width: 70, height: 10 },
-  { type: 'weave', label: 'Slalom', symbol: '⫶', width: 50, height: 10 },
-  { type: 'tire', label: 'Däck', symbol: '◯', width: 24, height: 24 },
-  { type: 'start', label: 'Start', symbol: '▸', width: 30, height: 6 },
-  { type: 'finish', label: 'Mål', symbol: '◼', width: 30, height: 6 },
+  { type: 'jump',      label: 'Hopp',     symbol: '┃', width: 1.2 * PX_PER_METER, height: 0.15 * PX_PER_METER },
+  { type: 'long_jump', label: 'Långhopp', symbol: '═', width: 1.2 * PX_PER_METER, height: 0.6 * PX_PER_METER },
+  { type: 'oxer',      label: 'Oxer',     symbol: '‖', width: 1.2 * PX_PER_METER, height: 0.5 * PX_PER_METER },
+  { type: 'wall',      label: 'Muren',    symbol: '▬', width: 1.2 * PX_PER_METER, height: 0.5 * PX_PER_METER },
+  { type: 'tunnel',    label: 'Tunnel',   symbol: '⌒', width: 0.6 * PX_PER_METER, height: 4 * PX_PER_METER },
+  { type: 'a_frame',   label: 'A-hinder', symbol: '△', width: 1.9 * PX_PER_METER, height: 2.7 * PX_PER_METER },
+  { type: 'dog_walk',  label: 'Brygga',   symbol: '━', width: 3.6 * PX_PER_METER, height: 0.3 * PX_PER_METER },
+  { type: 'seesaw',    label: 'Vipp',     symbol: '⏤', width: 3.6 * PX_PER_METER, height: 0.3 * PX_PER_METER },
+  { type: 'balance',   label: 'Balans',   symbol: '─', width: 3.6 * PX_PER_METER, height: 0.3 * PX_PER_METER },
+  { type: 'weave',     label: 'Slalom',   symbol: '⫶', width: 6.6 * PX_PER_METER, height: 0.3 * PX_PER_METER },
+  { type: 'tire',      label: 'Däck',     symbol: '◯', width: 0.6 * PX_PER_METER, height: 0.6 * PX_PER_METER },
+  { type: 'table',     label: 'Pausbord', symbol: '⬜', width: 0.9 * PX_PER_METER, height: 0.9 * PX_PER_METER },
+  { type: 'start',     label: 'Start',    symbol: '▸', width: 1.2 * PX_PER_METER, height: 0.1 * PX_PER_METER },
+  { type: 'finish',    label: 'Mål',      symbol: '◼', width: 1.2 * PX_PER_METER, height: 0.1 * PX_PER_METER },
 ];
 
+// Canvas = real arena sizes in meters
 const CANVAS_SIZES = [
-  { label: 'Liten (320×400)', width: 320, height: 400 },
-  { label: 'Medium (360×500)', width: 360, height: 500 },
-  { label: 'Stor (420×600)', width: 420, height: 600 },
-  { label: 'XL (500×700)', width: 500, height: 700 },
+  { label: '20×30 m', width: 20 * PX_PER_METER, height: 30 * PX_PER_METER },
+  { label: '20×40 m', width: 20 * PX_PER_METER, height: 40 * PX_PER_METER },
+  { label: '25×40 m', width: 25 * PX_PER_METER, height: 40 * PX_PER_METER },
+  { label: '30×40 m', width: 30 * PX_PER_METER, height: 40 * PX_PER_METER },
+];
+
+const HANDLER_COLORS = [
+  { label: 'Röd', value: 'hsl(0, 85%, 50%)' },
+  { label: 'Blå', value: 'hsl(221, 79%, 48%)' },
+  { label: 'Grön', value: 'hsl(142, 60%, 40%)' },
+  { label: 'Orange', value: 'hsl(25, 100%, 55%)' },
+  { label: 'Lila', value: 'hsl(270, 60%, 50%)' },
 ];
 
 const PRESET_COURSES: { name: string; obstacles: Obstacle[] }[] = [
   {
     name: 'Nybörjarbana (6 hinder)',
     obstacles: [
-      { id: 'p1', type: 'start', x: 180, y: 450, rotation: 0, label: 'Start', number: 0 },
-      { id: 'p2', type: 'jump', x: 180, y: 380, rotation: 0, label: 'Hopp', number: 1 },
-      { id: 'p3', type: 'tunnel', x: 180, y: 300, rotation: 0, label: 'Tunnel', number: 2, tunnelLength: 4, bendAngle: 0 },
-      { id: 'p4', type: 'jump', x: 120, y: 220, rotation: 45, label: 'Hopp', number: 3 },
-      { id: 'p5', type: 'weave', x: 180, y: 140, rotation: 0, label: 'Slalom', number: 4 },
-      { id: 'p6', type: 'jump', x: 240, y: 80, rotation: 0, label: 'Hopp', number: 5 },
-      { id: 'p7', type: 'finish', x: 180, y: 30, rotation: 0, label: 'Mål', number: 0 },
+      { id: 'p1', type: 'start', x: 200, y: 700, rotation: 0, label: 'Start', numbers: [] },
+      { id: 'p2', type: 'jump', x: 200, y: 600, rotation: 0, label: 'Hopp', numbers: [1] },
+      { id: 'p3', type: 'tunnel', x: 200, y: 480, rotation: 0, label: 'Tunnel', numbers: [2], tunnelLength: 4, bendAngle: 0 },
+      { id: 'p4', type: 'jump', x: 140, y: 350, rotation: 45, label: 'Hopp', numbers: [3] },
+      { id: 'p5', type: 'weave', x: 250, y: 220, rotation: 0, label: 'Slalom', numbers: [4] },
+      { id: 'p6', type: 'jump', x: 300, y: 120, rotation: 0, label: 'Hopp', numbers: [5] },
+      { id: 'p7', type: 'finish', x: 200, y: 40, rotation: 0, label: 'Mål', numbers: [] },
     ],
   },
   {
     name: 'Kontaktbana (8 hinder)',
     obstacles: [
-      { id: 'c1', type: 'start', x: 80, y: 460, rotation: 0, label: 'Start', number: 0 },
-      { id: 'c2', type: 'jump', x: 80, y: 390, rotation: 0, label: 'Hopp', number: 1 },
-      { id: 'c3', type: 'a_frame', x: 160, y: 330, rotation: 0, label: 'A-hinder', number: 2 },
-      { id: 'c4', type: 'tunnel', x: 260, y: 270, rotation: 90, label: 'Tunnel', number: 3, tunnelLength: 6, bendAngle: 45 },
-      { id: 'c5', type: 'dog_walk', x: 180, y: 200, rotation: 0, label: 'Brygga', number: 4 },
-      { id: 'c6', type: 'seesaw', x: 100, y: 140, rotation: 0, label: 'Vipp', number: 5 },
-      { id: 'c7', type: 'jump', x: 200, y: 80, rotation: 30, label: 'Hopp', number: 6 },
-      { id: 'c8', type: 'weave', x: 280, y: 40, rotation: 0, label: 'Slalom', number: 7 },
-      { id: 'c9', type: 'finish', x: 280, y: 10, rotation: 0, label: 'Mål', number: 0 },
+      { id: 'c1', type: 'start', x: 100, y: 720, rotation: 0, label: 'Start', numbers: [] },
+      { id: 'c2', type: 'jump', x: 100, y: 620, rotation: 0, label: 'Hopp', numbers: [1] },
+      { id: 'c3', type: 'a_frame', x: 200, y: 500, rotation: 0, label: 'A-hinder', numbers: [2] },
+      { id: 'c4', type: 'tunnel', x: 320, y: 380, rotation: 90, label: 'Tunnel', numbers: [3], tunnelLength: 6, bendAngle: 45 },
+      { id: 'c5', type: 'dog_walk', x: 200, y: 280, rotation: 0, label: 'Brygga', numbers: [4] },
+      { id: 'c6', type: 'seesaw', x: 120, y: 180, rotation: 0, label: 'Vipp', numbers: [5] },
+      { id: 'c7', type: 'jump', x: 260, y: 120, rotation: 30, label: 'Hopp', numbers: [6] },
+      { id: 'c8', type: 'weave', x: 300, y: 60, rotation: 0, label: 'Slalom', numbers: [7] },
+      { id: 'c9', type: 'finish', x: 300, y: 20, rotation: 0, label: 'Mål', numbers: [] },
     ],
   },
 ];
 
-const METERS_PER_PX = 0.05;
-const GRID_STEP = 20;
-
 let idCounter = 0;
 const nextId = () => `obs_${++idCounter}_${Date.now()}`;
+
+/** Migrate legacy obstacle (single number) to multi-number */
+function migrateObstacle(o: any): Obstacle {
+  if (o.numbers && Array.isArray(o.numbers)) return o;
+  const nums: number[] = [];
+  if (typeof o.number === 'number' && o.number > 0) nums.push(o.number);
+  return { ...o, numbers: nums, number: undefined };
+}
+
+/* ───── Component ───── */
 
 export default function CoursePlannerPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -104,28 +133,40 @@ export default function CoursePlannerPage() {
   const [loadOpen, setLoadOpen] = useState(false);
   const [showDistances, setShowDistances] = useState(true);
   const [canvasSize, setCanvasSize] = useState(CANVAS_SIZES[1]);
-  const [nextNumber, setNextNumber] = useState(1);
+
+  // Handler path
   const [handlerPath, setHandlerPath] = useState<PathPoint[]>([]);
   const [drawingMode, setDrawingMode] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [handlerColor, setHandlerColor] = useState(HANDLER_COLORS[0].value);
+  const [handlerDashed, setHandlerDashed] = useState(true);
+
+  // Numbering mode
+  const [numberingMode, setNumberingMode] = useState(false);
+  const [nextNumberToAssign, setNextNumberToAssign] = useState(1);
+
+  // Rotation interaction
+  const [rotatingId, setRotatingId] = useState<string | null>(null);
+  const [rotateStart, setRotateStart] = useState({ angle: 0, obsRotation: 0 });
+  // Touch rotation
+  const [touchRotating, setTouchRotating] = useState(false);
+  const [touchStartAngle, setTouchStartAngle] = useState(0);
+  const [touchStartRotation, setTouchStartRotation] = useState(0);
+
+  // Number editing
+  const [numberInput, setNumberInput] = useState('');
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canvasWidth = canvasSize.width;
   const canvasHeight = canvasSize.height;
-  // Margin for coordinate labels
-  const MARGIN = 24;
+  const MARGIN = 28;
 
   useEffect(() => {
     supabase.from('saved_courses').select('*').order('created_at', { ascending: false }).then(({ data }) => {
       if (data) setSavedCourses(data as unknown as SavedCourse[]);
     });
   }, []);
-
-  // Recalculate next number when obstacles change
-  useEffect(() => {
-    const maxNum = obstacles.reduce((max, o) => Math.max(max, o.number || 0), 0);
-    setNextNumber(maxNum + 1);
-  }, [obstacles]);
 
   const selectedObs = obstacles.find(o => o.id === selected);
 
@@ -135,52 +176,50 @@ export default function CoursePlannerPage() {
     return Math.sqrt(dx * dx + dy * dy) * METERS_PER_PX;
   };
 
+  /* ───── Drawing helpers ───── */
+
   const drawTunnel = (ctx: CanvasRenderingContext2D, obs: Obstacle) => {
-    const length = (obs.tunnelLength || 4) / METERS_PER_PX;
+    const lengthM = obs.tunnelLength || 4;
+    const length = lengthM * PX_PER_METER;
     const bendAngle = obs.bendAngle || 0;
-    const tubeWidth = 18;
+    const tubeWidth = 0.6 * PX_PER_METER; // 60cm diameter
 
     ctx.strokeStyle = 'hsl(152, 50%, 35%)';
     ctx.lineWidth = tubeWidth;
     ctx.lineCap = 'round';
 
     if (Math.abs(bendAngle) < 5) {
-      // Straight tunnel
       ctx.beginPath();
       ctx.moveTo(0, -length / 2);
       ctx.lineTo(0, length / 2);
       ctx.stroke();
-      // Inner lighter fill
       ctx.strokeStyle = 'hsl(152, 40%, 55%)';
-      ctx.lineWidth = tubeWidth - 6;
+      ctx.lineWidth = tubeWidth - 4;
       ctx.beginPath();
       ctx.moveTo(0, -length / 2);
       ctx.lineTo(0, length / 2);
       ctx.stroke();
     } else {
-      // Curved tunnel
       const bendRad = (bendAngle * Math.PI) / 180;
       const radius = length / Math.abs(bendRad);
       const cx = bendAngle > 0 ? radius : -radius;
       const startAngle = bendAngle > 0 ? Math.PI : 0;
       const endAngle = startAngle - bendRad;
-
       ctx.beginPath();
       ctx.arc(cx, 0, radius, startAngle, endAngle, bendAngle > 0);
       ctx.stroke();
-      // Inner
       ctx.strokeStyle = 'hsl(152, 40%, 55%)';
-      ctx.lineWidth = tubeWidth - 6;
+      ctx.lineWidth = tubeWidth - 4;
       ctx.beginPath();
       ctx.arc(cx, 0, radius, startAngle, endAngle, bendAngle > 0);
       ctx.stroke();
     }
 
-    // Opening circles at ends
+    // Opening circles
     ctx.fillStyle = 'hsl(152, 60%, 25%)';
     if (Math.abs(bendAngle) < 5) {
-      ctx.beginPath(); ctx.arc(0, -length / 2, 5, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(0, length / 2, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(0, -length / 2, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(0, length / 2, 4, 0, Math.PI * 2); ctx.fill();
     }
   };
 
@@ -197,20 +236,20 @@ export default function CoursePlannerPage() {
     canvas.height = totalH * dpr;
     ctx.scale(dpr, dpr);
 
-    // White background for margin area
+    // Background
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, totalW, totalH);
 
-    // Course background (offset by margin)
     ctx.save();
     ctx.translate(MARGIN, 0);
 
+    // Course area
     ctx.fillStyle = 'hsl(0, 0%, 97%)';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    // Grid
-    ctx.strokeStyle = 'hsl(0, 0%, 88%)';
-    ctx.lineWidth = 0.5;
+    // Minor grid (1m)
+    ctx.strokeStyle = 'hsl(0, 0%, 90%)';
+    ctx.lineWidth = 0.3;
     for (let x = 0; x <= canvasWidth; x += GRID_STEP) {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvasHeight); ctx.stroke();
     }
@@ -218,9 +257,9 @@ export default function CoursePlannerPage() {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvasWidth, y); ctx.stroke();
     }
 
-    // Thicker grid every 5 steps (1m)
+    // Major grid (5m)
     ctx.strokeStyle = 'hsl(0, 0%, 78%)';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 0.8;
     const majorStep = GRID_STEP * 5;
     for (let x = 0; x <= canvasWidth; x += majorStep) {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvasHeight); ctx.stroke();
@@ -231,62 +270,79 @@ export default function CoursePlannerPage() {
 
     ctx.restore();
 
-    // Coordinate labels along top
+    // Coordinate labels
     ctx.fillStyle = 'hsl(0, 0%, 50%)';
     ctx.font = '8px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     for (let x = 0; x <= canvasWidth; x += majorStep) {
-      const meters = Math.round(x * METERS_PER_PX);
-      ctx.fillText(`${meters}`, x + MARGIN, canvasHeight + MARGIN - 2);
+      ctx.fillText(`${Math.round(x / PX_PER_METER)}`, x + MARGIN, canvasHeight + MARGIN - 2);
     }
-
-    // Coordinate labels along left
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
     for (let y = 0; y <= canvasHeight; y += majorStep) {
-      const meters = Math.round(y * METERS_PER_PX);
-      ctx.fillText(`${meters}`, MARGIN - 3, y);
+      ctx.fillText(`${Math.round(y / PX_PER_METER)}`, MARGIN - 3, y);
     }
 
-    // Draw obstacles in canvas coordinate space
+    // Scale indicator
     ctx.save();
     ctx.translate(MARGIN, 0);
+    const scaleX = canvasWidth - 5 * PX_PER_METER - 8;
+    const scaleY = canvasHeight - 8;
+    ctx.strokeStyle = 'hsl(0, 0%, 40%)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(scaleX, scaleY);
+    ctx.lineTo(scaleX + 5 * PX_PER_METER, scaleY);
+    ctx.stroke();
+    // End ticks
+    ctx.beginPath();
+    ctx.moveTo(scaleX, scaleY - 3); ctx.lineTo(scaleX, scaleY + 3); ctx.stroke();
+    ctx.moveTo(scaleX + 5 * PX_PER_METER, scaleY - 3); ctx.lineTo(scaleX + 5 * PX_PER_METER, scaleY + 3); ctx.stroke();
+    ctx.fillStyle = 'hsl(0, 0%, 35%)';
+    ctx.font = '8px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('5 m', scaleX + 2.5 * PX_PER_METER, scaleY - 3);
 
-    // Path lines + distance labels
-    if (obstacles.length > 1) {
-      ctx.strokeStyle = 'hsl(0, 0%, 65%)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 4]);
+    // Distance lines between numbered obstacles
+    const numberedObs = obstacles.filter(o => o.numbers.length > 0).sort((a, b) => {
+      const aMin = Math.min(...a.numbers);
+      const bMin = Math.min(...b.numbers);
+      return aMin - bMin;
+    });
+
+    if (numberedObs.length > 1 && showDistances) {
+      ctx.strokeStyle = 'hsl(0, 0%, 70%)';
+      ctx.lineWidth = 0.8;
+      ctx.setLineDash([3, 3]);
       ctx.beginPath();
-      obstacles.forEach((obs, i) => {
+      numberedObs.forEach((obs, i) => {
         if (i === 0) ctx.moveTo(obs.x, obs.y);
         else ctx.lineTo(obs.x, obs.y);
       });
       ctx.stroke();
       ctx.setLineDash([]);
 
-      if (showDistances) {
-        ctx.font = '9px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        for (let i = 1; i < obstacles.length; i++) {
-          const a = obstacles[i - 1];
-          const b = obstacles[i];
-          const mx = (a.x + b.x) / 2;
-          const my = (a.y + b.y) / 2;
-          const dist = distBetween(a, b);
-          ctx.fillStyle = 'hsla(0, 0%, 100%, 0.9)';
-          const text = `${dist.toFixed(1)}m`;
-          const tw = ctx.measureText(text).width + 6;
-          ctx.fillRect(mx - tw / 2, my - 6, tw, 12);
-          ctx.fillStyle = 'hsl(0, 0%, 35%)';
-          ctx.fillText(text, mx, my);
-        }
+      ctx.font = '8px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (let i = 1; i < numberedObs.length; i++) {
+        const a = numberedObs[i - 1];
+        const b = numberedObs[i];
+        const mx = (a.x + b.x) / 2;
+        const my = (a.y + b.y) / 2;
+        const dist = distBetween(a, b);
+        const text = `${dist.toFixed(1)}m`;
+        const tw = ctx.measureText(text).width + 4;
+        ctx.fillStyle = 'hsla(0, 0%, 100%, 0.9)';
+        ctx.fillRect(mx - tw / 2, my - 5, tw, 10);
+        ctx.fillStyle = 'hsl(0, 0%, 40%)';
+        ctx.fillText(text, mx, my);
       }
     }
 
-    // Draw each obstacle
+    // Draw obstacles
     obstacles.forEach(obs => {
       const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
       if (!info) return;
@@ -301,111 +357,118 @@ export default function CoursePlannerPage() {
       if (obs.type === 'tunnel') {
         drawTunnel(ctx, obs);
       } else if (obs.type === 'tire') {
+        const r = hw;
         ctx.strokeStyle = 'hsl(200, 50%, 40%)';
-        ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.arc(0, 0, hw, 0, Math.PI * 2); ctx.stroke();
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
         ctx.strokeStyle = 'hsl(200, 40%, 55%)';
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(0, 0, hw * 0.6, 0, Math.PI * 2); ctx.stroke();
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2); ctx.stroke();
+      } else if (obs.type === 'table') {
+        ctx.fillStyle = 'hsl(45, 60%, 75%)';
+        ctx.fillRect(-hw, -hh, info.width, info.height);
+        ctx.strokeStyle = 'hsl(45, 50%, 55%)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(-hw, -hh, info.width, info.height);
+        // Cross lines
+        ctx.strokeStyle = 'hsl(45, 40%, 60%)';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath(); ctx.moveTo(-hw, -hh); ctx.lineTo(hw, hh); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(hw, -hh); ctx.lineTo(-hw, hh); ctx.stroke();
       } else if (obs.type === 'a_frame') {
         ctx.strokeStyle = 'hsl(16, 80%, 45%)';
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(-hw, hh); ctx.lineTo(0, -hh); ctx.lineTo(hw, hh);
         ctx.stroke();
         // Contact zones
         ctx.strokeStyle = 'hsl(45, 90%, 50%)';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(-hw, hh); ctx.lineTo(-hw * 0.5, hh * 0.3); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(hw, hh); ctx.lineTo(hw * 0.5, hh * 0.3); ctx.stroke();
-      } else if (obs.type === 'dog_walk') {
-        ctx.fillStyle = 'hsl(45, 70%, 55%)';
+      } else if (obs.type === 'dog_walk' || obs.type === 'balance') {
+        const color = obs.type === 'dog_walk' ? 'hsl(45, 70%, 55%)' : 'hsl(180, 35%, 50%)';
+        const contactColor = obs.type === 'dog_walk' ? 'hsl(45, 90%, 45%)' : 'hsl(180, 50%, 40%)';
+        ctx.fillStyle = color;
         ctx.fillRect(-hw, -hh, info.width, info.height);
         // Contact zones
-        ctx.fillStyle = 'hsl(45, 90%, 45%)';
-        ctx.fillRect(-hw, -hh, 14, info.height);
-        ctx.fillRect(hw - 14, -hh, 14, info.height);
-        ctx.strokeStyle = 'hsl(45, 60%, 40%)';
-        ctx.lineWidth = 1;
+        const cz = 0.9 * PX_PER_METER; // ~90cm contact zone
+        ctx.fillStyle = contactColor;
+        ctx.fillRect(-hw, -hh, cz, info.height);
+        ctx.fillRect(hw - cz, -hh, cz, info.height);
+        ctx.strokeStyle = obs.type === 'dog_walk' ? 'hsl(45, 60%, 40%)' : 'hsl(180, 30%, 40%)';
+        ctx.lineWidth = 0.8;
         ctx.strokeRect(-hw, -hh, info.width, info.height);
       } else if (obs.type === 'seesaw') {
         ctx.fillStyle = 'hsl(270, 40%, 50%)';
         ctx.fillRect(-hw, -hh, info.width, info.height);
-        // Pivot point
         ctx.fillStyle = 'hsl(270, 50%, 35%)';
-        ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = 'hsl(270, 40%, 40%)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(-hw, -hh, info.width, info.height);
-      } else if (obs.type === 'balance') {
-        ctx.fillStyle = 'hsl(180, 35%, 50%)';
-        ctx.fillRect(-hw, -hh, info.width, info.height);
-        ctx.strokeStyle = 'hsl(180, 30%, 40%)';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 0.8;
         ctx.strokeRect(-hw, -hh, info.width, info.height);
       } else if (obs.type === 'weave') {
-        // Draw weave poles as dots
         const poleCount = 12;
         const spacing = info.width / (poleCount - 1);
         for (let i = 0; i < poleCount; i++) {
           ctx.fillStyle = i % 2 === 0 ? 'hsl(340, 70%, 50%)' : 'hsl(340, 50%, 65%)';
           ctx.beginPath();
-          ctx.arc(-hw + i * spacing, 0, 3, 0, Math.PI * 2);
+          ctx.arc(-hw + i * spacing, 0, 2.5, 0, Math.PI * 2);
           ctx.fill();
         }
-      } else if (obs.type === 'jump') {
-        // Jump bar
-        ctx.strokeStyle = 'hsl(0, 0%, 25%)';
-        ctx.lineWidth = 3;
+        // Base line
+        ctx.strokeStyle = 'hsl(340, 30%, 70%)';
+        ctx.lineWidth = 0.5;
         ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
-        // Wings/posts
+      } else if (obs.type === 'jump') {
+        ctx.strokeStyle = 'hsl(0, 0%, 25%)';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
         ctx.fillStyle = 'hsl(0, 0%, 20%)';
-        ctx.fillRect(-hw - 2, -6, 4, 12);
-        ctx.fillRect(hw - 2, -6, 4, 12);
+        ctx.fillRect(-hw - 1.5, -5, 3, 10);
+        ctx.fillRect(hw - 1.5, -5, 3, 10);
       } else if (obs.type === 'long_jump') {
         for (let j = 0; j < 3; j++) {
           ctx.fillStyle = `hsl(221, ${50 + j * 15}%, ${50 + j * 5}%)`;
-          ctx.fillRect(-hw, -hh + j * 6, info.width, 3);
+          ctx.fillRect(-hw, -hh + j * (info.height / 3), info.width, info.height / 3 - 1);
         }
       } else if (obs.type === 'oxer') {
         ctx.strokeStyle = 'hsl(200, 50%, 40%)';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(-hw, -hh); ctx.lineTo(hw, -hh); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(-hw, hh); ctx.lineTo(hw, hh); ctx.stroke();
-        // Posts
         ctx.fillStyle = 'hsl(200, 40%, 35%)';
-        ctx.fillRect(-hw - 2, -hh - 2, 4, info.height + 4);
-        ctx.fillRect(hw - 2, -hh - 2, 4, info.height + 4);
+        ctx.fillRect(-hw - 1.5, -hh - 1.5, 3, info.height + 3);
+        ctx.fillRect(hw - 1.5, -hh - 1.5, 3, info.height + 3);
       } else if (obs.type === 'wall') {
         ctx.fillStyle = 'hsl(30, 25%, 55%)';
         ctx.fillRect(-hw, -hh, info.width, info.height);
         ctx.strokeStyle = 'hsl(30, 20%, 40%)';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 0.8;
         ctx.strokeRect(-hw, -hh, info.width, info.height);
-        // Brick lines
         ctx.strokeStyle = 'hsla(30, 15%, 70%, 0.6)';
-        ctx.lineWidth = 0.5;
-        for (let r = -hh + 5; r < hh; r += 5) {
+        ctx.lineWidth = 0.3;
+        for (let r = -hh + 4; r < hh; r += 4) {
           ctx.beginPath(); ctx.moveTo(-hw, r); ctx.lineTo(hw, r); ctx.stroke();
         }
       } else if (obs.type === 'start') {
         ctx.strokeStyle = 'hsl(120, 60%, 35%)';
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(-hw, -8); ctx.lineTo(-hw, 8); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(hw, -8); ctx.lineTo(hw, 8); ctx.stroke();
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(-hw, -6); ctx.lineTo(-hw, 6); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(hw, -6); ctx.lineTo(hw, 6); ctx.stroke();
         ctx.setLineDash([3, 3]);
         ctx.strokeStyle = 'hsl(120, 50%, 45%)';
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.2;
         ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
         ctx.setLineDash([]);
       } else if (obs.type === 'finish') {
         ctx.strokeStyle = 'hsl(0, 70%, 45%)';
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(-hw, -8); ctx.lineTo(-hw, 8); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(hw, -8); ctx.lineTo(hw, 8); ctx.stroke();
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(-hw, -6); ctx.lineTo(-hw, 6); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(hw, -6); ctx.lineTo(hw, 6); ctx.stroke();
         ctx.setLineDash([3, 3]);
         ctx.strokeStyle = 'hsl(0, 60%, 55%)';
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.2;
         ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
         ctx.setLineDash([]);
       } else {
@@ -413,66 +476,95 @@ export default function CoursePlannerPage() {
         ctx.fillRect(-hw, -hh, info.width, info.height);
       }
 
-      // Selection border
+      // Selection
       if (selected === obs.id) {
         ctx.strokeStyle = 'hsl(221, 79%, 48%)';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1.5;
         ctx.setLineDash([4, 3]);
-        const selSize = Math.max(info.width, info.height, 30);
-        ctx.strokeRect(-selSize / 2 - 4, -selSize / 2 - 4, selSize + 8, selSize + 8);
+        const selSize = Math.max(info.width, info.height, 20) / 2 + 6;
+        ctx.strokeRect(-selSize, -selSize, selSize * 2, selSize * 2);
         ctx.setLineDash([]);
+
+        // Rotation handle (desktop)
+        const handleY = -selSize - 14;
+        ctx.fillStyle = 'hsl(221, 79%, 48%)';
+        ctx.beginPath(); ctx.arc(0, handleY, 6, 0, Math.PI * 2); ctx.fill();
+        // Line from selection box to handle
+        ctx.strokeStyle = 'hsl(221, 79%, 48%)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(0, -selSize); ctx.lineTo(0, handleY + 6); ctx.stroke();
+        // Arrow icon
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '8px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⟳', 0, handleY);
       }
 
       ctx.restore();
 
-      // Number label (circled)
-      const num = obs.number;
-      if (num && num > 0) {
+      // Number labels
+      if (obs.numbers.length > 0) {
+        const sortedNums = [...obs.numbers].sort((a, b) => a - b);
+        const numText = sortedNums.join('/');
         const nx = obs.x + MARGIN;
-        const ny = obs.y - Math.max((info.height || 10) / 2, 12) - 6;
+        const maxDim = Math.max((info?.height || 10) / 2, (info?.width || 10) / 2, 10);
+        const ny = obs.y - maxDim - 8;
+        const tw = ctx.measureText(numText).width;
+        const pillW = Math.max(tw + 8, 16);
         ctx.fillStyle = '#ffffff';
         ctx.strokeStyle = 'hsl(0, 0%, 25%)';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.arc(nx, ny, 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.lineWidth = 1.2;
+
+        // Rounded pill
+        const pillH = 14;
+        const pr = pillH / 2;
+        ctx.beginPath();
+        ctx.moveTo(nx - pillW / 2 + pr, ny - pr);
+        ctx.arcTo(nx + pillW / 2, ny - pr, nx + pillW / 2, ny + pr, pr);
+        ctx.arcTo(nx + pillW / 2, ny + pr, nx - pillW / 2, ny + pr, pr);
+        ctx.arcTo(nx - pillW / 2, ny + pr, nx - pillW / 2, ny - pr, pr);
+        ctx.arcTo(nx - pillW / 2, ny - pr, nx + pillW / 2, ny - pr, pr);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
         ctx.fillStyle = 'hsl(0, 0%, 15%)';
-        ctx.font = 'bold 10px sans-serif';
+        ctx.font = 'bold 9px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(`${num}`, nx, ny);
+        ctx.fillText(numText, nx, ny);
       }
     });
 
-    // Draw handler path
+    // Handler path
     if (handlerPath.length > 1) {
-      ctx.save();
-      ctx.translate(MARGIN, 0);
-      ctx.strokeStyle = 'hsl(16, 100%, 55%)';
+      ctx.strokeStyle = handlerColor;
       ctx.lineWidth = 2.5;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.setLineDash([6, 4]);
+      if (handlerDashed) ctx.setLineDash([6, 4]);
       ctx.globalAlpha = 0.8;
       ctx.beginPath();
       ctx.moveTo(handlerPath[0].x, handlerPath[0].y);
-      // Smooth curve through points using quadratic bezier
       for (let i = 1; i < handlerPath.length - 1; i++) {
         const xc = (handlerPath[i].x + handlerPath[i + 1].x) / 2;
         const yc = (handlerPath[i].y + handlerPath[i + 1].y) / 2;
         ctx.quadraticCurveTo(handlerPath[i].x, handlerPath[i].y, xc, yc);
       }
-      // Last point
       const last = handlerPath[handlerPath.length - 1];
       ctx.lineTo(last.x, last.y);
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.globalAlpha = 1;
 
-      // Arrow at end
+      // Arrow
       if (handlerPath.length >= 2) {
         const p1 = handlerPath[handlerPath.length - 2];
         const p2 = last;
         const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-        ctx.fillStyle = 'hsl(16, 100%, 55%)';
+        ctx.fillStyle = handlerColor;
         ctx.beginPath();
         ctx.moveTo(p2.x, p2.y);
         ctx.lineTo(p2.x - 8 * Math.cos(angle - 0.4), p2.y - 8 * Math.sin(angle - 0.4));
@@ -480,21 +572,30 @@ export default function CoursePlannerPage() {
         ctx.closePath();
         ctx.fill();
       }
-      ctx.restore();
     }
 
+    // "1 ruta = 1 meter" label
+    ctx.fillStyle = 'hsla(0, 0%, 100%, 0.85)';
+    ctx.fillRect(MARGIN + 4, 4, 80, 14);
+    ctx.fillStyle = 'hsl(0, 0%, 45%)';
+    ctx.font = '8px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('1 ruta = 1 meter', MARGIN + 8, 6);
+
     ctx.restore();
-  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath]);
+  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed]);
 
   useEffect(() => { draw(); }, [draw]);
+
+  /* ───── Interaction ───── */
 
   const addObstacle = (type: string) => {
     const info = OBSTACLE_TYPES.find(o => o.type === type)!;
     const isStartFinish = type === 'start' || type === 'finish';
-    const num = isStartFinish ? 0 : nextNumber;
     const newObs: Obstacle = {
       id: nextId(), type, x: canvasWidth / 2, y: canvasHeight / 2,
-      rotation: 0, label: info.label, number: num,
+      rotation: 0, label: info.label, numbers: isStartFinish ? [] : [],
       ...(type === 'tunnel' ? { tunnelLength: 4 as const, bendAngle: 0 } : {}),
     };
     setObstacles(prev => [...prev, newObs]);
@@ -505,10 +606,34 @@ export default function CoursePlannerPage() {
       const obs = obstacles[i];
       const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
       if (!info) continue;
-      const hitR = Math.max(info.width, info.height, 24) / 2 + 10;
+      const hitR = Math.max(info.width, info.height, 20) / 2 + 8;
       if (Math.abs(cx - obs.x) <= hitR && Math.abs(cy - obs.y) <= hitR) return obs;
     }
     return null;
+  };
+
+  /** Check if click is on the rotation handle of the selected obstacle */
+  const isOnRotationHandle = (cx: number, cy: number): boolean => {
+    if (!selected) return false;
+    const obs = obstacles.find(o => o.id === selected);
+    if (!obs) return false;
+    const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
+    if (!info) return false;
+
+    const selSize = Math.max(info.width, info.height, 20) / 2 + 6;
+    const handleDist = selSize + 14;
+
+    // Handle position in world coords (need to account for rotation)
+    const rad = (obs.rotation * Math.PI) / 180;
+    const hx = obs.x + Math.sin(-rad) * 0 + Math.cos(-rad) * 0; // handle is at (0, -handleDist) in local
+    const hy = obs.y;
+    // Actually we need to transform (0, -handleDist) by rotation
+    const localX = 0;
+    const localY = -handleDist;
+    const worldX = obs.x + localX * Math.cos(rad) - localY * Math.sin(rad);
+    const worldY = obs.y + localX * Math.sin(rad) + localY * Math.cos(rad);
+
+    return Math.hypot(cx - worldX, cy - worldY) <= 12;
   };
 
   const getCanvasPos = (e: React.TouchEvent | React.MouseEvent) => {
@@ -524,19 +649,64 @@ export default function CoursePlannerPage() {
     } else if ('clientX' in e) {
       clientX = e.clientX; clientY = e.clientY;
     } else return { x: 0, y: 0 };
-    // Convert to canvas coordinates, subtracting margin
     const rawX = (clientX - rect.left) * (totalW / rect.width) - MARGIN;
     const rawY = (clientY - rect.top) * (totalH / rect.height);
     return { x: rawX, y: rawY };
   };
 
+  const getTouchAngle = (e: React.TouchEvent): number | null => {
+    if (!('touches' in e) || e.touches.length < 2) return null;
+    const t0 = e.touches[0];
+    const t1 = e.touches[1];
+    return Math.atan2(t1.clientY - t0.clientY, t1.clientX - t0.clientX) * 180 / Math.PI;
+  };
+
   const handlePointerDown = (e: React.MouseEvent | React.TouchEvent) => {
+    // Two-finger rotation on touch
+    if ('touches' in e && e.touches.length === 2 && selected) {
+      e.preventDefault();
+      const angle = getTouchAngle(e);
+      if (angle !== null) {
+        const obs = obstacles.find(o => o.id === selected);
+        if (obs) {
+          setTouchRotating(true);
+          setTouchStartAngle(angle);
+          setTouchStartRotation(obs.rotation);
+        }
+      }
+      return;
+    }
+
     const pos = getCanvasPos(e);
+
     if (drawingMode) {
       setIsDrawing(true);
       setHandlerPath([{ x: pos.x, y: pos.y }]);
       return;
     }
+
+    // Numbering mode
+    if (numberingMode) {
+      const obs = findObstacleAt(pos.x, pos.y);
+      if (obs) {
+        setObstacles(prev => prev.map(o => {
+          if (o.id !== obs.id) return o;
+          return { ...o, numbers: [...o.numbers, nextNumberToAssign].sort((a, b) => a - b) };
+        }));
+        setNextNumberToAssign(prev => prev + 1);
+      }
+      return;
+    }
+
+    // Check rotation handle first
+    if (isOnRotationHandle(pos.x, pos.y)) {
+      const obs = obstacles.find(o => o.id === selected)!;
+      const angle = Math.atan2(pos.y - obs.y, pos.x - obs.x) * 180 / Math.PI;
+      setRotatingId(selected);
+      setRotateStart({ angle, obsRotation: obs.rotation });
+      return;
+    }
+
     const obs = findObstacleAt(pos.x, pos.y);
     if (obs) {
       setSelected(obs.id);
@@ -548,16 +718,44 @@ export default function CoursePlannerPage() {
   };
 
   const handlePointerMove = (e: React.MouseEvent | React.TouchEvent) => {
+    // Two-finger rotation
+    if (touchRotating && 'touches' in e && e.touches.length === 2 && selected) {
+      e.preventDefault();
+      const angle = getTouchAngle(e);
+      if (angle !== null) {
+        const delta = angle - touchStartAngle;
+        setObstacles(prev => prev.map(o =>
+          o.id === selected ? { ...o, rotation: (touchStartRotation + delta + 360) % 360 } : o
+        ));
+      }
+      return;
+    }
+
     if (drawingMode && isDrawing) {
       e.preventDefault();
       const pos = getCanvasPos(e);
-      // Only add point if moved enough distance (reduces points for smoothing)
       const last = handlerPath[handlerPath.length - 1];
       if (last && Math.hypot(pos.x - last.x, pos.y - last.y) > 3) {
         setHandlerPath(prev => [...prev, { x: pos.x, y: pos.y }]);
       }
       return;
     }
+
+    // Rotation handle drag
+    if (rotatingId) {
+      e.preventDefault();
+      const pos = getCanvasPos(e);
+      const obs = obstacles.find(o => o.id === rotatingId);
+      if (obs) {
+        const angle = Math.atan2(pos.y - obs.y, pos.x - obs.x) * 180 / Math.PI;
+        const delta = angle - rotateStart.angle;
+        setObstacles(prev => prev.map(o =>
+          o.id === rotatingId ? { ...o, rotation: (rotateStart.obsRotation + delta + 360) % 360 } : o
+        ));
+      }
+      return;
+    }
+
     if (!dragging) return;
     e.preventDefault();
     const pos = getCanvasPos(e);
@@ -569,6 +767,8 @@ export default function CoursePlannerPage() {
   const handlePointerUp = () => {
     setDragging(null);
     setIsDrawing(false);
+    setRotatingId(null);
+    setTouchRotating(false);
   };
 
   const rotateSelected = () => {
@@ -584,11 +784,21 @@ export default function CoursePlannerPage() {
     setSelected(null);
   };
 
-  const updateSelectedNumber = (delta: number) => {
+  const addNumberToSelected = (num: number) => {
+    if (!selected || num <= 0) return;
+    setObstacles(prev => prev.map(o => {
+      if (o.id !== selected) return o;
+      if (o.numbers.includes(num)) return o;
+      return { ...o, numbers: [...o.numbers, num].sort((a, b) => a - b) };
+    }));
+  };
+
+  const removeNumberFromSelected = (num: number) => {
     if (!selected) return;
-    setObstacles(prev => prev.map(o =>
-      o.id === selected ? { ...o, number: Math.max(0, (o.number || 0) + delta) } : o
-    ));
+    setObstacles(prev => prev.map(o => {
+      if (o.id !== selected) return o;
+      return { ...o, numbers: o.numbers.filter(n => n !== num) };
+    }));
   };
 
   const updateTunnelBend = (delta: number) => {
@@ -609,6 +819,20 @@ export default function CoursePlannerPage() {
     ));
   };
 
+  const setRotationManual = (deg: number) => {
+    if (!selected) return;
+    setObstacles(prev => prev.map(o =>
+      o.id === selected ? { ...o, rotation: ((deg % 360) + 360) % 360 } : o
+    ));
+  };
+
+  const clearNumbering = () => {
+    setObstacles(prev => prev.map(o => ({ ...o, numbers: [] })));
+    setNextNumberToAssign(1);
+  };
+
+  /* ───── Save/Load ───── */
+
   const handleSave = async () => {
     if (!courseName.trim()) return;
     const userId = (await supabase.auth.getUser()).data.user?.id;
@@ -628,13 +852,16 @@ export default function CoursePlannerPage() {
 
   const loadCourse = (course: SavedCourse) => {
     const data = course.course_data as any;
+    let loadedObstacles: Obstacle[];
+    let loadedPath: PathPoint[] = [];
     if (Array.isArray(data)) {
-      setObstacles(data);
-      setHandlerPath([]);
+      loadedObstacles = data.map(migrateObstacle);
     } else {
-      setObstacles(data.obstacles || []);
-      setHandlerPath(data.handlerPath || []);
+      loadedObstacles = (data.obstacles || []).map(migrateObstacle);
+      loadedPath = data.handlerPath || [];
     }
+    setObstacles(loadedObstacles);
+    setHandlerPath(loadedPath);
     if (course.canvas_width && course.canvas_height) {
       const match = CANVAS_SIZES.find(s => s.width === course.canvas_width && s.height === course.canvas_height);
       if (match) setCanvasSize(match);
@@ -652,24 +879,19 @@ export default function CoursePlannerPage() {
   const exportPNG = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const dpr = window.devicePixelRatio || 1;
     const padding = 40;
     const headerH = 48;
     const footerH = 36;
     const totalW = canvasWidth + MARGIN + padding * 2;
     const totalH = canvasHeight + MARGIN + padding * 2 + headerH + footerH;
-
     const exportCanvas = document.createElement('canvas');
     exportCanvas.width = totalW * dpr;
     exportCanvas.height = totalH * dpr;
     const ctx = exportCanvas.getContext('2d')!;
     ctx.scale(dpr, dpr);
-
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, totalW, totalH);
-
-    // Header
     ctx.fillStyle = 'hsl(221, 79%, 48%)';
     ctx.fillRect(0, 0, totalW, headerH);
     ctx.fillStyle = '#ffffff';
@@ -677,36 +899,12 @@ export default function CoursePlannerPage() {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillText('🐕 AgilityManager – Banplanerare', padding, headerH / 2);
-    const widthM = (canvasWidth * METERS_PER_PX).toFixed(0);
-    const heightM = (canvasHeight * METERS_PER_PX).toFixed(0);
+    const widthM = Math.round(canvasWidth / PX_PER_METER);
+    const heightM = Math.round(canvasHeight / PX_PER_METER);
     ctx.font = '12px sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText(`${widthM} × ${heightM} m`, totalW - padding, headerH / 2);
-
     ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, padding, headerH + padding, canvasWidth + MARGIN, canvasHeight + MARGIN);
-
-    // Legend
-    const legendY = headerH + padding + canvasHeight + MARGIN + 18;
-    const usedTypes = [...new Set(obstacles.map(o => o.type))];
-    if (usedTypes.length > 0) {
-      ctx.font = '9px sans-serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      let lx = padding;
-      usedTypes.forEach(t => {
-        const info = OBSTACLE_TYPES.find(o => o.type === t);
-        if (!info) return;
-        const count = obstacles.filter(o => o.type === t).length;
-        ctx.fillStyle = 'hsl(0, 0%, 50%)';
-        ctx.fillRect(lx, legendY, 8, 8);
-        ctx.fillStyle = 'hsl(0, 0%, 35%)';
-        const label = `${info.label} (${count})`;
-        ctx.fillText(label, lx + 11, legendY);
-        lx += ctx.measureText(label).width + 22;
-      });
-    }
-
-    // Footer
     const footerY = totalH - footerH;
     ctx.fillStyle = 'hsl(210, 22%, 96%)';
     ctx.fillRect(0, footerY, totalW, footerH);
@@ -715,9 +913,6 @@ export default function CoursePlannerPage() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('Skapad med AgilityManager · agilitymanager.se', totalW / 2, footerY + footerH / 2);
-    ctx.fillStyle = 'hsl(16, 100%, 60%)';
-    ctx.fillRect(0, footerY, totalW, 2);
-
     const link = document.createElement('a');
     link.download = 'agility-bana.png';
     link.href = exportCanvas.toDataURL('image/png');
@@ -745,16 +940,14 @@ export default function CoursePlannerPage() {
       try {
         const parsed = JSON.parse(ev.target?.result as string);
         if (parsed.obstacles && Array.isArray(parsed.obstacles)) {
-           setObstacles(parsed.obstacles);
-           setHandlerPath(parsed.handlerPath || []);
+          setObstacles(parsed.obstacles.map(migrateObstacle));
+          setHandlerPath(parsed.handlerPath || []);
           if (parsed.canvasWidth && parsed.canvasHeight) {
             const match = CANVAS_SIZES.find(s => s.width === parsed.canvasWidth && s.height === parsed.canvasHeight);
             if (match) setCanvasSize(match);
           }
           toast.success('Bana importerad!');
-        } else {
-          toast.error('Ogiltig fil');
-        }
+        } else { toast.error('Ogiltig fil'); }
       } catch { toast.error('Kunde inte läsa filen'); }
     };
     reader.readAsText(file);
@@ -763,22 +956,26 @@ export default function CoursePlannerPage() {
 
   const loadPreset = (preset: typeof PRESET_COURSES[0]) => {
     setObstacles(preset.obstacles.map(o => ({ ...o, id: nextId() })));
+    setHandlerPath([]);
     setLoadOpen(false);
     toast.success(`Laddade "${preset.name}"`);
   };
 
   const isPremium = usePremium();
 
+  /* ───── Render ───── */
+
   return (
     <>
     <Helmet>
       <title>Banplanerare Agility – Rita och spara banor | AgilityManager</title>
-      <meta name="description" content="Designa agilitybanor med alla SAgiK-godkända hinder. Spara, återanvänd och dela dina banor. Fungerar på mobil och desktop." />
+      <meta name="description" content="Designa agilitybanor med alla SAgiK-godkända hinder i korrekta proportioner. Spara, återanvänd och dela dina banor." />
       <link rel="canonical" href="https://agilitymanager.se/banplanerare" />
     </Helmet>
     <PageContainer title="Banplanerare" subtitle="Rita agility-banor">
       <PremiumGate fullPage featureName="Banplaneraren">
-      {/* Toolbar */}
+
+      {/* Toolbar row 1 */}
       <div className="flex gap-2 mb-2 items-center flex-wrap">
         <Select
           value={`${canvasSize.width}x${canvasSize.height}`}
@@ -787,7 +984,7 @@ export default function CoursePlannerPage() {
             if (s) setCanvasSize(s);
           }}
         >
-          <SelectTrigger className="w-[140px] h-8 text-xs">
+          <SelectTrigger className="w-[120px] h-8 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -849,13 +1046,13 @@ export default function CoursePlannerPage() {
           </DialogContent>
         </Dialog>
 
-        <Button variant="outline" size="sm" onClick={() => { setObstacles([]); setSelected(null); setHandlerPath([]); }} className="gap-1 h-8 ml-auto">
+        <Button variant="outline" size="sm" onClick={() => { setObstacles([]); setSelected(null); setHandlerPath([]); setNumberingMode(false); setNextNumberToAssign(1); }} className="gap-1 h-8 ml-auto">
           Rensa
         </Button>
       </div>
 
       {/* Toolbar row 2 */}
-      <div className="flex gap-2 mb-3 items-center flex-wrap">
+      <div className="flex gap-1.5 mb-3 items-center flex-wrap">
         <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportPNG(); }} disabled={obstacles.length === 0}>
           <Download size={12} /> PNG {!isPremium && <PremiumBadge />}
         </Button>
@@ -867,20 +1064,65 @@ export default function CoursePlannerPage() {
         </Button>
         <input ref={fileInputRef} type="file" accept=".json" onChange={importJSON} className="hidden" />
 
+        <div className="h-4 w-px bg-border mx-1" />
+
+        {/* Drawing mode */}
         <button
-          onClick={() => { setDrawingMode(!drawingMode); if (drawingMode) setIsDrawing(false); }}
+          onClick={() => { setDrawingMode(!drawingMode); setNumberingMode(false); if (drawingMode) setIsDrawing(false); }}
           className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${drawingMode ? 'bg-orange-500/15 border-orange-500 text-orange-600' : 'bg-secondary border-border text-muted-foreground'}`}
         >
           <Pencil size={10} /> {drawingMode ? 'Rita: PÅ' : 'Förarlinje'}
         </button>
+
+        {/* Handler line options */}
+        {(drawingMode || handlerPath.length > 0) && (
+          <>
+            <Select value={handlerColor} onValueChange={setHandlerColor}>
+              <SelectTrigger className="h-6 w-16 text-[10px] border-none px-1">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: handlerColor }} />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {HANDLER_COLORS.map(c => (
+                  <SelectItem key={c.value} value={c.value} className="text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c.value }} />
+                      {c.label}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <button
+              onClick={() => setHandlerDashed(!handlerDashed)}
+              className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${handlerDashed ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
+            >
+              {handlerDashed ? '- - -' : '───'}
+            </button>
+          </>
+        )}
         {handlerPath.length > 0 && (
-          <button
-            onClick={() => setHandlerPath([])}
-            className="text-xs px-2 py-0.5 rounded-full border border-border text-muted-foreground hover:text-destructive flex items-center gap-1"
-          >
+          <button onClick={() => setHandlerPath([])} className="text-xs px-2 py-0.5 rounded-full border border-border text-muted-foreground hover:text-destructive flex items-center gap-1">
             <Eraser size={10} /> Radera linje
           </button>
         )}
+
+        <div className="h-4 w-px bg-border mx-1" />
+
+        {/* Numbering mode */}
+        <button
+          onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); if (!numberingMode) setNextNumberToAssign(1); }}
+          className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${numberingMode ? 'bg-blue-500/15 border-blue-500 text-blue-600' : 'bg-secondary border-border text-muted-foreground'}`}
+        >
+          <Hash size={10} /> {numberingMode ? `Numrera: ${nextNumberToAssign}` : 'Numreringsläge'}
+        </button>
+        {numberingMode && (
+          <button onClick={clearNumbering} className="text-xs px-2 py-0.5 rounded-full border border-border text-muted-foreground hover:text-destructive">
+            Rensa numrering
+          </button>
+        )}
+
         <button
           onClick={() => setShowDistances(!showDistances)}
           className={`ml-auto text-xs px-2 py-0.5 rounded-full border transition-colors ${showDistances ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
@@ -890,23 +1132,51 @@ export default function CoursePlannerPage() {
       </div>
 
       {/* Selected obstacle controls */}
-      {selectedObs && (
+      {selectedObs && !numberingMode && (
         <div className="flex gap-2 mb-3 items-center flex-wrap bg-card rounded-lg p-2 shadow-card border border-border">
           <Button variant="outline" size="sm" onClick={rotateSelected} className="gap-1 h-8">
             <RotateCcw size={14} /> 15°
           </Button>
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-muted-foreground">Grader:</span>
+            <Input
+              type="number"
+              value={Math.round(selectedObs.rotation)}
+              onChange={e => setRotationManual(parseInt(e.target.value) || 0)}
+              className="w-14 h-7 text-xs text-center"
+            />
+          </div>
           <Button variant="outline" size="sm" onClick={deleteSelected} className="gap-1 h-8 text-destructive">
             <Trash2 size={14} />
           </Button>
 
-          {/* Number control */}
+          {/* Multi-number control */}
           <div className="flex items-center gap-1 ml-2">
-            <span className="text-xs text-muted-foreground">Nr:</span>
-            <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateSelectedNumber(-1)}>
-              <Minus size={12} />
-            </Button>
-            <span className="text-sm font-bold w-6 text-center text-foreground">{selectedObs.number || 0}</span>
-            <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateSelectedNumber(1)}>
+            <span className="text-[10px] text-muted-foreground">Nr:</span>
+            {selectedObs.numbers.length > 0 && (
+              <div className="flex gap-0.5">
+                {[...selectedObs.numbers].sort((a, b) => a - b).map(n => (
+                  <button
+                    key={n}
+                    onClick={() => removeNumberFromSelected(n)}
+                    className="text-xs font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    title={`Klicka för att ta bort ${n}`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            )}
+            <Input
+              type="number"
+              min={1}
+              value={numberInput}
+              onChange={e => setNumberInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { addNumberToSelected(parseInt(numberInput) || 0); setNumberInput(''); } }}
+              placeholder="+"
+              className="w-10 h-7 text-xs text-center"
+            />
+            <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => { addNumberToSelected(parseInt(numberInput) || 0); setNumberInput(''); }} disabled={!numberInput}>
               <Plus size={12} />
             </Button>
           </div>
@@ -920,7 +1190,7 @@ export default function CoursePlannerPage() {
                 </Button>
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-xs text-muted-foreground">Böj:</span>
+                <span className="text-[10px] text-muted-foreground">Böj:</span>
                 <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateTunnelBend(-15)}>
                   <Minus size={12} />
                 </Button>
@@ -938,7 +1208,7 @@ export default function CoursePlannerPage() {
       <div className="bg-card rounded-xl shadow-elevated overflow-auto mb-3">
         <canvas
           ref={canvasRef}
-          style={{ width: canvasWidth + MARGIN, height: canvasHeight + MARGIN, touchAction: 'none', display: 'block', margin: '0 auto', cursor: drawingMode ? 'crosshair' : dragging ? 'grabbing' : 'grab' }}
+          style={{ width: canvasWidth + MARGIN, height: canvasHeight + MARGIN, touchAction: 'none', display: 'block', margin: '0 auto', cursor: drawingMode ? 'crosshair' : numberingMode ? 'cell' : rotatingId ? 'grabbing' : dragging ? 'grabbing' : 'grab' }}
           onMouseDown={handlePointerDown}
           onMouseMove={handlePointerMove}
           onMouseUp={handlePointerUp}
@@ -949,7 +1219,7 @@ export default function CoursePlannerPage() {
         />
       </div>
 
-      {/* Quick-select obstacle palette at bottom */}
+      {/* Quick-select obstacle palette */}
       <div className="sticky bottom-16 bg-background/95 backdrop-blur-sm border-t border-border pt-2 pb-2 -mx-4 px-4 rounded-t-xl shadow-elevated z-10">
         <div className="grid grid-cols-5 sm:grid-cols-7 gap-1.5">
           {OBSTACLE_TYPES.map(o => (
@@ -966,7 +1236,7 @@ export default function CoursePlannerPage() {
       </div>
 
       <p className="text-xs text-muted-foreground text-center mt-2">
-        Dra hinder för att flytta. {obstacles.length} hinder på banan.
+        Dra hinder för att flytta · Dra i ⟳ för att rotera · {obstacles.length} hinder på banan
       </p>
       </PremiumGate>
     </PageContainer>

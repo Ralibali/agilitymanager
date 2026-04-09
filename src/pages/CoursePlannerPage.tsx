@@ -368,7 +368,7 @@ export default function CoursePlannerPage() {
     ctx.scale(dpr, dpr);
 
     // Background
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = isDarkCanvas ? '#1a1a1a' : '#ffffff';
     ctx.fillRect(0, 0, totalW, totalH);
 
     // All drawing in MARGIN-translated space
@@ -376,11 +376,11 @@ export default function CoursePlannerPage() {
     ctx.translate(MARGIN, 0);
 
     // Course area
-    ctx.fillStyle = 'hsl(0, 0%, 97%)';
+    ctx.fillStyle = isDarkCanvas ? 'hsl(0, 0%, 10%)' : 'hsl(0, 0%, 97%)';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     // Minor grid (1m)
-    ctx.strokeStyle = 'hsl(0, 0%, 90%)';
+    ctx.strokeStyle = isDarkCanvas ? 'hsl(0, 0%, 20%)' : 'hsl(0, 0%, 90%)';
     ctx.lineWidth = 0.3;
     for (let x = 0; x <= canvasWidth; x += GRID_STEP) {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvasHeight); ctx.stroke();
@@ -390,7 +390,7 @@ export default function CoursePlannerPage() {
     }
 
     // Major grid (5m)
-    ctx.strokeStyle = 'hsl(0, 0%, 78%)';
+    ctx.strokeStyle = isDarkCanvas ? 'hsl(0, 0%, 30%)' : 'hsl(0, 0%, 78%)';
     ctx.lineWidth = 0.8;
     const majorStep = GRID_STEP * 5;
     for (let x = 0; x <= canvasWidth; x += majorStep) {

@@ -372,8 +372,14 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
                         : 'text-muted-foreground'}
                     />
                   </button>
+                  <button
+                    onClick={() => setShareComp({ open: true, comp })}
+                    className="p-1 rounded-full hover:bg-secondary transition-colors"
+                    title="Tipsa kompis"
+                  >
+                    <Send size={16} className="text-muted-foreground" />
+                  </button>
                 </div>
-
                 <div className="text-lg font-bold font-display text-primary mb-1">
                   {formatDateRange(comp.date_start, comp.date_end)}
                 </div>

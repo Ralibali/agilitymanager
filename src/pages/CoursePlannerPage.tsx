@@ -1225,6 +1225,16 @@ export default function CoursePlannerPage() {
       return;
     }
 
+    // Dragging a free number
+    if (draggingNumber) {
+      e.preventDefault();
+      const pos = getCanvasPos(e);
+      setFreeNumbers(prev => prev.map(fn =>
+        fn.id === draggingNumber ? { ...fn, x: pos.x - numberDragOffset.x, y: pos.y - numberDragOffset.y } : fn
+      ));
+      return;
+    }
+
     if (dragging) {
       e.preventDefault();
       const pos = getCanvasPos(e);

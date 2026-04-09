@@ -1967,12 +1967,80 @@ export default function CoursePlannerPage() {
           <Maximize size={14} />
         </Button>
 
+        {/* Undo/Redo */}
+        <div className="flex items-center gap-0.5">
+          <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleUndo} disabled={!canUndo} title="Ångra (Ctrl+Z)">
+            <Undo2 size={14} />
+          </Button>
+          <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleRedo} disabled={!canRedo} title="Gör om (Ctrl+Y)">
+            <RotateCcw size={14} className="scale-x-[-1]" />
+          </Button>
+          <div className="relative">
+            <Button variant="ghost" size="icon" className="h-8 w-6" onClick={() => setShowHistoryDropdown(!showHistoryDropdown)} title="Historik">
+              <ChevronDown size={12} />
+            </Button>
+            {showHistoryDropdown && (
+              <div className="absolute top-full left-0 z-50 mt-1 bg-card border border-border rounded-lg shadow-lg p-2 min-w-[200px] max-w-[260px]">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-semibold text-muted-foreground">Senaste åtgärder</span>
+                  <button onClick={() => setShowHistoryDropdown(false)} className="text-muted-foreground hover:text-foreground"><X size={10} /></button>
+                </div>
+                {getRecentActions(8).length === 0 ? (
+                  <p className="text-[10px] text-muted-foreground py-1">Ingen historik ännu</p>
+                ) : (
+                  getRecentActions(8).map((a, i) => (
+                    <div key={i} className="text-[10px] text-foreground py-0.5 border-b border-border/50 last:border-0">{a}</div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
         {zoomControls(false)}
 
-        <Button variant="outline" size="sm" onClick={() => { setObstacles([]); setSelected(null); setHandlerPath([]); setNumberingMode(false); setNextNumberToAssign(1); setNumberingHistory([]); }} className="gap-1 h-8 ml-auto">
+        {/* Unsaved indicator */}
+        {isDirty && (
+          <span className="text-[10px] text-amber-500 font-medium flex items-center gap-1">
+            ● Osparade ändringar
+          </span>
+        )}
+
+        <Button variant="outline" size="sm" onClick={() => {
+          const emptyObs: Obstacle[] = [];
+          setObstaclesRaw(emptyObs);
+          setSelected(null);
+          setHandlerPath([]);
+          setNumberingMode(false);
+          setNextNumberToAssign(1);
+          setNumberingHistory([]);
+          pushHistory(emptyObs, [], 'Rensade banan');
+          setIsDirty(true);
+        }} className="gap-1 h-8 ml-auto">
           Rensa
         </Button>
       </div>
+
+      {/* Course stats bar */}
+      {obstacles.length > 0 && (
+        <div className="flex gap-3 mb-2 items-center flex-wrap text-[11px] text-muted-foreground bg-secondary/50 rounded-lg px-3 py-1.5">
+          <span className="font-medium text-foreground">{courseStats.total} hinder</span>
+          {courseStats.contactCount > 0 && <span>{courseStats.contactCount} kontakt</span>}
+          {courseStats.length > 0 && <span>Banlängd: ~{Math.round(courseStats.length)}m</span>}
+          <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${snapEnabled ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'}`}>
+            <button onClick={() => setSnapEnabled(!snapEnabled)} className="flex items-center gap-1">
+              📐 Snap {snapEnabled ? 'PÅ' : 'AV'}
+            </button>
+          </span>
+          {courseStats.warnings.length > 0 && (
+            <div className="w-full mt-1">
+              {courseStats.warnings.map((w, i) => (
+                <div key={i} className="text-[10px] text-amber-500">{w}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Toolbar row 2 */}
       <div className="flex gap-1.5 mb-3 items-center flex-wrap">

@@ -31,9 +31,12 @@ export default function CompetitionCalendarPage() {
       action={<NotificationBell />}
     >
       <Tabs defaultValue="calendar" className="w-full">
-        <TabsList className="w-full grid grid-cols-3 mb-4">
+        <TabsList className="w-full grid grid-cols-4 mb-4">
           <TabsTrigger value="calendar" className="gap-1 text-xs">
             <Calendar size={14} /> Kalender
+          </TabsTrigger>
+          <TabsTrigger value="recommended" className="gap-1 text-xs">
+            <Sparkles size={14} /> Tips
           </TabsTrigger>
           <TabsTrigger value="mine" className="gap-1 text-xs">
             <Star size={14} /> Mina
@@ -48,6 +51,9 @@ export default function CompetitionCalendarPage() {
           <div className="mt-3">
             <TavlingsKalendar dogs={dogs} selectedDogId={selectedDogId} />
           </div>
+        </TabsContent>
+        <TabsContent value="recommended">
+          <RecommendedCompetitions dogs={dogs} />
         </TabsContent>
         <TabsContent value="mine">
           <MinaTavlingar />

@@ -1084,6 +1084,21 @@ export default function CoursePlannerPage() {
   };
 
   const handlePointerUp = () => {
+    // Push history on drag end
+    if (dragging) {
+      const obs = obstacles.find(o => o.id === dragging);
+      pushHistory(obstacles, handlerPath, `Flyttade ${obs?.label || 'hinder'}`);
+      setIsDirty(true);
+    }
+    if (rotatingId) {
+      const obs = obstacles.find(o => o.id === rotatingId);
+      pushHistory(obstacles, handlerPath, `Roterade ${obs?.label || 'hinder'}`);
+      setIsDirty(true);
+    }
+    if (isDrawing && handlerPath.length > 1) {
+      pushHistory(obstacles, handlerPath, 'Ritade förarlinje');
+      setIsDirty(true);
+    }
     setDragging(null);
     setIsDrawing(false);
     setRotatingId(null);

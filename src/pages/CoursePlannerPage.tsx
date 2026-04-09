@@ -1745,15 +1745,25 @@ export default function CoursePlannerPage() {
         />
       )}
 
-      {/* Color theme toggle button */}
+      {/* Color theme toggle button + reset */}
       {!showColorPanel && (
-        <button
-          onClick={() => setShowColorPanel(true)}
-          className="flex items-center gap-1.5 mb-2 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <Palette size={12} />
-          <span>Hinderfärger ({PRESET_THEMES.find(p => p.id === activeThemeId)?.label ?? 'Anpassad'})</span>
-        </button>
+        <div className="flex items-center gap-3 mb-2">
+          <button
+            onClick={() => setShowColorPanel(true)}
+            className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Palette size={12} />
+            <span>Hinderfärger ({PRESET_THEMES.find(p => p.id === activeThemeId)?.label ?? 'Anpassad'})</span>
+          </button>
+          {(activeThemeId !== 'standard' || Object.keys(customOverrides).length > 0) && (
+            <button
+              onClick={handleResetColors}
+              className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive transition-colors"
+            >
+              <RotateCcw size={10} /> Återställ
+            </button>
+          )}
+        </div>
       )}
 
       {/* Numbering toolbar */}

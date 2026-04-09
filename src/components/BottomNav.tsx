@@ -10,12 +10,12 @@ import { supabase } from '@/integrations/supabase/client';
 const mainTabs = [
   { path: '/dashboard', icon: Home, label: 'Hem' },
   { path: '/dogs', icon: Dog, label: 'Hundar' },
-  { path: '/training', icon: Dumbbell, label: 'Träning' },
+  { path: '/course-planner', icon: PencilRuler, label: 'Banplanerare' },
   { path: '/friends', icon: Users, label: 'Kompisar' },
 ];
 
 const moreTabs = [
-  { path: '/course-planner', icon: PencilRuler, label: 'Banplanerare' },
+  { path: '/training', icon: Dumbbell, label: 'Träning' },
   { path: '/competition', icon: Trophy, label: 'Tävling' },
   { path: '/competition-calendar', icon: CalendarDays, label: 'Tävlingskalender' },
   { path: '/stopwatch', icon: Timer, label: 'Tidtagarur' },

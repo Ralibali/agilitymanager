@@ -1735,6 +1735,7 @@ export default function CoursePlannerPage() {
         if (parsed.obstacles && Array.isArray(parsed.obstacles)) {
           setObstacles(parsed.obstacles.map(migrateObstacle));
           setHandlerPath(parsed.handlerPath || []);
+          setFreeNumbers(parsed.freeNumbers || []);
           if (parsed.canvasWidth && parsed.canvasHeight) {
             const match = CANVAS_SIZES.find(s => s.width === parsed.canvasWidth && s.height === parsed.canvasHeight);
             if (match) setCanvasSize(match);

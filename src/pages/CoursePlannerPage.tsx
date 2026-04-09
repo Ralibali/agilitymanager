@@ -215,8 +215,8 @@ export default function CoursePlannerPage() {
 
   const handleSetTypeColor = (type: string, field: keyof ObstacleColors, color: string) => {
     setCustomOverrides(prev => {
-      const base = { ...(currentTheme[type] ?? {}), ...(prev[type] ?? {}) };
-      const updated = { ...prev, [type]: { ...base, [field]: color } };
+      const base: ObstacleColors = { body: currentTheme[type]?.body ?? '#888', ...(prev[type] ?? {}) };
+      const updated: ObstacleTheme = { ...prev, [type]: { ...base, [field]: color } };
       saveCustomOverrides(updated);
       return updated;
     });

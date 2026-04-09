@@ -144,7 +144,7 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
           </div>
           <div className="flex items-center gap-3">
             <Switch checked={passed} onCheckedChange={setPassed} />
-            <Label>Godkänd (nolla)</Label>
+            <Label>Pinne / Cert</Label>
           </div>
           <div>
             <Label>Notering</Label>

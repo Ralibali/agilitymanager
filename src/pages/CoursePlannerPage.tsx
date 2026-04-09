@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { PageContainer } from '@/components/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,12 +7,14 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette } from 'lucide-react';
+import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette, Copy, Ruler, ChevronDown, X } from 'lucide-react';
 import ShareCourseDialog from '@/components/course-planner/ShareCourseDialog';
 import ObstacleColorPanel from '@/components/course-planner/ObstacleColorPanel';
 import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { OBSTACLE_INFO, CONTACT_TYPES, MIN_DISTANCES } from '@/lib/courseObstacleInfo';
 import {
   PRESET_THEMES,
   STANDARD_THEME,

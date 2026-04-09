@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Globe, Megaphone, ArrowRight, Link2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 interface SignupSource {
   id: string;

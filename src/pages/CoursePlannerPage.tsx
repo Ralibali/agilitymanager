@@ -1083,18 +1083,25 @@ export default function CoursePlannerPage() {
     }
 
     if (numberingMode) {
-      const obs = findObstacleAt(pos.x, pos.y);
-      if (obs) {
-        const newEntry: NumberEntry = { num: nextNumberToAssign, color: numberingColor };
-        setObstacles(prev => prev.map(o => {
-          if (o.id !== obs.id) return o;
-          const newColorNums = [...(o.colorNumbers || []), newEntry];
-          const newNums = [...new Set(newColorNums.map(e => e.num))].sort((a, b) => a - b);
-          return { ...o, colorNumbers: newColorNums, numbers: newNums };
-        }));
-        setNumberingHistory(prev => [...prev, { obsId: obs.id, num: nextNumberToAssign, color: numberingColor }]);
-        setNextNumberToAssign(prev => prev + 1);
+      // Check if clicking on an existing free number to drag it
+      const hitNum = findFreeNumberAt(pos.x, pos.y);
+      if (hitNum) {
+        setDraggingNumber(hitNum.id);
+        setNumberDragOffset({ x: pos.x - hitNum.x, y: pos.y - hitNum.y });
+        return;
       }
+      // Place a new free number at the clicked position
+      const newFN: FreeNumber = {
+        id: `fn_${Date.now()}_${nextNumberToAssign}`,
+        num: nextNumberToAssign,
+        color: numberingColor,
+        x: pos.x,
+        y: pos.y,
+      };
+      setFreeNumbers(prev => [...prev, newFN]);
+      setNumberingHistory(prev => [...prev, { obsId: newFN.id, num: nextNumberToAssign, color: numberingColor }]);
+      setNextNumberToAssign(prev => prev + 1);
+      setIsDirty(true);
       return;
     }
 

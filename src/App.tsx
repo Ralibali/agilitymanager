@@ -28,6 +28,8 @@ const BlogPage = React.lazy(() => import("./pages/BlogPage"));
 const BlogPostPage = React.lazy(() => import("./pages/BlogPostPage"));
 const AdminPage = React.lazy(() => import("./pages/AdminPage"));
 const AboutAgilityPage = React.lazy(() => import("./pages/AboutAgilityPage"));
+const PrivacyPolicyPage = React.lazy(() => import("./pages/PrivacyPolicyPage"));
+const CookiePolicyPage = React.lazy(() => import("./pages/CookiePolicyPage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -86,6 +88,8 @@ const App = () => (
               <Route path="/om-agility" element={<AboutAgilityPage />} />
               <Route path="/blogg" element={<BlogPage />} />
               <Route path="/blogg/:slug" element={<BlogPostPage />} />
+              <Route path="/integritetspolicy" element={<PrivacyPolicyPage />} />
+              <Route path="/cookiepolicy" element={<CookiePolicyPage />} />
 
               {/* Protected routes */}
               <Route element={<ProtectedLayout />}>

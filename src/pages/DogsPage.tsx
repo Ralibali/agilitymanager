@@ -4,8 +4,9 @@ import { AddDogDialog } from '@/components/AddDogDialog';
 import { DogAvatar } from '@/components/DogAvatar';
 import { DogPhotoUpload } from '@/components/DogPhotoUpload';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { store } from '@/lib/store';
-import type { Dog } from '@/types';
+import type { Dog, SizeClass, CompetitionLevel } from '@/types';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { motion } from 'framer-motion';
@@ -58,16 +59,61 @@ export default function DogsPage() {
                   <div className="text-sm text-muted-foreground">
                     {dog.breed} · {dog.gender} · {dog.color}
                   </div>
-                  <div className="flex gap-2 mt-1.5 flex-wrap">
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                      {dog.size_class}
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-medium">
-                      AG {dog.competition_level}
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-medium">
-                      Hopp {(dog as any).jumping_level ?? dog.competition_level}
-                    </span>
+                  <div className="flex gap-2 mt-1.5 flex-wrap items-center">
+                    <Select
+                      value={dog.size_class}
+                      onValueChange={async (v) => {
+                        const val = v as SizeClass;
+                        setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, size_class: val } : d));
+                        await store.updateDog(dog.id, { size_class: val });
+                      }}
+                    >
+                      <SelectTrigger className="h-6 text-[10px] px-2 w-auto min-w-0 bg-primary/10 text-primary border-none font-medium rounded-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="XS">XS</SelectItem>
+                        <SelectItem value="S">S</SelectItem>
+                        <SelectItem value="M">M</SelectItem>
+                        <SelectItem value="L">L</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={dog.competition_level}
+                      onValueChange={async (v) => {
+                        const val = v as CompetitionLevel;
+                        setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, competition_level: val } : d));
+                        await store.updateDog(dog.id, { competition_level: val });
+                      }}
+                    >
+                      <SelectTrigger className="h-6 text-[10px] px-2 w-auto min-w-0 bg-accent/10 text-accent border-none font-medium rounded-full">
+                        <span className="mr-0.5">AG</span> <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Nollklass">Nollklass</SelectItem>
+                        <SelectItem value="K1">Klass 1</SelectItem>
+                        <SelectItem value="K2">Klass 2</SelectItem>
+                        <SelectItem value="K3">Klass 3</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={dog.jumping_level}
+                      onValueChange={async (v) => {
+                        const val = v as CompetitionLevel;
+                        setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, jumping_level: val } : d));
+                        await store.updateDog(dog.id, { jumping_level: val });
+                      }}
+                    >
+                      <SelectTrigger className="h-6 text-[10px] px-2 w-auto min-w-0 bg-accent/10 text-accent border-none font-medium rounded-full">
+                        <span className="mr-0.5">Hopp</span> <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Nollklass">Nollklass</SelectItem>
+                        <SelectItem value="K1">Klass 1</SelectItem>
+                        <SelectItem value="K2">Klass 2</SelectItem>
+                        <SelectItem value="K3">Klass 3</SelectItem>
+                      </SelectContent>
+                    </Select>
                     {dog.birthdate && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
                         Född {format(new Date(dog.birthdate), 'd MMM yyyy', { locale: sv })}

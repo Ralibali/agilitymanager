@@ -359,6 +359,42 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          read: boolean
+          receiver_id: string
+          sender_id: string
+          shared_data: Json | null
+          shared_id: string | null
+          shared_type: string | null
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          receiver_id: string
+          sender_id: string
+          shared_data?: Json | null
+          shared_id?: string | null
+          shared_type?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          receiver_id?: string
+          sender_id?: string
+          shared_data?: Json | null
+          shared_id?: string | null
+          shared_type?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           competition_id: string | null

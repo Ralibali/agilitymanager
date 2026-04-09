@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { PageContainer } from '@/components/PageContainer';
 import { store } from '@/lib/store';
@@ -7,6 +7,7 @@ import { DogAvatar } from '@/components/DogAvatar';
 import { Lock, Trophy, Dumbbell, TrendingUp, Zap, Target, Award, BarChart3, Gauge, XCircle, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 function CompStats({ competitions, dogs }: { competitions: CompetitionResult[]; dogs: Dog[] }) {
   if (competitions.length === 0) return null;
@@ -118,6 +119,70 @@ function CompStats({ competitions, dogs }: { competitions: CompetitionResult[]; 
   );
 }
 
+const DOG_COLORS = ['hsl(221, 79%, 48%)', 'hsl(16, 100%, 55%)', 'hsl(142, 60%, 40%)', 'hsl(280, 60%, 50%)', 'hsl(45, 90%, 50%)'];
+
+function CompCharts({ competitions, dogs }: { competitions: CompetitionResult[]; dogs: Dog[] }) {
+  const dogIds = useMemo(() => [...new Set(competitions.map(c => c.dog_id))], [competitions]);
+
+  const perDogData = useMemo(() => {
+    const sorted = [...competitions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const byDate = new Map<string, Record<string, any>>();
+    sorted.forEach(c => {
+      const dateLabel = format(new Date(c.date), 'd/M', { locale: sv });
+      const existing = byDate.get(dateLabel) || { date: dateLabel };
+      existing[`time_${c.dog_id}`] = Number(c.time_sec);
+      existing[`faults_${c.dog_id}`] = c.faults;
+      if (c.course_length_m && c.course_length_m > 0 && Number(c.time_sec) > 0) {
+        existing[`speed_${c.dog_id}`] = +(c.course_length_m / Number(c.time_sec)).toFixed(2);
+      }
+      byDate.set(dateLabel, existing);
+    });
+    return Array.from(byDate.values());
+  }, [competitions]);
+
+  const hasSpeed = competitions.some(c => c.course_length_m && c.course_length_m > 0 && Number(c.time_sec) > 0);
+
+  const renderChart = (title: string, icon: React.ReactNode, dataKeyPrefix: string, unit: string) => (
+    <div className="bg-card rounded-xl p-4 shadow-card">
+      <h3 className="font-display font-semibold text-foreground mb-3 flex items-center gap-2">
+        {icon} {title}
+      </h3>
+      <ResponsiveContainer width="100%" height={200}>
+        <LineChart data={perDogData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+          <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+          <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" unit={unit} />
+          <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+          {dogIds.map((id, i) => {
+            const dog = dogs.find(d => d.id === id);
+            return (
+              <Line
+                key={id}
+                type="monotone"
+                dataKey={`${dataKeyPrefix}_${id}`}
+                name={dog?.name || '?'}
+                stroke={dog?.theme_color || DOG_COLORS[i % DOG_COLORS.length]}
+                strokeWidth={2}
+                dot={{ r: 3 }}
+                connectNulls
+              />
+            );
+          })}
+          {dogIds.length > 1 && <Legend wrapperStyle={{ fontSize: 10 }} />}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4 mb-6">
+      {renderChart('Tid över tid', <TrendingUp size={16} className="text-primary" />, 'time', 's')}
+      {renderChart('Fel över tid', <Target size={16} className="text-destructive" />, 'faults', '')}
+      {hasSpeed && renderChart('Hastighet över tid', <Gauge size={16} className="text-warning" />, 'speed', ' m/s')}
+    </div>
+  );
+}
+
 export default function StatsPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [training, setTraining] = useState<TrainingSession[]>([]);
@@ -205,18 +270,7 @@ export default function StatsPage() {
         )}
       </div>
 
-      <div className="bg-card rounded-xl p-5 shadow-card border border-accent/20 text-center">
-        <div className="w-12 h-12 rounded-full gradient-accent flex items-center justify-center mx-auto mb-3">
-          <TrendingUp size={24} className="text-accent-foreground" />
-        </div>
-        <h3 className="font-display font-bold text-foreground mb-1">Avancerad statistik</h3>
-        <p className="text-sm text-muted-foreground mb-3">
-          Tidsutveckling, hastighetsgraf och träningsfrekvens med Premium.
-        </p>
-        <div className="flex items-center justify-center gap-1 text-xs text-accent font-medium">
-          <Lock size={12} /> Premium-funktion
-        </div>
-      </div>
+      {competitions.length >= 2 && <CompCharts competitions={competitions} dogs={dogs} />}
     </PageContainer>
     </>
   );

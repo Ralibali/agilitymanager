@@ -362,6 +362,25 @@ export default function CompetitionPage() {
         </TabsContent>
       </Tabs>
     </PageContainer>
+
+    {shareResult && (
+      <ShareToFriendDialog
+        open={!!shareResult}
+        onOpenChange={(open) => !open && setShareResult(null)}
+        sharedType="result"
+        sharedId={shareResult.id}
+        sharedData={{
+          event_name: shareResult.event_name,
+          date: shareResult.date,
+          discipline: shareResult.discipline,
+          level: shareResult.competition_level,
+          time: `${shareResult.time_sec}s`,
+          faults: shareResult.faults,
+          passed: shareResult.passed,
+          placement: shareResult.placement,
+        }}
+      />
+    )}
     </>
   );
 }

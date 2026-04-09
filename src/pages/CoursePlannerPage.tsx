@@ -2100,11 +2100,28 @@ export default function CoursePlannerPage() {
         <div className="h-4 w-px bg-border mx-1" />
 
         <button
-          onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } }}
+          onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); setMeasureMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } }}
           className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${numberingMode ? 'bg-blue-500/15 border-blue-500 text-blue-600' : 'bg-secondary border-border text-muted-foreground'}`}
         >
           <Hash size={10} /> {numberingMode ? 'Numrera bana' : 'Numrera bana'}
         </button>
+
+        <button
+          onClick={() => { setMeasureMode(!measureMode); setDrawingMode(false); setNumberingMode(false); setMeasurePoints([]); }}
+          className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${measureMode ? 'bg-yellow-500/15 border-yellow-500 text-yellow-600' : 'bg-secondary border-border text-muted-foreground'}`}
+        >
+          <Ruler size={10} /> {measureMode ? 'Mät: PÅ' : 'Mät'}
+        </button>
+
+        {selected && (
+          <button
+            onClick={copySelected}
+            className="text-xs px-2 py-0.5 rounded-full border border-border bg-secondary text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+            title="Kopiera hinder (Ctrl+C, sedan Ctrl+V)"
+          >
+            <Copy size={10} /> Kopiera
+          </button>
+        )}
 
         <button
           onClick={() => setShowStartFinish(!showStartFinish)}
@@ -2120,6 +2137,20 @@ export default function CoursePlannerPage() {
           {showDistances ? '📏 Mått på' : '📏 Mått av'}
         </button>
       </div>
+
+      {/* Measure result */}
+      {measureMode && measurePoints.length === 2 && (
+        <div className="mb-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2 text-xs text-foreground flex items-center gap-2">
+          <Ruler size={14} className="text-yellow-600" />
+          <span className="font-semibold">
+            {(Math.sqrt(
+              Math.pow(measurePoints[0].x - measurePoints[1].x, 2) +
+              Math.pow(measurePoints[0].y - measurePoints[1].y, 2)
+            ) * METERS_PER_PX).toFixed(1)} m
+          </span>
+          <span className="text-muted-foreground">— Klicka för att mäta igen</span>
+        </div>
+      )}
 
       {/* Color theme panel */}
       {showColorPanel && (

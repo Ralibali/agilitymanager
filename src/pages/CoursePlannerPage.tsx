@@ -193,6 +193,8 @@ export default function CoursePlannerPage() {
   const [numberInput, setNumberInput] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showStartFinish, setShowStartFinish] = useState(false);
+  const [showOrientationHint, setShowOrientationHint] = useState(false);
 
   // Obstacle color theme system
   const [activeThemeId, setActiveThemeId] = useState<string>(loadActiveThemeId);

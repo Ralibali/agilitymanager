@@ -144,6 +144,12 @@ export default function AuthPage() {
                 <Label>Lösenord</Label>
                 <Input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="Minst 6 tecken" />
               </div>
+              {!isLogin && (
+                <div>
+                  <Label>Bekräfta lösenord</Label>
+                  <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required placeholder="Ange lösenordet igen" />
+                </div>
+              )}
               <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={loading}>
                 {loading ? 'Vänta...' : isLogin ? 'Logga in' : 'Skapa konto'}
               </Button>

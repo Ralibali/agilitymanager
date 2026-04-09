@@ -1,3 +1,4 @@
+import React from 'react';
 import { Dog, CompetitionResult } from '@/types';
 import { Award } from 'lucide-react';
 
@@ -41,7 +42,8 @@ export function MeritBadge({ merit }: { merit: Merit }) {
   );
 }
 
-export function MeritProgress({ merit }: { merit: Merit }) {
+export const MeritProgress = React.memo(React.forwardRef<HTMLDivElement, { merit: Merit }>(
+  function MeritProgress({ merit }, ref) {
   const nextThreshold = merit.passedCount < 3 ? 3 : merit.passedCount < 5 ? 5 : merit.passedCount < 7 ? 7 : 7;
   const nextLevel = merit.passedCount < 3 ? 'Brons' : merit.passedCount < 5 ? 'Silver' : merit.passedCount < 7 ? 'Guld' : null;
   const progress = Math.min((merit.passedCount / nextThreshold) * 100, 100);

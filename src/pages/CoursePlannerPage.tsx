@@ -194,22 +194,40 @@ export default function CoursePlannerPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Obstacle color theme (per type hue overrides)
-  const [obstacleHues, setObstacleHues] = useState<Record<string, number>>({});
-  const [colorPickerType, setColorPickerType] = useState<string | null>(null);
+  // Obstacle color theme system
+  const [activeThemeId, setActiveThemeId] = useState<string>(loadActiveThemeId);
+  const [customOverrides, setCustomOverrides] = useState<ObstacleTheme>(loadCustomOverrides);
+  const [showColorPanel, setShowColorPanel] = useState(false);
 
-  const getHue = (type: string) => {
-    if (type in obstacleHues) return obstacleHues[type];
-    return DEFAULT_OBSTACLE_HUES[type] ?? 200;
+  const activePreset = PRESET_THEMES.find(p => p.id === activeThemeId);
+  const baseTheme = activePreset?.theme ?? STANDARD_THEME;
+  const currentTheme: ObstacleTheme = { ...baseTheme, ...customOverrides };
+  const isDarkCanvas = activePreset?.darkCanvas ?? false;
+
+  const getTypeColors = (type: string): ObstacleColors => getObstacleColors(currentTheme, type);
+
+  const handleSelectPreset = (id: string) => {
+    setActiveThemeId(id);
+    saveActiveThemeId(id);
+    setCustomOverrides({});
+    saveCustomOverrides({});
   };
 
-  const setTypeHue = (type: string, hue: number) => {
-    if (hue === -999) {
-      // Reset to default
-      setObstacleHues(prev => { const n = { ...prev }; delete n[type]; return n; });
-    } else {
-      setObstacleHues(prev => ({ ...prev, [type]: hue }));
-    }
+  const handleSetTypeColor = (type: string, field: keyof ObstacleColors, color: string) => {
+    setCustomOverrides(prev => {
+      const base = { ...(currentTheme[type] ?? {}), ...(prev[type] ?? {}) };
+      const updated = { ...prev, [type]: { ...base, [field]: color } };
+      saveCustomOverrides(updated);
+      return updated;
+    });
+  };
+
+  const handleResetColors = () => {
+    setActiveThemeId('standard');
+    saveActiveThemeId('standard');
+    setCustomOverrides({});
+    saveCustomOverrides({});
+    toast.success('Standardfärger återställda');
   };
 
   // Zoom & Pan state

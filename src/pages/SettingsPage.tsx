@@ -110,8 +110,13 @@ export default function SettingsPage() {
             <h2 className="font-display font-bold text-foreground">Premium</h2>
             {subscription.subscribed ? (
               <div className="flex items-center gap-1.5">
-                <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-[10px]">Aktiv</Badge>
+                {subscription.isTrial ? (
+                  <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[10px]">Provperiod</Badge>
+                ) : (
+                  <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-[10px]">Aktiv</Badge>
+                )}
                 {activePlan && <span className="text-xs text-muted-foreground">{activePlan.label}</span>}
+                {subscription.isTrial && <span className="text-xs text-muted-foreground">7 dagar gratis</span>}
               </div>
             ) : (
               <p className="text-xs text-muted-foreground">Lås upp alla funktioner</p>
@@ -121,7 +126,7 @@ export default function SettingsPage() {
 
         {subscription.subscribed && subscription.subscriptionEnd && (
           <p className="text-xs text-muted-foreground mb-3">
-            Förnyas: {new Date(subscription.subscriptionEnd).toLocaleDateString('sv-SE')}
+            {subscription.isTrial ? 'Provperiod slutar' : 'Förnyas'}: {new Date(subscription.subscriptionEnd).toLocaleDateString('sv-SE')}
           </p>
         )}
 

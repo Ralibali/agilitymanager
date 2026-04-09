@@ -1,22 +1,27 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { PageContainer } from '@/components/PageContainer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TavlingsKalendar } from '@/components/competitions/TavlingsKalendar';
 import { MinaTavlingar } from '@/components/competitions/MinaTavlingar';
 import { TavlingsLogg } from '@/components/competitions/TavlingsLogg';
 import { NotificationBell } from '@/components/competitions/NotificationBell';
+import { DogPicker } from '@/components/competitions/DogPicker';
 import { Calendar, Star, ClipboardList } from 'lucide-react';
 import type { Dog } from '@/types';
 
 export default function CompetitionCalendarPage() {
+  const { user } = useAuth();
   const [dogs, setDogs] = useState<Dog[]>([]);
+  const [selectedDogId, setSelectedDogId] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.from('dogs').select('*').order('name').then(({ data }) => {
+    if (!user) return;
+    supabase.from('dogs').select('*').eq('user_id', user.id).order('name').then(({ data }) => {
       setDogs(data || []);
     });
-  }, []);
+  }, [user]);
 
   return (
     <PageContainer
@@ -38,7 +43,10 @@ export default function CompetitionCalendarPage() {
         </TabsList>
 
         <TabsContent value="calendar">
-          <TavlingsKalendar />
+          <DogPicker dogs={dogs} selectedDogId={selectedDogId} onSelect={setSelectedDogId} />
+          <div className="mt-3">
+            <TavlingsKalendar dogs={dogs} selectedDogId={selectedDogId} />
+          </div>
         </TabsContent>
         <TabsContent value="mine">
           <MinaTavlingar />

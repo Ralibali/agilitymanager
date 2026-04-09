@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { RefreshCw, MapPin, ExternalLink, Star, CheckCircle2, Home, TreePine } from 'lucide-react';
 import { SWEDISH_COUNTIES, type Competition, type CompetitionInterest } from '@/types/competitions';
 import { useToast } from '@/hooks/use-toast';
+import type { Dog } from '@/types';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -50,7 +51,57 @@ function statusColor(status: string | null): string {
   return 'bg-muted text-muted-foreground';
 }
 
-export function TavlingsKalendar() {
+function dogFiltersFor(dog: Dog): Set<string> {
+  const f = new Set<string>();
+  const level = dog.competition_level;
+  const jumpLevel = dog.jumping_level;
+
+  if (level !== 'Nollklass') {
+    f.add('agility');
+    if (level === 'K1') f.add('K1');
+    if (level === 'K2') f.add('K2');
+    if (level === 'K3') f.add('K3');
+  }
+  if (jumpLevel !== 'Nollklass') {
+    f.add('hopp');
+    if (jumpLevel === 'K1') f.add('K1');
+    if (jumpLevel === 'K2') f.add('K2');
+    if (jumpLevel === 'K3') f.add('K3');
+  }
+  if (level === 'Nollklass' && jumpLevel === 'Nollklass') {
+    f.add('0-klass');
+  }
+  return f;
+}
+
+function describeDogFilters(dog: Dog): string {
+  const parts: string[] = [];
+  const disciplines: string[] = [];
+  const levels = new Set<string>();
+
+  if (dog.competition_level !== 'Nollklass') {
+    disciplines.push('Agility');
+    levels.add(dog.competition_level);
+  }
+  if (dog.jumping_level !== 'Nollklass') {
+    disciplines.push('Hopp');
+    levels.add(dog.jumping_level);
+  }
+  if (disciplines.length === 0) {
+    return `Visar tävlingar för ${dog.name} — 0-klass`;
+  }
+
+  if (levels.size > 0) parts.push(Array.from(levels).join(' & '));
+  parts.push(disciplines.join(' & '));
+  return `Visar tävlingar för ${dog.name} — ${parts.join(', ')}`;
+}
+
+interface TavlingsKalendarProps {
+  dogs: Dog[];
+  selectedDogId: string | null;
+}
+
+export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [competitions, setCompetitions] = useState<Competition[]>([]);
@@ -58,9 +109,33 @@ export function TavlingsKalendar() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastFetched, setLastFetched] = useState<string | null>(null);
-  const [filters, setFilters] = useState<Set<string>>(new Set());
+  const [manualFilters, setManualFilters] = useState<Set<string>>(new Set());
   const [selectedCounties, setSelectedCounties] = useState<Set<string>>(new Set());
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; compId: string }>({ open: false, compId: '' });
+
+  const selectedDog = useMemo(() => dogs.find(d => d.id === selectedDogId) || null, [dogs, selectedDogId]);
+
+  // Compute active filters: dog-based + manual overrides
+  const activeFilters = useMemo(() => {
+    if (!selectedDog) return manualFilters;
+    const dogF = dogFiltersFor(selectedDog);
+    // Merge manual on top of dog filters
+    const merged = new Set(dogF);
+    manualFilters.forEach(f => {
+      if (merged.has(f)) {
+        // manual toggle removes a dog filter
+        merged.delete(f);
+      } else {
+        merged.add(f);
+      }
+    });
+    return merged;
+  }, [selectedDog, manualFilters]);
+
+  // Reset manual filters when dog changes
+  useEffect(() => {
+    setManualFilters(new Set());
+  }, [selectedDogId]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -108,6 +183,7 @@ export function TavlingsKalendar() {
   const toggleInterest = async (compId: string, type: 'interested' | 'registered') => {
     if (!user) return;
     const current = interests.get(compId);
+    const dogName = selectedDog?.name || null;
 
     if (type === 'interested' && current?.status === 'registered') {
       setConfirmDialog({ open: true, compId });
@@ -115,21 +191,18 @@ export function TavlingsKalendar() {
     }
 
     if (current?.status === type) {
-      // Remove
       await supabase.from('competition_interests').delete().eq('id', current.id);
       const newMap = new Map(interests);
       newMap.delete(compId);
       setInterests(newMap);
     } else if (current) {
-      // Update
-      await supabase.from('competition_interests').update({ status: type }).eq('id', current.id);
+      await supabase.from('competition_interests').update({ status: type, dog_name: dogName }).eq('id', current.id);
       const newMap = new Map(interests);
-      newMap.set(compId, { ...current, status: type });
+      newMap.set(compId, { ...current, status: type, dog_name: dogName });
       setInterests(newMap);
     } else {
-      // Insert
       const { data } = await supabase.from('competition_interests')
-        .insert({ user_id: user.id, competition_id: compId, status: type })
+        .insert({ user_id: user.id, competition_id: compId, status: type, dog_name: dogName })
         .select().single();
       if (data) {
         const newMap = new Map(interests);
@@ -152,30 +225,33 @@ export function TavlingsKalendar() {
   };
 
   const toggleFilter = (key: string) => {
-    const next = new Set(filters);
+    const next = new Set(manualFilters);
     next.has(key) ? next.delete(key) : next.add(key);
-    setFilters(next);
+    setManualFilters(next);
   };
 
   const clearFilters = () => {
-    setFilters(new Set());
+    setManualFilters(new Set());
     setSelectedCounties(new Set());
   };
 
+  // Check if a filter is visually "checked" — from dog or manual
+  const isFilterActive = (key: string) => activeFilters.has(key);
+
   const filtered = competitions.filter(c => {
-    if (filters.size === 0 && selectedCounties.size === 0) return true;
+    if (activeFilters.size === 0 && selectedCounties.size === 0) return true;
 
     let match = true;
 
-    if (filters.has('agility') && (c.classes_agility?.length || 0) === 0) match = false;
-    if (filters.has('hopp') && (c.classes_hopp?.length || 0) === 0) match = false;
-    if (filters.has('0-klass') && !c.classes_other?.includes('0-klass')) match = false;
-    if (filters.has('K1') && !c.classes_agility?.includes('Ag1') && !c.classes_hopp?.includes('Ho1')) match = false;
-    if (filters.has('K2') && !c.classes_agility?.includes('Ag2') && !c.classes_hopp?.includes('Ho2')) match = false;
-    if (filters.has('K3') && !c.classes_agility?.includes('Ag3') && !c.classes_hopp?.includes('Ho3')) match = false;
-    if (filters.has('Lag') && !c.classes_other?.includes('Lag')) match = false;
-    if (filters.has('InOff') && !c.classes_other?.includes('InOff')) match = false;
-    if (filters.has('open') && !c.status?.toUpperCase().includes('ÖPPEN')) match = false;
+    if (activeFilters.has('agility') && (c.classes_agility?.length || 0) === 0) match = false;
+    if (activeFilters.has('hopp') && (c.classes_hopp?.length || 0) === 0) match = false;
+    if (activeFilters.has('0-klass') && !c.classes_other?.includes('0-klass')) match = false;
+    if (activeFilters.has('K1') && !c.classes_agility?.includes('Ag1') && !c.classes_hopp?.includes('Ho1')) match = false;
+    if (activeFilters.has('K2') && !c.classes_agility?.includes('Ag2') && !c.classes_hopp?.includes('Ho2')) match = false;
+    if (activeFilters.has('K3') && !c.classes_agility?.includes('Ag3') && !c.classes_hopp?.includes('Ho3')) match = false;
+    if (activeFilters.has('Lag') && !c.classes_other?.includes('Lag')) match = false;
+    if (activeFilters.has('InOff') && !c.classes_other?.includes('InOff')) match = false;
+    if (activeFilters.has('open') && !c.status?.toUpperCase().includes('ÖPPEN')) match = false;
 
     if (selectedCounties.size > 0 && c.location) {
       const loc = c.location.toLowerCase();
@@ -190,13 +266,20 @@ export function TavlingsKalendar() {
 
   return (
     <div className="space-y-4">
+      {/* Dog filter description */}
+      {selectedDog && (
+        <div className="bg-primary/5 rounded-lg px-3 py-2 text-xs text-primary font-medium">
+          {describeDogFilters(selectedDog)}
+        </div>
+      )}
+
       {/* Filters */}
       <div className="bg-card rounded-xl p-3 border border-border space-y-3">
         <div className="grid grid-cols-3 gap-2">
           {CLASS_FILTERS.map(f => (
             <label key={f.key} className="flex items-center gap-1.5 text-xs cursor-pointer">
               <Checkbox
-                checked={filters.has(f.key)}
+                checked={isFilterActive(f.key)}
                 onCheckedChange={() => toggleFilter(f.key)}
                 className="h-3.5 w-3.5"
               />
@@ -225,9 +308,9 @@ export function TavlingsKalendar() {
           </div>
         </details>
 
-        {(filters.size > 0 || selectedCounties.size > 0) && (
+        {(activeFilters.size > 0 || selectedCounties.size > 0) && (
           <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs h-7">
-            Rensa filter
+            {selectedDog ? 'Anpassa filter' : 'Rensa filter'}
           </Button>
         )}
       </div>
@@ -284,16 +367,13 @@ export function TavlingsKalendar() {
                   </button>
                 </div>
 
-                {/* Date */}
                 <div className="text-lg font-bold font-display text-primary mb-1">
                   {formatDateRange(comp.date_start, comp.date_end)}
                 </div>
 
-                {/* Name */}
                 <div className="font-semibold text-sm">{comp.club_name}</div>
                 <div className="text-xs text-muted-foreground">{comp.competition_name}</div>
 
-                {/* Location */}
                 <div className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground">
                   <MapPin size={12} />
                   {comp.location}
@@ -306,7 +386,6 @@ export function TavlingsKalendar() {
                   )}
                 </div>
 
-                {/* Classes */}
                 <div className="flex flex-wrap gap-1 mt-2">
                   {comp.classes_agility?.map(c => (
                     <Badge key={c} className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-[10px] px-1.5 py-0">{c}</Badge>
@@ -319,14 +398,12 @@ export function TavlingsKalendar() {
                   ))}
                 </div>
 
-                {/* Judges */}
                 {comp.judges?.length > 0 && (
                   <p className="text-[10px] text-muted-foreground mt-1.5">
                     Domare: {comp.judges.join(', ')}
                   </p>
                 )}
 
-                {/* Footer row */}
                 <div className="flex items-center justify-between mt-2">
                   <div className="flex items-center gap-2">
                     {comp.last_registration_date && (
@@ -355,7 +432,6 @@ export function TavlingsKalendar() {
         </div>
       )}
 
-      {/* Footer */}
       <p className="text-[10px] text-center text-muted-foreground pt-4 pb-2">
         Tävlingsdata hämtas från agilitydata.se med tillhörighet Svenska Agilityklubben (SAgiK). Uppdateras dagligen.
       </p>

@@ -1705,6 +1705,13 @@ export default function CoursePlannerPage() {
         </button>
 
         <button
+          onClick={() => setShowStartFinish(!showStartFinish)}
+          className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${showStartFinish ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
+        >
+          ▸◼ {showStartFinish ? 'Start/Mål: PÅ' : 'Start/Mål'}
+        </button>
+
+        <button
           onClick={() => setShowDistances(!showDistances)}
           className={`ml-auto text-xs px-2 py-0.5 rounded-full border transition-colors ${showDistances ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
         >

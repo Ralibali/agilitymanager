@@ -91,6 +91,7 @@ export type Database = {
           created_at: string
           gender: Database["public"]["Enums"]["dog_gender"]
           id: string
+          jumping_level: Database["public"]["Enums"]["competition_level"]
           name: string
           notes: string
           photo_url: string | null
@@ -107,6 +108,7 @@ export type Database = {
           created_at?: string
           gender?: Database["public"]["Enums"]["dog_gender"]
           id?: string
+          jumping_level?: Database["public"]["Enums"]["competition_level"]
           name: string
           notes?: string
           photo_url?: string | null
@@ -123,6 +125,7 @@ export type Database = {
           created_at?: string
           gender?: Database["public"]["Enums"]["dog_gender"]
           id?: string
+          jumping_level?: Database["public"]["Enums"]["competition_level"]
           name?: string
           notes?: string
           photo_url?: string | null

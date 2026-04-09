@@ -60,7 +60,10 @@ export default function DogsPage() {
                       {dog.size_class}
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-medium">
-                      {dog.competition_level}
+                      AG {dog.competition_level}
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-medium">
+                      Hopp {(dog as any).jumping_level ?? dog.competition_level}
                     </span>
                     {dog.birthdate && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">

@@ -31,10 +31,17 @@ export default function SettingsPage() {
     if (checkout === 'success') {
       toast.success('Betalning genomförd! Premium aktiveras inom kort.');
       checkSubscription();
+      // Notify admin about new subscription
+      supabase.functions.invoke('notify-admin', {
+        body: {
+          type: 'new_subscription',
+          data: { email: user?.email, plan: 'Premium' },
+        },
+      });
     } else if (checkout === 'cancel') {
       toast.info('Betalningen avbröts.');
     }
-  }, [searchParams, checkSubscription]);
+  }, [searchParams, checkSubscription, user?.email]);
 
   const handleCheckout = async (priceId: string) => {
     setCheckoutLoading(priceId);

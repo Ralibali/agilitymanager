@@ -56,6 +56,10 @@ export default function AuthPage() {
         toast({ title: 'Registreringsfel', description: error.message, variant: 'destructive' });
       } else if (data.session) {
         toast({ title: 'Konto skapat!', description: 'Du är nu inloggad.' });
+        // Notify admin about new registration
+        supabase.functions.invoke('notify-admin', {
+          body: { type: 'new_user', data: { email, display_name: displayName } },
+        });
         navigate('/dashboard', { replace: true });
       } else {
         toast({ title: 'Konto skapat!', description: 'Du kan logga in direkt nu.' });

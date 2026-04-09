@@ -745,7 +745,8 @@ export default function CoursePlannerPage() {
       try {
         const parsed = JSON.parse(ev.target?.result as string);
         if (parsed.obstacles && Array.isArray(parsed.obstacles)) {
-          setObstacles(parsed.obstacles);
+           setObstacles(parsed.obstacles);
+           setHandlerPath(parsed.handlerPath || []);
           if (parsed.canvasWidth && parsed.canvasHeight) {
             const match = CANVAS_SIZES.find(s => s.width === parsed.canvasWidth && s.height === parsed.canvasHeight);
             if (match) setCanvasSize(match);

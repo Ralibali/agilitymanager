@@ -1262,6 +1262,9 @@ export default function CoursePlannerPage() {
       pushHistory(obstacles, handlerPath, `Flyttade ${obs?.label || 'hinder'}`);
       setIsDirty(true);
     }
+    if (draggingNumber) {
+      setIsDirty(true);
+    }
     if (rotatingId) {
       const obs = obstacles.find(o => o.id === rotatingId);
       pushHistory(obstacles, handlerPath, `Roterade ${obs?.label || 'hinder'}`);
@@ -1272,6 +1275,7 @@ export default function CoursePlannerPage() {
       setIsDirty(true);
     }
     setDragging(null);
+    setDraggingNumber(null);
     setIsDrawing(false);
     setRotatingId(null);
     setTouchRotating(false);
@@ -1454,6 +1458,7 @@ export default function CoursePlannerPage() {
 
   const clearNumbering = () => {
     setObstacles(prev => prev.map(o => ({ ...o, numbers: [], colorNumbers: [] })));
+    setFreeNumbers([]);
     setNextNumberToAssign(1);
     setNumberingHistory([]);
   };

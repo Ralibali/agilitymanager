@@ -627,8 +627,15 @@ export default function CoursePlannerPage() {
   };
 
   const loadCourse = (course: SavedCourse) => {
-    setObstacles(course.course_data);
-    if (course.canvas_width && course.canvas_height) {
+    const data = course.course_data as any;
+    // Support both old format (array) and new format ({obstacles, handlerPath})
+    if (Array.isArray(data)) {
+      setObstacles(data);
+      setHandlerPath([]);
+    } else {
+      setObstacles(data.obstacles || []);
+      setHandlerPath(data.handlerPath || []);
+    }
       const match = CANVAS_SIZES.find(s => s.width === course.canvas_width && s.height === course.canvas_height);
       if (match) setCanvasSize(match);
     }

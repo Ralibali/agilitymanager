@@ -41,15 +41,17 @@ export default function DogsPage() {
               transition={{ delay: i * 0.05 }}
               className="bg-card rounded-xl p-4 shadow-card"
             >
-              <div className="flex items-center gap-3">
-                <DogPhotoUpload
-                  dogId={dog.id}
-                  currentUrl={dog.photo_url}
-                  onUploaded={(url) => {
-                    setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, photo_url: url } : d));
-                  }}
-                  size="lg"
-                />
+              <div className="flex items-start gap-3">
+                <div className="flex flex-col items-center">
+                  <DogPhotoUpload
+                    dogId={dog.id}
+                    currentUrl={dog.photo_url}
+                    onUploaded={(url) => {
+                      setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, photo_url: url } : d));
+                    }}
+                    size="lg"
+                  />
+                </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display font-bold text-foreground text-lg">{dog.name}</h3>
                   <div className="text-sm text-muted-foreground">

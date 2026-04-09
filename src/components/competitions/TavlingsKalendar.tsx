@@ -113,7 +113,7 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
   const [selectedCounties, setSelectedCounties] = useState<Set<string>>(new Set());
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; compId: string }>({ open: false, compId: '' });
 
-  const selectedDog = useMemo(() => dogs.find(d => d.id === selectedDogId) || null, [dogs, selectedDogId]);
+  const selectedDog = useMemo(() => (dogs || []).find(d => d.id === selectedDogId) || null, [dogs, selectedDogId]);
 
   // Compute active filters: dog-based + manual overrides
   const activeFilters = useMemo(() => {

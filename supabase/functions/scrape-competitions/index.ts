@@ -46,8 +46,19 @@ function parseClasses(text: string): { agility: string[]; hopp: string[]; other:
   return { agility, hopp, other };
 }
 
+function decodeEntities(text: string): string {
+  return text
+    .replace(/&#(\d+);/g, (_m, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_m, code) => String.fromCharCode(parseInt(code, 16)))
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'");
+}
+
 function extractText(html: string): string {
-  return html.replace(/<[^>]*>/g, "").trim();
+  return decodeEntities(html.replace(/<[^>]*>/g, "").trim());
 }
 
 function extractDivTexts(html: string): string[] {
@@ -161,7 +172,7 @@ Deno.serve(async (req) => {
       // td[5] = Judges
       const judgesText = extractText(cells[5]);
       const judges = judgesText
-        ? judgesText.split(/,\s*/).map((j: string) => j.trim()).filter(Boolean)
+        ? [...new Set(judgesText.split(/,\s*/).map((j: string) => j.trim()).filter(Boolean))]
         : [];
 
       // td[7] = Last registration date

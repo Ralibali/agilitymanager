@@ -105,6 +105,9 @@ export default function CoursePlannerPage() {
   const [showDistances, setShowDistances] = useState(true);
   const [canvasSize, setCanvasSize] = useState(CANVAS_SIZES[1]);
   const [nextNumber, setNextNumber] = useState(1);
+  const [handlerPath, setHandlerPath] = useState<PathPoint[]>([]);
+  const [drawingMode, setDrawingMode] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canvasWidth = canvasSize.width;

@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { PageContainer } from '@/components/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,12 +7,14 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette } from 'lucide-react';
+import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette, Copy, Ruler, ChevronDown, X } from 'lucide-react';
 import ShareCourseDialog from '@/components/course-planner/ShareCourseDialog';
 import ObstacleColorPanel from '@/components/course-planner/ObstacleColorPanel';
 import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { OBSTACLE_INFO, CONTACT_TYPES, MIN_DISTANCES } from '@/lib/courseObstacleInfo';
 import {
   PRESET_THEMES,
   STANDARD_THEME,
@@ -162,7 +164,7 @@ function useIsLandscape() {
 export default function CoursePlannerPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [obstacles, setObstacles] = useState<Obstacle[]>([]);
+  const [obstacles, setObstaclesRaw] = useState<Obstacle[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -200,6 +202,83 @@ export default function CoursePlannerPage() {
   const [activeThemeId, setActiveThemeId] = useState<string>(loadActiveThemeId);
   const [customOverrides, setCustomOverrides] = useState<ObstacleTheme>(loadCustomOverrides);
   const [showColorPanel, setShowColorPanel] = useState(false);
+
+  // ── Feature 1: Undo/Redo History ──
+  type HistoryEntry = { obstacles: Obstacle[]; handlerPath: PathPoint[]; label: string };
+  const historyRef = useRef<HistoryEntry[]>([{ obstacles: [], handlerPath: [], label: 'Start' }]);
+  const historyIndexRef = useRef(0);
+  const [historyVersion, setHistoryVersion] = useState(0); // trigger re-renders
+  const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
+
+  const pushHistory = useCallback((obs: Obstacle[], path: PathPoint[], label: string) => {
+    const h = historyRef.current;
+    historyRef.current = h.slice(0, historyIndexRef.current + 1);
+    historyRef.current.push({ obstacles: JSON.parse(JSON.stringify(obs)), handlerPath: JSON.parse(JSON.stringify(path)), label });
+    if (historyRef.current.length > 30) historyRef.current = historyRef.current.slice(historyRef.current.length - 30);
+    historyIndexRef.current = historyRef.current.length - 1;
+    setHistoryVersion(v => v + 1);
+  }, []);
+
+  const setObstacles: typeof setObstaclesRaw = useCallback((updater) => {
+    setObstaclesRaw(updater);
+  }, []);
+
+  const canUndo = historyIndexRef.current > 0;
+  const canRedo = historyIndexRef.current < historyRef.current.length - 1;
+
+  const handleUndo = useCallback(() => {
+    if (historyIndexRef.current <= 0) return;
+    historyIndexRef.current--;
+    const entry = historyRef.current[historyIndexRef.current];
+    setObstaclesRaw(JSON.parse(JSON.stringify(entry.obstacles)));
+    setHandlerPath(JSON.parse(JSON.stringify(entry.handlerPath)));
+    setHistoryVersion(v => v + 1);
+  }, []);
+
+  const handleRedo = useCallback(() => {
+    if (historyIndexRef.current >= historyRef.current.length - 1) return;
+    historyIndexRef.current++;
+    const entry = historyRef.current[historyIndexRef.current];
+    setObstaclesRaw(JSON.parse(JSON.stringify(entry.obstacles)));
+    setHandlerPath(JSON.parse(JSON.stringify(entry.handlerPath)));
+    setHistoryVersion(v => v + 1);
+  }, []);
+
+  const getRecentActions = useCallback((count = 8) => {
+    const h = historyRef.current;
+    const end = historyIndexRef.current + 1;
+    const start = Math.max(1, end - count);
+    return h.slice(start, end).map(e => e.label).reverse();
+  }, [historyVersion]);
+
+  // ── Feature 2: Snap-to-Grid ──
+  const [snapEnabled, setSnapEnabled] = useState(true);
+  const SNAP_STEP = 0.5 * PX_PER_METER; // 0.5m
+
+  const snapToGrid = useCallback((val: number) => {
+    if (!snapEnabled) return val;
+    return Math.round(val / SNAP_STEP) * SNAP_STEP;
+  }, [snapEnabled]);
+
+  // ── Feature 4: Copy/Paste ──
+  const clipboardRef = useRef<Obstacle | null>(null);
+
+  // ── Feature 5: Multi-select ──
+  const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
+  const [groupDragging, setGroupDragging] = useState(false);
+  const [groupDragStart, setGroupDragStart] = useState({ x: 0, y: 0 });
+
+  // ── Feature 6: Minimap ──
+  const [showMinimap, setShowMinimap] = useState(true);
+  const minimapRef = useRef<HTMLCanvasElement>(null);
+
+  // ── Feature 8: Measure tool ──
+  const [measureMode, setMeasureMode] = useState(false);
+  const [measurePoints, setMeasurePoints] = useState<PathPoint[]>([]);
+
+  // ── Feature 10: Unsaved changes ──
+  const [isDirty, setIsDirty] = useState(false);
+  const lastSavedRef = useRef<string>('');
 
   const activePreset = PRESET_THEMES.find(p => p.id === activeThemeId);
   const baseTheme = activePreset?.theme ?? STANDARD_THEME;
@@ -619,26 +698,29 @@ export default function CoursePlannerPage() {
       }
 
       // Selection highlight
-      if (selected === obs.id) {
-        ctx.strokeStyle = 'hsl(221, 79%, 48%)';
+      const isMultiSel = multiSelected.has(obs.id);
+      if (selected === obs.id || isMultiSel) {
+        ctx.strokeStyle = isMultiSel ? 'hsl(200, 90%, 50%)' : 'hsl(221, 79%, 48%)';
         ctx.lineWidth = 1.5;
         ctx.setLineDash([4, 3]);
         const selSize = Math.max(info.width, info.height, 20) / 2 + 6;
         ctx.strokeRect(-selSize, -selSize, selSize * 2, selSize * 2);
         ctx.setLineDash([]);
 
-        // Rotation handle
-        const handleY = -selSize - 14;
-        ctx.fillStyle = 'hsl(221, 79%, 48%)';
-        ctx.beginPath(); ctx.arc(0, handleY, 6, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = 'hsl(221, 79%, 48%)';
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(0, -selSize); ctx.lineTo(0, handleY + 6); ctx.stroke();
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '8px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('⟳', 0, handleY);
+        // Rotation handle (only for primary selection)
+        if (selected === obs.id) {
+          const handleY = -selSize - 14;
+          ctx.fillStyle = 'hsl(221, 79%, 48%)';
+          ctx.beginPath(); ctx.arc(0, handleY, 6, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = 'hsl(221, 79%, 48%)';
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(0, -selSize); ctx.lineTo(0, handleY + 6); ctx.stroke();
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '8px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('⟳', 0, handleY);
+        }
       }
 
       ctx.restore();
@@ -732,21 +814,98 @@ export default function CoursePlannerPage() {
     ctx.textBaseline = 'top';
     ctx.fillText('1 ruta = 1 meter', 8, 6);
 
+    // Measure tool rendering
+    if (measurePoints.length > 0) {
+      ctx.strokeStyle = 'hsl(50, 100%, 50%)';
+      ctx.fillStyle = 'hsl(50, 100%, 50%)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 3]);
+      measurePoints.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      if (measurePoints.length === 2) {
+        ctx.beginPath();
+        ctx.moveTo(measurePoints[0].x, measurePoints[0].y);
+        ctx.lineTo(measurePoints[1].x, measurePoints[1].y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        const dist = Math.sqrt(
+          Math.pow(measurePoints[0].x - measurePoints[1].x, 2) +
+          Math.pow(measurePoints[0].y - measurePoints[1].y, 2)
+        ) * METERS_PER_PX;
+        const mx = (measurePoints[0].x + measurePoints[1].x) / 2;
+        const my = (measurePoints[0].y + measurePoints[1].y) / 2;
+        const text = `${dist.toFixed(1)} m`;
+        ctx.font = 'bold 11px sans-serif';
+        const tw = ctx.measureText(text).width + 8;
+        ctx.fillStyle = 'hsla(50, 100%, 50%, 0.9)';
+        ctx.fillRect(mx - tw / 2, my - 10, tw, 20);
+        ctx.fillStyle = '#000000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, mx, my);
+      }
+      ctx.setLineDash([]);
+    }
+
     ctx.restore(); // restore MARGIN translate
-  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas]);
+  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas, multiSelected, measurePoints]);
 
   useEffect(() => { draw(); }, [draw]);
+
+  // Minimap rendering
+  useEffect(() => {
+    const miniCanvas = minimapRef.current;
+    if (!miniCanvas || !showMinimap) return;
+    const ctx = miniCanvas.getContext('2d');
+    if (!ctx) return;
+    const mw = miniCanvas.width;
+    const mh = miniCanvas.height;
+    const sx = mw / canvasWidth;
+    const sy = mh / canvasHeight;
+    ctx.clearRect(0, 0, mw, mh);
+    ctx.fillStyle = isDarkCanvas ? '#1a1a1a' : '#f5f5f5';
+    ctx.fillRect(0, 0, mw, mh);
+    // Draw obstacles as dots
+    obstacles.forEach(obs => {
+      const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
+      if (!info) return;
+      const c = getTypeColors(obs.type);
+      ctx.fillStyle = c.body;
+      ctx.fillRect(obs.x * sx - 1.5, obs.y * sy - 1.5, 3, 3);
+    });
+    // Draw viewport rectangle
+    const container = containerRef.current;
+    if (container) {
+      const cw = container.clientWidth;
+      const ch = container.clientHeight;
+      const vx = (-panX / zoom) * sx;
+      const vy = (-panY / zoom) * sy;
+      const vw = (cw / zoom) * sx;
+      const vh = (ch / zoom) * sy;
+      ctx.strokeStyle = 'hsl(221, 79%, 48%)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(Math.max(0, vx), Math.max(0, vy), Math.min(vw, mw), Math.min(vh, mh));
+    }
+  }, [obstacles, zoom, panX, panY, canvasWidth, canvasHeight, showMinimap, isDarkCanvas]);
 
   /* ───── Interaction (with zoom/pan transform) ───── */
 
   const addObstacle = (type: string) => {
     const info = OBSTACLE_TYPES.find(o => o.type === type)!;
     const newObs: Obstacle = {
-      id: nextId(), type, x: canvasWidth / 2, y: canvasHeight / 2,
+      id: nextId(), type, x: snapToGrid(canvasWidth / 2), y: snapToGrid(canvasHeight / 2),
       rotation: 0, label: info.label, numbers: [], colorNumbers: [],
       ...(type === 'tunnel' ? { tunnelLength: 4 as const, bendAngle: 0 } : {}),
     };
-    setObstacles(prev => [...prev, newObs]);
+    setObstaclesRaw(prev => {
+      const next = [...prev, newObs];
+      pushHistory(next, handlerPath, `Lade till ${info.label}`);
+      setIsDirty(true);
+      return next;
+    });
   };
 
   const findObstacleAt = (cx: number, cy: number): Obstacle | null => {
@@ -912,6 +1071,16 @@ export default function CoursePlannerPage() {
       lastTapRef.current = now;
     }
 
+    // Measure mode
+    if (measureMode) {
+      if (measurePoints.length < 2) {
+        setMeasurePoints(prev => [...prev, { x: pos.x, y: pos.y }]);
+      } else {
+        setMeasurePoints([{ x: pos.x, y: pos.y }]);
+      }
+      return;
+    }
+
     if (isOnRotationHandle(pos.x, pos.y)) {
       const obs = obstacles.find(o => o.id === selected)!;
       const angle = Math.atan2(pos.y - obs.y, pos.x - obs.x) * 180 / Math.PI;
@@ -922,11 +1091,23 @@ export default function CoursePlannerPage() {
 
     const obs = findObstacleAt(pos.x, pos.y);
     if (obs) {
+      // Shift+click for multi-select (desktop)
+      if ('shiftKey' in e && (e as React.MouseEvent).shiftKey) {
+        setMultiSelected(prev => {
+          const next = new Set(prev);
+          if (next.has(obs.id)) next.delete(obs.id);
+          else next.add(obs.id);
+          return next;
+        });
+        return;
+      }
       setSelected(obs.id);
+      setMultiSelected(new Set());
       setDragging(obs.id);
       setDragOffset({ x: pos.x - obs.x, y: pos.y - obs.y });
     } else {
       setSelected(null);
+      setMultiSelected(new Set());
       // Start panning
       const client = getClientPos(e);
       setIsPanning(true);
@@ -982,8 +1163,10 @@ export default function CoursePlannerPage() {
     if (dragging) {
       e.preventDefault();
       const pos = getCanvasPos(e);
-      setObstacles(prev => prev.map(o =>
-        o.id === dragging ? { ...o, x: pos.x - dragOffset.x, y: pos.y - dragOffset.y } : o
+      const newX = snapToGrid(pos.x - dragOffset.x);
+      const newY = snapToGrid(pos.y - dragOffset.y);
+      setObstaclesRaw(prev => prev.map(o =>
+        o.id === dragging ? { ...o, x: newX, y: newY } : o
       ));
       return;
     }
@@ -998,6 +1181,21 @@ export default function CoursePlannerPage() {
   };
 
   const handlePointerUp = () => {
+    // Push history on drag end
+    if (dragging) {
+      const obs = obstacles.find(o => o.id === dragging);
+      pushHistory(obstacles, handlerPath, `Flyttade ${obs?.label || 'hinder'}`);
+      setIsDirty(true);
+    }
+    if (rotatingId) {
+      const obs = obstacles.find(o => o.id === rotatingId);
+      pushHistory(obstacles, handlerPath, `Roterade ${obs?.label || 'hinder'}`);
+      setIsDirty(true);
+    }
+    if (isDrawing && handlerPath.length > 1) {
+      pushHistory(obstacles, handlerPath, 'Ritade förarlinje');
+      setIsDirty(true);
+    }
     setDragging(null);
     setIsDrawing(false);
     setRotatingId(null);
@@ -1033,28 +1231,93 @@ export default function CoursePlannerPage() {
     return () => container.removeEventListener('wheel', handleWheel);
   }, [handleWheel]);
 
-  // Keyboard shortcut: Ctrl+0 = fit
+  // Keyboard shortcuts: Ctrl+0 = fit, Ctrl+Z = undo, Ctrl+Y = redo, Ctrl+C/V = copy/paste, Del = delete
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === '0') {
         e.preventDefault();
         fitToScreen();
       }
+      // Undo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+      // Redo
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        handleRedo();
+      }
+      // Copy
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selected) {
+        e.preventDefault();
+        const obs = obstacles.find(o => o.id === selected);
+        if (obs) clipboardRef.current = JSON.parse(JSON.stringify(obs));
+      }
+      // Paste
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v' && clipboardRef.current) {
+        e.preventDefault();
+        const copy = { ...JSON.parse(JSON.stringify(clipboardRef.current)), id: nextId(), x: clipboardRef.current.x + 20, y: clipboardRef.current.y + 20 };
+        setObstaclesRaw(prev => {
+          const next = [...prev, copy];
+          pushHistory(next, handlerPath, `Klistrade in ${copy.label}`);
+          setIsDirty(true);
+          return next;
+        });
+        setSelected(copy.id);
+      }
+      // Delete
+      if (e.key === 'Delete' && selected) {
+        const obs = obstacles.find(o => o.id === selected);
+        setObstaclesRaw(prev => {
+          const next = prev.filter(o => o.id !== selected);
+          pushHistory(next, handlerPath, `Raderade ${obs?.label || 'hinder'}`);
+          setIsDirty(true);
+          return next;
+        });
+        setSelected(null);
+      }
+      // Escape
+      if (e.key === 'Escape') {
+        setSelected(null);
+        setMultiSelected(new Set());
+        setMeasureMode(false);
+        setMeasurePoints([]);
+        setDrawingMode(false);
+        setNumberingMode(false);
+      }
+      // Save
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        setSaveOpen(true);
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [fitToScreen]);
+  }, [fitToScreen, handleUndo, handleRedo, selected, obstacles, handlerPath, pushHistory]);
 
   const rotateSelected = () => {
     if (!selected) return;
-    setObstacles(prev => prev.map(o =>
-      o.id === selected ? { ...o, rotation: (o.rotation + 15) % 360 } : o
-    ));
+    const obs = obstacles.find(o => o.id === selected);
+    setObstaclesRaw(prev => {
+      const next = prev.map(o =>
+        o.id === selected ? { ...o, rotation: (o.rotation + 15) % 360 } : o
+      );
+      pushHistory(next, handlerPath, `Roterade ${obs?.label || 'hinder'}`);
+      setIsDirty(true);
+      return next;
+    });
   };
 
   const deleteSelected = () => {
     if (!selected) return;
-    setObstacles(prev => prev.filter(o => o.id !== selected));
+    const obs = obstacles.find(o => o.id === selected);
+    setObstaclesRaw(prev => {
+      const next = prev.filter(o => o.id !== selected);
+      pushHistory(next, handlerPath, `Raderade ${obs?.label || 'hinder'}`);
+      setIsDirty(true);
+      return next;
+    });
     setSelected(null);
   };
 
@@ -1150,7 +1413,76 @@ export default function CoursePlannerPage() {
     setNextNumberToAssign(prev => Math.max(1, prev - 1));
   };
 
-  /* ───── Fullscreen ───── */
+  /* ───── Feature 4: Copy obstacle ───── */
+
+  const copySelected = () => {
+    if (!selected) return;
+    const obs = obstacles.find(o => o.id === selected);
+    if (obs) {
+      const copy: Obstacle = { ...JSON.parse(JSON.stringify(obs)), id: nextId(), x: obs.x + 20, y: obs.y + 20 };
+      setObstaclesRaw(prev => {
+        const next = [...prev, copy];
+        pushHistory(next, handlerPath, `Kopierade ${obs.label}`);
+        setIsDirty(true);
+        return next;
+      });
+      setSelected(copy.id);
+    }
+  };
+
+  /* ───── Feature 9: Course stats ───── */
+
+  const courseStats = useMemo(() => {
+    const total = obstacles.filter(o => o.type !== 'start' && o.type !== 'finish').length;
+    const contactCount = obstacles.filter(o => CONTACT_TYPES.includes(o.type)).length;
+
+    // Calculate course length from numbered obstacles
+    const numberedObs = obstacles
+      .filter(o => (o.colorNumbers || o.numbers || []).length > 0)
+      .sort((a, b) => {
+        const aMin = Math.min(...(a.colorNumbers?.map(e => e.num) || a.numbers));
+        const bMin = Math.min(...(b.colorNumbers?.map(e => e.num) || b.numbers));
+        return aMin - bMin;
+      });
+
+    let length = 0;
+    for (let i = 1; i < numberedObs.length; i++) {
+      const a = numberedObs[i - 1];
+      const b = numberedObs[i];
+      length += Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)) * METERS_PER_PX;
+    }
+
+    // Check proximity warnings
+    const warnings: string[] = [];
+    for (const rule of MIN_DISTANCES) {
+      const typeA = obstacles.filter(o => o.type === rule.types[0]);
+      const typeB = rule.types[0] === rule.types[1] ? typeA : obstacles.filter(o => o.type === rule.types[1]);
+      for (const a of typeA) {
+        for (const b of typeB) {
+          if (a.id === b.id) continue;
+          const dist = Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)) * METERS_PER_PX;
+          if (dist < rule.minMeters) {
+            warnings.push(`⚠️ ${rule.label} för nära! (${dist.toFixed(1)}m, min ${rule.minMeters}m)`);
+          }
+        }
+      }
+    }
+
+    return { total, contactCount, length, warnings };
+  }, [obstacles]);
+
+  /* ───── Feature 10: Unsaved changes warning ───── */
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
 
   const fullscreenContainerRef = useRef<HTMLDivElement>(null);
 
@@ -1201,6 +1533,7 @@ export default function CoursePlannerPage() {
     else {
       toast.success('Bana sparad!');
       setSaveOpen(false); setCourseName('');
+      setIsDirty(false);
       const { data } = await supabase.from('saved_courses').select('*').order('created_at', { ascending: false });
       if (data) setSavedCourses(data as unknown as SavedCourse[]);
     }
@@ -1216,8 +1549,13 @@ export default function CoursePlannerPage() {
       loadedObstacles = (data.obstacles || []).map(migrateObstacle);
       loadedPath = data.handlerPath || [];
     }
-    setObstacles(loadedObstacles);
+    setObstaclesRaw(loadedObstacles);
     setHandlerPath(loadedPath);
+    // Reset history on load
+    historyRef.current = [{ obstacles: JSON.parse(JSON.stringify(loadedObstacles)), handlerPath: JSON.parse(JSON.stringify(loadedPath)), label: 'Start' }];
+    historyIndexRef.current = 0;
+    setHistoryVersion(v => v + 1);
+    setIsDirty(false);
     // Restore color theme if saved
     if (data.themeId) {
       setActiveThemeId(data.themeId);
@@ -1324,8 +1662,13 @@ export default function CoursePlannerPage() {
   };
 
   const loadPreset = (preset: typeof PRESET_COURSES[0]) => {
-    setObstacles(preset.obstacles.map(o => ({ ...o, id: nextId() })));
+    const loaded = preset.obstacles.map(o => ({ ...o, id: nextId() }));
+    setObstaclesRaw(loaded);
     setHandlerPath([]);
+    historyRef.current = [{ obstacles: JSON.parse(JSON.stringify(loaded)), handlerPath: [], label: 'Start' }];
+    historyIndexRef.current = 0;
+    setHistoryVersion(v => v + 1);
+    setIsDirty(false);
     setLoadOpen(false);
     toast.success(`Laddade "${preset.name}"`);
   };
@@ -1339,24 +1682,39 @@ export default function CoursePlannerPage() {
       ? OBSTACLE_TYPES
       : OBSTACLE_TYPES.filter(o => o.type !== 'start' && o.type !== 'finish');
     return (
-      <div className={vertical
-        ? "flex flex-col gap-1 overflow-y-auto py-1 px-0.5"
-        : "grid grid-cols-5 sm:grid-cols-7 gap-1.5"
-      }>
-        {types.map(o => (
-          <button
-            key={o.type}
-            onClick={() => addObstacle(o.type)}
-            className={`flex flex-col items-center gap-0.5 rounded-lg font-medium bg-card shadow-card border border-border hover:border-primary active:scale-95 transition-all ${
-              vertical ? 'px-1 py-1 text-[9px] min-h-[44px] min-w-[44px]' : 'px-1 py-1.5 text-[10px] min-h-[44px]'
-            }`}
-          >
-            <span className={vertical ? "text-sm leading-none" : "text-base leading-none"}>{o.symbol}</span>
-            {!vertical && o.label}
-            {vertical && <span className="truncate w-full text-center">{o.label}</span>}
-          </button>
-        ))}
-      </div>
+      <TooltipProvider delayDuration={300}>
+        <div className={vertical
+          ? "flex flex-col gap-1 overflow-y-auto py-1 px-0.5"
+          : "grid grid-cols-5 sm:grid-cols-7 gap-1.5"
+        }>
+          {types.map(o => {
+            const info = OBSTACLE_INFO[o.type];
+            return (
+              <Tooltip key={o.type}>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => addObstacle(o.type)}
+                    className={`flex flex-col items-center gap-0.5 rounded-lg font-medium bg-card shadow-card border border-border hover:border-primary active:scale-95 transition-all ${
+                      vertical ? 'px-1 py-1 text-[9px] min-h-[44px] min-w-[44px]' : 'px-1 py-1.5 text-[10px] min-h-[44px]'
+                    }`}
+                  >
+                    <span className={vertical ? "text-sm leading-none" : "text-base leading-none"}>{o.symbol}</span>
+                    {!vertical && o.label}
+                    {vertical && <span className="truncate w-full text-center">{o.label}</span>}
+                  </button>
+                </TooltipTrigger>
+                {info && (
+                  <TooltipContent side={vertical ? "left" : "top"} className="max-w-[200px]">
+                    <p className="font-semibold text-xs">{o.label}</p>
+                    <p className="text-[10px] text-muted-foreground">{info.dimensions}</p>
+                    <p className="text-[10px] text-muted-foreground">{info.classes}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            );
+          })}
+        </div>
+      </TooltipProvider>
     );
   };
 
@@ -1650,12 +2008,80 @@ export default function CoursePlannerPage() {
           <Maximize size={14} />
         </Button>
 
+        {/* Undo/Redo */}
+        <div className="flex items-center gap-0.5">
+          <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleUndo} disabled={!canUndo} title="Ångra (Ctrl+Z)">
+            <Undo2 size={14} />
+          </Button>
+          <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleRedo} disabled={!canRedo} title="Gör om (Ctrl+Y)">
+            <RotateCcw size={14} className="scale-x-[-1]" />
+          </Button>
+          <div className="relative">
+            <Button variant="ghost" size="icon" className="h-8 w-6" onClick={() => setShowHistoryDropdown(!showHistoryDropdown)} title="Historik">
+              <ChevronDown size={12} />
+            </Button>
+            {showHistoryDropdown && (
+              <div className="absolute top-full left-0 z-50 mt-1 bg-card border border-border rounded-lg shadow-lg p-2 min-w-[200px] max-w-[260px]">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-semibold text-muted-foreground">Senaste åtgärder</span>
+                  <button onClick={() => setShowHistoryDropdown(false)} className="text-muted-foreground hover:text-foreground"><X size={10} /></button>
+                </div>
+                {getRecentActions(8).length === 0 ? (
+                  <p className="text-[10px] text-muted-foreground py-1">Ingen historik ännu</p>
+                ) : (
+                  getRecentActions(8).map((a, i) => (
+                    <div key={i} className="text-[10px] text-foreground py-0.5 border-b border-border/50 last:border-0">{a}</div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
         {zoomControls(false)}
 
-        <Button variant="outline" size="sm" onClick={() => { setObstacles([]); setSelected(null); setHandlerPath([]); setNumberingMode(false); setNextNumberToAssign(1); setNumberingHistory([]); }} className="gap-1 h-8 ml-auto">
+        {/* Unsaved indicator */}
+        {isDirty && (
+          <span className="text-[10px] text-amber-500 font-medium flex items-center gap-1">
+            ● Osparade ändringar
+          </span>
+        )}
+
+        <Button variant="outline" size="sm" onClick={() => {
+          const emptyObs: Obstacle[] = [];
+          setObstaclesRaw(emptyObs);
+          setSelected(null);
+          setHandlerPath([]);
+          setNumberingMode(false);
+          setNextNumberToAssign(1);
+          setNumberingHistory([]);
+          pushHistory(emptyObs, [], 'Rensade banan');
+          setIsDirty(true);
+        }} className="gap-1 h-8 ml-auto">
           Rensa
         </Button>
       </div>
+
+      {/* Course stats bar */}
+      {obstacles.length > 0 && (
+        <div className="flex gap-3 mb-2 items-center flex-wrap text-[11px] text-muted-foreground bg-secondary/50 rounded-lg px-3 py-1.5">
+          <span className="font-medium text-foreground">{courseStats.total} hinder</span>
+          {courseStats.contactCount > 0 && <span>{courseStats.contactCount} kontakt</span>}
+          {courseStats.length > 0 && <span>Banlängd: ~{Math.round(courseStats.length)}m</span>}
+          <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${snapEnabled ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'}`}>
+            <button onClick={() => setSnapEnabled(!snapEnabled)} className="flex items-center gap-1">
+              📐 Snap {snapEnabled ? 'PÅ' : 'AV'}
+            </button>
+          </span>
+          {courseStats.warnings.length > 0 && (
+            <div className="w-full mt-1">
+              {courseStats.warnings.map((w, i) => (
+                <div key={i} className="text-[10px] text-amber-500">{w}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Toolbar row 2 */}
       <div className="flex gap-1.5 mb-3 items-center flex-wrap">
@@ -1715,11 +2141,28 @@ export default function CoursePlannerPage() {
         <div className="h-4 w-px bg-border mx-1" />
 
         <button
-          onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } }}
+          onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); setMeasureMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } }}
           className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${numberingMode ? 'bg-blue-500/15 border-blue-500 text-blue-600' : 'bg-secondary border-border text-muted-foreground'}`}
         >
           <Hash size={10} /> {numberingMode ? 'Numrera bana' : 'Numrera bana'}
         </button>
+
+        <button
+          onClick={() => { setMeasureMode(!measureMode); setDrawingMode(false); setNumberingMode(false); setMeasurePoints([]); }}
+          className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${measureMode ? 'bg-yellow-500/15 border-yellow-500 text-yellow-600' : 'bg-secondary border-border text-muted-foreground'}`}
+        >
+          <Ruler size={10} /> {measureMode ? 'Mät: PÅ' : 'Mät'}
+        </button>
+
+        {selected && (
+          <button
+            onClick={copySelected}
+            className="text-xs px-2 py-0.5 rounded-full border border-border bg-secondary text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+            title="Kopiera hinder (Ctrl+C, sedan Ctrl+V)"
+          >
+            <Copy size={10} /> Kopiera
+          </button>
+        )}
 
         <button
           onClick={() => setShowStartFinish(!showStartFinish)}
@@ -1735,6 +2178,20 @@ export default function CoursePlannerPage() {
           {showDistances ? '📏 Mått på' : '📏 Mått av'}
         </button>
       </div>
+
+      {/* Measure result */}
+      {measureMode && measurePoints.length === 2 && (
+        <div className="mb-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2 text-xs text-foreground flex items-center gap-2">
+          <Ruler size={14} className="text-yellow-600" />
+          <span className="font-semibold">
+            {(Math.sqrt(
+              Math.pow(measurePoints[0].x - measurePoints[1].x, 2) +
+              Math.pow(measurePoints[0].y - measurePoints[1].y, 2)
+            ) * METERS_PER_PX).toFixed(1)} m
+          </span>
+          <span className="text-muted-foreground">— Klicka för att mäta igen</span>
+        </div>
+      )}
 
       {/* Color theme panel */}
       {showColorPanel && (
@@ -1910,6 +2367,50 @@ export default function CoursePlannerPage() {
         <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-background/80 rounded px-1.5 py-0.5 pointer-events-none">
           {Math.round(zoom * 100)}%
         </div>
+
+        {/* Minimap */}
+        {showMinimap && zoom < 0.95 && obstacles.length > 0 && !isMobile && (
+          <div className="absolute bottom-10 right-2 z-10">
+            <div className="relative bg-card/90 border border-border rounded shadow-sm">
+              <button onClick={() => setShowMinimap(false)} className="absolute -top-1.5 -right-1.5 z-10 bg-card border border-border rounded-full w-4 h-4 flex items-center justify-center text-[8px] text-muted-foreground hover:text-foreground">
+                ✕
+              </button>
+              <canvas
+                ref={minimapRef}
+                width={120}
+                height={Math.round(120 * (canvasHeight / canvasWidth))}
+                className="rounded cursor-pointer"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const mx = e.clientX - rect.left;
+                  const my = e.clientY - rect.top;
+                  const scaleX = canvasWidth / 120;
+                  const scaleY = canvasHeight / Math.round(120 * (canvasHeight / canvasWidth));
+                  const worldX = mx * scaleX;
+                  const worldY = my * scaleY;
+                  const container = containerRef.current;
+                  if (container) {
+                    const rect2 = container.getBoundingClientRect();
+                    setPanX(rect2.width / 2 - (worldX + MARGIN) * zoom);
+                    setPanY(rect2.height / 2 - worldY * zoom);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
+        {!showMinimap && !isMobile && obstacles.length > 0 && zoom < 0.95 && (
+          <button onClick={() => setShowMinimap(true)} className="absolute bottom-10 right-2 z-10 text-[9px] bg-card/90 border border-border rounded px-1.5 py-0.5 text-muted-foreground hover:text-foreground">
+            🗺
+          </button>
+        )}
+
+        {/* Measure mode indicator */}
+        {measureMode && (
+          <div className="absolute top-3 left-3 z-10 bg-yellow-500/90 text-foreground text-[10px] px-2 py-1 rounded pointer-events-none font-medium">
+            📏 Klicka på två punkter för att mäta avstånd
+          </div>
+        )}
       </div>
 
       {/* Quick-select obstacle palette (portrait/desktop) */}
@@ -1918,10 +2419,10 @@ export default function CoursePlannerPage() {
       </div>
 
       <p className="text-xs text-muted-foreground text-center mt-2">
-        Dra hinder för att flytta · Dra i ⟳ för att rotera · Scrollhjul/pinch för att zooma · {obstacles.length} hinder
+        Dra hinder för att flytta · Dra i ⟳ för att rotera · Scrollhjul/pinch för att zooma · Shift+klick = markera flera
         {!isMobile && (
           <span className="block mt-0.5 text-[10px]">
-            Del = radera · Ctrl+Z = ångra · Ctrl+S = spara · Escape = avmarkera
+            Del = radera · Ctrl+Z/Y = ångra/gör om · Ctrl+C/V = kopiera · Ctrl+S = spara · Escape = avmarkera
           </span>
         )}
       </p>

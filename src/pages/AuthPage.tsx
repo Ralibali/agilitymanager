@@ -19,6 +19,8 @@ export default function AuthPage() {
   const [resetMode, setResetMode] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const refCode = searchParams.get('ref');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,9 +79,29 @@ export default function AuthPage() {
             await supabase.from('signup_sources').insert({
               user_id: data.user.id,
               ...utmData,
+              ...(refCode ? { utm_source: 'friend_invite', referrer: refCode } : {}),
             });
           } catch {
             // Non-critical, don't block signup flow
+          }
+          // If referred, auto-create friendship
+          if (refCode) {
+            try {
+              const { data: referrerProfile } = await supabase
+                .from('profiles')
+                .select('user_id')
+                .eq('referral_code', refCode)
+                .single();
+              if (referrerProfile) {
+                await supabase.from('friendships').insert({
+                  requester_id: referrerProfile.user_id,
+                  receiver_id: data.user.id,
+                  status: 'pending',
+                });
+              }
+            } catch {
+              // Non-critical
+            }
           }
         }
         // Notify admin about new registration (fire-and-forget with error handling)

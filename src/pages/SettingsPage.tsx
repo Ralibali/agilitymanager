@@ -37,6 +37,12 @@ export default function SettingsPage() {
           data: { email: user?.email, plan: 'Premium' },
         },
       });
+      // Process referral reward (fire-and-forget)
+      if (user?.id) {
+        supabase.functions.invoke('process-referral-reward', {
+          body: { userId: user.id },
+        });
+      }
       // Poll up to 10 times with 2s delay until subscription is confirmed
       let cancelled = false;
       (async () => {

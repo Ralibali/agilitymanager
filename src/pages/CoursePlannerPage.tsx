@@ -821,11 +821,16 @@ export default function CoursePlannerPage() {
   const addObstacle = (type: string) => {
     const info = OBSTACLE_TYPES.find(o => o.type === type)!;
     const newObs: Obstacle = {
-      id: nextId(), type, x: canvasWidth / 2, y: canvasHeight / 2,
+      id: nextId(), type, x: snapToGrid(canvasWidth / 2), y: snapToGrid(canvasHeight / 2),
       rotation: 0, label: info.label, numbers: [], colorNumbers: [],
       ...(type === 'tunnel' ? { tunnelLength: 4 as const, bendAngle: 0 } : {}),
     };
-    setObstacles(prev => [...prev, newObs]);
+    setObstaclesRaw(prev => {
+      const next = [...prev, newObs];
+      pushHistory(next, handlerPath, `Lade till ${info.label}`);
+      setIsDirty(true);
+      return next;
+    });
   };
 
   const findObstacleAt = (cx: number, cy: number): Obstacle | null => {

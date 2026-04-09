@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Dog, CompetitionResult, PlannedCompetition } from '@/types';
 import { format, differenceInDays } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { CheckCircle2, XCircle, Medal, ExternalLink, Calendar, CheckSquare, Square, Trash2, Plus, X, Download, FileText } from 'lucide-react';
+import { CheckCircle2, XCircle, Medal, ExternalLink, Calendar, CheckSquare, Square, Trash2, Plus, X, Download, FileText, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { downloadCsv } from '@/lib/csv';
 import { downloadPdf } from '@/lib/pdf';
@@ -16,6 +16,7 @@ import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 
 const CHECKLIST_ITEMS = [
   'Vaccinationsintyg',
@@ -43,6 +44,7 @@ export default function CompetitionPage() {
     } catch { return []; }
   });
   const [newItem, setNewItem] = useState('');
+  const [shareResult, setShareResult] = useState<CompetitionResult | null>(null);
   const refresh = async () => {
     const [d, r, p] = await Promise.all([
       store.getDogs(),
@@ -257,7 +259,12 @@ export default function CompetitionPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <h3 className="font-display font-semibold text-foreground text-sm">{r.event_name}</h3>
-                          {r.passed ? <CheckCircle2 size={18} className="text-success flex-shrink-0" /> : <XCircle size={18} className="text-destructive flex-shrink-0" />}
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => setShareResult(r)} className="p-1 rounded-full hover:bg-secondary" title="Dela resultat">
+                              <Send size={14} className="text-muted-foreground" />
+                            </button>
+                            {r.passed ? <CheckCircle2 size={18} className="text-success flex-shrink-0" /> : <XCircle size={18} className="text-destructive flex-shrink-0" />}
+                          </div>
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {format(new Date(r.date), 'd MMM yyyy', { locale: sv })} · {r.discipline} · {r.size_class} · {r.competition_level}
@@ -355,6 +362,25 @@ export default function CompetitionPage() {
         </TabsContent>
       </Tabs>
     </PageContainer>
+
+    {shareResult && (
+      <ShareToFriendDialog
+        open={!!shareResult}
+        onOpenChange={(open) => !open && setShareResult(null)}
+        sharedType="result"
+        sharedId={shareResult.id}
+        sharedData={{
+          event_name: shareResult.event_name,
+          date: shareResult.date,
+          discipline: shareResult.discipline,
+          level: shareResult.competition_level,
+          time: `${shareResult.time_sec}s`,
+          faults: shareResult.faults,
+          passed: shareResult.passed,
+          placement: shareResult.placement,
+        }}
+      />
+    )}
     </>
   );
 }

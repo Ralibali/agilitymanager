@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { stripHtml } from '@/lib/utils';
+import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, MapPin, ExternalLink, Star, CheckCircle2, Home, TreePine } from 'lucide-react';
+import { RefreshCw, MapPin, ExternalLink, Star, CheckCircle2, Home, TreePine, Send } from 'lucide-react';
 import { SWEDISH_COUNTIES, type Competition, type CompetitionInterest } from '@/types/competitions';
 import { getCountyForLocation } from '@/lib/swedishCityCounty';
 import { useToast } from '@/hooks/use-toast';
@@ -114,6 +115,7 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
   const [manualFilters, setManualFilters] = useState<Set<string>>(new Set());
   const [selectedCounties, setSelectedCounties] = useState<Set<string>>(new Set());
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; compId: string }>({ open: false, compId: '' });
+  const [shareComp, setShareComp] = useState<{ open: boolean; comp: Competition | null }>({ open: false, comp: null });
 
   const selectedDog = useMemo(() => (dogs || []).find(d => d.id === selectedDogId) || null, [dogs, selectedDogId]);
 
@@ -370,8 +372,14 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
                         : 'text-muted-foreground'}
                     />
                   </button>
+                  <button
+                    onClick={() => setShareComp({ open: true, comp })}
+                    className="p-1 rounded-full hover:bg-secondary transition-colors"
+                    title="Tipsa kompis"
+                  >
+                    <Send size={16} className="text-muted-foreground" />
+                  </button>
                 </div>
-
                 <div className="text-lg font-bold font-display text-primary mb-1">
                   {formatDateRange(comp.date_start, comp.date_end)}
                 </div>
@@ -455,6 +463,22 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {shareComp.comp && (
+        <ShareToFriendDialog
+          open={shareComp.open}
+          onOpenChange={(open) => setShareComp({ open, comp: open ? shareComp.comp : null })}
+          sharedType="competition"
+          sharedId={shareComp.comp.id}
+          sharedData={{
+            name: stripHtml(shareComp.comp.competition_name),
+            club: stripHtml(shareComp.comp.club_name),
+            date: formatDateRange(shareComp.comp.date_start, shareComp.comp.date_end),
+            location: shareComp.comp.location || '',
+            source_url: shareComp.comp.source_url || '',
+          }}
+        />
+      )}
     </div>
   );
 }

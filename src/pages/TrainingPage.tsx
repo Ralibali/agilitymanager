@@ -7,16 +7,18 @@ import { store } from '@/lib/store';
 import type { Dog, TrainingSession } from '@/types';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { Star, Clock, RotateCcw, Download, FileText } from 'lucide-react';
+import { Star, Clock, RotateCcw, Download, FileText, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { downloadCsv } from '@/lib/csv';
 import { downloadPdf } from '@/lib/pdf';
+import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 
 export default function TrainingPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
   const [loading, setLoading] = useState(true);
+  const [shareSession, setShareSession] = useState<TrainingSession | null>(null);
   const refresh = async () => {
     const [d, t] = await Promise.all([store.getDogs(), store.getTraining()]);
     setDogs(d);
@@ -127,9 +129,14 @@ export default function TrainingPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <h3 className="font-display font-semibold text-foreground text-sm">{s.type}</h3>
-                      <span className="text-[10px] text-muted-foreground">
-                        {format(new Date(s.date), 'd MMM', { locale: sv })}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => setShareSession(s)} className="p-1 rounded-full hover:bg-secondary" title="Dela med kompis">
+                          <Send size={14} className="text-muted-foreground" />
+                        </button>
+                        <span className="text-[10px] text-muted-foreground">
+                          {format(new Date(s.date), 'd MMM', { locale: sv })}
+                        </span>
+                      </div>
                     </div>
                     {dog && <div className="text-xs text-muted-foreground">{dog.name}</div>}
                     <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
@@ -171,6 +178,22 @@ export default function TrainingPage() {
         </div>
       )}
     </PageContainer>
+
+    {shareSession && (
+      <ShareToFriendDialog
+        open={!!shareSession}
+        onOpenChange={(open) => !open && setShareSession(null)}
+        sharedType="training"
+        sharedId={shareSession.id}
+        sharedData={{
+          name: shareSession.type,
+          date: shareSession.date,
+          duration: `${shareSession.duration_min} min`,
+          reps: shareSession.reps,
+          dog: getDog(shareSession.dog_id)?.name || '',
+        }}
+      />
+    )}
     </>
   );
 }

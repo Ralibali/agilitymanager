@@ -39,6 +39,7 @@ const UnsubscribePage = React.lazy(() => import("./pages/UnsubscribePage"));
 const FriendsPage = React.lazy(() => import("./pages/FriendsPage"));
 const FriendStatsPage = React.lazy(() => import("./pages/FriendStatsPage"));
 const InvitePage = React.lazy(() => import("./pages/InvitePage"));
+const ChatPage = React.lazy(() => import("./pages/ChatPage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -122,6 +123,7 @@ const App = () => (
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/friends" element={<FriendsPage />} />
                 <Route path="/friend-stats/:userId" element={<FriendStatsPage />} />
+                <Route path="/chat/:friendId" element={<ChatPage />} />
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/index" element={<Navigate to="/dashboard" replace />} />
               </Route>

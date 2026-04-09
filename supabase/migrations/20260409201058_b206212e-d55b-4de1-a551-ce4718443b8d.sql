@@ -1,0 +1,1 @@
+ALTER TYPE public.training_type ADD VALUE 'Målgång';

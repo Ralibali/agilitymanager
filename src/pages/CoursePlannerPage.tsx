@@ -1444,6 +1444,7 @@ export default function CoursePlannerPage() {
           currentCourseId={loadedCourseId}
         />
 
+        <Dialog open={loadOpen} onOpenChange={setLoadOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="gap-1 h-8">
               <FolderOpen size={14} /> Ladda

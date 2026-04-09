@@ -11,7 +11,7 @@ import { store } from '@/lib/store';
 import { Constants } from '@/integrations/supabase/types';
 
 const TRAINING_TYPES = Constants.public.Enums.training_type;
-const COMMON_TAGS = ['A-hinder', 'Tunneln', 'Kontaktfält', 'Slalom', 'Svängar', 'Starter', 'Distans', 'Balans', 'Gungan'];
+const COMMON_TAGS = ['A-hinder', 'Tunneln', 'Kontaktfält', 'Slalom', 'Svängar', 'Starter', 'Distans', 'Balans', 'Gungan', 'Målgång'];
 
 interface Props {
   onAdded: () => void;

@@ -7,8 +7,10 @@ import { store } from '@/lib/store';
 import type { Dog, TrainingSession } from '@/types';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { Star, Clock, RotateCcw } from 'lucide-react';
+import { Star, Clock, RotateCcw, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { downloadCsv } from '@/lib/csv';
 
 export default function TrainingPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
@@ -36,7 +38,38 @@ export default function TrainingPage() {
     <PageContainer
       title="Träning"
       subtitle={`${sessions.length} träningspass`}
-      action={dogs.length > 0 ? <AddTrainingDialog dogs={dogs} onAdded={refresh} /> : undefined}
+      action={
+        <div className="flex items-center gap-2">
+          {sessions.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              onClick={() => {
+                const rows = sessions.map(s => {
+                  const dog = getDog(s.dog_id);
+                  return {
+                    Datum: s.date,
+                    Hund: dog?.name ?? '',
+                    Typ: s.type,
+                    'Längd (min)': s.duration_min,
+                    Repetitioner: s.reps,
+                    'Hund energi': s.dog_energy,
+                    'Förare energi': s.handler_energy,
+                    'Bra': s.notes_good,
+                    'Förbättra': s.notes_improve,
+                    Taggar: s.tags.join(', '),
+                  };
+                });
+                downloadCsv(rows, `traning-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+              }}
+            >
+              <Download size={14} /> CSV
+            </Button>
+          )}
+          {dogs.length > 0 ? <AddTrainingDialog dogs={dogs} onAdded={refresh} /> : null}
+        </div>
+      }
     >
       {sessions.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">

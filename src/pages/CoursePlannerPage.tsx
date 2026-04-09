@@ -726,7 +726,7 @@ export default function CoursePlannerPage() {
   };
 
   const exportJSON = () => {
-    const data = JSON.stringify({ obstacles, canvasWidth, canvasHeight }, null, 2);
+    const data = JSON.stringify({ obstacles, handlerPath, canvasWidth, canvasHeight }, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

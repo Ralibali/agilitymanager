@@ -2211,6 +2211,7 @@ export default function CoursePlannerPage() {
           setObstaclesRaw(emptyObs);
           setSelected(null);
           setHandlerPath([]);
+          setFreeNumbers([]);
           setNumberingMode(false);
           setNextNumberToAssign(1);
           setNumberingHistory([]);

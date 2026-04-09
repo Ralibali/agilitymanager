@@ -1338,7 +1338,76 @@ export default function CoursePlannerPage() {
     setNextNumberToAssign(prev => Math.max(1, prev - 1));
   };
 
-  /* ───── Fullscreen ───── */
+  /* ───── Feature 4: Copy obstacle ───── */
+
+  const copySelected = () => {
+    if (!selected) return;
+    const obs = obstacles.find(o => o.id === selected);
+    if (obs) {
+      const copy: Obstacle = { ...JSON.parse(JSON.stringify(obs)), id: nextId(), x: obs.x + 20, y: obs.y + 20 };
+      setObstaclesRaw(prev => {
+        const next = [...prev, copy];
+        pushHistory(next, handlerPath, `Kopierade ${obs.label}`);
+        setIsDirty(true);
+        return next;
+      });
+      setSelected(copy.id);
+    }
+  };
+
+  /* ───── Feature 9: Course stats ───── */
+
+  const courseStats = useMemo(() => {
+    const total = obstacles.filter(o => o.type !== 'start' && o.type !== 'finish').length;
+    const contactCount = obstacles.filter(o => CONTACT_TYPES.includes(o.type)).length;
+
+    // Calculate course length from numbered obstacles
+    const numberedObs = obstacles
+      .filter(o => (o.colorNumbers || o.numbers || []).length > 0)
+      .sort((a, b) => {
+        const aMin = Math.min(...(a.colorNumbers?.map(e => e.num) || a.numbers));
+        const bMin = Math.min(...(b.colorNumbers?.map(e => e.num) || b.numbers));
+        return aMin - bMin;
+      });
+
+    let length = 0;
+    for (let i = 1; i < numberedObs.length; i++) {
+      const a = numberedObs[i - 1];
+      const b = numberedObs[i];
+      length += Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)) * METERS_PER_PX;
+    }
+
+    // Check proximity warnings
+    const warnings: string[] = [];
+    for (const rule of MIN_DISTANCES) {
+      const typeA = obstacles.filter(o => o.type === rule.types[0]);
+      const typeB = rule.types[0] === rule.types[1] ? typeA : obstacles.filter(o => o.type === rule.types[1]);
+      for (const a of typeA) {
+        for (const b of typeB) {
+          if (a.id === b.id) continue;
+          const dist = Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)) * METERS_PER_PX;
+          if (dist < rule.minMeters) {
+            warnings.push(`⚠️ ${rule.label} för nära! (${dist.toFixed(1)}m, min ${rule.minMeters}m)`);
+          }
+        }
+      }
+    }
+
+    return { total, contactCount, length, warnings };
+  }, [obstacles]);
+
+  /* ───── Feature 10: Unsaved changes warning ───── */
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
 
   const fullscreenContainerRef = useRef<HTMLDivElement>(null);
 

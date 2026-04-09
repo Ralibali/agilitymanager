@@ -1866,6 +1866,19 @@ export default function CoursePlannerPage() {
         onTouchEnd={handlePointerUp}
       >
         {canvasElement}
+        {/* Orientation hint */}
+        {showOrientationHint && isMobile && !isLandscape && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 bg-primary/90 text-primary-foreground text-xs px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+            📐 Vänd telefonen för bästa upplevelse
+            <button onClick={() => setShowOrientationHint(false)} className="text-primary-foreground/70 hover:text-primary-foreground">✕</button>
+          </div>
+        )}
+        {/* Numbering tip when start/finish is on */}
+        {showStartFinish && numberingMode && (
+          <div className="absolute top-3 left-3 z-10 bg-secondary/90 text-muted-foreground text-[10px] px-2 py-1 rounded pointer-events-none">
+            Tips: Med numrering behövs ofta inte start/mål-markeringar
+          </div>
+        )}
         {/* Zoom indicator */}
         <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-background/80 rounded px-1.5 py-0.5 pointer-events-none">
           {Math.round(zoom * 100)}%

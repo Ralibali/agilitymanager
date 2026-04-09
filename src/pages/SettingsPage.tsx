@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useSearchParams } from 'react-router-dom';
 import { useTheme } from 'next-themes';
+import SupportForm from '@/components/SupportForm';
 
 const premiumFeatures = [
   { title: 'Avancerad statistik', desc: 'Diagram, trender och felanalys' },
@@ -169,6 +170,9 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+
+      {/* Support */}
+      <SupportForm />
 
       {/* Links */}
       <div className="space-y-3">

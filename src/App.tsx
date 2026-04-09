@@ -62,7 +62,13 @@ function ProtectedLayout() {
 
 function AuthGuard() {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-muted-foreground font-display">Laddar...</div>
+      </div>
+    );
+  }
   if (user) return <Navigate to="/dashboard" replace />;
   return <Outlet />;
 }

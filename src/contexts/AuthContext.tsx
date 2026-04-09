@@ -24,6 +24,7 @@ interface SubscriptionState {
   productId: string | null;
   priceId: string | null;
   subscriptionEnd: string | null;
+  isTrial: boolean;
   loading: boolean;
 }
 
@@ -40,7 +41,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
   loading: true,
-  subscription: { subscribed: false, productId: null, priceId: null, subscriptionEnd: null, loading: true },
+  subscription: { subscribed: false, productId: null, priceId: null, subscriptionEnd: null, isTrial: false, loading: true },
   checkSubscription: async () => {},
   signOut: async () => {},
 });
@@ -51,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState<SubscriptionState>({
-    subscribed: false, productId: null, priceId: null, subscriptionEnd: null, loading: true,
+    subscribed: false, productId: null, priceId: null, subscriptionEnd: null, isTrial: false, loading: true,
   });
 
   const checkSubscription = useCallback(async () => {
@@ -64,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         productId: data?.product_id ?? null,
         priceId: data?.price_id ?? null,
         subscriptionEnd: data?.subscription_end ?? null,
+        isTrial: data?.is_trial ?? false,
         loading: false,
       });
     } catch (err) {
@@ -79,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session) {
         setTimeout(() => checkSubscription(), 0);
       } else {
-        setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, loading: false });
+        setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, isTrial: false, loading: false });
       }
     });
 

@@ -273,14 +273,24 @@ export default function FriendsPage() {
                       </div>
                       <span className="font-medium text-foreground">{f.profile.display_name || 'Anonym'}</span>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate(`/friend-stats/${f.profile.user_id}`)}
-                      title="Visa statistik"
-                    >
-                      <Eye size={18} className="text-muted-foreground" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate(`/chat/${f.profile.user_id}`)}
+                        title="Chatta"
+                      >
+                        <MessageCircle size={18} className="text-muted-foreground" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate(`/friend-stats/${f.profile.user_id}`)}
+                        title="Visa statistik"
+                      >
+                        <Eye size={18} className="text-muted-foreground" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))

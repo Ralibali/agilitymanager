@@ -21,6 +21,7 @@ const Index = React.lazy(() => import("./pages/Index"));
 const DogsPage = React.lazy(() => import("./pages/DogsPage"));
 const TrainingPage = React.lazy(() => import("./pages/TrainingPage"));
 const CompetitionPage = React.lazy(() => import("./pages/CompetitionPage"));
+const CompetitionCalendarPage = React.lazy(() => import("./pages/CompetitionCalendarPage"));
 const StopwatchPage = React.lazy(() => import("./pages/StopwatchPage"));
 const HealthPage = React.lazy(() => import("./pages/HealthPage"));
 const CoursePlannerPage = React.lazy(() => import("./pages/CoursePlannerPage"));
@@ -101,6 +102,7 @@ const App = () => (
                 <Route path="/dogs" element={<DogsPage />} />
                 <Route path="/training" element={<TrainingPage />} />
                 <Route path="/competition" element={<CompetitionPage />} />
+                <Route path="/competition-calendar" element={<CompetitionCalendarPage />} />
                 <Route path="/stopwatch" element={<StopwatchPage />} />
                 <Route path="/health" element={<HealthPage />} />
                 <Route path="/course-planner" element={<CoursePlannerPage />} />

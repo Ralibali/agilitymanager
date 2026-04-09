@@ -19,6 +19,7 @@ import QrScannerDialog from '@/components/friends/QrScannerDialog';
 import SharedCoursesInbox from '@/components/friends/SharedCoursesInbox';
 
 export default function FriendsPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<FriendProfile[]>([]);
@@ -261,11 +262,21 @@ export default function FriendsPage() {
             ) : (
               friends.map(f => (
                 <Card key={f.id}>
-                  <CardContent className="p-3 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                      {(f.profile.display_name || '?')[0].toUpperCase()}
+                  <CardContent className="p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                        {(f.profile.display_name || '?')[0].toUpperCase()}
+                      </div>
+                      <span className="font-medium text-foreground">{f.profile.display_name || 'Anonym'}</span>
                     </div>
-                    <span className="font-medium text-foreground">{f.profile.display_name || 'Anonym'}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => navigate(`/friend-stats/${f.profile.user_id}`)}
+                      title="Visa statistik"
+                    >
+                      <Eye size={18} className="text-muted-foreground" />
+                    </Button>
                   </CardContent>
                 </Card>
               ))

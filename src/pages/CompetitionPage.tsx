@@ -15,18 +15,16 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
 const CHECKLIST_ITEMS = [
-  'Startbok / startkort',
+  'Vaccinationsintyg',
+  'Mätintyg',
   'Koppel & halsband',
   'Vatten & skål',
   'Godis / belöning',
-  'Leksak',
-  'Mat till hund & förare',
-  'Solskydd / regnskydd',
-  'Filt / bur',
-  'Första-hjälpen kit',
+  'Leksak / tuggisar',
+  'Fällstol / filt',
+  'Väderlämpliga kläder',
   'Ombyte & bekväma skor',
   'Laddad mobil',
-  'Spänne/nummerlapp',
 ];
 
 export default function CompetitionPage() {

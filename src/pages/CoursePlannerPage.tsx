@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2 } from 'lucide-react';
+import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette } from 'lucide-react';
 import ShareCourseDialog from '@/components/course-planner/ShareCourseDialog';
 import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
@@ -86,6 +86,35 @@ const NUMBERING_COLORS = [
   { label: 'Röd', value: '#ef4444', emoji: '🔴' },
   { label: 'Orange', value: '#f97316', emoji: '🟠' },
   { label: 'Vit', value: '#e5e5e5', emoji: '⚪' },
+];
+
+/* Default hue per obstacle type (used for color theming) */
+const DEFAULT_OBSTACLE_HUES: Record<string, number> = {
+  jump: -1,       // neutral gray (special case)
+  long_jump: 221,
+  oxer: 200,
+  wall: 30,
+  tunnel: 152,
+  a_frame: 16,
+  dog_walk: 45,
+  seesaw: 270,
+  balance: 180,
+  weave: 340,
+  tire: 200,
+  start: 120,
+  finish: 0,
+};
+
+const HUE_PRESETS = [
+  { label: 'Standard', hue: -999 },
+  { label: 'Röd', hue: 0 },
+  { label: 'Orange', hue: 30 },
+  { label: 'Gul', hue: 50 },
+  { label: 'Grön', hue: 140 },
+  { label: 'Teal', hue: 180 },
+  { label: 'Blå', hue: 221 },
+  { label: 'Lila', hue: 270 },
+  { label: 'Rosa', hue: 340 },
 ];
 
 const PRESET_COURSES: { name: string; obstacles: Obstacle[] }[] = [
@@ -181,6 +210,24 @@ export default function CoursePlannerPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  // Obstacle color theme (per type hue overrides)
+  const [obstacleHues, setObstacleHues] = useState<Record<string, number>>({});
+  const [colorPickerType, setColorPickerType] = useState<string | null>(null);
+
+  const getHue = (type: string) => {
+    if (type in obstacleHues) return obstacleHues[type];
+    return DEFAULT_OBSTACLE_HUES[type] ?? 200;
+  };
+
+  const setTypeHue = (type: string, hue: number) => {
+    if (hue === -999) {
+      // Reset to default
+      setObstacleHues(prev => { const n = { ...prev }; delete n[type]; return n; });
+    } else {
+      setObstacleHues(prev => ({ ...prev, [type]: hue }));
+    }
+  };
+
   // Zoom & Pan state
   const [zoom, setZoom] = useState(1);
   const [panX, setPanX] = useState(0);
@@ -255,28 +302,26 @@ export default function CoursePlannerPage() {
     const length = lengthM * PX_PER_METER;
     const bendAngle = obs.bendAngle || 0;
     const tubeWidth = 0.6 * PX_PER_METER;
+    const h = getHue('tunnel');
 
     if (Math.abs(bendAngle) < 5) {
-      // Straight tunnel
-      ctx.strokeStyle = 'hsl(152, 50%, 35%)';
+      ctx.strokeStyle = `hsl(${h}, 50%, 35%)`;
       ctx.lineWidth = tubeWidth;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(0, -length / 2);
       ctx.lineTo(0, length / 2);
       ctx.stroke();
-      ctx.strokeStyle = 'hsl(152, 40%, 55%)';
+      ctx.strokeStyle = `hsl(${h}, 40%, 55%)`;
       ctx.lineWidth = tubeWidth - 4;
       ctx.beginPath();
       ctx.moveTo(0, -length / 2);
       ctx.lineTo(0, length / 2);
       ctx.stroke();
-      // Entry/exit dots
-      ctx.fillStyle = 'hsl(152, 60%, 25%)';
+      ctx.fillStyle = `hsl(${h}, 60%, 25%)`;
       ctx.beginPath(); ctx.arc(0, -length / 2, 4, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.arc(0, length / 2, 4, 0, Math.PI * 2); ctx.fill();
     } else {
-      // Curved tunnel
       const bendRad = (bendAngle * Math.PI) / 180;
       const radius = length / Math.abs(bendRad);
       const cx = bendAngle > 0 ? radius : -radius;
@@ -284,22 +329,19 @@ export default function CoursePlannerPage() {
       const endAngle = startAngle - bendRad;
       const ccw = bendAngle > 0;
 
-      // Outer wall
-      ctx.strokeStyle = 'hsl(152, 50%, 35%)';
+      ctx.strokeStyle = `hsl(${h}, 50%, 35%)`;
       ctx.lineWidth = tubeWidth;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.arc(cx, 0, radius, startAngle, endAngle, ccw);
       ctx.stroke();
-      // Inner wall (lighter)
-      ctx.strokeStyle = 'hsl(152, 40%, 55%)';
+      ctx.strokeStyle = `hsl(${h}, 40%, 55%)`;
       ctx.lineWidth = tubeWidth - 4;
       ctx.beginPath();
       ctx.arc(cx, 0, radius, startAngle, endAngle, ccw);
       ctx.stroke();
 
-      // Entry/exit dots
-      ctx.fillStyle = 'hsl(152, 60%, 25%)';
+      ctx.fillStyle = `hsl(${h}, 60%, 25%)`;
       const entryX = cx + radius * Math.cos(startAngle);
       const entryY = radius * Math.sin(startAngle);
       const exitX = cx + radius * Math.cos(endAngle);
@@ -442,102 +484,116 @@ export default function CoursePlannerPage() {
         drawTunnel(ctx, obs);
       } else if (obs.type === 'tire') {
         const r = hw;
-        ctx.strokeStyle = 'hsl(200, 50%, 40%)';
+        const h = getHue('tire');
+        ctx.strokeStyle = `hsl(${h}, 50%, 40%)`;
         ctx.lineWidth = 3;
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
-        ctx.strokeStyle = 'hsl(200, 40%, 55%)';
+        ctx.strokeStyle = `hsl(${h}, 40%, 55%)`;
         ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2); ctx.stroke();
       } else if (obs.type === 'a_frame') {
-        ctx.strokeStyle = 'hsl(16, 80%, 45%)';
+        const h = getHue('a_frame');
+        ctx.strokeStyle = `hsl(${h}, 80%, 45%)`;
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(-hw, hh); ctx.lineTo(0, -hh); ctx.lineTo(hw, hh);
         ctx.stroke();
-        ctx.strokeStyle = 'hsl(45, 90%, 50%)';
+        ctx.strokeStyle = `hsl(${h + 29}, 90%, 50%)`;
         ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(-hw, hh); ctx.lineTo(-hw * 0.5, hh * 0.3); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(hw, hh); ctx.lineTo(hw * 0.5, hh * 0.3); ctx.stroke();
       } else if (obs.type === 'dog_walk' || obs.type === 'balance') {
-        const color = obs.type === 'dog_walk' ? 'hsl(45, 70%, 55%)' : 'hsl(180, 35%, 50%)';
-        const contactColor = obs.type === 'dog_walk' ? 'hsl(45, 90%, 45%)' : 'hsl(180, 50%, 40%)';
-        ctx.fillStyle = color;
+        const h = getHue(obs.type);
+        ctx.fillStyle = `hsl(${h}, 70%, 55%)`;
         ctx.fillRect(-hw, -hh, info.width, info.height);
         const cz = 0.9 * PX_PER_METER;
-        ctx.fillStyle = contactColor;
+        ctx.fillStyle = `hsl(${h}, 90%, 45%)`;
         ctx.fillRect(-hw, -hh, cz, info.height);
         ctx.fillRect(hw - cz, -hh, cz, info.height);
-        ctx.strokeStyle = obs.type === 'dog_walk' ? 'hsl(45, 60%, 40%)' : 'hsl(180, 30%, 40%)';
+        ctx.strokeStyle = `hsl(${h}, 60%, 40%)`;
         ctx.lineWidth = 0.8;
         ctx.strokeRect(-hw, -hh, info.width, info.height);
       } else if (obs.type === 'seesaw') {
-        ctx.fillStyle = 'hsl(270, 40%, 50%)';
+        const h = getHue('seesaw');
+        ctx.fillStyle = `hsl(${h}, 40%, 50%)`;
         ctx.fillRect(-hw, -hh, info.width, info.height);
-        ctx.fillStyle = 'hsl(270, 50%, 35%)';
+        ctx.fillStyle = `hsl(${h}, 50%, 35%)`;
         ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = 'hsl(270, 40%, 40%)';
+        ctx.strokeStyle = `hsl(${h}, 40%, 40%)`;
         ctx.lineWidth = 0.8;
         ctx.strokeRect(-hw, -hh, info.width, info.height);
       } else if (obs.type === 'weave') {
+        const h = getHue('weave');
         const poleCount = 12;
         const spacing = info.width / (poleCount - 1);
         for (let i = 0; i < poleCount; i++) {
-          ctx.fillStyle = i % 2 === 0 ? 'hsl(340, 70%, 50%)' : 'hsl(340, 50%, 65%)';
+          ctx.fillStyle = i % 2 === 0 ? `hsl(${h}, 70%, 50%)` : `hsl(${h}, 50%, 65%)`;
           ctx.beginPath();
           ctx.arc(-hw + i * spacing, 0, 2.5, 0, Math.PI * 2);
           ctx.fill();
         }
-        ctx.strokeStyle = 'hsl(340, 30%, 70%)';
+        ctx.strokeStyle = `hsl(${h}, 30%, 70%)`;
         ctx.lineWidth = 0.5;
         ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
       } else if (obs.type === 'jump') {
-        ctx.strokeStyle = 'hsl(0, 0%, 25%)';
+        const h = getHue('jump');
+        if (h === -1) {
+          ctx.strokeStyle = 'hsl(0, 0%, 25%)';
+          ctx.fillStyle = 'hsl(0, 0%, 20%)';
+        } else {
+          ctx.strokeStyle = `hsl(${h}, 60%, 35%)`;
+          ctx.fillStyle = `hsl(${h}, 60%, 30%)`;
+        }
         ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
-        ctx.fillStyle = 'hsl(0, 0%, 20%)';
         ctx.fillRect(-hw - 1.5, -5, 3, 10);
         ctx.fillRect(hw - 1.5, -5, 3, 10);
       } else if (obs.type === 'long_jump') {
+        const h = getHue('long_jump');
         for (let j = 0; j < 3; j++) {
-          ctx.fillStyle = `hsl(221, ${50 + j * 15}%, ${50 + j * 5}%)`;
+          ctx.fillStyle = `hsl(${h}, ${50 + j * 15}%, ${50 + j * 5}%)`;
           ctx.fillRect(-hw, -hh + j * (info.height / 3), info.width, info.height / 3 - 1);
         }
       } else if (obs.type === 'oxer') {
-        ctx.strokeStyle = 'hsl(200, 50%, 40%)';
+        const h = getHue('oxer');
+        ctx.strokeStyle = `hsl(${h}, 50%, 40%)`;
         ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(-hw, -hh); ctx.lineTo(hw, -hh); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(-hw, hh); ctx.lineTo(hw, hh); ctx.stroke();
-        ctx.fillStyle = 'hsl(200, 40%, 35%)';
+        ctx.fillStyle = `hsl(${h}, 40%, 35%)`;
         ctx.fillRect(-hw - 1.5, -hh - 1.5, 3, info.height + 3);
         ctx.fillRect(hw - 1.5, -hh - 1.5, 3, info.height + 3);
       } else if (obs.type === 'wall') {
-        ctx.fillStyle = 'hsl(30, 25%, 55%)';
+        const h = getHue('wall');
+        ctx.fillStyle = `hsl(${h}, 25%, 55%)`;
         ctx.fillRect(-hw, -hh, info.width, info.height);
-        ctx.strokeStyle = 'hsl(30, 20%, 40%)';
+        ctx.strokeStyle = `hsl(${h}, 20%, 40%)`;
         ctx.lineWidth = 0.8;
         ctx.strokeRect(-hw, -hh, info.width, info.height);
-        ctx.strokeStyle = 'hsla(30, 15%, 70%, 0.6)';
+        ctx.strokeStyle = `hsla(${h}, 15%, 70%, 0.6)`;
         ctx.lineWidth = 0.3;
         for (let r = -hh + 4; r < hh; r += 4) {
           ctx.beginPath(); ctx.moveTo(-hw, r); ctx.lineTo(hw, r); ctx.stroke();
         }
       } else if (obs.type === 'start') {
-        ctx.strokeStyle = 'hsl(120, 60%, 35%)';
+        const h = getHue('start');
+        ctx.strokeStyle = `hsl(${h}, 60%, 35%)`;
         ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(-hw, -6); ctx.lineTo(-hw, 6); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(hw, -6); ctx.lineTo(hw, 6); ctx.stroke();
         ctx.setLineDash([3, 3]);
-        ctx.strokeStyle = 'hsl(120, 50%, 45%)';
+        ctx.strokeStyle = `hsl(${h}, 50%, 45%)`;
         ctx.lineWidth = 1.2;
         ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
         ctx.setLineDash([]);
       } else if (obs.type === 'finish') {
-        ctx.strokeStyle = 'hsl(0, 70%, 45%)';
+        const h = getHue('finish');
+        ctx.strokeStyle = `hsl(${h}, 70%, 45%)`;
         ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(-hw, -6); ctx.lineTo(-hw, 6); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(hw, -6); ctx.lineTo(hw, 6); ctx.stroke();
         ctx.setLineDash([3, 3]);
-        ctx.strokeStyle = 'hsl(0, 60%, 55%)';
+        ctx.strokeStyle = `hsl(${h}, 60%, 55%)`;
         ctx.lineWidth = 1.2;
         ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
         ctx.setLineDash([]);
@@ -661,7 +717,7 @@ export default function CoursePlannerPage() {
     ctx.fillText('1 ruta = 1 meter', 8, 6);
 
     ctx.restore(); // restore MARGIN translate
-  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed]);
+  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, obstacleHues]);
 
   useEffect(() => { draw(); }, [draw]);
 
@@ -1637,6 +1693,57 @@ export default function CoursePlannerPage() {
         >
           {showDistances ? '📏 Mått på' : '📏 Mått av'}
         </button>
+      </div>
+
+      {/* Color theme picker */}
+      {colorPickerType && (
+        <div className="mb-3 bg-card rounded-lg p-2 shadow-card border border-border">
+          <div className="flex items-center gap-2 mb-2">
+            <Palette size={12} className="text-primary" />
+            <span className="text-xs font-semibold text-foreground">
+              Färg: {OBSTACLE_TYPES.find(o => o.type === colorPickerType)?.label}
+            </span>
+            <button onClick={() => setColorPickerType(null)} className="ml-auto text-xs text-muted-foreground hover:text-foreground">✕</button>
+          </div>
+          <div className="flex gap-1 flex-wrap">
+            {HUE_PRESETS.map(p => (
+              <button
+                key={p.hue}
+                onClick={() => { setTypeHue(colorPickerType, p.hue); }}
+                className={`text-[10px] px-2 py-1 rounded border transition-colors flex items-center gap-1 ${
+                  (p.hue === -999 && !(colorPickerType in obstacleHues)) ||
+                  (p.hue !== -999 && obstacleHues[colorPickerType] === p.hue)
+                    ? 'bg-primary/15 border-primary text-primary'
+                    : 'bg-secondary border-border text-muted-foreground hover:border-primary/50'
+                }`}
+              >
+                {p.hue !== -999 && <span className="w-3 h-3 rounded-full inline-block" style={{ backgroundColor: `hsl(${p.hue}, 60%, 50%)` }} />}
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Obstacle type color shortcuts */}
+      <div className="flex gap-1 mb-2 items-center flex-wrap">
+        <span className="text-[10px] text-muted-foreground"><Palette size={10} className="inline mr-0.5" />Färgtema:</span>
+        {OBSTACLE_TYPES.filter(o => !['start', 'finish'].includes(o.type)).map(o => {
+          const h = getHue(o.type);
+          const bgColor = h === -1 ? 'hsl(0,0%,35%)' : `hsl(${h}, 60%, 50%)`;
+          return (
+            <button
+              key={o.type}
+              onClick={() => setColorPickerType(colorPickerType === o.type ? null : o.type)}
+              className={`text-[9px] px-1.5 py-0.5 rounded border transition-colors flex items-center gap-0.5 ${
+                colorPickerType === o.type ? 'border-primary bg-primary/10' : 'border-border bg-secondary hover:border-primary/50'
+              }`}
+            >
+              <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: bgColor }} />
+              {o.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Numbering toolbar */}

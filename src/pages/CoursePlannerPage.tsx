@@ -31,6 +31,14 @@ import {
 
 type NumberEntry = { num: number; color: string };
 
+type FreeNumber = {
+  id: string;
+  num: number;
+  color: string;
+  x: number;
+  y: number;
+};
+
 type Obstacle = {
   id: string;
   type: string;

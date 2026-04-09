@@ -144,7 +144,7 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'lysekil': 'Västra Götalands', 'munkedal': 'Västra Götalands',
   'orust': 'Västra Götalands', 'sotenäs': 'Västra Götalands',
   'strömstad': 'Västra Götalands', 'tanum': 'Västra Götalands',
-  'åmål': 'Västra Götalands', 'bengtsfors': 'Västra Götalands',
+  'bengtsfors': 'Västra Götalands',
   'dals-ed': 'Västra Götalands', 'färgelanda': 'Västra Götalands',
   'mellerud': 'Västra Götalands', 'lilla edet': 'Västra Götalands',
   'ale': 'Västra Götalands', 'härryda': 'Västra Götalands',

@@ -10,13 +10,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, UserPlus, QrCode, Share2, Check, X, Users, Loader2, Copy, ScanLine, Eye } from 'lucide-react';
+import { Search, UserPlus, QrCode, Share2, Check, X, Users, Loader2, Copy, ScanLine, Eye, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import type { Friendship, FriendProfile } from '@/types/friends';
 import QrScannerDialog from '@/components/friends/QrScannerDialog';
 import SharedCoursesInbox from '@/components/friends/SharedCoursesInbox';
+import ChatList from '@/components/friends/ChatList';
 
 export default function FriendsPage() {
   const navigate = useNavigate();
@@ -240,14 +241,17 @@ export default function FriendsPage() {
         </AnimatePresence>
 
         <Tabs defaultValue="friends" className="w-full">
-          <TabsList className="w-full grid grid-cols-3">
+          <TabsList className="w-full grid grid-cols-4">
             <TabsTrigger value="friends">
               Kompisar {friends.length > 0 && <Badge variant="secondary" className="ml-1 text-xs">{friends.length}</Badge>}
+            </TabsTrigger>
+            <TabsTrigger value="chat">
+              Chatt
             </TabsTrigger>
             <TabsTrigger value="pending">
               Förfrågningar {incomingRequests.length > 0 && <Badge variant="destructive" className="ml-1 text-xs">{incomingRequests.length}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="shared">Delade banor</TabsTrigger>
+            <TabsTrigger value="shared">Banor</TabsTrigger>
           </TabsList>
 
           <TabsContent value="friends" className="space-y-2 mt-4">

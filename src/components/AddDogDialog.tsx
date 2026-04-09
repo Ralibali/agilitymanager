@@ -22,7 +22,8 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
   const [color, setColor] = useState('');
   const [birthdate, setBirthdate] = useState('');
   const [sizeClass, setSizeClass] = useState<SizeClass>('L');
-  const [competitionLevel, setCompetitionLevel] = useState<CompetitionLevel>('Nollklass');
+  const [agilityLevel, setAgilityLevel] = useState<CompetitionLevel>('Nollklass');
+  const [jumpingLevel, setJumpingLevel] = useState<CompetitionLevel>('Nollklass');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
 

@@ -296,7 +296,15 @@ export default function CoursePlannerPage() {
     setPanY((ch - totalH * z) / 2);
   }, [canvasWidth, canvasHeight]);
 
-  const selectedObs = obstacles.find(o => o.id === selected);
+  // ResizeObserver for auto fit-to-screen
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const ro = new ResizeObserver(() => fitToScreen());
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [fitToScreen]);
+
 
   const distBetween = (a: Obstacle, b: Obstacle) => {
     const dx = a.x - b.x;

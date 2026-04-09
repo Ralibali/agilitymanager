@@ -996,7 +996,16 @@ export default function CoursePlannerPage() {
     if (!selected) return;
     setObstacles(prev => prev.map(o =>
       o.id === selected && o.type === 'tunnel'
-        ? { ...o, bendAngle: Math.max(-90, Math.min(90, (o.bendAngle || 0) + delta)) }
+        ? { ...o, bendAngle: Math.max(-360, Math.min(360, (o.bendAngle || 0) + delta)) }
+        : o
+    ));
+  };
+
+  const setTunnelBend = (angle: number) => {
+    if (!selected) return;
+    setObstacles(prev => prev.map(o =>
+      o.id === selected && o.type === 'tunnel'
+        ? { ...o, bendAngle: angle }
         : o
     ));
   };

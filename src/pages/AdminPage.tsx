@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import {
   Users, Loader2, Trash2, Shield, Dog, Dumbbell, Trophy, Heart, Timer,
-  Search, Eye, CalendarDays, MessageCircle
+  Search, Eye, CalendarDays, MessageCircle, BarChart3
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +20,7 @@ import {
 import { PageContainer } from '@/components/PageContainer';
 import UserDetailModal from '@/components/admin/UserDetailModal';
 import SupportTicketsTab from '@/components/admin/SupportTicketsTab';
+import AnalyticsTab from '@/components/admin/AnalyticsTab';
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -163,6 +164,9 @@ export default function AdminPage() {
             <TabsTrigger value="support" className="text-xs sm:text-sm gap-1 rounded-lg flex-1">
               <MessageCircle className="h-3.5 w-3.5" /> Support
             </TabsTrigger>
+            <TabsTrigger value="analytics" className="text-xs sm:text-sm gap-1 rounded-lg flex-1">
+              <BarChart3 className="h-3.5 w-3.5" /> Analys
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-3">
@@ -245,6 +249,10 @@ export default function AdminPage() {
 
           <TabsContent value="support">
             <SupportTicketsTab />
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <AnalyticsTab />
           </TabsContent>
         </Tabs>
 

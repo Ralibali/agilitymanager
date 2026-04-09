@@ -698,26 +698,29 @@ export default function CoursePlannerPage() {
       }
 
       // Selection highlight
-      if (selected === obs.id) {
-        ctx.strokeStyle = 'hsl(221, 79%, 48%)';
+      const isMultiSel = multiSelected.has(obs.id);
+      if (selected === obs.id || isMultiSel) {
+        ctx.strokeStyle = isMultiSel ? 'hsl(200, 90%, 50%)' : 'hsl(221, 79%, 48%)';
         ctx.lineWidth = 1.5;
         ctx.setLineDash([4, 3]);
         const selSize = Math.max(info.width, info.height, 20) / 2 + 6;
         ctx.strokeRect(-selSize, -selSize, selSize * 2, selSize * 2);
         ctx.setLineDash([]);
 
-        // Rotation handle
-        const handleY = -selSize - 14;
-        ctx.fillStyle = 'hsl(221, 79%, 48%)';
-        ctx.beginPath(); ctx.arc(0, handleY, 6, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = 'hsl(221, 79%, 48%)';
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(0, -selSize); ctx.lineTo(0, handleY + 6); ctx.stroke();
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '8px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('⟳', 0, handleY);
+        // Rotation handle (only for primary selection)
+        if (selected === obs.id) {
+          const handleY = -selSize - 14;
+          ctx.fillStyle = 'hsl(221, 79%, 48%)';
+          ctx.beginPath(); ctx.arc(0, handleY, 6, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = 'hsl(221, 79%, 48%)';
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(0, -selSize); ctx.lineTo(0, handleY + 6); ctx.stroke();
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '8px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('⟳', 0, handleY);
+        }
       }
 
       ctx.restore();

@@ -1473,8 +1473,13 @@ export default function CoursePlannerPage() {
       loadedObstacles = (data.obstacles || []).map(migrateObstacle);
       loadedPath = data.handlerPath || [];
     }
-    setObstacles(loadedObstacles);
+    setObstaclesRaw(loadedObstacles);
     setHandlerPath(loadedPath);
+    // Reset history on load
+    historyRef.current = [{ obstacles: JSON.parse(JSON.stringify(loadedObstacles)), handlerPath: JSON.parse(JSON.stringify(loadedPath)), label: 'Start' }];
+    historyIndexRef.current = 0;
+    setHistoryVersion(v => v + 1);
+    setIsDirty(false);
     // Restore color theme if saved
     if (data.themeId) {
       setActiveThemeId(data.themeId);

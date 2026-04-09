@@ -288,6 +288,30 @@ export type Database = {
         }
         Relationships: []
       }
+      friendships: {
+        Row: {
+          created_at: string
+          id: string
+          receiver_id: string
+          requester_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          receiver_id: string
+          requester_id: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          receiver_id?: string
+          requester_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       health_logs: {
         Row: {
           created_at: string
@@ -418,6 +442,9 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          referral_code: string | null
+          show_competitions_to_friends: boolean
+          show_results_to_friends: boolean
           updated_at: string
           user_id: string
         }
@@ -426,6 +453,9 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          referral_code?: string | null
+          show_competitions_to_friends?: boolean
+          show_results_to_friends?: boolean
           updated_at?: string
           user_id: string
         }
@@ -434,8 +464,41 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          referral_code?: string | null
+          show_competitions_to_friends?: boolean
+          show_results_to_friends?: boolean
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      referral_rewards: {
+        Row: {
+          created_at: string
+          days_granted: number
+          id: string
+          referred_converted_at: string | null
+          referred_id: string
+          referrer_id: string
+          referrer_rewarded_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          days_granted?: number
+          id?: string
+          referred_converted_at?: string | null
+          referred_id: string
+          referrer_id: string
+          referrer_rewarded_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          days_granted?: number
+          id?: string
+          referred_converted_at?: string | null
+          referred_id?: string
+          referrer_id?: string
+          referrer_rewarded_at?: string | null
         }
         Relationships: []
       }
@@ -472,6 +535,33 @@ export type Database = {
           name?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      shared_courses: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          message: string | null
+          shared_by: string
+          shared_with: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          shared_by: string
+          shared_with: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          shared_by?: string
+          shared_with?: string
         }
         Relationships: []
       }

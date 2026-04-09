@@ -90,6 +90,7 @@ export default function CompetitionPage() {
       action={
         <div className="flex items-center gap-2">
           {results.length > 0 && (
+            <>
             <Button
               variant="outline"
               size="sm"
@@ -119,6 +120,36 @@ export default function CompetitionPage() {
             >
               <Download size={14} /> CSV
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              onClick={() => {
+                const headers = ['Datum', 'Hund', 'Tävling', 'Gren', 'Klass', 'Tid', 'Fel', 'Plac.', 'Godkänd', 'Noteringar'];
+                const pdfRows = results.map(r => {
+                  const dog = getDog(r.dog_id);
+                  return [
+                    r.date, dog?.name ?? '', r.event_name,
+                    r.discipline, r.competition_level,
+                    String(r.time_sec), String(r.faults),
+                    r.placement != null ? String(r.placement) : '-',
+                    r.passed ? 'Ja' : 'Nej',
+                    r.notes,
+                  ];
+                });
+                downloadPdf({
+                  title: 'Tävlingsresultat',
+                  subtitle: `${results.length} starter – exporterad ${format(new Date(), 'yyyy-MM-dd')}`,
+                  headers,
+                  rows: pdfRows,
+                  filename: `tavlingsresultat-${format(new Date(), 'yyyy-MM-dd')}.pdf`,
+                  landscape: true,
+                });
+              }}
+            >
+              <FileText size={14} /> PDF
+            </Button>
+            </>
           )}
           {dogs.length > 0 ? <AddCompetitionDialog dogs={dogs} onAdded={refresh} /> : null}
         </div>

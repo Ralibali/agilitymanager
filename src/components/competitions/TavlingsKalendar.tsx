@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { stripHtml } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -375,8 +376,8 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
                   {formatDateRange(comp.date_start, comp.date_end)}
                 </div>
 
-                <div className="font-semibold text-sm">{comp.club_name}</div>
-                <div className="text-xs text-muted-foreground">{comp.competition_name}</div>
+                <div className="font-semibold text-sm">{stripHtml(comp.club_name)}</div>
+                <div className="text-xs text-muted-foreground">{stripHtml(comp.competition_name)}</div>
 
                 <div className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground">
                   <MapPin size={12} />

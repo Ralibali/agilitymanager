@@ -92,6 +92,7 @@ export function MinaTavlingar() {
 
         {type === 'interested' && (
           <div className="mt-3 space-y-1">
+            {item.dog_name && <div className="text-xs font-medium">🐕 {item.dog_name}</div>}
             {daysToReg !== null && daysToReg > 0 && daysToReg <= 7 && (
               <div className="flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
                 <AlertTriangle size={12} /> Stänger om {daysToReg} dagar

@@ -264,14 +264,6 @@ export default function CoursePlannerPage() {
     }
   }, [isMobile, isLandscape]);
 
-  // ResizeObserver for auto fit-to-screen
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const ro = new ResizeObserver(() => fitToScreen());
-    ro.observe(container);
-    return () => ro.disconnect();
-  }, [fitToScreen]);
 
   useEffect(() => {
     supabase.from('saved_courses').select('*').order('created_at', { ascending: false }).then(({ data }) => {

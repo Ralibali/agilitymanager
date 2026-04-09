@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
+import { getAndClearUtmData } from '@/lib/utm';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -56,6 +57,14 @@ export default function AuthPage() {
         toast({ title: 'Registreringsfel', description: error.message, variant: 'destructive' });
       } else if (data.session) {
         toast({ title: 'Konto skapat!', description: 'Du är nu inloggad.' });
+        // Save UTM attribution data
+        const utmData = getAndClearUtmData();
+        if (data.user) {
+          supabase.from('signup_sources').insert({
+            user_id: data.user.id,
+            ...utmData,
+          }).then(() => {});
+        }
         // Notify admin about new registration
         supabase.functions.invoke('notify-admin', {
           body: { type: 'new_user', data: { email, display_name: displayName } },

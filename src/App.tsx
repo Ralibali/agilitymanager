@@ -7,6 +7,10 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { BottomNav } from "@/components/BottomNav";
+import { captureUtmParams } from "@/lib/utm";
+
+// Capture UTM params on first load
+captureUtmParams();
 
 // Eager: landing + auth (first paint)
 import LandingPage from "./pages/LandingPage";

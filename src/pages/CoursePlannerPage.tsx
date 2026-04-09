@@ -1916,6 +1916,78 @@ export default function CoursePlannerPage() {
           <div className="absolute bottom-2 left-2 text-[10px] text-muted-foreground bg-background/80 rounded px-1.5 py-0.5">
             {Math.round(zoom * 100)}%
           </div>
+
+          {/* Selected obstacle controls overlay (inside fullscreen container) */}
+          {selectedObs && !numberingMode && (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 bg-card/95 backdrop-blur-sm border border-border rounded-lg p-2 shadow-lg flex gap-2 items-center flex-wrap max-w-[90vw]"
+              onMouseDown={e => e.stopPropagation()}
+              onTouchStart={e => e.stopPropagation()}
+            >
+              <button onClick={rotateSelected} className="p-1.5 rounded bg-secondary hover:bg-secondary/80 transition-colors" title="Rotera 15°">
+                <RotateCcw size={14} />
+              </button>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-muted-foreground">°</span>
+                <input
+                  type="number"
+                  value={Math.round(selectedObs.rotation)}
+                  onChange={e => setRotationManual(parseInt(e.target.value) || 0)}
+                  className="w-12 h-6 text-xs text-center bg-secondary border border-border rounded"
+                />
+              </div>
+              <button onClick={deleteSelected} className="p-1.5 rounded bg-secondary hover:bg-destructive/20 text-destructive transition-colors" title="Radera">
+                <Trash2 size={14} />
+              </button>
+              <button onClick={copySelected} className="p-1.5 rounded bg-secondary hover:bg-secondary/80 transition-colors" title="Kopiera">
+                <Copy size={14} />
+              </button>
+
+              {selectedObs.type === 'tunnel' && (
+                <>
+                  <div className="h-4 w-px bg-border" />
+                  <button onClick={toggleTunnelLength} className="text-[10px] px-2 py-1 rounded bg-secondary border border-border font-medium">
+                    {selectedObs.tunnelLength || 4}m
+                  </button>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground">Böj:</span>
+                    <button onClick={() => updateTunnelBend(-15)} className="p-1 rounded bg-secondary hover:bg-secondary/80">
+                      <Minus size={10} />
+                    </button>
+                    <span className="text-[10px] font-medium w-8 text-center">{selectedObs.bendAngle || 0}°</span>
+                    <button onClick={() => updateTunnelBend(15)} className="p-1 rounded bg-secondary hover:bg-secondary/80">
+                      <Plus size={10} />
+                    </button>
+                  </div>
+                  <div className="flex gap-0.5 flex-wrap">
+                    {[0, 45, 90, 180].map(a => (
+                      <button
+                        key={a}
+                        onClick={() => setTunnelBend(a)}
+                        className={`text-[9px] px-1.5 py-0.5 rounded border transition-colors ${
+                          (selectedObs.bendAngle || 0) === a
+                            ? 'bg-primary/15 border-primary text-primary'
+                            : 'bg-secondary border-border text-muted-foreground'
+                        }`}
+                      >
+                        {a === 0 ? 'Rak' : a === 180 ? 'U' : `${a}°`}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="range"
+                    min={-360}
+                    max={360}
+                    step={5}
+                    value={selectedObs.bendAngle || 0}
+                    onChange={e => setTunnelBend(Number(e.target.value))}
+                    className="w-24 h-1.5 accent-primary"
+                    onMouseDown={e => e.stopPropagation()}
+                    onTouchStart={e => e.stopPropagation()}
+                  />
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Sidebar toggle when collapsed */}

@@ -8,7 +8,8 @@ import { MinaTavlingar } from '@/components/competitions/MinaTavlingar';
 import { TavlingsLogg } from '@/components/competitions/TavlingsLogg';
 import { NotificationBell } from '@/components/competitions/NotificationBell';
 import { DogPicker } from '@/components/competitions/DogPicker';
-import { Calendar, Star, ClipboardList } from 'lucide-react';
+import { RecommendedCompetitions } from '@/components/competitions/RecommendedCompetitions';
+import { Calendar, Star, ClipboardList, Sparkles } from 'lucide-react';
 import type { Dog } from '@/types';
 
 export default function CompetitionCalendarPage() {

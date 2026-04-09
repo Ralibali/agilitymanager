@@ -1891,7 +1891,12 @@ export default function CoursePlannerPage() {
       </div>
 
       <p className="text-xs text-muted-foreground text-center mt-2">
-        Dra hinder för att flytta · Dra i ⟳ för att rotera · Scrollhjul/pinch för att zooma · {obstacles.length} hinder på banan
+        Dra hinder för att flytta · Dra i ⟳ för att rotera · Scrollhjul/pinch för att zooma · {obstacles.length} hinder
+        {!isMobile && (
+          <span className="block mt-0.5 text-[10px]">
+            Del = radera · Ctrl+Z = ångra · Ctrl+S = spara · Escape = avmarkera
+          </span>
+        )}
       </p>
       </PremiumGate>
     </PageContainer>

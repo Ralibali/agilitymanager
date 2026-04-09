@@ -3,13 +3,15 @@ import {
 } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Dog, Dumbbell, Trophy, Heart, Timer, Clock,
+  Dog, Dumbbell, Trophy, Heart, Timer, Clock, Crown, Loader2,
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface UserDetailModalProps {
   userId: string | null;
@@ -18,17 +20,26 @@ interface UserDetailModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const PREMIUM_OPTIONS = [
+  { label: '7 dagar', days: 7 },
+  { label: '30 dagar', days: 30 },
+  { label: 'Livstid', days: 99999 },
+] as const;
+
 export default function UserDetailModal({ userId, userName, open, onOpenChange }: UserDetailModalProps) {
+  const queryClient = useQueryClient();
+
   const { data, isLoading } = useQuery({
     queryKey: ['admin-user-detail', userId],
     queryFn: async () => {
       if (!userId) return null;
-      const [dogs, training, competitions, health, stopwatch] = await Promise.all([
+      const [dogs, training, competitions, health, stopwatch, profile] = await Promise.all([
         supabase.from('dogs').select('id, name, breed, size_class, competition_level, gender, birthdate').eq('user_id', userId),
         supabase.from('training_sessions').select('id, date, type, duration_min, dog_energy').eq('user_id', userId).order('date', { ascending: false }).limit(200),
         supabase.from('competition_results').select('id, date, event_name, discipline, competition_level, passed, faults, time_sec').eq('user_id', userId).order('date', { ascending: false }).limit(200),
         supabase.from('health_logs').select('id, date, type, title').eq('user_id', userId).order('date', { ascending: false }).limit(100),
         supabase.from('stopwatch_results').select('id, date, time_ms, faults').eq('user_id', userId).order('date', { ascending: false }).limit(100),
+        supabase.from('profiles').select('premium_until').eq('user_id', userId).single(),
       ]);
 
       const dogData = dogs.data || [];
@@ -40,7 +51,6 @@ export default function UserDetailModal({ userId, userName, open, onOpenChange }
       const passedCount = compData.filter(c => c.passed).length;
       const totalMinutes = trainingData.reduce((s, t) => s + (t.duration_min || 0), 0);
 
-      // Activity: last 30 days
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const recentTraining = trainingData.filter(t => new Date(t.date) >= thirtyDaysAgo).length;
@@ -59,10 +69,61 @@ export default function UserDetailModal({ userId, userName, open, onOpenChange }
         stopwatchRuns: stopwatchData.length,
         lastTraining: trainingData[0]?.date || null,
         lastCompetition: compData[0]?.date || null,
+        premiumUntil: (profile.data as any)?.premium_until || null,
       };
     },
     enabled: open && !!userId,
   });
+
+  const grantPremiumMutation = useMutation({
+    mutationFn: async (days: number) => {
+      if (!userId) throw new Error('No user');
+      let premiumUntil: Date;
+
+      if (days >= 99999) {
+        // Lifetime = year 2099
+        premiumUntil = new Date('2099-12-31T23:59:59Z');
+      } else {
+        // Start from current premium_until if it's in the future, otherwise from now
+        const now = new Date();
+        const currentEnd = data?.premiumUntil ? new Date(data.premiumUntil) : null;
+        const startFrom = currentEnd && currentEnd > now ? currentEnd : now;
+        premiumUntil = new Date(startFrom.getTime() + days * 24 * 60 * 60 * 1000);
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ premium_until: premiumUntil.toISOString() } as any)
+        .eq('user_id', userId);
+      if (error) throw error;
+    },
+    onSuccess: (_, days) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-user-detail', userId] });
+      const label = days >= 99999 ? 'livstids' : `${days} dagars`;
+      toast.success(`Gav ${userName} ${label} premium!`);
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const removePremiumMutation = useMutation({
+    mutationFn: async () => {
+      if (!userId) throw new Error('No user');
+      const { error } = await supabase
+        .from('profiles')
+        .update({ premium_until: null } as any)
+        .eq('user_id', userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-user-detail', userId] });
+      toast.success(`Tog bort manuell premium för ${userName}`);
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const premiumActive = data?.premiumUntil && new Date(data.premiumUntil) > new Date();
+  const isLifetime = data?.premiumUntil && new Date(data.premiumUntil).getFullYear() >= 2099;
+  const isMutating = grantPremiumMutation.isPending || removePremiumMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -80,6 +141,51 @@ export default function UserDetailModal({ userId, userName, open, onOpenChange }
             <p className="text-sm text-muted-foreground py-8 text-center">Kunde inte ladda data.</p>
           ) : (
             <div className="space-y-3 py-2">
+              {/* Premium control */}
+              <Card className="border-amber-500/30">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Crown className="h-4 w-4 text-amber-500" />
+                    <span className="text-sm font-medium text-foreground">Premium (admin)</span>
+                    {premiumActive && (
+                      <Badge variant="outline" className="text-[9px] ml-auto border-amber-500/50 text-amber-600">
+                        {isLifetime ? 'Livstid' : `t.o.m. ${new Date(data.premiumUntil!).toLocaleDateString('sv-SE')}`}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {PREMIUM_OPTIONS.map(opt => (
+                      <Button
+                        key={opt.days}
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        disabled={isMutating}
+                        onClick={() => grantPremiumMutation.mutate(opt.days)}
+                      >
+                        {isMutating ? <Loader2 className="h-3 w-3 animate-spin" /> : `+ ${opt.label}`}
+                      </Button>
+                    ))}
+                    {premiumActive && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs text-destructive border-destructive/30"
+                        disabled={isMutating}
+                        onClick={() => removePremiumMutation.mutate()}
+                      >
+                        Ta bort
+                      </Button>
+                    )}
+                  </div>
+                  {premiumActive && !isLifetime && (
+                    <p className="text-[10px] text-muted-foreground mt-1.5">
+                      Dagar läggs till från nuvarande slutdatum.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Activity */}
               <Card>
                 <CardContent className="p-3">

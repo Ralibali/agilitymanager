@@ -814,8 +814,44 @@ export default function CoursePlannerPage() {
     ctx.textBaseline = 'top';
     ctx.fillText('1 ruta = 1 meter', 8, 6);
 
+    // Measure tool rendering
+    if (measurePoints.length > 0) {
+      ctx.strokeStyle = 'hsl(50, 100%, 50%)';
+      ctx.fillStyle = 'hsl(50, 100%, 50%)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 3]);
+      measurePoints.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      if (measurePoints.length === 2) {
+        ctx.beginPath();
+        ctx.moveTo(measurePoints[0].x, measurePoints[0].y);
+        ctx.lineTo(measurePoints[1].x, measurePoints[1].y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        const dist = Math.sqrt(
+          Math.pow(measurePoints[0].x - measurePoints[1].x, 2) +
+          Math.pow(measurePoints[0].y - measurePoints[1].y, 2)
+        ) * METERS_PER_PX;
+        const mx = (measurePoints[0].x + measurePoints[1].x) / 2;
+        const my = (measurePoints[0].y + measurePoints[1].y) / 2;
+        const text = `${dist.toFixed(1)} m`;
+        ctx.font = 'bold 11px sans-serif';
+        const tw = ctx.measureText(text).width + 8;
+        ctx.fillStyle = 'hsla(50, 100%, 50%, 0.9)';
+        ctx.fillRect(mx - tw / 2, my - 10, tw, 20);
+        ctx.fillStyle = '#000000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, mx, my);
+      }
+      ctx.setLineDash([]);
+    }
+
     ctx.restore(); // restore MARGIN translate
-  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas]);
+  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas, multiSelected, measurePoints]);
 
   useEffect(() => { draw(); }, [draw]);
 

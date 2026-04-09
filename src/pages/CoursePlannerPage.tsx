@@ -192,6 +192,8 @@ export default function CoursePlannerPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
+  const [shareOpen, setShareOpen] = useState(false);
+  const [loadedCourseId, setLoadedCourseId] = useState<string | null>(null);
   const isLandscape = useIsLandscape();
   const showLandscapeLayout = isMobile && isLandscape;
 

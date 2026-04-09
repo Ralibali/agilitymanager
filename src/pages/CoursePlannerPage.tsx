@@ -304,23 +304,24 @@ export default function CoursePlannerPage() {
     const length = lengthM * PX_PER_METER;
     const bendAngle = obs.bendAngle || 0;
     const tubeWidth = 0.6 * PX_PER_METER;
-    const h = getHue('tunnel');
+    const tc = getTypeColors('tunnel');
+    const accentColor = tc.accent ?? tc.body;
 
     if (Math.abs(bendAngle) < 5) {
-      ctx.strokeStyle = `hsl(${h}, 50%, 35%)`;
+      ctx.strokeStyle = tc.body;
       ctx.lineWidth = tubeWidth;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(0, -length / 2);
       ctx.lineTo(0, length / 2);
       ctx.stroke();
-      ctx.strokeStyle = `hsl(${h}, 40%, 55%)`;
+      ctx.strokeStyle = accentColor;
       ctx.lineWidth = tubeWidth - 4;
       ctx.beginPath();
       ctx.moveTo(0, -length / 2);
       ctx.lineTo(0, length / 2);
       ctx.stroke();
-      ctx.fillStyle = `hsl(${h}, 60%, 25%)`;
+      ctx.fillStyle = tc.body;
       ctx.beginPath(); ctx.arc(0, -length / 2, 4, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.arc(0, length / 2, 4, 0, Math.PI * 2); ctx.fill();
     } else {
@@ -331,19 +332,19 @@ export default function CoursePlannerPage() {
       const endAngle = startAngle - bendRad;
       const ccw = bendAngle > 0;
 
-      ctx.strokeStyle = `hsl(${h}, 50%, 35%)`;
+      ctx.strokeStyle = tc.body;
       ctx.lineWidth = tubeWidth;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.arc(cx, 0, radius, startAngle, endAngle, ccw);
       ctx.stroke();
-      ctx.strokeStyle = `hsl(${h}, 40%, 55%)`;
+      ctx.strokeStyle = accentColor;
       ctx.lineWidth = tubeWidth - 4;
       ctx.beginPath();
       ctx.arc(cx, 0, radius, startAngle, endAngle, ccw);
       ctx.stroke();
 
-      ctx.fillStyle = `hsl(${h}, 60%, 25%)`;
+      ctx.fillStyle = tc.body;
       const entryX = cx + radius * Math.cos(startAngle);
       const entryY = radius * Math.sin(startAngle);
       const exitX = cx + radius * Math.cos(endAngle);

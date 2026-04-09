@@ -297,6 +297,10 @@ export default function FriendsPage() {
             )}
           </TabsContent>
 
+          <TabsContent value="chat" className="mt-4">
+            <ChatList />
+          </TabsContent>
+
           <TabsContent value="pending" className="space-y-4 mt-4">
             {incomingRequests.length > 0 && (
               <div className="space-y-2">

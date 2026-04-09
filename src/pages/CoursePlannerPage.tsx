@@ -628,7 +628,6 @@ export default function CoursePlannerPage() {
 
   const loadCourse = (course: SavedCourse) => {
     const data = course.course_data as any;
-    // Support both old format (array) and new format ({obstacles, handlerPath})
     if (Array.isArray(data)) {
       setObstacles(data);
       setHandlerPath([]);
@@ -636,6 +635,7 @@ export default function CoursePlannerPage() {
       setObstacles(data.obstacles || []);
       setHandlerPath(data.handlerPath || []);
     }
+    if (course.canvas_width && course.canvas_height) {
       const match = CANVAS_SIZES.find(s => s.width === course.canvas_width && s.height === course.canvas_height);
       if (match) setCanvasSize(match);
     }

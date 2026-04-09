@@ -259,7 +259,12 @@ export default function CompetitionPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <h3 className="font-display font-semibold text-foreground text-sm">{r.event_name}</h3>
-                          {r.passed ? <CheckCircle2 size={18} className="text-success flex-shrink-0" /> : <XCircle size={18} className="text-destructive flex-shrink-0" />}
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => setShareResult(r)} className="p-1 rounded-full hover:bg-secondary" title="Dela resultat">
+                              <Send size={14} className="text-muted-foreground" />
+                            </button>
+                            {r.passed ? <CheckCircle2 size={18} className="text-success flex-shrink-0" /> : <XCircle size={18} className="text-destructive flex-shrink-0" />}
+                          </div>
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {format(new Date(r.date), 'd MMM yyyy', { locale: sv })} · {r.discipline} · {r.size_class} · {r.competition_level}

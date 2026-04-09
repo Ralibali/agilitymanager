@@ -42,6 +42,7 @@ export default function TrainingPage() {
       action={
         <div className="flex items-center gap-2">
           {sessions.length > 0 && (
+            <>
             <Button
               variant="outline"
               size="sm"
@@ -94,6 +95,7 @@ export default function TrainingPage() {
             >
               <FileText size={14} /> PDF
             </Button>
+            </>
           )}
           {dogs.length > 0 ? <AddTrainingDialog dogs={dogs} onAdded={refresh} /> : null}
         </div>

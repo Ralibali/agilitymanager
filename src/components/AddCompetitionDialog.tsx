@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,25 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
   const [courseLength, setCourseLength] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const selectedDog = dogs.find(d => d.id === dogId);
+
+  // Auto-fill size class when dog changes
+  useEffect(() => {
+    if (selectedDog) {
+      setSizeClass(selectedDog.size_class);
+    }
+  }, [dogId]);
+
+  // Auto-fill competition level when dog or discipline changes
+  useEffect(() => {
+    if (!selectedDog) return;
+    if (discipline === 'Agility') {
+      setCompetitionLevel(selectedDog.competition_level);
+    } else if (discipline === 'Jumping') {
+      setCompetitionLevel(selectedDog.jumping_level);
+    }
+  }, [dogId, discipline]);
 
   const handleSubmit = async () => {
     if (!dogId || !eventName.trim()) return;
@@ -87,7 +106,7 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
               <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
             </div>
             <div>
-              <Label>Klass</Label>
+              <Label>Disciplin</Label>
               <Select value={discipline} onValueChange={v => setDiscipline(v as Discipline)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>

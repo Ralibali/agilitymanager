@@ -193,6 +193,8 @@ export default function CoursePlannerPage() {
   const [numberInput, setNumberInput] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showStartFinish, setShowStartFinish] = useState(false);
+  const [showOrientationHint, setShowOrientationHint] = useState(false);
 
   // Obstacle color theme system
   const [activeThemeId, setActiveThemeId] = useState<string>(loadActiveThemeId);
@@ -251,12 +253,17 @@ export default function CoursePlannerPage() {
   const canvasHeight = canvasSize.height;
   const MARGIN = 28;
 
-  // Portrait toast
+  // Portrait hint
   useEffect(() => {
     if (isMobile && !isLandscape) {
-      toast('📐 Vänd telefonen för bästa upplevelse', { duration: 3000 });
+      setShowOrientationHint(true);
+      const t = setTimeout(() => setShowOrientationHint(false), 5000);
+      return () => clearTimeout(t);
+    } else {
+      setShowOrientationHint(false);
     }
-  }, []);
+  }, [isMobile, isLandscape]);
+
 
   useEffect(() => {
     supabase.from('saved_courses').select('*').order('created_at', { ascending: false }).then(({ data }) => {
@@ -289,6 +296,14 @@ export default function CoursePlannerPage() {
     setPanY((ch - totalH * z) / 2);
   }, [canvasWidth, canvasHeight]);
 
+  // ResizeObserver for auto fit-to-screen
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const ro = new ResizeObserver(() => fitToScreen());
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [fitToScreen]);
   const selectedObs = obstacles.find(o => o.id === selected);
 
   const distBetween = (a: Obstacle, b: Obstacle) => {
@@ -1302,26 +1317,31 @@ export default function CoursePlannerPage() {
 
   /* ───── Obstacle palette (shared) ───── */
 
-  const obstaclePalette = (vertical: boolean) => (
-    <div className={vertical
-      ? "flex flex-col gap-1 overflow-y-auto py-1 px-0.5"
-      : "grid grid-cols-5 sm:grid-cols-7 gap-1.5"
-    }>
-      {OBSTACLE_TYPES.map(o => (
-        <button
-          key={o.type}
-          onClick={() => addObstacle(o.type)}
-          className={`flex flex-col items-center gap-0.5 rounded-lg font-medium bg-card shadow-card border border-border hover:border-primary active:scale-95 transition-all ${
-            vertical ? 'px-1 py-1 text-[9px]' : 'px-1 py-1.5 text-[10px]'
-          }`}
-        >
-          <span className={vertical ? "text-sm leading-none" : "text-base leading-none"}>{o.symbol}</span>
-          {!vertical && o.label}
-          {vertical && <span className="truncate w-full text-center">{o.label}</span>}
-        </button>
-      ))}
-    </div>
-  );
+  const obstaclePalette = (vertical: boolean) => {
+    const types = showStartFinish
+      ? OBSTACLE_TYPES
+      : OBSTACLE_TYPES.filter(o => o.type !== 'start' && o.type !== 'finish');
+    return (
+      <div className={vertical
+        ? "flex flex-col gap-1 overflow-y-auto py-1 px-0.5"
+        : "grid grid-cols-5 sm:grid-cols-7 gap-1.5"
+      }>
+        {types.map(o => (
+          <button
+            key={o.type}
+            onClick={() => addObstacle(o.type)}
+            className={`flex flex-col items-center gap-0.5 rounded-lg font-medium bg-card shadow-card border border-border hover:border-primary active:scale-95 transition-all ${
+              vertical ? 'px-1 py-1 text-[9px] min-h-[44px] min-w-[44px]' : 'px-1 py-1.5 text-[10px] min-h-[44px]'
+            }`}
+          >
+            <span className={vertical ? "text-sm leading-none" : "text-base leading-none"}>{o.symbol}</span>
+            {!vertical && o.label}
+            {vertical && <span className="truncate w-full text-center">{o.label}</span>}
+          </button>
+        ))}
+      </div>
+    );
+  };
 
   /* ───── Numbering toolbar (shared) ───── */
 
@@ -1685,6 +1705,13 @@ export default function CoursePlannerPage() {
         </button>
 
         <button
+          onClick={() => setShowStartFinish(!showStartFinish)}
+          className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${showStartFinish ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
+        >
+          ▸◼ {showStartFinish ? 'Start/Mål: PÅ' : 'Start/Mål'}
+        </button>
+
+        <button
           onClick={() => setShowDistances(!showDistances)}
           className={`ml-auto text-xs px-2 py-0.5 rounded-full border transition-colors ${showDistances ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
         >
@@ -1839,6 +1866,19 @@ export default function CoursePlannerPage() {
         onTouchEnd={handlePointerUp}
       >
         {canvasElement}
+        {/* Orientation hint */}
+        {showOrientationHint && isMobile && !isLandscape && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 bg-primary/90 text-primary-foreground text-xs px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+            📐 Vänd telefonen för bästa upplevelse
+            <button onClick={() => setShowOrientationHint(false)} className="text-primary-foreground/70 hover:text-primary-foreground">✕</button>
+          </div>
+        )}
+        {/* Numbering tip when start/finish is on */}
+        {showStartFinish && numberingMode && (
+          <div className="absolute top-3 left-3 z-10 bg-secondary/90 text-muted-foreground text-[10px] px-2 py-1 rounded pointer-events-none">
+            Tips: Med numrering behövs ofta inte start/mål-markeringar
+          </div>
+        )}
         {/* Zoom indicator */}
         <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-background/80 rounded px-1.5 py-0.5 pointer-events-none">
           {Math.round(zoom * 100)}%
@@ -1851,7 +1891,12 @@ export default function CoursePlannerPage() {
       </div>
 
       <p className="text-xs text-muted-foreground text-center mt-2">
-        Dra hinder för att flytta · Dra i ⟳ för att rotera · Scrollhjul/pinch för att zooma · {obstacles.length} hinder på banan
+        Dra hinder för att flytta · Dra i ⟳ för att rotera · Scrollhjul/pinch för att zooma · {obstacles.length} hinder
+        {!isMobile && (
+          <span className="block mt-0.5 text-[10px]">
+            Del = radera · Ctrl+Z = ångra · Ctrl+S = spara · Escape = avmarkera
+          </span>
+        )}
       </p>
       </PremiumGate>
     </PageContainer>

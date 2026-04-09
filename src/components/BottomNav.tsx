@@ -11,13 +11,13 @@ const mainTabs = [
   { path: '/dashboard', icon: Home, label: 'Hem' },
   { path: '/dogs', icon: Dog, label: 'Hundar' },
   { path: '/training', icon: Dumbbell, label: 'Träning' },
-  { path: '/competition', icon: Trophy, label: 'Tävling' },
+  { path: '/course-planner', icon: PencilRuler, label: 'Banplanerare' },
 ];
 
 const moreTabs = [
+  { path: '/competition', icon: Trophy, label: 'Tävling' },
   { path: '/stopwatch', icon: Timer, label: 'Tidtagarur' },
   { path: '/health', icon: Heart, label: 'Hälsa' },
-  { path: '/course-planner', icon: PencilRuler, label: 'Banplanerare' },
   { path: '/stats', icon: BarChart3, label: 'Statistik' },
   { path: '/settings', icon: Settings, label: 'Inställningar' },
 ];

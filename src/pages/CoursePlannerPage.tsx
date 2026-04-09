@@ -304,7 +304,7 @@ export default function CoursePlannerPage() {
     ro.observe(container);
     return () => ro.disconnect();
   }, [fitToScreen]);
-
+  const selectedObs = obstacles.find(o => o.id === selected);
 
   const distBetween = (a: Obstacle, b: Obstacle) => {
     const dx = a.x - b.x;

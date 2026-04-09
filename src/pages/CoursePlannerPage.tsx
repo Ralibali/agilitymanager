@@ -179,6 +179,7 @@ export default function CoursePlannerPage() {
 
   const [numberInput, setNumberInput] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Zoom & Pan state
   const [zoom, setZoom] = useState(1);
@@ -1678,7 +1679,7 @@ export default function CoursePlannerPage() {
             </Button>
           </div>
 
-          {selectedObs.type === 'tunnel' && (
+           {selectedObs.type === 'tunnel' && (
             <>
               <div className="flex items-center gap-1 ml-2">
                 <Button variant="outline" size="sm" className="h-7 text-xs" onClick={toggleTunnelLength}>
@@ -1690,10 +1691,36 @@ export default function CoursePlannerPage() {
                 <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateTunnelBend(-15)}>
                   <Minus size={12} />
                 </Button>
-                <span className="text-xs font-medium w-8 text-center text-foreground">{selectedObs.bendAngle || 0}°</span>
+                <span className="text-xs font-medium w-10 text-center text-foreground">{selectedObs.bendAngle || 0}°</span>
                 <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateTunnelBend(15)}>
                   <Plus size={12} />
                 </Button>
+              </div>
+              <div className="flex gap-0.5 flex-wrap">
+                {[0, 45, 90, 135, 180, 270].map(a => (
+                  <button
+                    key={a}
+                    onClick={() => setTunnelBend(a)}
+                    className={`text-[9px] px-1.5 py-0.5 rounded border transition-colors ${
+                      (selectedObs.bendAngle || 0) === a
+                        ? 'bg-primary/15 border-primary text-primary'
+                        : 'bg-secondary border-border text-muted-foreground hover:border-primary/50'
+                    }`}
+                  >
+                    {a === 0 ? 'Rak' : a === 180 ? 'U' : `${a}°`}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-1 w-full">
+                <input
+                  type="range"
+                  min={-360}
+                  max={360}
+                  step={5}
+                  value={selectedObs.bendAngle || 0}
+                  onChange={e => setTunnelBend(Number(e.target.value))}
+                  className="flex-1 h-1.5 accent-primary"
+                />
               </div>
             </>
           )}

@@ -258,6 +258,9 @@ export default function AdminPage() {
           <TabsContent value="analytics">
             <AnalyticsTab />
           </TabsContent>
+          <TabsContent value="referrals">
+            <ReferralStatsTab />
+          </TabsContent>
         </Tabs>
 
         <UserDetailModal

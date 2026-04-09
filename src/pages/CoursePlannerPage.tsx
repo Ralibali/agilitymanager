@@ -339,7 +339,7 @@ export default function CoursePlannerPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [loadedCourseId, setLoadedCourseId] = useState<string | null>(null);
   const isLandscape = useIsLandscape();
-  const showLandscapeLayout = isMobile && isLandscape;
+  const showLandscapeLayout = (isMobile && isLandscape) || isDesktop;
 
   // On desktop, render landscape (swap width/height so the longer side is horizontal)
   const isDesktop = !isMobile;

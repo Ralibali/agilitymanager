@@ -23,6 +23,8 @@ type Obstacle = {
   bendAngle?: number; // degrees, 0 = straight, positive = curve right
 };
 
+type PathPoint = { x: number; y: number };
+
 type SavedCourse = {
   id: string;
   name: string;

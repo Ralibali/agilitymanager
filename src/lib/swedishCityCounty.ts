@@ -1,5 +1,5 @@
 /**
- * Mapping of Swedish cities/towns to their county (län).
+ * Mapping of Swedish cities/towns/villages to their county (län).
  * Used for smart filtering in the competition calendar.
  * Key: lowercase city name, Value: county name matching SWEDISH_COUNTIES
  */
@@ -14,39 +14,45 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'ludvika': 'Dalarnas', 'malung': 'Dalarnas', 'mora': 'Dalarnas',
   'orsa': 'Dalarnas', 'rättvik': 'Dalarnas', 'säter': 'Dalarnas',
   'vansbro': 'Dalarnas', 'älvdalen': 'Dalarnas', 'smedjebacken': 'Dalarnas',
+  'dala floda': 'Dalarnas', 'djurås': 'Dalarnas', 'mockfjärd': 'Dalarnas',
+  'bjursås': 'Dalarnas', 'siljansnäs': 'Dalarnas', 'insjön': 'Dalarnas',
+  'vikarbyn': 'Dalarnas', 'enviken': 'Dalarnas',
 
   // Gotlands
   'visby': 'Gotlands', 'gotland': 'Gotlands', 'roma': 'Gotlands',
   'hemse': 'Gotlands', 'slite': 'Gotlands', 'klintehamn': 'Gotlands',
+  'fröjel': 'Gotlands', 'fårösund': 'Gotlands', 'lärbro': 'Gotlands',
 
   // Gävleborgs
   'gävle': 'Gävleborgs', 'sandviken': 'Gävleborgs', 'hudiksvall': 'Gävleborgs',
   'söderhamn': 'Gävleborgs', 'bollnäs': 'Gävleborgs', 'ljusdal': 'Gävleborgs',
   'ockelbo': 'Gävleborgs', 'ovanåker': 'Gävleborgs', 'nordanstig': 'Gävleborgs',
-  'hofors': 'Gävleborgs', 'edsbyn': 'Gävleborgs',
+  'hofors': 'Gävleborgs', 'edsbyn': 'Gävleborgs', 'gårdskär': 'Gävleborgs',
 
   // Hallands
   'halmstad': 'Hallands', 'varberg': 'Hallands', 'kungsbacka': 'Hallands',
   'falkenberg': 'Hallands', 'laholm': 'Hallands', 'hylte': 'Hallands',
+  'genevad': 'Hallands', 'getinge': 'Hallands',
 
   // Jämtlands
   'östersund': 'Jämtlands', 'krokom': 'Jämtlands', 'strömsund': 'Jämtlands',
   'åre': 'Jämtlands', 'berg': 'Jämtlands', 'härjedalen': 'Jämtlands',
   'sveg': 'Jämtlands', 'bräcke': 'Jämtlands', 'ragunda': 'Jämtlands',
-  'hammarstrand': 'Jämtlands',
+  'hammarstrand': 'Jämtlands', 'lit': 'Jämtlands',
 
   // Jönköpings
   'jönköping': 'Jönköpings', 'huskvarna': 'Jönköpings', 'nässjö': 'Jönköpings',
   'vetlanda': 'Jönköpings', 'värnamo': 'Jönköpings', 'tranås': 'Jönköpings',
   'eksjö': 'Jönköpings', 'gislaved': 'Jönköpings', 'vaggeryd': 'Jönköpings',
   'sävsjö': 'Jönköpings', 'aneby': 'Jönköpings', 'habo': 'Jönköpings',
-  'mullsjö': 'Jönköpings',
+  'mullsjö': 'Jönköpings', 'gränna': 'Jönköpings', 'kinnared': 'Jönköpings',
 
   // Kalmar
   'kalmar': 'Kalmar', 'västervik': 'Kalmar', 'oskarshamn': 'Kalmar',
   'vimmerby': 'Kalmar', 'nybro': 'Kalmar', 'mörbylånga': 'Kalmar',
   'borgholm': 'Kalmar', 'emmaboda': 'Kalmar', 'hultsfred': 'Kalmar',
   'mönsterås': 'Kalmar', 'torsås': 'Kalmar', 'högsby': 'Kalmar',
+  'färjestaden': 'Kalmar',
 
   // Kronobergs
   'växjö': 'Kronobergs', 'ljungby': 'Kronobergs', 'älmhult': 'Kronobergs',
@@ -72,7 +78,8 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'östra göinge': 'Skåne', 'osby': 'Skåne', 'bromölla': 'Skåne',
   'skurup': 'Skåne', 'vellinge': 'Skåne', 'kävlinge': 'Skåne',
   'löddeköpinge': 'Skåne', 'arlöv': 'Skåne', 'åstorp': 'Skåne',
-  'hörby': 'Skåne', 'örkelljunga': 'Skåne',
+  'hörby': 'Skåne', 'örkelljunga': 'Skåne', 'degeberga': 'Skåne',
+  'falsterbo': 'Skåne', 'veberöd': 'Skåne', 'västra torup': 'Skåne',
 
   // Stockholms
   'stockholm': 'Stockholms', 'södertälje': 'Stockholms', 'täby': 'Stockholms',
@@ -84,7 +91,10 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'sigtuna': 'Stockholms', 'tumba': 'Stockholms', 'nynäshamn': 'Stockholms',
   'ekerö': 'Stockholms', 'järfälla': 'Stockholms', 'upplands-bro': 'Stockholms',
   'vaxholm': 'Stockholms', 'danderyd': 'Stockholms', 'botkyrka': 'Stockholms',
-  'salem': 'Stockholms', 'nykvarn': 'Stockholms',
+  'salem': 'Stockholms', 'nykvarn': 'Stockholms', 'norsborg': 'Stockholms',
+  'ågesta': 'Stockholms', 'ösmo': 'Stockholms', 'österhaninge': 'Stockholms',
+  'bro': 'Stockholms', 'skå': 'Stockholms', 'lindholmen': 'Stockholms',
+  'väddö': 'Stockholms',
 
   // Södermanlands
   'eskilstuna': 'Södermanlands', 'nyköping': 'Södermanlands', 'katrineholm': 'Södermanlands',
@@ -118,7 +128,7 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'sundsvall': 'Västernorrlands', 'härnösand': 'Västernorrlands',
   'örnsköldsvik': 'Västernorrlands', 'sollefteå': 'Västernorrlands',
   'kramfors': 'Västernorrlands', 'timrå': 'Västernorrlands',
-  'ånge': 'Västernorrlands',
+  'ånge': 'Västernorrlands', 'nordansjö': 'Västernorrlands',
 
   // Västmanlands
   'västerås': 'Västmanlands', 'sala': 'Västmanlands', 'köping': 'Västmanlands',
@@ -148,13 +158,16 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'dals-ed': 'Västra Götalands', 'färgelanda': 'Västra Götalands',
   'mellerud': 'Västra Götalands', 'lilla edet': 'Västra Götalands',
   'ale': 'Västra Götalands', 'härryda': 'Västra Götalands',
-  'tjörn': 'Västra Götalands',
+  'tjörn': 'Västra Götalands', 'svenljunga': 'Västra Götalands',
+  'dannike': 'Västra Götalands', 'fristad': 'Västra Götalands',
+  'rångedala': 'Västra Götalands', 'risa': 'Västra Götalands',
 
   // Örebro
   'kumla': 'Örebro', 'örebro': 'Örebro', 'hallsberg': 'Örebro',
   'lindesberg': 'Örebro', 'nora': 'Örebro', 'askersund': 'Örebro',
   'degerfors': 'Örebro', 'hällefors': 'Örebro', 'karlskoga': 'Örebro',
   'laxå': 'Örebro', 'ljusnarsberg': 'Örebro', 'lekeberg': 'Örebro',
+  'fjugesta': 'Örebro',
 
   // Östergötlands
   'linköping': 'Östergötlands', 'norrköping': 'Östergötlands',
@@ -167,7 +180,7 @@ export const CITY_TO_COUNTY: Record<string, string> = {
 };
 
 /**
- * Given a location string (e.g. "Olofström" or "Olofström, Blekinge"),
+ * Given a location string (e.g. "Olofström", "Borås/Dannike", "Norsborg (Stockholm)"),
  * returns the county it belongs to, or null if unknown.
  */
 export function getCountyForLocation(location: string | null): string | null {
@@ -175,7 +188,6 @@ export function getCountyForLocation(location: string | null): string | null {
   const loc = location.toLowerCase().trim();
 
   // First check if the location string directly contains a county name
-  // (some data already has county info)
   const counties = [
     'blekinge', 'dalarnas', 'gotlands', 'gävleborgs', 'hallands',
     'jämtlands', 'jönköpings', 'kalmar', 'kronobergs', 'norrbottens',
@@ -185,23 +197,43 @@ export function getCountyForLocation(location: string | null): string | null {
   ];
   for (const county of counties) {
     if (loc.includes(county)) {
-      // Capitalize first letter to match SWEDISH_COUNTIES format
       return county.charAt(0).toUpperCase() + county.slice(1);
     }
   }
 
-  // Try to find a city match — split on common separators and check each word
-  const parts = loc.split(/[,\s\/\-]+/);
-  for (const part of parts) {
-    const trimmed = part.trim();
-    if (trimmed && CITY_TO_COUNTY[trimmed]) {
-      return CITY_TO_COUNTY[trimmed];
+  // Try direct lookup first (handles multi-word names like "dala floda")
+  if (CITY_TO_COUNTY[loc]) {
+    return CITY_TO_COUNTY[loc];
+  }
+
+  // Strip parenthesized hints like "Norsborg (Stockholm)" → try "norsborg"
+  const withoutParens = loc.replace(/\s*\(.*?\)\s*/g, '').trim();
+  if (withoutParens && CITY_TO_COUNTY[withoutParens]) {
+    return CITY_TO_COUNTY[withoutParens];
+  }
+
+  // Also try the content inside parentheses: "Norsborg (Stockholm)" → "stockholm"
+  const parenMatch = loc.match(/\(([^)]+)\)/);
+  if (parenMatch) {
+    const inside = parenMatch[1].trim();
+    if (CITY_TO_COUNTY[inside]) {
+      return CITY_TO_COUNTY[inside];
     }
   }
 
-  // Try the full string as well (for multi-word cities)
-  if (CITY_TO_COUNTY[loc]) {
-    return CITY_TO_COUNTY[loc];
+  // Split on comma, slash, dash (common separators like "Borås/Dannike", "Kinnared, Ulricehamn")
+  const parts = loc.split(/[,\/]+/).map(p => p.trim()).filter(Boolean);
+  for (const part of parts) {
+    if (CITY_TO_COUNTY[part]) {
+      return CITY_TO_COUNTY[part];
+    }
+    // Also try splitting on spaces for compound names  
+    const words = part.split(/\s+/);
+    for (const word of words) {
+      if (word.length > 2 && CITY_TO_COUNTY[word]) {
+        return CITY_TO_COUNTY[word];
+      }
+    }
   }
 
   return null;

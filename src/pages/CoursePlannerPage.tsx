@@ -442,8 +442,49 @@ export default function CoursePlannerPage() {
       }
     });
 
+    // Draw handler path
+    if (handlerPath.length > 1) {
+      ctx.save();
+      ctx.translate(MARGIN, 0);
+      ctx.strokeStyle = 'hsl(16, 100%, 55%)';
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.setLineDash([6, 4]);
+      ctx.globalAlpha = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(handlerPath[0].x, handlerPath[0].y);
+      // Smooth curve through points using quadratic bezier
+      for (let i = 1; i < handlerPath.length - 1; i++) {
+        const xc = (handlerPath[i].x + handlerPath[i + 1].x) / 2;
+        const yc = (handlerPath[i].y + handlerPath[i + 1].y) / 2;
+        ctx.quadraticCurveTo(handlerPath[i].x, handlerPath[i].y, xc, yc);
+      }
+      // Last point
+      const last = handlerPath[handlerPath.length - 1];
+      ctx.lineTo(last.x, last.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+
+      // Arrow at end
+      if (handlerPath.length >= 2) {
+        const p1 = handlerPath[handlerPath.length - 2];
+        const p2 = last;
+        const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+        ctx.fillStyle = 'hsl(16, 100%, 55%)';
+        ctx.beginPath();
+        ctx.moveTo(p2.x, p2.y);
+        ctx.lineTo(p2.x - 8 * Math.cos(angle - 0.4), p2.y - 8 * Math.sin(angle - 0.4));
+        ctx.lineTo(p2.x - 8 * Math.cos(angle + 0.4), p2.y - 8 * Math.sin(angle + 0.4));
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
     ctx.restore();
-  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight]);
+  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath]);
 
   useEffect(() => { draw(); }, [draw]);
 

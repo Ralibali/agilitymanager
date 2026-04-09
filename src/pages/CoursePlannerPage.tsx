@@ -9,9 +9,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette } from 'lucide-react';
 import ShareCourseDialog from '@/components/course-planner/ShareCourseDialog';
+import ObstacleColorPanel from '@/components/course-planner/ObstacleColorPanel';
 import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
 import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  PRESET_THEMES,
+  STANDARD_THEME,
+  getObstacleColors,
+  loadActiveThemeId,
+  saveActiveThemeId,
+  loadCustomOverrides,
+  saveCustomOverrides,
+  type ObstacleTheme,
+  type ObstacleColors,
+} from '@/lib/obstacleThemes';
 
 /* ───── Types ───── */
 

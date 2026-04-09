@@ -2326,6 +2326,50 @@ export default function CoursePlannerPage() {
         <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-background/80 rounded px-1.5 py-0.5 pointer-events-none">
           {Math.round(zoom * 100)}%
         </div>
+
+        {/* Minimap */}
+        {showMinimap && zoom < 0.95 && obstacles.length > 0 && !isMobile && (
+          <div className="absolute bottom-10 right-2 z-10">
+            <div className="relative bg-card/90 border border-border rounded shadow-sm">
+              <button onClick={() => setShowMinimap(false)} className="absolute -top-1.5 -right-1.5 z-10 bg-card border border-border rounded-full w-4 h-4 flex items-center justify-center text-[8px] text-muted-foreground hover:text-foreground">
+                ✕
+              </button>
+              <canvas
+                ref={minimapRef}
+                width={120}
+                height={Math.round(120 * (canvasHeight / canvasWidth))}
+                className="rounded cursor-pointer"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const mx = e.clientX - rect.left;
+                  const my = e.clientY - rect.top;
+                  const scaleX = canvasWidth / 120;
+                  const scaleY = canvasHeight / Math.round(120 * (canvasHeight / canvasWidth));
+                  const worldX = mx * scaleX;
+                  const worldY = my * scaleY;
+                  const container = containerRef.current;
+                  if (container) {
+                    const rect2 = container.getBoundingClientRect();
+                    setPanX(rect2.width / 2 - (worldX + MARGIN) * zoom);
+                    setPanY(rect2.height / 2 - worldY * zoom);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
+        {!showMinimap && !isMobile && obstacles.length > 0 && zoom < 0.95 && (
+          <button onClick={() => setShowMinimap(true)} className="absolute bottom-10 right-2 z-10 text-[9px] bg-card/90 border border-border rounded px-1.5 py-0.5 text-muted-foreground hover:text-foreground">
+            🗺
+          </button>
+        )}
+
+        {/* Measure mode indicator */}
+        {measureMode && (
+          <div className="absolute top-3 left-3 z-10 bg-yellow-500/90 text-foreground text-[10px] px-2 py-1 rounded pointer-events-none font-medium">
+            📏 Klicka på två punkter för att mäta avstånd
+          </div>
+        )}
       </div>
 
       {/* Quick-select obstacle palette (portrait/desktop) */}
@@ -2334,10 +2378,10 @@ export default function CoursePlannerPage() {
       </div>
 
       <p className="text-xs text-muted-foreground text-center mt-2">
-        Dra hinder för att flytta · Dra i ⟳ för att rotera · Scrollhjul/pinch för att zooma · {obstacles.length} hinder
+        Dra hinder för att flytta · Dra i ⟳ för att rotera · Scrollhjul/pinch för att zooma · Shift+klick = markera flera
         {!isMobile && (
           <span className="block mt-0.5 text-[10px]">
-            Del = radera · Ctrl+Z = ångra · Ctrl+S = spara · Escape = avmarkera
+            Del = radera · Ctrl+Z/Y = ångra/gör om · Ctrl+C/V = kopiera · Ctrl+S = spara · Escape = avmarkera
           </span>
         )}
       </p>

@@ -484,102 +484,116 @@ export default function CoursePlannerPage() {
         drawTunnel(ctx, obs);
       } else if (obs.type === 'tire') {
         const r = hw;
-        ctx.strokeStyle = 'hsl(200, 50%, 40%)';
+        const h = getHue('tire');
+        ctx.strokeStyle = `hsl(${h}, 50%, 40%)`;
         ctx.lineWidth = 3;
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
-        ctx.strokeStyle = 'hsl(200, 40%, 55%)';
+        ctx.strokeStyle = `hsl(${h}, 40%, 55%)`;
         ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2); ctx.stroke();
       } else if (obs.type === 'a_frame') {
-        ctx.strokeStyle = 'hsl(16, 80%, 45%)';
+        const h = getHue('a_frame');
+        ctx.strokeStyle = `hsl(${h}, 80%, 45%)`;
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(-hw, hh); ctx.lineTo(0, -hh); ctx.lineTo(hw, hh);
         ctx.stroke();
-        ctx.strokeStyle = 'hsl(45, 90%, 50%)';
+        ctx.strokeStyle = `hsl(${h + 29}, 90%, 50%)`;
         ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(-hw, hh); ctx.lineTo(-hw * 0.5, hh * 0.3); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(hw, hh); ctx.lineTo(hw * 0.5, hh * 0.3); ctx.stroke();
       } else if (obs.type === 'dog_walk' || obs.type === 'balance') {
-        const color = obs.type === 'dog_walk' ? 'hsl(45, 70%, 55%)' : 'hsl(180, 35%, 50%)';
-        const contactColor = obs.type === 'dog_walk' ? 'hsl(45, 90%, 45%)' : 'hsl(180, 50%, 40%)';
-        ctx.fillStyle = color;
+        const h = getHue(obs.type);
+        ctx.fillStyle = `hsl(${h}, 70%, 55%)`;
         ctx.fillRect(-hw, -hh, info.width, info.height);
         const cz = 0.9 * PX_PER_METER;
-        ctx.fillStyle = contactColor;
+        ctx.fillStyle = `hsl(${h}, 90%, 45%)`;
         ctx.fillRect(-hw, -hh, cz, info.height);
         ctx.fillRect(hw - cz, -hh, cz, info.height);
-        ctx.strokeStyle = obs.type === 'dog_walk' ? 'hsl(45, 60%, 40%)' : 'hsl(180, 30%, 40%)';
+        ctx.strokeStyle = `hsl(${h}, 60%, 40%)`;
         ctx.lineWidth = 0.8;
         ctx.strokeRect(-hw, -hh, info.width, info.height);
       } else if (obs.type === 'seesaw') {
-        ctx.fillStyle = 'hsl(270, 40%, 50%)';
+        const h = getHue('seesaw');
+        ctx.fillStyle = `hsl(${h}, 40%, 50%)`;
         ctx.fillRect(-hw, -hh, info.width, info.height);
-        ctx.fillStyle = 'hsl(270, 50%, 35%)';
+        ctx.fillStyle = `hsl(${h}, 50%, 35%)`;
         ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = 'hsl(270, 40%, 40%)';
+        ctx.strokeStyle = `hsl(${h}, 40%, 40%)`;
         ctx.lineWidth = 0.8;
         ctx.strokeRect(-hw, -hh, info.width, info.height);
       } else if (obs.type === 'weave') {
+        const h = getHue('weave');
         const poleCount = 12;
         const spacing = info.width / (poleCount - 1);
         for (let i = 0; i < poleCount; i++) {
-          ctx.fillStyle = i % 2 === 0 ? 'hsl(340, 70%, 50%)' : 'hsl(340, 50%, 65%)';
+          ctx.fillStyle = i % 2 === 0 ? `hsl(${h}, 70%, 50%)` : `hsl(${h}, 50%, 65%)`;
           ctx.beginPath();
           ctx.arc(-hw + i * spacing, 0, 2.5, 0, Math.PI * 2);
           ctx.fill();
         }
-        ctx.strokeStyle = 'hsl(340, 30%, 70%)';
+        ctx.strokeStyle = `hsl(${h}, 30%, 70%)`;
         ctx.lineWidth = 0.5;
         ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
       } else if (obs.type === 'jump') {
-        ctx.strokeStyle = 'hsl(0, 0%, 25%)';
+        const h = getHue('jump');
+        if (h === -1) {
+          ctx.strokeStyle = 'hsl(0, 0%, 25%)';
+          ctx.fillStyle = 'hsl(0, 0%, 20%)';
+        } else {
+          ctx.strokeStyle = `hsl(${h}, 60%, 35%)`;
+          ctx.fillStyle = `hsl(${h}, 60%, 30%)`;
+        }
         ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
-        ctx.fillStyle = 'hsl(0, 0%, 20%)';
         ctx.fillRect(-hw - 1.5, -5, 3, 10);
         ctx.fillRect(hw - 1.5, -5, 3, 10);
       } else if (obs.type === 'long_jump') {
+        const h = getHue('long_jump');
         for (let j = 0; j < 3; j++) {
-          ctx.fillStyle = `hsl(221, ${50 + j * 15}%, ${50 + j * 5}%)`;
+          ctx.fillStyle = `hsl(${h}, ${50 + j * 15}%, ${50 + j * 5}%)`;
           ctx.fillRect(-hw, -hh + j * (info.height / 3), info.width, info.height / 3 - 1);
         }
       } else if (obs.type === 'oxer') {
-        ctx.strokeStyle = 'hsl(200, 50%, 40%)';
+        const h = getHue('oxer');
+        ctx.strokeStyle = `hsl(${h}, 50%, 40%)`;
         ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(-hw, -hh); ctx.lineTo(hw, -hh); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(-hw, hh); ctx.lineTo(hw, hh); ctx.stroke();
-        ctx.fillStyle = 'hsl(200, 40%, 35%)';
+        ctx.fillStyle = `hsl(${h}, 40%, 35%)`;
         ctx.fillRect(-hw - 1.5, -hh - 1.5, 3, info.height + 3);
         ctx.fillRect(hw - 1.5, -hh - 1.5, 3, info.height + 3);
       } else if (obs.type === 'wall') {
-        ctx.fillStyle = 'hsl(30, 25%, 55%)';
+        const h = getHue('wall');
+        ctx.fillStyle = `hsl(${h}, 25%, 55%)`;
         ctx.fillRect(-hw, -hh, info.width, info.height);
-        ctx.strokeStyle = 'hsl(30, 20%, 40%)';
+        ctx.strokeStyle = `hsl(${h}, 20%, 40%)`;
         ctx.lineWidth = 0.8;
         ctx.strokeRect(-hw, -hh, info.width, info.height);
-        ctx.strokeStyle = 'hsla(30, 15%, 70%, 0.6)';
+        ctx.strokeStyle = `hsla(${h}, 15%, 70%, 0.6)`;
         ctx.lineWidth = 0.3;
         for (let r = -hh + 4; r < hh; r += 4) {
           ctx.beginPath(); ctx.moveTo(-hw, r); ctx.lineTo(hw, r); ctx.stroke();
         }
       } else if (obs.type === 'start') {
-        ctx.strokeStyle = 'hsl(120, 60%, 35%)';
+        const h = getHue('start');
+        ctx.strokeStyle = `hsl(${h}, 60%, 35%)`;
         ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(-hw, -6); ctx.lineTo(-hw, 6); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(hw, -6); ctx.lineTo(hw, 6); ctx.stroke();
         ctx.setLineDash([3, 3]);
-        ctx.strokeStyle = 'hsl(120, 50%, 45%)';
+        ctx.strokeStyle = `hsl(${h}, 50%, 45%)`;
         ctx.lineWidth = 1.2;
         ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
         ctx.setLineDash([]);
       } else if (obs.type === 'finish') {
-        ctx.strokeStyle = 'hsl(0, 70%, 45%)';
+        const h = getHue('finish');
+        ctx.strokeStyle = `hsl(${h}, 70%, 45%)`;
         ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(-hw, -6); ctx.lineTo(-hw, 6); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(hw, -6); ctx.lineTo(hw, 6); ctx.stroke();
         ctx.setLineDash([3, 3]);
-        ctx.strokeStyle = 'hsl(0, 60%, 55%)';
+        ctx.strokeStyle = `hsl(${h}, 60%, 55%)`;
         ctx.lineWidth = 1.2;
         ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
         ctx.setLineDash([]);

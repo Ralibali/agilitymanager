@@ -1385,8 +1385,28 @@ export default function CoursePlannerPage() {
           </div>
         </div>
 
+        {/* Sidebar toggle when collapsed */}
+        {sidebarCollapsed && (
+          <button
+            onClick={() => setSidebarCollapsed(false)}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-card border border-border border-r-0 rounded-l-md p-1.5 shadow-sm"
+            title="Visa hinderpanel"
+          >
+            <span className="text-xs">←</span>
+          </button>
+        )}
+
         {/* Right sidebar */}
-        <div className="w-16 sm:w-[70px] bg-card border-l border-border flex flex-col overflow-hidden">
+        {!sidebarCollapsed && (
+        <div className="w-16 sm:w-[70px] bg-card border-l border-border flex flex-col overflow-hidden relative">
+          {/* Collapse button */}
+          <button
+            onClick={() => setSidebarCollapsed(true)}
+            className="p-1 text-center text-[10px] text-muted-foreground hover:text-foreground border-b border-border transition-colors"
+            title="Dölj panel"
+          >
+            →
+          </button>
           <div className="flex flex-col gap-0.5 p-1 border-b border-border">
             <button
               onClick={toggleFullscreen}

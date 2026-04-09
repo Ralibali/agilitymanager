@@ -206,6 +206,11 @@ export default function AdminPage() {
                               <CalendarDays className="h-2.5 w-2.5" />
                               {new Date(u.created_at).toLocaleDateString('sv-SE')}
                             </span>
+                            {u.premium_until && new Date(u.premium_until) > new Date() && (
+                              <Badge variant="default" className="text-[9px] h-4 px-1.5 bg-amber-500/90 hover:bg-amber-500 text-white">
+                                {new Date(u.premium_until).getFullYear() >= 2090 ? '⭐ Livstid' : `⭐ Premium t.o.m ${new Date(u.premium_until).toLocaleDateString('sv-SE')}`}
+                              </Badge>
+                            )}
                           </div>
                         </div>
                         <div className="flex gap-1 shrink-0">

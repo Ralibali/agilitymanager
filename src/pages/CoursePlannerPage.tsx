@@ -7,9 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash } from 'lucide-react';
+import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize } from 'lucide-react';
 import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 /* ───── Types ───── */
 
@@ -23,7 +24,6 @@ type Obstacle = {
   numbers: number[];
   tunnelLength?: 4 | 6;
   bendAngle?: number;
-  // legacy compat
   number?: number;
 };
 
@@ -40,12 +40,10 @@ type SavedCourse = {
 
 /* ───── Constants ───── */
 
-// 1 grid step = 1 meter. 20px per meter.
 const PX_PER_METER = 20;
 const GRID_STEP = PX_PER_METER;
 const METERS_PER_PX = 1 / PX_PER_METER;
 
-// Real SAgiK obstacle dimensions in meters → pixels
 const OBSTACLE_TYPES = [
   { type: 'jump',      label: 'Hopp',     symbol: '┃', width: 1.2 * PX_PER_METER, height: 0.15 * PX_PER_METER },
   { type: 'long_jump', label: 'Långhopp', symbol: '═', width: 1.2 * PX_PER_METER, height: 0.6 * PX_PER_METER },
@@ -63,7 +61,6 @@ const OBSTACLE_TYPES = [
   { type: 'finish',    label: 'Mål',      symbol: '◼', width: 1.2 * PX_PER_METER, height: 0.1 * PX_PER_METER },
 ];
 
-// Canvas = real arena sizes in meters
 const CANVAS_SIZES = [
   { label: '20×30 m', width: 20 * PX_PER_METER, height: 30 * PX_PER_METER },
   { label: '20×40 m', width: 20 * PX_PER_METER, height: 40 * PX_PER_METER },
@@ -111,12 +108,29 @@ const PRESET_COURSES: { name: string; obstacles: Obstacle[] }[] = [
 let idCounter = 0;
 const nextId = () => `obs_${++idCounter}_${Date.now()}`;
 
-/** Migrate legacy obstacle (single number) to multi-number */
 function migrateObstacle(o: any): Obstacle {
   if (o.numbers && Array.isArray(o.numbers)) return o;
   const nums: number[] = [];
   if (typeof o.number === 'number' && o.number > 0) nums.push(o.number);
   return { ...o, numbers: nums, number: undefined };
+}
+
+/* ───── Hook: landscape detection ───── */
+
+function useIsLandscape() {
+  const [isLandscape, setIsLandscape] = useState(
+    typeof window !== 'undefined' ? window.innerWidth > window.innerHeight : false
+  );
+  useEffect(() => {
+    const handler = () => setIsLandscape(window.innerWidth > window.innerHeight);
+    window.addEventListener('resize', handler);
+    window.addEventListener('orientationchange', handler);
+    return () => {
+      window.removeEventListener('resize', handler);
+      window.removeEventListener('orientationchange', handler);
+    };
+  }, []);
+  return isLandscape;
 }
 
 /* ───── Component ───── */
@@ -134,33 +148,39 @@ export default function CoursePlannerPage() {
   const [showDistances, setShowDistances] = useState(true);
   const [canvasSize, setCanvasSize] = useState(CANVAS_SIZES[1]);
 
-  // Handler path
   const [handlerPath, setHandlerPath] = useState<PathPoint[]>([]);
   const [drawingMode, setDrawingMode] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [handlerColor, setHandlerColor] = useState(HANDLER_COLORS[0].value);
   const [handlerDashed, setHandlerDashed] = useState(true);
 
-  // Numbering mode
   const [numberingMode, setNumberingMode] = useState(false);
   const [nextNumberToAssign, setNextNumberToAssign] = useState(1);
 
-  // Rotation interaction
   const [rotatingId, setRotatingId] = useState<string | null>(null);
   const [rotateStart, setRotateStart] = useState({ angle: 0, obsRotation: 0 });
-  // Touch rotation
   const [touchRotating, setTouchRotating] = useState(false);
   const [touchStartAngle, setTouchStartAngle] = useState(0);
   const [touchStartRotation, setTouchStartRotation] = useState(0);
 
-  // Number editing
   const [numberInput, setNumberInput] = useState('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
+  const isLandscape = useIsLandscape();
+  const showLandscapeLayout = isMobile && isLandscape;
 
   const canvasWidth = canvasSize.width;
   const canvasHeight = canvasSize.height;
   const MARGIN = 28;
+
+  // Portrait toast
+  useEffect(() => {
+    if (isMobile && !isLandscape) {
+      const t = toast('📐 Vänd telefonen för bästa upplevelse', { duration: 3000 });
+    }
+  }, []);
 
   useEffect(() => {
     supabase.from('saved_courses').select('*').order('created_at', { ascending: false }).then(({ data }) => {
@@ -182,7 +202,7 @@ export default function CoursePlannerPage() {
     const lengthM = obs.tunnelLength || 4;
     const length = lengthM * PX_PER_METER;
     const bendAngle = obs.bendAngle || 0;
-    const tubeWidth = 0.6 * PX_PER_METER; // 60cm diameter
+    const tubeWidth = 0.6 * PX_PER_METER;
 
     ctx.strokeStyle = 'hsl(152, 50%, 35%)';
     ctx.lineWidth = tubeWidth;
@@ -215,7 +235,6 @@ export default function CoursePlannerPage() {
       ctx.stroke();
     }
 
-    // Opening circles
     ctx.fillStyle = 'hsl(152, 60%, 25%)';
     if (Math.abs(bendAngle) < 5) {
       ctx.beginPath(); ctx.arc(0, -length / 2, 4, 0, Math.PI * 2); ctx.fill();
@@ -240,6 +259,7 @@ export default function CoursePlannerPage() {
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, totalW, totalH);
 
+    // All drawing in MARGIN-translated space
     ctx.save();
     ctx.translate(MARGIN, 0);
 
@@ -268,25 +288,21 @@ export default function CoursePlannerPage() {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvasWidth, y); ctx.stroke();
     }
 
-    ctx.restore();
-
-    // Coordinate labels
+    // Coordinate labels (in MARGIN space - need to go left of 0)
     ctx.fillStyle = 'hsl(0, 0%, 50%)';
     ctx.font = '8px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     for (let x = 0; x <= canvasWidth; x += majorStep) {
-      ctx.fillText(`${Math.round(x / PX_PER_METER)}`, x + MARGIN, canvasHeight + MARGIN - 2);
+      ctx.fillText(`${Math.round(x / PX_PER_METER)}`, x, canvasHeight + MARGIN - 2);
     }
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
     for (let y = 0; y <= canvasHeight; y += majorStep) {
-      ctx.fillText(`${Math.round(y / PX_PER_METER)}`, MARGIN - 3, y);
+      ctx.fillText(`${Math.round(y / PX_PER_METER)}`, -3, y);
     }
 
     // Scale indicator
-    ctx.save();
-    ctx.translate(MARGIN, 0);
     const scaleX = canvasWidth - 5 * PX_PER_METER - 8;
     const scaleY = canvasHeight - 8;
     ctx.strokeStyle = 'hsl(0, 0%, 40%)';
@@ -295,7 +311,6 @@ export default function CoursePlannerPage() {
     ctx.moveTo(scaleX, scaleY);
     ctx.lineTo(scaleX + 5 * PX_PER_METER, scaleY);
     ctx.stroke();
-    // End ticks
     ctx.beginPath();
     ctx.moveTo(scaleX, scaleY - 3); ctx.lineTo(scaleX, scaleY + 3); ctx.stroke();
     ctx.moveTo(scaleX + 5 * PX_PER_METER, scaleY - 3); ctx.lineTo(scaleX + 5 * PX_PER_METER, scaleY + 3); ctx.stroke();
@@ -370,7 +385,6 @@ export default function CoursePlannerPage() {
         ctx.strokeStyle = 'hsl(45, 50%, 55%)';
         ctx.lineWidth = 1;
         ctx.strokeRect(-hw, -hh, info.width, info.height);
-        // Cross lines
         ctx.strokeStyle = 'hsl(45, 40%, 60%)';
         ctx.lineWidth = 0.5;
         ctx.beginPath(); ctx.moveTo(-hw, -hh); ctx.lineTo(hw, hh); ctx.stroke();
@@ -381,7 +395,6 @@ export default function CoursePlannerPage() {
         ctx.beginPath();
         ctx.moveTo(-hw, hh); ctx.lineTo(0, -hh); ctx.lineTo(hw, hh);
         ctx.stroke();
-        // Contact zones
         ctx.strokeStyle = 'hsl(45, 90%, 50%)';
         ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(-hw, hh); ctx.lineTo(-hw * 0.5, hh * 0.3); ctx.stroke();
@@ -391,8 +404,7 @@ export default function CoursePlannerPage() {
         const contactColor = obs.type === 'dog_walk' ? 'hsl(45, 90%, 45%)' : 'hsl(180, 50%, 40%)';
         ctx.fillStyle = color;
         ctx.fillRect(-hw, -hh, info.width, info.height);
-        // Contact zones
-        const cz = 0.9 * PX_PER_METER; // ~90cm contact zone
+        const cz = 0.9 * PX_PER_METER;
         ctx.fillStyle = contactColor;
         ctx.fillRect(-hw, -hh, cz, info.height);
         ctx.fillRect(hw - cz, -hh, cz, info.height);
@@ -416,7 +428,6 @@ export default function CoursePlannerPage() {
           ctx.arc(-hw + i * spacing, 0, 2.5, 0, Math.PI * 2);
           ctx.fill();
         }
-        // Base line
         ctx.strokeStyle = 'hsl(340, 30%, 70%)';
         ctx.lineWidth = 0.5;
         ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
@@ -476,7 +487,7 @@ export default function CoursePlannerPage() {
         ctx.fillRect(-hw, -hh, info.width, info.height);
       }
 
-      // Selection
+      // Selection highlight
       if (selected === obs.id) {
         ctx.strokeStyle = 'hsl(221, 79%, 48%)';
         ctx.lineWidth = 1.5;
@@ -485,16 +496,13 @@ export default function CoursePlannerPage() {
         ctx.strokeRect(-selSize, -selSize, selSize * 2, selSize * 2);
         ctx.setLineDash([]);
 
-        // Rotation handle (desktop)
+        // Rotation handle
         const handleY = -selSize - 14;
         ctx.fillStyle = 'hsl(221, 79%, 48%)';
         ctx.beginPath(); ctx.arc(0, handleY, 6, 0, Math.PI * 2); ctx.fill();
-        // Line from selection box to handle
         ctx.strokeStyle = 'hsl(221, 79%, 48%)';
         ctx.lineWidth = 1;
-        ctx.setLineDash([]);
         ctx.beginPath(); ctx.moveTo(0, -selSize); ctx.lineTo(0, handleY + 6); ctx.stroke();
-        // Arrow icon
         ctx.fillStyle = '#ffffff';
         ctx.font = '8px sans-serif';
         ctx.textAlign = 'center';
@@ -504,22 +512,23 @@ export default function CoursePlannerPage() {
 
       ctx.restore();
 
-      // Number labels
+      // Number labels (still in MARGIN-translated space, no extra offset needed)
       if (obs.numbers.length > 0) {
         const sortedNums = [...obs.numbers].sort((a, b) => a - b);
         const numText = sortedNums.join('/');
-        const nx = obs.x + MARGIN;
         const maxDim = Math.max((info?.height || 10) / 2, (info?.width || 10) / 2, 10);
+        const nx = obs.x;
         const ny = obs.y - maxDim - 8;
+
+        ctx.font = 'bold 9px sans-serif';
         const tw = ctx.measureText(numText).width;
         const pillW = Math.max(tw + 8, 16);
+        const pillH = 14;
+        const pr = pillH / 2;
+
         ctx.fillStyle = '#ffffff';
         ctx.strokeStyle = 'hsl(0, 0%, 25%)';
         ctx.lineWidth = 1.2;
-
-        // Rounded pill
-        const pillH = 14;
-        const pr = pillH / 2;
         ctx.beginPath();
         ctx.moveTo(nx - pillW / 2 + pr, ny - pr);
         ctx.arcTo(nx + pillW / 2, ny - pr, nx + pillW / 2, ny + pr, pr);
@@ -531,7 +540,6 @@ export default function CoursePlannerPage() {
         ctx.stroke();
 
         ctx.fillStyle = 'hsl(0, 0%, 15%)';
-        ctx.font = 'bold 9px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(numText, nx, ny);
@@ -559,7 +567,6 @@ export default function CoursePlannerPage() {
       ctx.setLineDash([]);
       ctx.globalAlpha = 1;
 
-      // Arrow
       if (handlerPath.length >= 2) {
         const p1 = handlerPath[handlerPath.length - 2];
         const p2 = last;
@@ -576,14 +583,14 @@ export default function CoursePlannerPage() {
 
     // "1 ruta = 1 meter" label
     ctx.fillStyle = 'hsla(0, 0%, 100%, 0.85)';
-    ctx.fillRect(MARGIN + 4, 4, 80, 14);
+    ctx.fillRect(4, 4, 80, 14);
     ctx.fillStyle = 'hsl(0, 0%, 45%)';
     ctx.font = '8px sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('1 ruta = 1 meter', MARGIN + 8, 6);
+    ctx.fillText('1 ruta = 1 meter', 8, 6);
 
-    ctx.restore();
+    ctx.restore(); // restore MARGIN translate
   }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed]);
 
   useEffect(() => { draw(); }, [draw]);
@@ -592,10 +599,9 @@ export default function CoursePlannerPage() {
 
   const addObstacle = (type: string) => {
     const info = OBSTACLE_TYPES.find(o => o.type === type)!;
-    const isStartFinish = type === 'start' || type === 'finish';
     const newObs: Obstacle = {
       id: nextId(), type, x: canvasWidth / 2, y: canvasHeight / 2,
-      rotation: 0, label: info.label, numbers: isStartFinish ? [] : [],
+      rotation: 0, label: info.label, numbers: [],
       ...(type === 'tunnel' ? { tunnelLength: 4 as const, bendAngle: 0 } : {}),
     };
     setObstacles(prev => [...prev, newObs]);
@@ -612,7 +618,6 @@ export default function CoursePlannerPage() {
     return null;
   };
 
-  /** Check if click is on the rotation handle of the selected obstacle */
   const isOnRotationHandle = (cx: number, cy: number): boolean => {
     if (!selected) return false;
     const obs = obstacles.find(o => o.id === selected);
@@ -622,12 +627,7 @@ export default function CoursePlannerPage() {
 
     const selSize = Math.max(info.width, info.height, 20) / 2 + 6;
     const handleDist = selSize + 14;
-
-    // Handle position in world coords (need to account for rotation)
     const rad = (obs.rotation * Math.PI) / 180;
-    const hx = obs.x + Math.sin(-rad) * 0 + Math.cos(-rad) * 0; // handle is at (0, -handleDist) in local
-    const hy = obs.y;
-    // Actually we need to transform (0, -handleDist) by rotation
     const localX = 0;
     const localY = -handleDist;
     const worldX = obs.x + localX * Math.cos(rad) - localY * Math.sin(rad);
@@ -662,7 +662,6 @@ export default function CoursePlannerPage() {
   };
 
   const handlePointerDown = (e: React.MouseEvent | React.TouchEvent) => {
-    // Two-finger rotation on touch
     if ('touches' in e && e.touches.length === 2 && selected) {
       e.preventDefault();
       const angle = getTouchAngle(e);
@@ -685,7 +684,6 @@ export default function CoursePlannerPage() {
       return;
     }
 
-    // Numbering mode
     if (numberingMode) {
       const obs = findObstacleAt(pos.x, pos.y);
       if (obs) {
@@ -698,7 +696,6 @@ export default function CoursePlannerPage() {
       return;
     }
 
-    // Check rotation handle first
     if (isOnRotationHandle(pos.x, pos.y)) {
       const obs = obstacles.find(o => o.id === selected)!;
       const angle = Math.atan2(pos.y - obs.y, pos.x - obs.x) * 180 / Math.PI;
@@ -718,7 +715,6 @@ export default function CoursePlannerPage() {
   };
 
   const handlePointerMove = (e: React.MouseEvent | React.TouchEvent) => {
-    // Two-finger rotation
     if (touchRotating && 'touches' in e && e.touches.length === 2 && selected) {
       e.preventDefault();
       const angle = getTouchAngle(e);
@@ -741,7 +737,6 @@ export default function CoursePlannerPage() {
       return;
     }
 
-    // Rotation handle drag
     if (rotatingId) {
       e.preventDefault();
       const pos = getCanvasPos(e);
@@ -830,6 +825,23 @@ export default function CoursePlannerPage() {
     setObstacles(prev => prev.map(o => ({ ...o, numbers: [] })));
     setNextNumberToAssign(1);
   };
+
+  /* ───── Fullscreen ───── */
+
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      document.documentElement.requestFullscreen?.().catch(() => {});
+    } else {
+      document.exitFullscreen?.().catch(() => {});
+    }
+    setIsFullscreen(!isFullscreen);
+  };
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
 
   /* ───── Save/Load ───── */
 
@@ -963,7 +975,113 @@ export default function CoursePlannerPage() {
 
   const isPremium = usePremium();
 
+  /* ───── Obstacle palette (shared) ───── */
+
+  const obstaclePalette = (vertical: boolean) => (
+    <div className={vertical
+      ? "flex flex-col gap-1 overflow-y-auto py-1 px-0.5"
+      : "grid grid-cols-5 sm:grid-cols-7 gap-1.5"
+    }>
+      {OBSTACLE_TYPES.map(o => (
+        <button
+          key={o.type}
+          onClick={() => addObstacle(o.type)}
+          className={`flex flex-col items-center gap-0.5 rounded-lg font-medium bg-card shadow-card border border-border hover:border-primary active:scale-95 transition-all ${
+            vertical ? 'px-1 py-1 text-[9px]' : 'px-1 py-1.5 text-[10px]'
+          }`}
+        >
+          <span className={vertical ? "text-sm leading-none" : "text-base leading-none"}>{o.symbol}</span>
+          {!vertical && o.label}
+          {vertical && <span className="truncate w-full text-center">{o.label}</span>}
+        </button>
+      ))}
+    </div>
+  );
+
   /* ───── Render ───── */
+
+  const canvasElement = (
+    <canvas
+      ref={canvasRef}
+      style={{
+        width: canvasWidth + MARGIN,
+        height: canvasHeight + MARGIN,
+        touchAction: 'none',
+        display: 'block',
+        margin: '0 auto',
+        cursor: drawingMode ? 'crosshair' : numberingMode ? 'cell' : rotatingId ? 'grabbing' : dragging ? 'grabbing' : 'grab',
+        maxWidth: '100%',
+        maxHeight: showLandscapeLayout ? 'calc(100vh - 16px)' : undefined,
+      }}
+      onMouseDown={handlePointerDown}
+      onMouseMove={handlePointerMove}
+      onMouseUp={handlePointerUp}
+      onMouseLeave={handlePointerUp}
+      onTouchStart={handlePointerDown}
+      onTouchMove={handlePointerMove}
+      onTouchEnd={handlePointerUp}
+    />
+  );
+
+  // Fullscreen landscape layout
+  if (isFullscreen || showLandscapeLayout) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background flex">
+        {/* Main canvas area */}
+        <div className="flex-1 overflow-auto flex items-center justify-center p-1">
+          {canvasElement}
+        </div>
+
+        {/* Right sidebar - obstacle palette + tools */}
+        <div className="w-16 sm:w-[70px] bg-card border-l border-border flex flex-col overflow-hidden">
+          {/* Top tools */}
+          <div className="flex flex-col gap-0.5 p-1 border-b border-border">
+            <button
+              onClick={toggleFullscreen}
+              className="p-1.5 rounded hover:bg-secondary transition-colors"
+              title={isFullscreen ? 'Avsluta fullskärm' : 'Fullskärm'}
+            >
+              {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
+            </button>
+            <button
+              onClick={() => { setDrawingMode(!drawingMode); setNumberingMode(false); }}
+              className={`p-1.5 rounded transition-colors ${drawingMode ? 'bg-orange-500/15 text-orange-600' : 'hover:bg-secondary'}`}
+              title="Förarlinje"
+            >
+              <Pencil size={14} />
+            </button>
+            <button
+              onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); if (!numberingMode) setNextNumberToAssign(1); }}
+              className={`p-1.5 rounded transition-colors ${numberingMode ? 'bg-blue-500/15 text-blue-600' : 'hover:bg-secondary'}`}
+              title="Numreringsläge"
+            >
+              <Hash size={14} />
+            </button>
+            {selected && (
+              <>
+                <button onClick={rotateSelected} className="p-1.5 rounded hover:bg-secondary" title="Rotera 15°">
+                  <RotateCcw size={14} />
+                </button>
+                <button onClick={deleteSelected} className="p-1.5 rounded hover:bg-secondary text-destructive" title="Radera">
+                  <Trash2 size={14} />
+                </button>
+              </>
+            )}
+            {handlerPath.length > 0 && (
+              <button onClick={() => setHandlerPath([])} className="p-1.5 rounded hover:bg-secondary text-destructive" title="Radera linje">
+                <Eraser size={14} />
+              </button>
+            )}
+          </div>
+
+          {/* Obstacle palette */}
+          <div className="flex-1 overflow-y-auto">
+            {obstaclePalette(true)}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -1046,6 +1164,10 @@ export default function CoursePlannerPage() {
           </DialogContent>
         </Dialog>
 
+        <Button variant="outline" size="sm" className="gap-1 h-8" onClick={toggleFullscreen} title="Fullskärm">
+          <Maximize size={14} />
+        </Button>
+
         <Button variant="outline" size="sm" onClick={() => { setObstacles([]); setSelected(null); setHandlerPath([]); setNumberingMode(false); setNextNumberToAssign(1); }} className="gap-1 h-8 ml-auto">
           Rensa
         </Button>
@@ -1066,7 +1188,6 @@ export default function CoursePlannerPage() {
 
         <div className="h-4 w-px bg-border mx-1" />
 
-        {/* Drawing mode */}
         <button
           onClick={() => { setDrawingMode(!drawingMode); setNumberingMode(false); if (drawingMode) setIsDrawing(false); }}
           className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${drawingMode ? 'bg-orange-500/15 border-orange-500 text-orange-600' : 'bg-secondary border-border text-muted-foreground'}`}
@@ -1074,7 +1195,6 @@ export default function CoursePlannerPage() {
           <Pencil size={10} /> {drawingMode ? 'Rita: PÅ' : 'Förarlinje'}
         </button>
 
-        {/* Handler line options */}
         {(drawingMode || handlerPath.length > 0) && (
           <>
             <Select value={handlerColor} onValueChange={setHandlerColor}>
@@ -1110,7 +1230,6 @@ export default function CoursePlannerPage() {
 
         <div className="h-4 w-px bg-border mx-1" />
 
-        {/* Numbering mode */}
         <button
           onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); if (!numberingMode) setNextNumberToAssign(1); }}
           className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${numberingMode ? 'bg-blue-500/15 border-blue-500 text-blue-600' : 'bg-secondary border-border text-muted-foreground'}`}
@@ -1150,7 +1269,6 @@ export default function CoursePlannerPage() {
             <Trash2 size={14} />
           </Button>
 
-          {/* Multi-number control */}
           <div className="flex items-center gap-1 ml-2">
             <span className="text-[10px] text-muted-foreground">Nr:</span>
             {selectedObs.numbers.length > 0 && (
@@ -1181,7 +1299,6 @@ export default function CoursePlannerPage() {
             </Button>
           </div>
 
-          {/* Tunnel controls */}
           {selectedObs.type === 'tunnel' && (
             <>
               <div className="flex items-center gap-1 ml-2">
@@ -1206,33 +1323,12 @@ export default function CoursePlannerPage() {
 
       {/* Canvas */}
       <div className="bg-card rounded-xl shadow-elevated overflow-auto mb-3">
-        <canvas
-          ref={canvasRef}
-          style={{ width: canvasWidth + MARGIN, height: canvasHeight + MARGIN, touchAction: 'none', display: 'block', margin: '0 auto', cursor: drawingMode ? 'crosshair' : numberingMode ? 'cell' : rotatingId ? 'grabbing' : dragging ? 'grabbing' : 'grab' }}
-          onMouseDown={handlePointerDown}
-          onMouseMove={handlePointerMove}
-          onMouseUp={handlePointerUp}
-          onMouseLeave={handlePointerUp}
-          onTouchStart={handlePointerDown}
-          onTouchMove={handlePointerMove}
-          onTouchEnd={handlePointerUp}
-        />
+        {canvasElement}
       </div>
 
-      {/* Quick-select obstacle palette */}
+      {/* Quick-select obstacle palette (portrait/desktop) */}
       <div className="sticky bottom-16 bg-background/95 backdrop-blur-sm border-t border-border pt-2 pb-2 -mx-4 px-4 rounded-t-xl shadow-elevated z-10">
-        <div className="grid grid-cols-5 sm:grid-cols-7 gap-1.5">
-          {OBSTACLE_TYPES.map(o => (
-            <button
-              key={o.type}
-              onClick={() => addObstacle(o.type)}
-              className="flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-lg text-[10px] font-medium bg-card shadow-card border border-border hover:border-primary active:scale-95 transition-all"
-            >
-              <span className="text-base leading-none">{o.symbol}</span>
-              {o.label}
-            </button>
-          ))}
-        </div>
+        {obstaclePalette(false)}
       </div>
 
       <p className="text-xs text-muted-foreground text-center mt-2">

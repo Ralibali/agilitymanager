@@ -302,28 +302,26 @@ export default function CoursePlannerPage() {
     const length = lengthM * PX_PER_METER;
     const bendAngle = obs.bendAngle || 0;
     const tubeWidth = 0.6 * PX_PER_METER;
+    const h = getHue('tunnel');
 
     if (Math.abs(bendAngle) < 5) {
-      // Straight tunnel
-      ctx.strokeStyle = 'hsl(152, 50%, 35%)';
+      ctx.strokeStyle = `hsl(${h}, 50%, 35%)`;
       ctx.lineWidth = tubeWidth;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(0, -length / 2);
       ctx.lineTo(0, length / 2);
       ctx.stroke();
-      ctx.strokeStyle = 'hsl(152, 40%, 55%)';
+      ctx.strokeStyle = `hsl(${h}, 40%, 55%)`;
       ctx.lineWidth = tubeWidth - 4;
       ctx.beginPath();
       ctx.moveTo(0, -length / 2);
       ctx.lineTo(0, length / 2);
       ctx.stroke();
-      // Entry/exit dots
-      ctx.fillStyle = 'hsl(152, 60%, 25%)';
+      ctx.fillStyle = `hsl(${h}, 60%, 25%)`;
       ctx.beginPath(); ctx.arc(0, -length / 2, 4, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.arc(0, length / 2, 4, 0, Math.PI * 2); ctx.fill();
     } else {
-      // Curved tunnel
       const bendRad = (bendAngle * Math.PI) / 180;
       const radius = length / Math.abs(bendRad);
       const cx = bendAngle > 0 ? radius : -radius;
@@ -331,22 +329,19 @@ export default function CoursePlannerPage() {
       const endAngle = startAngle - bendRad;
       const ccw = bendAngle > 0;
 
-      // Outer wall
-      ctx.strokeStyle = 'hsl(152, 50%, 35%)';
+      ctx.strokeStyle = `hsl(${h}, 50%, 35%)`;
       ctx.lineWidth = tubeWidth;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.arc(cx, 0, radius, startAngle, endAngle, ccw);
       ctx.stroke();
-      // Inner wall (lighter)
-      ctx.strokeStyle = 'hsl(152, 40%, 55%)';
+      ctx.strokeStyle = `hsl(${h}, 40%, 55%)`;
       ctx.lineWidth = tubeWidth - 4;
       ctx.beginPath();
       ctx.arc(cx, 0, radius, startAngle, endAngle, ccw);
       ctx.stroke();
 
-      // Entry/exit dots
-      ctx.fillStyle = 'hsl(152, 60%, 25%)';
+      ctx.fillStyle = `hsl(${h}, 60%, 25%)`;
       const entryX = cx + radius * Math.cos(startAngle);
       const entryY = radius * Math.sin(startAngle);
       const exitX = cx + radius * Math.cos(endAngle);

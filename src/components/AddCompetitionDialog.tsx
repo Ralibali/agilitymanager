@@ -87,13 +87,12 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
               <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
             </div>
             <div>
-              <Label>Gren</Label>
+              <Label>Klass</Label>
               <Select value={discipline} onValueChange={v => setDiscipline(v as Discipline)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Agility">Agility</SelectItem>
-                  <SelectItem value="Jumping">Jumping</SelectItem>
-                  <SelectItem value="Nollklass">Nollklass</SelectItem>
+                  <SelectItem value="Jumping">Hopp</SelectItem>
                 </SelectContent>
               </Select>
             </div>

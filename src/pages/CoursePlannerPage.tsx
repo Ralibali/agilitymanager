@@ -1189,7 +1189,8 @@ export default function CoursePlannerPage() {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) return;
     const { error } = await supabase.from('saved_courses').insert({
-      user_id: userId, name: courseName.trim(), course_data: { obstacles, handlerPath } as any,
+      user_id: userId, name: courseName.trim(),
+      course_data: { obstacles, handlerPath, themeId: activeThemeId, customOverrides } as any,
       canvas_width: canvasWidth, canvas_height: canvasHeight,
     });
     if (error) { toast.error('Kunde inte spara'); }
@@ -1213,6 +1214,18 @@ export default function CoursePlannerPage() {
     }
     setObstacles(loadedObstacles);
     setHandlerPath(loadedPath);
+    // Restore color theme if saved
+    if (data.themeId) {
+      setActiveThemeId(data.themeId);
+      saveActiveThemeId(data.themeId);
+    }
+    if (data.customOverrides && typeof data.customOverrides === 'object') {
+      setCustomOverrides(data.customOverrides);
+      saveCustomOverrides(data.customOverrides);
+    } else if (data.themeId) {
+      setCustomOverrides({});
+      saveCustomOverrides({});
+    }
     if (course.canvas_width && course.canvas_height) {
       const match = CANVAS_SIZES.find(s => s.width === course.canvas_width && s.height === course.canvas_height);
       if (match) setCanvasSize(match);

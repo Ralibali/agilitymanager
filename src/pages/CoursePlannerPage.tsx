@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
+import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2 } from 'lucide-react';
+import ShareCourseDialog from '@/components/course-planner/ShareCourseDialog';
 import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -191,6 +192,8 @@ export default function CoursePlannerPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
+  const [shareOpen, setShareOpen] = useState(false);
+  const [loadedCourseId, setLoadedCourseId] = useState<string | null>(null);
   const isLandscape = useIsLandscape();
   const showLandscapeLayout = isMobile && isLandscape;
 
@@ -1103,6 +1106,7 @@ export default function CoursePlannerPage() {
       if (match) setCanvasSize(match);
     }
     setLoadOpen(false);
+    setLoadedCourseId(course.id);
     toast.success(`Laddade "${course.name}"`);
   };
 
@@ -1428,6 +1432,17 @@ export default function CoursePlannerPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        <Button variant="outline" size="sm" className="gap-1 h-8" disabled={savedCourses.length === 0} onClick={() => setShareOpen(true)}>
+          <Share2 size={14} /> Dela
+        </Button>
+
+        <ShareCourseDialog
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          savedCourses={savedCourses}
+          currentCourseId={loadedCourseId}
+        />
 
         <Dialog open={loadOpen} onOpenChange={setLoadOpen}>
           <DialogTrigger asChild>

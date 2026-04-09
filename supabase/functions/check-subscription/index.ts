@@ -44,6 +44,21 @@ serve(async (req) => {
 
     if (customers.data.length === 0) {
       logStep("No customer found");
+      // Still check 7-day free trial for new users without a Stripe customer
+      const createdAt = new Date(user.created_at);
+      const now = new Date();
+      const diffDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+      if (diffDays <= 7) {
+        const trialEnd = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
+        logStep("User is in 7-day free trial (no Stripe customer)", { createdAt: user.created_at, daysLeft: Math.ceil(7 - diffDays) });
+        return new Response(JSON.stringify({
+          subscribed: true, is_trial: true,
+          subscription_end: trialEnd.toISOString(),
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
       return new Response(JSON.stringify({ subscribed: false }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

@@ -7,12 +7,14 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize } from 'lucide-react';
+import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 /* ───── Types ───── */
+
+type NumberEntry = { num: number; color: string };
 
 type Obstacle = {
   id: string;
@@ -22,6 +24,7 @@ type Obstacle = {
   rotation: number;
   label: string;
   numbers: number[];
+  colorNumbers?: NumberEntry[];
   tunnelLength?: 4 | 6;
   bendAngle?: number;
   number?: number;
@@ -56,7 +59,6 @@ const OBSTACLE_TYPES = [
   { type: 'balance',   label: 'Balans',   symbol: '─', width: 3.6 * PX_PER_METER, height: 0.3 * PX_PER_METER },
   { type: 'weave',     label: 'Slalom',   symbol: '⫶', width: 6.6 * PX_PER_METER, height: 0.3 * PX_PER_METER },
   { type: 'tire',      label: 'Däck',     symbol: '◯', width: 0.6 * PX_PER_METER, height: 0.6 * PX_PER_METER },
-  
   { type: 'start',     label: 'Start',    symbol: '▸', width: 1.2 * PX_PER_METER, height: 0.1 * PX_PER_METER },
   { type: 'finish',    label: 'Mål',      symbol: '◼', width: 1.2 * PX_PER_METER, height: 0.1 * PX_PER_METER },
 ];
@@ -76,31 +78,40 @@ const HANDLER_COLORS = [
   { label: 'Lila', value: 'hsl(270, 60%, 50%)' },
 ];
 
+const NUMBERING_COLORS = [
+  { label: 'Grön', value: '#22c55e', emoji: '🟢' },
+  { label: 'Gul', value: '#eab308', emoji: '🟡' },
+  { label: 'Blå', value: '#3b82f6', emoji: '🔵' },
+  { label: 'Röd', value: '#ef4444', emoji: '🔴' },
+  { label: 'Orange', value: '#f97316', emoji: '🟠' },
+  { label: 'Vit', value: '#e5e5e5', emoji: '⚪' },
+];
+
 const PRESET_COURSES: { name: string; obstacles: Obstacle[] }[] = [
   {
     name: 'Nybörjarbana (6 hinder)',
     obstacles: [
-      { id: 'p1', type: 'start', x: 200, y: 700, rotation: 0, label: 'Start', numbers: [] },
-      { id: 'p2', type: 'jump', x: 200, y: 600, rotation: 0, label: 'Hopp', numbers: [1] },
-      { id: 'p3', type: 'tunnel', x: 200, y: 480, rotation: 0, label: 'Tunnel', numbers: [2], tunnelLength: 4, bendAngle: 0 },
-      { id: 'p4', type: 'jump', x: 140, y: 350, rotation: 45, label: 'Hopp', numbers: [3] },
-      { id: 'p5', type: 'weave', x: 250, y: 220, rotation: 0, label: 'Slalom', numbers: [4] },
-      { id: 'p6', type: 'jump', x: 300, y: 120, rotation: 0, label: 'Hopp', numbers: [5] },
-      { id: 'p7', type: 'finish', x: 200, y: 40, rotation: 0, label: 'Mål', numbers: [] },
+      { id: 'p1', type: 'start', x: 200, y: 700, rotation: 0, label: 'Start', numbers: [], colorNumbers: [] },
+      { id: 'p2', type: 'jump', x: 200, y: 600, rotation: 0, label: 'Hopp', numbers: [1], colorNumbers: [{ num: 1, color: '#22c55e' }] },
+      { id: 'p3', type: 'tunnel', x: 200, y: 480, rotation: 0, label: 'Tunnel', numbers: [2], colorNumbers: [{ num: 2, color: '#22c55e' }], tunnelLength: 4, bendAngle: 0 },
+      { id: 'p4', type: 'jump', x: 140, y: 350, rotation: 45, label: 'Hopp', numbers: [3], colorNumbers: [{ num: 3, color: '#22c55e' }] },
+      { id: 'p5', type: 'weave', x: 250, y: 220, rotation: 0, label: 'Slalom', numbers: [4], colorNumbers: [{ num: 4, color: '#22c55e' }] },
+      { id: 'p6', type: 'jump', x: 300, y: 120, rotation: 0, label: 'Hopp', numbers: [5], colorNumbers: [{ num: 5, color: '#22c55e' }] },
+      { id: 'p7', type: 'finish', x: 200, y: 40, rotation: 0, label: 'Mål', numbers: [], colorNumbers: [] },
     ],
   },
   {
     name: 'Kontaktbana (8 hinder)',
     obstacles: [
-      { id: 'c1', type: 'start', x: 100, y: 720, rotation: 0, label: 'Start', numbers: [] },
-      { id: 'c2', type: 'jump', x: 100, y: 620, rotation: 0, label: 'Hopp', numbers: [1] },
-      { id: 'c3', type: 'a_frame', x: 200, y: 500, rotation: 0, label: 'A-hinder', numbers: [2] },
-      { id: 'c4', type: 'tunnel', x: 320, y: 380, rotation: 90, label: 'Tunnel', numbers: [3], tunnelLength: 6, bendAngle: 45 },
-      { id: 'c5', type: 'dog_walk', x: 200, y: 280, rotation: 0, label: 'Brygga', numbers: [4] },
-      { id: 'c6', type: 'seesaw', x: 120, y: 180, rotation: 0, label: 'Vipp', numbers: [5] },
-      { id: 'c7', type: 'jump', x: 260, y: 120, rotation: 30, label: 'Hopp', numbers: [6] },
-      { id: 'c8', type: 'weave', x: 300, y: 60, rotation: 0, label: 'Slalom', numbers: [7] },
-      { id: 'c9', type: 'finish', x: 300, y: 20, rotation: 0, label: 'Mål', numbers: [] },
+      { id: 'c1', type: 'start', x: 100, y: 720, rotation: 0, label: 'Start', numbers: [], colorNumbers: [] },
+      { id: 'c2', type: 'jump', x: 100, y: 620, rotation: 0, label: 'Hopp', numbers: [1], colorNumbers: [{ num: 1, color: '#22c55e' }] },
+      { id: 'c3', type: 'a_frame', x: 200, y: 500, rotation: 0, label: 'A-hinder', numbers: [2], colorNumbers: [{ num: 2, color: '#22c55e' }] },
+      { id: 'c4', type: 'tunnel', x: 320, y: 380, rotation: 90, label: 'Tunnel', numbers: [3], colorNumbers: [{ num: 3, color: '#22c55e' }], tunnelLength: 6, bendAngle: 45 },
+      { id: 'c5', type: 'dog_walk', x: 200, y: 280, rotation: 0, label: 'Brygga', numbers: [4], colorNumbers: [{ num: 4, color: '#22c55e' }] },
+      { id: 'c6', type: 'seesaw', x: 120, y: 180, rotation: 0, label: 'Vipp', numbers: [5], colorNumbers: [{ num: 5, color: '#22c55e' }] },
+      { id: 'c7', type: 'jump', x: 260, y: 120, rotation: 30, label: 'Hopp', numbers: [6], colorNumbers: [{ num: 6, color: '#22c55e' }] },
+      { id: 'c8', type: 'weave', x: 300, y: 60, rotation: 0, label: 'Slalom', numbers: [7], colorNumbers: [{ num: 7, color: '#22c55e' }] },
+      { id: 'c9', type: 'finish', x: 300, y: 20, rotation: 0, label: 'Mål', numbers: [], colorNumbers: [] },
     ],
   },
 ];
@@ -109,10 +120,9 @@ let idCounter = 0;
 const nextId = () => `obs_${++idCounter}_${Date.now()}`;
 
 function migrateObstacle(o: any): Obstacle {
-  if (o.numbers && Array.isArray(o.numbers)) return o;
-  const nums: number[] = [];
-  if (typeof o.number === 'number' && o.number > 0) nums.push(o.number);
-  return { ...o, numbers: nums, number: undefined };
+  const nums: number[] = o.numbers && Array.isArray(o.numbers) ? o.numbers : (typeof o.number === 'number' && o.number > 0 ? [o.number] : []);
+  const colorNums: NumberEntry[] = o.colorNumbers && Array.isArray(o.colorNumbers) ? o.colorNumbers : nums.map(n => ({ num: n, color: '#22c55e' }));
+  return { ...o, numbers: nums, colorNumbers: colorNums, number: undefined };
 }
 
 /* ───── Hook: landscape detection ───── */
@@ -137,6 +147,7 @@ function useIsLandscape() {
 
 export default function CoursePlannerPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [obstacles, setObstacles] = useState<Obstacle[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
@@ -156,6 +167,8 @@ export default function CoursePlannerPage() {
 
   const [numberingMode, setNumberingMode] = useState(false);
   const [nextNumberToAssign, setNextNumberToAssign] = useState(1);
+  const [numberingColor, setNumberingColor] = useState(NUMBERING_COLORS[0].value);
+  const [numberingHistory, setNumberingHistory] = useState<{ obsId: string; num: number; color: string }[]>([]);
 
   const [rotatingId, setRotatingId] = useState<string | null>(null);
   const [rotateStart, setRotateStart] = useState({ angle: 0, obsRotation: 0 });
@@ -165,6 +178,16 @@ export default function CoursePlannerPage() {
 
   const [numberInput, setNumberInput] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Zoom & Pan state
+  const [zoom, setZoom] = useState(1);
+  const [panX, setPanX] = useState(0);
+  const [panY, setPanY] = useState(0);
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0, panX: 0, panY: 0 });
+  const [pinchStartDist, setPinchStartDist] = useState(0);
+  const [pinchStartZoom, setPinchStartZoom] = useState(1);
+  const lastTapRef = useRef(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
@@ -178,7 +201,7 @@ export default function CoursePlannerPage() {
   // Portrait toast
   useEffect(() => {
     if (isMobile && !isLandscape) {
-      const t = toast('📐 Vänd telefonen för bästa upplevelse', { duration: 3000 });
+      toast('📐 Vänd telefonen för bästa upplevelse', { duration: 3000 });
     }
   }, []);
 
@@ -187,6 +210,31 @@ export default function CoursePlannerPage() {
       if (data) setSavedCourses(data as unknown as SavedCourse[]);
     });
   }, []);
+
+  // Fit-to-screen on mount
+  useEffect(() => {
+    fitToScreen();
+  }, [canvasWidth, canvasHeight]);
+
+  const fitToScreen = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) {
+      setZoom(0.75);
+      setPanX(0);
+      setPanY(0);
+      return;
+    }
+    const cw = container.clientWidth;
+    const ch = container.clientHeight || 500;
+    const totalW = canvasWidth + MARGIN;
+    const totalH = canvasHeight + MARGIN;
+    const zx = cw / totalW;
+    const zy = ch / totalH;
+    const z = Math.min(zx, zy, 1) * 0.95;
+    setZoom(z);
+    setPanX((cw - totalW * z) / 2);
+    setPanY((ch - totalH * z) / 2);
+  }, [canvasWidth, canvasHeight]);
 
   const selectedObs = obstacles.find(o => o.id === selected);
 
@@ -288,7 +336,7 @@ export default function CoursePlannerPage() {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvasWidth, y); ctx.stroke();
     }
 
-    // Coordinate labels (in MARGIN space - need to go left of 0)
+    // Coordinate labels
     ctx.fillStyle = 'hsl(0, 0%, 50%)';
     ctx.font = '8px sans-serif';
     ctx.textAlign = 'center';
@@ -321,9 +369,11 @@ export default function CoursePlannerPage() {
     ctx.fillText('5 m', scaleX + 2.5 * PX_PER_METER, scaleY - 3);
 
     // Distance lines between numbered obstacles
-    const numberedObs = obstacles.filter(o => o.numbers.length > 0).sort((a, b) => {
-      const aMin = Math.min(...a.numbers);
-      const bMin = Math.min(...b.numbers);
+    const numberedObs = obstacles.filter(o => (o.colorNumbers || o.numbers || []).length > 0).sort((a, b) => {
+      const aNums = a.colorNumbers?.length ? a.colorNumbers : a.numbers.map(n => ({ num: n, color: '#22c55e' }));
+      const bNums = b.colorNumbers?.length ? b.colorNumbers : b.numbers.map(n => ({ num: n, color: '#22c55e' }));
+      const aMin = Math.min(...aNums.map(e => e.num));
+      const bMin = Math.min(...bNums.map(e => e.num));
       return aMin - bMin;
     });
 
@@ -379,16 +429,6 @@ export default function CoursePlannerPage() {
         ctx.strokeStyle = 'hsl(200, 40%, 55%)';
         ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2); ctx.stroke();
-      } else if (obs.type === 'table') {
-        ctx.fillStyle = 'hsl(45, 60%, 75%)';
-        ctx.fillRect(-hw, -hh, info.width, info.height);
-        ctx.strokeStyle = 'hsl(45, 50%, 55%)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(-hw, -hh, info.width, info.height);
-        ctx.strokeStyle = 'hsl(45, 40%, 60%)';
-        ctx.lineWidth = 0.5;
-        ctx.beginPath(); ctx.moveTo(-hw, -hh); ctx.lineTo(hw, hh); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(hw, -hh); ctx.lineTo(-hw, hh); ctx.stroke();
       } else if (obs.type === 'a_frame') {
         ctx.strokeStyle = 'hsl(16, 80%, 45%)';
         ctx.lineWidth = 3;
@@ -512,37 +552,48 @@ export default function CoursePlannerPage() {
 
       ctx.restore();
 
-      // Number labels (still in MARGIN-translated space, no extra offset needed)
-      if (obs.numbers.length > 0) {
-        const sortedNums = [...obs.numbers].sort((a, b) => a - b);
-        const numText = sortedNums.join('/');
+      // Color number labels
+      const entries: NumberEntry[] = obs.colorNumbers?.length ? obs.colorNumbers : obs.numbers.map(n => ({ num: n, color: '#22c55e' }));
+      if (entries.length > 0) {
+        // Group by color
+        const byColor = new Map<string, number[]>();
+        for (const e of entries) {
+          if (!byColor.has(e.color)) byColor.set(e.color, []);
+          byColor.get(e.color)!.push(e.num);
+        }
+
         const maxDim = Math.max((info?.height || 10) / 2, (info?.width || 10) / 2, 10);
-        const nx = obs.x;
-        const ny = obs.y - maxDim - 8;
+        let offsetIdx = 0;
+        for (const [color, nums] of byColor) {
+          const sortedNums = [...nums].sort((a, b) => a - b);
+          const numText = sortedNums.join('/');
+          const nx = obs.x;
+          const ny = obs.y - maxDim - 8 - offsetIdx * 16;
 
-        ctx.font = 'bold 9px sans-serif';
-        const tw = ctx.measureText(numText).width;
-        const pillW = Math.max(tw + 8, 16);
-        const pillH = 14;
-        const pr = pillH / 2;
+          ctx.font = 'bold 9px sans-serif';
+          const tw = ctx.measureText(numText).width;
+          const pillW = Math.max(tw + 8, 16);
+          const pillH = 14;
+          const pr = pillH / 2;
 
-        ctx.fillStyle = '#ffffff';
-        ctx.strokeStyle = 'hsl(0, 0%, 25%)';
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(nx - pillW / 2 + pr, ny - pr);
-        ctx.arcTo(nx + pillW / 2, ny - pr, nx + pillW / 2, ny + pr, pr);
-        ctx.arcTo(nx + pillW / 2, ny + pr, nx - pillW / 2, ny + pr, pr);
-        ctx.arcTo(nx - pillW / 2, ny + pr, nx - pillW / 2, ny - pr, pr);
-        ctx.arcTo(nx - pillW / 2, ny - pr, nx + pillW / 2, ny - pr, pr);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.moveTo(nx - pillW / 2 + pr, ny - pr);
+          ctx.arcTo(nx + pillW / 2, ny - pr, nx + pillW / 2, ny + pr, pr);
+          ctx.arcTo(nx + pillW / 2, ny + pr, nx - pillW / 2, ny + pr, pr);
+          ctx.arcTo(nx - pillW / 2, ny + pr, nx - pillW / 2, ny - pr, pr);
+          ctx.arcTo(nx - pillW / 2, ny - pr, nx + pillW / 2, ny - pr, pr);
+          ctx.closePath();
+          ctx.fill();
 
-        ctx.fillStyle = 'hsl(0, 0%, 15%)';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(numText, nx, ny);
+          // Text color: white on dark colors, black on light
+          const isLight = color === '#eab308' || color === '#e5e5e5';
+          ctx.fillStyle = isLight ? '#000000' : '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(numText, nx, ny);
+          offsetIdx++;
+        }
       }
     });
 
@@ -595,13 +646,13 @@ export default function CoursePlannerPage() {
 
   useEffect(() => { draw(); }, [draw]);
 
-  /* ───── Interaction ───── */
+  /* ───── Interaction (with zoom/pan transform) ───── */
 
   const addObstacle = (type: string) => {
     const info = OBSTACLE_TYPES.find(o => o.type === type)!;
     const newObs: Obstacle = {
       id: nextId(), type, x: canvasWidth / 2, y: canvasHeight / 2,
-      rotation: 0, label: info.label, numbers: [],
+      rotation: 0, label: info.label, numbers: [], colorNumbers: [],
       ...(type === 'tunnel' ? { tunnelLength: 4 as const, bendAngle: 0 } : {}),
     };
     setObstacles(prev => [...prev, newObs]);
@@ -636,41 +687,88 @@ export default function CoursePlannerPage() {
     return Math.hypot(cx - worldX, cy - worldY) <= 12;
   };
 
-  const getCanvasPos = (e: React.TouchEvent | React.MouseEvent) => {
+  // Convert screen coords to canvas world coords (accounting for zoom/pan)
+  const getCanvasPos = (e: React.TouchEvent | React.MouseEvent | TouchEvent | MouseEvent) => {
     const canvas = canvasRef.current!;
-    const rect = canvas.getBoundingClientRect();
-    const totalW = canvasWidth + MARGIN;
-    const totalH = canvasHeight + MARGIN;
+    const container = containerRef.current;
+    if (!container) {
+      // fallback: direct canvas rect
+      const rect = canvas.getBoundingClientRect();
+      const totalW = canvasWidth + MARGIN;
+      const totalH = canvasHeight + MARGIN;
+      let clientX: number, clientY: number;
+      if ('touches' in e && (e as any).touches.length > 0) {
+        clientX = (e as any).touches[0].clientX; clientY = (e as any).touches[0].clientY;
+      } else if ('changedTouches' in e && (e as any).changedTouches.length > 0) {
+        clientX = (e as any).changedTouches[0].clientX; clientY = (e as any).changedTouches[0].clientY;
+      } else if ('clientX' in e) {
+        clientX = (e as any).clientX; clientY = (e as any).clientY;
+      } else return { x: 0, y: 0 };
+      const rawX = (clientX - rect.left) * (totalW / rect.width) - MARGIN;
+      const rawY = (clientY - rect.top) * (totalH / rect.height);
+      return { x: rawX, y: rawY };
+    }
+
+    const rect = container.getBoundingClientRect();
     let clientX: number, clientY: number;
-    if ('touches' in e && e.touches.length > 0) {
-      clientX = e.touches[0].clientX; clientY = e.touches[0].clientY;
-    } else if ('changedTouches' in e && e.changedTouches.length > 0) {
-      clientX = e.changedTouches[0].clientX; clientY = e.changedTouches[0].clientY;
+    if ('touches' in e && (e as any).touches.length > 0) {
+      clientX = (e as any).touches[0].clientX; clientY = (e as any).touches[0].clientY;
+    } else if ('changedTouches' in e && (e as any).changedTouches.length > 0) {
+      clientX = (e as any).changedTouches[0].clientX; clientY = (e as any).changedTouches[0].clientY;
     } else if ('clientX' in e) {
-      clientX = e.clientX; clientY = e.clientY;
+      clientX = (e as any).clientX; clientY = (e as any).clientY;
     } else return { x: 0, y: 0 };
-    const rawX = (clientX - rect.left) * (totalW / rect.width) - MARGIN;
-    const rawY = (clientY - rect.top) * (totalH / rect.height);
-    return { x: rawX, y: rawY };
+
+    // Screen pos relative to container
+    const sx = clientX - rect.left;
+    const sy = clientY - rect.top;
+    // Remove pan and zoom to get canvas-space coords, then remove MARGIN
+    const canvasX = (sx - panX) / zoom - MARGIN;
+    const canvasY = (sy - panY) / zoom;
+    return { x: canvasX, y: canvasY };
   };
 
-  const getTouchAngle = (e: React.TouchEvent): number | null => {
-    if (!('touches' in e) || e.touches.length < 2) return null;
-    const t0 = e.touches[0];
-    const t1 = e.touches[1];
+  const getClientPos = (e: React.TouchEvent | React.MouseEvent | TouchEvent | MouseEvent) => {
+    if ('touches' in e && (e as any).touches.length > 0) {
+      return { x: (e as any).touches[0].clientX, y: (e as any).touches[0].clientY };
+    } else if ('clientX' in e) {
+      return { x: (e as any).clientX, y: (e as any).clientY };
+    }
+    return { x: 0, y: 0 };
+  };
+
+  const getTouchDist = (e: React.TouchEvent | TouchEvent): number => {
+    if (!('touches' in e) || (e as any).touches.length < 2) return 0;
+    const t0 = (e as any).touches[0];
+    const t1 = (e as any).touches[1];
+    return Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+  };
+
+  const getTouchAngle = (e: React.TouchEvent | TouchEvent): number | null => {
+    if (!('touches' in e) || (e as any).touches.length < 2) return null;
+    const t0 = (e as any).touches[0];
+    const t1 = (e as any).touches[1];
     return Math.atan2(t1.clientY - t0.clientY, t1.clientX - t0.clientX) * 180 / Math.PI;
   };
 
   const handlePointerDown = (e: React.MouseEvent | React.TouchEvent) => {
-    if ('touches' in e && e.touches.length === 2 && selected) {
+    // Two-finger: pinch zoom + rotate
+    if ('touches' in e && e.touches.length === 2) {
       e.preventDefault();
-      const angle = getTouchAngle(e);
-      if (angle !== null) {
-        const obs = obstacles.find(o => o.id === selected);
-        if (obs) {
-          setTouchRotating(true);
-          setTouchStartAngle(angle);
-          setTouchStartRotation(obs.rotation);
+      const dist = getTouchDist(e);
+      setPinchStartDist(dist);
+      setPinchStartZoom(zoom);
+
+      // Also handle rotation if an obstacle is selected
+      if (selected) {
+        const angle = getTouchAngle(e);
+        if (angle !== null) {
+          const obs = obstacles.find(o => o.id === selected);
+          if (obs) {
+            setTouchRotating(true);
+            setTouchStartAngle(angle);
+            setTouchStartRotation(obs.rotation);
+          }
         }
       }
       return;
@@ -687,13 +785,40 @@ export default function CoursePlannerPage() {
     if (numberingMode) {
       const obs = findObstacleAt(pos.x, pos.y);
       if (obs) {
+        const newEntry: NumberEntry = { num: nextNumberToAssign, color: numberingColor };
         setObstacles(prev => prev.map(o => {
           if (o.id !== obs.id) return o;
-          return { ...o, numbers: [...o.numbers, nextNumberToAssign].sort((a, b) => a - b) };
+          const newColorNums = [...(o.colorNumbers || []), newEntry];
+          const newNums = [...new Set(newColorNums.map(e => e.num))].sort((a, b) => a - b);
+          return { ...o, colorNumbers: newColorNums, numbers: newNums };
         }));
+        setNumberingHistory(prev => [...prev, { obsId: obs.id, num: nextNumberToAssign, color: numberingColor }]);
         setNextNumberToAssign(prev => prev + 1);
       }
       return;
+    }
+
+    // Double tap = zoom to 100%
+    if ('touches' in e && e.touches.length === 1) {
+      const now = Date.now();
+      if (now - lastTapRef.current < 300) {
+        // Double tap
+        if (Math.abs(zoom - 1) < 0.05) {
+          fitToScreen();
+        } else {
+          setZoom(1);
+          const client = getClientPos(e);
+          const container = containerRef.current;
+          if (container) {
+            const rect = container.getBoundingClientRect();
+            setPanX(rect.width / 2 - (client.x - rect.left));
+            setPanY(rect.height / 2 - (client.y - rect.top));
+          }
+        }
+        lastTapRef.current = 0;
+        return;
+      }
+      lastTapRef.current = now;
     }
 
     if (isOnRotationHandle(pos.x, pos.y)) {
@@ -711,18 +836,30 @@ export default function CoursePlannerPage() {
       setDragOffset({ x: pos.x - obs.x, y: pos.y - obs.y });
     } else {
       setSelected(null);
+      // Start panning
+      const client = getClientPos(e);
+      setIsPanning(true);
+      setPanStart({ x: client.x, y: client.y, panX, panY });
     }
   };
 
   const handlePointerMove = (e: React.MouseEvent | React.TouchEvent) => {
-    if (touchRotating && 'touches' in e && e.touches.length === 2 && selected) {
+    // Two-finger pinch zoom + rotation
+    if ('touches' in e && e.touches.length === 2) {
       e.preventDefault();
-      const angle = getTouchAngle(e);
-      if (angle !== null) {
-        const delta = angle - touchStartAngle;
-        setObstacles(prev => prev.map(o =>
-          o.id === selected ? { ...o, rotation: (touchStartRotation + delta + 360) % 360 } : o
-        ));
+      const dist = getTouchDist(e);
+      if (pinchStartDist > 0) {
+        const newZoom = Math.max(0.2, Math.min(3, pinchStartZoom * (dist / pinchStartDist)));
+        setZoom(newZoom);
+      }
+      if (touchRotating && selected) {
+        const angle = getTouchAngle(e);
+        if (angle !== null) {
+          const delta = angle - touchStartAngle;
+          setObstacles(prev => prev.map(o =>
+            o.id === selected ? { ...o, rotation: (touchStartRotation + delta + 360) % 360 } : o
+          ));
+        }
       }
       return;
     }
@@ -751,12 +888,22 @@ export default function CoursePlannerPage() {
       return;
     }
 
-    if (!dragging) return;
-    e.preventDefault();
-    const pos = getCanvasPos(e);
-    setObstacles(prev => prev.map(o =>
-      o.id === dragging ? { ...o, x: pos.x - dragOffset.x, y: pos.y - dragOffset.y } : o
-    ));
+    if (dragging) {
+      e.preventDefault();
+      const pos = getCanvasPos(e);
+      setObstacles(prev => prev.map(o =>
+        o.id === dragging ? { ...o, x: pos.x - dragOffset.x, y: pos.y - dragOffset.y } : o
+      ));
+      return;
+    }
+
+    if (isPanning) {
+      e.preventDefault();
+      const client = getClientPos(e);
+      setPanX(panStart.panX + (client.x - panStart.x));
+      setPanY(panStart.panY + (client.y - panStart.y));
+      return;
+    }
   };
 
   const handlePointerUp = () => {
@@ -764,7 +911,48 @@ export default function CoursePlannerPage() {
     setIsDrawing(false);
     setRotatingId(null);
     setTouchRotating(false);
+    setIsPanning(false);
+    setPinchStartDist(0);
   };
+
+  // Mouse wheel zoom
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault();
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.max(0.2, Math.min(3, zoom * delta));
+
+    // Zoom towards mouse position
+    const wx = (mx - panX) / zoom;
+    const wy = (my - panY) / zoom;
+    setPanX(mx - wx * newZoom);
+    setPanY(my - wy * newZoom);
+    setZoom(newZoom);
+  }, [zoom, panX, panY]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheel);
+  }, [handleWheel]);
+
+  // Keyboard shortcut: Ctrl+0 = fit
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+        e.preventDefault();
+        fitToScreen();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [fitToScreen]);
 
   const rotateSelected = () => {
     if (!selected) return;
@@ -784,7 +972,8 @@ export default function CoursePlannerPage() {
     setObstacles(prev => prev.map(o => {
       if (o.id !== selected) return o;
       if (o.numbers.includes(num)) return o;
-      return { ...o, numbers: [...o.numbers, num].sort((a, b) => a - b) };
+      const newColorNums = [...(o.colorNumbers || []), { num, color: '#22c55e' }];
+      return { ...o, numbers: [...o.numbers, num].sort((a, b) => a - b), colorNumbers: newColorNums };
     }));
   };
 
@@ -792,7 +981,11 @@ export default function CoursePlannerPage() {
     if (!selected) return;
     setObstacles(prev => prev.map(o => {
       if (o.id !== selected) return o;
-      return { ...o, numbers: o.numbers.filter(n => n !== num) };
+      return {
+        ...o,
+        numbers: o.numbers.filter(n => n !== num),
+        colorNumbers: (o.colorNumbers || []).filter(e => e.num !== num),
+      };
     }));
   };
 
@@ -822,8 +1015,35 @@ export default function CoursePlannerPage() {
   };
 
   const clearNumbering = () => {
-    setObstacles(prev => prev.map(o => ({ ...o, numbers: [] })));
+    setObstacles(prev => prev.map(o => ({ ...o, numbers: [], colorNumbers: [] })));
     setNextNumberToAssign(1);
+    setNumberingHistory([]);
+  };
+
+  const clearColorNumbering = (color: string) => {
+    setObstacles(prev => prev.map(o => {
+      const newColorNums = (o.colorNumbers || []).filter(e => e.color !== color);
+      const newNums = [...new Set(newColorNums.map(e => e.num))].sort((a, b) => a - b);
+      return { ...o, colorNumbers: newColorNums, numbers: newNums };
+    }));
+    setNumberingHistory(prev => prev.filter(h => h.color !== color));
+  };
+
+  const undoLastNumber = () => {
+    if (numberingHistory.length === 0) return;
+    const last = numberingHistory[numberingHistory.length - 1];
+    setObstacles(prev => prev.map(o => {
+      if (o.id !== last.obsId) return o;
+      // Remove the last occurrence of this num+color
+      const idx = (o.colorNumbers || []).findLastIndex(e => e.num === last.num && e.color === last.color);
+      if (idx < 0) return o;
+      const newColorNums = [...(o.colorNumbers || [])];
+      newColorNums.splice(idx, 1);
+      const newNums = [...new Set(newColorNums.map(e => e.num))].sort((a, b) => a - b);
+      return { ...o, colorNumbers: newColorNums, numbers: newNums };
+    }));
+    setNumberingHistory(prev => prev.slice(0, -1));
+    setNextNumberToAssign(prev => Math.max(1, prev - 1));
   };
 
   /* ───── Fullscreen ───── */
@@ -998,7 +1218,71 @@ export default function CoursePlannerPage() {
     </div>
   );
 
-  /* ───── Render ───── */
+  /* ───── Numbering toolbar (shared) ───── */
+
+  const numberingToolbar = (compact: boolean) => (
+    <div className={`flex ${compact ? 'flex-col gap-1 p-1' : 'gap-1.5 items-center flex-wrap'}`}>
+      <div className={`flex ${compact ? 'flex-wrap gap-0.5' : 'gap-1'} items-center`}>
+        {NUMBERING_COLORS.map(c => (
+          <button
+            key={c.value}
+            onClick={() => setNumberingColor(c.value)}
+            className={`w-5 h-5 rounded-full border-2 transition-all ${numberingColor === c.value ? 'border-foreground scale-110' : 'border-transparent'}`}
+            style={{ backgroundColor: c.value }}
+            title={c.label}
+          />
+        ))}
+      </div>
+      <span className={`${compact ? 'text-[9px]' : 'text-xs'} font-medium text-foreground`}>
+        Nästa: {nextNumberToAssign}
+      </span>
+      <button onClick={undoLastNumber} disabled={numberingHistory.length === 0}
+        className={`${compact ? 'text-[9px] px-1 py-0.5' : 'text-xs px-2 py-0.5'} rounded-full border border-border text-muted-foreground hover:text-foreground disabled:opacity-30 flex items-center gap-0.5`}>
+        <Undo2 size={compact ? 8 : 10} /> Ångra
+      </button>
+      <button onClick={clearNumbering}
+        className={`${compact ? 'text-[9px] px-1 py-0.5' : 'text-xs px-2 py-0.5'} rounded-full border border-border text-muted-foreground hover:text-destructive`}>
+        Rensa alla
+      </button>
+      {!compact && (
+        <div className="flex gap-1">
+          {NUMBERING_COLORS.filter(c => {
+            return obstacles.some(o => (o.colorNumbers || []).some(e => e.color === c.value));
+          }).map(c => (
+            <button key={c.value} onClick={() => clearColorNumbering(c.value)}
+              className="text-[10px] px-1.5 py-0.5 rounded-full border border-border text-muted-foreground hover:text-destructive flex items-center gap-0.5">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c.value }} />
+              ✕
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  /* ───── Zoom controls (shared) ───── */
+
+  const zoomControls = (compact: boolean) => (
+    <div className={`flex ${compact ? 'flex-col' : ''} items-center gap-0.5`}>
+      <button onClick={() => setZoom(z => Math.min(3, z * 1.2))}
+        className="p-1 rounded hover:bg-secondary transition-colors" title="Zooma in">
+        <ZoomIn size={compact ? 12 : 14} />
+      </button>
+      <span className={`${compact ? 'text-[8px]' : 'text-[10px]'} text-muted-foreground font-medium`}>
+        {Math.round(zoom * 100)}%
+      </span>
+      <button onClick={() => setZoom(z => Math.max(0.2, z * 0.8))}
+        className="p-1 rounded hover:bg-secondary transition-colors" title="Zooma ut">
+        <ZoomOut size={compact ? 12 : 14} />
+      </button>
+      <button onClick={fitToScreen}
+        className="p-1 rounded hover:bg-secondary transition-colors" title="Anpassa till skärm">
+        <Maximize2 size={compact ? 12 : 14} />
+      </button>
+    </div>
+  );
+
+  /* ───── Canvas element ───── */
 
   const canvasElement = (
     <canvas
@@ -1006,20 +1290,12 @@ export default function CoursePlannerPage() {
       style={{
         width: canvasWidth + MARGIN,
         height: canvasHeight + MARGIN,
-        touchAction: 'none',
         display: 'block',
-        margin: '0 auto',
-        cursor: drawingMode ? 'crosshair' : numberingMode ? 'cell' : rotatingId ? 'grabbing' : dragging ? 'grabbing' : 'grab',
-        maxWidth: '100%',
-        maxHeight: showLandscapeLayout ? 'calc(100vh - 16px)' : undefined,
+        cursor: drawingMode ? 'crosshair' : numberingMode ? 'cell' : rotatingId ? 'grabbing' : dragging ? 'grabbing' : isPanning ? 'grabbing' : 'grab',
+        transformOrigin: '0 0',
+        transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
+        pointerEvents: 'auto',
       }}
-      onMouseDown={handlePointerDown}
-      onMouseMove={handlePointerMove}
-      onMouseUp={handlePointerUp}
-      onMouseLeave={handlePointerUp}
-      onTouchStart={handlePointerDown}
-      onTouchMove={handlePointerMove}
-      onTouchEnd={handlePointerUp}
     />
   );
 
@@ -1028,13 +1304,27 @@ export default function CoursePlannerPage() {
     return (
       <div className="fixed inset-0 z-50 bg-background flex">
         {/* Main canvas area */}
-        <div className="flex-1 overflow-auto flex items-center justify-center p-1">
+        <div
+          ref={containerRef}
+          className="flex-1 overflow-hidden relative"
+          style={{ touchAction: 'none' }}
+          onMouseDown={handlePointerDown}
+          onMouseMove={handlePointerMove}
+          onMouseUp={handlePointerUp}
+          onMouseLeave={handlePointerUp}
+          onTouchStart={handlePointerDown}
+          onTouchMove={handlePointerMove}
+          onTouchEnd={handlePointerUp}
+        >
           {canvasElement}
+          {/* Zoom indicator */}
+          <div className="absolute bottom-2 left-2 text-[10px] text-muted-foreground bg-background/80 rounded px-1.5 py-0.5">
+            {Math.round(zoom * 100)}%
+          </div>
         </div>
 
-        {/* Right sidebar - obstacle palette + tools */}
+        {/* Right sidebar */}
         <div className="w-16 sm:w-[70px] bg-card border-l border-border flex flex-col overflow-hidden">
-          {/* Top tools */}
           <div className="flex flex-col gap-0.5 p-1 border-b border-border">
             <button
               onClick={toggleFullscreen}
@@ -1051,7 +1341,7 @@ export default function CoursePlannerPage() {
               <Pencil size={14} />
             </button>
             <button
-              onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); if (!numberingMode) setNextNumberToAssign(1); }}
+              onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } }}
               className={`p-1.5 rounded transition-colors ${numberingMode ? 'bg-blue-500/15 text-blue-600' : 'hover:bg-secondary'}`}
               title="Numreringsläge"
             >
@@ -1072,7 +1362,15 @@ export default function CoursePlannerPage() {
                 <Eraser size={14} />
               </button>
             )}
+            {zoomControls(true)}
           </div>
+
+          {/* Numbering color picker in compact mode */}
+          {numberingMode && (
+            <div className="p-1 border-b border-border">
+              {numberingToolbar(true)}
+            </div>
+          )}
 
           {/* Obstacle palette */}
           <div className="flex-1 overflow-y-auto">
@@ -1168,7 +1466,9 @@ export default function CoursePlannerPage() {
           <Maximize size={14} />
         </Button>
 
-        <Button variant="outline" size="sm" onClick={() => { setObstacles([]); setSelected(null); setHandlerPath([]); setNumberingMode(false); setNextNumberToAssign(1); }} className="gap-1 h-8 ml-auto">
+        {zoomControls(false)}
+
+        <Button variant="outline" size="sm" onClick={() => { setObstacles([]); setSelected(null); setHandlerPath([]); setNumberingMode(false); setNextNumberToAssign(1); setNumberingHistory([]); }} className="gap-1 h-8 ml-auto">
           Rensa
         </Button>
       </div>
@@ -1231,16 +1531,11 @@ export default function CoursePlannerPage() {
         <div className="h-4 w-px bg-border mx-1" />
 
         <button
-          onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); if (!numberingMode) setNextNumberToAssign(1); }}
+          onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } }}
           className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${numberingMode ? 'bg-blue-500/15 border-blue-500 text-blue-600' : 'bg-secondary border-border text-muted-foreground'}`}
         >
-          <Hash size={10} /> {numberingMode ? `Numrera: ${nextNumberToAssign}` : 'Numreringsläge'}
+          <Hash size={10} /> {numberingMode ? 'Numrera bana' : 'Numrera bana'}
         </button>
-        {numberingMode && (
-          <button onClick={clearNumbering} className="text-xs px-2 py-0.5 rounded-full border border-border text-muted-foreground hover:text-destructive">
-            Rensa numrering
-          </button>
-        )}
 
         <button
           onClick={() => setShowDistances(!showDistances)}
@@ -1249,6 +1544,18 @@ export default function CoursePlannerPage() {
           {showDistances ? '📏 Mått på' : '📏 Mått av'}
         </button>
       </div>
+
+      {/* Numbering toolbar */}
+      {numberingMode && (
+        <div className="mb-3 bg-blue-500/5 border border-blue-500/20 rounded-lg p-2">
+          <div className="flex items-center gap-1 mb-1.5">
+            <Hash size={12} className="text-blue-600" />
+            <span className="text-xs font-semibold text-foreground">Numreringsläge</span>
+            <span className="text-[10px] text-muted-foreground ml-1">– Tryck på hinder för att tilldela nummer</span>
+          </div>
+          {numberingToolbar(false)}
+        </div>
+      )}
 
       {/* Selected obstacle controls */}
       {selectedObs && !numberingMode && (
@@ -1322,8 +1629,23 @@ export default function CoursePlannerPage() {
       )}
 
       {/* Canvas */}
-      <div className="bg-card rounded-xl shadow-elevated overflow-auto mb-3">
+      <div
+        ref={containerRef}
+        className="bg-card rounded-xl shadow-elevated overflow-hidden mb-3 relative"
+        style={{ touchAction: 'none', minHeight: 300 }}
+        onMouseDown={handlePointerDown}
+        onMouseMove={handlePointerMove}
+        onMouseUp={handlePointerUp}
+        onMouseLeave={handlePointerUp}
+        onTouchStart={handlePointerDown}
+        onTouchMove={handlePointerMove}
+        onTouchEnd={handlePointerUp}
+      >
         {canvasElement}
+        {/* Zoom indicator */}
+        <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-background/80 rounded px-1.5 py-0.5 pointer-events-none">
+          {Math.round(zoom * 100)}%
+        </div>
       </div>
 
       {/* Quick-select obstacle palette (portrait/desktop) */}
@@ -1332,7 +1654,7 @@ export default function CoursePlannerPage() {
       </div>
 
       <p className="text-xs text-muted-foreground text-center mt-2">
-        Dra hinder för att flytta · Dra i ⟳ för att rotera · {obstacles.length} hinder på banan
+        Dra hinder för att flytta · Dra i ⟳ för att rotera · Scrollhjul/pinch för att zooma · {obstacles.length} hinder på banan
       </p>
       </PremiumGate>
     </PageContainer>

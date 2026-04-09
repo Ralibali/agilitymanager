@@ -44,6 +44,7 @@ export default function CompetitionPage() {
     } catch { return []; }
   });
   const [newItem, setNewItem] = useState('');
+  const [shareResult, setShareResult] = useState<CompetitionResult | null>(null);
   const refresh = async () => {
     const [d, r, p] = await Promise.all([
       store.getDogs(),

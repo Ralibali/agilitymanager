@@ -36,6 +36,8 @@ const AboutAgilityPage = React.lazy(() => import("./pages/AboutAgilityPage"));
 const PrivacyPolicyPage = React.lazy(() => import("./pages/PrivacyPolicyPage"));
 const CookiePolicyPage = React.lazy(() => import("./pages/CookiePolicyPage"));
 const UnsubscribePage = React.lazy(() => import("./pages/UnsubscribePage"));
+const FriendsPage = React.lazy(() => import("./pages/FriendsPage"));
+const InvitePage = React.lazy(() => import("./pages/InvitePage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -103,6 +105,7 @@ const App = () => (
               <Route path="/integritetspolicy" element={<PrivacyPolicyPage />} />
               <Route path="/cookiepolicy" element={<CookiePolicyPage />} />
               <Route path="/avregistrera" element={<UnsubscribePage />} />
+              <Route path="/invite/:code" element={<InvitePage />} />
 
               {/* Protected routes */}
               <Route element={<ProtectedLayout />}>
@@ -116,6 +119,7 @@ const App = () => (
                 <Route path="/course-planner" element={<CoursePlannerPage />} />
                 <Route path="/stats" element={<StatsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/friends" element={<FriendsPage />} />
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/index" element={<Navigate to="/dashboard" replace />} />
               </Route>

@@ -3,6 +3,7 @@ import { PageContainer } from '@/components/PageContainer';
 import { AddDogDialog } from '@/components/AddDogDialog';
 import { DogAvatar } from '@/components/DogAvatar';
 import { DogPhotoUpload } from '@/components/DogPhotoUpload';
+import { Switch } from '@/components/ui/switch';
 import { store } from '@/lib/store';
 import type { Dog } from '@/types';
 import { format } from 'date-fns';
@@ -78,6 +79,16 @@ export default function DogsPage() {
               {dog.notes && (
                 <p className="mt-2 text-sm text-muted-foreground border-t border-border pt-2">{dog.notes}</p>
               )}
+              <div className="flex items-center justify-between mt-2 border-t border-border pt-2">
+                <span className="text-xs text-muted-foreground">Aktiv tävlingshund</span>
+                <Switch
+                  checked={dog.is_active_competition_dog}
+                  onCheckedChange={async (checked) => {
+                    setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, is_active_competition_dog: checked } : d));
+                    await store.updateDog(dog.id, { is_active_competition_dog: checked });
+                  }}
+                />
+              </div>
             </motion.div>
           ))}
         </div>

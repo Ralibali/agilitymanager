@@ -112,8 +112,8 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
               </Select>
             </div>
             <div>
-              <Label>Tävlingsklass</Label>
-              <Select value={competitionLevel} onValueChange={v => setCompetitionLevel(v as CompetitionLevel)}>
+              <Label>Agilityklass</Label>
+              <Select value={agilityLevel} onValueChange={v => setAgilityLevel(v as CompetitionLevel)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Nollklass">Nollklass</SelectItem>
@@ -123,6 +123,18 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div>
+            <Label>Hoppklass</Label>
+            <Select value={jumpingLevel} onValueChange={v => setJumpingLevel(v as CompetitionLevel)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Nollklass">Nollklass</SelectItem>
+                <SelectItem value="K1">Klass 1</SelectItem>
+                <SelectItem value="K2">Klass 2</SelectItem>
+                <SelectItem value="K3">Klass 3</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Anteckningar</Label>

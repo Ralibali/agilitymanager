@@ -25,12 +25,11 @@ export default function SettingsPage() {
   const [searchParams] = useSearchParams();
   const { theme, setTheme } = useTheme();
 
-  // Handle checkout return
+  // Handle checkout return with robust polling
   useEffect(() => {
     const checkout = searchParams.get('checkout');
     if (checkout === 'success') {
       toast.success('Betalning genomförd! Premium aktiveras inom kort.');
-      checkSubscription();
       // Notify admin about new subscription
       supabase.functions.invoke('notify-admin', {
         body: {
@@ -38,6 +37,18 @@ export default function SettingsPage() {
           data: { email: user?.email, plan: 'Premium' },
         },
       });
+      // Poll up to 10 times with 2s delay until subscription is confirmed
+      let cancelled = false;
+      (async () => {
+        const MAX_ATTEMPTS = 10;
+        const DELAY_MS = 2000;
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS && !cancelled; attempt++) {
+          await checkSubscription();
+          // Check if subscription is now active (small delay to let state update)
+          await new Promise(r => setTimeout(r, DELAY_MS));
+        }
+      })();
+      return () => { cancelled = true; };
     } else if (checkout === 'cancel') {
       toast.info('Betalningen avbröts.');
     }

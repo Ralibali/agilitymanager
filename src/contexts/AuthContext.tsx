@@ -60,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.functions.invoke('check-subscription');
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
+      // Sync succeeded — update state
       setSubscription({
         subscribed: data?.subscribed ?? false,
         productId: data?.product_id ?? null,
@@ -70,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     } catch (err) {
       console.error('check-subscription error:', err);
+      // CRITICAL: Never downgrade if sync failed — keep current state, just stop loading
       setSubscription(prev => ({ ...prev, loading: false }));
     }
   }, []);

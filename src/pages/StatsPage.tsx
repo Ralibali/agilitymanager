@@ -195,8 +195,8 @@ export default function StatsPage() {
                       {speed && ` · ${speed} m/s`}
                     </div>
                   </div>
-                  <span className={`text-xs font-medium ${r.passed ? 'text-success' : 'text-destructive'}`}>
-                    {r.passed ? 'Pinne' : 'Ej godkänd'}
+                  <span className={`text-xs font-medium ${r.disqualified ? 'text-destructive' : r.passed ? 'text-success' : 'text-muted-foreground'}`}>
+                    {r.disqualified ? 'Disk' : r.passed ? 'Pinne' : 'Godkänd'}
                   </span>
                 </div>
               );

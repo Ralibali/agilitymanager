@@ -210,6 +210,24 @@ export default function CoursePlannerPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  // Obstacle color theme (per type hue overrides)
+  const [obstacleHues, setObstacleHues] = useState<Record<string, number>>({});
+  const [colorPickerType, setColorPickerType] = useState<string | null>(null);
+
+  const getHue = (type: string) => {
+    if (type in obstacleHues) return obstacleHues[type];
+    return DEFAULT_OBSTACLE_HUES[type] ?? 200;
+  };
+
+  const setTypeHue = (type: string, hue: number) => {
+    if (hue === -999) {
+      // Reset to default
+      setObstacleHues(prev => { const n = { ...prev }; delete n[type]; return n; });
+    } else {
+      setObstacleHues(prev => ({ ...prev, [type]: hue }));
+    }
+  };
+
   // Zoom & Pan state
   const [zoom, setZoom] = useState(1);
   const [panX, setPanX] = useState(0);

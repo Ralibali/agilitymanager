@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { stripHtml } from '@/lib/utils';
+import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, MapPin, ExternalLink, Star, CheckCircle2, Home, TreePine } from 'lucide-react';
+import { RefreshCw, MapPin, ExternalLink, Star, CheckCircle2, Home, TreePine, Send } from 'lucide-react';
 import { SWEDISH_COUNTIES, type Competition, type CompetitionInterest } from '@/types/competitions';
 import { getCountyForLocation } from '@/lib/swedishCityCounty';
 import { useToast } from '@/hooks/use-toast';

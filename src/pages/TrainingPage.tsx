@@ -7,10 +7,11 @@ import { store } from '@/lib/store';
 import type { Dog, TrainingSession } from '@/types';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { Star, Clock, RotateCcw, Download } from 'lucide-react';
+import { Star, Clock, RotateCcw, Download, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { downloadCsv } from '@/lib/csv';
+import { downloadPdf } from '@/lib/pdf';
 
 export default function TrainingPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
@@ -41,6 +42,7 @@ export default function TrainingPage() {
       action={
         <div className="flex items-center gap-2">
           {sessions.length > 0 && (
+            <>
             <Button
               variant="outline"
               size="sm"
@@ -66,6 +68,34 @@ export default function TrainingPage() {
             >
               <Download size={14} /> CSV
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              onClick={() => {
+                const headers = ['Datum', 'Hund', 'Typ', 'Min', 'Rep', 'Hund ⚡', 'Förare ⚡', 'Bra', 'Förbättra', 'Taggar'];
+                const pdfRows = sessions.map(s => {
+                  const dog = getDog(s.dog_id);
+                  return [
+                    s.date, dog?.name ?? '', s.type,
+                    String(s.duration_min), String(s.reps),
+                    String(s.dog_energy), String(s.handler_energy),
+                    s.notes_good, s.notes_improve, s.tags.join(', '),
+                  ];
+                });
+                downloadPdf({
+                  title: 'Träningslogg',
+                  subtitle: `${sessions.length} pass – exporterad ${format(new Date(), 'yyyy-MM-dd')}`,
+                  headers,
+                  rows: pdfRows,
+                  filename: `traning-${format(new Date(), 'yyyy-MM-dd')}.pdf`,
+                  landscape: true,
+                });
+              }}
+            >
+              <FileText size={14} /> PDF
+            </Button>
+            </>
           )}
           {dogs.length > 0 ? <AddTrainingDialog dogs={dogs} onAdded={refresh} /> : null}
         </div>

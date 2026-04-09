@@ -8,9 +8,10 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Dog, CompetitionResult, PlannedCompetition } from '@/types';
 import { format, differenceInDays } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { CheckCircle2, XCircle, Medal, ExternalLink, Calendar, CheckSquare, Square, Trash2, Plus, X, Download } from 'lucide-react';
+import { CheckCircle2, XCircle, Medal, ExternalLink, Calendar, CheckSquare, Square, Trash2, Plus, X, Download, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { downloadCsv } from '@/lib/csv';
+import { downloadPdf } from '@/lib/pdf';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -89,6 +90,7 @@ export default function CompetitionPage() {
       action={
         <div className="flex items-center gap-2">
           {results.length > 0 && (
+            <>
             <Button
               variant="outline"
               size="sm"
@@ -118,6 +120,36 @@ export default function CompetitionPage() {
             >
               <Download size={14} /> CSV
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              onClick={() => {
+                const headers = ['Datum', 'Hund', 'Tävling', 'Gren', 'Klass', 'Tid', 'Fel', 'Plac.', 'Godkänd', 'Noteringar'];
+                const pdfRows = results.map(r => {
+                  const dog = getDog(r.dog_id);
+                  return [
+                    r.date, dog?.name ?? '', r.event_name,
+                    r.discipline, r.competition_level,
+                    String(r.time_sec), String(r.faults),
+                    r.placement != null ? String(r.placement) : '-',
+                    r.passed ? 'Ja' : 'Nej',
+                    r.notes,
+                  ];
+                });
+                downloadPdf({
+                  title: 'Tävlingsresultat',
+                  subtitle: `${results.length} starter – exporterad ${format(new Date(), 'yyyy-MM-dd')}`,
+                  headers,
+                  rows: pdfRows,
+                  filename: `tavlingsresultat-${format(new Date(), 'yyyy-MM-dd')}.pdf`,
+                  landscape: true,
+                });
+              }}
+            >
+              <FileText size={14} /> PDF
+            </Button>
+            </>
           )}
           {dogs.length > 0 ? <AddCompetitionDialog dogs={dogs} onAdded={refresh} /> : null}
         </div>

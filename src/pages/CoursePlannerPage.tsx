@@ -1195,7 +1195,7 @@ export default function CoursePlannerPage() {
     const { error } = await supabase.from('saved_courses').insert({
       user_id: userId, name: courseName.trim(),
       course_data: { obstacles, handlerPath, themeId: activeThemeId, customOverrides } as any,
-      canvas_width: canvasWidth, canvas_height: canvasHeight,
+      canvas_width: rawW, canvas_height: rawH,
     });
     if (error) { toast.error('Kunde inte spara'); }
     else {

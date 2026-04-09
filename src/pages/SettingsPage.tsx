@@ -146,7 +146,7 @@ export default function SettingsPage() {
           ))}
         </div>
 
-        {subscription.subscribed ? (
+        {subscription.subscribed && !subscription.isTrial ? (
           <Button variant="outline" className="w-full gap-2" onClick={handleManageSubscription} disabled={portalLoading}>
             {portalLoading ? <Loader2 size={14} className="animate-spin" /> : <Settings size={14} />}
             Hantera prenumeration

@@ -51,7 +51,7 @@ export function DogPhotoUpload({ dogId, currentUrl, onUploaded, size = 'lg' }: P
       <button
         onClick={() => inputRef.current?.click()}
         disabled={uploading}
-        className={`${sizeMap[size]} rounded-full flex items-center justify-center flex-shrink-0 relative overflow-hidden bg-secondary hover:bg-secondary/80 transition-colors cursor-pointer`}
+        className={`${sizeMap[size]} rounded-full flex items-center justify-center flex-shrink-0 relative overflow-hidden bg-secondary hover:bg-secondary/80 transition-colors cursor-pointer group`}
       >
         {currentUrl ? (
           <img src={currentUrl} alt="Hund" className={`${sizeMap[size]} rounded-full object-cover`} />
@@ -61,8 +61,8 @@ export function DogPhotoUpload({ dogId, currentUrl, onUploaded, size = 'lg' }: P
           <Camera size={20} className="text-muted-foreground" />
         )}
         {currentUrl && !uploading && (
-          <div className="absolute inset-0 bg-foreground/0 hover:bg-foreground/30 rounded-full flex items-center justify-center transition-colors">
-            <Camera size={16} className="text-primary-foreground opacity-0 hover:opacity-100" />
+          <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/30 rounded-full flex items-center justify-center transition-colors">
+            <Camera size={16} className="text-primary-foreground opacity-0 group-hover:opacity-100" />
           </div>
         )}
         {uploading && currentUrl && (
@@ -71,6 +71,14 @@ export function DogPhotoUpload({ dogId, currentUrl, onUploaded, size = 'lg' }: P
           </div>
         )}
       </button>
+      {!currentUrl && !uploading && (
+        <button
+          onClick={() => inputRef.current?.click()}
+          className="text-[10px] text-primary font-medium -mt-1 hover:underline cursor-pointer"
+        >
+          Lägg till foto
+        </button>
+      )}
       <input ref={inputRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
     </>
   );

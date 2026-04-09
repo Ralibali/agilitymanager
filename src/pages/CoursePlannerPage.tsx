@@ -714,7 +714,7 @@ export default function CoursePlannerPage() {
     ctx.fillText('1 ruta = 1 meter', 8, 6);
 
     ctx.restore(); // restore MARGIN translate
-  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, obstacleHues]);
+  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas]);
 
   useEffect(() => { draw(); }, [draw]);
 

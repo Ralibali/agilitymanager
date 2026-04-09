@@ -1106,6 +1106,7 @@ export default function CoursePlannerPage() {
       if (match) setCanvasSize(match);
     }
     setLoadOpen(false);
+    setLoadedCourseId(course.id);
     toast.success(`Laddade "${course.name}"`);
   };
 

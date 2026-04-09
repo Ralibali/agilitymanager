@@ -81,8 +81,8 @@ export default function ShareToFriendDialog({
       content: message.trim() || labelMap[sharedType] || 'Kolla!',
       shared_type: sharedType,
       shared_id: sharedId,
-      shared_data: sharedData,
-    });
+      shared_data: sharedData as unknown as Record<string, never>,
+    } as never);
 
     if (error) {
       toast.error('Kunde inte skicka');

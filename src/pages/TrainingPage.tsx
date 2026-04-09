@@ -67,6 +67,33 @@ export default function TrainingPage() {
             >
               <Download size={14} /> CSV
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              onClick={() => {
+                const headers = ['Datum', 'Hund', 'Typ', 'Min', 'Rep', 'Hund ⚡', 'Förare ⚡', 'Bra', 'Förbättra', 'Taggar'];
+                const pdfRows = sessions.map(s => {
+                  const dog = getDog(s.dog_id);
+                  return [
+                    s.date, dog?.name ?? '', s.type,
+                    String(s.duration_min), String(s.reps),
+                    String(s.dog_energy), String(s.handler_energy),
+                    s.notes_good, s.notes_improve, s.tags.join(', '),
+                  ];
+                });
+                downloadPdf({
+                  title: 'Träningslogg',
+                  subtitle: `${sessions.length} pass – exporterad ${format(new Date(), 'yyyy-MM-dd')}`,
+                  headers,
+                  rows: pdfRows,
+                  filename: `traning-${format(new Date(), 'yyyy-MM-dd')}.pdf`,
+                  landscape: true,
+                });
+              }}
+            >
+              <FileText size={14} /> PDF
+            </Button>
           )}
           {dogs.length > 0 ? <AddTrainingDialog dogs={dogs} onAdded={refresh} /> : null}
         </div>

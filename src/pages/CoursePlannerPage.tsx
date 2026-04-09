@@ -1055,9 +1055,12 @@ export default function CoursePlannerPage() {
 
   /* ───── Fullscreen ───── */
 
+  const fullscreenContainerRef = useRef<HTMLDivElement>(null);
+
   const toggleFullscreen = () => {
     if (!isFullscreen) {
-      document.documentElement.requestFullscreen?.().catch(() => {});
+      const el = fullscreenContainerRef.current || document.documentElement;
+      el.requestFullscreen?.().catch(() => {});
     } else {
       document.exitFullscreen?.().catch(() => {});
     }
@@ -1065,10 +1068,26 @@ export default function CoursePlannerPage() {
   };
 
   useEffect(() => {
-    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    const handler = () => {
+      const fs = !!document.fullscreenElement;
+      setIsFullscreen(fs);
+      if (fs) setTimeout(() => fitToScreen(), 100);
+    };
     document.addEventListener('fullscreenchange', handler);
     return () => document.removeEventListener('fullscreenchange', handler);
-  }, []);
+  }, [fitToScreen]);
+
+  /* ───── Visibility change (prevent white screen after sleep) ───── */
+
+  useEffect(() => {
+    const handler = () => {
+      if (document.visibilityState === 'visible') {
+        requestAnimationFrame(() => draw());
+      }
+    };
+    document.addEventListener('visibilitychange', handler);
+    return () => document.removeEventListener('visibilitychange', handler);
+  }, [draw]);
 
   /* ───── Save/Load ───── */
 

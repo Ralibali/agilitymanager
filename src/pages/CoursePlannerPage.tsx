@@ -88,6 +88,35 @@ const NUMBERING_COLORS = [
   { label: 'Vit', value: '#e5e5e5', emoji: '⚪' },
 ];
 
+/* Default hue per obstacle type (used for color theming) */
+const DEFAULT_OBSTACLE_HUES: Record<string, number> = {
+  jump: -1,       // neutral gray (special case)
+  long_jump: 221,
+  oxer: 200,
+  wall: 30,
+  tunnel: 152,
+  a_frame: 16,
+  dog_walk: 45,
+  seesaw: 270,
+  balance: 180,
+  weave: 340,
+  tire: 200,
+  start: 120,
+  finish: 0,
+};
+
+const HUE_PRESETS = [
+  { label: 'Standard', hue: -999 },
+  { label: 'Röd', hue: 0 },
+  { label: 'Orange', hue: 30 },
+  { label: 'Gul', hue: 50 },
+  { label: 'Grön', hue: 140 },
+  { label: 'Teal', hue: 180 },
+  { label: 'Blå', hue: 221 },
+  { label: 'Lila', hue: 270 },
+  { label: 'Rosa', hue: 340 },
+];
+
 const PRESET_COURSES: { name: string; obstacles: Obstacle[] }[] = [
   {
     name: 'Nybörjarbana (6 hinder)',

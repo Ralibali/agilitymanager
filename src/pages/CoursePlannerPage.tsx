@@ -849,7 +849,7 @@ export default function CoursePlannerPage() {
           </DialogContent>
         </Dialog>
 
-        <Button variant="outline" size="sm" onClick={() => { setObstacles([]); setSelected(null); }} className="gap-1 h-8 ml-auto">
+        <Button variant="outline" size="sm" onClick={() => { setObstacles([]); setSelected(null); setHandlerPath([]); }} className="gap-1 h-8 ml-auto">
           Rensa
         </Button>
       </div>

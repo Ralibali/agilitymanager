@@ -71,7 +71,7 @@ function CompStats({ competitions, dogs }: { competitions: CompetitionResult[]; 
       <h2 className="font-display font-semibold text-foreground mb-3 flex items-center gap-2">
         <Zap size={18} className="text-accent" /> Tävlingsstatistik
       </h2>
-      <div className="grid grid-cols-2 gap-2 mb-4">
+      <div className="grid grid-cols-3 gap-2 mb-4">
         {stats.map((s, i) => (
           <div key={i} className="bg-card p-3 rounded-xl shadow-card">
             <div className="flex items-center gap-2 mb-1">

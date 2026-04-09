@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RefreshCw, MapPin, ExternalLink, Star, CheckCircle2, Home, TreePine } from 'lucide-react';
 import { SWEDISH_COUNTIES, type Competition, type CompetitionInterest } from '@/types/competitions';
+import { getCountyForLocation } from '@/lib/swedishCityCounty';
 import { useToast } from '@/hooks/use-toast';
 import type { Dog } from '@/types';
 import {
@@ -255,10 +256,13 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
 
     if (selectedCounties.size > 0 && c.location) {
       const loc = c.location.toLowerCase();
-      const matchesCounty = Array.from(selectedCounties).some(county =>
+      // First try direct text match, then smart city-to-county lookup
+      const directMatch = Array.from(selectedCounties).some(county =>
         loc.includes(county.toLowerCase())
       );
-      if (!matchesCounty) match = false;
+      const countyFromCity = getCountyForLocation(c.location);
+      const smartMatch = countyFromCity ? selectedCounties.has(countyFromCity) : false;
+      if (!directMatch && !smartMatch) match = false;
     }
 
     return match;

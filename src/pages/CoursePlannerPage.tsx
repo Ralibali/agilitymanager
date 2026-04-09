@@ -532,6 +532,11 @@ export default function CoursePlannerPage() {
 
   const handlePointerDown = (e: React.MouseEvent | React.TouchEvent) => {
     const pos = getCanvasPos(e);
+    if (drawingMode) {
+      setIsDrawing(true);
+      setHandlerPath([{ x: pos.x, y: pos.y }]);
+      return;
+    }
     const obs = findObstacleAt(pos.x, pos.y);
     if (obs) {
       setSelected(obs.id);
@@ -543,6 +548,16 @@ export default function CoursePlannerPage() {
   };
 
   const handlePointerMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (drawingMode && isDrawing) {
+      e.preventDefault();
+      const pos = getCanvasPos(e);
+      // Only add point if moved enough distance (reduces points for smoothing)
+      const last = handlerPath[handlerPath.length - 1];
+      if (last && Math.hypot(pos.x - last.x, pos.y - last.y) > 3) {
+        setHandlerPath(prev => [...prev, { x: pos.x, y: pos.y }]);
+      }
+      return;
+    }
     if (!dragging) return;
     e.preventDefault();
     const pos = getCanvasPos(e);
@@ -551,7 +566,10 @@ export default function CoursePlannerPage() {
     ));
   };
 
-  const handlePointerUp = () => setDragging(null);
+  const handlePointerUp = () => {
+    setDragging(null);
+    setIsDrawing(false);
+  };
 
   const rotateSelected = () => {
     if (!selected) return;

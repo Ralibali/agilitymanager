@@ -249,8 +249,12 @@ export default function CoursePlannerPage() {
   const isLandscape = useIsLandscape();
   const showLandscapeLayout = isMobile && isLandscape;
 
-  const canvasWidth = canvasSize.width;
-  const canvasHeight = canvasSize.height;
+  // On desktop, render landscape (swap width/height so the longer side is horizontal)
+  const isDesktop = !isMobile;
+  const rawW = canvasSize.width;
+  const rawH = canvasSize.height;
+  const canvasWidth = isDesktop && rawH > rawW ? rawH : rawW;
+  const canvasHeight = isDesktop && rawH > rawW ? rawW : rawH;
   const MARGIN = 28;
 
   // Portrait hint
@@ -1191,7 +1195,7 @@ export default function CoursePlannerPage() {
     const { error } = await supabase.from('saved_courses').insert({
       user_id: userId, name: courseName.trim(),
       course_data: { obstacles, handlerPath, themeId: activeThemeId, customOverrides } as any,
-      canvas_width: canvasWidth, canvas_height: canvasHeight,
+      canvas_width: rawW, canvas_height: rawH,
     });
     if (error) { toast.error('Kunde inte spara'); }
     else {
@@ -1286,7 +1290,7 @@ export default function CoursePlannerPage() {
   };
 
   const exportJSON = () => {
-    const data = JSON.stringify({ obstacles, handlerPath, canvasWidth, canvasHeight }, null, 2);
+    const data = JSON.stringify({ obstacles, handlerPath, canvasWidth: rawW, canvasHeight: rawH }, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -1879,7 +1883,7 @@ export default function CoursePlannerPage() {
       <div
         ref={containerRef}
         className="bg-card rounded-xl shadow-elevated overflow-hidden mb-3 relative"
-        style={{ touchAction: 'none', minHeight: 300 }}
+        style={{ touchAction: 'none', minHeight: isMobile ? 300 : 500, height: isDesktop ? 'calc(100vh - 340px)' : undefined }}
         onMouseDown={handlePointerDown}
         onMouseMove={handlePointerMove}
         onMouseUp={handlePointerUp}

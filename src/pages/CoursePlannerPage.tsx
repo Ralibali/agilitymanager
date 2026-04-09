@@ -179,6 +179,7 @@ export default function CoursePlannerPage() {
 
   const [numberInput, setNumberInput] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Zoom & Pan state
   const [zoom, setZoom] = useState(1);
@@ -255,11 +256,11 @@ export default function CoursePlannerPage() {
     const bendAngle = obs.bendAngle || 0;
     const tubeWidth = 0.6 * PX_PER_METER;
 
-    ctx.strokeStyle = 'hsl(152, 50%, 35%)';
-    ctx.lineWidth = tubeWidth;
-    ctx.lineCap = 'round';
-
     if (Math.abs(bendAngle) < 5) {
+      // Straight tunnel
+      ctx.strokeStyle = 'hsl(152, 50%, 35%)';
+      ctx.lineWidth = tubeWidth;
+      ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(0, -length / 2);
       ctx.lineTo(0, length / 2);
@@ -270,26 +271,41 @@ export default function CoursePlannerPage() {
       ctx.moveTo(0, -length / 2);
       ctx.lineTo(0, length / 2);
       ctx.stroke();
+      // Entry/exit dots
+      ctx.fillStyle = 'hsl(152, 60%, 25%)';
+      ctx.beginPath(); ctx.arc(0, -length / 2, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(0, length / 2, 4, 0, Math.PI * 2); ctx.fill();
     } else {
+      // Curved tunnel
       const bendRad = (bendAngle * Math.PI) / 180;
       const radius = length / Math.abs(bendRad);
       const cx = bendAngle > 0 ? radius : -radius;
       const startAngle = bendAngle > 0 ? Math.PI : 0;
       const endAngle = startAngle - bendRad;
+      const ccw = bendAngle > 0;
+
+      // Outer wall
+      ctx.strokeStyle = 'hsl(152, 50%, 35%)';
+      ctx.lineWidth = tubeWidth;
+      ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.arc(cx, 0, radius, startAngle, endAngle, bendAngle > 0);
+      ctx.arc(cx, 0, radius, startAngle, endAngle, ccw);
       ctx.stroke();
+      // Inner wall (lighter)
       ctx.strokeStyle = 'hsl(152, 40%, 55%)';
       ctx.lineWidth = tubeWidth - 4;
       ctx.beginPath();
-      ctx.arc(cx, 0, radius, startAngle, endAngle, bendAngle > 0);
+      ctx.arc(cx, 0, radius, startAngle, endAngle, ccw);
       ctx.stroke();
-    }
 
-    ctx.fillStyle = 'hsl(152, 60%, 25%)';
-    if (Math.abs(bendAngle) < 5) {
-      ctx.beginPath(); ctx.arc(0, -length / 2, 4, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(0, length / 2, 4, 0, Math.PI * 2); ctx.fill();
+      // Entry/exit dots
+      ctx.fillStyle = 'hsl(152, 60%, 25%)';
+      const entryX = cx + radius * Math.cos(startAngle);
+      const entryY = radius * Math.sin(startAngle);
+      const exitX = cx + radius * Math.cos(endAngle);
+      const exitY = radius * Math.sin(endAngle);
+      ctx.beginPath(); ctx.arc(entryX, entryY, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(exitX, exitY, 4, 0, Math.PI * 2); ctx.fill();
     }
   };
 
@@ -996,7 +1012,16 @@ export default function CoursePlannerPage() {
     if (!selected) return;
     setObstacles(prev => prev.map(o =>
       o.id === selected && o.type === 'tunnel'
-        ? { ...o, bendAngle: Math.max(-90, Math.min(90, (o.bendAngle || 0) + delta)) }
+        ? { ...o, bendAngle: Math.max(-360, Math.min(360, (o.bendAngle || 0) + delta)) }
+        : o
+    ));
+  };
+
+  const setTunnelBend = (angle: number) => {
+    if (!selected) return;
+    setObstacles(prev => prev.map(o =>
+      o.id === selected && o.type === 'tunnel'
+        ? { ...o, bendAngle: angle }
         : o
     ));
   };
@@ -1360,8 +1385,28 @@ export default function CoursePlannerPage() {
           </div>
         </div>
 
+        {/* Sidebar toggle when collapsed */}
+        {sidebarCollapsed && (
+          <button
+            onClick={() => setSidebarCollapsed(false)}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-card border border-border border-r-0 rounded-l-md p-1.5 shadow-sm"
+            title="Visa hinderpanel"
+          >
+            <span className="text-xs">←</span>
+          </button>
+        )}
+
         {/* Right sidebar */}
-        <div className="w-16 sm:w-[70px] bg-card border-l border-border flex flex-col overflow-hidden">
+        {!sidebarCollapsed && (
+        <div className="w-16 sm:w-[70px] bg-card border-l border-border flex flex-col overflow-hidden relative">
+          {/* Collapse button */}
+          <button
+            onClick={() => setSidebarCollapsed(true)}
+            className="p-1 text-center text-[10px] text-muted-foreground hover:text-foreground border-b border-border transition-colors"
+            title="Dölj panel"
+          >
+            →
+          </button>
           <div className="flex flex-col gap-0.5 p-1 border-b border-border">
             <button
               onClick={toggleFullscreen}
@@ -1414,6 +1459,7 @@ export default function CoursePlannerPage() {
             {obstaclePalette(true)}
           </div>
         </div>
+        )}
       </div>
     );
   }
@@ -1654,7 +1700,7 @@ export default function CoursePlannerPage() {
             </Button>
           </div>
 
-          {selectedObs.type === 'tunnel' && (
+           {selectedObs.type === 'tunnel' && (
             <>
               <div className="flex items-center gap-1 ml-2">
                 <Button variant="outline" size="sm" className="h-7 text-xs" onClick={toggleTunnelLength}>
@@ -1666,10 +1712,36 @@ export default function CoursePlannerPage() {
                 <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateTunnelBend(-15)}>
                   <Minus size={12} />
                 </Button>
-                <span className="text-xs font-medium w-8 text-center text-foreground">{selectedObs.bendAngle || 0}°</span>
+                <span className="text-xs font-medium w-10 text-center text-foreground">{selectedObs.bendAngle || 0}°</span>
                 <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateTunnelBend(15)}>
                   <Plus size={12} />
                 </Button>
+              </div>
+              <div className="flex gap-0.5 flex-wrap">
+                {[0, 45, 90, 135, 180, 270].map(a => (
+                  <button
+                    key={a}
+                    onClick={() => setTunnelBend(a)}
+                    className={`text-[9px] px-1.5 py-0.5 rounded border transition-colors ${
+                      (selectedObs.bendAngle || 0) === a
+                        ? 'bg-primary/15 border-primary text-primary'
+                        : 'bg-secondary border-border text-muted-foreground hover:border-primary/50'
+                    }`}
+                  >
+                    {a === 0 ? 'Rak' : a === 180 ? 'U' : `${a}°`}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-1 w-full">
+                <input
+                  type="range"
+                  min={-360}
+                  max={360}
+                  step={5}
+                  value={selectedObs.bendAngle || 0}
+                  onChange={e => setTunnelBend(Number(e.target.value))}
+                  className="flex-1 h-1.5 accent-primary"
+                />
               </div>
             </>
           )}

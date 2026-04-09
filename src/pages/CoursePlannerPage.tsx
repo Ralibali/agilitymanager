@@ -855,6 +855,42 @@ export default function CoursePlannerPage() {
 
   useEffect(() => { draw(); }, [draw]);
 
+  // Minimap rendering
+  useEffect(() => {
+    const miniCanvas = minimapRef.current;
+    if (!miniCanvas || !showMinimap) return;
+    const ctx = miniCanvas.getContext('2d');
+    if (!ctx) return;
+    const mw = miniCanvas.width;
+    const mh = miniCanvas.height;
+    const sx = mw / canvasWidth;
+    const sy = mh / canvasHeight;
+    ctx.clearRect(0, 0, mw, mh);
+    ctx.fillStyle = isDarkCanvas ? '#1a1a1a' : '#f5f5f5';
+    ctx.fillRect(0, 0, mw, mh);
+    // Draw obstacles as dots
+    obstacles.forEach(obs => {
+      const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
+      if (!info) return;
+      const c = getTypeColors(obs.type);
+      ctx.fillStyle = c.body;
+      ctx.fillRect(obs.x * sx - 1.5, obs.y * sy - 1.5, 3, 3);
+    });
+    // Draw viewport rectangle
+    const container = containerRef.current;
+    if (container) {
+      const cw = container.clientWidth;
+      const ch = container.clientHeight;
+      const vx = (-panX / zoom) * sx;
+      const vy = (-panY / zoom) * sy;
+      const vw = (cw / zoom) * sx;
+      const vh = (ch / zoom) * sy;
+      ctx.strokeStyle = 'hsl(221, 79%, 48%)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(Math.max(0, vx), Math.max(0, vy), Math.min(vw, mw), Math.min(vh, mh));
+    }
+  }, [obstacles, zoom, panX, panY, canvasWidth, canvasHeight, showMinimap, isDarkCanvas]);
+
   /* ───── Interaction (with zoom/pan transform) ───── */
 
   const addObstacle = (type: string) => {

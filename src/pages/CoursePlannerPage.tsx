@@ -1433,7 +1433,17 @@ export default function CoursePlannerPage() {
           </DialogContent>
         </Dialog>
 
-        <Dialog open={loadOpen} onOpenChange={setLoadOpen}>
+        <Button variant="outline" size="sm" className="gap-1 h-8" disabled={savedCourses.length === 0} onClick={() => setShareOpen(true)}>
+          <Share2 size={14} /> Dela
+        </Button>
+
+        <ShareCourseDialog
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          savedCourses={savedCourses}
+          currentCourseId={loadedCourseId}
+        />
+
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="gap-1 h-8">
               <FolderOpen size={14} /> Ladda

@@ -1636,6 +1636,7 @@ export default function CoursePlannerPage() {
     }
     setObstaclesRaw(loadedObstacles);
     setHandlerPath(loadedPath);
+    setFreeNumbers(data.freeNumbers || []);
     // Reset history on load
     historyRef.current = [{ obstacles: JSON.parse(JSON.stringify(loadedObstacles)), handlerPath: JSON.parse(JSON.stringify(loadedPath)), label: 'Start' }];
     historyIndexRef.current = 0;

@@ -206,18 +206,7 @@ export default function StatsPage() {
         )}
       </div>
 
-      <div className="bg-card rounded-xl p-5 shadow-card border border-accent/20 text-center">
-        <div className="w-12 h-12 rounded-full gradient-accent flex items-center justify-center mx-auto mb-3">
-          <TrendingUp size={24} className="text-accent-foreground" />
-        </div>
-        <h3 className="font-display font-bold text-foreground mb-1">Avancerad statistik</h3>
-        <p className="text-sm text-muted-foreground mb-3">
-          Tidsutveckling, hastighetsgraf och träningsfrekvens med Premium.
-        </p>
-        <div className="flex items-center justify-center gap-1 text-xs text-accent font-medium">
-          <Lock size={12} /> Premium-funktion
-        </div>
-      </div>
+      {competitions.length >= 2 && <CompCharts competitions={competitions} dogs={dogs} />}
     </PageContainer>
     </>
   );

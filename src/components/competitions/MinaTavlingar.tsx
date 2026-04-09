@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { stripHtml } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -81,8 +82,8 @@ export function MinaTavlingar() {
             <div className="text-lg font-bold font-display text-primary">
               {formatDateShort(comp.date_start)}
             </div>
-            <div className="font-semibold text-sm">{comp.club_name}</div>
-            <div className="text-xs text-muted-foreground">{comp.competition_name}</div>
+            <div className="font-semibold text-sm">{stripHtml(comp.club_name)}</div>
+            <div className="text-xs text-muted-foreground">{stripHtml(comp.competition_name)}</div>
             <div className="text-xs text-muted-foreground mt-1">{comp.location}</div>
           </div>
           {type === 'interested'

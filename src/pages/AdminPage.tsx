@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import {
   Users, Loader2, Trash2, Shield, Dog, Dumbbell, Trophy, Heart, Timer,
-  Search, Eye, CalendarDays, MessageCircle, BarChart3
+  Search, Eye, CalendarDays, MessageCircle, BarChart3, Gift
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +21,7 @@ import { PageContainer } from '@/components/PageContainer';
 import UserDetailModal from '@/components/admin/UserDetailModal';
 import SupportTicketsTab from '@/components/admin/SupportTicketsTab';
 import AnalyticsTab from '@/components/admin/AnalyticsTab';
+import ReferralStatsTab from '@/components/admin/ReferralStatsTab';
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -166,6 +167,9 @@ export default function AdminPage() {
             </TabsTrigger>
             <TabsTrigger value="analytics" className="text-xs sm:text-sm gap-1 rounded-lg flex-1">
               <BarChart3 className="h-3.5 w-3.5" /> Analys
+            </TabsTrigger>
+            <TabsTrigger value="referrals" className="text-xs sm:text-sm gap-1 rounded-lg flex-1">
+              <Gift className="h-3.5 w-3.5" /> Referrals
             </TabsTrigger>
           </TabsList>
 

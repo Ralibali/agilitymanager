@@ -1695,6 +1695,57 @@ export default function CoursePlannerPage() {
         </button>
       </div>
 
+      {/* Color theme picker */}
+      {colorPickerType && (
+        <div className="mb-3 bg-card rounded-lg p-2 shadow-card border border-border">
+          <div className="flex items-center gap-2 mb-2">
+            <Palette size={12} className="text-primary" />
+            <span className="text-xs font-semibold text-foreground">
+              Färg: {OBSTACLE_TYPES.find(o => o.type === colorPickerType)?.label}
+            </span>
+            <button onClick={() => setColorPickerType(null)} className="ml-auto text-xs text-muted-foreground hover:text-foreground">✕</button>
+          </div>
+          <div className="flex gap-1 flex-wrap">
+            {HUE_PRESETS.map(p => (
+              <button
+                key={p.hue}
+                onClick={() => { setTypeHue(colorPickerType, p.hue); }}
+                className={`text-[10px] px-2 py-1 rounded border transition-colors flex items-center gap-1 ${
+                  (p.hue === -999 && !(colorPickerType in obstacleHues)) ||
+                  (p.hue !== -999 && obstacleHues[colorPickerType] === p.hue)
+                    ? 'bg-primary/15 border-primary text-primary'
+                    : 'bg-secondary border-border text-muted-foreground hover:border-primary/50'
+                }`}
+              >
+                {p.hue !== -999 && <span className="w-3 h-3 rounded-full inline-block" style={{ backgroundColor: `hsl(${p.hue}, 60%, 50%)` }} />}
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Obstacle type color shortcuts */}
+      <div className="flex gap-1 mb-2 items-center flex-wrap">
+        <span className="text-[10px] text-muted-foreground"><Palette size={10} className="inline mr-0.5" />Färgtema:</span>
+        {OBSTACLE_TYPES.filter(o => !['start', 'finish'].includes(o.type)).map(o => {
+          const h = getHue(o.type);
+          const bgColor = h === -1 ? 'hsl(0,0%,35%)' : `hsl(${h}, 60%, 50%)`;
+          return (
+            <button
+              key={o.type}
+              onClick={() => setColorPickerType(colorPickerType === o.type ? null : o.type)}
+              className={`text-[9px] px-1.5 py-0.5 rounded border transition-colors flex items-center gap-0.5 ${
+                colorPickerType === o.type ? 'border-primary bg-primary/10' : 'border-border bg-secondary hover:border-primary/50'
+              }`}
+            >
+              <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: bgColor }} />
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Numbering toolbar */}
       {numberingMode && (
         <div className="mb-3 bg-blue-500/5 border border-blue-500/20 rounded-lg p-2">

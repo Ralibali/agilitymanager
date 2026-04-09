@@ -4,7 +4,7 @@ import { PageContainer } from '@/components/PageContainer';
 import { store } from '@/lib/store';
 import type { Dog, TrainingSession, CompetitionResult } from '@/types';
 import { DogAvatar } from '@/components/DogAvatar';
-import { Lock, Trophy, Dumbbell, TrendingUp, Zap, Target, Award, BarChart3 } from 'lucide-react';
+import { Lock, Trophy, Dumbbell, TrendingUp, Zap, Target, Award, BarChart3, Gauge } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
@@ -14,38 +14,43 @@ function CompStats({ competitions, dogs }: { competitions: CompetitionResult[]; 
   const total = competitions.length;
   const passed = competitions.filter(c => c.passed).length;
   const cleanRuns = competitions.filter(c => c.faults === 0 && c.passed).length;
-  const avgFaults = total > 0 ? (competitions.reduce((s, c) => s + c.faults, 0) / total) : 0;
-  const avgTime = total > 0 ? (competitions.reduce((s, c) => s + Number(c.time_sec), 0) / total) : 0;
+  const avgFaults = competitions.reduce((s, c) => s + c.faults, 0) / total;
+  const avgTime = competitions.reduce((s, c) => s + Number(c.time_sec), 0) / total;
   const placements = competitions.filter(c => c.placement && c.placement > 0);
   const topThree = placements.filter(c => c.placement! <= 3).length;
 
-  // Per-dog stats
+  // Speed: only for runs with course_length_m and time_sec > 0
+  const withSpeed = competitions.filter(c => c.course_length_m && c.course_length_m > 0 && Number(c.time_sec) > 0);
+  const avgSpeed = withSpeed.length > 0
+    ? withSpeed.reduce((s, c) => s + (c.course_length_m! / Number(c.time_sec)), 0) / withSpeed.length
+    : null;
+
   const dogIds = [...new Set(competitions.map(c => c.dog_id))];
 
   const stats = [
     {
       icon: <Target size={18} className="text-success" />,
       label: 'Nollade lopp',
-      value: `${total > 0 ? Math.round(cleanRuns / total * 100) : 0}%`,
-      sub: `${cleanRuns} av ${total} lopp utan fel`,
+      value: `${Math.round(cleanRuns / total * 100)}%`,
+      sub: `${cleanRuns} av ${total}`,
     },
     {
       icon: <Trophy size={18} className="text-accent" />,
-      label: 'Godkända',
-      value: `${total > 0 ? Math.round(passed / total * 100) : 0}%`,
-      sub: `${passed} av ${total} lopp godkända`,
-    },
-    {
-      icon: <Award size={18} className="text-warning" />,
-      label: 'Topp 3-placeringar',
-      value: `${topThree}`,
-      sub: placements.length > 0 ? `av ${placements.length} med placering` : 'Ingen placeringsdata',
+      label: 'Pinnar',
+      value: `${passed}`,
+      sub: `${Math.round(passed / total * 100)}% av loppen`,
     },
     {
       icon: <BarChart3 size={18} className="text-primary" />,
       label: 'Snitt fel/lopp',
       value: avgFaults.toFixed(1),
       sub: `Snitt tid: ${avgTime.toFixed(1)}s`,
+    },
+    {
+      icon: avgSpeed !== null ? <Gauge size={18} className="text-warning" /> : <Award size={18} className="text-warning" />,
+      label: avgSpeed !== null ? 'Snitt m/s' : 'Topp 3',
+      value: avgSpeed !== null ? avgSpeed.toFixed(2) : `${topThree}`,
+      sub: avgSpeed !== null ? `${withSpeed.length} lopp med banlängd` : `${placements.length} med placering`,
     },
   ];
 
@@ -67,7 +72,6 @@ function CompStats({ competitions, dogs }: { competitions: CompetitionResult[]; 
         ))}
       </div>
 
-      {/* Per-dog breakdown */}
       {dogIds.length > 1 && (
         <div className="space-y-2">
           <h3 className="text-xs font-semibold text-muted-foreground">Per hund</h3>
@@ -83,7 +87,7 @@ function CompStats({ competitions, dogs }: { competitions: CompetitionResult[]; 
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-foreground">{dog.name}</div>
                   <div className="text-[10px] text-muted-foreground">
-                    {dc.length} lopp · {dPassed} godkända · {dClean} nollade
+                    {dc.length} lopp · {dPassed} pinnar · {dClean} nollade
                   </div>
                 </div>
                 <div className="text-right">
@@ -128,7 +132,6 @@ export default function StatsPage() {
 
   const totalTrainingMin = training.reduce((s, t) => s + t.duration_min, 0);
   const getDog = (id: string) => dogs.find(d => d.id === id);
-
   const recentComps = competitions.slice(0, 5);
 
   return (
@@ -138,7 +141,6 @@ export default function StatsPage() {
       <meta name="description" content="Se din tävlings- och träningsstatistik." />
     </Helmet>
     <PageContainer title="Statistik">
-      {/* Summary cards */}
       <div className="grid grid-cols-3 gap-2 mb-6">
         <div className="bg-card p-3 rounded-xl shadow-card text-center">
           <Dumbbell size={18} className="text-primary mx-auto mb-1" />
@@ -157,10 +159,8 @@ export default function StatsPage() {
         </div>
       </div>
 
-      {/* Competition statistics */}
       <CompStats competitions={competitions} dogs={dogs} />
 
-      {/* Recent results */}
       <div className="mb-6">
         <h2 className="font-display font-semibold text-foreground mb-3">Senaste tävlingsresultat</h2>
         {recentComps.length === 0 ? (
@@ -169,6 +169,9 @@ export default function StatsPage() {
           <div className="space-y-2">
             {recentComps.map(r => {
               const dog = getDog(r.dog_id);
+              const speed = r.course_length_m && r.course_length_m > 0 && Number(r.time_sec) > 0
+                ? (r.course_length_m / Number(r.time_sec)).toFixed(2)
+                : null;
               return (
                 <div key={r.id} className="bg-card p-3 rounded-xl shadow-card flex items-center gap-3">
                   {dog && <DogAvatar dog={dog} size="sm" />}
@@ -176,10 +179,11 @@ export default function StatsPage() {
                     <div className="text-sm font-medium text-foreground truncate">{r.event_name}</div>
                     <div className="text-[10px] text-muted-foreground">
                       {format(new Date(r.date), 'd MMM', { locale: sv })} · {r.time_sec}s · {r.faults} fel
+                      {speed && ` · ${speed} m/s`}
                     </div>
                   </div>
                   <span className={`text-xs font-medium ${r.passed ? 'text-success' : 'text-destructive'}`}>
-                    {r.passed ? 'Godkänd' : 'Ej godkänd'}
+                    {r.passed ? 'Pinne' : 'Ej godkänd'}
                   </span>
                 </div>
               );
@@ -188,14 +192,13 @@ export default function StatsPage() {
         )}
       </div>
 
-      {/* Premium teaser */}
       <div className="bg-card rounded-xl p-5 shadow-card border border-accent/20 text-center">
         <div className="w-12 h-12 rounded-full gradient-accent flex items-center justify-center mx-auto mb-3">
           <TrendingUp size={24} className="text-accent-foreground" />
         </div>
         <h3 className="font-display font-bold text-foreground mb-1">Avancerad statistik</h3>
         <p className="text-sm text-muted-foreground mb-3">
-          Tidsutveckling, hastighetsgraf (m/s) och träningsfrekvens med Premium.
+          Tidsutveckling, hastighetsgraf och träningsfrekvens med Premium.
         </p>
         <div className="flex items-center justify-center gap-1 text-xs text-accent font-medium">
           <Lock size={12} /> Premium-funktion

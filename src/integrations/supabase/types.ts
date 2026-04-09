@@ -442,6 +442,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          premium_until: string | null
           referral_code: string | null
           show_competitions_to_friends: boolean
           show_results_to_friends: boolean
@@ -453,6 +454,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          premium_until?: string | null
           referral_code?: string | null
           show_competitions_to_friends?: boolean
           show_results_to_friends?: boolean
@@ -464,6 +466,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          premium_until?: string | null
           referral_code?: string | null
           show_competitions_to_friends?: boolean
           show_results_to_friends?: boolean

@@ -38,6 +38,14 @@ export default function SupportForm() {
         message,
       });
       if (error) throw error;
+
+      // Notify admin via email
+      await supabase.functions.invoke('notify-admin', {
+        body: {
+          type: 'support_ticket',
+          data: { subject, message, user_email: user!.email },
+        },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-support-tickets'] });

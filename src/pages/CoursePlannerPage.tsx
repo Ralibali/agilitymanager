@@ -1112,17 +1112,70 @@ export default function CoursePlannerPage() {
     return () => container.removeEventListener('wheel', handleWheel);
   }, [handleWheel]);
 
-  // Keyboard shortcut: Ctrl+0 = fit
+  // Keyboard shortcuts: Ctrl+0 = fit, Ctrl+Z = undo, Ctrl+Y = redo, Ctrl+C/V = copy/paste, Del = delete
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === '0') {
         e.preventDefault();
         fitToScreen();
       }
+      // Undo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+      // Redo
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        handleRedo();
+      }
+      // Copy
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selected) {
+        e.preventDefault();
+        const obs = obstacles.find(o => o.id === selected);
+        if (obs) clipboardRef.current = JSON.parse(JSON.stringify(obs));
+      }
+      // Paste
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v' && clipboardRef.current) {
+        e.preventDefault();
+        const copy = { ...JSON.parse(JSON.stringify(clipboardRef.current)), id: nextId(), x: clipboardRef.current.x + 20, y: clipboardRef.current.y + 20 };
+        setObstaclesRaw(prev => {
+          const next = [...prev, copy];
+          pushHistory(next, handlerPath, `Klistrade in ${copy.label}`);
+          setIsDirty(true);
+          return next;
+        });
+        setSelected(copy.id);
+      }
+      // Delete
+      if (e.key === 'Delete' && selected) {
+        const obs = obstacles.find(o => o.id === selected);
+        setObstaclesRaw(prev => {
+          const next = prev.filter(o => o.id !== selected);
+          pushHistory(next, handlerPath, `Raderade ${obs?.label || 'hinder'}`);
+          setIsDirty(true);
+          return next;
+        });
+        setSelected(null);
+      }
+      // Escape
+      if (e.key === 'Escape') {
+        setSelected(null);
+        setMultiSelected(new Set());
+        setMeasureMode(false);
+        setMeasurePoints([]);
+        setDrawingMode(false);
+        setNumberingMode(false);
+      }
+      // Save
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        setSaveOpen(true);
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [fitToScreen]);
+  }, [fitToScreen, handleUndo, handleRedo, selected, obstacles, handlerPath, pushHistory]);
 
   const rotateSelected = () => {
     if (!selected) return;

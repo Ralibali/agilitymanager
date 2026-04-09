@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { PageContainer } from '@/components/PageContainer';
 import { store } from '@/lib/store';
@@ -7,6 +7,7 @@ import { DogAvatar } from '@/components/DogAvatar';
 import { Lock, Trophy, Dumbbell, TrendingUp, Zap, Target, Award, BarChart3, Gauge, XCircle, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 function CompStats({ competitions, dogs }: { competitions: CompetitionResult[]; dogs: Dog[] }) {
   if (competitions.length === 0) return null;

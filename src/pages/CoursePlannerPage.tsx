@@ -858,6 +858,21 @@ export default function CoursePlannerPage() {
           <Upload size={12} /> Importera
         </Button>
         <input ref={fileInputRef} type="file" accept=".json" onChange={importJSON} className="hidden" />
+
+        <button
+          onClick={() => { setDrawingMode(!drawingMode); if (drawingMode) setIsDrawing(false); }}
+          className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${drawingMode ? 'bg-orange-500/15 border-orange-500 text-orange-600' : 'bg-secondary border-border text-muted-foreground'}`}
+        >
+          <Pencil size={10} /> {drawingMode ? 'Rita: PÅ' : 'Förarlinje'}
+        </button>
+        {handlerPath.length > 0 && (
+          <button
+            onClick={() => setHandlerPath([])}
+            className="text-xs px-2 py-0.5 rounded-full border border-border text-muted-foreground hover:text-destructive flex items-center gap-1"
+          >
+            <Eraser size={10} /> Radera linje
+          </button>
+        )}
         <button
           onClick={() => setShowDistances(!showDistances)}
           className={`ml-auto text-xs px-2 py-0.5 rounded-full border transition-colors ${showDistances ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}

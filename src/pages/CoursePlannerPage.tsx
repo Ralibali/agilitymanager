@@ -1662,8 +1662,13 @@ export default function CoursePlannerPage() {
   };
 
   const loadPreset = (preset: typeof PRESET_COURSES[0]) => {
-    setObstacles(preset.obstacles.map(o => ({ ...o, id: nextId() })));
+    const loaded = preset.obstacles.map(o => ({ ...o, id: nextId() }));
+    setObstaclesRaw(loaded);
     setHandlerPath([]);
+    historyRef.current = [{ obstacles: JSON.parse(JSON.stringify(loaded)), handlerPath: [], label: 'Start' }];
+    historyIndexRef.current = 0;
+    setHistoryVersion(v => v + 1);
+    setIsDirty(false);
     setLoadOpen(false);
     toast.success(`Laddade "${preset.name}"`);
   };

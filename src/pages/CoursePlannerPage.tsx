@@ -1883,7 +1883,7 @@ export default function CoursePlannerPage() {
       <div
         ref={containerRef}
         className="bg-card rounded-xl shadow-elevated overflow-hidden mb-3 relative"
-        style={{ touchAction: 'none', minHeight: 300 }}
+        style={{ touchAction: 'none', minHeight: isMobile ? 300 : 500, height: isDesktop ? 'calc(100vh - 340px)' : undefined }}
         onMouseDown={handlePointerDown}
         onMouseMove={handlePointerMove}
         onMouseUp={handlePointerUp}

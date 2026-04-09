@@ -1,9 +1,9 @@
 import { Dog as DogIcon } from 'lucide-react';
 import type { Dog } from '@/types';
 
-export function DogAvatar({ dog, size = 'md' }: { dog: Dog; size?: 'sm' | 'md' | 'lg' }) {
-  const sizeMap = { sm: 'w-8 h-8', md: 'w-12 h-12', lg: 'w-16 h-16' };
-  const iconSize = { sm: 16, md: 24, lg: 32 };
+export function DogAvatar({ dog, size = 'md' }: { dog: Dog; size?: 'xs' | 'sm' | 'md' | 'lg' }) {
+  const sizeMap = { xs: 'w-5 h-5', sm: 'w-8 h-8', md: 'w-12 h-12', lg: 'w-16 h-16' };
+  const iconSize = { xs: 12, sm: 16, md: 24, lg: 32 };
 
   return (
     <div

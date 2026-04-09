@@ -1469,26 +1469,31 @@ export default function CoursePlannerPage() {
       const newNums = [...new Set(newColorNums.map(e => e.num))].sort((a, b) => a - b);
       return { ...o, colorNumbers: newColorNums, numbers: newNums };
     }));
+    setFreeNumbers(prev => prev.filter(fn => fn.color !== color));
     setNumberingHistory(prev => prev.filter(h => h.color !== color));
   };
 
   const undoLastNumber = () => {
     if (numberingHistory.length === 0) return;
     const last = numberingHistory[numberingHistory.length - 1];
-    setObstacles(prev => prev.map(o => {
-      if (o.id !== last.obsId) return o;
-      // Remove the last occurrence of this num+color
-      const arr = o.colorNumbers || [];
-      let idx = -1;
-      for (let i = arr.length - 1; i >= 0; i--) {
-        if (arr[i].num === last.num && arr[i].color === last.color) { idx = i; break; }
-      }
-      if (idx < 0) return o;
-      const newColorNums = [...(o.colorNumbers || [])];
-      newColorNums.splice(idx, 1);
-      const newNums = [...new Set(newColorNums.map(e => e.num))].sort((a, b) => a - b);
-      return { ...o, colorNumbers: newColorNums, numbers: newNums };
-    }));
+    // Check if it's a free number
+    if (last.obsId.startsWith('fn_')) {
+      setFreeNumbers(prev => prev.filter(fn => fn.id !== last.obsId));
+    } else {
+      setObstacles(prev => prev.map(o => {
+        if (o.id !== last.obsId) return o;
+        const arr = o.colorNumbers || [];
+        let idx = -1;
+        for (let i = arr.length - 1; i >= 0; i--) {
+          if (arr[i].num === last.num && arr[i].color === last.color) { idx = i; break; }
+        }
+        if (idx < 0) return o;
+        const newColorNums = [...(o.colorNumbers || [])];
+        newColorNums.splice(idx, 1);
+        const newNums = [...new Set(newColorNums.map(e => e.num))].sort((a, b) => a - b);
+        return { ...o, colorNumbers: newColorNums, numbers: newNums };
+      }));
+    }
     setNumberingHistory(prev => prev.slice(0, -1));
     setNextNumberToAssign(prev => Math.max(1, prev - 1));
   };

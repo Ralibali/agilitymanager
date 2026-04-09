@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus } from 'lucide-react';
+import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser } from 'lucide-react';
 import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
 
@@ -22,6 +22,8 @@ type Obstacle = {
   tunnelLength?: 4 | 6;
   bendAngle?: number; // degrees, 0 = straight, positive = curve right
 };
+
+type PathPoint = { x: number; y: number };
 
 type SavedCourse = {
   id: string;
@@ -103,6 +105,9 @@ export default function CoursePlannerPage() {
   const [showDistances, setShowDistances] = useState(true);
   const [canvasSize, setCanvasSize] = useState(CANVAS_SIZES[1]);
   const [nextNumber, setNextNumber] = useState(1);
+  const [handlerPath, setHandlerPath] = useState<PathPoint[]>([]);
+  const [drawingMode, setDrawingMode] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canvasWidth = canvasSize.width;
@@ -437,8 +442,49 @@ export default function CoursePlannerPage() {
       }
     });
 
+    // Draw handler path
+    if (handlerPath.length > 1) {
+      ctx.save();
+      ctx.translate(MARGIN, 0);
+      ctx.strokeStyle = 'hsl(16, 100%, 55%)';
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.setLineDash([6, 4]);
+      ctx.globalAlpha = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(handlerPath[0].x, handlerPath[0].y);
+      // Smooth curve through points using quadratic bezier
+      for (let i = 1; i < handlerPath.length - 1; i++) {
+        const xc = (handlerPath[i].x + handlerPath[i + 1].x) / 2;
+        const yc = (handlerPath[i].y + handlerPath[i + 1].y) / 2;
+        ctx.quadraticCurveTo(handlerPath[i].x, handlerPath[i].y, xc, yc);
+      }
+      // Last point
+      const last = handlerPath[handlerPath.length - 1];
+      ctx.lineTo(last.x, last.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+
+      // Arrow at end
+      if (handlerPath.length >= 2) {
+        const p1 = handlerPath[handlerPath.length - 2];
+        const p2 = last;
+        const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+        ctx.fillStyle = 'hsl(16, 100%, 55%)';
+        ctx.beginPath();
+        ctx.moveTo(p2.x, p2.y);
+        ctx.lineTo(p2.x - 8 * Math.cos(angle - 0.4), p2.y - 8 * Math.sin(angle - 0.4));
+        ctx.lineTo(p2.x - 8 * Math.cos(angle + 0.4), p2.y - 8 * Math.sin(angle + 0.4));
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
     ctx.restore();
-  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight]);
+  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath]);
 
   useEffect(() => { draw(); }, [draw]);
 
@@ -486,6 +532,11 @@ export default function CoursePlannerPage() {
 
   const handlePointerDown = (e: React.MouseEvent | React.TouchEvent) => {
     const pos = getCanvasPos(e);
+    if (drawingMode) {
+      setIsDrawing(true);
+      setHandlerPath([{ x: pos.x, y: pos.y }]);
+      return;
+    }
     const obs = findObstacleAt(pos.x, pos.y);
     if (obs) {
       setSelected(obs.id);
@@ -497,6 +548,16 @@ export default function CoursePlannerPage() {
   };
 
   const handlePointerMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (drawingMode && isDrawing) {
+      e.preventDefault();
+      const pos = getCanvasPos(e);
+      // Only add point if moved enough distance (reduces points for smoothing)
+      const last = handlerPath[handlerPath.length - 1];
+      if (last && Math.hypot(pos.x - last.x, pos.y - last.y) > 3) {
+        setHandlerPath(prev => [...prev, { x: pos.x, y: pos.y }]);
+      }
+      return;
+    }
     if (!dragging) return;
     e.preventDefault();
     const pos = getCanvasPos(e);
@@ -505,7 +566,10 @@ export default function CoursePlannerPage() {
     ));
   };
 
-  const handlePointerUp = () => setDragging(null);
+  const handlePointerUp = () => {
+    setDragging(null);
+    setIsDrawing(false);
+  };
 
   const rotateSelected = () => {
     if (!selected) return;
@@ -550,7 +614,7 @@ export default function CoursePlannerPage() {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) return;
     const { error } = await supabase.from('saved_courses').insert({
-      user_id: userId, name: courseName.trim(), course_data: obstacles as any,
+      user_id: userId, name: courseName.trim(), course_data: { obstacles, handlerPath } as any,
       canvas_width: canvasWidth, canvas_height: canvasHeight,
     });
     if (error) { toast.error('Kunde inte spara'); }
@@ -563,7 +627,14 @@ export default function CoursePlannerPage() {
   };
 
   const loadCourse = (course: SavedCourse) => {
-    setObstacles(course.course_data);
+    const data = course.course_data as any;
+    if (Array.isArray(data)) {
+      setObstacles(data);
+      setHandlerPath([]);
+    } else {
+      setObstacles(data.obstacles || []);
+      setHandlerPath(data.handlerPath || []);
+    }
     if (course.canvas_width && course.canvas_height) {
       const match = CANVAS_SIZES.find(s => s.width === course.canvas_width && s.height === course.canvas_height);
       if (match) setCanvasSize(match);
@@ -655,7 +726,7 @@ export default function CoursePlannerPage() {
   };
 
   const exportJSON = () => {
-    const data = JSON.stringify({ obstacles, canvasWidth, canvasHeight }, null, 2);
+    const data = JSON.stringify({ obstacles, handlerPath, canvasWidth, canvasHeight }, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -674,7 +745,8 @@ export default function CoursePlannerPage() {
       try {
         const parsed = JSON.parse(ev.target?.result as string);
         if (parsed.obstacles && Array.isArray(parsed.obstacles)) {
-          setObstacles(parsed.obstacles);
+           setObstacles(parsed.obstacles);
+           setHandlerPath(parsed.handlerPath || []);
           if (parsed.canvasWidth && parsed.canvasHeight) {
             const match = CANVAS_SIZES.find(s => s.width === parsed.canvasWidth && s.height === parsed.canvasHeight);
             if (match) setCanvasSize(match);
@@ -777,7 +849,7 @@ export default function CoursePlannerPage() {
           </DialogContent>
         </Dialog>
 
-        <Button variant="outline" size="sm" onClick={() => { setObstacles([]); setSelected(null); }} className="gap-1 h-8 ml-auto">
+        <Button variant="outline" size="sm" onClick={() => { setObstacles([]); setSelected(null); setHandlerPath([]); }} className="gap-1 h-8 ml-auto">
           Rensa
         </Button>
       </div>
@@ -794,6 +866,21 @@ export default function CoursePlannerPage() {
           <Upload size={12} /> Importera
         </Button>
         <input ref={fileInputRef} type="file" accept=".json" onChange={importJSON} className="hidden" />
+
+        <button
+          onClick={() => { setDrawingMode(!drawingMode); if (drawingMode) setIsDrawing(false); }}
+          className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${drawingMode ? 'bg-orange-500/15 border-orange-500 text-orange-600' : 'bg-secondary border-border text-muted-foreground'}`}
+        >
+          <Pencil size={10} /> {drawingMode ? 'Rita: PÅ' : 'Förarlinje'}
+        </button>
+        {handlerPath.length > 0 && (
+          <button
+            onClick={() => setHandlerPath([])}
+            className="text-xs px-2 py-0.5 rounded-full border border-border text-muted-foreground hover:text-destructive flex items-center gap-1"
+          >
+            <Eraser size={10} /> Radera linje
+          </button>
+        )}
         <button
           onClick={() => setShowDistances(!showDistances)}
           className={`ml-auto text-xs px-2 py-0.5 rounded-full border transition-colors ${showDistances ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
@@ -851,7 +938,7 @@ export default function CoursePlannerPage() {
       <div className="bg-card rounded-xl shadow-elevated overflow-auto mb-3">
         <canvas
           ref={canvasRef}
-          style={{ width: canvasWidth + MARGIN, height: canvasHeight + MARGIN, touchAction: 'none', display: 'block', margin: '0 auto', cursor: dragging ? 'grabbing' : 'grab' }}
+          style={{ width: canvasWidth + MARGIN, height: canvasHeight + MARGIN, touchAction: 'none', display: 'block', margin: '0 auto', cursor: drawingMode ? 'crosshair' : dragging ? 'grabbing' : 'grab' }}
           onMouseDown={handlePointerDown}
           onMouseMove={handlePointerMove}
           onMouseUp={handlePointerUp}

@@ -57,7 +57,7 @@ const OBSTACLE_TYPES = [
   { type: 'a_frame',   label: 'A-hinder', symbol: '△', width: 1.9 * PX_PER_METER, height: 2.7 * PX_PER_METER },
   { type: 'dog_walk',  label: 'Brygga',   symbol: '━', width: 3.6 * PX_PER_METER, height: 0.3 * PX_PER_METER },
   { type: 'seesaw',    label: 'Vipp',     symbol: '⏤', width: 3.6 * PX_PER_METER, height: 0.3 * PX_PER_METER },
-  { type: 'balance',   label: 'Balans',   symbol: '─', width: 3.6 * PX_PER_METER, height: 0.3 * PX_PER_METER },
+  { type: 'balance',   label: 'Balans',   symbol: '─', width: 4 * PX_PER_METER, height: 0.3 * PX_PER_METER },
   { type: 'weave',     label: 'Slalom',   symbol: '⫶', width: 6.6 * PX_PER_METER, height: 0.3 * PX_PER_METER },
   { type: 'tire',      label: 'Däck',     symbol: '◯', width: 0.6 * PX_PER_METER, height: 0.6 * PX_PER_METER },
   { type: 'start',     label: 'Start',    symbol: '▸', width: 1.2 * PX_PER_METER, height: 0.1 * PX_PER_METER },

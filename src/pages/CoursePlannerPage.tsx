@@ -818,6 +818,43 @@ export default function CoursePlannerPage() {
       }
     }
 
+    // Draw free numbers (always on top)
+    freeNumbers.forEach(fn => {
+      const radius = 10;
+      const isLight = fn.color === '#eab308' || fn.color === '#e5e5e5';
+
+      // Circle background
+      ctx.fillStyle = fn.color;
+      ctx.beginPath();
+      ctx.arc(fn.x, fn.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Border
+      ctx.strokeStyle = isLight ? 'hsl(0, 0%, 40%)' : 'hsla(0, 0%, 100%, 0.5)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(fn.x, fn.y, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Number text
+      ctx.fillStyle = isLight ? '#000000' : '#ffffff';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(fn.num), fn.x, fn.y);
+
+      // Highlight if being dragged
+      if (draggingNumber === fn.id) {
+        ctx.strokeStyle = 'hsl(221, 79%, 48%)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([3, 2]);
+        ctx.beginPath();
+        ctx.arc(fn.x, fn.y, radius + 3, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    });
+
     // "1 ruta = 1 meter" label
     ctx.fillStyle = 'hsla(0, 0%, 100%, 0.85)';
     ctx.fillRect(4, 4, 80, 14);
@@ -864,7 +901,7 @@ export default function CoursePlannerPage() {
     }
 
     ctx.restore(); // restore MARGIN translate
-  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas, multiSelected, measurePoints]);
+  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas, multiSelected, measurePoints, freeNumbers, draggingNumber]);
 
   useEffect(() => { draw(); }, [draw]);
 

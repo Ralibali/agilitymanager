@@ -39,7 +39,8 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
       birthdate: birthdate || null,
       photo_url: null,
       size_class: sizeClass,
-      competition_level: competitionLevel,
+      competition_level: agilityLevel,
+      jumping_level: jumpingLevel,
       notes: notes.trim(),
       theme_color: themeColor,
     });

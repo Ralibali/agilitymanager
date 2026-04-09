@@ -123,7 +123,7 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   // Västmanlands
   'västerås': 'Västmanlands', 'sala': 'Västmanlands', 'köping': 'Västmanlands',
   'arboga': 'Västmanlands', 'fagersta': 'Västmanlands', 'hallstahammar': 'Västmanlands',
-  'surahammar': 'Västmanlands', 'kumla': 'Västmanlands', 'norberg': 'Västmanlands',
+  'surahammar': 'Västmanlands', 'norberg': 'Västmanlands',
   'skinnskatteberg': 'Västmanlands', 'kungsör': 'Västmanlands',
 
   // Västra Götalands
@@ -151,7 +151,7 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'tjörn': 'Västra Götalands',
 
   // Örebro
-  'örebro': 'Örebro', 'kumla': 'Örebro', 'hallsberg': 'Örebro',
+  'kumla': 'Örebro', 'örebro': 'Örebro', 'hallsberg': 'Örebro',
   'lindesberg': 'Örebro', 'nora': 'Örebro', 'askersund': 'Örebro',
   'degerfors': 'Örebro', 'hällefors': 'Örebro', 'karlskoga': 'Örebro',
   'laxå': 'Örebro', 'ljusnarsberg': 'Örebro', 'lekeberg': 'Örebro',

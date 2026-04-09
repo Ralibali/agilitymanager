@@ -102,6 +102,7 @@ const App = () => (
               <Route path="/blogg/:slug" element={<BlogPostPage />} />
               <Route path="/integritetspolicy" element={<PrivacyPolicyPage />} />
               <Route path="/cookiepolicy" element={<CookiePolicyPage />} />
+              <Route path="/avregistrera" element={<UnsubscribePage />} />
 
               {/* Protected routes */}
               <Route element={<ProtectedLayout />}>

@@ -1304,26 +1304,31 @@ export default function CoursePlannerPage() {
 
   /* ───── Obstacle palette (shared) ───── */
 
-  const obstaclePalette = (vertical: boolean) => (
-    <div className={vertical
-      ? "flex flex-col gap-1 overflow-y-auto py-1 px-0.5"
-      : "grid grid-cols-5 sm:grid-cols-7 gap-1.5"
-    }>
-      {OBSTACLE_TYPES.map(o => (
-        <button
-          key={o.type}
-          onClick={() => addObstacle(o.type)}
-          className={`flex flex-col items-center gap-0.5 rounded-lg font-medium bg-card shadow-card border border-border hover:border-primary active:scale-95 transition-all ${
-            vertical ? 'px-1 py-1 text-[9px]' : 'px-1 py-1.5 text-[10px]'
-          }`}
-        >
-          <span className={vertical ? "text-sm leading-none" : "text-base leading-none"}>{o.symbol}</span>
-          {!vertical && o.label}
-          {vertical && <span className="truncate w-full text-center">{o.label}</span>}
-        </button>
-      ))}
-    </div>
-  );
+  const obstaclePalette = (vertical: boolean) => {
+    const types = showStartFinish
+      ? OBSTACLE_TYPES
+      : OBSTACLE_TYPES.filter(o => o.type !== 'start' && o.type !== 'finish');
+    return (
+      <div className={vertical
+        ? "flex flex-col gap-1 overflow-y-auto py-1 px-0.5"
+        : "grid grid-cols-5 sm:grid-cols-7 gap-1.5"
+      }>
+        {types.map(o => (
+          <button
+            key={o.type}
+            onClick={() => addObstacle(o.type)}
+            className={`flex flex-col items-center gap-0.5 rounded-lg font-medium bg-card shadow-card border border-border hover:border-primary active:scale-95 transition-all ${
+              vertical ? 'px-1 py-1 text-[9px] min-h-[44px] min-w-[44px]' : 'px-1 py-1.5 text-[10px] min-h-[44px]'
+            }`}
+          >
+            <span className={vertical ? "text-sm leading-none" : "text-base leading-none"}>{o.symbol}</span>
+            {!vertical && o.label}
+            {vertical && <span className="truncate w-full text-center">{o.label}</span>}
+          </button>
+        ))}
+      </div>
+    );
+  };
 
   /* ───── Numbering toolbar (shared) ───── */
 

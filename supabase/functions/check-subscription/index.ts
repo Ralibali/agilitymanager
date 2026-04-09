@@ -39,18 +39,44 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Check admin-granted premium (premium_until in profiles)
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('premium_until')
+      .eq('user_id', user.id)
+      .single();
+
+    if (profile?.premium_until) {
+      const premiumUntil = new Date(profile.premium_until);
+      const now = new Date();
+      // premium_until far in the future = lifetime (year 2099+)
+      if (premiumUntil > now) {
+        logStep("Admin-granted premium active", { premium_until: profile.premium_until });
+        return new Response(JSON.stringify({
+          subscribed: true,
+          is_trial: false,
+          subscription_end: premiumUntil.toISOString(),
+          product_id: null,
+          price_id: null,
+          admin_granted: true,
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
     if (customers.data.length === 0) {
       logStep("No customer found");
-      // Still check 7-day free trial for new users without a Stripe customer
       const createdAt = new Date(user.created_at);
       const now = new Date();
       const diffDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
       if (diffDays <= 7) {
         const trialEnd = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
-        logStep("User is in 7-day free trial (no Stripe customer)", { createdAt: user.created_at, daysLeft: Math.ceil(7 - diffDays) });
+        logStep("User is in 7-day free trial (no Stripe customer)");
         return new Response(JSON.stringify({
           subscribed: true, is_trial: true,
           subscription_end: trialEnd.toISOString(),
@@ -80,7 +106,6 @@ serve(async (req) => {
     let subscriptionEnd = null;
     let isTrial = false;
 
-    // Check 7-day free trial for new users
     if (!hasActiveSub) {
       const createdAt = new Date(user.created_at);
       const now = new Date();
@@ -90,14 +115,12 @@ serve(async (req) => {
         isTrial = true;
         const trialEnd = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
         subscriptionEnd = trialEnd.toISOString();
-        logStep("User is in 7-day free trial", { createdAt: user.created_at, daysLeft: Math.ceil(7 - diffDays) });
+        logStep("User is in 7-day free trial");
       }
     }
 
     if (!isTrial && subscriptions.data.length > 0) {
       const subscription = subscriptions.data[0];
-      
-      // Safely handle the end date
       const endTimestamp = subscription.current_period_end;
       if (endTimestamp && typeof endTimestamp === 'number' && endTimestamp > 0) {
         try {
@@ -109,11 +132,10 @@ serve(async (req) => {
           logStep("Could not parse subscription end date", { endTimestamp });
         }
       }
-      
       productId = subscription.items?.data?.[0]?.price?.product ?? null;
       priceId = subscription.items?.data?.[0]?.price?.id ?? null;
       logStep("Active subscription found", { subscriptionEnd, productId, priceId });
-    } else {
+    } else if (!isTrial) {
       logStep("No active subscription found");
     }
 

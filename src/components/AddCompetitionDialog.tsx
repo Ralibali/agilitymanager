@@ -28,6 +28,7 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
   const [faults, setFaults] = useState('0');
   const [timeSec, setTimeSec] = useState('');
   const [passed, setPassed] = useState(false);
+  const [disqualified, setDisqualified] = useState(false);
   const [placement, setPlacement] = useState('');
   const [courseLength, setCourseLength] = useState('');
   const [notes, setNotes] = useState('');
@@ -47,6 +48,7 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
       faults: parseInt(faults) || 0,
       time_sec: parseFloat(timeSec) || 0,
       passed,
+      disqualified,
       placement: placement ? parseInt(placement) : null,
       course_length_m: courseLength ? parseFloat(courseLength) : 0,
       notes: notes.trim(),
@@ -150,9 +152,15 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
               <Input type="number" value={courseLength} onChange={e => setCourseLength(e.target.value)} placeholder="T.ex. 165" />
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Switch checked={passed} onCheckedChange={setPassed} />
-            <Label>Godkänd (nolla)</Label>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Switch checked={passed} onCheckedChange={(v) => { setPassed(v); if (v) setDisqualified(false); }} />
+              <Label>Pinne / Cert</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch checked={disqualified} onCheckedChange={(v) => { setDisqualified(v); if (v) setPassed(false); }} />
+              <Label className="text-destructive">Disk</Label>
+            </div>
           </div>
           <div>
             <Label>Notering</Label>

@@ -4,7 +4,7 @@ import { PageContainer } from '@/components/PageContainer';
 import { store } from '@/lib/store';
 import type { Dog, TrainingSession, CompetitionResult } from '@/types';
 import { DogAvatar } from '@/components/DogAvatar';
-import { Lock, Trophy, Dumbbell, TrendingUp, Zap, Target, Award, BarChart3, Gauge } from 'lucide-react';
+import { Lock, Trophy, Dumbbell, TrendingUp, Zap, Target, Award, BarChart3, Gauge, XCircle, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
@@ -12,14 +12,14 @@ function CompStats({ competitions, dogs }: { competitions: CompetitionResult[]; 
   if (competitions.length === 0) return null;
 
   const total = competitions.length;
-  const passed = competitions.filter(c => c.passed).length;
-  const cleanRuns = competitions.filter(c => c.faults === 0 && c.passed).length;
+  const disqualified = competitions.filter(c => c.disqualified).length;
+  const approved = total - disqualified; // Godkänd = inte disk
+  const passed = competitions.filter(c => c.passed).length; // Pinnar
+  const cleanRuns = competitions.filter(c => c.faults === 0 && !c.disqualified).length;
   const avgFaults = competitions.reduce((s, c) => s + c.faults, 0) / total;
   const avgTime = competitions.reduce((s, c) => s + Number(c.time_sec), 0) / total;
-  const placements = competitions.filter(c => c.placement && c.placement > 0);
-  const topThree = placements.filter(c => c.placement! <= 3).length;
 
-  // Speed: only for runs with course_length_m and time_sec > 0
+  // Speed
   const withSpeed = competitions.filter(c => c.course_length_m && c.course_length_m > 0 && Number(c.time_sec) > 0);
   const avgSpeed = withSpeed.length > 0
     ? withSpeed.reduce((s, c) => s + (c.course_length_m! / Number(c.time_sec)), 0) / withSpeed.length
@@ -29,10 +29,16 @@ function CompStats({ competitions, dogs }: { competitions: CompetitionResult[]; 
 
   const stats = [
     {
-      icon: <Target size={18} className="text-success" />,
-      label: 'Nollade lopp',
+      icon: <CheckCircle size={18} className="text-success" />,
+      label: 'Godkända',
+      value: `${Math.round(approved / total * 100)}%`,
+      sub: `${approved} av ${total} (ej disk)`,
+    },
+    {
+      icon: <Target size={18} className="text-primary" />,
+      label: 'Nollade',
       value: `${Math.round(cleanRuns / total * 100)}%`,
-      sub: `${cleanRuns} av ${total}`,
+      sub: `${cleanRuns} av ${total} utan fel`,
     },
     {
       icon: <Trophy size={18} className="text-accent" />,
@@ -41,16 +47,22 @@ function CompStats({ competitions, dogs }: { competitions: CompetitionResult[]; 
       sub: `${Math.round(passed / total * 100)}% av loppen`,
     },
     {
-      icon: <BarChart3 size={18} className="text-primary" />,
+      icon: <XCircle size={18} className="text-destructive" />,
+      label: 'Disk',
+      value: `${Math.round(disqualified / total * 100)}%`,
+      sub: `${disqualified} av ${total}`,
+    },
+    {
+      icon: <BarChart3 size={18} className="text-muted-foreground" />,
       label: 'Snitt fel/lopp',
       value: avgFaults.toFixed(1),
       sub: `Snitt tid: ${avgTime.toFixed(1)}s`,
     },
     {
-      icon: avgSpeed !== null ? <Gauge size={18} className="text-warning" /> : <Award size={18} className="text-warning" />,
-      label: avgSpeed !== null ? 'Snitt m/s' : 'Topp 3',
-      value: avgSpeed !== null ? avgSpeed.toFixed(2) : `${topThree}`,
-      sub: avgSpeed !== null ? `${withSpeed.length} lopp med banlängd` : `${placements.length} med placering`,
+      icon: <Gauge size={18} className="text-warning" />,
+      label: 'Snitt m/s',
+      value: avgSpeed !== null ? avgSpeed.toFixed(2) : '–',
+      sub: avgSpeed !== null ? `${withSpeed.length} lopp med banlängd` : 'Ange banlängd för m/s',
     },
   ];
 

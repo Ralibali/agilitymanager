@@ -169,11 +169,17 @@ Deno.serve(async (req) => {
       // Deduplicate
       otherClasses = [...new Set(otherClasses)];
 
-      // td[5] = Judges
+      // td[5] = Judges — source sometimes duplicates names separated by spaces
       const judgesText = extractText(cells[5]);
-      const judges = judgesText
-        ? [...new Set(judgesText.split(/,\s*/).map((j: string) => j.trim()).filter(Boolean))]
-        : [];
+      const judges: string[] = [];
+      if (judgesText) {
+        // Split on comma or 3+ whitespace (duplicate separator)
+        const parts = judgesText.split(/,|\s{3,}/).map((j: string) => j.trim()).filter(Boolean);
+        const seen = new Set<string>();
+        for (const p of parts) {
+          if (!seen.has(p)) { seen.add(p); judges.push(p); }
+        }
+      }
 
       // td[7] = Last registration date
       const lastRegText = extractText(cells[7]);

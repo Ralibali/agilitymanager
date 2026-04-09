@@ -14,6 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
+      competition_interests: {
+        Row: {
+          class: string | null
+          competition_id: string
+          created_at: string | null
+          dog_name: string | null
+          id: string
+          notified_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          class?: string | null
+          competition_id: string
+          created_at?: string | null
+          dog_name?: string | null
+          id?: string
+          notified_at?: string | null
+          status: string
+          user_id: string
+        }
+        Update: {
+          class?: string | null
+          competition_id?: string
+          created_at?: string | null
+          dog_name?: string | null
+          id?: string
+          notified_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competition_interests_competition_id_fkey"
+            columns: ["competition_id"]
+            isOneToOne: false
+            referencedRelation: "competitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      competition_log: {
+        Row: {
+          city: string | null
+          class: string | null
+          competition_id: string | null
+          competition_name: string | null
+          created_at: string | null
+          date: string | null
+          discipline: string | null
+          dog_name: string | null
+          id: string
+          notes: string | null
+          starts: number | null
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          class?: string | null
+          competition_id?: string | null
+          competition_name?: string | null
+          created_at?: string | null
+          date?: string | null
+          discipline?: string | null
+          dog_name?: string | null
+          id?: string
+          notes?: string | null
+          starts?: number | null
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          class?: string | null
+          competition_id?: string | null
+          competition_name?: string | null
+          created_at?: string | null
+          date?: string | null
+          discipline?: string | null
+          dog_name?: string | null
+          id?: string
+          notes?: string | null
+          starts?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       competition_results: {
         Row: {
           competition_level: Database["public"]["Enums"]["competition_level"]
@@ -81,6 +167,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      competitions: {
+        Row: {
+          classes_agility: string[] | null
+          classes_hopp: string[] | null
+          classes_other: string[] | null
+          club_name: string | null
+          competition_name: string | null
+          date_end: string | null
+          date_start: string | null
+          fetched_at: string | null
+          id: string
+          indoor_outdoor: string | null
+          judges: string[] | null
+          last_registration_date: string | null
+          location: string | null
+          part_key: string | null
+          raw_lopp: string | null
+          source_url: string | null
+          status: string | null
+          status_code: string | null
+        }
+        Insert: {
+          classes_agility?: string[] | null
+          classes_hopp?: string[] | null
+          classes_other?: string[] | null
+          club_name?: string | null
+          competition_name?: string | null
+          date_end?: string | null
+          date_start?: string | null
+          fetched_at?: string | null
+          id: string
+          indoor_outdoor?: string | null
+          judges?: string[] | null
+          last_registration_date?: string | null
+          location?: string | null
+          part_key?: string | null
+          raw_lopp?: string | null
+          source_url?: string | null
+          status?: string | null
+          status_code?: string | null
+        }
+        Update: {
+          classes_agility?: string[] | null
+          classes_hopp?: string[] | null
+          classes_other?: string[] | null
+          club_name?: string | null
+          competition_name?: string | null
+          date_end?: string | null
+          date_start?: string | null
+          fetched_at?: string | null
+          id?: string
+          indoor_outdoor?: string | null
+          judges?: string[] | null
+          last_registration_date?: string | null
+          location?: string | null
+          part_key?: string | null
+          raw_lopp?: string | null
+          source_url?: string | null
+          status?: string | null
+          status_code?: string | null
+        }
+        Relationships: []
       }
       dogs: {
         Row: {
@@ -182,6 +331,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          competition_id: string | null
+          created_at: string | null
+          id: string
+          message: string | null
+          read: boolean | null
+          user_id: string
+        }
+        Insert: {
+          competition_id?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          read?: boolean | null
+          user_id: string
+        }
+        Update: {
+          competition_id?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          read?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
       }
       planned_competitions: {
         Row: {

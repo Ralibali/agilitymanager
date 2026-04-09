@@ -7,10 +7,11 @@ import { store } from '@/lib/store';
 import type { Dog, TrainingSession } from '@/types';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { Star, Clock, RotateCcw, Download } from 'lucide-react';
+import { Star, Clock, RotateCcw, Download, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { downloadCsv } from '@/lib/csv';
+import { downloadPdf } from '@/lib/pdf';
 
 export default function TrainingPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);

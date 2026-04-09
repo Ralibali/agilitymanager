@@ -1459,6 +1459,7 @@ export default function CoursePlannerPage() {
             {obstaclePalette(true)}
           </div>
         </div>
+        )}
       </div>
     );
   }

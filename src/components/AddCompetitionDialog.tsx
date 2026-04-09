@@ -29,6 +29,7 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
   const [timeSec, setTimeSec] = useState('');
   const [passed, setPassed] = useState(false);
   const [placement, setPlacement] = useState('');
+  const [courseLength, setCourseLength] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -47,6 +48,7 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
       time_sec: parseFloat(timeSec) || 0,
       passed,
       placement: placement ? parseInt(placement) : null,
+      course_length_m: courseLength ? parseFloat(courseLength) : 0,
       notes: notes.trim(),
     });
     setLoading(false);
@@ -140,6 +142,12 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
             <div>
               <Label>Placering</Label>
               <Input type="number" value={placement} onChange={e => setPlacement(e.target.value)} placeholder="-" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Banlängd (m)</Label>
+              <Input type="number" value={courseLength} onChange={e => setCourseLength(e.target.value)} placeholder="T.ex. 165" />
             </div>
           </div>
           <div className="flex items-center gap-3">

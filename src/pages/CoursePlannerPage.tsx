@@ -164,7 +164,7 @@ function useIsLandscape() {
 export default function CoursePlannerPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [obstacles, setObstacles] = useState<Obstacle[]>([]);
+  const [obstacles, setObstaclesRaw] = useState<Obstacle[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -202,6 +202,83 @@ export default function CoursePlannerPage() {
   const [activeThemeId, setActiveThemeId] = useState<string>(loadActiveThemeId);
   const [customOverrides, setCustomOverrides] = useState<ObstacleTheme>(loadCustomOverrides);
   const [showColorPanel, setShowColorPanel] = useState(false);
+
+  // ── Feature 1: Undo/Redo History ──
+  type HistoryEntry = { obstacles: Obstacle[]; handlerPath: PathPoint[]; label: string };
+  const historyRef = useRef<HistoryEntry[]>([{ obstacles: [], handlerPath: [], label: 'Start' }]);
+  const historyIndexRef = useRef(0);
+  const [historyVersion, setHistoryVersion] = useState(0); // trigger re-renders
+  const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
+
+  const pushHistory = useCallback((obs: Obstacle[], path: PathPoint[], label: string) => {
+    const h = historyRef.current;
+    historyRef.current = h.slice(0, historyIndexRef.current + 1);
+    historyRef.current.push({ obstacles: JSON.parse(JSON.stringify(obs)), handlerPath: JSON.parse(JSON.stringify(path)), label });
+    if (historyRef.current.length > 30) historyRef.current = historyRef.current.slice(historyRef.current.length - 30);
+    historyIndexRef.current = historyRef.current.length - 1;
+    setHistoryVersion(v => v + 1);
+  }, []);
+
+  const setObstacles: typeof setObstaclesRaw = useCallback((updater) => {
+    setObstaclesRaw(updater);
+  }, []);
+
+  const canUndo = historyIndexRef.current > 0;
+  const canRedo = historyIndexRef.current < historyRef.current.length - 1;
+
+  const handleUndo = useCallback(() => {
+    if (historyIndexRef.current <= 0) return;
+    historyIndexRef.current--;
+    const entry = historyRef.current[historyIndexRef.current];
+    setObstaclesRaw(JSON.parse(JSON.stringify(entry.obstacles)));
+    setHandlerPath(JSON.parse(JSON.stringify(entry.handlerPath)));
+    setHistoryVersion(v => v + 1);
+  }, []);
+
+  const handleRedo = useCallback(() => {
+    if (historyIndexRef.current >= historyRef.current.length - 1) return;
+    historyIndexRef.current++;
+    const entry = historyRef.current[historyIndexRef.current];
+    setObstaclesRaw(JSON.parse(JSON.stringify(entry.obstacles)));
+    setHandlerPath(JSON.parse(JSON.stringify(entry.handlerPath)));
+    setHistoryVersion(v => v + 1);
+  }, []);
+
+  const getRecentActions = useCallback((count = 8) => {
+    const h = historyRef.current;
+    const end = historyIndexRef.current + 1;
+    const start = Math.max(1, end - count);
+    return h.slice(start, end).map(e => e.label).reverse();
+  }, [historyVersion]);
+
+  // ── Feature 2: Snap-to-Grid ──
+  const [snapEnabled, setSnapEnabled] = useState(true);
+  const SNAP_STEP = 0.5 * PX_PER_METER; // 0.5m
+
+  const snapToGrid = useCallback((val: number) => {
+    if (!snapEnabled) return val;
+    return Math.round(val / SNAP_STEP) * SNAP_STEP;
+  }, [snapEnabled]);
+
+  // ── Feature 4: Copy/Paste ──
+  const clipboardRef = useRef<Obstacle | null>(null);
+
+  // ── Feature 5: Multi-select ──
+  const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
+  const [groupDragging, setGroupDragging] = useState(false);
+  const [groupDragStart, setGroupDragStart] = useState({ x: 0, y: 0 });
+
+  // ── Feature 6: Minimap ──
+  const [showMinimap, setShowMinimap] = useState(true);
+  const minimapRef = useRef<HTMLCanvasElement>(null);
+
+  // ── Feature 8: Measure tool ──
+  const [measureMode, setMeasureMode] = useState(false);
+  const [measurePoints, setMeasurePoints] = useState<PathPoint[]>([]);
+
+  // ── Feature 10: Unsaved changes ──
+  const [isDirty, setIsDirty] = useState(false);
+  const lastSavedRef = useRef<string>('');
 
   const activePreset = PRESET_THEMES.find(p => p.id === activeThemeId);
   const baseTheme = activePreset?.theme ?? STANDARD_THEME;

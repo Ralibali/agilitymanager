@@ -31,6 +31,14 @@ import {
 
 type NumberEntry = { num: number; color: string };
 
+type FreeNumber = {
+  id: string;
+  num: number;
+  color: string;
+  x: number;
+  y: number;
+};
+
 type Obstacle = {
   id: string;
   type: string;
@@ -185,6 +193,11 @@ export default function CoursePlannerPage() {
   const [nextNumberToAssign, setNextNumberToAssign] = useState(1);
   const [numberingColor, setNumberingColor] = useState(NUMBERING_COLORS[0].value);
   const [numberingHistory, setNumberingHistory] = useState<{ obsId: string; num: number; color: string }[]>([]);
+
+  // Free numbers (placed anywhere on canvas)
+  const [freeNumbers, setFreeNumbers] = useState<FreeNumber[]>([]);
+  const [draggingNumber, setDraggingNumber] = useState<string | null>(null);
+  const [numberDragOffset, setNumberDragOffset] = useState({ x: 0, y: 0 });
 
   const [rotatingId, setRotatingId] = useState<string | null>(null);
   const [rotateStart, setRotateStart] = useState({ angle: 0, obsRotation: 0 });
@@ -805,6 +818,43 @@ export default function CoursePlannerPage() {
       }
     }
 
+    // Draw free numbers (always on top)
+    freeNumbers.forEach(fn => {
+      const radius = 10;
+      const isLight = fn.color === '#eab308' || fn.color === '#e5e5e5';
+
+      // Circle background
+      ctx.fillStyle = fn.color;
+      ctx.beginPath();
+      ctx.arc(fn.x, fn.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Border
+      ctx.strokeStyle = isLight ? 'hsl(0, 0%, 40%)' : 'hsla(0, 0%, 100%, 0.5)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(fn.x, fn.y, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Number text
+      ctx.fillStyle = isLight ? '#000000' : '#ffffff';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(fn.num), fn.x, fn.y);
+
+      // Highlight if being dragged
+      if (draggingNumber === fn.id) {
+        ctx.strokeStyle = 'hsl(221, 79%, 48%)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([3, 2]);
+        ctx.beginPath();
+        ctx.arc(fn.x, fn.y, radius + 3, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    });
+
     // "1 ruta = 1 meter" label
     ctx.fillStyle = 'hsla(0, 0%, 100%, 0.85)';
     ctx.fillRect(4, 4, 80, 14);
@@ -851,7 +901,7 @@ export default function CoursePlannerPage() {
     }
 
     ctx.restore(); // restore MARGIN translate
-  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas, multiSelected, measurePoints]);
+  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas, multiSelected, measurePoints, freeNumbers, draggingNumber]);
 
   useEffect(() => { draw(); }, [draw]);
 
@@ -906,6 +956,14 @@ export default function CoursePlannerPage() {
       setIsDirty(true);
       return next;
     });
+  };
+
+  const findFreeNumberAt = (cx: number, cy: number): FreeNumber | null => {
+    for (let i = freeNumbers.length - 1; i >= 0; i--) {
+      const fn = freeNumbers[i];
+      if (Math.hypot(cx - fn.x, cy - fn.y) <= 14) return fn;
+    }
+    return null;
   };
 
   const findObstacleAt = (cx: number, cy: number): Obstacle | null => {
@@ -1033,18 +1091,25 @@ export default function CoursePlannerPage() {
     }
 
     if (numberingMode) {
-      const obs = findObstacleAt(pos.x, pos.y);
-      if (obs) {
-        const newEntry: NumberEntry = { num: nextNumberToAssign, color: numberingColor };
-        setObstacles(prev => prev.map(o => {
-          if (o.id !== obs.id) return o;
-          const newColorNums = [...(o.colorNumbers || []), newEntry];
-          const newNums = [...new Set(newColorNums.map(e => e.num))].sort((a, b) => a - b);
-          return { ...o, colorNumbers: newColorNums, numbers: newNums };
-        }));
-        setNumberingHistory(prev => [...prev, { obsId: obs.id, num: nextNumberToAssign, color: numberingColor }]);
-        setNextNumberToAssign(prev => prev + 1);
+      // Check if clicking on an existing free number to drag it
+      const hitNum = findFreeNumberAt(pos.x, pos.y);
+      if (hitNum) {
+        setDraggingNumber(hitNum.id);
+        setNumberDragOffset({ x: pos.x - hitNum.x, y: pos.y - hitNum.y });
+        return;
       }
+      // Place a new free number at the clicked position
+      const newFN: FreeNumber = {
+        id: `fn_${Date.now()}_${nextNumberToAssign}`,
+        num: nextNumberToAssign,
+        color: numberingColor,
+        x: pos.x,
+        y: pos.y,
+      };
+      setFreeNumbers(prev => [...prev, newFN]);
+      setNumberingHistory(prev => [...prev, { obsId: newFN.id, num: nextNumberToAssign, color: numberingColor }]);
+      setNextNumberToAssign(prev => prev + 1);
+      setIsDirty(true);
       return;
     }
 
@@ -1160,6 +1225,16 @@ export default function CoursePlannerPage() {
       return;
     }
 
+    // Dragging a free number
+    if (draggingNumber) {
+      e.preventDefault();
+      const pos = getCanvasPos(e);
+      setFreeNumbers(prev => prev.map(fn =>
+        fn.id === draggingNumber ? { ...fn, x: pos.x - numberDragOffset.x, y: pos.y - numberDragOffset.y } : fn
+      ));
+      return;
+    }
+
     if (dragging) {
       e.preventDefault();
       const pos = getCanvasPos(e);
@@ -1187,6 +1262,9 @@ export default function CoursePlannerPage() {
       pushHistory(obstacles, handlerPath, `Flyttade ${obs?.label || 'hinder'}`);
       setIsDirty(true);
     }
+    if (draggingNumber) {
+      setIsDirty(true);
+    }
     if (rotatingId) {
       const obs = obstacles.find(o => o.id === rotatingId);
       pushHistory(obstacles, handlerPath, `Roterade ${obs?.label || 'hinder'}`);
@@ -1197,6 +1275,7 @@ export default function CoursePlannerPage() {
       setIsDirty(true);
     }
     setDragging(null);
+    setDraggingNumber(null);
     setIsDrawing(false);
     setRotatingId(null);
     setTouchRotating(false);
@@ -1379,6 +1458,7 @@ export default function CoursePlannerPage() {
 
   const clearNumbering = () => {
     setObstacles(prev => prev.map(o => ({ ...o, numbers: [], colorNumbers: [] })));
+    setFreeNumbers([]);
     setNextNumberToAssign(1);
     setNumberingHistory([]);
   };
@@ -1389,26 +1469,31 @@ export default function CoursePlannerPage() {
       const newNums = [...new Set(newColorNums.map(e => e.num))].sort((a, b) => a - b);
       return { ...o, colorNumbers: newColorNums, numbers: newNums };
     }));
+    setFreeNumbers(prev => prev.filter(fn => fn.color !== color));
     setNumberingHistory(prev => prev.filter(h => h.color !== color));
   };
 
   const undoLastNumber = () => {
     if (numberingHistory.length === 0) return;
     const last = numberingHistory[numberingHistory.length - 1];
-    setObstacles(prev => prev.map(o => {
-      if (o.id !== last.obsId) return o;
-      // Remove the last occurrence of this num+color
-      const arr = o.colorNumbers || [];
-      let idx = -1;
-      for (let i = arr.length - 1; i >= 0; i--) {
-        if (arr[i].num === last.num && arr[i].color === last.color) { idx = i; break; }
-      }
-      if (idx < 0) return o;
-      const newColorNums = [...(o.colorNumbers || [])];
-      newColorNums.splice(idx, 1);
-      const newNums = [...new Set(newColorNums.map(e => e.num))].sort((a, b) => a - b);
-      return { ...o, colorNumbers: newColorNums, numbers: newNums };
-    }));
+    // Check if it's a free number
+    if (last.obsId.startsWith('fn_')) {
+      setFreeNumbers(prev => prev.filter(fn => fn.id !== last.obsId));
+    } else {
+      setObstacles(prev => prev.map(o => {
+        if (o.id !== last.obsId) return o;
+        const arr = o.colorNumbers || [];
+        let idx = -1;
+        for (let i = arr.length - 1; i >= 0; i--) {
+          if (arr[i].num === last.num && arr[i].color === last.color) { idx = i; break; }
+        }
+        if (idx < 0) return o;
+        const newColorNums = [...(o.colorNumbers || [])];
+        newColorNums.splice(idx, 1);
+        const newNums = [...new Set(newColorNums.map(e => e.num))].sort((a, b) => a - b);
+        return { ...o, colorNumbers: newColorNums, numbers: newNums };
+      }));
+    }
     setNumberingHistory(prev => prev.slice(0, -1));
     setNextNumberToAssign(prev => Math.max(1, prev - 1));
   };
@@ -1526,7 +1611,7 @@ export default function CoursePlannerPage() {
     if (!userId) return;
     const { error } = await supabase.from('saved_courses').insert({
       user_id: userId, name: courseName.trim(),
-      course_data: { obstacles, handlerPath, themeId: activeThemeId, customOverrides } as any,
+      course_data: { obstacles, handlerPath, freeNumbers, themeId: activeThemeId, customOverrides } as any,
       canvas_width: rawW, canvas_height: rawH,
     });
     if (error) { toast.error('Kunde inte spara'); }
@@ -1551,6 +1636,7 @@ export default function CoursePlannerPage() {
     }
     setObstaclesRaw(loadedObstacles);
     setHandlerPath(loadedPath);
+    setFreeNumbers(data.freeNumbers || []);
     // Reset history on load
     historyRef.current = [{ obstacles: JSON.parse(JSON.stringify(loadedObstacles)), handlerPath: JSON.parse(JSON.stringify(loadedPath)), label: 'Start' }];
     historyIndexRef.current = 0;
@@ -1628,7 +1714,7 @@ export default function CoursePlannerPage() {
   };
 
   const exportJSON = () => {
-    const data = JSON.stringify({ obstacles, handlerPath, canvasWidth: rawW, canvasHeight: rawH }, null, 2);
+    const data = JSON.stringify({ obstacles, handlerPath, freeNumbers, canvasWidth: rawW, canvasHeight: rawH }, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -1649,6 +1735,7 @@ export default function CoursePlannerPage() {
         if (parsed.obstacles && Array.isArray(parsed.obstacles)) {
           setObstacles(parsed.obstacles.map(migrateObstacle));
           setHandlerPath(parsed.handlerPath || []);
+          setFreeNumbers(parsed.freeNumbers || []);
           if (parsed.canvasWidth && parsed.canvasHeight) {
             const match = CANVAS_SIZES.find(s => s.width === parsed.canvasWidth && s.height === parsed.canvasHeight);
             if (match) setCanvasSize(match);
@@ -1831,6 +1918,78 @@ export default function CoursePlannerPage() {
           <div className="absolute bottom-2 left-2 text-[10px] text-muted-foreground bg-background/80 rounded px-1.5 py-0.5">
             {Math.round(zoom * 100)}%
           </div>
+
+          {/* Selected obstacle controls overlay (inside fullscreen container) */}
+          {selectedObs && !numberingMode && (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 bg-card/95 backdrop-blur-sm border border-border rounded-lg p-2 shadow-lg flex gap-2 items-center flex-wrap max-w-[90vw]"
+              onMouseDown={e => e.stopPropagation()}
+              onTouchStart={e => e.stopPropagation()}
+            >
+              <button onClick={rotateSelected} className="p-1.5 rounded bg-secondary hover:bg-secondary/80 transition-colors" title="Rotera 15°">
+                <RotateCcw size={14} />
+              </button>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-muted-foreground">°</span>
+                <input
+                  type="number"
+                  value={Math.round(selectedObs.rotation)}
+                  onChange={e => setRotationManual(parseInt(e.target.value) || 0)}
+                  className="w-12 h-6 text-xs text-center bg-secondary border border-border rounded"
+                />
+              </div>
+              <button onClick={deleteSelected} className="p-1.5 rounded bg-secondary hover:bg-destructive/20 text-destructive transition-colors" title="Radera">
+                <Trash2 size={14} />
+              </button>
+              <button onClick={copySelected} className="p-1.5 rounded bg-secondary hover:bg-secondary/80 transition-colors" title="Kopiera">
+                <Copy size={14} />
+              </button>
+
+              {selectedObs.type === 'tunnel' && (
+                <>
+                  <div className="h-4 w-px bg-border" />
+                  <button onClick={toggleTunnelLength} className="text-[10px] px-2 py-1 rounded bg-secondary border border-border font-medium">
+                    {selectedObs.tunnelLength || 4}m
+                  </button>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground">Böj:</span>
+                    <button onClick={() => updateTunnelBend(-15)} className="p-1 rounded bg-secondary hover:bg-secondary/80">
+                      <Minus size={10} />
+                    </button>
+                    <span className="text-[10px] font-medium w-8 text-center">{selectedObs.bendAngle || 0}°</span>
+                    <button onClick={() => updateTunnelBend(15)} className="p-1 rounded bg-secondary hover:bg-secondary/80">
+                      <Plus size={10} />
+                    </button>
+                  </div>
+                  <div className="flex gap-0.5 flex-wrap">
+                    {[0, 45, 90, 180].map(a => (
+                      <button
+                        key={a}
+                        onClick={() => setTunnelBend(a)}
+                        className={`text-[9px] px-1.5 py-0.5 rounded border transition-colors ${
+                          (selectedObs.bendAngle || 0) === a
+                            ? 'bg-primary/15 border-primary text-primary'
+                            : 'bg-secondary border-border text-muted-foreground'
+                        }`}
+                      >
+                        {a === 0 ? 'Rak' : a === 180 ? 'U' : `${a}°`}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="range"
+                    min={-360}
+                    max={360}
+                    step={5}
+                    value={selectedObs.bendAngle || 0}
+                    onChange={e => setTunnelBend(Number(e.target.value))}
+                    className="w-24 h-1.5 accent-primary"
+                    onMouseDown={e => e.stopPropagation()}
+                    onTouchStart={e => e.stopPropagation()}
+                  />
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Sidebar toggle when collapsed */}
@@ -2052,6 +2211,7 @@ export default function CoursePlannerPage() {
           setObstaclesRaw(emptyObs);
           setSelected(null);
           setHandlerPath([]);
+          setFreeNumbers([]);
           setNumberingMode(false);
           setNextNumberToAssign(1);
           setNumberingHistory([]);
@@ -2233,7 +2393,7 @@ export default function CoursePlannerPage() {
           <div className="flex items-center gap-1 mb-1.5">
             <Hash size={12} className="text-blue-600" />
             <span className="text-xs font-semibold text-foreground">Numreringsläge</span>
-            <span className="text-[10px] text-muted-foreground ml-1">– Tryck på hinder för att tilldela nummer</span>
+            <span className="text-[10px] text-muted-foreground ml-1">– Tryck var som helst på banan för att placera nummer. Dra för att flytta.</span>
           </div>
           {numberingToolbar(false)}
         </div>

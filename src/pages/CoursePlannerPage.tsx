@@ -2392,7 +2392,7 @@ export default function CoursePlannerPage() {
           <div className="flex items-center gap-1 mb-1.5">
             <Hash size={12} className="text-blue-600" />
             <span className="text-xs font-semibold text-foreground">Numreringsläge</span>
-            <span className="text-[10px] text-muted-foreground ml-1">– Tryck på hinder för att tilldela nummer</span>
+            <span className="text-[10px] text-muted-foreground ml-1">– Tryck var som helst på banan för att placera nummer. Dra för att flytta.</span>
           </div>
           {numberingToolbar(false)}
         </div>

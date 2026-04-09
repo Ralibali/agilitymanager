@@ -463,6 +463,22 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {shareComp.comp && (
+        <ShareToFriendDialog
+          open={shareComp.open}
+          onOpenChange={(open) => setShareComp({ open, comp: open ? shareComp.comp : null })}
+          sharedType="competition"
+          sharedId={shareComp.comp.id}
+          sharedData={{
+            name: stripHtml(shareComp.comp.competition_name),
+            club: stripHtml(shareComp.comp.club_name),
+            date: formatDateRange(shareComp.comp.date_start, shareComp.comp.date_end),
+            location: shareComp.comp.location || '',
+            source_url: shareComp.comp.source_url || '',
+          }}
+        />
+      )}
     </div>
   );
 }

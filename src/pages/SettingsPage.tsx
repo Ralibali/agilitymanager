@@ -239,3 +239,52 @@ export default function SettingsPage() {
     </PageContainer>
   );
 }
+
+function PrivacySettings({ userId }: { userId?: string }) {
+  const [showComps, setShowComps] = useState(true);
+  const [showResults, setShowResults] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    supabase
+      .from('profiles')
+      .select('show_competitions_to_friends, show_results_to_friends')
+      .eq('user_id', userId)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setShowComps((data as any).show_competitions_to_friends ?? true);
+          setShowResults((data as any).show_results_to_friends ?? true);
+        }
+        setLoaded(true);
+      });
+  }, [userId]);
+
+  const update = async (field: string, value: boolean) => {
+    if (!userId) return;
+    await supabase.from('profiles').update({ [field]: value } as any).eq('user_id', userId);
+  };
+
+  if (!loaded) return null;
+
+  return (
+    <div className="bg-card rounded-xl p-4 shadow-card mb-4 space-y-4">
+      <h3 className="font-display font-semibold text-foreground">Integritet — Kompisar</h3>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-foreground">Visa tävlingar för kompisar</p>
+          <p className="text-xs text-muted-foreground">Dina kompisar kan se när du tävlar</p>
+        </div>
+        <Switch checked={showComps} onCheckedChange={(v) => { setShowComps(v); update('show_competitions_to_friends', v); }} />
+      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-foreground">Visa resultat för kompisar</p>
+          <p className="text-xs text-muted-foreground">Dina kompisar kan se dina resultat</p>
+        </div>
+        <Switch checked={showResults} onCheckedChange={(v) => { setShowResults(v); update('show_results_to_friends', v); }} />
+      </div>
+    </div>
+  );
+}

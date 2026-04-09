@@ -1066,8 +1066,10 @@ export default function CoursePlannerPage() {
     if (dragging) {
       e.preventDefault();
       const pos = getCanvasPos(e);
-      setObstacles(prev => prev.map(o =>
-        o.id === dragging ? { ...o, x: pos.x - dragOffset.x, y: pos.y - dragOffset.y } : o
+      const newX = snapToGrid(pos.x - dragOffset.x);
+      const newY = snapToGrid(pos.y - dragOffset.y);
+      setObstaclesRaw(prev => prev.map(o =>
+        o.id === dragging ? { ...o, x: newX, y: newY } : o
       ));
       return;
     }
@@ -1184,14 +1186,26 @@ export default function CoursePlannerPage() {
 
   const rotateSelected = () => {
     if (!selected) return;
-    setObstacles(prev => prev.map(o =>
-      o.id === selected ? { ...o, rotation: (o.rotation + 15) % 360 } : o
-    ));
+    const obs = obstacles.find(o => o.id === selected);
+    setObstaclesRaw(prev => {
+      const next = prev.map(o =>
+        o.id === selected ? { ...o, rotation: (o.rotation + 15) % 360 } : o
+      );
+      pushHistory(next, handlerPath, `Roterade ${obs?.label || 'hinder'}`);
+      setIsDirty(true);
+      return next;
+    });
   };
 
   const deleteSelected = () => {
     if (!selected) return;
-    setObstacles(prev => prev.filter(o => o.id !== selected));
+    const obs = obstacles.find(o => o.id === selected);
+    setObstaclesRaw(prev => {
+      const next = prev.filter(o => o.id !== selected);
+      pushHistory(next, handlerPath, `Raderade ${obs?.label || 'hinder'}`);
+      setIsDirty(true);
+      return next;
+    });
     setSelected(null);
   };
 

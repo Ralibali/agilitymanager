@@ -331,6 +331,39 @@ export type Database = {
           },
         ]
       }
+      support_tickets: {
+        Row: {
+          admin_reply: string | null
+          created_at: string
+          id: string
+          message: string
+          status: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_reply?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_reply?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       training_sessions: {
         Row: {
           created_at: string
@@ -425,6 +458,7 @@ export type Database = {
       discipline: "Agility" | "Jumping" | "Nollklass"
       dog_gender: "Hane" | "Tik"
       size_class: "XS" | "S" | "M" | "L"
+      ticket_status: "open" | "answered" | "closed"
       training_type:
         | "Bana"
         | "Hinder"
@@ -566,6 +600,7 @@ export const Constants = {
       discipline: ["Agility", "Jumping", "Nollklass"],
       dog_gender: ["Hane", "Tik"],
       size_class: ["XS", "S", "M", "L"],
+      ticket_status: ["open", "answered", "closed"],
       training_type: [
         "Bana",
         "Hinder",

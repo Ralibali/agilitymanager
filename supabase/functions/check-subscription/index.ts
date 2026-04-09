@@ -59,12 +59,27 @@ serve(async (req) => {
       limit: 1,
     });
 
-    const hasActiveSub = subscriptions.data.length > 0;
+    let hasActiveSub = subscriptions.data.length > 0;
     let productId = null;
     let priceId = null;
     let subscriptionEnd = null;
+    let isTrial = false;
 
-    if (hasActiveSub) {
+    // Check 7-day free trial for new users
+    if (!hasActiveSub) {
+      const createdAt = new Date(user.created_at);
+      const now = new Date();
+      const diffDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+      if (diffDays <= 7) {
+        hasActiveSub = true;
+        isTrial = true;
+        const trialEnd = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
+        subscriptionEnd = trialEnd.toISOString();
+        logStep("User is in 7-day free trial", { createdAt: user.created_at, daysLeft: Math.ceil(7 - diffDays) });
+      }
+    }
+
+    if (!isTrial && subscriptions.data.length > 0) {
       const subscription = subscriptions.data[0];
       
       // Safely handle the end date
@@ -92,6 +107,7 @@ serve(async (req) => {
       product_id: productId,
       price_id: priceId,
       subscription_end: subscriptionEnd,
+      is_trial: isTrial,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

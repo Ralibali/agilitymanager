@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageContainer } from '@/components/PageContainer';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, UserPlus, QrCode, Share2, Check, X, Users, Loader2, Copy, ScanLine } from 'lucide-react';
+import { Search, UserPlus, QrCode, Share2, Check, X, Users, Loader2, Copy, ScanLine, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -18,6 +19,7 @@ import QrScannerDialog from '@/components/friends/QrScannerDialog';
 import SharedCoursesInbox from '@/components/friends/SharedCoursesInbox';
 
 export default function FriendsPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<FriendProfile[]>([]);
@@ -260,11 +262,21 @@ export default function FriendsPage() {
             ) : (
               friends.map(f => (
                 <Card key={f.id}>
-                  <CardContent className="p-3 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                      {(f.profile.display_name || '?')[0].toUpperCase()}
+                  <CardContent className="p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                        {(f.profile.display_name || '?')[0].toUpperCase()}
+                      </div>
+                      <span className="font-medium text-foreground">{f.profile.display_name || 'Anonym'}</span>
                     </div>
-                    <span className="font-medium text-foreground">{f.profile.display_name || 'Anonym'}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => navigate(`/friend-stats/${f.profile.user_id}`)}
+                      title="Visa statistik"
+                    >
+                      <Eye size={18} className="text-muted-foreground" />
+                    </Button>
                   </CardContent>
                 </Card>
               ))

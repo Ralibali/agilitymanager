@@ -17,6 +17,7 @@ export type Database = {
       competition_results: {
         Row: {
           competition_level: Database["public"]["Enums"]["competition_level"]
+          course_length_m: number | null
           created_at: string
           date: string
           discipline: Database["public"]["Enums"]["discipline"]
@@ -34,6 +35,7 @@ export type Database = {
         }
         Insert: {
           competition_level?: Database["public"]["Enums"]["competition_level"]
+          course_length_m?: number | null
           created_at?: string
           date?: string
           discipline?: Database["public"]["Enums"]["discipline"]
@@ -51,6 +53,7 @@ export type Database = {
         }
         Update: {
           competition_level?: Database["public"]["Enums"]["competition_level"]
+          course_length_m?: number | null
           created_at?: string
           date?: string
           discipline?: Database["public"]["Enums"]["discipline"]

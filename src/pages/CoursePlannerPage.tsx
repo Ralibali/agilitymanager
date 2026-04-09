@@ -194,6 +194,11 @@ export default function CoursePlannerPage() {
   const [numberingColor, setNumberingColor] = useState(NUMBERING_COLORS[0].value);
   const [numberingHistory, setNumberingHistory] = useState<{ obsId: string; num: number; color: string }[]>([]);
 
+  // Free numbers (placed anywhere on canvas)
+  const [freeNumbers, setFreeNumbers] = useState<FreeNumber[]>([]);
+  const [draggingNumber, setDraggingNumber] = useState<string | null>(null);
+  const [numberDragOffset, setNumberDragOffset] = useState({ x: 0, y: 0 });
+
   const [rotatingId, setRotatingId] = useState<string | null>(null);
   const [rotateStart, setRotateStart] = useState({ angle: 0, obsRotation: 0 });
   const [touchRotating, setTouchRotating] = useState(false);

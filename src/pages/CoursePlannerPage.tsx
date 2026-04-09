@@ -1641,24 +1641,39 @@ export default function CoursePlannerPage() {
       ? OBSTACLE_TYPES
       : OBSTACLE_TYPES.filter(o => o.type !== 'start' && o.type !== 'finish');
     return (
-      <div className={vertical
-        ? "flex flex-col gap-1 overflow-y-auto py-1 px-0.5"
-        : "grid grid-cols-5 sm:grid-cols-7 gap-1.5"
-      }>
-        {types.map(o => (
-          <button
-            key={o.type}
-            onClick={() => addObstacle(o.type)}
-            className={`flex flex-col items-center gap-0.5 rounded-lg font-medium bg-card shadow-card border border-border hover:border-primary active:scale-95 transition-all ${
-              vertical ? 'px-1 py-1 text-[9px] min-h-[44px] min-w-[44px]' : 'px-1 py-1.5 text-[10px] min-h-[44px]'
-            }`}
-          >
-            <span className={vertical ? "text-sm leading-none" : "text-base leading-none"}>{o.symbol}</span>
-            {!vertical && o.label}
-            {vertical && <span className="truncate w-full text-center">{o.label}</span>}
-          </button>
-        ))}
-      </div>
+      <TooltipProvider delayDuration={300}>
+        <div className={vertical
+          ? "flex flex-col gap-1 overflow-y-auto py-1 px-0.5"
+          : "grid grid-cols-5 sm:grid-cols-7 gap-1.5"
+        }>
+          {types.map(o => {
+            const info = OBSTACLE_INFO[o.type];
+            return (
+              <Tooltip key={o.type}>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => addObstacle(o.type)}
+                    className={`flex flex-col items-center gap-0.5 rounded-lg font-medium bg-card shadow-card border border-border hover:border-primary active:scale-95 transition-all ${
+                      vertical ? 'px-1 py-1 text-[9px] min-h-[44px] min-w-[44px]' : 'px-1 py-1.5 text-[10px] min-h-[44px]'
+                    }`}
+                  >
+                    <span className={vertical ? "text-sm leading-none" : "text-base leading-none"}>{o.symbol}</span>
+                    {!vertical && o.label}
+                    {vertical && <span className="truncate w-full text-center">{o.label}</span>}
+                  </button>
+                </TooltipTrigger>
+                {info && (
+                  <TooltipContent side={vertical ? "left" : "top"} className="max-w-[200px]">
+                    <p className="font-semibold text-xs">{o.label}</p>
+                    <p className="text-[10px] text-muted-foreground">{info.dimensions}</p>
+                    <p className="text-[10px] text-muted-foreground">{info.classes}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            );
+          })}
+        </div>
+      </TooltipProvider>
     );
   };
 

@@ -91,15 +91,16 @@ function CompStats({ competitions, dogs }: { competitions: CompetitionResult[]; 
             const dog = dogs.find(d => d.id === dogId);
             if (!dog) return null;
             const dc = competitions.filter(c => c.dog_id === dogId);
-            const dClean = dc.filter(c => c.faults === 0 && c.passed).length;
+            const dClean = dc.filter(c => c.faults === 0 && !c.disqualified).length;
             const dPassed = dc.filter(c => c.passed).length;
+            const dDisk = dc.filter(c => c.disqualified).length;
             return (
               <div key={dogId} className="bg-card p-3 rounded-xl shadow-card flex items-center gap-3">
                 <DogAvatar dog={dog} size="sm" />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-foreground">{dog.name}</div>
                   <div className="text-[10px] text-muted-foreground">
-                    {dc.length} lopp · {dPassed} pinnar · {dClean} nollade
+                    {dc.length} lopp · {dPassed} pinnar · {dClean} nollade · {dDisk} disk
                   </div>
                 </div>
                 <div className="text-right">

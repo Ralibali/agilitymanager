@@ -8,7 +8,9 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Dog, CompetitionResult, PlannedCompetition } from '@/types';
 import { format, differenceInDays } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { CheckCircle2, XCircle, Medal, ExternalLink, Calendar, CheckSquare, Square, Trash2, Plus, X } from 'lucide-react';
+import { CheckCircle2, XCircle, Medal, ExternalLink, Calendar, CheckSquare, Square, Trash2, Plus, X, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { downloadCsv } from '@/lib/csv';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -84,7 +86,42 @@ export default function CompetitionPage() {
     </Helmet>
     <PageContainer
       title="Tävling"
-      action={dogs.length > 0 ? <AddCompetitionDialog dogs={dogs} onAdded={refresh} /> : undefined}
+      action={
+        <div className="flex items-center gap-2">
+          {results.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              onClick={() => {
+                const rows = results.map(r => {
+                  const dog = getDog(r.dog_id);
+                  return {
+                    Datum: r.date,
+                    Hund: dog?.name ?? '',
+                    Tävling: r.event_name,
+                    Arrangör: r.organizer,
+                    Gren: r.discipline,
+                    Klass: r.competition_level,
+                    Storlek: r.size_class,
+                    'Tid (s)': r.time_sec,
+                    Fel: r.faults,
+                    'Banlängd (m)': r.course_length_m ?? '',
+                    Placering: r.placement ?? '',
+                    Godkänd: r.passed ? 'Ja' : 'Nej',
+                    Diskad: r.disqualified ? 'Ja' : 'Nej',
+                    Noteringar: r.notes,
+                  };
+                });
+                downloadCsv(rows, `tavlingsresultat-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+              }}
+            >
+              <Download size={14} /> CSV
+            </Button>
+          )}
+          {dogs.length > 0 ? <AddCompetitionDialog dogs={dogs} onAdded={refresh} /> : null}
+        </div>
+      }
     >
       <Tabs defaultValue="calendar" className="mb-4">
         <TabsList className="w-full">

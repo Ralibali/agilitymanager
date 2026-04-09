@@ -146,7 +146,7 @@ export default function ChatPage() {
       sender_id: user.id,
       receiver_id: friendId,
       content: newMessage.trim(),
-    });
+    } as never);
     if (!error) setNewMessage('');
     setSending(false);
     inputRef.current?.focus();

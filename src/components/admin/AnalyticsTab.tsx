@@ -51,6 +51,40 @@ export default function AnalyticsTab() {
   const sortedMediums = [...byMedium.entries()].sort((a, b) => b[1] - a[1]);
   const sortedCampaigns = [...byCampaign.entries()].sort((a, b) => b[1] - a[1]);
 
+  // Build weekly chart data grouped by source
+  const weeklyMap = new Map<string, Record<string, number>>();
+  const allSources = new Set<string>();
+
+  for (const s of sources) {
+    const d = new Date(s.created_at);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d);
+    monday.setDate(diff);
+    const weekKey = monday.toISOString().slice(0, 10);
+
+    const src = s.utm_source || (s.referrer ? (() => { try { return new URL(s.referrer).hostname; } catch { return 'direkt'; } })() : 'direkt');
+    allSources.add(src);
+
+    if (!weeklyMap.has(weekKey)) weeklyMap.set(weekKey, {});
+    const bucket = weeklyMap.get(weekKey)!;
+    bucket[src] = (bucket[src] || 0) + 1;
+  }
+
+  const chartData = [...weeklyMap.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([week, counts]) => ({ week: `v.${getISOWeekNumber(week)}`, ...counts }));
+
+  const sourceColors = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--destructive))', '#f59e0b', '#8b5cf6', '#06b6d4'];
+
+  function getISOWeekNumber(dateStr: string) {
+    const d = new Date(dateStr);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+    const week1 = new Date(d.getFullYear(), 0, 4);
+    return 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+  }
+
   return (
     <div className="space-y-4">
       {/* Summary */}
@@ -74,6 +108,27 @@ export default function AnalyticsTab() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Weekly chart */}
+      {chartData.length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <h3 className="text-sm font-semibold text-foreground mb-3">Registreringar per vecka</h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="week" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }} />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                {[...allSources].map((src, i) => (
+                  <Bar key={src} dataKey={src} stackId="a" fill={sourceColors[i % sourceColors.length]} radius={i === allSources.size - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]} />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Sources breakdown */}
       <Card>

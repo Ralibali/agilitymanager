@@ -44,7 +44,7 @@ export function downloadPdf({ title, subtitle, headers, rows, filename, landscap
     doc.setFontSize(7);
     doc.setTextColor(160);
     const pageH = doc.internal.pageSize.getHeight();
-    doc.text(`AgilityManager – ${new Date().toLocaleDateString('sv-SE')}`, 14, pageH - 8);
+    doc.text(`AgilityManager – agilitymanager.se – ${new Date().toLocaleDateString('sv-SE')}`, 14, pageH - 8);
     doc.text(`Sida ${i}/${pageCount}`, doc.internal.pageSize.getWidth() - 14, pageH - 8, { align: 'right' });
   }
 

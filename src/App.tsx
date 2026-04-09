@@ -28,6 +28,8 @@ const BlogPage = React.lazy(() => import("./pages/BlogPage"));
 const BlogPostPage = React.lazy(() => import("./pages/BlogPostPage"));
 const AdminPage = React.lazy(() => import("./pages/AdminPage"));
 const AboutAgilityPage = React.lazy(() => import("./pages/AboutAgilityPage"));
+const PrivacyPolicyPage = React.lazy(() => import("./pages/PrivacyPolicyPage"));
+const CookiePolicyPage = React.lazy(() => import("./pages/CookiePolicyPage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();

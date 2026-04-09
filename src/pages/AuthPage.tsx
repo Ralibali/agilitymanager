@@ -13,6 +13,7 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
   const [resetMode, setResetMode] = useState(false);
@@ -45,6 +46,18 @@ export default function AuthPage() {
         navigate('/dashboard', { replace: true });
       }
     } else {
+      // Validate confirm password
+      if (password !== confirmPassword) {
+        toast({ title: 'Lösenorden matchar inte', description: 'Skriv samma lösenord i båda fälten.', variant: 'destructive' });
+        setLoading(false);
+        return;
+      }
+      if (password.length < 6) {
+        toast({ title: 'För kort lösenord', description: 'Lösenordet måste vara minst 6 tecken.', variant: 'destructive' });
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -60,15 +73,23 @@ export default function AuthPage() {
         // Save UTM attribution data
         const utmData = getAndClearUtmData();
         if (data.user) {
-          supabase.from('signup_sources').insert({
-            user_id: data.user.id,
-            ...utmData,
-          }).then(() => {});
+          try {
+            await supabase.from('signup_sources').insert({
+              user_id: data.user.id,
+              ...utmData,
+            });
+          } catch {
+            // Non-critical, don't block signup flow
+          }
         }
-        // Notify admin about new registration
-        supabase.functions.invoke('notify-admin', {
-          body: { type: 'new_user', data: { email, display_name: displayName } },
-        });
+        // Notify admin about new registration (fire-and-forget with error handling)
+        try {
+          await supabase.functions.invoke('notify-admin', {
+            body: { type: 'new_user', data: { email, display_name: displayName } },
+          });
+        } catch {
+          // Non-critical
+        }
         navigate('/dashboard', { replace: true });
       } else {
         toast({ title: 'Konto skapat!', description: 'Du kan logga in direkt nu.' });
@@ -123,6 +144,12 @@ export default function AuthPage() {
                 <Label>Lösenord</Label>
                 <Input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="Minst 6 tecken" />
               </div>
+              {!isLogin && (
+                <div>
+                  <Label>Bekräfta lösenord</Label>
+                  <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required placeholder="Ange lösenordet igen" />
+                </div>
+              )}
               <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={loading}>
                 {loading ? 'Vänta...' : isLogin ? 'Logga in' : 'Skapa konto'}
               </Button>

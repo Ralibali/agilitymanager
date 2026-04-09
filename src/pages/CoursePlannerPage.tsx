@@ -249,8 +249,12 @@ export default function CoursePlannerPage() {
   const isLandscape = useIsLandscape();
   const showLandscapeLayout = isMobile && isLandscape;
 
-  const canvasWidth = canvasSize.width;
-  const canvasHeight = canvasSize.height;
+  // On desktop, render landscape (swap width/height so the longer side is horizontal)
+  const isDesktop = !isMobile;
+  const rawW = canvasSize.width;
+  const rawH = canvasSize.height;
+  const canvasWidth = isDesktop && rawH > rawW ? rawH : rawW;
+  const canvasHeight = isDesktop && rawH > rawW ? rawW : rawH;
   const MARGIN = 28;
 
   // Portrait hint

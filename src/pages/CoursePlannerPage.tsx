@@ -996,6 +996,16 @@ export default function CoursePlannerPage() {
       lastTapRef.current = now;
     }
 
+    // Measure mode
+    if (measureMode) {
+      if (measurePoints.length < 2) {
+        setMeasurePoints(prev => [...prev, { x: pos.x, y: pos.y }]);
+      } else {
+        setMeasurePoints([{ x: pos.x, y: pos.y }]);
+      }
+      return;
+    }
+
     if (isOnRotationHandle(pos.x, pos.y)) {
       const obs = obstacles.find(o => o.id === selected)!;
       const angle = Math.atan2(pos.y - obs.y, pos.x - obs.x) * 180 / Math.PI;
@@ -1006,11 +1016,23 @@ export default function CoursePlannerPage() {
 
     const obs = findObstacleAt(pos.x, pos.y);
     if (obs) {
+      // Shift+click for multi-select (desktop)
+      if ('shiftKey' in e && (e as React.MouseEvent).shiftKey) {
+        setMultiSelected(prev => {
+          const next = new Set(prev);
+          if (next.has(obs.id)) next.delete(obs.id);
+          else next.add(obs.id);
+          return next;
+        });
+        return;
+      }
       setSelected(obs.id);
+      setMultiSelected(new Set());
       setDragging(obs.id);
       setDragOffset({ x: pos.x - obs.x, y: pos.y - obs.y });
     } else {
       setSelected(null);
+      setMultiSelected(new Set());
       // Start panning
       const client = getClientPos(e);
       setIsPanning(true);

@@ -2,9 +2,9 @@ import { Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const productLinks = [
-  { label: 'Träningslogg', href: '/auth' },
-  { label: 'Banplanerare', href: '/auth' },
-  { label: 'Tävlingsresultat', href: '/auth' },
+  { label: 'Träningslogg', href: '/training' },
+  { label: 'Banplanerare', href: '/course-planner' },
+  { label: 'Tävlingsresultat', href: '/competition' },
   { label: 'Försäkringsjämförelse', href: '/hundforsakring' },
   { label: 'Priser', href: '/#pricing' },
 ];

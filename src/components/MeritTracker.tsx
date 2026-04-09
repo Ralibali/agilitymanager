@@ -42,31 +42,31 @@ export function MeritBadge({ merit }: { merit: Merit }) {
   );
 }
 
-export const MeritProgress = React.memo(React.forwardRef<HTMLDivElement, { merit: Merit }>(
-  function MeritProgress({ merit }, ref) {
-  const nextThreshold = merit.passedCount < 3 ? 3 : merit.passedCount < 5 ? 5 : merit.passedCount < 7 ? 7 : 7;
-  const nextLevel = merit.passedCount < 3 ? 'Brons' : merit.passedCount < 5 ? 'Silver' : merit.passedCount < 7 ? 'Guld' : null;
-  const progress = Math.min((merit.passedCount / nextThreshold) * 100, 100);
+export const MeritProgress = React.memo(
+  React.forwardRef<HTMLDivElement, { merit: Merit }>(function MeritProgress({ merit }, ref) {
+    const nextThreshold = merit.passedCount < 3 ? 3 : merit.passedCount < 5 ? 5 : merit.passedCount < 7 ? 7 : 7;
+    const nextLevel = merit.passedCount < 3 ? 'Brons' : merit.passedCount < 5 ? 'Silver' : merit.passedCount < 7 ? 'Guld' : null;
+    const progress = Math.min((merit.passedCount / nextThreshold) * 100, 100);
 
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-[10px]">
-        <span className="text-muted-foreground">
-          {merit.competitionLevel}: {merit.passedCount} godkända
-        </span>
-        {nextLevel ? (
-          <span className="text-muted-foreground">{nextLevel} ({nextThreshold})</span>
-        ) : (
-          <span className="text-yellow-600 font-bold">Max merit! 🏆</span>
-        )}
+    return (
+      <div ref={ref} className="space-y-1">
+        <div className="flex items-center justify-between text-[10px]">
+          <span className="text-muted-foreground">
+            {merit.competitionLevel}: {merit.passedCount} godkända
+          </span>
+          {nextLevel ? (
+            <span className="text-muted-foreground">{nextLevel} ({nextThreshold})</span>
+          ) : (
+            <span className="text-yellow-600 font-bold">Max merit! 🏆</span>
+          )}
+        </div>
+        <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all bg-primary"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
       </div>
-      <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all bg-primary"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-));
+    );
+  })
+);

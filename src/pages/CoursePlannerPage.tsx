@@ -958,6 +958,14 @@ export default function CoursePlannerPage() {
     });
   };
 
+  const findFreeNumberAt = (cx: number, cy: number): FreeNumber | null => {
+    for (let i = freeNumbers.length - 1; i >= 0; i--) {
+      const fn = freeNumbers[i];
+      if (Math.hypot(cx - fn.x, cy - fn.y) <= 14) return fn;
+    }
+    return null;
+  };
+
   const findObstacleAt = (cx: number, cy: number): Obstacle | null => {
     for (let i = obstacles.length - 1; i >= 0; i--) {
       const obs = obstacles[i];

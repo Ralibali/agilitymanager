@@ -35,6 +35,7 @@ const AdminPage = React.lazy(() => import("./pages/AdminPage"));
 const AboutAgilityPage = React.lazy(() => import("./pages/AboutAgilityPage"));
 const PrivacyPolicyPage = React.lazy(() => import("./pages/PrivacyPolicyPage"));
 const CookiePolicyPage = React.lazy(() => import("./pages/CookiePolicyPage"));
+const UnsubscribePage = React.lazy(() => import("./pages/UnsubscribePage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -101,6 +102,7 @@ const App = () => (
               <Route path="/blogg/:slug" element={<BlogPostPage />} />
               <Route path="/integritetspolicy" element={<PrivacyPolicyPage />} />
               <Route path="/cookiepolicy" element={<CookiePolicyPage />} />
+              <Route path="/avregistrera" element={<UnsubscribePage />} />
 
               {/* Protected routes */}
               <Route element={<ProtectedLayout />}>

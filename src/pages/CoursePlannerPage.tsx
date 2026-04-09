@@ -253,12 +253,25 @@ export default function CoursePlannerPage() {
   const canvasHeight = canvasSize.height;
   const MARGIN = 28;
 
-  // Portrait toast
+  // Portrait hint
   useEffect(() => {
     if (isMobile && !isLandscape) {
-      toast('📐 Vänd telefonen för bästa upplevelse', { duration: 3000 });
+      setShowOrientationHint(true);
+      const t = setTimeout(() => setShowOrientationHint(false), 5000);
+      return () => clearTimeout(t);
+    } else {
+      setShowOrientationHint(false);
     }
-  }, []);
+  }, [isMobile, isLandscape]);
+
+  // ResizeObserver for auto fit-to-screen
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const ro = new ResizeObserver(() => fitToScreen());
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [fitToScreen]);
 
   useEffect(() => {
     supabase.from('saved_courses').select('*').order('created_at', { ascending: false }).then(({ data }) => {

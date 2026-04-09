@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           date: string
           discipline: Database["public"]["Enums"]["discipline"]
+          disqualified: boolean
           dog_id: string
           event_name: string
           faults: number
@@ -39,6 +40,7 @@ export type Database = {
           created_at?: string
           date?: string
           discipline?: Database["public"]["Enums"]["discipline"]
+          disqualified?: boolean
           dog_id: string
           event_name: string
           faults?: number
@@ -57,6 +59,7 @@ export type Database = {
           created_at?: string
           date?: string
           discipline?: Database["public"]["Enums"]["discipline"]
+          disqualified?: boolean
           dog_id?: string
           event_name?: string
           faults?: number

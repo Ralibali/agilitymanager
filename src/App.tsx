@@ -88,6 +88,8 @@ const App = () => (
               <Route path="/om-agility" element={<AboutAgilityPage />} />
               <Route path="/blogg" element={<BlogPage />} />
               <Route path="/blogg/:slug" element={<BlogPostPage />} />
+              <Route path="/integritetspolicy" element={<PrivacyPolicyPage />} />
+              <Route path="/cookiepolicy" element={<CookiePolicyPage />} />
 
               {/* Protected routes */}
               <Route element={<ProtectedLayout />}>

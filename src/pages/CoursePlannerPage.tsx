@@ -2158,6 +2158,33 @@ export default function CoursePlannerPage() {
               )}
             </div>
           )}
+
+          {/* Multi-select controls overlay */}
+          {multiSelected.size > 0 && !numberingMode && !selectedObs && (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 bg-card/95 backdrop-blur-sm border border-primary/30 rounded-lg p-2 shadow-lg flex gap-2 items-center"
+              onMouseDown={e => e.stopPropagation()}
+              onTouchStart={e => e.stopPropagation()}
+            >
+              <span className="text-[10px] font-medium text-primary">{multiSelected.size} markerade</span>
+              <button onClick={() => rotateGroup(15)} className="p-1.5 rounded bg-secondary hover:bg-secondary/80 transition-colors" title="Rotera grupp 15°">
+                <RotateCcw size={14} />
+              </button>
+              <button onClick={deleteMultiSelected} className="p-1.5 rounded bg-secondary hover:bg-destructive/20 text-destructive transition-colors" title="Radera markerade">
+                <Trash2 size={14} />
+              </button>
+              <button onClick={() => { setMultiSelected(new Set()); setMultiSelectMode(false); }} className="p-1.5 rounded bg-secondary hover:bg-secondary/80 transition-colors" title="Avmarkera">
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
+          {/* Multi-select mode indicator (mobile) */}
+          {multiSelectMode && isMobile && (
+            <div className="absolute top-2 left-2 z-20 bg-primary/90 text-primary-foreground text-[10px] px-2 py-1 rounded-lg shadow-sm">
+              Multimarkering · Tryck hinder för att markera
+              <button onClick={() => { setMultiSelectMode(false); setMultiSelected(new Set()); }} className="ml-2 underline">Avsluta</button>
+            </div>
+          )}
         </div>
 
         {/* Sidebar toggle when collapsed */}

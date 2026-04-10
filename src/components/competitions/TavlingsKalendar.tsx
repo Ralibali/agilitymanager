@@ -495,7 +495,7 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
         </div>
       )}
 
-      <AgilityDataAttribution sourceUrl="https://agilitydata.se/taevlingar/" />
+      
 
       <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ open: false, compId: '' })}>
         <AlertDialogContent>

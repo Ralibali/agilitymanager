@@ -2210,6 +2210,13 @@ export default function CoursePlannerPage() {
             →
           </button>
           <div className="flex flex-col gap-0.5 p-1 border-b border-border">
+            <button onClick={handleUndo} disabled={!canUndo} className="p-1.5 rounded hover:bg-secondary transition-colors disabled:opacity-30" title="Ångra (Ctrl+Z)">
+              <Undo2 size={14} />
+            </button>
+            <button onClick={handleRedo} disabled={!canRedo} className="p-1.5 rounded hover:bg-secondary transition-colors disabled:opacity-30" title="Gör om (Ctrl+Y)">
+              <RotateCcw size={14} className="scale-x-[-1]" />
+            </button>
+            <div className="h-px bg-border" />
             <button
               onClick={toggleFullscreen}
               className="p-1.5 rounded hover:bg-secondary transition-colors"
@@ -2231,10 +2238,20 @@ export default function CoursePlannerPage() {
             >
               <Hash size={14} />
             </button>
+            <button
+              onClick={() => { setMeasureMode(!measureMode); setDrawingMode(false); setNumberingMode(false); setMeasurePoints([]); }}
+              className={`p-1.5 rounded transition-colors ${measureMode ? 'bg-yellow-500/15 text-yellow-600' : 'hover:bg-secondary'}`}
+              title="Mätverktyg"
+            >
+              <Ruler size={14} />
+            </button>
             {selected && (
               <>
                 <button onClick={rotateSelected} className="p-1.5 rounded hover:bg-secondary" title="Rotera 15°">
                   <RotateCcw size={14} />
+                </button>
+                <button onClick={copySelected} className="p-1.5 rounded hover:bg-secondary" title="Kopiera">
+                  <Copy size={14} />
                 </button>
                 <button onClick={deleteSelected} className="p-1.5 rounded hover:bg-secondary text-destructive" title="Radera">
                   <Trash2 size={14} />
@@ -2248,6 +2265,19 @@ export default function CoursePlannerPage() {
             )}
             {zoomControls(true)}
           </div>
+          {/* Course stats in sidebar */}
+          {obstacles.length > 0 && (
+            <div className="p-1 border-b border-border text-[8px] text-muted-foreground space-y-0.5">
+              <div className="font-medium text-foreground">{courseStats.total} hinder</div>
+              {courseStats.contactCount > 0 && <div>{courseStats.contactCount} kontakt</div>}
+              {courseStats.length > 0 && <div>~{Math.round(courseStats.length)}m</div>}
+              <button onClick={() => setSnapEnabled(!snapEnabled)}
+                className={`text-[8px] px-1 rounded ${snapEnabled ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>
+                Snap {snapEnabled ? 'PÅ' : 'AV'}
+              </button>
+              {isDirty && <div className="text-amber-500 font-medium">● Osparad</div>}
+            </div>
+          )}
 
           {/* Numbering color picker in compact mode */}
           {numberingMode && (

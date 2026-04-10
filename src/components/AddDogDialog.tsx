@@ -44,6 +44,9 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
       is_active_competition_dog: true,
       notes: notes.trim(),
       theme_color: themeColor,
+      sport: 'Agility',
+      hoopers_level: 'Startklass',
+      hoopers_size: 'Large',
     });
     setLoading(false);
     setOpen(false);

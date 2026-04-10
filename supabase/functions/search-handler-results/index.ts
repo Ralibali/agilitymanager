@@ -70,9 +70,12 @@ Deno.serve(async (req) => {
     actions.push({ type: 'wait', milliseconds: 4000 });
     actions.push({ type: 'click', selector: '#SearchDogsAdminGridContent tbody tr:first-child td:last-child a' });
     actions.push({ type: 'wait', milliseconds: 5000 });
-    // Click first checkbox to load Agility results
-    actions.push({ type: 'click', selector: 'input[type="checkbox"]' });
-    actions.push({ type: 'wait', milliseconds: 5000 });
+    // Click first checkbox (Agility) to load results
+    actions.push({ type: 'click', selector: 'input[type="checkbox"]:first-of-type' });
+    actions.push({ type: 'wait', milliseconds: 4000 });
+    // Click second checkbox (Hopp) to load those results too
+    actions.push({ type: 'click', selector: 'input[type="checkbox"]:nth-of-type(2)' });
+    actions.push({ type: 'wait', milliseconds: 4000 });
 
     const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',
@@ -225,13 +228,36 @@ function parseDogResultsPage(html: string): DogSearchResult {
   const rasMatch = html.match(/Ras\s*(?:<[^>]*>)*\s*:\s*(?:<[^>]*>)*\s*([^<]+)/i);
   if (rasMatch) breed = rasMatch[1].trim();
 
-  // Find the results table by ID
+  // Find ALL result tables - there may be one per discipline (Agility, Hopp)
   const results: DogResult[] = [];
-  const resultsTableMatch = html.match(/<table[^>]*id="gridContentResultDogResultsTable"[^>]*>([\s\S]*?)<\/table>/i);
   
-  if (resultsTableMatch) {
-    console.log('Found gridContentResultDogResultsTable, length:', resultsTableMatch[1].length);
+  // Try specific table ID first, then find all tables with result-like IDs
+  const tableIds = ['gridContentResultDogResultsTable'];
+  const tableIdRegex = /<table[^>]*id="([^"]*)"[^>]*/gi;
+  let idMatch;
+  while ((idMatch = tableIdRegex.exec(html)) !== null) {
+    const id = idMatch[1];
+    if (!tableIds.includes(id) && (id.toLowerCase().includes('result') || id.toLowerCase().includes('grid'))) {
+      tableIds.push(id);
+    }
+  }
+  console.log('Table IDs to parse:', tableIds.join(', '));
+
+  for (const tableId of tableIds) {
+    const tableRegex = new RegExp(`<table[^>]*id="${tableId}"[^>]*>([\\s\\S]*?)<\\/table>`, 'i');
+    const resultsTableMatch = html.match(tableRegex);
+    
+    if (!resultsTableMatch) continue;
+    
+    console.log(`Parsing table ${tableId}, length:`, resultsTableMatch[1].length);
     const tableHtml = resultsTableMatch[1];
+    
+    // Determine discipline from context (look for heading before the table)
+    let discipline = '';
+    const tablePos = html.indexOf(resultsTableMatch[0]);
+    const precedingHtml = html.substring(Math.max(0, tablePos - 500), tablePos);
+    if (/hopp/i.test(precedingHtml)) discipline = 'Hopp';
+    else if (/agility/i.test(precedingHtml)) discipline = 'Agility';
     
     // Extract headers
     const headerMatch = tableHtml.match(/<thead>([\s\S]*?)<\/thead>/i);
@@ -243,7 +269,7 @@ function parseDogResultsPage(html: string): DogSearchResult {
         headers.push(extractText(thMatch[1]).toLowerCase());
       }
     }
-    console.log('Result table headers:', headers.join(', '));
+    console.log(`Table ${tableId} headers:`, headers.join(', '), '| discipline:', discipline);
     
     // Extract body rows
     const bodyMatch = tableHtml.match(/<tbody>([\s\S]*?)<\/tbody>/i);
@@ -309,7 +335,7 @@ function parseDogResultsPage(html: string): DogSearchResult {
       results.push({
         date: dateStr,
         competition: comp,
-        discipline: '',
+        discipline,
         class: cls,
         size: '',
         placement: placStr ? parseInt(placStr) || null : null,
@@ -320,16 +346,18 @@ function parseDogResultsPage(html: string): DogSearchResult {
       });
     }
     
-    console.log(`Parsed ${results.length} results from ${rowCount} rows`);
-  } else {
-    console.log('gridContentResultDogResultsTable NOT found in HTML');
-    
-    // Log all table IDs for debugging
-    const tableIdRegex = /<table[^>]*id="([^"]*)"[^>]*/gi;
+    console.log(`Parsed ${results.length} results from ${rowCount} rows in table ${tableId}`);
+  }
+  
+  if (results.length === 0) {
+    console.log('No results found in any table');
+    const allTableIds: string[] = [];
+    const allIdRegex = /<table[^>]*id="([^"]*)"[^>]*/gi;
     let tm;
-    while ((tm = tableIdRegex.exec(html)) !== null) {
-      console.log('Found table ID:', tm[1]);
+    while ((tm = allIdRegex.exec(html)) !== null) {
+      allTableIds.push(tm[1]);
     }
+    console.log('All table IDs in HTML:', allTableIds.join(', '));
   }
 
   return { dog_name: dogName, reg_name: regName, reg_nr: regNr, breed, handler, results };

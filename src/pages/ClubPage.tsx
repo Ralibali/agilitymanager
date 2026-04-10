@@ -306,6 +306,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [newPost, setNewPost] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   // New event form
   const [eventDialogOpen, setEventDialogOpen] = useState(false);

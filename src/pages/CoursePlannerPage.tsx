@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { OBSTACLE_INFO, CONTACT_TYPES, MIN_DISTANCES } from '@/lib/courseObstacleInfo';
+import { OBSTACLE_INFO, CONTACT_TYPES, MIN_DISTANCES, HOOPERS_MIN_DISTANCES } from '@/lib/courseObstacleInfo';
 import {
   PRESET_THEMES,
   STANDARD_THEME,
@@ -55,6 +55,8 @@ type Obstacle = {
   tunnelLength?: 4 | 6;
   bendAngle?: number;
   number?: number;
+  barrelDirection?: 'cw' | 'ccw';   // hoopers barrel
+  handlerSide?: 'left' | 'right';   // hoopers gate
 };
 
 type PathPoint = { x: number; y: number };

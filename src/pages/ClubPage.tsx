@@ -657,7 +657,22 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                 <span className="text-sm text-foreground">{profiles[m.user_id] || 'Anonym'}</span>
                 {m.role === 'admin' && <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-0.5"><Crown size={8} /> Admin</Badge>}
               </div>
-              <span className="text-[10px] text-muted-foreground">{format(new Date(m.joined_at), 'd MMM yyyy', { locale: sv })}</span>
+              <div className="flex items-center gap-2">
+                {isAdmin && m.user_id !== userId && (
+                  <button
+                    onClick={() => handleToggleAdmin(m.id, m.role)}
+                    className="p-1.5 hover:bg-secondary rounded-lg transition-colors"
+                    title={m.role === 'admin' ? 'Ta bort admin' : 'Gör till admin'}
+                  >
+                    {m.role === 'admin' ? (
+                      <ShieldOff size={14} className="text-muted-foreground" />
+                    ) : (
+                      <ShieldCheck size={14} className="text-primary" />
+                    )}
+                  </button>
+                )}
+                <span className="text-[10px] text-muted-foreground">{format(new Date(m.joined_at), 'd MMM yyyy', { locale: sv })}</span>
+              </div>
             </div>
           ))}
 

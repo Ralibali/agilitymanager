@@ -1,4 +1,4 @@
-import { Home, Dog, Dumbbell, Trophy, Timer, Heart, BarChart3, Settings, PencilRuler, Shield, CalendarDays, Users } from 'lucide-react';
+import { Home, Dog, Dumbbell, Trophy, Timer, Heart, BarChart3, Settings, PencilRuler, Shield, CalendarDays, Users, Building2 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { forwardRef, useState, useEffect } from 'react';

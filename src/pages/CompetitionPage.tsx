@@ -42,6 +42,7 @@ export default function CompetitionPage() {
   const [friendNames, setFriendNames] = useState<string[]>([]);
   const [externalResultUrl, setExternalResultUrl] = useState('');
   const [activeExternalUrl, setActiveExternalUrl] = useState<string | null>(null);
+  const [competitionUrlMap, setCompetitionUrlMap] = useState<Record<string, string>>({});
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [customItems, setCustomItems] = useState<string[]>(() => {
     try {
@@ -93,6 +94,34 @@ export default function CompetitionPage() {
       }
     })();
   }, [user]);
+
+  // Match logged results against competitions table to find agilitydata URLs
+  useEffect(() => {
+    if (results.length === 0) return;
+    (async () => {
+      const eventNames = [...new Set(results.map(r => r.event_name))];
+      const { data: comps } = await supabase
+        .from('competitions')
+        .select('id, competition_name, part_key, date_start')
+        .or(eventNames.map(n => `competition_name.ilike.%${n.replace(/[%_]/g, '')}%`).join(','));
+      
+      if (!comps?.length) return;
+      
+      const urlMap: Record<string, string> = {};
+      for (const r of results) {
+        // Find best match by name similarity and date
+        const match = comps.find(c => {
+          const cName = (c.competition_name || '').toLowerCase().replace(/<[^>]*>/g, '').trim();
+          const rName = r.event_name.toLowerCase().trim();
+          return cName.includes(rName) || rName.includes(cName.split(' ')[0]);
+        });
+        if (match?.part_key) {
+          urlMap[r.id] = `https://agilitydata.se/taevlingar/lopplista/?id=${match.part_key}`;
+        }
+      }
+      setCompetitionUrlMap(urlMap);
+    })();
+  }, [results]);
 
   const getDog = (id: string) => dogs.find(d => d.id === id);
 
@@ -286,6 +315,7 @@ export default function CompetitionPage() {
             <div className="space-y-3">
               {results.map((r, i) => {
                 const dog = getDog(r.dog_id);
+                const matchedUrl = competitionUrlMap[r.id];
                 return (
                   <motion.div key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                     className="bg-card rounded-xl p-4 shadow-card">
@@ -311,6 +341,17 @@ export default function CompetitionPage() {
                           {r.placement && <span className="flex items-center gap-0.5 text-accent font-medium"><Medal size={12} /> #{r.placement}</span>}
                         </div>
                         {r.notes && <p className="mt-1.5 text-xs text-muted-foreground">{r.notes}</p>}
+                        
+                        {/* Auto-matched results from agilitydata.se */}
+                        {matchedUrl && (
+                          <div className="mt-3 pt-2 border-t border-border">
+                            <CompetitionResultsViewer
+                              url={matchedUrl}
+                              friendNames={friendNames}
+                              autoFetch
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </motion.div>

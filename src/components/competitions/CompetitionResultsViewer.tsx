@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,15 +29,17 @@ interface CompetitionResults {
 interface Props {
   url: string;
   friendNames?: string[];
+  autoFetch?: boolean;
 }
 
-export default function CompetitionResultsViewer({ url, friendNames = [] }: Props) {
+export default function CompetitionResultsViewer({ url, friendNames = [], autoFetch = false }: Props) {
   const [data, setData] = useState<CompetitionResults | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState('');
   const [sizeFilter, setSizeFilter] = useState<string>('all');
+  const [hasFetched, setHasFetched] = useState(false);
 
   const fetchResults = async () => {
     setLoading(true);
@@ -55,6 +57,14 @@ export default function CompetitionResultsViewer({ url, friendNames = [] }: Prop
       setLoading(false);
     }
   };
+
+  // Auto-fetch when autoFetch prop is true
+  useEffect(() => {
+    if (autoFetch && !hasFetched && !data && !loading) {
+      setHasFetched(true);
+      fetchResults();
+    }
+  }, [autoFetch, hasFetched, data, loading]);
 
   const friendNamesLower = useMemo(() => friendNames.map(n => n.toLowerCase()), [friendNames]);
 

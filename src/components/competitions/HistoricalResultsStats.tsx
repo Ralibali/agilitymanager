@@ -34,7 +34,7 @@ interface Props {
 }
 
 export default function HistoricalResultsStats({ historicalResults, getDog }: Props) {
-  const [expandedDog, setExpandedDog] = useState<number | null>(null);
+  const [expandedDog, setExpandedDog] = useState<string | null>(null);
 
   return (
     <div className="space-y-4">
@@ -42,6 +42,8 @@ export default function HistoricalResultsStats({ historicalResults, getDog }: Pr
         const matchedDog = getDog(dogData.dog_id);
         const r = dogData.results || [];
         const hasResults = r.length > 0;
+        const displayName = matchedDog?.name || dogData.searched_dog || dogData.dog_name;
+        const matchedAgilityDataName = dogData.dog_name && dogData.dog_name !== displayName ? dogData.dog_name : null;
 
         // Summary stats
         const totalStarts = r.length;
@@ -83,11 +85,11 @@ export default function HistoricalResultsStats({ historicalResults, getDog }: Pr
           Totalt: d.total,
         }));
 
-        const isExpanded = expandedDog === i;
+        const isExpanded = expandedDog === dogData.dog_id;
 
         return (
           <motion.div
-            key={i}
+            key={dogData.dog_id}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
@@ -95,18 +97,23 @@ export default function HistoricalResultsStats({ historicalResults, getDog }: Pr
           >
             {/* Dog header */}
             <button
-              onClick={() => setExpandedDog(isExpanded ? null : i)}
+              onClick={() => setExpandedDog(isExpanded ? null : dogData.dog_id)}
               className="w-full flex items-center gap-3 p-4 text-left hover:bg-secondary/30 transition-colors"
             >
               {matchedDog && <DogAvatar dog={matchedDog} size="sm" />}
               <div className="flex-1 min-w-0">
                 <h4 className="font-display font-semibold text-foreground text-sm">
-                  {dogData.dog_name || dogData.searched_dog}
+                  {displayName}
                 </h4>
                 <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                   {dogData.breed && <span>{dogData.breed}</span>}
                   {dogData.reg_nr && <span>· {dogData.reg_nr}</span>}
                 </div>
+                {matchedAgilityDataName && (
+                  <div className="text-[11px] text-muted-foreground">
+                    Träff på agilitydata: {matchedAgilityDataName}
+                  </div>
+                )}
               </div>
               {hasResults && (
                 <div className="flex items-center gap-2">
@@ -232,7 +239,7 @@ export default function HistoricalResultsStats({ historicalResults, getDog }: Pr
             {!hasResults && (
               <div className="px-4 pb-4">
                 <p className="text-xs text-muted-foreground">
-                  {dogData.search_only ? 'Hund hittad, men resultathistorik kunde inte laddas.' : 'Inga resultat hittades på agilitydata.se.'}
+                  {dogData.search_only ? 'Hund hittad på agilitydata, men resultathistoriken kunde inte laddas automatiskt.' : 'Inga resultat hittades på agilitydata.se.'}
                 </p>
               </div>
             )}

@@ -37,11 +37,11 @@ const usps = [
 
 const features = [
   { icon: ClipboardList, title: 'Träningslogg', desc: 'Datum, hund, fokusområde och notat. Bygg upp din historik pass för pass.' },
-  { icon: LayoutGrid, title: 'Banplanerare', desc: 'Designa banor med A-hinder, balansbom, tunnel, slalom och hopphinder. Spara och återanvänd.' },
-  { icon: Trophy, title: 'Tävlingsresultat', desc: 'Logga tävlingar, klass, tid, fel och pinnar. Se din progression mot nästa klass.' },
+  { icon: LayoutGrid, title: 'Banplanerare', desc: 'Designa banor med alla SAgiK-godkända hinder. Snap-to-grid, mallar, mätverktyg och delning.' },
+  { icon: Trophy, title: 'Tävlingsresultat', desc: 'Logga tävlingar, klass, tid, fel och pinnar. Hämta resultat direkt från agilitydata.se.' },
   { icon: TrendingUp, title: 'Statistik & progression', desc: 'Diagram över din och hundens utveckling. Identifiera vad ni behöver träna mer.' },
-  { icon: Target, title: 'Mål & milstolpar', desc: 'Sätt mål per hund – t.ex. "3 pinnar i klass 2" – och följ framstegen.' },
-  { icon: Shield, title: 'Hundförsäkringsjämförelse', desc: 'Jämför Petson, Hedvig, Lassie och fler – hitta rätt skydd för din agilityhund.' },
+  { icon: Target, title: 'Tävlingskalender', desc: 'Se alla kommande tävlingar i Sverige. Filtrera på län, anmäl dig och få påminnelser.' },
+  { icon: Shield, title: 'Hälsologg & vikt', desc: 'Logga veterinärbesök, vaccinationer och vikt. Håll koll på nästa besök.' },
 ];
 
 const testimonials = [
@@ -55,7 +55,7 @@ const faqs = [
   { q: 'Hur loggar jag träning i AgilityManager?', a: 'Skapa ett träningspass, välj hund, ange datum och fokusområde. Lägg till notat och bilder. Historiken byggs upp automatiskt.' },
   { q: 'Kan jag använda banplaneraren på mobilen?', a: 'Ja, banplaneraren är fullt responsiv och fungerar på alla enheter.' },
   { q: 'Stämmer försäkringsjämförelsen med aktuella priser?', a: 'Vi uppdaterar jämförelsen löpande. Kontrollera alltid hos försäkringsbolaget innan du tecknar.' },
-  { q: 'Är AgilityManager gratis?', a: 'Grundversionen är gratis utan tidsbegränsning. Pro ger dig obegränsat med alla funktioner.' },
+  { q: 'Är AgilityManager gratis?', a: 'Grundversionen är gratis utan tidsbegränsning. Du får 7 dagars gratis Pro när du skapar ett konto – ingen betalning krävs. Därefter kan du uppgradera till Pro för full tillgång.' },
 ];
 
 /* ────── component ────── */
@@ -220,7 +220,7 @@ export default function LandingPage() {
                 Precis börjat träna agility? AgilityManager hjälper dig strukturera träningen, förstå regelverket och bygga en grund att stå på.
               </p>
               <ul className="space-y-2.5">
-                {['Enkel träningslogg utan krångel', 'Guide till klasser, pinnar och championat', 'Hundförsäkring anpassad för nybörjare'].map(t => (
+                {['Enkel träningslogg utan krångel', 'Guide till klasser, pinnar och championat', 'Hälsologg för veterinärbesök och vikt'].map(t => (
                   <li key={t} className="flex items-start gap-2 text-sm text-white/80">
                     <Check size={16} className="text-warning mt-0.5 flex-shrink-0" />
                     {t}
@@ -243,7 +243,7 @@ export default function LandingPage() {
                 Jagar du pinnar i klass 1–3 eller siktar på SM? Håll koll på varje start, analysera dina resultat och planera nästa träning strategiskt.
               </p>
               <ul className="space-y-2.5">
-                {['Detaljerad tävlingsstatistik per hund', 'Banplanerare för specifik träning', 'Jämför försäkringar för tävlingshundar'].map(t => (
+                {['Detaljerad tävlingsstatistik per hund', 'Banplanerare med mallar och delning', 'Tävlingskalender och resultat från agilitydata.se'].map(t => (
                   <li key={t} className="flex items-start gap-2 text-sm text-foreground">
                     <Check size={16} className="text-primary mt-0.5 flex-shrink-0" />
                     {t}
@@ -361,7 +361,9 @@ export default function LandingPage() {
                   'Obegränsade sparade banor',
                   'Full tävlingshistorik',
                   'Avancerad statistik & diagram',
-                  'Mål och milstolpar',
+                  'Vänner, chat och bandelning',
+                  'Tävlingskalender med påminnelser',
+                  'Hämta resultat från agilitydata.se',
                   'Prioriterad support',
                 ].map(f => (
                   <li key={f} className="flex items-start gap-2 text-sm text-foreground">
@@ -374,7 +376,7 @@ export default function LandingPage() {
                 className="w-full bg-primary text-primary-foreground font-semibold"
                 onClick={() => navigate('/auth')}
               >
-                Prova Pro 14 dagar gratis
+                Prova Pro 7 dagar gratis
               </Button>
             </motion.div>
           </div>

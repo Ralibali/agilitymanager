@@ -171,17 +171,18 @@ async function fetchDisciplineResults(
   dogPageUrl: string,
   cookies: string,
   formTokens: Record<string, string>,
-  discipline: 'Agility' | 'Hopp'
+  discipline: 'Agility' | 'Hopp' | 'Both'
 ): Promise<DogResult[]> {
   const formData = new URLSearchParams();
   for (const [k, v] of Object.entries(formTokens)) {
     formData.append(k, v);
   }
   
-  // Set the checkbox for the discipline
-  if (discipline === 'Agility') {
+  // Set the checkbox(es) for the discipline(s)
+  if (discipline === 'Both' || discipline === 'Agility') {
     formData.append('ShowAgility', 'true');
-  } else {
+  }
+  if (discipline === 'Both' || discipline === 'Hopp') {
     formData.append('ShowHopp', 'true');
   }
   formData.append('action', 'ShowResults');

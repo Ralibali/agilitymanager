@@ -454,7 +454,7 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
                     )}
                   </div>
                   <a
-                    href={comp.source_url || 'https://agilitydata.se/taevlingar/'}
+                    href={comp.source_url || `https://agilitydata.se/taevlingar/${comp.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[10px] text-primary flex items-center gap-0.5 hover:underline"

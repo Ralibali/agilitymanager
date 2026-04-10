@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, MapPin, ExternalLink, Star, CheckCircle2, Home, TreePine, Send } from 'lucide-react';
+import { RefreshCw, MapPin, ExternalLink, Star, CheckCircle2, Home, TreePine, Send, Trophy } from 'lucide-react';
+import CompetitionResultsViewer from '@/components/competitions/CompetitionResultsViewer';
 import { SWEDISH_COUNTIES, type Competition, type CompetitionInterest } from '@/types/competitions';
 import { getCountyForLocation } from '@/lib/swedishCityCounty';
 import { useToast } from '@/hooks/use-toast';
@@ -117,6 +118,27 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
   const [selectedCounties, setSelectedCounties] = useState<Set<string>>(new Set());
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; compId: string }>({ open: false, compId: '' });
   const [shareComp, setShareComp] = useState<{ open: boolean; comp: Competition | null }>({ open: false, comp: null });
+  const [expandedResults, setExpandedResults] = useState<string | null>(null);
+  const [friendNames, setFriendNames] = useState<string[]>([]);
+
+  // Fetch friend names for result highlighting
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data: friendships } = await supabase
+        .from('friendships')
+        .select('requester_id, receiver_id')
+        .eq('status', 'accepted')
+        .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`);
+      if (!friendships?.length) return;
+      const friendIds = friendships.map(f => f.requester_id === user.id ? f.receiver_id : f.requester_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .in('user_id', friendIds);
+      setFriendNames((profiles || []).map(p => p.display_name).filter(Boolean) as string[]);
+    })();
+  }, [user]);
 
   const selectedDog = useMemo(() => (dogs || []).find(d => d.id === selectedDogId) || null, [dogs, selectedDogId]);
 
@@ -440,6 +462,33 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
                     agilitydata.se <ExternalLink size={10} />
                   </a>
                 </div>
+
+                {/* Auto-link to results for past competitions */}
+                {comp.date_end && new Date(comp.date_end + 'T23:59:59') < new Date() && (
+                  <div className="mt-2 pt-2 border-t border-border">
+                    {expandedResults === comp.id ? (
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => setExpandedResults(null)}
+                          className="text-[10px] text-primary hover:underline"
+                        >
+                          ▲ Dölj resultat
+                        </button>
+                        <CompetitionResultsViewer
+                          url={`https://agilitydata.se/taevlingar/${comp.id}`}
+                          friendNames={friendNames}
+                        />
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setExpandedResults(comp.id)}
+                        className="flex items-center gap-1.5 text-[11px] text-primary font-medium hover:underline"
+                      >
+                        <Trophy size={12} /> Visa resultat
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

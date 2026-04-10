@@ -2218,6 +2218,7 @@ export default function CoursePlannerPage() {
             <button onClick={handleRedo} disabled={!canRedo} className="p-1.5 rounded hover:bg-secondary transition-colors disabled:opacity-30" title="Gör om (Ctrl+Y)">
               <RotateCcw size={14} className="scale-x-[-1]" />
             </button>
+            <TutorialButton onClick={() => setShowTutorial(true)} />
             <div className="h-px bg-border" />
             <button
               onClick={toggleFullscreen}

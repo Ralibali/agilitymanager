@@ -303,10 +303,12 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [members, setMembers] = useState<ClubMember[]>([]);
   const [posts, setPosts] = useState<ClubPost[]>([]);
   const [events, setEvents] = useState<ClubEvent[]>([]);
+  const [eventSignups, setEventSignups] = useState<Record<string, { id: string; user_id: string; comment: string }[]>>({});
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [newPost, setNewPost] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
 
   // New event form
   const [eventDialogOpen, setEventDialogOpen] = useState(false);

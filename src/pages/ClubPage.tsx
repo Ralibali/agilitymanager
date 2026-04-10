@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Users, MapPin, Crown, MessageSquare, Calendar, UserPlus, LogOut, Pin, ChevronLeft, Trash2, UsersRound, Link2, Copy, Check } from 'lucide-react';
+import { Plus, Search, Users, MapPin, Crown, MessageSquare, Calendar, UserPlus, LogOut, Pin, ChevronLeft, Trash2, UsersRound, Link2, Copy, Check, ShieldCheck, ShieldOff } from 'lucide-react';
 import { ClubGroupsTab } from '@/components/clubs/ClubGroupsTab';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -357,9 +357,20 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
 
   useEffect(() => { fetchData(); }, [club.id]);
 
+  const sendClubEmail = async (title: string, message: string, content?: string) => {
+    try {
+      await supabase.functions.invoke('club-notify', {
+        body: { club_id: club.id, title, message, content },
+      });
+    } catch (e) { /* email is best-effort */ }
+  };
+
   const handlePost = async () => {
     if (!newPost.trim()) return;
     await supabase.from('club_posts').insert({ club_id: club.id, user_id: userId, content: newPost.trim() });
+    const senderName = profiles[userId] || 'Någon';
+    await notifyClubMembers(`📢 ${senderName} postade i ${club.name}: "${newPost.trim().slice(0, 60)}"`, userId);
+    sendClubEmail('Nytt inlägg', `${senderName} postade i ${club.name}`, newPost.trim().slice(0, 200));
     setNewPost('');
     fetchData();
   };
@@ -384,6 +395,8 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
       date: eventDate,
       event_type: eventType,
     });
+    await notifyClubMembers(`📅 Nytt event i ${club.name}: ${eventTitle.trim()}`, userId);
+    sendClubEmail('Nytt event', `Nytt event i ${club.name}: ${eventTitle.trim()}`, eventDesc.trim() || undefined);
     toast.success('Event skapat!');
     setEventDialogOpen(false);
     setEventTitle(''); setEventDesc(''); setEventDate(''); setEventType('training');
@@ -419,6 +432,24 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     await supabase.from('club_event_signups').delete().eq('event_id', eventId).eq('user_id', userId);
     toast.success('Avanmäld');
     fetchData();
+  };
+
+  const handleToggleAdmin = async (memberId: string, currentRole: string) => {
+    const newRole = currentRole === 'admin' ? 'member' : 'admin';
+    await supabase.from('club_members').update({ role: newRole }).eq('id', memberId);
+    toast.success(newRole === 'admin' ? 'Befordrad till admin!' : 'Degraderad till medlem');
+    fetchData();
+  };
+
+  // Notify all members except sender
+  const notifyClubMembers = async (message: string, excludeUserId: string) => {
+    const accepted = members.filter(m => m.status === 'accepted' && m.user_id !== excludeUserId);
+    if (accepted.length === 0) return;
+    const notifications = accepted.map(m => ({
+      user_id: m.user_id,
+      message,
+    }));
+    await supabase.from('notifications').insert(notifications);
   };
 
   const acceptedMembers = members.filter(m => m.status === 'accepted');
@@ -635,7 +666,22 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                 <span className="text-sm text-foreground">{profiles[m.user_id] || 'Anonym'}</span>
                 {m.role === 'admin' && <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-0.5"><Crown size={8} /> Admin</Badge>}
               </div>
-              <span className="text-[10px] text-muted-foreground">{format(new Date(m.joined_at), 'd MMM yyyy', { locale: sv })}</span>
+              <div className="flex items-center gap-2">
+                {isAdmin && m.user_id !== userId && (
+                  <button
+                    onClick={() => handleToggleAdmin(m.id, m.role)}
+                    className="p-1.5 hover:bg-secondary rounded-lg transition-colors"
+                    title={m.role === 'admin' ? 'Ta bort admin' : 'Gör till admin'}
+                  >
+                    {m.role === 'admin' ? (
+                      <ShieldOff size={14} className="text-muted-foreground" />
+                    ) : (
+                      <ShieldCheck size={14} className="text-primary" />
+                    )}
+                  </button>
+                )}
+                <span className="text-[10px] text-muted-foreground">{format(new Date(m.joined_at), 'd MMM yyyy', { locale: sv })}</span>
+              </div>
             </div>
           ))}
 

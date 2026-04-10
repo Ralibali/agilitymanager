@@ -674,6 +674,78 @@ export type Database = {
           },
         ]
       }
+      hoopers_competitions: {
+        Row: {
+          classes: string[] | null
+          club_name: string | null
+          competition_id: string
+          competition_name: string | null
+          contact_email: string | null
+          contact_person: string | null
+          county: string | null
+          date: string | null
+          extra_info: string | null
+          fetched_at: string
+          id: string
+          judge: string | null
+          location: string | null
+          lopp_per_class: Json | null
+          organizer: string | null
+          price_per_lopp: string | null
+          registration_closes: string | null
+          registration_opens: string | null
+          registration_status: string | null
+          source_url: string | null
+          type: string | null
+        }
+        Insert: {
+          classes?: string[] | null
+          club_name?: string | null
+          competition_id: string
+          competition_name?: string | null
+          contact_email?: string | null
+          contact_person?: string | null
+          county?: string | null
+          date?: string | null
+          extra_info?: string | null
+          fetched_at?: string
+          id?: string
+          judge?: string | null
+          location?: string | null
+          lopp_per_class?: Json | null
+          organizer?: string | null
+          price_per_lopp?: string | null
+          registration_closes?: string | null
+          registration_opens?: string | null
+          registration_status?: string | null
+          source_url?: string | null
+          type?: string | null
+        }
+        Update: {
+          classes?: string[] | null
+          club_name?: string | null
+          competition_id?: string
+          competition_name?: string | null
+          contact_email?: string | null
+          contact_person?: string | null
+          county?: string | null
+          date?: string | null
+          extra_info?: string | null
+          fetched_at?: string
+          id?: string
+          judge?: string | null
+          location?: string | null
+          lopp_per_class?: Json | null
+          organizer?: string | null
+          price_per_lopp?: string | null
+          registration_closes?: string | null
+          registration_opens?: string | null
+          registration_status?: string | null
+          source_url?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string

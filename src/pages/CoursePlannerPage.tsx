@@ -264,22 +264,38 @@ export default function CoursePlannerPage() {
     return h.slice(start, end).map(e => e.label).reverse();
   }, [historyVersion]);
 
-  // ── Feature 2: Snap-to-Grid ──
+  // ── Feature 2: Snap-to-Grid + Magnetic snap ──
   const [snapEnabled, setSnapEnabled] = useState(true);
   const SNAP_STEP = 0.5 * PX_PER_METER; // 0.5m
+  const MAGNETIC_DIST = 0.8 * PX_PER_METER; // snap within 0.8m of another obstacle
 
   const snapToGrid = useCallback((val: number) => {
     if (!snapEnabled) return val;
     return Math.round(val / SNAP_STEP) * SNAP_STEP;
   }, [snapEnabled]);
 
+  const magneticSnap = useCallback((x: number, y: number, excludeId?: string): { x: number; y: number; snapped: boolean } => {
+    if (!snapEnabled) return { x, y, snapped: false };
+    let snappedX = snapToGrid(x);
+    let snappedY = snapToGrid(y);
+    let didSnap = false;
+    for (const obs of obstacles) {
+      if (obs.id === excludeId) continue;
+      if (Math.abs(snappedX - obs.x) < MAGNETIC_DIST) { snappedX = obs.x; didSnap = true; }
+      if (Math.abs(snappedY - obs.y) < MAGNETIC_DIST) { snappedY = obs.y; didSnap = true; }
+    }
+    return { x: snappedX, y: snappedY, snapped: didSnap };
+  }, [snapEnabled, obstacles, snapToGrid]);
+
   // ── Feature 4: Copy/Paste ──
   const clipboardRef = useRef<Obstacle | null>(null);
 
-  // ── Feature 5: Multi-select ──
+  // ── Feature 5: Multi-select + Group operations ──
   const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
   const [groupDragging, setGroupDragging] = useState(false);
   const [groupDragStart, setGroupDragStart] = useState({ x: 0, y: 0 });
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
 
   // ── Feature 6: Minimap ──
   const [showMinimap, setShowMinimap] = useState(true);

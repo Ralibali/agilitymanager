@@ -330,6 +330,21 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     const me = (m || []).find(mb => mb.user_id === userId);
     setIsAdmin(me?.role === 'admin');
 
+    // Fetch signups for all events
+    if (e && e.length > 0) {
+      const eventIds = e.map(ev => ev.id);
+      const { data: signups } = await supabase
+        .from('club_event_signups')
+        .select('*')
+        .in('event_id', eventIds);
+      const grouped: Record<string, { id: string; user_id: string; comment: string }[]> = {};
+      (signups || []).forEach(s => {
+        if (!grouped[s.event_id]) grouped[s.event_id] = [];
+        grouped[s.event_id].push({ id: s.id, user_id: s.user_id, comment: s.comment });
+      });
+      setEventSignups(grouped);
+    }
+
     // Fetch display names
     const userIds = [...new Set([...(m || []).map(mb => mb.user_id), ...(p || []).map(pp => pp.user_id)])];
     if (userIds.length > 0) {

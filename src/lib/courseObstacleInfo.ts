@@ -70,6 +70,32 @@ export const OBSTACLE_INFO: Record<string, {
     dimensions: '1,2m',
     classes: 'Alla klasser',
   },
+  // ═══ Hoopers obstacles ═══
+  hoop: {
+    description: 'Båge – hunden springer igenom',
+    dimensions: '88 cm bred, ~80 cm genomlopp',
+    classes: 'Alla klasser (Hoopers)',
+  },
+  hoopers_tunnel: {
+    description: 'Bottenlös tunnel – hunden springer igenom',
+    dimensions: 'Ø 80 cm, 100 cm lång',
+    classes: 'Alla klasser (Hoopers)',
+  },
+  barrel: {
+    description: 'Tunna – hunden springer runt',
+    dimensions: 'Ø ~60 cm, ~90 cm hög',
+    classes: 'Alla klasser (Hoopers)',
+  },
+  gate: {
+    description: 'Staket – hunden passerar bakom',
+    dimensions: '100–120 cm bred, 60–80 cm hög',
+    classes: 'Alla klasser (Hoopers)',
+  },
+  handler_zone: {
+    description: 'Dirigeringsområde – förarens zon',
+    dimensions: 'Variabel storlek',
+    classes: 'Alla klasser (Hoopers)',
+  },
 };
 
 // Contact obstacles - used for counting
@@ -81,4 +107,12 @@ export const MIN_DISTANCES: { types: [string, string]; minMeters: number; label:
   { types: ['a_frame', 'dog_walk'], minMeters: 5, label: 'A-hinder och Brygga' },
   { types: ['dog_walk', 'seesaw'], minMeters: 5, label: 'Brygga och Vipp' },
   { types: ['a_frame', 'a_frame'], minMeters: 5, label: 'Två A-hinder' },
+];
+
+// Hoopers minimum distances
+export const HOOPERS_MIN_DISTANCES: { types: [string, string]; minMeters: number; label: string }[] = [
+  { types: ['hoop', 'hoop'], minMeters: 5, label: 'Två hoops' },
+  { types: ['hoop', 'hoopers_tunnel'], minMeters: 5, label: 'Hoop och Tunnel' },
+  { types: ['hoop', 'barrel'], minMeters: 5, label: 'Hoop och Tunna' },
+  { types: ['barrel', 'barrel'], minMeters: 5, label: 'Två tunnor' },
 ];

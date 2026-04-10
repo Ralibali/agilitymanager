@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { OBSTACLE_INFO, CONTACT_TYPES, MIN_DISTANCES } from '@/lib/courseObstacleInfo';
+import { OBSTACLE_INFO, CONTACT_TYPES, MIN_DISTANCES, HOOPERS_MIN_DISTANCES } from '@/lib/courseObstacleInfo';
 import {
   PRESET_THEMES,
   STANDARD_THEME,
@@ -55,6 +55,8 @@ type Obstacle = {
   tunnelLength?: 4 | 6;
   bendAngle?: number;
   number?: number;
+  barrelDirection?: 'cw' | 'ccw';   // hoopers barrel
+  handlerSide?: 'left' | 'right';   // hoopers gate
 };
 
 type PathPoint = { x: number; y: number };
@@ -89,6 +91,18 @@ const OBSTACLE_TYPES = [
   { type: 'start',     label: 'Start',    symbol: '▸', width: 1.2 * PX_PER_METER, height: 0.1 * PX_PER_METER },
   { type: 'finish',    label: 'Mål',      symbol: '◼', width: 1.2 * PX_PER_METER, height: 0.1 * PX_PER_METER },
 ];
+
+const HOOPERS_OBSTACLE_TYPES = [
+  { type: 'hoop',           label: 'Hoop',    symbol: '⌒', width: 0.88 * PX_PER_METER, height: 0.15 * PX_PER_METER },
+  { type: 'hoopers_tunnel', label: 'Tunnel',  symbol: '▬', width: 0.8 * PX_PER_METER,  height: 1 * PX_PER_METER },
+  { type: 'barrel',         label: 'Tunna',   symbol: '●', width: 0.6 * PX_PER_METER,  height: 0.6 * PX_PER_METER },
+  { type: 'gate',           label: 'Staket',  symbol: '╫', width: 1.1 * PX_PER_METER,  height: 0.15 * PX_PER_METER },
+  { type: 'handler_zone',   label: 'Zon',     symbol: '☐', width: 3 * PX_PER_METER,    height: 3 * PX_PER_METER },
+  { type: 'start',          label: 'Start',   symbol: '▸', width: 1.2 * PX_PER_METER,  height: 0.1 * PX_PER_METER },
+  { type: 'finish',         label: 'Mål',     symbol: '◼', width: 1.2 * PX_PER_METER,  height: 0.1 * PX_PER_METER },
+];
+
+const ALL_OBSTACLE_TYPES = [...OBSTACLE_TYPES, ...HOOPERS_OBSTACLE_TYPES.filter(h => !OBSTACLE_TYPES.find(a => a.type === h.type))];
 
 const CANVAS_SIZES = [
   { label: '20×30 m', width: 20 * PX_PER_METER, height: 30 * PX_PER_METER },
@@ -245,6 +259,7 @@ export default function CoursePlannerPage() {
   const [loadOpen, setLoadOpen] = useState(false);
   const [showDistances, setShowDistances] = useState(true);
   const [canvasSize, setCanvasSize] = useState(CANVAS_SIZES[1]);
+  const [sportMode, setSportMode] = useState<'agility' | 'hoopers'>('agility');
 
   const [handlerPath, setHandlerPath] = useState<PathPoint[]>([]);
   const [drawingMode, setDrawingMode] = useState(false);
@@ -548,7 +563,132 @@ export default function CoursePlannerPage() {
     }
   };
 
-  const draw = useCallback(() => {
+  /* ───── Hoopers drawing helpers ───── */
+
+  const drawHoop = (ctx: CanvasRenderingContext2D, obs: Obstacle) => {
+    const c = getTypeColors('hoop');
+    const w = 0.88 * PX_PER_METER;
+    const hw = w / 2;
+    // Draw arch (U-shape from above)
+    ctx.strokeStyle = c.accent ?? c.body;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, hw, Math.PI, 0, false); // top half circle
+    ctx.stroke();
+    // Legs
+    ctx.strokeStyle = c.body;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(-hw, hw * 0.6); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(hw, 0); ctx.lineTo(hw, hw * 0.6); ctx.stroke();
+  };
+
+  const drawHoopersTunnel = (ctx: CanvasRenderingContext2D, _obs: Obstacle) => {
+    const c = getTypeColors('hoopers_tunnel');
+    const w = 0.8 * PX_PER_METER;
+    const h = 1 * PX_PER_METER;
+    const hw = w / 2;
+    const hh = h / 2;
+    const r = hw * 0.6;
+    // Rounded rectangle
+    ctx.fillStyle = c.accent ?? c.body;
+    ctx.beginPath();
+    ctx.moveTo(-hw + r, -hh);
+    ctx.arcTo(hw, -hh, hw, hh, r);
+    ctx.arcTo(hw, hh, -hw, hh, r);
+    ctx.arcTo(-hw, hh, -hw, -hh, r);
+    ctx.arcTo(-hw, -hh, hw, -hh, r);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = c.body;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    // Entry/exit markers
+    ctx.fillStyle = c.body;
+    ctx.beginPath(); ctx.arc(0, -hh, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, hh, 3, 0, Math.PI * 2); ctx.fill();
+  };
+
+  const drawBarrel = (ctx: CanvasRenderingContext2D, obs: Obstacle) => {
+    const c = getTypeColors('barrel');
+    const r = 0.3 * PX_PER_METER;
+    // Filled circle
+    ctx.fillStyle = c.body;
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = c.accent ?? c.body;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+    // Direction arrow
+    const dir = obs.barrelDirection ?? 'cw';
+    const arrowR = r + 6;
+    const startA = -Math.PI / 2;
+    const sweep = dir === 'cw' ? Math.PI * 0.8 : -Math.PI * 0.8;
+    ctx.strokeStyle = c.accent ?? c.body;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, arrowR, startA, startA + sweep, dir !== 'cw');
+    ctx.stroke();
+    // Arrowhead
+    const endA = startA + sweep;
+    const ax = arrowR * Math.cos(endA);
+    const ay = arrowR * Math.sin(endA);
+    const tipAngle = endA + (dir === 'cw' ? 0.5 : -0.5);
+    ctx.fillStyle = c.accent ?? c.body;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(ax - 5 * Math.cos(tipAngle - 0.5), ay - 5 * Math.sin(tipAngle - 0.5));
+    ctx.lineTo(ax - 5 * Math.cos(tipAngle + 0.5), ay - 5 * Math.sin(tipAngle + 0.5));
+    ctx.closePath();
+    ctx.fill();
+  };
+
+  const drawGate = (ctx: CanvasRenderingContext2D, obs: Obstacle) => {
+    const c = getTypeColors('gate');
+    const w = 1.1 * PX_PER_METER;
+    const hw = w / 2;
+    const h = 0.15 * PX_PER_METER;
+    const hh = Math.max(h / 2, 3);
+    // Main bar
+    ctx.fillStyle = c.body;
+    ctx.fillRect(-hw, -hh, w, hh * 2);
+    // Net pattern (diagonal lines)
+    ctx.strokeStyle = c.accent ?? c.body;
+    ctx.lineWidth = 0.5;
+    for (let x = -hw; x < hw; x += 4) {
+      ctx.beginPath(); ctx.moveTo(x, -hh); ctx.lineTo(x + 4, hh); ctx.stroke();
+    }
+    ctx.strokeStyle = c.body;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(-hw, -hh, w, hh * 2);
+    // Handler side indicator
+    const side = obs.handlerSide ?? 'left';
+    const markerX = side === 'left' ? 0 : 0;
+    const markerY = side === 'left' ? hh + 6 : -(hh + 6);
+    ctx.fillStyle = 'hsl(0, 0%, 50%)';
+    ctx.font = '7px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('F', markerX, markerY); // F = Förare
+  };
+
+  const drawHandlerZone = (ctx: CanvasRenderingContext2D, _obs: Obstacle) => {
+    const c = getTypeColors('handler_zone');
+    const size = 3 * PX_PER_METER;
+    const hs = size / 2;
+    ctx.fillStyle = c.body.replace(')', ', 0.12)').replace('hsl(', 'hsla(');
+    ctx.fillRect(-hs, -hs, size, size);
+    ctx.strokeStyle = c.body;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 4]);
+    ctx.strokeRect(-hs, -hs, size, size);
+    ctx.setLineDash([]);
+    ctx.fillStyle = c.body;
+    ctx.font = 'bold 8px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('DIRIGERINGSZON', 0, 0);
+  };
+
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -667,7 +807,7 @@ export default function CoursePlannerPage() {
 
     // Draw obstacles
     obstacles.forEach(obs => {
-      const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
+      const info = ALL_OBSTACLE_TYPES.find(o => o.type === obs.type);
       if (!info) return;
 
       ctx.save();
@@ -788,6 +928,16 @@ export default function CoursePlannerPage() {
         ctx.lineWidth = 1.2;
         ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
         ctx.setLineDash([]);
+      } else if (obs.type === 'hoop') {
+        drawHoop(ctx, obs);
+      } else if (obs.type === 'hoopers_tunnel') {
+        drawHoopersTunnel(ctx, obs);
+      } else if (obs.type === 'barrel') {
+        drawBarrel(ctx, obs);
+      } else if (obs.type === 'gate') {
+        drawGate(ctx, obs);
+      } else if (obs.type === 'handler_zone') {
+        drawHandlerZone(ctx, obs);
       } else {
         ctx.fillStyle = 'hsl(0, 0%, 50%)';
         ctx.fillRect(-hw, -hh, info.width, info.height);
@@ -1003,7 +1153,7 @@ export default function CoursePlannerPage() {
     ctx.fillRect(0, 0, mw, mh);
     // Draw obstacles as dots
     obstacles.forEach(obs => {
-      const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
+      const info = ALL_OBSTACLE_TYPES.find(o => o.type === obs.type);
       if (!info) return;
       const c = getTypeColors(obs.type);
       ctx.fillStyle = c.body;
@@ -1026,12 +1176,16 @@ export default function CoursePlannerPage() {
 
   /* ───── Interaction (with zoom/pan transform) ───── */
 
+  const activeObstacleTypes = sportMode === 'hoopers' ? HOOPERS_OBSTACLE_TYPES : OBSTACLE_TYPES;
+
   const addObstacle = (type: string) => {
-    const info = OBSTACLE_TYPES.find(o => o.type === type)!;
+    const info = [...OBSTACLE_TYPES, ...HOOPERS_OBSTACLE_TYPES].find(o => o.type === type)!;
     const newObs: Obstacle = {
       id: nextId(), type, x: snapToGrid(canvasWidth / 2), y: snapToGrid(canvasHeight / 2),
       rotation: 0, label: info.label, numbers: [], colorNumbers: [],
       ...(type === 'tunnel' ? { tunnelLength: 4 as const, bendAngle: 0 } : {}),
+      ...(type === 'barrel' ? { barrelDirection: 'cw' as const } : {}),
+      ...(type === 'gate' ? { handlerSide: 'left' as const } : {}),
     };
     setObstaclesRaw(prev => {
       const next = [...prev, newObs];
@@ -1052,7 +1206,7 @@ export default function CoursePlannerPage() {
   const findObstacleAt = (cx: number, cy: number): Obstacle | null => {
     for (let i = obstacles.length - 1; i >= 0; i--) {
       const obs = obstacles[i];
-      const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
+      const info = ALL_OBSTACLE_TYPES.find(o => o.type === obs.type);
       if (!info) continue;
       const hitR = Math.max(info.width, info.height, 20) / 2 + 8;
       if (Math.abs(cx - obs.x) <= hitR && Math.abs(cy - obs.y) <= hitR) return obs;
@@ -1064,7 +1218,7 @@ export default function CoursePlannerPage() {
     if (!selected) return false;
     const obs = obstacles.find(o => o.id === selected);
     if (!obs) return false;
-    const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
+    const info = ALL_OBSTACLE_TYPES.find(o => o.type === obs.type);
     if (!info) return false;
 
     const selSize = Math.max(info.width, info.height, 20) / 2 + 6;
@@ -1940,9 +2094,10 @@ export default function CoursePlannerPage() {
   /* ───── Obstacle palette (shared) ───── */
 
   const obstaclePalette = (vertical: boolean) => {
+    const baseTypes = sportMode === 'hoopers' ? HOOPERS_OBSTACLE_TYPES : OBSTACLE_TYPES;
     const types = showStartFinish
-      ? OBSTACLE_TYPES
-      : OBSTACLE_TYPES.filter(o => o.type !== 'start' && o.type !== 'finish');
+      ? baseTypes
+      : baseTypes.filter(o => o.type !== 'start' && o.type !== 'finish');
     return (
       <TooltipProvider delayDuration={300}>
         <div className={vertical
@@ -2294,6 +2449,14 @@ export default function CoursePlannerPage() {
             </div>
           )}
 
+          {/* Sport mode toggle */}
+          <div className="p-1 border-b border-border">
+            <div className="flex rounded-md overflow-hidden border border-border text-[8px]">
+              <button onClick={() => setSportMode('agility')} className={`flex-1 py-1 font-medium transition-colors ${sportMode === 'agility' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-secondary'}`}>Agility</button>
+              <button onClick={() => setSportMode('hoopers')} className={`flex-1 py-1 font-medium transition-colors ${sportMode === 'hoopers' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-secondary'}`}>Hoopers</button>
+            </div>
+          </div>
+
           {/* Obstacle palette */}
           <div className="flex-1 overflow-y-auto">
             {obstaclePalette(true)}
@@ -2308,8 +2471,8 @@ export default function CoursePlannerPage() {
   return (
     <>
     <Helmet>
-      <title>Banplanerare Agility – Rita och spara banor | AgilityManager</title>
-      <meta name="description" content="Designa agilitybanor med alla SAgiK-godkända hinder i korrekta proportioner. Spara, återanvänd och dela dina banor." />
+      <title>Banplanerare – Rita agility- och hoopersbanor | AgilityManager</title>
+      <meta name="description" content="Designa agility- och hoopersbanor med korrekta hinder. Hoops, tunnlar, tunnor och staket enligt SHoK:s regelverk. Spara och dela." />
       <link rel="canonical" href="https://agilitymanager.se/banplanerare" />
     </Helmet>
     <PageContainer title="Banplanerare" subtitle="Rita agility-banor">

@@ -157,11 +157,16 @@ function parseSearchResults(html: string, markdown: string): DogSearchResult[] {
     const dogName = extractText(cells[0]);
     if (dogName.toLowerCase().includes('tilltalsnamn') || !dogName) continue;
 
-    // Columns: Tilltalsnamn | Registreringsnamn | Regnr | Ras | Förare
-    const regName = cells.length > 1 ? extractText(cells[1]) : '';
-    const regNr = cells.length > 2 ? extractText(cells[2]) : '';
+    // Columns: Tilltalsnamn | Regnr | Registreringsnamn | Ras | Förare
+    const regNr = cells.length > 1 ? extractText(cells[1]) : '';
+    const regName = cells.length > 2 ? extractText(cells[2]) : '';
     const breed = cells.length > 3 ? extractText(cells[3]) : '';
     const handler = cells.length > 4 ? extractText(cells[4]) : '';
+
+    // Fix HTML entities in URL
+    if (resultsUrl) {
+      resultsUrl = resultsUrl.replace(/&amp;/g, '&');
+    }
 
     dogs.push({ dog_name: dogName, reg_name: regName, reg_nr: regNr, breed, handler, results_url: resultsUrl });
   }

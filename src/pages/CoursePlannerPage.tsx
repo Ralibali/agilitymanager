@@ -563,7 +563,132 @@ export default function CoursePlannerPage() {
     }
   };
 
-  const draw = useCallback(() => {
+  /* ───── Hoopers drawing helpers ───── */
+
+  const drawHoop = (ctx: CanvasRenderingContext2D, obs: Obstacle) => {
+    const c = getTypeColors('hoop');
+    const w = 0.88 * PX_PER_METER;
+    const hw = w / 2;
+    // Draw arch (U-shape from above)
+    ctx.strokeStyle = c.accent ?? c.body;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, hw, Math.PI, 0, false); // top half circle
+    ctx.stroke();
+    // Legs
+    ctx.strokeStyle = c.body;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(-hw, hw * 0.6); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(hw, 0); ctx.lineTo(hw, hw * 0.6); ctx.stroke();
+  };
+
+  const drawHoopersTunnel = (ctx: CanvasRenderingContext2D, _obs: Obstacle) => {
+    const c = getTypeColors('hoopers_tunnel');
+    const w = 0.8 * PX_PER_METER;
+    const h = 1 * PX_PER_METER;
+    const hw = w / 2;
+    const hh = h / 2;
+    const r = hw * 0.6;
+    // Rounded rectangle
+    ctx.fillStyle = c.accent ?? c.body;
+    ctx.beginPath();
+    ctx.moveTo(-hw + r, -hh);
+    ctx.arcTo(hw, -hh, hw, hh, r);
+    ctx.arcTo(hw, hh, -hw, hh, r);
+    ctx.arcTo(-hw, hh, -hw, -hh, r);
+    ctx.arcTo(-hw, -hh, hw, -hh, r);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = c.body;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    // Entry/exit markers
+    ctx.fillStyle = c.body;
+    ctx.beginPath(); ctx.arc(0, -hh, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, hh, 3, 0, Math.PI * 2); ctx.fill();
+  };
+
+  const drawBarrel = (ctx: CanvasRenderingContext2D, obs: Obstacle) => {
+    const c = getTypeColors('barrel');
+    const r = 0.3 * PX_PER_METER;
+    // Filled circle
+    ctx.fillStyle = c.body;
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = c.accent ?? c.body;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+    // Direction arrow
+    const dir = obs.barrelDirection ?? 'cw';
+    const arrowR = r + 6;
+    const startA = -Math.PI / 2;
+    const sweep = dir === 'cw' ? Math.PI * 0.8 : -Math.PI * 0.8;
+    ctx.strokeStyle = c.accent ?? c.body;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, arrowR, startA, startA + sweep, dir !== 'cw');
+    ctx.stroke();
+    // Arrowhead
+    const endA = startA + sweep;
+    const ax = arrowR * Math.cos(endA);
+    const ay = arrowR * Math.sin(endA);
+    const tipAngle = endA + (dir === 'cw' ? 0.5 : -0.5);
+    ctx.fillStyle = c.accent ?? c.body;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(ax - 5 * Math.cos(tipAngle - 0.5), ay - 5 * Math.sin(tipAngle - 0.5));
+    ctx.lineTo(ax - 5 * Math.cos(tipAngle + 0.5), ay - 5 * Math.sin(tipAngle + 0.5));
+    ctx.closePath();
+    ctx.fill();
+  };
+
+  const drawGate = (ctx: CanvasRenderingContext2D, obs: Obstacle) => {
+    const c = getTypeColors('gate');
+    const w = 1.1 * PX_PER_METER;
+    const hw = w / 2;
+    const h = 0.15 * PX_PER_METER;
+    const hh = Math.max(h / 2, 3);
+    // Main bar
+    ctx.fillStyle = c.body;
+    ctx.fillRect(-hw, -hh, w, hh * 2);
+    // Net pattern (diagonal lines)
+    ctx.strokeStyle = c.accent ?? c.body;
+    ctx.lineWidth = 0.5;
+    for (let x = -hw; x < hw; x += 4) {
+      ctx.beginPath(); ctx.moveTo(x, -hh); ctx.lineTo(x + 4, hh); ctx.stroke();
+    }
+    ctx.strokeStyle = c.body;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(-hw, -hh, w, hh * 2);
+    // Handler side indicator
+    const side = obs.handlerSide ?? 'left';
+    const markerX = side === 'left' ? 0 : 0;
+    const markerY = side === 'left' ? hh + 6 : -(hh + 6);
+    ctx.fillStyle = 'hsl(0, 0%, 50%)';
+    ctx.font = '7px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('F', markerX, markerY); // F = Förare
+  };
+
+  const drawHandlerZone = (ctx: CanvasRenderingContext2D, _obs: Obstacle) => {
+    const c = getTypeColors('handler_zone');
+    const size = 3 * PX_PER_METER;
+    const hs = size / 2;
+    ctx.fillStyle = c.body.replace(')', ', 0.12)').replace('hsl(', 'hsla(');
+    ctx.fillRect(-hs, -hs, size, size);
+    ctx.strokeStyle = c.body;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 4]);
+    ctx.strokeRect(-hs, -hs, size, size);
+    ctx.setLineDash([]);
+    ctx.fillStyle = c.body;
+    ctx.font = 'bold 8px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('DIRIGERINGSZON', 0, 0);
+  };
+
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');

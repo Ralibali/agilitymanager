@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
     ];
 
     if (dogName) {
-      actions.push({ type: 'click', selector: '#DogName' });
+      actions.push({ type: 'click', selector: '#CommonName' });
       actions.push({ type: 'write', text: dogName });
     }
     if (firstName) {
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       actions.push({ type: 'click', selector: '#LastName' });
       actions.push({ type: 'write', text: lastName });
     }
-    actions.push({ type: 'click', selector: '#SearchDogs' });
+    actions.push({ type: 'click', selector: 'button[name="action"][value="SearchDogs"]' });
     actions.push({ type: 'wait', milliseconds: 5000 });
 
     const response = await fetch('https://api.firecrawl.dev/v1/scrape', {

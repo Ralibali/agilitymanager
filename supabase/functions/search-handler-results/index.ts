@@ -352,3 +352,82 @@ function parseDogResultsPage(html: string): DogSearchResult {
 
   return { dog_name: dogName, reg_name: regName, reg_nr: regNr, breed, handler, results };
 }
+
+// Parse results from markdown format (fallback when HTML tbody is empty due to AJAX)
+function parseMarkdownResults(markdown: string): DogResult[] {
+  const results: DogResult[] = [];
+  
+  // Markdown tables look like:
+  // | Ekipage | Arrangör | Datum | Klass | Fel | Vägran | Tidsfel | Tot. fel | m/s | Plac. | Merit |
+  // | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+  // | Luna / Malin Öster | SKK Jönköping | 2024-03-15 | K3 | 0 | 0 | 0.0 | 0 | 4.52 | 1 | Cert |
+  
+  const lines = markdown.split('\n');
+  let headerLine = -1;
+  let headers: string[] = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line.startsWith('|')) continue;
+    
+    const cells = line.split('|').map(c => c.trim()).filter(c => c.length > 0);
+    
+    // Detect header row (contains keywords)
+    if (cells.some(c => /datum/i.test(c)) && cells.some(c => /klass/i.test(c))) {
+      headers = cells.map(c => c.toLowerCase());
+      headerLine = i;
+      console.log('Found markdown table headers at line', i, ':', headers.join(', '));
+      continue;
+    }
+    
+    // Skip separator row
+    if (headerLine >= 0 && /^[\-\s|]+$/.test(line)) continue;
+    
+    // Data rows (after header)
+    if (headerLine >= 0 && cells.length >= 3) {
+      const getCol = (keywords: string[]) => {
+        const idx = headers.findIndex(h => keywords.some(k => h.includes(k)));
+        return idx >= 0 && idx < cells.length ? cells[idx] : '';
+      };
+      
+      const dateStr = getCol(['datum', 'date']);
+      if (!dateStr || !/\d{4}/.test(dateStr)) continue;
+      
+      const comp = getCol(['arrangör', 'tävling', 'arrangemang']);
+      const cls = getCol(['klass', 'class']);
+      const placStr = getCol(['plac']);
+      const faultStr = getCol(['tot. fel', 'tot fel']);
+      const meritStr = getCol(['merit']);
+      const speedStr = getCol(['m/s']);
+      const refusalStr = getCol(['vägran']);
+      const timeFaultStr = getCol(['tidsfel']);
+      const rawFaultStr = getCol(['fel']);
+      
+      let totalFaults: number | null = null;
+      if (faultStr && faultStr.trim() !== '') {
+        const parsed = parseInt(faultStr);
+        totalFaults = isNaN(parsed) ? null : parsed;
+      } else if (rawFaultStr || refusalStr || timeFaultStr) {
+        totalFaults = (parseInt(rawFaultStr) || 0) + (parseInt(refusalStr) || 0) + (parseFloat(timeFaultStr) || 0);
+      }
+      
+      const passed = meritStr ? !['ej', 'disk', '-'].includes(meritStr.toLowerCase().trim()) : true;
+      const disqualified = meritStr ? meritStr.toLowerCase().includes('disk') : false;
+      
+      results.push({
+        date: dateStr,
+        competition: comp,
+        discipline: '',
+        class: cls,
+        size: '',
+        placement: placStr ? parseInt(placStr) || null : null,
+        time_sec: speedStr ? parseFloat(speedStr.replace(',', '.')) || null : null,
+        faults: totalFaults,
+        passed,
+        disqualified,
+      });
+    }
+  }
+  
+  return results;
+}

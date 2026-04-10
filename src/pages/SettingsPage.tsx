@@ -11,10 +11,6 @@ import { toast } from 'sonner';
 import { useSearchParams } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import SupportForm from '@/components/SupportForm';
-import { toast } from 'sonner';
-import { useSearchParams } from 'react-router-dom';
-import { useTheme } from 'next-themes';
-import SupportForm from '@/components/SupportForm';
 
 const premiumFeatures = [
   { title: 'Avancerad statistik', desc: 'Diagram, trender och felanalys' },

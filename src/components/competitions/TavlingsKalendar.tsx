@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAttribution';
 import { stripHtml } from '@/lib/utils';
 import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 import { supabase } from '@/integrations/supabase/client';
@@ -445,9 +446,7 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
         </div>
       )}
 
-      <p className="text-[10px] text-center text-muted-foreground pt-4 pb-2">
-        Tävlingsdata hämtas från agilitydata.se med tillhörighet Svenska Agilityklubben (SAgiK). Uppdateras dagligen.
-      </p>
+      <AgilityDataAttribution sourceUrl="https://agilitydata.se/taevlingar/" />
 
       <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ open: false, compId: '' })}>
         <AlertDialogContent>

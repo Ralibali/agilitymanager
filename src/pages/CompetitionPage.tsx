@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 import CompetitionResultsViewer from '@/components/competitions/CompetitionResultsViewer';
+import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAttribution';
 import { useAuth } from '@/contexts/AuthContext';
 
 const CHECKLIST_ITEMS = [
@@ -354,16 +355,7 @@ export default function CompetitionPage() {
               />
             )}
 
-            <div className="mt-3 text-center">
-              <a
-                href="https://agilitydata.se"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-              >
-                🔍 Sök resultat på agilitydata.se <ExternalLink size={10} />
-              </a>
-            </div>
+            <AgilityDataAttribution sourceUrl={activeExternalUrl || 'https://agilitydata.se'} />
           </div>
         </TabsContent>
 

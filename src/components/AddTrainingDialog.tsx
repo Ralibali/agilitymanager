@@ -1,37 +1,66 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Dumbbell, Star } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Dumbbell, Star, MapPin } from 'lucide-react';
 import type { TrainingType, Dog } from '@/types';
 import { store } from '@/lib/store';
-import { Constants } from '@/integrations/supabase/types';
 
 const TRAINING_TYPES: TrainingType[] = ['Bana', 'Hinder', 'Kontakt', 'Vändning', 'Distans', 'Kombination', 'Annan', 'Målgång'];
+const HOOPERS_TRAINING_TYPES: TrainingType[] = ['Bana', 'Dirigering', 'Hoop', 'Tunnel', 'Tunna', 'Kombination', 'Annan'];
+
+const AGILITY_OBSTACLES = ['Hopp', 'Tunnel', 'A-ram', 'Gångbro', 'Gungbräda', 'Slalom', 'Bordstopp', 'Hoppring', 'Helrunda'];
+const HOOPERS_OBSTACLES = ['Hoop (Båge)', 'Tunnel', 'Tunna', 'Staket', 'Helrunda'];
 const COMMON_TAGS = ['A-hinder', 'Tunneln', 'Kontaktfält', 'Slalom', 'Svängar', 'Starter', 'Distans', 'Balans', 'Gungan', 'Målgång'];
 
 interface Props {
   onAdded: () => void;
   dogs: Dog[];
   trigger?: React.ReactNode;
+  prefillTime?: number;
+  prefillFaults?: number;
 }
 
-function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+function StarRating({ value, onChange, label }: { value: number; onChange: (v: number) => void; label?: string }) {
   return (
-    <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map(i => (
-        <button key={i} type="button" onClick={() => onChange(i)}>
-          <Star size={20} className={i <= value ? 'fill-accent text-accent' : 'text-muted-foreground'} />
+    <div>
+      {label && <Label className="text-xs">{label}</Label>}
+      <div className="flex gap-1 mt-0.5">
+        {[1, 2, 3, 4, 5].map(i => (
+          <button key={i} type="button" onClick={() => onChange(i)}>
+            <Star size={20} className={i <= value ? 'fill-accent text-accent' : 'text-muted-foreground'} />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ObstacleCheckboxes({ options, selected, onToggle }: { options: string[]; selected: string[]; onToggle: (o: string) => void }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {options.map(o => (
+        <button
+          key={o}
+          type="button"
+          onClick={() => onToggle(o)}
+          className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+            selected.includes(o) ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
+          }`}
+        >
+          {o}
         </button>
       ))}
     </div>
   );
 }
 
-export function AddTrainingDialog({ onAdded, dogs, trigger }: Props) {
+export function AddTrainingDialog({ onAdded, dogs, trigger, prefillTime, prefillFaults }: Props) {
   const [open, setOpen] = useState(false);
   const [dogId, setDogId] = useState(dogs[0]?.id || '');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -44,18 +73,37 @@ export function AddTrainingDialog({ onAdded, dogs, trigger }: Props) {
   const [handlerEnergy, setHandlerEnergy] = useState(3);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [location, setLocation] = useState('');
+  const [overallMood, setOverallMood] = useState(3);
+  const [obstaclesTrained, setObstaclesTrained] = useState<string[]>([]);
+  const [faultCount, setFaultCount] = useState(prefillFaults?.toString() || '0');
+  const [bestTimeSec, setBestTimeSec] = useState(prefillTime ? (prefillTime / 1000).toFixed(2) : '');
+  const [distanceRating, setDistanceRating] = useState(3);
+  const [flowRating, setFlowRating] = useState(3);
+  const [handlerZoneKept, setHandlerZoneKept] = useState(false);
+
+  const selectedDog = useMemo(() => dogs.find(d => d.id === dogId), [dogs, dogId]);
+  const isHoopers = selectedDog?.sport === 'Hoopers';
+  const isBoth = false; // Could be 'båda' if we add that option
+  const sportTab = isHoopers ? 'hoopers' : 'agility';
+
+  const trainingTypes = isHoopers ? HOOPERS_TRAINING_TYPES : TRAINING_TYPES;
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+  };
+
+  const toggleObstacle = (o: string) => {
+    setObstaclesTrained(prev => prev.includes(o) ? prev.filter(t => t !== o) : [...prev, o]);
   };
 
   const handleSubmit = async () => {
     if (!dogId) return;
     setLoading(true);
     await store.addTraining({
-      sport: 'Agility',
-      dirigering_score: null,
-      banflyt_score: null,
+      sport: selectedDog?.sport || 'Agility',
+      dirigering_score: isHoopers ? distanceRating : null,
+      banflyt_score: isHoopers ? flowRating : null,
       dog_id: dogId,
       date,
       duration_min: parseInt(duration) || 0,
@@ -66,13 +114,13 @@ export function AddTrainingDialog({ onAdded, dogs, trigger }: Props) {
       dog_energy: dogEnergy,
       handler_energy: handlerEnergy,
       tags: selectedTags,
-      obstacles_trained: [],
-      fault_count: 0,
-      best_time_sec: null,
-      jump_height_used: null,
-      handler_zone_kept: null,
-      overall_mood: null,
-      location: '',
+      obstacles_trained: obstaclesTrained,
+      fault_count: parseInt(faultCount) || 0,
+      best_time_sec: bestTimeSec ? parseFloat(bestTimeSec) : null,
+      jump_height_used: !isHoopers ? (selectedDog?.size_class || null) : null,
+      handler_zone_kept: isHoopers ? handlerZoneKept : null,
+      overall_mood: overallMood,
+      location: location.trim(),
     });
     setLoading(false);
     setOpen(false);
@@ -93,15 +141,21 @@ export function AddTrainingDialog({ onAdded, dogs, trigger }: Props) {
           <DialogTitle className="font-display">Logga träningspass</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 pt-2">
+          {/* Dog + Date */}
           <div>
             <Label>Hund</Label>
             <Select value={dogId} onValueChange={setDogId}>
               <SelectTrigger><SelectValue placeholder="Välj hund" /></SelectTrigger>
               <SelectContent>
-                {dogs.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                {dogs.map(d => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.name} {d.sport === 'Hoopers' ? '🅞' : '🐕'}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Datum</Label>
@@ -112,21 +166,72 @@ export function AddTrainingDialog({ onAdded, dogs, trigger }: Props) {
               <Select value={type} onValueChange={v => setType(v as TrainingType)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {TRAINING_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  {trainingTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Varaktighet (min)</Label>
               <Input type="number" value={duration} onChange={e => setDuration(e.target.value)} />
             </div>
             <div>
+              <Label className="flex items-center gap-1"><MapPin size={12} /> Plats</Label>
+              <Input value={location} onChange={e => setLocation(e.target.value)} placeholder="T.ex. klubben" />
+            </div>
+          </div>
+
+          {/* Sport-specific section */}
+          <div className="bg-secondary/30 rounded-lg p-3 space-y-3">
+            <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {isHoopers ? '🅞 Hoopers' : '🐕 Agility'}-specifikt
+            </Label>
+
+            <div>
+              <Label className="text-xs">Tränade hinder</Label>
+              <ObstacleCheckboxes
+                options={isHoopers ? HOOPERS_OBSTACLES : AGILITY_OBSTACLES}
+                selected={obstaclesTrained}
+                onToggle={toggleObstacle}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Antal fel</Label>
+                <Input type="number" min="0" value={faultCount} onChange={e => setFaultCount(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-xs">Bästa tid (sek)</Label>
+                <Input type="number" step="0.01" value={bestTimeSec} onChange={e => setBestTimeSec(e.target.value)} placeholder="T.ex. 32.45" />
+              </div>
+            </div>
+
+            {isHoopers && (
+              <>
+                <StarRating value={distanceRating} onChange={setDistanceRating} label="Dirigeringskvalitet" />
+                <StarRating value={flowRating} onChange={setFlowRating} label="Banflyt" />
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Höll dig i dirigeringsområdet?</Label>
+                  <Switch checked={handlerZoneKept} onCheckedChange={setHandlerZoneKept} />
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Shared fields */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
               <Label>Repetitioner</Label>
               <Input type="number" value={reps} onChange={e => setReps(e.target.value)} />
             </div>
+            <div>
+              <StarRating value={overallMood} onChange={setOverallMood} label="Känsla för passet" />
+            </div>
           </div>
+
           <div>
             <Label>Vad funkade bra?</Label>
             <Textarea value={notesGood} onChange={e => setNotesGood(e.target.value)} rows={2} placeholder="T.ex. Snabb slalom, bra kontaktzoner" />
@@ -135,16 +240,12 @@ export function AddTrainingDialog({ onAdded, dogs, trigger }: Props) {
             <Label>Vad behöver jobbas mer på?</Label>
             <Textarea value={notesImprove} onChange={e => setNotesImprove(e.target.value)} rows={2} placeholder="T.ex. Vägran vid tunneln" />
           </div>
+
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Hundens energi</Label>
-              <StarRating value={dogEnergy} onChange={setDogEnergy} />
-            </div>
-            <div>
-              <Label>Din energi</Label>
-              <StarRating value={handlerEnergy} onChange={setHandlerEnergy} />
-            </div>
+            <StarRating value={dogEnergy} onChange={setDogEnergy} label="Hundens energi" />
+            <StarRating value={handlerEnergy} onChange={setHandlerEnergy} label="Din energi" />
           </div>
+
           <div>
             <Label>Taggar</Label>
             <div className="flex flex-wrap gap-1.5 mt-1">
@@ -164,6 +265,7 @@ export function AddTrainingDialog({ onAdded, dogs, trigger }: Props) {
               ))}
             </div>
           </div>
+
           <Button onClick={handleSubmit} className="w-full gradient-primary text-primary-foreground" disabled={!dogId || loading}>
             {loading ? 'Sparar...' : 'Spara träning'}
           </Button>

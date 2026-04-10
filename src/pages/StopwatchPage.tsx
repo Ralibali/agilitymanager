@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { PageContainer } from '@/components/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,25 +7,38 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { store } from '@/lib/store';
 import type { Dog } from '@/types';
-import { Play, Square, RotateCcw, AlertTriangle, Ban, Save } from 'lucide-react';
+import { Play, Square, RotateCcw, Save, Timer, Flag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
 type StopwatchState = 'idle' | 'running' | 'stopped';
+
+type FaultEntry = { type: string; count: number };
+
+type LapEntry = { time: number; faults: FaultEntry[] };
+
+const AGILITY_FAULT_TYPES = ['Hopp', 'Tunnel', 'Kontakt', 'Slalom', 'Refus', 'Bordstopp'];
+const HOOPERS_FAULT_TYPES = ['Hoop', 'Tunnel', 'Tunna', 'Staket', 'DO-zon'];
 
 export default function StopwatchPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [dogId, setDogId] = useState('');
   const [state, setState] = useState<StopwatchState>('idle');
   const [elapsed, setElapsed] = useState(0);
-  const [faults, setFaults] = useState(0);
-  const [refusals, setRefusals] = useState(0);
+  const [faultEntries, setFaultEntries] = useState<FaultEntry[]>([]);
+  const [laps, setLaps] = useState<LapEntry[]>([]);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [history, setHistory] = useState<Array<{ id: string; time_ms: number; faults: number; refusals: number; date: string }>>([]);
 
   const startTimeRef = useRef(0);
   const rafRef = useRef(0);
+  const lastLapRef = useRef(0);
+
+  const selectedDog = useMemo(() => dogs.find(d => d.id === dogId), [dogs, dogId]);
+  const isHoopers = selectedDog?.sport === 'Hoopers';
+  const faultTypes = isHoopers ? HOOPERS_FAULT_TYPES : AGILITY_FAULT_TYPES;
+  const totalFaults = faultEntries.reduce((s, f) => s + f.count, 0);
 
   useEffect(() => {
     store.getDogs().then(d => {
@@ -35,10 +48,13 @@ export default function StopwatchPage() {
   }, []);
 
   useEffect(() => {
-    if (dogId) {
-      loadHistory();
-    }
+    if (dogId) loadHistory();
   }, [dogId]);
+
+  // Reset fault types when dog changes
+  useEffect(() => {
+    setFaultEntries(faultTypes.map(t => ({ type: t, count: 0 })));
+  }, [isHoopers]);
 
   const loadHistory = async () => {
     if (!dogId) return;
@@ -58,43 +74,62 @@ export default function StopwatchPage() {
 
   const handleStart = () => {
     startTimeRef.current = Date.now();
+    lastLapRef.current = 0;
     setElapsed(0);
-    setFaults(0);
-    setRefusals(0);
+    setFaultEntries(faultTypes.map(t => ({ type: t, count: 0 })));
+    setLaps([]);
     setState('running');
     rafRef.current = requestAnimationFrame(tick);
+    tryWakeLock();
     tryHaptic();
   };
 
   const handleStop = () => {
     cancelAnimationFrame(rafRef.current);
     setState('stopped');
+    releaseWakeLock();
     tryHaptic();
   };
 
   const handleReset = () => {
     cancelAnimationFrame(rafRef.current);
     setElapsed(0);
-    setFaults(0);
-    setRefusals(0);
+    setFaultEntries(faultTypes.map(t => ({ type: t, count: 0 })));
+    setLaps([]);
     setNotes('');
     setState('idle');
+    releaseWakeLock();
   };
 
-  const handleFault = () => {
-    setFaults(f => f + 1);
+  const handleFaultTap = (faultType: string) => {
+    setFaultEntries(prev => prev.map(f => f.type === faultType ? { ...f, count: f.count + 1 } : f));
     tryHaptic();
   };
 
-  const handleRefusal = () => {
-    setRefusals(r => r + 1);
+  const handleLap = () => {
+    const lapTime = elapsed - lastLapRef.current;
+    lastLapRef.current = elapsed;
+    setLaps(prev => [...prev, { time: lapTime, faults: [...faultEntries] }]);
+    // Reset fault counters for next lap
+    setFaultEntries(faultTypes.map(t => ({ type: t, count: 0 })));
     tryHaptic();
   };
 
   const tryHaptic = () => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(30);
-    }
+    if ('vibrate' in navigator) navigator.vibrate(30);
+  };
+
+  const wakeLockRef = useRef<any>(null);
+  const tryWakeLock = async () => {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+      }
+    } catch {}
+  };
+  const releaseWakeLock = () => {
+    try { wakeLockRef.current?.release(); } catch {}
+    wakeLockRef.current = null;
   };
 
   const handleSave = async () => {
@@ -102,13 +137,14 @@ export default function StopwatchPage() {
     setSaving(true);
     const userId = (await (await import('@/integrations/supabase/client')).supabase.auth.getUser()).data.user?.id;
     if (!userId) return;
+    const refusals = faultEntries.find(f => f.type === 'Refus')?.count || 0;
     const { error } = await (await import('@/integrations/supabase/client')).supabase
       .from('stopwatch_results')
       .insert({
         user_id: userId,
         dog_id: dogId,
         time_ms: elapsed,
-        faults,
+        faults: totalFaults,
         refusals,
         notes: notes.trim(),
       });
@@ -133,10 +169,10 @@ export default function StopwatchPage() {
   return (
     <>
     <Helmet>
-      <title>Tidtagarur Agility | AgilityManager</title>
-      <meta name="description" content="Mät tider med fel- och vägringsregistrering. Spara resultat per hund." />
+      <title>Tidtagarur – Agility & Hoopers | AgilityManager</title>
+      <meta name="description" content="Mät tider med feltyps-registrering per hinder. Stöd för agility och hoopers." />
     </Helmet>
-    <PageContainer title="Tidtagarur" subtitle="Mät dina banor">
+    <PageContainer title="Tidtagarur" subtitle={isHoopers ? 'Hoopers-läge' : 'Agility-läge'}>
       {/* Dog selector */}
       {dogs.length > 0 && (
         <div className="mb-4">
@@ -144,7 +180,11 @@ export default function StopwatchPage() {
           <Select value={dogId} onValueChange={setDogId}>
             <SelectTrigger><SelectValue placeholder="Välj hund" /></SelectTrigger>
             <SelectContent>
-              {dogs.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+              {dogs.map(d => (
+                <SelectItem key={d.id} value={d.id}>
+                  {d.name} {d.sport === 'Hoopers' ? '🅞' : '🐕'}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -152,51 +192,67 @@ export default function StopwatchPage() {
 
       {/* Timer display */}
       <motion.div
-        className="bg-card rounded-2xl p-8 shadow-elevated mb-6 text-center"
+        className="bg-card rounded-2xl p-6 shadow-elevated mb-4 text-center"
         animate={state === 'running' ? { boxShadow: '0 0 30px hsl(221 79% 48% / 0.2)' } : {}}
       >
         <div className={`font-display text-6xl font-bold tabular-nums ${state === 'running' ? 'text-primary' : 'text-foreground'}`}>
           {formatTime(elapsed)}
         </div>
 
-        {/* Fault/refusal counters */}
-        <div className="flex items-center justify-center gap-8 mt-4">
-          <button
-            onClick={handleFault}
-            disabled={state !== 'running'}
-            className="flex flex-col items-center gap-1 disabled:opacity-30"
-          >
-            <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center active:scale-90 transition-transform">
-              <AlertTriangle size={24} className="text-destructive" />
-            </div>
-            <span className="text-xs text-muted-foreground">Fel</span>
-            <span className="text-lg font-bold text-foreground">{faults}</span>
-          </button>
-          <button
-            onClick={handleRefusal}
-            disabled={state !== 'running'}
-            className="flex flex-col items-center gap-1 disabled:opacity-30"
-          >
-            <div className="w-14 h-14 rounded-full bg-warning/10 flex items-center justify-center active:scale-90 transition-transform">
-              <Ban size={24} className="text-warning" />
-            </div>
-            <span className="text-xs text-muted-foreground">Väg.</span>
-            <span className="text-lg font-bold text-foreground">{refusals}</span>
-          </button>
+        {/* Fault counters - total */}
+        <div className="flex items-center justify-center gap-4 mt-3 text-sm">
+          <span className={totalFaults > 0 ? 'text-destructive font-bold' : 'text-muted-foreground'}>
+            {totalFaults} fel
+          </span>
+          {laps.length > 0 && (
+            <span className="text-muted-foreground">{laps.length} varv</span>
+          )}
         </div>
       </motion.div>
 
+      {/* Fault type buttons */}
+      {state === 'running' && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4"
+        >
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Tryck för att registrera fel:</Label>
+          <div className="grid grid-cols-3 gap-2">
+            {faultEntries.map(fe => (
+              <button
+                key={fe.type}
+                onClick={() => handleFaultTap(fe.type)}
+                className="relative bg-destructive/10 hover:bg-destructive/20 active:scale-95 transition-all rounded-xl p-3 text-center"
+              >
+                <div className="text-xs font-medium text-foreground">{fe.type}</div>
+                {fe.count > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                    {fe.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       {/* Controls */}
-      <div className="flex gap-3 mb-6">
+      <div className="flex gap-3 mb-4">
         {state === 'idle' && (
           <Button onClick={handleStart} className="flex-1 h-14 text-lg gradient-primary text-primary-foreground gap-2" disabled={!dogId}>
             <Play size={22} /> Starta
           </Button>
         )}
         {state === 'running' && (
-          <Button onClick={handleStop} variant="destructive" className="flex-1 h-14 text-lg gap-2">
-            <Square size={22} /> Stoppa
-          </Button>
+          <>
+            <Button onClick={handleLap} variant="outline" className="h-14 gap-2 px-4">
+              <Flag size={18} /> Varv
+            </Button>
+            <Button onClick={handleStop} variant="destructive" className="flex-1 h-14 text-lg gap-2">
+              <Square size={22} /> Stoppa
+            </Button>
+          </>
         )}
         {state === 'stopped' && (
           <>
@@ -210,12 +266,51 @@ export default function StopwatchPage() {
         )}
       </div>
 
-      {/* Notes (when stopped) */}
+      {/* Laps */}
+      <AnimatePresence>
+        {laps.length > 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-4">
+            <Label className="text-xs text-muted-foreground mb-1 block">Varv</Label>
+            <div className="space-y-1">
+              {laps.map((lap, i) => {
+                const lapFaults = lap.faults.reduce((s, f) => s + f.count, 0);
+                const faultDetail = lap.faults.filter(f => f.count > 0).map(f => `${f.count} ${f.type}`).join(', ');
+                return (
+                  <div key={i} className="bg-card rounded-lg p-2 flex items-center justify-between text-sm shadow-card">
+                    <span className="font-display font-semibold text-foreground">Varv {i + 1}: {formatTime(lap.time)}</span>
+                    <span className={lapFaults > 0 ? 'text-destructive text-xs' : 'text-success text-xs'}>
+                      {lapFaults > 0 ? faultDetail : 'Rent!'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Stopped: fault breakdown + notes */}
       <AnimatePresence>
         {state === 'stopped' && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-6">
-            <Label>Notering</Label>
-            <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="Hur gick det?" />
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-4 space-y-3">
+            {/* Fault breakdown */}
+            {totalFaults > 0 && (
+              <div className="bg-destructive/5 rounded-lg p-3">
+                <Label className="text-xs text-muted-foreground mb-1 block">Felfördelning</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {faultEntries.filter(f => f.count > 0).map(f => (
+                    <div key={f.type} className="text-center">
+                      <div className="text-lg font-bold text-destructive">{f.count}</div>
+                      <div className="text-[10px] text-muted-foreground">{f.type}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div>
+              <Label>Notering</Label>
+              <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="Hur gick det?" />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

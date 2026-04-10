@@ -414,7 +414,9 @@ export type Database = {
           dog_id: string
           event_name: string
           faults: number
+          hoopers_points: number | null
           id: string
+          lopp_number: number | null
           notes: string
           organizer: string
           passed: boolean
@@ -434,7 +436,9 @@ export type Database = {
           dog_id: string
           event_name: string
           faults?: number
+          hoopers_points?: number | null
           id?: string
+          lopp_number?: number | null
           notes?: string
           organizer?: string
           passed?: boolean
@@ -454,7 +458,9 @@ export type Database = {
           dog_id?: string
           event_name?: string
           faults?: number
+          hoopers_points?: number | null
           id?: string
+          lopp_number?: number | null
           notes?: string
           organizer?: string
           passed?: boolean

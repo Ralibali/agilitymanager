@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
   MousePointer2, Move, RotateCcw, Copy, Pencil, Hash, Ruler,
-  ZoomIn, Save, Undo2, Grid3X3, Users, Sparkles, ChevronRight, ChevronLeft, X,
+  ZoomIn, Save, Undo2, Grid3X3, Users, Sparkles, ChevronRight, ChevronLeft, X, Lightbulb,
 } from 'lucide-react';
 
 const STEPS = [
@@ -193,7 +193,7 @@ export function TutorialButton({ onClick }: { onClick: () => void }) {
       className="p-1.5 rounded hover:bg-secondary transition-colors text-muted-foreground hover:text-primary"
       title="Visa guide"
     >
-      <Sparkles size={14} />
+      <Lightbulb size={14} />
     </button>
   );
 }

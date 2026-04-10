@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
+import AITrainingInsights from '@/components/competitions/AITrainingInsights';
 import { PageContainer } from '@/components/PageContainer';
 import { store } from '@/lib/store';
 import type { Dog, TrainingSession, CompetitionResult } from '@/types';
@@ -460,6 +461,7 @@ export default function StatsPage() {
           </TabsList>
 
           <TabsContent value="overview" className="mt-3 space-y-4">
+            <AITrainingInsights dogs={dogs} sessions={training} results={competitions} />
             <CompStatsSummary competitions={competitions} />
             <TrainingFrequencyChart training={training} dogs={dogs} />
             {competitions.length >= 2 && (

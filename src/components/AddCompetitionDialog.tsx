@@ -57,6 +57,7 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
     if (!dogId || !eventName.trim()) return;
     setLoading(true);
     await store.addCompetition({
+      sport: 'Agility',
       dog_id: dogId,
       date,
       event_name: eventName.trim(),

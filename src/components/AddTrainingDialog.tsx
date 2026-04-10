@@ -53,6 +53,9 @@ export function AddTrainingDialog({ onAdded, dogs, trigger }: Props) {
     if (!dogId) return;
     setLoading(true);
     await store.addTraining({
+      sport: 'Agility',
+      dirigering_score: null,
+      banflyt_score: null,
       dog_id: dogId,
       date,
       duration_min: parseInt(duration) || 0,

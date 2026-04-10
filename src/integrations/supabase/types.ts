@@ -420,6 +420,7 @@ export type Database = {
           passed: boolean
           placement: number | null
           size_class: Database["public"]["Enums"]["size_class"]
+          sport: Database["public"]["Enums"]["sport"]
           time_sec: number
           user_id: string
         }
@@ -439,6 +440,7 @@ export type Database = {
           passed?: boolean
           placement?: number | null
           size_class?: Database["public"]["Enums"]["size_class"]
+          sport?: Database["public"]["Enums"]["sport"]
           time_sec?: number
           user_id: string
         }
@@ -458,6 +460,7 @@ export type Database = {
           passed?: boolean
           placement?: number | null
           size_class?: Database["public"]["Enums"]["size_class"]
+          sport?: Database["public"]["Enums"]["sport"]
           time_sec?: number
           user_id?: string
         }
@@ -542,6 +545,8 @@ export type Database = {
           competition_level: Database["public"]["Enums"]["competition_level"]
           created_at: string
           gender: Database["public"]["Enums"]["dog_gender"]
+          hoopers_level: Database["public"]["Enums"]["hoopers_level"]
+          hoopers_size: Database["public"]["Enums"]["hoopers_size"]
           id: string
           is_active_competition_dog: boolean
           jumping_level: Database["public"]["Enums"]["competition_level"]
@@ -549,6 +554,7 @@ export type Database = {
           notes: string
           photo_url: string | null
           size_class: Database["public"]["Enums"]["size_class"]
+          sport: Database["public"]["Enums"]["sport"]
           theme_color: string
           updated_at: string
           user_id: string
@@ -560,6 +566,8 @@ export type Database = {
           competition_level?: Database["public"]["Enums"]["competition_level"]
           created_at?: string
           gender?: Database["public"]["Enums"]["dog_gender"]
+          hoopers_level?: Database["public"]["Enums"]["hoopers_level"]
+          hoopers_size?: Database["public"]["Enums"]["hoopers_size"]
           id?: string
           is_active_competition_dog?: boolean
           jumping_level?: Database["public"]["Enums"]["competition_level"]
@@ -567,6 +575,7 @@ export type Database = {
           notes?: string
           photo_url?: string | null
           size_class?: Database["public"]["Enums"]["size_class"]
+          sport?: Database["public"]["Enums"]["sport"]
           theme_color?: string
           updated_at?: string
           user_id: string
@@ -578,6 +587,8 @@ export type Database = {
           competition_level?: Database["public"]["Enums"]["competition_level"]
           created_at?: string
           gender?: Database["public"]["Enums"]["dog_gender"]
+          hoopers_level?: Database["public"]["Enums"]["hoopers_level"]
+          hoopers_size?: Database["public"]["Enums"]["hoopers_size"]
           id?: string
           is_active_competition_dog?: boolean
           jumping_level?: Database["public"]["Enums"]["competition_level"]
@@ -585,6 +596,7 @@ export type Database = {
           notes?: string
           photo_url?: string | null
           size_class?: Database["public"]["Enums"]["size_class"]
+          sport?: Database["public"]["Enums"]["sport"]
           theme_color?: string
           updated_at?: string
           user_id?: string
@@ -1134,8 +1146,10 @@ export type Database = {
       }
       training_sessions: {
         Row: {
+          banflyt_score: number | null
           created_at: string
           date: string
+          dirigering_score: number | null
           dog_energy: number
           dog_id: string
           duration_min: number
@@ -1144,13 +1158,16 @@ export type Database = {
           notes_good: string
           notes_improve: string
           reps: number
+          sport: Database["public"]["Enums"]["sport"]
           tags: string[]
           type: Database["public"]["Enums"]["training_type"]
           user_id: string
         }
         Insert: {
+          banflyt_score?: number | null
           created_at?: string
           date?: string
+          dirigering_score?: number | null
           dog_energy?: number
           dog_id: string
           duration_min?: number
@@ -1159,13 +1176,16 @@ export type Database = {
           notes_good?: string
           notes_improve?: string
           reps?: number
+          sport?: Database["public"]["Enums"]["sport"]
           tags?: string[]
           type?: Database["public"]["Enums"]["training_type"]
           user_id: string
         }
         Update: {
+          banflyt_score?: number | null
           created_at?: string
           date?: string
+          dirigering_score?: number | null
           dog_energy?: number
           dog_id?: string
           duration_min?: number
@@ -1174,6 +1194,7 @@ export type Database = {
           notes_good?: string
           notes_improve?: string
           reps?: number
+          sport?: Database["public"]["Enums"]["sport"]
           tags?: string[]
           type?: Database["public"]["Enums"]["training_type"]
           user_id?: string
@@ -1237,7 +1258,10 @@ export type Database = {
       competition_status: "sparad" | "anmäld" | "bekräftad" | "genomförd"
       discipline: "Agility" | "Jumping" | "Nollklass"
       dog_gender: "Hane" | "Tik"
+      hoopers_level: "Startklass" | "Klass 1" | "Klass 2" | "Klass 3"
+      hoopers_size: "Small" | "Large"
       size_class: "XS" | "S" | "M" | "L"
+      sport: "Agility" | "Hoopers"
       ticket_status: "open" | "answered" | "closed"
       training_type:
         | "Bana"
@@ -1249,6 +1273,10 @@ export type Database = {
         | "Annan"
         | "Målgång"
         | "Kombination"
+        | "Dirigering"
+        | "Hoop"
+        | "Tunnel"
+        | "Tunna"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1381,7 +1409,10 @@ export const Constants = {
       competition_status: ["sparad", "anmäld", "bekräftad", "genomförd"],
       discipline: ["Agility", "Jumping", "Nollklass"],
       dog_gender: ["Hane", "Tik"],
+      hoopers_level: ["Startklass", "Klass 1", "Klass 2", "Klass 3"],
+      hoopers_size: ["Small", "Large"],
       size_class: ["XS", "S", "M", "L"],
+      sport: ["Agility", "Hoopers"],
       ticket_status: ["open", "answered", "closed"],
       training_type: [
         "Bana",
@@ -1393,6 +1424,10 @@ export const Constants = {
         "Annan",
         "Målgång",
         "Kombination",
+        "Dirigering",
+        "Hoop",
+        "Tunnel",
+        "Tunna",
       ],
     },
   },

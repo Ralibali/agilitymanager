@@ -1165,6 +1165,171 @@ En kombinationsteknik där du använder en push (tryck bort) följt av en pull (
 - [Slalomträning i agility](/blogg/slalom-traning-agility)
     `,
   },
+  // ═══════ HOOPERS BLOG POSTS ═══════
+  {
+    slug: 'hoopers-hund',
+    title: 'Hoopers för hund – allt du behöver veta om sporten',
+    excerpt: 'Vad är hoopers och hur fungerar det för din hund? Lär dig om regler, hinder, klasser och varför hoopers passar alla hundar.',
+    category: 'Hoopers',
+    readTime: 7,
+    date: '2026-04-10',
+    author: 'AgilityManager',
+    content: `
+## Hoopers för hund – allt du behöver veta
+
+Hoopers är en hundsport där hunden tar sig igenom en hinderbana i rätt ordning. Banan består av bågar (hoops), tunnlar, tunnor och staket. Det som skiljer hoopers från agility: inga hopp, och föraren dirigerar på distans.
+
+### Hindren i hoopers
+
+- **Hoop (båge)** – plastbåge som hunden springer igenom
+- **Tunnel** – böjbar tunnel
+- **Tunna** – hunden springer runt ett fat
+- **Staket** – hunden passerar bakom en grind
+
+### Klasser och nivåer
+
+SHoK:s regelverk: Startklass, Klass 1, Klass 2 och Klass 3. Storlekskategorier: Small (under 40 cm) och Large (40 cm+).
+
+### Passar hoopers din hund?
+
+Hoopers passar de flesta hundar – särskilt äldre hundar eller hundar med ledproblem. Föraren behöver inte vara atletisk.
+
+Sedan november 2025 är hoopers officiell SKK-sport, organiserat av Svenska Hoopersklubben (SHoK).
+
+- [Hoopers eller agility?](/blogg/hoopers-vs-agility)
+- [Börja med hoopers](/blogg/borja-med-hoopers)
+- [Distanshandling i hoopers](/blogg/distanshandling-hoopers)
+    `,
+  },
+  {
+    slug: 'hoopers-vs-agility',
+    title: 'Hoopers eller agility – vad passar din hund?',
+    excerpt: 'Vad är skillnaden mellan hoopers och agility? Vi jämför hinder, regler och förarens roll.',
+    category: 'Hoopers',
+    readTime: 6,
+    date: '2026-04-08',
+    author: 'AgilityManager',
+    content: `
+## Hoopers eller agility?
+
+### Hindren
+
+I agility: hoppstavar, kontakthinder, tunnel, slalom. I hoopers: bågar, tunnlar, tunnor, staket – inga hopp.
+
+### Förarens roll
+
+Agility: du springer med hunden. Hoopers: du dirigerar från ett fastlagt område med kroppsspråk och röst.
+
+### Vad passar vilken hund?
+
+- Äldre hund/ledproblem → hoopers
+- Älskar att hoppa → agility
+- Bra på distans-kroppsspråk → hoopers
+- Behöver tät kontakt → agility
+
+Kan man köra båda? Ja – de kompletterar varandra. I AgilityManager väljer du sport per hund.
+
+- [Allt om hoopers](/blogg/hoopers-hund)
+- [Börja med hoopers](/blogg/borja-med-hoopers)
+    `,
+  },
+  {
+    slug: 'borja-med-hoopers',
+    title: 'Börja med hoopers – guide för nybörjare',
+    excerpt: 'Vill du börja med hoopers? Utrustning, instruktör, träning och vägen till tävling.',
+    category: 'Hoopers',
+    readTime: 6,
+    date: '2026-04-06',
+    author: 'AgilityManager',
+    content: `
+## Börja med hoopers
+
+### Hitta en instruktör
+
+Gå en kurs med en SHoK-utbildad instruktör. Baskursen täcker hinderinlärning, distanshandling och regelverk.
+
+### Utrustning
+
+Hund, halsband och godbitar. Hindren tillhandahåller klubben. Till tävling: inmätning och registrering i SHoK.
+
+### Träningen
+
+Börja med ett hinder i taget. Bygg avstånd gradvis. Det som tar tid är distanshandlingen.
+
+### Tävling
+
+En hund som tränar regelbundet kan vara redo för Startklass inom ett halvår.
+
+- [Distanshandling i hoopers](/blogg/distanshandling-hoopers)
+- [Tävla i hoopers](/blogg/tavla-i-hoopers)
+    `,
+  },
+  {
+    slug: 'distanshandling-hoopers',
+    title: 'Distanshandling i hoopers – steg för steg',
+    excerpt: 'Distanshandling är kärnan i hoopers. Träna kroppsspråk, timing och kommunikation på avstånd.',
+    category: 'Hoopers',
+    readTime: 7,
+    date: '2026-04-04',
+    author: 'AgilityManager',
+    content: `
+## Distanshandling i hoopers
+
+### Steg 1 – Hindren utan avstånd
+
+Börja nära. Belöna för att hunden tar hindren.
+
+### Steg 2 – Bygg avstånd
+
+Ta ett steg bakåt. Öka bara om hunden klarar nuvarande avstånd.
+
+### Steg 3 – Ditt kroppsspråk
+
+Filma dig själv. Se axlar, blick, kroppsrotation. Hunden läser av dig.
+
+### Steg 4 – Kombinera
+
+Sätt ihop hinder. Mjuka linjer. Flyt före hastighet.
+
+I AgilityManager betygsätter du dirigering och banflyt (1–5) per pass.
+
+- [Börja med hoopers](/blogg/borja-med-hoopers)
+- [Hoopers hund](/blogg/hoopers-hund)
+    `,
+  },
+  {
+    slug: 'tavla-i-hoopers',
+    title: 'Tävla i hoopers – klasser, regler och anmälan',
+    excerpt: 'Allt om tävling i hoopers: Startklass till Klass 3, storlekskategorier och SHoK:s regelverk.',
+    category: 'Hoopers',
+    readTime: 6,
+    date: '2026-04-02',
+    author: 'AgilityManager',
+    content: `
+## Tävla i hoopers
+
+### Klasserna
+
+- **Startklass** – nybörjarnivå
+- **Klass 1** – fler hinder, längre avstånd
+- **Klass 2** – komplex bana, fler riktningsbyten
+- **Klass 3** – elitnivå, avancerad distanshandling
+
+### Storlekskategorier
+
+- **Small** – under 40 cm mankhöjd
+- **Large** – 40 cm och uppåt
+
+### Bedömning
+
+Tid och fel. Fel vid missade hinder, fel ordning eller om föraren lämnar dirigeringsområdet.
+
+Logga varje pass i AgilityManager – följ dirigeringskvalitet och banflyt över tid.
+
+- [Hoopers hund](/blogg/hoopers-hund)
+- [Börja med hoopers](/blogg/borja-med-hoopers)
+    `,
+  },
 ];
 
 export function getPostBySlug(slug: string): BlogPost | undefined {

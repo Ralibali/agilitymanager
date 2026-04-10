@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 const navLinks = [
   { label: 'Funktioner', href: '#features' },
   { label: 'Om agility', href: '/om-agility', route: true },
+  { label: 'Hoopers', href: '/blogg/hoopers-hund', route: true },
   { label: 'Blogg', href: '/blogg', route: true },
   { label: 'Försäkring', href: '/hundforsakring', route: true },
 ];

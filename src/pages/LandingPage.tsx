@@ -30,13 +30,13 @@ const inViewFadeUp = (delay = 0) => ({
 
 /* ────── data ────── */
 const usps = [
-  { icon: ClipboardList, title: 'Träningslogg', desc: 'Logga varje pass. Se vad som funkar för just din hund.' },
+  { icon: ClipboardList, title: 'Träningslogg', desc: 'Logga varje pass – agility och hoopers. Se vad som funkar för just din hund.' },
   { icon: LayoutGrid, title: 'Banplanerare', desc: 'Rita och spara banor med alla SAgiK-godkända hinder.' },
   { icon: Trophy, title: 'Tävlingsresultat', desc: 'Håll koll på pinnar, klasser och din väg mot championat.' },
 ];
 
 const features = [
-  { icon: ClipboardList, title: 'Träningslogg', desc: 'Datum, hund, fokusområde och notat. Bygg upp din historik pass för pass.' },
+  { icon: ClipboardList, title: 'Träningslogg', desc: 'Datum, hund, fokusområde och notat. Bygg upp din historik pass för pass – för agility och hoopers.' },
   { icon: LayoutGrid, title: 'Banplanerare', desc: 'Designa banor med alla SAgiK-godkända hinder. Snap-to-grid, mallar, mätverktyg och delning.' },
   { icon: Trophy, title: 'Tävlingsresultat', desc: 'Logga tävlingar, klass, tid, fel och pinnar. Hämta resultat direkt från agilitydata.se.' },
   { icon: TrendingUp, title: 'Statistik & progression', desc: 'Diagram över din och hundens utveckling. Identifiera vad ni behöver träna mer.' },
@@ -52,9 +52,11 @@ const testimonials = [
 
 const faqs = [
   { q: 'Vad är agility och hur fungerar klassystemet?', a: 'Agility är en hinderbana på tid. I Sverige tävlar man i klass 1–3 under SAgiK/SKK. Man behöver 3 pinnar per klass för att flytta upp.' },
+  { q: 'Vad är hoopers?', a: 'Hoopers är en hundsport där hunden springer igenom bågar, tunnlar och runt tunnor – utan hopp. Föraren dirigerar på distans. Det är officiell SKK-sport sedan november 2025.' },
+  { q: 'Kan jag logga både agility och hoopers?', a: 'Ja. Du väljer sport per hund, så kan du ha en agilityträning och en hoopers-hund i samma konto.' },
   { q: 'Hur loggar jag träning i AgilityManager?', a: 'Skapa ett träningspass, välj hund, ange datum och fokusområde. Lägg till notat och bilder. Historiken byggs upp automatiskt.' },
-  { q: 'Kan jag använda banplaneraren på mobilen?', a: 'Ja, banplaneraren är fullt responsiv och fungerar på alla enheter.' },
-  { q: 'Stämmer försäkringsjämförelsen med aktuella priser?', a: 'Vi uppdaterar jämförelsen löpande. Kontrollera alltid hos försäkringsbolaget innan du tecknar.' },
+  { q: 'Stöder appen SHoK:s regelverk?', a: 'Ja. Klasstruktur, hinderkategorier och storleksindelning följer Svenska Hoopersklubbens officiella regler.' },
+  { q: 'Fungerar appen för nybörjare?', a: 'Ja. Du behöver inga förkunskaper. Fyll i vad du tränat, hur det gick och appen gör resten.' },
   { q: 'Är AgilityManager gratis?', a: 'Grundversionen är gratis utan tidsbegränsning. Du får 7 dagars gratis Pro när du skapar ett konto – ingen betalning krävs. Därefter kan du uppgradera till Pro för full tillgång.' },
 ];
 
@@ -66,8 +68,8 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
       <Helmet>
-        <title>AgilityManager – Träningslogg & Tävlingsresultat för Agility | Gratis app</title>
-        <meta name="description" content="Logga träningspass, planera agilitybanor och följ dina tävlingsresultat. Sveriges träningsapp för agility – gratis att börja." />
+        <title>AgilityManager – Träningsapp för agility och hoopers</title>
+        <meta name="description" content="Logga träningspass, följ framsteg och analysera din hund i agility och hoopers. Anpassat för svenska regler och SHoK:s officiella klasser." />
         <link rel="canonical" href="https://agilitymanager.se/" />
       </Helmet>
 
@@ -105,22 +107,22 @@ export default function LandingPage() {
             {...fadeUp(0)}
             className="font-display font-bold text-white text-4xl sm:text-5xl lg:text-7xl tracking-tight leading-[1.1] mb-6"
           >
-            Agilityträning &amp; tävling{' '}
-            <span className="text-primary">i en app.</span>
+            Träningsappen för{' '}
+            <span className="text-primary">agility och hoopers.</span>
           </motion.h1>
 
           <motion.p
             {...fadeUp(0.2)}
             className="text-lg sm:text-xl text-[hsl(215,20%,65%)] max-w-xl mx-auto mb-4 font-body leading-relaxed"
           >
-            Sveriges träningsapp för agility – logga pass, planera banor och följ dina resultat. Gratis att börja.
+            Logga pass, analysera framsteg och håll koll på din hunds utveckling. Oavsett om du kör agility, hoopers eller båda.
           </motion.p>
 
           <motion.p
             {...fadeUp(0.35)}
             className="text-sm text-[hsl(215,20%,55%)] mb-8"
           >
-            🐕 Byggt för svenska agilityhundar och deras förare
+            🐕 Anpassad för SKK:s och SHoK:s regelverk
           </motion.p>
 
           <motion.div {...fadeUp(0.5)} className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -198,11 +200,53 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ═══════ HOOPERS ═══════ */}
+      <section className="py-20 px-4 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <motion.div {...inViewFadeUp()} className="text-center mb-10">
+            <span className="inline-block px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-semibold mb-4">Ny sport</span>
+            <h2 className="font-display font-bold text-foreground text-2xl sm:text-3xl mb-3">
+              Nu även för hoopers
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Hoopers är officiell SKK-sport sedan november 2025 och organiseras av Svenska Hoopersklubben (SHoK). AgilityManager stöder hela regelverket – från Startklass till Klass 3.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[
+              { title: 'Hoops, tunnlar & tunnor', desc: 'Logga alla hoopers-hinder: bågar, tunnlar, tunnor och staket.' },
+              { title: 'SHoK-klasser', desc: 'Tävlingsklasser: Startklass, Klass 1, 2 och 3. Small (under 40 cm) och Large.' },
+              { title: 'Dirigering & banflyt', desc: 'Betygsätt dirigeringskvalitet och banflyt (1–5) per pass och följ trenden.' },
+            ].map((f, i) => (
+              <motion.div
+                key={f.title}
+                {...inViewFadeUp(i * 0.1)}
+                className="bg-[hsl(210,25%,97%)] rounded-2xl border border-border p-6"
+              >
+                <h3 className="font-display font-semibold text-foreground mb-2">{f.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div {...inViewFadeUp(0.3)} className="mt-8 bg-[hsl(220,40%,7%)] rounded-2xl p-6 sm:p-8 text-white/80">
+            <h3 className="font-display font-semibold text-white text-lg mb-2">Vad är hoopers?</h3>
+            <p className="text-sm leading-relaxed">
+              Hoopers är en hundsport där hunden tar sig igenom en bana med bågar, tunnlar, tunnor och staket – utan hopp. 
+              Föraren dirigerar hunden på distans med kroppsspråk och röst från ett fastlagt dirigeringsområde. 
+              Sporten passar alla hundar – oavsett ålder, ras och storlek. 
+              <button onClick={() => navigate('/blogg/hoopers-hund')} className="text-primary hover:underline ml-1">Läs mer om hoopers →</button>
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ═══════ AUDIENCE ═══════ */}
       <section className="py-20 px-4 bg-[hsl(210,33%,98%)]">
         <div className="max-w-5xl mx-auto">
           <motion.h2 {...inViewFadeUp()} className="font-display font-bold text-foreground text-2xl sm:text-3xl text-center mb-12">
-            För dig – oavsett var du är i din agilityresa
+            För dig – oavsett var du är i din resa
           </motion.h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

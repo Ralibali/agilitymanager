@@ -361,6 +361,7 @@ function parseResultsTable(html: string, discipline: string): DogResult[] {
       const dateStr = getCol(['datum', 'date']);
       const comp = getCol(['arrangör', 'tävling', 'competition', 'arrangemang']);
       const cls = getCol(['klass', 'class']);
+      const discCol = getCol(['gren', 'discipline', 'lopp']);
       const placStr = getCol(['plac']);
       const faultStr = getCol(['tot. fel', 'tot fel']);
       const meritStr = getCol(['merit']);
@@ -382,10 +383,18 @@ function parseResultsTable(html: string, discipline: string): DogResult[] {
       const passed = meritStr ? !['ej', 'disk', '-'].includes(meritStr.toLowerCase().trim()) : true;
       const disqualified = meritStr ? meritStr.toLowerCase().includes('disk') : false;
 
+      // Determine discipline: use column data if available, otherwise fall back to parameter
+      let rowDiscipline = discipline;
+      if (discCol) {
+        const d = discCol.toLowerCase();
+        if (d.includes('hopp') || d.includes('jump')) rowDiscipline = 'Hopp';
+        else if (d.includes('agility')) rowDiscipline = 'Agility';
+      }
+
       results.push({
         date: dateStr,
         competition: comp,
-        discipline,
+        discipline: rowDiscipline === 'Both' ? 'Agility' : rowDiscipline,
         class: cls,
         size: '',
         placement: placStr ? parseInt(placStr) || null : null,

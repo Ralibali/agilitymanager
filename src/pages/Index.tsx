@@ -50,6 +50,13 @@ const Index = () => {
     });
   }, [user?.id]);
 
+  // Onboarding check
+  const showOnboarding = !loading && dogs.length === 0 && user?.user_metadata?.onboarding_complete !== true;
+
+  if (showOnboarding) {
+    return <OnboardingWizard onComplete={refresh} />;
+  }
+
   if (loading) {
     return <PageContainer><div className="flex items-center justify-center min-h-[60vh] text-muted-foreground">Laddar...</div></PageContainer>;
   }

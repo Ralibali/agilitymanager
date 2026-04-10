@@ -322,17 +322,29 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [eventGroupId, setEventGroupId] = useState<string>('');
 
   const fetchData = async () => {
-    const [{ data: m }, { data: p }, { data: e }] = await Promise.all([
+    const [{ data: m }, { data: p }, { data: e }, { data: g }] = await Promise.all([
       supabase.from('club_members').select('*').eq('club_id', club.id),
       supabase.from('club_posts').select('*').eq('club_id', club.id).order('pinned', { ascending: false }).order('created_at', { ascending: false }),
       supabase.from('club_events').select('*').eq('club_id', club.id).order('date', { ascending: true }),
+      supabase.from('club_groups').select('id, name').eq('club_id', club.id),
     ]);
     setMembers(m || []);
     setPosts(p || []);
     setEvents(e || []);
+    setGroups(g || []);
 
     const me = (m || []).find(mb => mb.user_id === userId);
     setIsAdmin(me?.role === 'admin');
+
+    // Fetch user's group memberships
+    if (g && g.length > 0) {
+      const { data: gm } = await supabase
+        .from('club_group_members')
+        .select('group_id')
+        .eq('user_id', userId)
+        .in('group_id', g.map(gr => gr.id));
+      setMyGroupIds((gm || []).map(x => x.group_id));
+    }
 
     // Fetch signups for all events
     if (e && e.length > 0) {

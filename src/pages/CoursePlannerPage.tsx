@@ -1183,6 +1183,34 @@ export default function CoursePlannerPage() {
         });
         return;
       }
+
+      // Mobile: multi-select mode tap
+      if (multiSelectMode) {
+        setMultiSelected(prev => {
+          const next = new Set(prev);
+          if (next.has(obs.id)) next.delete(obs.id);
+          else next.add(obs.id);
+          return next;
+        });
+        return;
+      }
+
+      // If clicking a multi-selected obstacle, start group drag
+      if (multiSelected.has(obs.id) && multiSelected.size > 0) {
+        setGroupDragging(true);
+        setGroupDragStart({ x: pos.x, y: pos.y });
+        return;
+      }
+
+      // Mobile: long-press to enter multi-select mode
+      if ('touches' in e) {
+        longPressTimer.current = setTimeout(() => {
+          setMultiSelectMode(true);
+          setMultiSelected(new Set([obs.id]));
+          longPressTimer.current = null;
+        }, 500);
+      }
+
       setSelected(obs.id);
       setMultiSelected(new Set());
       setDragging(obs.id);
@@ -1190,6 +1218,7 @@ export default function CoursePlannerPage() {
     } else {
       setSelected(null);
       setMultiSelected(new Set());
+      setMultiSelectMode(false);
       // Start panning
       const client = getClientPos(e);
       setIsPanning(true);

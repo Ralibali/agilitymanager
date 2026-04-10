@@ -193,7 +193,7 @@ export function TutorialButton({ onClick }: { onClick: () => void }) {
       className="p-1.5 rounded hover:bg-secondary transition-colors text-muted-foreground hover:text-primary"
       title="Visa guide"
     >
-      <Sparkles size={14} />
+      <Lightbulb size={14} />
     </button>
   );
 }

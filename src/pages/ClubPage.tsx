@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Users, MapPin, Crown, MessageSquare, Calendar, UserPlus, LogOut, Pin, ChevronLeft, Trash2, UsersRound } from 'lucide-react';
+import { Plus, Search, Users, MapPin, Crown, MessageSquare, Calendar, UserPlus, LogOut, Pin, ChevronLeft, Trash2, UsersRound, Link2, Copy, Check } from 'lucide-react';
 import { ClubGroupsTab } from '@/components/clubs/ClubGroupsTab';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -64,6 +64,7 @@ export default function ClubPage() {
   const [myClubs, setMyClubs] = useState<Club[]>([]);
   const [searchResults, setSearchResults] = useState<Club[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -146,6 +147,29 @@ export default function ClubPage() {
     toast.success('Ansökan skickad!');
   };
 
+  const handleJoinByCode = async () => {
+    if (!inviteCode.trim() || !user) return;
+    const { data: club } = await supabase
+      .from('clubs')
+      .select('id, name')
+      .eq('invite_code', inviteCode.trim())
+      .single();
+    if (!club) { toast.error('Ingen klubb hittades med den koden'); return; }
+    // Check if already member
+    const existing = myMemberships.find(m => m.club_id === club.id);
+    if (existing) { toast.info('Du är redan med i denna klubb'); return; }
+    const { error } = await supabase.from('club_members').insert({
+      club_id: club.id,
+      user_id: user.id,
+      status: 'accepted',
+    });
+    if (error?.code === '23505') { toast.info('Du är redan med'); return; }
+    if (error) { toast.error('Kunde inte gå med'); return; }
+    toast.success(`Du gick med i ${club.name}!`);
+    setInviteCode('');
+    fetchMyClubs();
+  };
+
   if (selectedClub) {
     return <ClubDetail club={selectedClub} userId={user?.id || ''} onBack={() => { setSelectedClub(null); fetchMyClubs(); }} />;
   }
@@ -190,6 +214,19 @@ export default function ClubPage() {
           />
           <Button variant="outline" size="icon" onClick={handleSearch}>
             <Search size={16} />
+          </Button>
+        </div>
+
+        {/* Join by invite code */}
+        <div className="flex gap-2 mb-4">
+          <Input
+            value={inviteCode}
+            onChange={e => setInviteCode(e.target.value)}
+            placeholder="Ange inbjudningskod..."
+            onKeyDown={e => e.key === 'Enter' && handleJoinByCode()}
+          />
+          <Button variant="outline" size="sm" onClick={handleJoinByCode} className="gap-1 shrink-0">
+            <Link2 size={14} /> Gå med
           </Button>
         </div>
 
@@ -269,6 +306,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [newPost, setNewPost] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   // New event form
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
@@ -367,6 +405,30 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
       }
     >
       {club.description && <p className="text-sm text-muted-foreground mb-4">{club.description}</p>}
+
+      {/* Invite code for admins */}
+      {isAdmin && (
+        <div className="bg-secondary/50 rounded-xl p-3 mb-4 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Inbjudningskod</span>
+            <p className="text-sm font-mono font-semibold text-foreground">{club.invite_code}</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1 shrink-0"
+            onClick={() => {
+              navigator.clipboard.writeText(club.invite_code);
+              setCodeCopied(true);
+              toast.success('Kod kopierad!');
+              setTimeout(() => setCodeCopied(false), 2000);
+            }}
+          >
+            {codeCopied ? <Check size={14} /> : <Copy size={14} />}
+            {codeCopied ? 'Kopierad' : 'Kopiera'}
+          </Button>
+        </div>
+      )}
 
       <Tabs defaultValue="posts">
         <TabsList className="w-full">

@@ -10,9 +10,13 @@
 - Backend: Lovable Cloud (Supabase)
 - Auth: Email/password via Supabase Auth
 - All data in Supabase DB, no localStorage
+- Sports: Agility, Hoopers (sport enum per dog)
 - Swedish SAgiK classes: Nollklass, K1, K2, K3
-- Size classes: XS, S, M, L (SAgiK standard)
+- SHoK hoopers classes: Startklass, Klass 1, Klass 2, Klass 3
+- Hoopers sizes: Small, Large
+- Size classes (agility): XS, S, M, L (SAgiK standard)
 - Disciplines: Agility, Jumping, Nollklass
+- Hoopers training fields: dirigering_score, banflyt_score (1-5)
 
 ## Stripe Pricing
 - Monthly: 19 kr/mån – price_1T9AioHzffTezY82OrEqKflT / prod_U7PXVAq6hRWosI

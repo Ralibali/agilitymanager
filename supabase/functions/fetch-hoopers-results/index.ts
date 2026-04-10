@@ -210,9 +210,9 @@ function parseCompetitionHtml(html: string): CompetitionInfo {
   };
 
   // Parse competition header
-  const h2Match = html.match(/<h2[^>]*>(.*?)<\/h2>/s);
+  const h2Match = html.match(/<h2[^>]*>([\s\S]*?)<\/h2>/s);
   if (h2Match) {
-    const headerText = stripHtml(h2Match[1]);
+    const headerText = stripHtml(h2Match[1]).replace(/\s+/g, ' ').trim();
     // "Resultat för officell tävling - Mars hoopen - Kungsör - 2026-03-08"
     const parts = headerText.split(' - ').map(s => s.trim());
     if (parts.length >= 4) {
@@ -220,6 +220,15 @@ function parseCompetitionHtml(html: string): CompetitionInfo {
       info.name = parts[1];
       info.location = parts[2];
       info.date = parts[3];
+    } else if (parts.length === 3) {
+      info.type = parts[0].replace('Resultat för ', '');
+      info.name = parts[1];
+      // Try to extract date from last part
+      const dateMatch = parts[2].match(/(\d{4}-\d{2}-\d{2})/);
+      if (dateMatch) {
+        info.date = dateMatch[1];
+        info.location = parts[2].replace(dateMatch[1], '').trim();
+      }
     }
   }
 

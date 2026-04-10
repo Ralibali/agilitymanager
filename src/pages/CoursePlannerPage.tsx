@@ -1039,12 +1039,16 @@ export default function CoursePlannerPage() {
 
   /* ───── Interaction (with zoom/pan transform) ───── */
 
+  const activeObstacleTypes = sportMode === 'hoopers' ? HOOPERS_OBSTACLE_TYPES : OBSTACLE_TYPES;
+
   const addObstacle = (type: string) => {
-    const info = OBSTACLE_TYPES.find(o => o.type === type)!;
+    const info = [...OBSTACLE_TYPES, ...HOOPERS_OBSTACLE_TYPES].find(o => o.type === type)!;
     const newObs: Obstacle = {
       id: nextId(), type, x: snapToGrid(canvasWidth / 2), y: snapToGrid(canvasHeight / 2),
       rotation: 0, label: info.label, numbers: [], colorNumbers: [],
       ...(type === 'tunnel' ? { tunnelLength: 4 as const, bendAngle: 0 } : {}),
+      ...(type === 'barrel' ? { barrelDirection: 'cw' as const } : {}),
+      ...(type === 'gate' ? { handlerSide: 'left' as const } : {}),
     };
     setObstaclesRaw(prev => {
       const next = [...prev, newObs];

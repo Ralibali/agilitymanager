@@ -200,11 +200,53 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ═══════ HOOPERS ═══════ */}
+      <section className="py-20 px-4 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <motion.div {...inViewFadeUp()} className="text-center mb-10">
+            <span className="inline-block px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-semibold mb-4">Ny sport</span>
+            <h2 className="font-display font-bold text-foreground text-2xl sm:text-3xl mb-3">
+              Nu även för hoopers
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Hoopers är officiell SKK-sport sedan november 2025 och organiseras av Svenska Hoopersklubben (SHoK). AgilityManager stöder hela regelverket – från Startklass till Klass 3.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[
+              { title: 'Hoops, tunnlar & tunnor', desc: 'Logga alla hoopers-hinder: bågar, tunnlar, tunnor och staket.' },
+              { title: 'SHoK-klasser', desc: 'Tävlingsklasser: Startklass, Klass 1, 2 och 3. Small (under 40 cm) och Large.' },
+              { title: 'Dirigering & banflyt', desc: 'Betygsätt dirigeringskvalitet och banflyt (1–5) per pass och följ trenden.' },
+            ].map((f, i) => (
+              <motion.div
+                key={f.title}
+                {...inViewFadeUp(i * 0.1)}
+                className="bg-[hsl(210,25%,97%)] rounded-2xl border border-border p-6"
+              >
+                <h3 className="font-display font-semibold text-foreground mb-2">{f.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div {...inViewFadeUp(0.3)} className="mt-8 bg-[hsl(220,40%,7%)] rounded-2xl p-6 sm:p-8 text-white/80">
+            <h3 className="font-display font-semibold text-white text-lg mb-2">Vad är hoopers?</h3>
+            <p className="text-sm leading-relaxed">
+              Hoopers är en hundsport där hunden tar sig igenom en bana med bågar, tunnlar, tunnor och staket – utan hopp. 
+              Föraren dirigerar hunden på distans med kroppsspråk och röst från ett fastlagt dirigeringsområde. 
+              Sporten passar alla hundar – oavsett ålder, ras och storlek. 
+              <button onClick={() => navigate('/blogg/hoopers-hund')} className="text-primary hover:underline ml-1">Läs mer om hoopers →</button>
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ═══════ AUDIENCE ═══════ */}
       <section className="py-20 px-4 bg-[hsl(210,33%,98%)]">
         <div className="max-w-5xl mx-auto">
           <motion.h2 {...inViewFadeUp()} className="font-display font-bold text-foreground text-2xl sm:text-3xl text-center mb-12">
-            För dig – oavsett var du är i din agilityresa
+            För dig – oavsett var du är i din resa
           </motion.h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -2295,6 +2295,7 @@ export default function CoursePlannerPage() {
           </div>
         </div>
         )}
+        {showTutorial && <CoursePlannerTutorial />}
       </div>
     );
   }

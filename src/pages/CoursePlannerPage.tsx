@@ -1570,6 +1570,44 @@ export default function CoursePlannerPage() {
     ));
   };
 
+  // ── Group rotate ──
+  const rotateGroup = (delta: number) => {
+    if (multiSelected.size === 0) return;
+    const selectedObs = obstacles.filter(o => multiSelected.has(o.id));
+    if (selectedObs.length === 0) return;
+    const cx = selectedObs.reduce((s, o) => s + o.x, 0) / selectedObs.length;
+    const cy = selectedObs.reduce((s, o) => s + o.y, 0) / selectedObs.length;
+    const rad = (delta * Math.PI) / 180;
+    setObstaclesRaw(prev => {
+      const next = prev.map(o => {
+        if (!multiSelected.has(o.id)) return o;
+        const dx = o.x - cx;
+        const dy = o.y - cy;
+        return {
+          ...o,
+          x: snapToGrid(cx + dx * Math.cos(rad) - dy * Math.sin(rad)),
+          y: snapToGrid(cy + dx * Math.sin(rad) + dy * Math.cos(rad)),
+          rotation: (o.rotation + delta + 360) % 360,
+        };
+      });
+      pushHistory(next, handlerPath, `Roterade ${multiSelected.size} hinder`);
+      setIsDirty(true);
+      return next;
+    });
+  };
+
+  const deleteMultiSelected = () => {
+    if (multiSelected.size === 0) return;
+    setObstaclesRaw(prev => {
+      const next = prev.filter(o => !multiSelected.has(o.id));
+      pushHistory(next, handlerPath, `Raderade ${multiSelected.size} hinder`);
+      setIsDirty(true);
+      return next;
+    });
+    setMultiSelected(new Set());
+    setMultiSelectMode(false);
+  };
+
   const toggleTunnelLength = () => {
     if (!selected) return;
     setObstacles(prev => prev.map(o =>

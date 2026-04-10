@@ -449,37 +449,61 @@ export default function CompetitionPage() {
               )}
 
               {historicalResults.length > 0 && (
-                <div className="space-y-2">
-                  {historicalResults.map((dog, i) => (
-                    <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                      className="bg-card rounded-xl p-3 shadow-card border border-border">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-semibold text-foreground text-sm">{dog.dog_name}</h4>
-                          {dog.reg_name && <p className="text-[11px] text-muted-foreground">{dog.reg_name}</p>}
-                          {dog.breed && <p className="text-[11px] text-muted-foreground">{dog.breed}</p>}
-                          <p className="text-[11px] text-muted-foreground">Sökt med: {dog.searched_dog}</p>
+                <div className="space-y-3">
+                  {historicalResults.map((dogData, i) => {
+                    const matchedDog = getDog(dogData.dog_id);
+                    return (
+                      <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                        className="bg-card rounded-xl p-3 shadow-card border border-border">
+                        <div className="flex items-center gap-2 mb-2">
+                          {matchedDog && <DogAvatar dog={matchedDog} size="sm" />}
+                          <div>
+                            <h4 className="font-semibold text-foreground text-sm">
+                              {dogData.dog_name || dogData.searched_dog}
+                            </h4>
+                            {dogData.reg_nr && <p className="text-[11px] text-muted-foreground">{dogData.reg_nr}</p>}
+                            {dogData.breed && <p className="text-[11px] text-muted-foreground">{dogData.breed}</p>}
+                          </div>
                         </div>
-                        {dog.results_url && (
-                          <a href={dog.results_url} target="_blank" rel="noopener noreferrer">
-                            <Button size="sm" variant="outline" className="gap-1 text-xs">
-                              Resultat <ExternalLink size={12} />
-                            </Button>
-                          </a>
+
+                        {dogData.results && dogData.results.length > 0 ? (
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="border-b border-border bg-secondary/50">
+                                  <th className="text-left px-1.5 py-1 font-medium text-muted-foreground">Datum</th>
+                                  <th className="text-left px-1.5 py-1 font-medium text-muted-foreground">Tävling</th>
+                                  <th className="text-left px-1.5 py-1 font-medium text-muted-foreground">Klass</th>
+                                  <th className="text-right px-1.5 py-1 font-medium text-muted-foreground">Tid</th>
+                                  <th className="text-right px-1.5 py-1 font-medium text-muted-foreground">Fel</th>
+                                  <th className="text-center px-1.5 py-1 font-medium text-muted-foreground">🏆</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {dogData.results.map((r: any, j: number) => (
+                                  <tr key={j} className={`border-b border-border/50 last:border-0 ${j % 2 === 0 ? '' : 'bg-secondary/20'}`}>
+                                    <td className="px-1.5 py-1 text-foreground whitespace-nowrap">{r.date}</td>
+                                    <td className="px-1.5 py-1 text-foreground">{r.competition}</td>
+                                    <td className="px-1.5 py-1 text-muted-foreground">{r.class || r.discipline}</td>
+                                    <td className="px-1.5 py-1 text-right text-foreground">{r.time_sec ? `${r.time_sec}s` : '-'}</td>
+                                    <td className={`px-1.5 py-1 text-right ${r.faults && r.faults > 0 ? 'text-destructive' : 'text-success'}`}>{r.faults ?? '-'}</td>
+                                    <td className="px-1.5 py-1 text-center">{r.disqualified ? '❌' : r.passed ? '✅' : '—'}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                            <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                              {dogData.results.length} starter hittade
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground py-2">
+                            {dogData.search_only ? 'Hund hittad, men resultathistoriken kunde inte laddas automatiskt.' : 'Inga resultat hittades.'}
+                          </p>
                         )}
-                      </div>
-                      {/* Auto-load results if we have a URL */}
-                      {dog.results_url && (
-                        <div className="mt-2 pt-2 border-t border-border">
-                          <CompetitionResultsViewer
-                            url={dog.results_url}
-                            friendNames={friendNames}
-                            autoFetch
-                          />
-                        </div>
-                      )}
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
                 </div>
               )}
 

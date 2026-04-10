@@ -60,7 +60,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.functions.invoke('check-subscription');
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      // Sync succeeded — update state
       setSubscription({
         subscribed: data?.subscribed ?? false,
         productId: data?.product_id ?? null,
@@ -97,10 +96,97 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => authSub.unsubscribe();
   }, [checkSubscription]);
 
-  // Auto-refresh every 60s
+  // Realtime listener on profiles table for instant subscription updates
+  useEffect(() => {
+    const userId = session?.user?.id;
+    if (!userId) return;
+
+    const channel = supabase
+      .channel('profile-subscription-sync')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const p = payload.new as Record<string, unknown>;
+          // Only react if stripe fields changed
+          if (p.stripe_subscription_status !== undefined) {
+            const isActive = p.stripe_subscription_status === 'active';
+            console.log('[AuthContext] Realtime profile update received', {
+              status: p.stripe_subscription_status,
+              productId: p.stripe_product_id,
+            });
+
+            // Check admin premium first
+            if (p.premium_until) {
+              const premiumUntil = new Date(p.premium_until as string);
+              if (premiumUntil > new Date()) {
+                setSubscription(prev => ({
+                  ...prev,
+                  subscribed: true,
+                  isTrial: false,
+                  subscriptionEnd: premiumUntil.toISOString(),
+                  productId: null,
+                  priceId: null,
+                }));
+                return;
+              }
+            }
+
+            if (isActive) {
+              setSubscription(prev => ({
+                ...prev,
+                subscribed: true,
+                isTrial: false,
+                productId: (p.stripe_product_id as string) ?? null,
+                priceId: (p.stripe_price_id as string) ?? null,
+                subscriptionEnd: (p.stripe_current_period_end as string) ?? null,
+              }));
+            } else if (p.stripe_subscription_status === 'canceled' || p.stripe_subscription_status === 'none') {
+              // Check trial before marking as unsubscribed
+              const createdAt = session?.user?.created_at;
+              if (createdAt) {
+                const diffDays = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24);
+                if (diffDays <= 7) {
+                  const trialEnd = new Date(new Date(createdAt).getTime() + 7 * 24 * 60 * 60 * 1000);
+                  setSubscription(prev => ({
+                    ...prev,
+                    subscribed: true,
+                    isTrial: true,
+                    subscriptionEnd: trialEnd.toISOString(),
+                    productId: null,
+                    priceId: null,
+                  }));
+                  return;
+                }
+              }
+              setSubscription(prev => ({
+                ...prev,
+                subscribed: false,
+                isTrial: false,
+                productId: null,
+                priceId: null,
+                subscriptionEnd: null,
+              }));
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id, session?.user?.created_at]);
+
+  // Fallback: refresh every 5 minutes instead of 60 seconds (webhook handles most updates now)
   useEffect(() => {
     if (!session) return;
-    const interval = setInterval(checkSubscription, 60_000);
+    const interval = setInterval(checkSubscription, 300_000);
     return () => clearInterval(interval);
   }, [session, checkSubscription]);
 

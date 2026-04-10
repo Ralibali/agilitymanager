@@ -634,6 +634,7 @@ export default function StatsPage() {
           </TabsList>
 
           <TabsContent value="overview" className="mt-3 space-y-4">
+            <TrainingStreakBadge training={training} />
             <AITrainingInsights dogs={dogs} sessions={training} results={competitions} />
             <CompStatsSummary competitions={competitions} />
             <TrainingFrequencyChart training={training} dogs={dogs} />
@@ -642,8 +643,12 @@ export default function StatsPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="training" className="mt-3">
+          <TabsContent value="training" className="mt-3 space-y-4">
+            <TrainingStreakBadge training={training} />
             <TrainingFrequencyChart training={training} dogs={dogs} />
+            <TrainingMoodTrend training={training} />
+            <ObstacleFaultChart training={training} />
+            <DirigeringTrend training={training} />
             {training.length === 0 && (
               <p className="text-center text-muted-foreground py-8 text-sm">Inga träningspass loggade ännu.</p>
             )}

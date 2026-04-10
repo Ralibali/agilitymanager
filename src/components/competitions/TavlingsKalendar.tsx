@@ -462,6 +462,33 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
                     agilitydata.se <ExternalLink size={10} />
                   </a>
                 </div>
+
+                {/* Auto-link to results for past competitions */}
+                {comp.date_end && new Date(comp.date_end + 'T23:59:59') < new Date() && (
+                  <div className="mt-2 pt-2 border-t border-border">
+                    {expandedResults === comp.id ? (
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => setExpandedResults(null)}
+                          className="text-[10px] text-primary hover:underline"
+                        >
+                          ▲ Dölj resultat
+                        </button>
+                        <CompetitionResultsViewer
+                          url={`https://agilitydata.se/taevlingar/${comp.id}`}
+                          friendNames={friendNames}
+                        />
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setExpandedResults(comp.id)}
+                        className="flex items-center gap-1.5 text-[11px] text-primary font-medium hover:underline"
+                      >
+                        <Trophy size={12} /> Visa resultat
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

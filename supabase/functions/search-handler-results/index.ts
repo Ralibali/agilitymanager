@@ -83,8 +83,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         url: 'https://agilitydata.se/resultat/soek-hund/',
         formats: ['markdown', 'html'],
-        onlyMainContent: true,
-        waitFor: 2000,
+        onlyMainContent: false,
+        waitFor: 3000,
         actions,
       }),
     });

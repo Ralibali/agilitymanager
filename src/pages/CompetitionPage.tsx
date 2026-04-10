@@ -151,58 +151,86 @@ export default function CompetitionPage() {
       });
   }, [user]);
 
-  // Auto-search historical results - parallel calls, show results as they arrive
+  // Auto-search historical results - use cache first, scrape only if stale (>24h)
   useEffect(() => {
-    if (!handlerName || uniqueDogs.length === 0 || historicalFetched) return;
+    if (!handlerName || !user || uniqueDogs.length === 0 || historicalFetched) return;
     setHistoricalFetched(true);
     setHistoricalLoading(true);
     setHistoricalError(null);
     setHistoricalResults([]);
 
-    let completed = 0;
-    const total = uniqueDogs.length;
+    const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
     const upsertHistoricalResult = (nextResult: HistoricalDogResult) => {
       setHistoricalResults((prev) => {
         const next = prev.filter((item) => item.dog_id !== nextResult.dog_id);
         next.push(nextResult);
-
         return uniqueDogs
           .map((dog) => next.find((item) => item.dog_id === dog.id))
           .filter(Boolean) as HistoricalDogResult[];
       });
     };
 
-    // Launch all searches in parallel
-    const promises = uniqueDogs.map(async (dog) => {
-      try {
-        const { data, error } = await supabase.functions.invoke('search-handler-results', {
-          body: { firstName: handlerName.first, lastName: handlerName.last, dogName: dog.name },
-        });
-        completed++;
-        if (completed >= total) setHistoricalLoading(false);
-        if (error) {
-          console.error('Search error for', dog.name, error);
-          return null;
-        }
-        if (data?.success && data.data) {
-          const result: HistoricalDogResult = { ...data.data, searched_dog: dog.name, dog_id: dog.id };
-          upsertHistoricalResult(result);
-          return result;
-        }
-        return null;
-      } catch (e) {
-        completed++;
-        if (completed >= total) setHistoricalLoading(false);
-        console.error('Search error for', dog.name, e);
+    const fetchForDog = async (dog: Dog) => {
+      // 1. Check cache
+      const { data: cached } = await supabase
+        .from('cached_dog_results')
+        .select('*')
+        .eq('dog_id', dog.id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (cached && (Date.now() - new Date(cached.fetched_at).getTime()) < CACHE_TTL_MS) {
+        const result: HistoricalDogResult = {
+          dog_name: cached.dog_name,
+          reg_name: cached.reg_name,
+          reg_nr: cached.reg_nr,
+          breed: cached.breed,
+          handler: cached.handler,
+          results: cached.results as any[],
+          searched_dog: dog.name,
+          dog_id: dog.id,
+        };
+        upsertHistoricalResult(result);
+        return result;
+      }
+
+      // 2. Scrape from agilitydata.se
+      const { data, error } = await supabase.functions.invoke('search-handler-results', {
+        body: { firstName: handlerName.first, lastName: handlerName.last, dogName: dog.name },
+      });
+
+      if (error || !data?.success || !data.data) {
+        console.error('Search error for', dog.name, error);
         return null;
       }
-    });
 
-    Promise.allSettled(promises).then(() => {
+      const result: HistoricalDogResult = { ...data.data, searched_dog: dog.name, dog_id: dog.id };
+      upsertHistoricalResult(result);
+
+      // 3. Save to cache (upsert)
+      await supabase.from('cached_dog_results').upsert(
+        {
+          user_id: user.id,
+          dog_id: dog.id,
+          dog_name: result.dog_name,
+          reg_name: result.reg_name,
+          reg_nr: result.reg_nr,
+          breed: result.breed,
+          handler: result.handler,
+          results: result.results as any,
+          fetched_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,dog_id' }
+      );
+
+      return result;
+    };
+
+    Promise.allSettled(uniqueDogs.map(fetchForDog)).then(() => {
       setHistoricalLoading(false);
     });
-  }, [handlerName, uniqueDogs, historicalFetched]);
+  }, [handlerName, user, uniqueDogs, historicalFetched]);
 
   // Match logged results against competitions table to find agilitydata URLs
   useEffect(() => {

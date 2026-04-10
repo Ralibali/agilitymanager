@@ -360,6 +360,8 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const handlePost = async () => {
     if (!newPost.trim()) return;
     await supabase.from('club_posts').insert({ club_id: club.id, user_id: userId, content: newPost.trim() });
+    const senderName = profiles[userId] || 'Någon';
+    await notifyClubMembers(`📢 ${senderName} postade i ${club.name}: "${newPost.trim().slice(0, 60)}"`, userId);
     setNewPost('');
     fetchData();
   };

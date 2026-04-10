@@ -104,7 +104,7 @@ export function MinaTavlingar() {
             )}
             {daysToReg !== null && daysToReg > 0 && (
               <a
-                href={`https://agilitydata.se/taevlingar/lopplista/?competitionId=${comp.id}&competitionPartKey=${comp.part_key}`}
+                href="https://agilitydata.se/taevlingar/"
                 target="_blank"
                 rel="noopener noreferrer"
               >

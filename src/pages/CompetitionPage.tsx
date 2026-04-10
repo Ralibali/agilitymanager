@@ -120,36 +120,46 @@ export default function CompetitionPage() {
       });
   }, [user]);
 
-  // Auto-search historical results when handler name is set and dogs are loaded
+  // Auto-search historical results - parallel calls, show results as they arrive
   useEffect(() => {
     if (!handlerName || dogs.length === 0 || historicalFetched) return;
     setHistoricalFetched(true);
     setHistoricalLoading(true);
     setHistoricalError(null);
 
-    (async () => {
+    let completed = 0;
+    const total = dogs.length;
+
+    // Launch all searches in parallel
+    const promises = dogs.map(async (dog) => {
       try {
-        const allResults: any[] = [];
-        // Search for each dog
-        for (const dog of dogs) {
-          const { data, error } = await supabase.functions.invoke('search-handler-results', {
-            body: { firstName: handlerName.first, lastName: handlerName.last, dogName: dog.name },
-          });
-          if (error) {
-            console.error('Search error for', dog.name, error);
-            continue;
-          }
-          if (data?.success && data.data) {
-            allResults.push({ ...data.data, searched_dog: dog.name, dog_id: dog.id });
-          }
+        const { data, error } = await supabase.functions.invoke('search-handler-results', {
+          body: { firstName: handlerName.first, lastName: handlerName.last, dogName: dog.name },
+        });
+        completed++;
+        if (completed >= total) setHistoricalLoading(false);
+        if (error) {
+          console.error('Search error for', dog.name, error);
+          return null;
         }
-        setHistoricalResults(allResults);
-      } catch (e: any) {
-        setHistoricalError(e.message || 'Sökning misslyckades');
-      } finally {
-        setHistoricalLoading(false);
+        if (data?.success && data.data) {
+          const result = { ...data.data, searched_dog: dog.name, dog_id: dog.id };
+          // Add result immediately as it arrives
+          setHistoricalResults(prev => [...prev, result]);
+          return result;
+        }
+        return null;
+      } catch (e) {
+        completed++;
+        if (completed >= total) setHistoricalLoading(false);
+        console.error('Search error for', dog.name, e);
+        return null;
       }
-    })();
+    });
+
+    Promise.allSettled(promises).then(() => {
+      setHistoricalLoading(false);
+    });
   }, [handlerName, dogs, historicalFetched]);
 
   // Match logged results against competitions table to find agilitydata URLs
@@ -430,14 +440,17 @@ export default function CompetitionPage() {
               {historicalLoading && (
                 <div className="text-center py-4">
                   <Loader2 size={18} className="mx-auto mb-1 animate-spin text-primary" />
-                  <p className="text-xs text-muted-foreground">Söker resultat på agilitydata.se...</p>
+                  <p className="text-xs text-muted-foreground">
+                    Söker resultat på agilitydata.se ({historicalResults.length}/{dogs.length} hundar klara)...
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Det kan ta upp till 30 sekunder</p>
                 </div>
               )}
 
               {historicalError && (
                 <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3 text-center">
                   <p className="text-xs text-muted-foreground">{historicalError}</p>
-                  <Button size="sm" variant="outline" className="mt-2" onClick={() => { setHistoricalFetched(false); }}>
+                  <Button size="sm" variant="outline" className="mt-2" onClick={() => { setHistoricalFetched(false); setHistoricalResults([]); }}>
                     Försök igen
                   </Button>
                 </div>

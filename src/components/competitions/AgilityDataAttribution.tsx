@@ -9,7 +9,12 @@ interface Props {
 }
 
 export function AgilityDataAttribution({ sourceUrl }: Props) {
-  const [open, setOpen] = useState(() => window.innerWidth >= MOBILE_BREAKPOINT);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    // Set initial state after mount for reliable viewport detection
+    setOpen(window.innerWidth >= MOBILE_BREAKPOINT);
+  }, []);
 
   return (
     <div className="mt-6 bg-muted/50 border border-border rounded-xl text-xs text-muted-foreground">

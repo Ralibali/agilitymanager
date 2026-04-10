@@ -700,6 +700,13 @@ export default function CompetitionPage() {
         </TabsContent>
 
         {/* Checklist tab */}
+        {/* Hoopers tab */}
+        {hasHoopersDog && (
+          <TabsContent value="hoopers" className="mt-3">
+            <HoopersPointsTracker dogs={dogs} />
+          </TabsContent>
+        )}
+
         <TabsContent value="checklist" className="mt-3">
           <div className="bg-card rounded-xl p-4 shadow-card">
             <h3 className="font-display font-semibold text-foreground mb-3">Checklista inför tävling</h3>

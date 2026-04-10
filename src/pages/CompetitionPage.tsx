@@ -17,6 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import ShareToFriendDialog from '@/components/ShareToFriendDialog';
+import CompetitionResultsViewer from '@/components/competitions/CompetitionResultsViewer';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CHECKLIST_ITEMS = [
   'Vaccinationsintyg',
@@ -36,6 +38,9 @@ export default function CompetitionPage() {
   const [results, setResults] = useState<CompetitionResult[]>([]);
   const [planned, setPlanned] = useState<PlannedCompetition[]>([]);
   const [loading, setLoading] = useState(true);
+  const [friendNames, setFriendNames] = useState<string[]>([]);
+  const [externalResultUrl, setExternalResultUrl] = useState('');
+  const [activeExternalUrl, setActiveExternalUrl] = useState<string | null>(null);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [customItems, setCustomItems] = useState<string[]>(() => {
     try {
@@ -45,6 +50,8 @@ export default function CompetitionPage() {
   });
   const [newItem, setNewItem] = useState('');
   const [shareResult, setShareResult] = useState<CompetitionResult | null>(null);
+  const { user } = useAuth();
+  
   const refresh = async () => {
     const [d, r, p] = await Promise.all([
       store.getDogs(),
@@ -58,6 +65,33 @@ export default function CompetitionPage() {
   };
 
   useEffect(() => { refresh(); }, []);
+
+  // Fetch friend display names for highlighting
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data: friendships } = await supabase
+        .from('friendships')
+        .select('requester_id, receiver_id')
+        .eq('status', 'accepted')
+        .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`);
+      
+      if (!friendships?.length) return;
+      
+      const friendIds = friendships.map(f => 
+        f.requester_id === user.id ? f.receiver_id : f.requester_id
+      );
+      
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .in('user_id', friendIds);
+      
+      if (profiles) {
+        setFriendNames(profiles.map(p => p.display_name).filter(Boolean) as string[]);
+      }
+    })();
+  }, [user]);
 
   const getDog = (id: string) => dogs.find(d => d.id === id);
 
@@ -283,6 +317,54 @@ export default function CompetitionPage() {
               })}
             </div>
           )}
+
+          {/* External results from agilitydata.se */}
+          <div className="mt-6 pt-4 border-t border-border">
+            <h3 className="font-display font-semibold text-foreground text-sm mb-3">
+              Hämta resultatlista från agilitydata.se
+            </h3>
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                const trimmed = externalResultUrl.trim();
+                if (!trimmed) return;
+                if (!trimmed.includes('agilitydata.se')) {
+                  toast.error('Ange en länk från agilitydata.se');
+                  return;
+                }
+                setActiveExternalUrl(trimmed);
+              }}
+              className="flex gap-2 mb-3"
+            >
+              <Input
+                value={externalResultUrl}
+                onChange={e => setExternalResultUrl(e.target.value)}
+                placeholder="Klistra in länk från agilitydata.se..."
+                className="h-8 text-xs flex-1"
+              />
+              <Button type="submit" size="sm" variant="outline" className="h-8 text-xs">
+                Hämta
+              </Button>
+            </form>
+
+            {activeExternalUrl && (
+              <CompetitionResultsViewer
+                url={activeExternalUrl}
+                friendNames={friendNames}
+              />
+            )}
+
+            <div className="mt-3 text-center">
+              <a
+                href="https://agilitydata.se"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+              >
+                🔍 Sök resultat på agilitydata.se <ExternalLink size={10} />
+              </a>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Checklist tab */}

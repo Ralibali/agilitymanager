@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { ExternalLink, Info, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Props {
   sourceUrl?: string;
 }
 
 export function AgilityDataAttribution({ sourceUrl }: Props) {
-  const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(!isMobile);
 
   return (
     <div className="mt-6 bg-muted/50 border border-border rounded-xl text-xs text-muted-foreground">

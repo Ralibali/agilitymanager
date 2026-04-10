@@ -703,8 +703,9 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                   </div>
                 )}
               </div>
-            );
-          })}
+              );
+            });
+          })()}
         </TabsContent>
 
         {/* Groups */}

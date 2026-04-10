@@ -2471,8 +2471,8 @@ export default function CoursePlannerPage() {
   return (
     <>
     <Helmet>
-      <title>Banplanerare Agility – Rita och spara banor | AgilityManager</title>
-      <meta name="description" content="Designa agilitybanor med alla SAgiK-godkända hinder i korrekta proportioner. Spara, återanvänd och dela dina banor." />
+      <title>Banplanerare – Rita agility- och hoopersbanor | AgilityManager</title>
+      <meta name="description" content="Designa agility- och hoopersbanor med korrekta hinder. Hoops, tunnlar, tunnor och staket enligt SHoK:s regelverk. Spara och dela." />
       <link rel="canonical" href="https://agilitymanager.se/banplanerare" />
     </Helmet>
     <PageContainer title="Banplanerare" subtitle="Rita agility-banor">

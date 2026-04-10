@@ -110,6 +110,16 @@ Deno.serve(async (req) => {
     const markdown = data?.data?.markdown || '';
 
     console.log('Result page markdown length:', markdown.length);
+    console.log('Result page HTML length:', html.length);
+    // Log table-related content
+    const tableIdx = html.indexOf('<table');
+    if (tableIdx >= 0) {
+      console.log('Found table in HTML at index:', tableIdx);
+      console.log('Table snippet:', html.substring(tableIdx, tableIdx + 500));
+    } else {
+      console.log('No table found in HTML');
+      console.log('HTML preview (first 500):', html.substring(0, 500));
+    }
     console.log('Markdown preview (first 300):', markdown.substring(0, 300));
 
     // Parse the dog's results page

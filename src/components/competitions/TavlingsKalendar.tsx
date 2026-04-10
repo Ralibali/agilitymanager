@@ -118,6 +118,27 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
   const [selectedCounties, setSelectedCounties] = useState<Set<string>>(new Set());
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; compId: string }>({ open: false, compId: '' });
   const [shareComp, setShareComp] = useState<{ open: boolean; comp: Competition | null }>({ open: false, comp: null });
+  const [expandedResults, setExpandedResults] = useState<string | null>(null);
+  const [friendNames, setFriendNames] = useState<string[]>([]);
+
+  // Fetch friend names for result highlighting
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data: friendships } = await supabase
+        .from('friendships')
+        .select('requester_id, receiver_id')
+        .eq('status', 'accepted')
+        .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`);
+      if (!friendships?.length) return;
+      const friendIds = friendships.map(f => f.requester_id === user.id ? f.receiver_id : f.requester_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .in('user_id', friendIds);
+      setFriendNames((profiles || []).map(p => p.display_name).filter(Boolean) as string[]);
+    })();
+  }, [user]);
 
   const selectedDog = useMemo(() => (dogs || []).find(d => d.id === selectedDogId) || null, [dogs, selectedDogId]);
 

@@ -2334,8 +2334,9 @@ export default function CoursePlannerPage() {
               <div className="space-y-1.5">
                 {PRESET_COURSES.map((p, i) => (
                   <button key={i} onClick={() => loadPreset(p)}
-                    className="w-full text-left text-sm font-medium text-foreground bg-primary/5 hover:bg-primary/10 rounded-lg p-2.5 transition-colors">
-                    {p.name}
+                    className="w-full text-left bg-primary/5 hover:bg-primary/10 rounded-lg p-2.5 transition-colors">
+                    <div className="text-sm font-medium text-foreground">{p.name}</div>
+                    <div className="text-[10px] text-muted-foreground">{p.description}</div>
                   </button>
                 ))}
               </div>

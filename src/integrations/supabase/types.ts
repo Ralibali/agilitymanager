@@ -482,6 +482,11 @@ export type Database = {
           referral_code: string | null
           show_competitions_to_friends: boolean
           show_results_to_friends: boolean
+          stripe_current_period_end: string | null
+          stripe_customer_id: string | null
+          stripe_price_id: string | null
+          stripe_product_id: string | null
+          stripe_subscription_status: string | null
           updated_at: string
           user_id: string
         }
@@ -494,6 +499,11 @@ export type Database = {
           referral_code?: string | null
           show_competitions_to_friends?: boolean
           show_results_to_friends?: boolean
+          stripe_current_period_end?: string | null
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          stripe_subscription_status?: string | null
           updated_at?: string
           user_id: string
         }
@@ -506,6 +516,11 @@ export type Database = {
           referral_code?: string | null
           show_competitions_to_friends?: boolean
           show_results_to_friends?: boolean
+          stripe_current_period_end?: string | null
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          stripe_subscription_status?: string | null
           updated_at?: string
           user_id?: string
         }

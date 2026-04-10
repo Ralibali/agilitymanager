@@ -407,6 +407,20 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     onBack();
   };
 
+  const handleSignupEvent = async (eventId: string) => {
+    const { error } = await supabase.from('club_event_signups').insert({ event_id: eventId, user_id: userId });
+    if (error?.code === '23505') { toast.info('Du är redan anmäld'); return; }
+    if (error) { toast.error('Kunde inte anmäla'); return; }
+    toast.success('Anmäld!');
+    fetchData();
+  };
+
+  const handleUnsignupEvent = async (eventId: string) => {
+    await supabase.from('club_event_signups').delete().eq('event_id', eventId).eq('user_id', userId);
+    toast.success('Avanmäld');
+    fetchData();
+  };
+
   const acceptedMembers = members.filter(m => m.status === 'accepted');
   const pendingMembers = members.filter(m => m.status === 'pending');
   const eventTypeLabel: Record<string, string> = { training: '🏋️ Träning', competition: '🏆 Tävling', social: '🎉 Socialt' };

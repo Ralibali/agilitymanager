@@ -17,6 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import ShareToFriendDialog from '@/components/ShareToFriendDialog';
+import CompetitionResultsViewer from '@/components/competitions/CompetitionResultsViewer';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CHECKLIST_ITEMS = [
   'Vaccinationsintyg',

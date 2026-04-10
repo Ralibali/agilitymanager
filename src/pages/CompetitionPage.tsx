@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 import CompetitionResultsViewer from '@/components/competitions/CompetitionResultsViewer';
+import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAttribution';
 import { useAuth } from '@/contexts/AuthContext';
 
 const CHECKLIST_ITEMS = [

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAttribution';
 import { stripHtml } from '@/lib/utils';
 import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 import { supabase } from '@/integrations/supabase/client';

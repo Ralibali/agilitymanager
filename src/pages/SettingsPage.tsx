@@ -202,6 +202,9 @@ export default function SettingsPage() {
       </div>
 
 
+      {/* Handler name for agilitydata.se */}
+      <HandlerNameSettings userId={user?.id} />
+
       {/* Privacy Settings */}
       <PrivacySettings userId={user?.id} />
 

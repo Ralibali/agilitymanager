@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAttribution';
 import { stripHtml } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';

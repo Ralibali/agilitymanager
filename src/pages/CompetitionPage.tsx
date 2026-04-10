@@ -21,6 +21,7 @@ import CompetitionResultsViewer from '@/components/competitions/CompetitionResul
 import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAttribution';
 import HistoricalResultsStats from '@/components/competitions/HistoricalResultsStats';
 import ImportResultsFromUrl from '@/components/competitions/ImportResultsFromUrl';
+import ClassPromotionTracker from '@/components/competitions/ClassPromotionTracker';
 import { useAuth } from '@/contexts/AuthContext';
 
 type HistoricalDogResult = {

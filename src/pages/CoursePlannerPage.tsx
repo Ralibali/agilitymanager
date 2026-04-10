@@ -685,10 +685,10 @@ export default function CoursePlannerPage() {
     ctx.font = 'bold 8px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('DIRIGERINGSZON', 0, 0);
+     ctx.fillText('DIRIGERINGSZON', 0, 0);
   };
 
-
+  const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -1868,7 +1868,8 @@ export default function CoursePlannerPage() {
 
     // Check proximity warnings
     const warnings: string[] = [];
-    for (const rule of MIN_DISTANCES) {
+    const distanceRules = sportMode === 'hoopers' ? HOOPERS_MIN_DISTANCES : MIN_DISTANCES;
+    for (const rule of distanceRules) {
       const typeA = obstacles.filter(o => o.type === rule.types[0]);
       const typeB = rule.types[0] === rule.types[1] ? typeA : obstacles.filter(o => o.type === rule.types[1]);
       for (const a of typeA) {
@@ -1882,8 +1883,32 @@ export default function CoursePlannerPage() {
       }
     }
 
+    // Hoopers-specific validations
+    if (sportMode === 'hoopers') {
+      // Barrel without direction warning
+      const barrelsWithoutDir = obstacles.filter(o => o.type === 'barrel' && !o.barrelDirection);
+      for (const b of barrelsWithoutDir) {
+        const label = b.label || 'Tunna';
+        warnings.push(`⚠️ ${label} saknar riktning (CW/CCW)`);
+      }
+
+      // SHoK class recommendation
+      const hookClassRanges: { label: string; min: number; max: number }[] = [
+        { label: 'Startklass', min: 8, max: 12 },
+        { label: 'Klass 1', min: 12, max: 16 },
+        { label: 'Klass 2', min: 16, max: 20 },
+        { label: 'Klass 3', min: 20, max: 99 },
+      ];
+      const matchingClasses = hookClassRanges.filter(c => total >= c.min && total <= c.max);
+      if (total > 0 && matchingClasses.length > 0) {
+        warnings.push(`ℹ️ Antal hinder passar SHoK ${matchingClasses.map(c => c.label).join(' / ')}`);
+      } else if (total > 0 && total < 8) {
+        warnings.push(`ℹ️ ${total} hinder – för få för SHoK Startklass (min 8)`);
+      }
+    }
+
     return { total, contactCount, length, warnings };
-  }, [obstacles]);
+  }, [obstacles, sportMode]);
 
   /* ───── Feature 10: Unsaved changes warning ───── */
 

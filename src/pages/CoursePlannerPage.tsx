@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { OBSTACLE_INFO, CONTACT_TYPES, MIN_DISTANCES, HOOPERS_MIN_DISTANCES } from '@/lib/courseObstacleInfo';
+import { OBSTACLE_INFO, CONTACT_TYPES, MIN_DISTANCES, HOOPERS_MIN_DISTANCES, SHOK_CLASSES, SHOK_SCORING, HOOPERS_ARENA_SIZE } from '@/lib/courseObstacleInfo';
 import {
   PRESET_THEMES,
   STANDARD_THEME,
@@ -1892,18 +1892,53 @@ export default function CoursePlannerPage() {
         warnings.push(`⚠️ ${label} saknar riktning (CW/CCW)`);
       }
 
-      // SHoK class recommendation
-      const hookClassRanges: { label: string; min: number; max: number }[] = [
-        { label: 'Startklass', min: 8, max: 12 },
-        { label: 'Klass 1', min: 12, max: 16 },
-        { label: 'Klass 2', min: 16, max: 20 },
-        { label: 'Klass 3', min: 20, max: 99 },
-      ];
-      const matchingClasses = hookClassRanges.filter(c => total >= c.min && total <= c.max);
-      if (total > 0 && matchingClasses.length > 0) {
-        warnings.push(`ℹ️ Antal hinder passar SHoK ${matchingClasses.map(c => c.label).join(' / ')}`);
-      } else if (total > 0 && total < 8) {
-        warnings.push(`ℹ️ ${total} hinder – för få för SHoK Startklass (min 8)`);
+      // Handler zone (DO) count
+      const handlerZones = obstacles.filter(o => o.type === 'handler_zone');
+      const tunnelCount = obstacles.filter(o => o.type === 'hoopers_tunnel').length;
+      const gateCount = obstacles.filter(o => o.type === 'gate').length;
+
+      // SHoK class matching with detailed rules
+      for (const cls of SHOK_CLASSES) {
+        const fits = total >= cls.minObstacles && total <= cls.maxObstacles;
+        if (!fits) continue;
+
+        // DO size check
+        warnings.push(`ℹ️ Passar ${cls.label} (${cls.minObstacles}–${cls.maxObstacles} hinder, DO ${cls.doSizeM}m)`);
+
+        // Max handler zones
+        if (handlerZones.length > cls.maxHandlerZones) {
+          warnings.push(`⚠️ ${cls.label} tillåter max ${cls.maxHandlerZones} DO (har ${handlerZones.length})`);
+        }
+
+        // Tunnel restriction
+        if (!cls.canUseTunnel && tunnelCount > 0) {
+          warnings.push(`⚠️ ${cls.label} tillåter inte tunnel (har ${tunnelCount})`);
+        }
+
+        // Gate restriction
+        if (!cls.canUseGate && gateCount > 0) {
+          warnings.push(`⚠️ ${cls.label} tillåter inte staket (har ${gateCount})`);
+        }
+      }
+
+      // No match at all
+      const anyMatch = SHOK_CLASSES.some(c => total >= c.minObstacles && total <= c.maxObstacles);
+      if (total > 0 && !anyMatch) {
+        if (total < SHOK_CLASSES[0].minObstacles) {
+          warnings.push(`ℹ️ ${total} hinder – för få för SHoK Startklass (min ${SHOK_CLASSES[0].minObstacles})`);
+        } else if (total > SHOK_CLASSES[SHOK_CLASSES.length - 1].maxObstacles) {
+          warnings.push(`ℹ️ ${total} hinder – fler än SHoK Klass 3 max (${SHOK_CLASSES[SHOK_CLASSES.length - 1].maxObstacles})`);
+        }
+      }
+
+      // Scoring info
+      if (total > 0) {
+        const doCount = handlerZones.length;
+        const doBonus = doCount * 10;
+        if (doCount > 0) {
+          warnings.push(`🏆 ${doCount} DO = +${doBonus}p bonus per lopp (DO-poäng)`);
+        }
+        warnings.push(`💡 Tips: UL1 (+5p) >5m, UL2 (+10p) >8m, UL3 (+15p) >12m avstånd`);
       }
     }
 

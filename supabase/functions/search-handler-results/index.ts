@@ -70,9 +70,12 @@ Deno.serve(async (req) => {
     actions.push({ type: 'wait', milliseconds: 4000 });
     actions.push({ type: 'click', selector: '#SearchDogsAdminGridContent tbody tr:first-child td:last-child a' });
     actions.push({ type: 'wait', milliseconds: 5000 });
-    // Click first checkbox to load Agility results
-    actions.push({ type: 'click', selector: 'input[type="checkbox"]' });
-    actions.push({ type: 'wait', milliseconds: 5000 });
+    // Click first checkbox (Agility) to load results
+    actions.push({ type: 'click', selector: 'input[type="checkbox"]:first-of-type' });
+    actions.push({ type: 'wait', milliseconds: 4000 });
+    // Click second checkbox (Hopp) to load those results too
+    actions.push({ type: 'click', selector: 'input[type="checkbox"]:nth-of-type(2)' });
+    actions.push({ type: 'wait', milliseconds: 4000 });
 
     const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',

@@ -38,6 +38,9 @@ export default function CompetitionPage() {
   const [results, setResults] = useState<CompetitionResult[]>([]);
   const [planned, setPlanned] = useState<PlannedCompetition[]>([]);
   const [loading, setLoading] = useState(true);
+  const [friendNames, setFriendNames] = useState<string[]>([]);
+  const [externalResultUrl, setExternalResultUrl] = useState('');
+  const [activeExternalUrl, setActiveExternalUrl] = useState<string | null>(null);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [customItems, setCustomItems] = useState<string[]>(() => {
     try {
@@ -47,6 +50,8 @@ export default function CompetitionPage() {
   });
   const [newItem, setNewItem] = useState('');
   const [shareResult, setShareResult] = useState<CompetitionResult | null>(null);
+  const { user } = useAuth();
+  
   const refresh = async () => {
     const [d, r, p] = await Promise.all([
       store.getDogs(),
@@ -60,6 +65,33 @@ export default function CompetitionPage() {
   };
 
   useEffect(() => { refresh(); }, []);
+
+  // Fetch friend display names for highlighting
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data: friendships } = await supabase
+        .from('friendships')
+        .select('requester_id, receiver_id')
+        .eq('status', 'accepted')
+        .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`);
+      
+      if (!friendships?.length) return;
+      
+      const friendIds = friendships.map(f => 
+        f.requester_id === user.id ? f.receiver_id : f.requester_id
+      );
+      
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .in('user_id', friendIds);
+      
+      if (profiles) {
+        setFriendNames(profiles.map(p => p.display_name).filter(Boolean) as string[]);
+      }
+    })();
+  }, [user]);
 
   const getDog = (id: string) => dogs.find(d => d.id === id);
 

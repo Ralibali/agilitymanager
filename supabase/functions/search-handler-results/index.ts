@@ -87,7 +87,11 @@ Deno.serve(async (req) => {
     const markdown = data?.data?.markdown || '';
     
     console.log('Search result markdown length:', markdown.length);
-    console.log('Markdown preview:', markdown.substring(0, 500));
+    // Log a section around the table for debugging
+    const tableIdx = html.indexOf('SearchDogsAdminGridContent');
+    if (tableIdx >= 0) {
+      console.log('Table HTML snippet:', html.substring(tableIdx, tableIdx + 1000));
+    }
 
     // Parse the search results
     const dogs = parseSearchResults(html, markdown);

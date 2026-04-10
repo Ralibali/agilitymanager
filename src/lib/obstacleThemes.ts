@@ -31,6 +31,12 @@ export const STANDARD_THEME: ObstacleTheme = {
   tire:      { body: 'hsl(0, 0%, 15%)',    accent: 'hsl(50, 85%, 55%)' },        // svart, gul ram
   start:     { body: 'hsl(120, 60%, 35%)' },
   finish:    { body: 'hsl(0, 70%, 45%)' },
+  // Hoopers
+  hoop:           { body: 'hsl(50, 85%, 55%)',  accent: 'hsl(215, 60%, 50%)' },  // gul båge, blå ram
+  hoopers_tunnel: { body: 'hsl(215, 55%, 50%)', accent: 'hsl(215, 40%, 70%)' },  // blå/grå
+  barrel:         { body: 'hsl(215, 60%, 50%)', accent: 'hsl(215, 45%, 38%)' },  // blå
+  gate:           { body: 'hsl(25, 85%, 55%)',  accent: 'hsl(25, 70%, 42%)' },   // orange
+  handler_zone:   { body: 'hsl(0, 70%, 50%)' },
 };
 
 /* ─── Galican (popular Swedish manufacturer) ─── */

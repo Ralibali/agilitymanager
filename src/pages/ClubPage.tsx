@@ -395,8 +395,8 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
       date: eventDate,
       event_type: eventType,
     });
-    const senderName = profiles[userId] || 'Någon';
     await notifyClubMembers(`📅 Nytt event i ${club.name}: ${eventTitle.trim()}`, userId);
+    sendClubEmail('Nytt event', `Nytt event i ${club.name}: ${eventTitle.trim()}`, eventDesc.trim() || undefined);
     toast.success('Event skapat!');
     setEventDialogOpen(false);
     setEventTitle(''); setEventDesc(''); setEventDate(''); setEventType('training');

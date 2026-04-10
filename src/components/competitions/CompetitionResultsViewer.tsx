@@ -58,6 +58,14 @@ export default function CompetitionResultsViewer({ url, friendNames = [], autoFe
     }
   };
 
+  // Auto-fetch when autoFetch prop is true
+  useEffect(() => {
+    if (autoFetch && !hasFetched && !data && !loading) {
+      setHasFetched(true);
+      fetchResults();
+    }
+  }, [autoFetch, hasFetched, data, loading]);
+
   const friendNamesLower = useMemo(() => friendNames.map(n => n.toLowerCase()), [friendNames]);
 
   const isFriend = (handlerName: string) => {

@@ -682,7 +682,7 @@ export default function CoursePlannerPage() {
 
     // Draw obstacles
     obstacles.forEach(obs => {
-      const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
+      const info = ALL_OBSTACLE_TYPES.find(o => o.type === obs.type);
       if (!info) return;
 
       ctx.save();
@@ -1018,7 +1018,7 @@ export default function CoursePlannerPage() {
     ctx.fillRect(0, 0, mw, mh);
     // Draw obstacles as dots
     obstacles.forEach(obs => {
-      const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
+      const info = ALL_OBSTACLE_TYPES.find(o => o.type === obs.type);
       if (!info) return;
       const c = getTypeColors(obs.type);
       ctx.fillStyle = c.body;
@@ -1071,7 +1071,7 @@ export default function CoursePlannerPage() {
   const findObstacleAt = (cx: number, cy: number): Obstacle | null => {
     for (let i = obstacles.length - 1; i >= 0; i--) {
       const obs = obstacles[i];
-      const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
+      const info = ALL_OBSTACLE_TYPES.find(o => o.type === obs.type);
       if (!info) continue;
       const hitR = Math.max(info.width, info.height, 20) / 2 + 8;
       if (Math.abs(cx - obs.x) <= hitR && Math.abs(cy - obs.y) <= hitR) return obs;
@@ -1083,7 +1083,7 @@ export default function CoursePlannerPage() {
     if (!selected) return false;
     const obs = obstacles.find(o => o.id === selected);
     if (!obs) return false;
-    const info = OBSTACLE_TYPES.find(o => o.type === obs.type);
+    const info = ALL_OBSTACLE_TYPES.find(o => o.type === obs.type);
     if (!info) return false;
 
     const selSize = Math.max(info.width, info.height, 20) / 2 + 6;

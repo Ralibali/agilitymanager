@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      cached_dog_results: {
+        Row: {
+          breed: string
+          created_at: string
+          dog_id: string
+          dog_name: string
+          fetched_at: string
+          handler: string
+          id: string
+          reg_name: string
+          reg_nr: string
+          results: Json
+          user_id: string
+        }
+        Insert: {
+          breed?: string
+          created_at?: string
+          dog_id: string
+          dog_name?: string
+          fetched_at?: string
+          handler?: string
+          id?: string
+          reg_name?: string
+          reg_nr?: string
+          results?: Json
+          user_id: string
+        }
+        Update: {
+          breed?: string
+          created_at?: string
+          dog_id?: string
+          dog_name?: string
+          fetched_at?: string
+          handler?: string
+          id?: string
+          reg_name?: string
+          reg_nr?: string
+          results?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cached_dog_results_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       competition_interests: {
         Row: {
           class: string | null

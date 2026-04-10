@@ -7,7 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette, Copy, Ruler, ChevronDown, X, MoreHorizontal, Settings2 } from 'lucide-react';
+import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette, Copy, Ruler, ChevronDown, X, MoreHorizontal, Settings2, Wrench } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
+import { motion as m } from 'framer-motion';
 import ShareCourseDialog from '@/components/course-planner/ShareCourseDialog';
 import ObstacleColorPanel from '@/components/course-planner/ObstacleColorPanel';
 import { CoursePlannerTutorial, TutorialButton } from '@/components/course-planner/CoursePlannerTutorial';
@@ -329,6 +331,7 @@ export default function CoursePlannerPage() {
   const [snapEnabled, setSnapEnabled] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
+  const [fabOpen, setFabOpen] = useState(false);
   const SNAP_STEP = 0.5 * PX_PER_METER; // 0.5m
   const MAGNETIC_DIST = 0.8 * PX_PER_METER; // snap within 0.8m of another obstacle
 
@@ -3164,6 +3167,84 @@ export default function CoursePlannerPage() {
         {measureMode && (
           <div className="absolute top-3 left-3 z-10 bg-yellow-500/90 text-foreground text-[10px] px-2 py-1 rounded pointer-events-none font-medium">
             📏 Klicka på två punkter för att mäta avstånd
+          </div>
+        )}
+
+        {/* Mobile FAB for quick tool access */}
+        {isMobile && (
+          <div className="absolute bottom-3 right-3 z-20 flex flex-col-reverse items-center gap-2">
+            <AnimatePresence>
+              {fabOpen && (
+                <>
+                  {[
+                    {
+                      key: 'draw',
+                      icon: <Pencil size={18} />,
+                      label: 'Rita',
+                      active: drawingMode,
+                      activeClass: 'bg-orange-500 text-white shadow-lg shadow-orange-500/30',
+                      onClick: () => { setDrawingMode(!drawingMode); setNumberingMode(false); setMeasureMode(false); setFabOpen(false); },
+                    },
+                    {
+                      key: 'number',
+                      icon: <Hash size={18} />,
+                      label: 'Numrera',
+                      active: numberingMode,
+                      activeClass: 'bg-blue-500 text-white shadow-lg shadow-blue-500/30',
+                      onClick: () => { setNumberingMode(!numberingMode); setDrawingMode(false); setMeasureMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } setFabOpen(false); },
+                    },
+                    {
+                      key: 'measure',
+                      icon: <Ruler size={18} />,
+                      label: 'Mät',
+                      active: measureMode,
+                      activeClass: 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/30',
+                      onClick: () => { setMeasureMode(!measureMode); setDrawingMode(false); setNumberingMode(false); setMeasurePoints([]); setFabOpen(false); },
+                    },
+                    {
+                      key: 'eraser',
+                      icon: <Eraser size={18} />,
+                      label: 'Radera linje',
+                      active: false,
+                      activeClass: '',
+                      onClick: () => { setHandlerPath([]); setFabOpen(false); },
+                    },
+                  ].map((item, i) => (
+                    <m.button
+                      key={item.key}
+                      initial={{ opacity: 0, scale: 0.3, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.3, y: 20 }}
+                      transition={{ delay: i * 0.04, type: 'spring', stiffness: 400, damping: 22 }}
+                      onClick={item.onClick}
+                      className={`w-11 h-11 rounded-full flex items-center justify-center shadow-md border transition-colors ${
+                        item.active
+                          ? item.activeClass
+                          : 'bg-card border-border text-foreground hover:bg-secondary'
+                      }`}
+                      title={item.label}
+                    >
+                      {item.icon}
+                    </m.button>
+                  ))}
+                </>
+              )}
+            </AnimatePresence>
+            <m.button
+              onClick={() => setFabOpen(f => !f)}
+              className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg border-2 transition-colors ${
+                fabOpen
+                  ? 'bg-destructive border-destructive text-destructive-foreground'
+                  : (drawingMode || numberingMode || measureMode)
+                    ? 'bg-primary border-primary text-primary-foreground'
+                    : 'bg-primary border-primary text-primary-foreground'
+              }`}
+              animate={{ rotate: fabOpen ? 45 : 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              title="Snabbverktyg"
+            >
+              {fabOpen ? <X size={22} /> : <Wrench size={22} />}
+            </m.button>
           </div>
         )}
       </div>

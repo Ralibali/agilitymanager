@@ -130,6 +130,25 @@ export default function DogsPage() {
               {dog.notes && (
                 <p className="mt-2 text-sm text-muted-foreground border-t border-border pt-2">{dog.notes}</p>
               )}
+              {/* Promotion badges */}
+              {(() => {
+                const dogResults = results.filter(r => r.dog_id === dog.id);
+                const progress = calculatePromotionProgress(dogResults, dog);
+                const readyPromotions = progress.filter(p => p.nextClass && p.cleanRuns >= p.required);
+                if (readyPromotions.length === 0) return null;
+                return (
+                  <div className="mt-2 border-t border-border pt-2 space-y-1">
+                    {readyPromotions.map(p => (
+                      <div key={p.discipline} className="flex items-center gap-1.5 bg-primary/10 rounded-lg px-2 py-1.5">
+                        <TrendingUp size={14} className="text-primary shrink-0" />
+                        <span className="text-xs font-semibold text-primary">
+                          🎉 Redo för {p.discipline} {p.nextClass}!
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
               <div className="flex items-center justify-between mt-2 border-t border-border pt-2">
                 <span className="text-xs text-muted-foreground">Aktiv tävlingshund</span>
                 <Switch

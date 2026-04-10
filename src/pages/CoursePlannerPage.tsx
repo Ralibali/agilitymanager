@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette, Copy, Ruler, ChevronDown, X } from 'lucide-react';
 import ShareCourseDialog from '@/components/course-planner/ShareCourseDialog';
 import ObstacleColorPanel from '@/components/course-planner/ObstacleColorPanel';
+import { CoursePlannerTutorial, TutorialButton } from '@/components/course-planner/CoursePlannerTutorial';
 import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -325,6 +326,7 @@ export default function CoursePlannerPage() {
 
   // ── Feature 2: Snap-to-Grid + Magnetic snap ──
   const [snapEnabled, setSnapEnabled] = useState(true);
+  const [showTutorial, setShowTutorial] = useState(false);
   const SNAP_STEP = 0.5 * PX_PER_METER; // 0.5m
   const MAGNETIC_DIST = 0.8 * PX_PER_METER; // snap within 0.8m of another obstacle
 
@@ -2216,6 +2218,7 @@ export default function CoursePlannerPage() {
             <button onClick={handleRedo} disabled={!canRedo} className="p-1.5 rounded hover:bg-secondary transition-colors disabled:opacity-30" title="Gör om (Ctrl+Y)">
               <RotateCcw size={14} className="scale-x-[-1]" />
             </button>
+            <TutorialButton onClick={() => setShowTutorial(true)} />
             <div className="h-px bg-border" />
             <button
               onClick={toggleFullscreen}
@@ -2292,6 +2295,7 @@ export default function CoursePlannerPage() {
           </div>
         </div>
         )}
+        <CoursePlannerTutorial forceOpen={showTutorial} onClose={() => setShowTutorial(false)} />
       </div>
     );
   }
@@ -2308,6 +2312,7 @@ export default function CoursePlannerPage() {
 
       {/* Toolbar row 1 */}
       <div className="flex gap-2 mb-2 items-center flex-wrap">
+        <TutorialButton onClick={() => setShowTutorial(true)} />
         <Select
           value={`${canvasSize.width}x${canvasSize.height}`}
           onValueChange={(v) => {
@@ -2814,6 +2819,7 @@ export default function CoursePlannerPage() {
       </p>
       </PremiumGate>
     </PageContainer>
+    <CoursePlannerTutorial forceOpen={showTutorial} onClose={() => setShowTutorial(false)} />
     </>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAttribution';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { PageContainer } from '@/components/PageContainer';
@@ -62,6 +63,7 @@ export default function CompetitionCalendarPage() {
           <TavlingsLogg dogs={dogs} />
         </TabsContent>
       </Tabs>
+      <AgilityDataAttribution />
     </PageContainer>
   );
 }

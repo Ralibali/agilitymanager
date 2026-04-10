@@ -2094,9 +2094,10 @@ export default function CoursePlannerPage() {
   /* ───── Obstacle palette (shared) ───── */
 
   const obstaclePalette = (vertical: boolean) => {
+    const baseTypes = sportMode === 'hoopers' ? HOOPERS_OBSTACLE_TYPES : OBSTACLE_TYPES;
     const types = showStartFinish
-      ? OBSTACLE_TYPES
-      : OBSTACLE_TYPES.filter(o => o.type !== 'start' && o.type !== 'finish');
+      ? baseTypes
+      : baseTypes.filter(o => o.type !== 'start' && o.type !== 'finish');
     return (
       <TooltipProvider delayDuration={300}>
         <div className={vertical

@@ -311,9 +311,19 @@ export default function ImportResultsFromUrl({ dogs, userId, onImported }: Props
         </>
       ) : (
         <>
-          <p className="text-[10px] text-muted-foreground">
-            Markera och kopiera resultattabellen från agilitydata.se (inkl. rubriker) och klistra in nedan.
-          </p>
+          <div className="text-[10px] text-muted-foreground space-y-1">
+            <p className="font-medium text-foreground">Så här gör du:</p>
+            <ol className="list-decimal list-inside space-y-0.5 pl-0.5">
+              <li>Gå till hundens resultatsida på{' '}
+                <a href="https://agilitydata.se/resultat/soek-hund/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-0.5">
+                  agilitydata.se <ExternalLink size={8} />
+                </a>
+              </li>
+              <li>Markera hela resultattabellen <span className="text-muted-foreground/70">(inkl. rubrikraden)</span></li>
+              <li>Kopiera med <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[9px] font-mono">Ctrl+C</kbd></li>
+              <li>Klistra in nedan med <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[9px] font-mono">Ctrl+V</kbd></li>
+            </ol>
+          </div>
           <Textarea
             placeholder={"Datum\tArrangör\tGren\tKlass\tPlac\tTot. fel\tMerit\n2025-01-15\tClub ABC\tAgility\tK2\t3\t0\tGodkänd"}
             value={pasteText}

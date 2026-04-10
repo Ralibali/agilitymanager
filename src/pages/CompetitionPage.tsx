@@ -94,6 +94,7 @@ export default function CompetitionPage() {
       return true;
     });
   }, [dogs]);
+  const hasHoopersDog = useMemo(() => dogs.some(d => d.sport === 'Hoopers'), [dogs]);
   
   const refresh = async () => {
     const [d, r, p] = await Promise.all([

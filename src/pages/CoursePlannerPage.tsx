@@ -2818,6 +2818,7 @@ export default function CoursePlannerPage() {
       </p>
       </PremiumGate>
     </PageContainer>
+    <CoursePlannerTutorial forceOpen={showTutorial} onClose={() => setShowTutorial(false)} />
     </>
   );
 }

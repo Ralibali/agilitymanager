@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -99,16 +99,27 @@ const STEPS = [
 
 const STORAGE_KEY = 'course-planner-tutorial-seen';
 
-export function CoursePlannerTutorial() {
-  const [seen] = useState(() => {
-    try { return localStorage.getItem(STORAGE_KEY) === 'true'; } catch { return false; }
+interface TutorialProps {
+  forceOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function CoursePlannerTutorial({ forceOpen, onClose }: TutorialProps) {
+  const [open, setOpen] = useState(() => {
+    if (forceOpen) return true;
+    try { return localStorage.getItem(STORAGE_KEY) !== 'true'; } catch { return true; }
   });
-  const [open, setOpen] = useState(!seen);
   const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    if (forceOpen) { setOpen(true); setStep(0); }
+  }, [forceOpen]);
 
   const handleClose = () => {
     setOpen(false);
+    setStep(0);
     try { localStorage.setItem(STORAGE_KEY, 'true'); } catch {}
+    onClose?.();
   };
 
   const current = STEPS[step];
@@ -118,7 +129,7 @@ export function CoursePlannerTutorial() {
   return (
     <Dialog open={open} onOpenChange={o => { if (!o) handleClose(); }}>
       <DialogContent className="max-w-sm p-0 overflow-hidden rounded-2xl gap-0">
-        {/* Header with icon */}
+        {/* Header */}
         <div className="bg-primary/5 px-6 pt-6 pb-4 text-center relative">
           <button onClick={handleClose} className="absolute top-3 right-3 p-1 rounded-full hover:bg-secondary text-muted-foreground">
             <X size={16} />
@@ -142,7 +153,7 @@ export function CoursePlannerTutorial() {
           </div>
         )}
 
-        {/* Footer with navigation */}
+        {/* Footer */}
         <div className="px-6 pb-5 pt-2 flex items-center justify-between">
           <div className="flex gap-1">
             {STEPS.map((_, i) => (
@@ -175,7 +186,6 @@ export function CoursePlannerTutorial() {
   );
 }
 
-/** Button to re-open the tutorial */
 export function TutorialButton({ onClick }: { onClick: () => void }) {
   return (
     <button

@@ -14,6 +14,7 @@ import { format, differenceInDays } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { UpcomingClubEvents } from '@/components/dashboard/UpcomingClubEvents';
 
 const Index = () => {
   const [dogs, setDogs] = useState<Dog[]>([]);

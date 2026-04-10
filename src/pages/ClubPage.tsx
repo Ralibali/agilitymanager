@@ -460,6 +460,17 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
           ))}
         </TabsContent>
 
+        {/* Groups */}
+        <TabsContent value="groups" className="mt-3">
+          <ClubGroupsTab
+            clubId={club.id}
+            userId={userId}
+            isAdmin={isAdmin}
+            profiles={profiles}
+            acceptedMemberIds={acceptedMembers.map(m => m.user_id)}
+          />
+        </TabsContent>
+
         {/* Members */}
         <TabsContent value="members" className="mt-3 space-y-3">
           {/* Pending approvals */}

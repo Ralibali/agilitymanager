@@ -558,6 +558,7 @@ export type Database = {
           theme_color: string
           updated_at: string
           user_id: string
+          withers_cm: number | null
         }
         Insert: {
           birthdate?: string | null
@@ -579,6 +580,7 @@ export type Database = {
           theme_color?: string
           updated_at?: string
           user_id: string
+          withers_cm?: number | null
         }
         Update: {
           birthdate?: string | null
@@ -600,6 +602,7 @@ export type Database = {
           theme_color?: string
           updated_at?: string
           user_id?: string
+          withers_cm?: number | null
         }
         Relationships: []
       }
@@ -1219,16 +1222,23 @@ export type Database = {
       training_sessions: {
         Row: {
           banflyt_score: number | null
+          best_time_sec: number | null
           created_at: string
           date: string
           dirigering_score: number | null
           dog_energy: number
           dog_id: string
           duration_min: number
+          fault_count: number | null
           handler_energy: number
+          handler_zone_kept: boolean | null
           id: string
+          jump_height_used: string | null
+          location: string | null
           notes_good: string
           notes_improve: string
+          obstacles_trained: string[] | null
+          overall_mood: number | null
           reps: number
           sport: Database["public"]["Enums"]["sport"]
           tags: string[]
@@ -1237,16 +1247,23 @@ export type Database = {
         }
         Insert: {
           banflyt_score?: number | null
+          best_time_sec?: number | null
           created_at?: string
           date?: string
           dirigering_score?: number | null
           dog_energy?: number
           dog_id: string
           duration_min?: number
+          fault_count?: number | null
           handler_energy?: number
+          handler_zone_kept?: boolean | null
           id?: string
+          jump_height_used?: string | null
+          location?: string | null
           notes_good?: string
           notes_improve?: string
+          obstacles_trained?: string[] | null
+          overall_mood?: number | null
           reps?: number
           sport?: Database["public"]["Enums"]["sport"]
           tags?: string[]
@@ -1255,16 +1272,23 @@ export type Database = {
         }
         Update: {
           banflyt_score?: number | null
+          best_time_sec?: number | null
           created_at?: string
           date?: string
           dirigering_score?: number | null
           dog_energy?: number
           dog_id?: string
           duration_min?: number
+          fault_count?: number | null
           handler_energy?: number
+          handler_zone_kept?: boolean | null
           id?: string
+          jump_height_used?: string | null
+          location?: string | null
           notes_good?: string
           notes_improve?: string
+          obstacles_trained?: string[] | null
+          overall_mood?: number | null
           reps?: number
           sport?: Database["public"]["Enums"]["sport"]
           tags?: string[]

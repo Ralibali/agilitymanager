@@ -454,7 +454,7 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
                     )}
                   </div>
                   <a
-                    href={comp.source_url || `https://agilitydata.se/taevlingar/${comp.id}`}
+                    href={comp.source_url || `https://agilitydata.se/taevlingar/lopplista/?competitionId=${comp.id}&competitionPartKey=${comp.part_key}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[10px] text-primary flex items-center gap-0.5 hover:underline"
@@ -475,7 +475,7 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
                           ▲ Dölj resultat
                         </button>
                         <CompetitionResultsViewer
-                          url={`https://agilitydata.se/taevlingar/${comp.id}`}
+                          url={`https://agilitydata.se/taevlingar/lopplista/?competitionId=${comp.id}&competitionPartKey=${comp.part_key}`}
                           friendNames={friendNames}
                         />
                       </div>

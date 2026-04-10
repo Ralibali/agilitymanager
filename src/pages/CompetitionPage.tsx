@@ -62,6 +62,7 @@ export default function CompetitionPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [results, setResults] = useState<CompetitionResult[]>([]);
   const [planned, setPlanned] = useState<PlannedCompetition[]>([]);
+  const [interestedComps, setInterestedComps] = useState<{ id: string; competition_id: string; status: string; dog_name: string | null; comp: { competition_name: string | null; date_start: string | null; location: string | null; source_url: string | null } }[]>([]);
   const [loading, setLoading] = useState(true);
   const [friendNames, setFriendNames] = useState<string[]>([]);
   const [externalResultUrl, setExternalResultUrl] = useState('');
@@ -104,6 +105,38 @@ export default function CompetitionPage() {
   };
 
   useEffect(() => { refresh(); }, []);
+
+  // Fetch competitions the user has shown interest in
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data: interests } = await supabase
+        .from('competition_interests')
+        .select('id, competition_id, status, dog_name')
+        .eq('user_id', user.id);
+      if (!interests?.length) return;
+
+      const compIds = [...new Set(interests.map(i => i.competition_id))];
+      const { data: comps } = await supabase
+        .from('competitions')
+        .select('id, competition_name, date_start, location, source_url')
+        .in('id', compIds);
+
+      if (!comps) return;
+      const compMap = new Map(comps.map(c => [c.id, c]));
+
+      setInterestedComps(
+        interests
+          .filter(i => compMap.has(i.competition_id))
+          .map(i => ({
+            ...i,
+            comp: compMap.get(i.competition_id)!,
+          }))
+          .filter(i => i.comp.date_start && new Date(i.comp.date_start) >= new Date())
+          .sort((a, b) => new Date(a.comp.date_start!).getTime() - new Date(b.comp.date_start!).getTime())
+      );
+    })();
+  }, [user]);
 
   // Fetch friend display names for highlighting
   useEffect(() => {
@@ -384,7 +417,7 @@ export default function CompetitionPage() {
 
           {/* Upcoming */}
           <h3 className="font-display font-semibold text-foreground text-sm mb-2">Kommande tävlingar</h3>
-          {upcoming.length === 0 ? (
+          {upcoming.length === 0 && interestedComps.length === 0 ? (
             <p className="text-sm text-muted-foreground mb-4">Inga kommande tävlingar.</p>
           ) : (
             <div className="space-y-2 mb-4">
@@ -412,6 +445,37 @@ export default function CompetitionPage() {
                       <button onClick={() => handleDeletePlanned(p.id)} className="text-muted-foreground hover:text-destructive">
                         <Trash2 size={14} />
                       </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+
+              {/* Interested / registered competitions from calendar */}
+              {interestedComps.map((ic, i) => {
+                const daysLeft = differenceInDays(new Date(ic.comp.date_start!), new Date());
+                const statusLabel = ic.status === 'registered' ? 'Anmäld' : 'Intresserad';
+                const borderColor = ic.status === 'registered' ? 'border-primary' : 'border-orange-400';
+                return (
+                  <motion.div key={ic.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: (upcoming.length + i) * 0.03 }}
+                    className={`bg-card rounded-xl p-3 shadow-card border-l-4 ${borderColor}`}>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="font-semibold text-foreground text-sm">{ic.comp.competition_name || 'Tävling'}</h4>
+                        <div className="text-xs text-muted-foreground">
+                          {format(new Date(ic.comp.date_start!), 'd MMMM yyyy', { locale: sv })}
+                          {ic.comp.location && ` · ${ic.comp.location}`}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs font-medium text-primary">{daysLeft} dagar kvar</span>
+                          <span className={`text-xs px-1.5 py-0.5 rounded-full ${ic.status === 'registered' ? 'bg-primary/10 text-primary' : 'bg-orange-100 text-orange-700'}`}>{statusLabel}</span>
+                          {ic.dog_name && <span className="text-xs text-muted-foreground">🐾 {ic.dog_name}</span>}
+                        </div>
+                      </div>
+                      {ic.comp.source_url && (
+                        <a href={ic.comp.source_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                          <ExternalLink size={14} />
+                        </a>
+                      )}
                     </div>
                   </motion.div>
                 );

@@ -110,6 +110,7 @@ const App = () => (
               <Route path="/cookiepolicy" element={<CookiePolicyPage />} />
               <Route path="/avregistrera" element={<UnsubscribePage />} />
               <Route path="/invite/:code" element={<InvitePage />} />
+              <Route path="/club-invite/:code" element={<ClubInvitePage />} />
 
               {/* Protected routes */}
               <Route element={<ProtectedLayout />}>

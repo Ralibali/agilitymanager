@@ -303,10 +303,12 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [members, setMembers] = useState<ClubMember[]>([]);
   const [posts, setPosts] = useState<ClubPost[]>([]);
   const [events, setEvents] = useState<ClubEvent[]>([]);
+  const [eventSignups, setEventSignups] = useState<Record<string, { id: string; user_id: string; comment: string }[]>>({});
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [newPost, setNewPost] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
 
   // New event form
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
@@ -327,6 +329,21 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
 
     const me = (m || []).find(mb => mb.user_id === userId);
     setIsAdmin(me?.role === 'admin');
+
+    // Fetch signups for all events
+    if (e && e.length > 0) {
+      const eventIds = e.map(ev => ev.id);
+      const { data: signups } = await supabase
+        .from('club_event_signups')
+        .select('*')
+        .in('event_id', eventIds);
+      const grouped: Record<string, { id: string; user_id: string; comment: string }[]> = {};
+      (signups || []).forEach(s => {
+        if (!grouped[s.event_id]) grouped[s.event_id] = [];
+        grouped[s.event_id].push({ id: s.id, user_id: s.user_id, comment: s.comment });
+      });
+      setEventSignups(grouped);
+    }
 
     // Fetch display names
     const userIds = [...new Set([...(m || []).map(mb => mb.user_id), ...(p || []).map(pp => pp.user_id)])];
@@ -390,6 +407,20 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     onBack();
   };
 
+  const handleSignupEvent = async (eventId: string) => {
+    const { error } = await supabase.from('club_event_signups').insert({ event_id: eventId, user_id: userId });
+    if (error?.code === '23505') { toast.info('Du är redan anmäld'); return; }
+    if (error) { toast.error('Kunde inte anmäla'); return; }
+    toast.success('Anmäld!');
+    fetchData();
+  };
+
+  const handleUnsignupEvent = async (eventId: string) => {
+    await supabase.from('club_event_signups').delete().eq('event_id', eventId).eq('user_id', userId);
+    toast.success('Avanmäld');
+    fetchData();
+  };
+
   const acceptedMembers = members.filter(m => m.status === 'accepted');
   const pendingMembers = members.filter(m => m.status === 'pending');
   const eventTypeLabel: Record<string, string> = { training: '🏋️ Träning', competition: '🏆 Tävling', social: '🎉 Socialt' };
@@ -408,24 +439,38 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
 
       {/* Invite code for admins */}
       {isAdmin && (
-        <div className="bg-secondary/50 rounded-xl p-3 mb-4 flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Inbjudningskod</span>
-            <p className="text-sm font-mono font-semibold text-foreground">{club.invite_code}</p>
+        <div className="bg-secondary/50 rounded-xl p-3 mb-4 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Inbjudningskod</span>
+              <p className="text-sm font-mono font-semibold text-foreground">{club.invite_code}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1 shrink-0"
+              onClick={() => {
+                navigator.clipboard.writeText(club.invite_code);
+                setCodeCopied(true);
+                toast.success('Kod kopierad!');
+                setTimeout(() => setCodeCopied(false), 2000);
+              }}
+            >
+              {codeCopied ? <Check size={14} /> : <Copy size={14} />}
+              {codeCopied ? 'Kopierad' : 'Kopiera kod'}
+            </Button>
           </div>
           <Button
             variant="outline"
             size="sm"
-            className="gap-1 shrink-0"
+            className="w-full gap-1 text-xs"
             onClick={() => {
-              navigator.clipboard.writeText(club.invite_code);
-              setCodeCopied(true);
-              toast.success('Kod kopierad!');
-              setTimeout(() => setCodeCopied(false), 2000);
+              const url = `${window.location.origin}/club-invite/${club.invite_code}`;
+              navigator.clipboard.writeText(url);
+              toast.success('Inbjudningslänk kopierad!');
             }}
           >
-            {codeCopied ? <Check size={14} /> : <Copy size={14} />}
-            {codeCopied ? 'Kopierad' : 'Kopiera'}
+            <Link2 size={14} /> Kopiera inbjudningslänk
           </Button>
         </div>
       )}
@@ -505,21 +550,53 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
             </Dialog>
           )}
           {events.length === 0 && <p className="text-center text-muted-foreground text-sm py-8">Inga event planerade.</p>}
-          {events.map(e => (
-            <div key={e.id} className="bg-card rounded-xl p-3 shadow-card">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] text-muted-foreground">{eventTypeLabel[e.event_type] || e.event_type}</span>
-                  <h4 className="font-semibold text-sm text-foreground">{e.title}</h4>
-                  {e.description && <p className="text-xs text-muted-foreground mt-0.5">{e.description}</p>}
+          {events.map(e => {
+            const signups = eventSignups[e.id] || [];
+            const isSigned = signups.some(s => s.user_id === userId);
+            const isExpanded = expandedEvent === e.id;
+            return (
+              <div key={e.id} className="bg-card rounded-xl p-3 shadow-card">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] text-muted-foreground">{eventTypeLabel[e.event_type] || e.event_type}</span>
+                    <h4 className="font-semibold text-sm text-foreground">{e.title}</h4>
+                    {e.description && <p className="text-xs text-muted-foreground mt-0.5">{e.description}</p>}
+                  </div>
+                  <div className="text-right shrink-0 ml-2">
+                    <div className="text-xs font-medium text-foreground">{format(new Date(e.date), 'd MMM', { locale: sv })}</div>
+                    <div className="text-[10px] text-muted-foreground">{format(new Date(e.date), 'HH:mm')}</div>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs font-medium text-foreground">{format(new Date(e.date), 'd MMM', { locale: sv })}</div>
-                  <div className="text-[10px] text-muted-foreground">{format(new Date(e.date), 'HH:mm')}</div>
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
+                  <button
+                    onClick={() => setExpandedEvent(isExpanded ? null : e.id)}
+                    className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {signups.length} anmälda {isExpanded ? '▲' : '▼'}
+                  </button>
+                  {isSigned ? (
+                    <Button size="sm" variant="outline" className="text-xs h-7 gap-1" onClick={() => handleUnsignupEvent(e.id)}>
+                      <Check size={12} /> Anmäld
+                    </Button>
+                  ) : (
+                    <Button size="sm" className="text-xs h-7 gap-1" onClick={() => handleSignupEvent(e.id)}>
+                      <UserPlus size={12} /> Anmäl mig
+                    </Button>
+                  )}
                 </div>
+                {isExpanded && signups.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {signups.map(s => (
+                      <div key={s.id} className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                        {profiles[s.user_id] || 'Anonym'}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </TabsContent>
 
         {/* Groups */}

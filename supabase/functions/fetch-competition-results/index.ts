@@ -189,6 +189,8 @@ Deno.serve(async (req) => {
 
     console.log('Scraping agilitydata.se:', url);
 
+    const isLopplista = parsed.pathname.includes('lopplista');
+    
     const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',
       headers: {
@@ -199,7 +201,7 @@ Deno.serve(async (req) => {
         url,
         formats: ['markdown'],
         onlyMainContent: true,
-        waitFor: 3000,
+        waitFor: isLopplista ? 5000 : 3000,
       }),
     });
 

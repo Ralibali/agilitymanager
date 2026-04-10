@@ -22,6 +22,7 @@ import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAtt
 import HistoricalResultsStats from '@/components/competitions/HistoricalResultsStats';
 import ImportResultsFromUrl from '@/components/competitions/ImportResultsFromUrl';
 import ClassPromotionTracker from '@/components/competitions/ClassPromotionTracker';
+import HoopersPointsTracker from '@/components/competitions/HoopersPointsTracker';
 import { useAuth } from '@/contexts/AuthContext';
 
 type HistoricalDogResult = {
@@ -405,6 +406,7 @@ export default function CompetitionPage() {
         <TabsList className="w-full">
           <TabsTrigger value="calendar" className="flex-1 text-xs">Kalender</TabsTrigger>
           <TabsTrigger value="results" className="flex-1 text-xs">Resultat ({results.length})</TabsTrigger>
+          {hasHoopersDog && <TabsTrigger value="hoopers" className="flex-1 text-xs">Hoopers</TabsTrigger>}
           <TabsTrigger value="checklist" className="flex-1 text-xs">Checklista</TabsTrigger>
         </TabsList>
 

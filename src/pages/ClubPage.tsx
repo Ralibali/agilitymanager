@@ -217,6 +217,19 @@ export default function ClubPage() {
           </Button>
         </div>
 
+        {/* Join by invite code */}
+        <div className="flex gap-2 mb-4">
+          <Input
+            value={inviteCode}
+            onChange={e => setInviteCode(e.target.value)}
+            placeholder="Ange inbjudningskod..."
+            onKeyDown={e => e.key === 'Enter' && handleJoinByCode()}
+          />
+          <Button variant="outline" size="sm" onClick={handleJoinByCode} className="gap-1 shrink-0">
+            <Link2 size={14} /> Gå med
+          </Button>
+        </div>
+
         {/* Search results */}
         {searchResults.length > 0 && (
           <div className="space-y-2 mb-6">

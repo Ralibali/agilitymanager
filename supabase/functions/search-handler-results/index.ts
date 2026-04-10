@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
 
     console.log(`Searching agilitydata.se: ${firstName} ${lastName}, dog: ${dogName || 'any'}`);
 
-    // Step 1: Search for the dog, click the first result, and scrape the results page
+    // Step 1: Search for the dog
     const actions: any[] = [
       { type: 'wait', milliseconds: 2000 },
     ];
@@ -72,7 +72,10 @@ Deno.serve(async (req) => {
     actions.push({ type: 'wait', milliseconds: 4000 });
     // Click the first dog result link to navigate to results page
     actions.push({ type: 'click', selector: '#SearchDogsAdminGridContent tbody tr:first-child td:last-child a' });
-    actions.push({ type: 'wait', milliseconds: 8000 });
+    actions.push({ type: 'wait', milliseconds: 5000 });
+    // Click the first checkbox to show Agility results
+    actions.push({ type: 'click', selector: 'input[type="checkbox"]' });
+    actions.push({ type: 'wait', milliseconds: 5000 });
 
     const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',
@@ -94,9 +97,8 @@ Deno.serve(async (req) => {
     if (!response.ok) {
       console.error('Firecrawl error:', JSON.stringify(data));
       
-      // If clicking the result link fails, try without the click (just return search results)
       if (data?.code === 'SCRAPE_ACTION_ERROR') {
-        console.log('Click failed, trying search-only mode...');
+        console.log('Action failed, trying search-only mode...');
         return await searchOnly(apiKey, firstName, lastName, dogName);
       }
 
@@ -109,21 +111,21 @@ Deno.serve(async (req) => {
     const html = data?.data?.html || '';
     const markdown = data?.data?.markdown || '';
 
-    console.log('Result page markdown length:', markdown.length);
     console.log('Result page HTML length:', html.length);
-    // Log table-related content
-    const tableIdx = html.indexOf('<table');
-    if (tableIdx >= 0) {
-      console.log('Found table in HTML at index:', tableIdx);
-      console.log('Table snippet:', html.substring(tableIdx, tableIdx + 500));
-    } else {
-      console.log('No table found in HTML');
-      console.log('HTML preview (first 500):', html.substring(0, 500));
+
+    // Log all table IDs found
+    const tableIdRegex = /<table[^>]*id="([^"]*)"[^>]*/gi;
+    let tableMatch;
+    const tableIds: string[] = [];
+    while ((tableMatch = tableIdRegex.exec(html)) !== null) {
+      tableIds.push(tableMatch[1]);
     }
-    console.log('Markdown preview (first 300):', markdown.substring(0, 300));
+    console.log('Table IDs found:', tableIds.join(', '));
 
     // Parse the dog's results page
     const dogInfo = parseDogResultsPage(html, markdown);
+
+    console.log(`Parsed ${dogInfo.results.length} results for ${dogInfo.dog_name}`);
 
     return new Response(
       JSON.stringify({
@@ -232,79 +234,130 @@ function parseSearchList(html: string) {
 }
 
 function parseDogResultsPage(html: string, markdown: string): DogSearchResult {
-  // Extract dog info from the page header
   let dogName = '';
   let regName = '';
   let regNr = '';
   let breed = '';
   let handler = '';
 
-  // Try to extract from headings or info sections
-  const h3Match = markdown.match(/###?\s+(.+)/);
-  if (h3Match) dogName = h3Match[1].trim();
+  // Extract dog info from text fields on the page
+  const tilltalsMatch = html.match(/Tilltalsnamn\s*(?:<[^>]*>)*\s*:\s*(?:<[^>]*>)*\s*([^<]+)/i);
+  if (tilltalsMatch) dogName = tilltalsMatch[1].trim();
 
-  // Parse table of results
+  const regNrMatch = html.match(/Regnr\s*(?:<[^>]*>)*\s*:\s*(?:<[^>]*>)*\s*([^<]+)/i);
+  if (regNrMatch) regNr = regNrMatch[1].trim();
+
+  const regNameMatch = html.match(/Registreringsnamn\s*(?:<[^>]*>)*\s*:\s*(?:<[^>]*>)*\s*([^<]+)/i);
+  if (regNameMatch) regName = regNameMatch[1].trim();
+
+  const rasMatch = html.match(/Ras\s*(?:<[^>]*>)*\s*:\s*(?:<[^>]*>)*\s*([^<]+)/i);
+  if (rasMatch) breed = rasMatch[1].trim();
+
+  // Parse ALL tables, but skip MeasurementGridContent
   const results: DogResult[] = [];
-
-  // Look for result table rows in HTML
-  const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-  let match;
-  let headerCols: string[] = [];
-  let foundHeader = false;
-
-  while ((match = rowRegex.exec(html)) !== null) {
-    const row = match[1];
-
-    // Check for header row
-    const thCells = row.match(/<th[^>]*>([\s\S]*?)<\/th>/gi);
-    if (thCells && thCells.length >= 3) {
-      headerCols = thCells.map(c => c.replace(/<[^>]+>/g, '').trim().toLowerCase());
-      foundHeader = true;
+  
+  // Split HTML by table tags to process each table separately
+  const tableSections = html.split(/<table[^>]*/gi);
+  
+  for (let i = 1; i < tableSections.length; i++) {
+    const tableStart = html.indexOf(tableSections[i]) - 6;
+    // Get the full table tag to check ID
+    const fullTableTag = html.substring(tableStart, tableStart + 200);
+    
+    // Skip measurement table
+    if (fullTableTag.includes('MeasurementGridContent')) {
+      console.log('Skipping MeasurementGridContent table');
       continue;
     }
-
-    if (!foundHeader) continue;
-
-    const cells = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi);
-    if (!cells || cells.length < 3) continue;
-
-    const extractText = (cell: string) => cell.replace(/<[^>]+>/g, '').trim();
-    const vals = cells.map(c => extractText(c));
-
-    // Map columns by header names
-    const getCol = (keywords: string[]) => {
-      const idx = headerCols.findIndex(h => keywords.some(k => h.includes(k)));
-      return idx >= 0 && idx < vals.length ? vals[idx] : '';
-    };
-
-    const dateStr = getCol(['datum', 'date']);
-    const comp = getCol(['tävling', 'competition', 'arrangemang']);
-    const disc = getCol(['gren', 'discipline']);
-    const cls = getCol(['klass', 'class']);
-    const size = getCol(['storl', 'size']);
-    const placStr = getCol(['plac', 'placement', '#']);
-    const timeStr = getCol(['tid', 'time']);
-    const faultStr = getCol(['fel', 'fault']);
-    const passedStr = getCol(['godkänd', 'passed', 'ok', 'resultat']);
-    const dqStr = getCol(['disk', 'dq']);
-
-    if (!dateStr && !comp) continue;
-
-    results.push({
-      date: dateStr,
-      competition: comp,
-      discipline: disc,
-      class: cls,
-      size,
-      placement: placStr ? parseInt(placStr) || null : null,
-      time_sec: timeStr ? parseFloat(timeStr.replace(',', '.')) || null : null,
-      faults: faultStr ? parseInt(faultStr) || null : null,
-      passed: passedStr ? !['nej', 'ej', 'no'].includes(passedStr.toLowerCase()) : true,
-      disqualified: dqStr ? ['ja', 'yes', 'disk'].some(k => dqStr.toLowerCase().includes(k)) : false,
-    });
+    
+    // Get table content until closing tag
+    const tableContent = tableSections[i];
+    const closeIdx = tableContent.indexOf('</table>');
+    const tableHtml = closeIdx >= 0 ? tableContent.substring(0, closeIdx) : tableContent;
+    
+    // Look for result-like headers
+    const headerMatch = tableHtml.match(/<thead>([\s\S]*?)<\/thead>/i);
+    if (!headerMatch) continue;
+    
+    const headerHtml = headerMatch[1];
+    const thRegex = /<th[^>]*>([\s\S]*?)<\/th>/gi;
+    const headers: string[] = [];
+    let thMatch;
+    while ((thMatch = thRegex.exec(headerHtml)) !== null) {
+      headers.push(thMatch[1].replace(/<[^>]+>/g, '').trim().toLowerCase());
+    }
+    
+    console.log('Found table with headers:', headers.join(', '));
+    
+    // Check if this looks like a results table (has date + competition-related columns)
+    const hasDate = headers.some(h => h.includes('datum') || h.includes('date'));
+    const hasCompetition = headers.some(h => 
+      h.includes('tävling') || h.includes('arrangemang') || h.includes('gren') || 
+      h.includes('klass') || h.includes('tid') || h.includes('fel') ||
+      h.includes('plac') || h.includes('competition')
+    );
+    
+    if (!hasDate || !hasCompetition) {
+      console.log('Skipping table - not a results table');
+      continue;
+    }
+    
+    console.log('Processing results table with headers:', headers.join(', '));
+    
+    // Parse body rows
+    const bodyMatch = tableHtml.match(/<tbody>([\s\S]*?)<\/tbody>/i) || 
+                      [null, tableHtml.substring(tableHtml.indexOf('</thead>') + 8)];
+    if (!bodyMatch[1]) continue;
+    
+    const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+    let rowMatch;
+    
+    while ((rowMatch = rowRegex.exec(bodyMatch[1])) !== null) {
+      const row = rowMatch[1];
+      // Skip header rows
+      if (row.includes('<th')) continue;
+      
+      const cells = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi);
+      if (!cells || cells.length < 3) continue;
+      
+      const extractText = (cell: string) => cell.replace(/<[^>]+>/g, '').trim();
+      const vals = cells.map(c => extractText(c));
+      
+      const getCol = (keywords: string[]) => {
+        const idx = headers.findIndex(h => keywords.some(k => h.includes(k)));
+        return idx >= 0 && idx < vals.length ? vals[idx] : '';
+      };
+      
+      const dateStr = getCol(['datum', 'date']);
+      const comp = getCol(['tävling', 'competition', 'arrangemang']);
+      const disc = getCol(['gren', 'discipline']);
+      const cls = getCol(['klass', 'class']);
+      const size = getCol(['storl', 'size']);
+      const placStr = getCol(['plac', 'placement', '#']);
+      const timeStr = getCol(['tid', 'time']);
+      const faultStr = getCol(['fel', 'fault']);
+      const passedStr = getCol(['godkänd', 'passed', 'ok', 'resultat']);
+      const dqStr = getCol(['disk', 'dq']);
+      
+      // Skip summary rows (like "Antal starter", "Felfria", etc.)
+      if (!dateStr || dateStr.length < 6 || !/\d{4}/.test(dateStr)) continue;
+      
+      results.push({
+        date: dateStr,
+        competition: comp,
+        discipline: disc,
+        class: cls,
+        size,
+        placement: placStr ? parseInt(placStr) || null : null,
+        time_sec: timeStr ? parseFloat(timeStr.replace(',', '.')) || null : null,
+        faults: faultStr ? parseInt(faultStr) || null : null,
+        passed: passedStr ? !['nej', 'ej', 'no'].includes(passedStr.toLowerCase()) : true,
+        disqualified: dqStr ? ['ja', 'yes', 'disk'].some(k => dqStr.toLowerCase().includes(k)) : false,
+      });
+    }
   }
 
-  // Fallback: parse markdown tables
+  // Fallback: parse markdown tables if no HTML results found
   if (results.length === 0 && markdown) {
     const lines = markdown.split('\n');
     let mdHeaders: string[] = [];
@@ -314,10 +367,8 @@ function parseDogResultsPage(html: string, markdown: string): DogSearchResult {
       if (!line.includes('|')) continue;
       const cells = line.split('|').map(c => c.trim()).filter(Boolean);
       if (cells.length < 3) continue;
-
       if (cells[0].includes('---')) continue;
 
-      // Detect header row
       const lower = cells.map(c => c.toLowerCase());
       if (lower.some(c => c.includes('datum') || c.includes('date')) &&
           lower.some(c => c.includes('tävling') || c.includes('gren') || c.includes('klass'))) {
@@ -335,7 +386,7 @@ function parseDogResultsPage(html: string, markdown: string): DogSearchResult {
 
       const dateStr = getCol(['datum', 'date']);
       const comp = getCol(['tävling', 'competition', 'arrangemang']);
-      if (!dateStr && !comp) continue;
+      if (!dateStr || !/\d{4}/.test(dateStr)) continue;
 
       results.push({
         date: dateStr,
@@ -352,11 +403,7 @@ function parseDogResultsPage(html: string, markdown: string): DogSearchResult {
     }
   }
 
-  // Extract additional dog info from markdown
-  const regMatch = markdown.match(/(?:Reg\.?nr|Regnr)[:\s]+(\S+)/i);
-  if (regMatch) regNr = regMatch[1];
-  const breedMatch = markdown.match(/(?:Ras)[:\s]+(.+?)(?:\n|$)/i);
-  if (breedMatch) breed = breedMatch[1].trim();
+  // Extract handler from markdown if not found in HTML
   const handlerMatch = markdown.match(/(?:Förare|Ägare)[:\s]+(.+?)(?:\n|$)/i);
   if (handlerMatch) handler = handlerMatch[1].trim();
 

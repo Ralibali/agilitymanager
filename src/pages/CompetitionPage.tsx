@@ -20,6 +20,7 @@ import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 import CompetitionResultsViewer from '@/components/competitions/CompetitionResultsViewer';
 import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAttribution';
 import HistoricalResultsStats from '@/components/competitions/HistoricalResultsStats';
+import ImportResultsFromUrl from '@/components/competitions/ImportResultsFromUrl';
 import { useAuth } from '@/contexts/AuthContext';
 
 type HistoricalDogResult = {

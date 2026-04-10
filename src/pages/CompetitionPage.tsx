@@ -138,8 +138,8 @@ export default function CompetitionPage() {
             console.error('Search error for', dog.name, error);
             continue;
           }
-          if (data?.success && data.data?.dogs?.length > 0) {
-            allResults.push(...data.data.dogs.map((d: any) => ({ ...d, searched_dog: dog.name, dog_id: dog.id })));
+          if (data?.success && data.data) {
+            allResults.push({ ...data.data, searched_dog: dog.name, dog_id: dog.id });
           }
         }
         setHistoricalResults(allResults);

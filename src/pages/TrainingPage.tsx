@@ -22,7 +22,7 @@ export default function TrainingPage() {
   const [loading, setLoading] = useState(true);
   const [shareSession, setShareSession] = useState<TrainingSession | null>(null);
   const refresh = async () => {
-    const [d, t, r] = await Promise.all([store.getDogs(), store.getTraining(), store.getResults()]);
+    const [d, t, r] = await Promise.all([store.getDogs(), store.getTraining(), store.getCompetitions()]);
     setDogs(d);
     setSessions(t);
     setResults(r);

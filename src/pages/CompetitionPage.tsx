@@ -95,6 +95,34 @@ export default function CompetitionPage() {
     })();
   }, [user]);
 
+  // Match logged results against competitions table to find agilitydata URLs
+  useEffect(() => {
+    if (results.length === 0) return;
+    (async () => {
+      const eventNames = [...new Set(results.map(r => r.event_name))];
+      const { data: comps } = await supabase
+        .from('competitions')
+        .select('id, competition_name, part_key, date_start')
+        .or(eventNames.map(n => `competition_name.ilike.%${n.replace(/[%_]/g, '')}%`).join(','));
+      
+      if (!comps?.length) return;
+      
+      const urlMap: Record<string, string> = {};
+      for (const r of results) {
+        // Find best match by name similarity and date
+        const match = comps.find(c => {
+          const cName = (c.competition_name || '').toLowerCase().replace(/<[^>]*>/g, '').trim();
+          const rName = r.event_name.toLowerCase().trim();
+          return cName.includes(rName) || rName.includes(cName.split(' ')[0]);
+        });
+        if (match?.part_key) {
+          urlMap[r.id] = `https://agilitydata.se/taevlingar/lopplista/?id=${match.part_key}`;
+        }
+      }
+      setCompetitionUrlMap(urlMap);
+    })();
+  }, [results]);
+
   const getDog = (id: string) => dogs.find(d => d.id === id);
 
   const toggleCheck = (item: string) => {

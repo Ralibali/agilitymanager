@@ -6,16 +6,21 @@ import { DogPhotoUpload } from '@/components/DogPhotoUpload';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { store } from '@/lib/store';
-import type { Dog, SizeClass, CompetitionLevel } from '@/types';
+import type { Dog, SizeClass, CompetitionLevel, CompetitionResult } from '@/types';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { motion } from 'framer-motion';
+import { TrendingUp } from 'lucide-react';
+import { calculatePromotionProgress } from '@/components/competitions/ClassPromotionTracker';
 
 export default function DogsPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
+  const [results, setResults] = useState<CompetitionResult[]>([]);
   const [loading, setLoading] = useState(true);
   const refresh = async () => {
-    setDogs(await store.getDogs());
+    const [d, r] = await Promise.all([store.getDogs(), store.getCompetitions()]);
+    setDogs(d);
+    setResults(r);
     setLoading(false);
   };
   useEffect(() => { refresh(); }, []);
@@ -125,6 +130,25 @@ export default function DogsPage() {
               {dog.notes && (
                 <p className="mt-2 text-sm text-muted-foreground border-t border-border pt-2">{dog.notes}</p>
               )}
+              {/* Promotion badges */}
+              {(() => {
+                const dogResults = results.filter(r => r.dog_id === dog.id);
+                const progress = calculatePromotionProgress(dogResults, dog);
+                const readyPromotions = progress.filter(p => p.nextClass && p.cleanRuns >= p.required);
+                if (readyPromotions.length === 0) return null;
+                return (
+                  <div className="mt-2 border-t border-border pt-2 space-y-1">
+                    {readyPromotions.map(p => (
+                      <div key={p.discipline} className="flex items-center gap-1.5 bg-primary/10 rounded-lg px-2 py-1.5">
+                        <TrendingUp size={14} className="text-primary shrink-0" />
+                        <span className="text-xs font-semibold text-primary">
+                          🎉 Redo för {p.discipline} {p.nextClass}!
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
               <div className="flex items-center justify-between mt-2 border-t border-border pt-2">
                 <span className="text-xs text-muted-foreground">Aktiv tävlingshund</span>
                 <Switch

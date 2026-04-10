@@ -406,6 +406,30 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     >
       {club.description && <p className="text-sm text-muted-foreground mb-4">{club.description}</p>}
 
+      {/* Invite code for admins */}
+      {isAdmin && (
+        <div className="bg-secondary/50 rounded-xl p-3 mb-4 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Inbjudningskod</span>
+            <p className="text-sm font-mono font-semibold text-foreground">{club.invite_code}</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1 shrink-0"
+            onClick={() => {
+              navigator.clipboard.writeText(club.invite_code);
+              setCodeCopied(true);
+              toast.success('Kod kopierad!');
+              setTimeout(() => setCodeCopied(false), 2000);
+            }}
+          >
+            {codeCopied ? <Check size={14} /> : <Copy size={14} />}
+            {codeCopied ? 'Kopierad' : 'Kopiera'}
+          </Button>
+        </div>
+      )}
+
       <Tabs defaultValue="posts">
         <TabsList className="w-full">
           <TabsTrigger value="posts" className="flex-1 text-xs gap-1"><MessageSquare size={12} /> Inlägg</TabsTrigger>

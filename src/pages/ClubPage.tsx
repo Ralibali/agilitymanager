@@ -653,14 +653,20 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
             });
             if (filtered.length === 0) return <p className="text-center text-muted-foreground text-sm py-8">Inga event att visa.</p>;
             return filtered.map(e => {
-            const signups = eventSignups[e.id] || [];
-            const isSigned = signups.some(s => s.user_id === userId);
-            const isExpanded = expandedEvent === e.id;
-            return (
-              <div key={e.id} className="bg-card rounded-xl p-3 shadow-card">
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] text-muted-foreground">{eventTypeLabel[e.event_type] || e.event_type}</span>
+              const signups = eventSignups[e.id] || [];
+              const isSigned = signups.some(s => s.user_id === userId);
+              const isExpanded = expandedEvent === e.id;
+              const groupName = e.group_id ? groups.find(g => g.id === e.group_id)?.name : null;
+              return (
+                <div key={e.id} className="bg-card rounded-xl p-3 shadow-card">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-muted-foreground">{eventTypeLabel[e.event_type] || e.event_type}</span>
+                        {groupName && <Badge variant="outline" className="text-[9px] px-1 py-0">{groupName}</Badge>}
+                      </div>
+                      <h4 className="font-semibold text-sm text-foreground">{e.title}</h4>
+                      {e.description && <p className="text-xs text-muted-foreground mt-0.5">{e.description}</p>}
                     <h4 className="font-semibold text-sm text-foreground">{e.title}</h4>
                     {e.description && <p className="text-xs text-muted-foreground mt-0.5">{e.description}</p>}
                   </div>

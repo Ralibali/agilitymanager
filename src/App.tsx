@@ -42,6 +42,7 @@ const InvitePage = React.lazy(() => import("./pages/InvitePage"));
 const ChatPage = React.lazy(() => import("./pages/ChatPage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const ClubPage = React.lazy(() => import("./pages/ClubPage"));
+const ClubInvitePage = React.lazy(() => import("./pages/ClubInvitePage"));
 
 const queryClient = new QueryClient();
 

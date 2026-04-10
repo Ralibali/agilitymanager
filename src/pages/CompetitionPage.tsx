@@ -106,6 +106,38 @@ export default function CompetitionPage() {
 
   useEffect(() => { refresh(); }, []);
 
+  // Fetch competitions the user has shown interest in
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data: interests } = await supabase
+        .from('competition_interests')
+        .select('id, competition_id, status, dog_name')
+        .eq('user_id', user.id);
+      if (!interests?.length) return;
+
+      const compIds = [...new Set(interests.map(i => i.competition_id))];
+      const { data: comps } = await supabase
+        .from('competitions')
+        .select('id, competition_name, date_start, location, source_url')
+        .in('id', compIds);
+
+      if (!comps) return;
+      const compMap = new Map(comps.map(c => [c.id, c]));
+
+      setInterestedComps(
+        interests
+          .filter(i => compMap.has(i.competition_id))
+          .map(i => ({
+            ...i,
+            comp: compMap.get(i.competition_id)!,
+          }))
+          .filter(i => i.comp.date_start && new Date(i.comp.date_start) >= new Date())
+          .sort((a, b) => new Date(a.comp.date_start!).getTime() - new Date(b.comp.date_start!).getTime())
+      );
+    })();
+  }, [user]);
+
   // Fetch friend display names for highlighting
   useEffect(() => {
     if (!user) return;

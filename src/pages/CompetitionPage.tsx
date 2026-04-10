@@ -417,7 +417,7 @@ export default function CompetitionPage() {
 
           {/* Upcoming */}
           <h3 className="font-display font-semibold text-foreground text-sm mb-2">Kommande tävlingar</h3>
-          {upcoming.length === 0 ? (
+          {upcoming.length === 0 && interestedComps.length === 0 ? (
             <p className="text-sm text-muted-foreground mb-4">Inga kommande tävlingar.</p>
           ) : (
             <div className="space-y-2 mb-4">
@@ -445,6 +445,37 @@ export default function CompetitionPage() {
                       <button onClick={() => handleDeletePlanned(p.id)} className="text-muted-foreground hover:text-destructive">
                         <Trash2 size={14} />
                       </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+
+              {/* Interested / registered competitions from calendar */}
+              {interestedComps.map((ic, i) => {
+                const daysLeft = differenceInDays(new Date(ic.comp.date_start!), new Date());
+                const statusLabel = ic.status === 'registered' ? 'Anmäld' : 'Intresserad';
+                const borderColor = ic.status === 'registered' ? 'border-primary' : 'border-orange-400';
+                return (
+                  <motion.div key={ic.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: (upcoming.length + i) * 0.03 }}
+                    className={`bg-card rounded-xl p-3 shadow-card border-l-4 ${borderColor}`}>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="font-semibold text-foreground text-sm">{ic.comp.competition_name || 'Tävling'}</h4>
+                        <div className="text-xs text-muted-foreground">
+                          {format(new Date(ic.comp.date_start!), 'd MMMM yyyy', { locale: sv })}
+                          {ic.comp.location && ` · ${ic.comp.location}`}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs font-medium text-primary">{daysLeft} dagar kvar</span>
+                          <span className={`text-xs px-1.5 py-0.5 rounded-full ${ic.status === 'registered' ? 'bg-primary/10 text-primary' : 'bg-orange-100 text-orange-700'}`}>{statusLabel}</span>
+                          {ic.dog_name && <span className="text-xs text-muted-foreground">🐾 {ic.dog_name}</span>}
+                        </div>
+                      </div>
+                      {ic.comp.source_url && (
+                        <a href={ic.comp.source_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                          <ExternalLink size={14} />
+                        </a>
+                      )}
                     </div>
                   </motion.div>
                 );

@@ -517,6 +517,7 @@ export default function CompetitionPage() {
 
         {/* Results tab */}
         <TabsContent value="results" className="mt-3">
+          <ClassPromotionTracker results={results} dogs={dogs} />
           {results.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <p className="mb-2">Inga tävlingsresultat ännu.</p>

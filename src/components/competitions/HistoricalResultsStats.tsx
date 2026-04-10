@@ -45,7 +45,7 @@ export default function HistoricalResultsStats({ historicalResults, getDog }: Pr
 
         // Summary stats
         const totalStarts = r.length;
-        const cleanRuns = r.filter(x => (x.faults === 0 || x.faults === null) && x.passed && !x.disqualified).length;
+        const cleanRuns = r.filter(x => x.faults === 0 && x.passed && !x.disqualified).length;
         const passed = r.filter(x => x.passed && !x.disqualified).length;
         const dqs = r.filter(x => x.disqualified).length;
         const placements = r.filter(x => x.placement && x.placement <= 3);
@@ -59,7 +59,7 @@ export default function HistoricalResultsStats({ historicalResults, getDog }: Pr
           if (!byClass[cls]) byClass[cls] = { starts: 0, passed: 0, clean: 0 };
           byClass[cls].starts++;
           if (x.passed && !x.disqualified) byClass[cls].passed++;
-          if ((x.faults === 0 || x.faults === null) && x.passed && !x.disqualified) byClass[cls].clean++;
+          if (x.faults === 0 && x.passed && !x.disqualified) byClass[cls].clean++;
         }
         const classChartData = Object.entries(byClass).map(([cls, d]) => ({
           name: cls,

@@ -118,6 +118,7 @@ export default function TrainingPage() {
         </div>
       ) : (
         <>
+        <TrainingGoals dogs={dogs} />
         <AITrainingInsights dogs={dogs} sessions={sessions} results={results} />
         <div className="space-y-3 mt-3">
           {sessions.map((s, i) => {

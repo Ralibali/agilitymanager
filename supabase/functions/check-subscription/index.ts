@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
@@ -26,9 +26,6 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
 
@@ -37,20 +34,19 @@ serve(async (req) => {
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User authenticated", { userId: user.id });
 
-    // Check admin-granted premium (premium_until in profiles)
+    // Read cached profile data
     const { data: profile } = await supabaseClient
       .from('profiles')
-      .select('premium_until')
+      .select('premium_until, stripe_subscription_status, stripe_product_id, stripe_price_id, stripe_current_period_end')
       .eq('user_id', user.id)
       .single();
 
+    // 1. Check admin-granted premium
     if (profile?.premium_until) {
       const premiumUntil = new Date(profile.premium_until);
-      const now = new Date();
-      // premium_until far in the future = lifetime (year 2099+)
-      if (premiumUntil > now) {
+      if (premiumUntil > new Date()) {
         logStep("Admin-granted premium active", { premium_until: profile.premium_until });
         return new Response(JSON.stringify({
           subscribed: true,
@@ -66,86 +62,93 @@ serve(async (req) => {
       }
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-
-    if (customers.data.length === 0) {
-      logStep("No customer found");
-      const createdAt = new Date(user.created_at);
-      const now = new Date();
-      const diffDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
-      if (diffDays <= 7) {
-        const trialEnd = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
-        logStep("User is in 7-day free trial (no Stripe customer)");
-        return new Response(JSON.stringify({
-          subscribed: true, is_trial: true,
-          subscription_end: trialEnd.toISOString(),
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      }
-      return new Response(JSON.stringify({ subscribed: false }), {
+    // 2. Check cached Stripe subscription from webhook-synced data
+    if (profile?.stripe_subscription_status === 'active') {
+      logStep("Cached active subscription found", {
+        productId: profile.stripe_product_id,
+        periodEnd: profile.stripe_current_period_end,
+      });
+      return new Response(JSON.stringify({
+        subscribed: true,
+        is_trial: false,
+        product_id: profile.stripe_product_id,
+        price_id: profile.stripe_price_id,
+        subscription_end: profile.stripe_current_period_end,
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     }
 
-    const customerId = customers.data[0].id;
-    logStep("Found Stripe customer", { customerId });
-
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-      limit: 1,
-    });
-
-    let hasActiveSub = subscriptions.data.length > 0;
-    let productId = null;
-    let priceId = null;
-    let subscriptionEnd = null;
-    let isTrial = false;
-
-    if (!hasActiveSub) {
-      const createdAt = new Date(user.created_at);
-      const now = new Date();
-      const diffDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
-      if (diffDays <= 7) {
-        hasActiveSub = true;
-        isTrial = true;
-        const trialEnd = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
-        subscriptionEnd = trialEnd.toISOString();
-        logStep("User is in 7-day free trial");
-      }
+    // 3. Check 7-day free trial based on account age
+    const createdAt = new Date(user.created_at);
+    const now = new Date();
+    const diffDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+    if (diffDays <= 7) {
+      const trialEnd = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
+      logStep("User is in 7-day free trial");
+      return new Response(JSON.stringify({
+        subscribed: true,
+        is_trial: true,
+        subscription_end: trialEnd.toISOString(),
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
-    if (!isTrial && subscriptions.data.length > 0) {
-      const subscription = subscriptions.data[0];
-      const endTimestamp = subscription.current_period_end;
-      if (endTimestamp && typeof endTimestamp === 'number' && endTimestamp > 0) {
-        try {
-          const endDate = new Date(endTimestamp * 1000);
-          if (!isNaN(endDate.getTime())) {
-            subscriptionEnd = endDate.toISOString();
-          }
-        } catch {
-          logStep("Could not parse subscription end date", { endTimestamp });
+    // 4. Fallback: query Stripe API directly (for users who subscribed before webhook was set up)
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (stripeKey) {
+      const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+
+      if (customers.data.length > 0) {
+        const customerId = customers.data[0].id;
+        const subscriptions = await stripe.subscriptions.list({
+          customer: customerId,
+          status: "active",
+          limit: 1,
+        });
+
+        if (subscriptions.data.length > 0) {
+          const sub = subscriptions.data[0];
+          const priceItem = sub.items?.data?.[0]?.price;
+          const productId = priceItem?.product
+            ? (typeof priceItem.product === "string" ? priceItem.product : priceItem.product.id)
+            : null;
+          const priceId = priceItem?.id ?? null;
+          const periodEnd = sub.current_period_end
+            ? new Date(sub.current_period_end * 1000).toISOString()
+            : null;
+
+          // Cache for next time
+          await supabaseClient.from('profiles').update({
+            stripe_customer_id: customerId,
+            stripe_subscription_status: 'active',
+            stripe_product_id: productId,
+            stripe_price_id: priceId,
+            stripe_current_period_end: periodEnd,
+          }).eq('user_id', user.id);
+
+          logStep("Fallback: found active subscription via Stripe API, cached it", { productId });
+
+          return new Response(JSON.stringify({
+            subscribed: true,
+            is_trial: false,
+            product_id: productId,
+            price_id: priceId,
+            subscription_end: periodEnd,
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
         }
       }
-      productId = subscription.items?.data?.[0]?.price?.product ?? null;
-      priceId = subscription.items?.data?.[0]?.price?.id ?? null;
-      logStep("Active subscription found", { subscriptionEnd, productId, priceId });
-    } else if (!isTrial) {
-      logStep("No active subscription found");
     }
 
-    return new Response(JSON.stringify({
-      subscribed: hasActiveSub,
-      product_id: productId,
-      price_id: priceId,
-      subscription_end: subscriptionEnd,
-      is_trial: isTrial,
-    }), {
+    logStep("No active subscription");
+    return new Response(JSON.stringify({ subscribed: false }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });

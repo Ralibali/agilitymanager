@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Users, MapPin, Crown, MessageSquare, Calendar, UserPlus, LogOut, Pin, ChevronLeft, Trash2, UsersRound } from 'lucide-react';
+import { Plus, Search, Users, MapPin, Crown, MessageSquare, Calendar, UserPlus, LogOut, Pin, ChevronLeft, Trash2, UsersRound, Link2, Copy, Check } from 'lucide-react';
 import { ClubGroupsTab } from '@/components/clubs/ClubGroupsTab';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';

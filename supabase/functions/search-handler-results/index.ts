@@ -288,13 +288,14 @@ function parseDogResultsPage(html: string): DogSearchResult {
       
       // Calculate total faults
       let totalFaults: number | null = null;
-      if (faultStr) {
-        totalFaults = parseInt(faultStr) || null;
-      } else {
+      if (faultStr && faultStr.trim() !== '') {
+        const parsed = parseInt(faultStr);
+        totalFaults = isNaN(parsed) ? null : parsed;
+      } else if (rawFaultStr || refusalStr || timeFaultStr) {
         const f = parseInt(rawFaultStr) || 0;
         const r = parseInt(refusalStr) || 0;
         const t = parseFloat(timeFaultStr) || 0;
-        totalFaults = f + r + t > 0 ? f + r + t : null;
+        totalFaults = f + r + t;
       }
       
       // Determine pass/DQ from merit

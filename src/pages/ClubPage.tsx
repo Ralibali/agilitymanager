@@ -410,12 +410,15 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
       description: eventDesc.trim(),
       date: eventDate,
       event_type: eventType,
+      group_id: eventGroupId || null,
     });
-    await notifyClubMembers(`📅 Nytt event i ${club.name}: ${eventTitle.trim()}`, userId);
-    sendClubEmail('Nytt event', `Nytt event i ${club.name}: ${eventTitle.trim()}`, eventDesc.trim() || undefined);
+    const groupName = eventGroupId ? groups.find(g => g.id === eventGroupId)?.name : null;
+    const eventLabel = groupName ? `${eventTitle.trim()} (${groupName})` : eventTitle.trim();
+    await notifyClubMembers(`📅 Nytt event i ${club.name}: ${eventLabel}`, userId);
+    sendClubEmail('Nytt event', `Nytt event i ${club.name}: ${eventLabel}`, eventDesc.trim() || undefined);
     toast.success('Event skapat!');
     setEventDialogOpen(false);
-    setEventTitle(''); setEventDesc(''); setEventDate(''); setEventType('training');
+    setEventTitle(''); setEventDesc(''); setEventDate(''); setEventType('training'); setEventGroupId('');
     fetchData();
   };
 

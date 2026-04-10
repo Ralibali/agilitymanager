@@ -130,20 +130,34 @@ function parseSearchResults(html: string, markdown: string): DogSearchResult[] {
       return linkMatch ? linkMatch[1] : null;
     };
 
-    const link = extractLink(cells[0]);
+    // Find any link in any cell
+    let resultsUrl: string | null = null;
+    for (const cell of cells) {
+      const link = extractLink(cell);
+      if (link && (link.includes('resultat') || link.includes('hund') || link.includes('soek'))) {
+        resultsUrl = link.startsWith('http') ? link : `https://agilitydata.se${link}`;
+        break;
+      }
+    }
+    // Fallback: any link
+    if (!resultsUrl) {
+      for (const cell of cells) {
+        const link = extractLink(cell);
+        if (link && !link.includes('javascript') && !link.includes('#')) {
+          resultsUrl = link.startsWith('http') ? link : `https://agilitydata.se${link}`;
+          break;
+        }
+      }
+    }
+
     const dogName = extractText(cells[0]);
-    
     if (dogName.toLowerCase().includes('tilltalsnamn') || !dogName) continue;
 
+    // Columns: Tilltalsnamn | Registreringsnamn | Regnr | Ras | Förare
     const regName = cells.length > 1 ? extractText(cells[1]) : '';
     const regNr = cells.length > 2 ? extractText(cells[2]) : '';
     const breed = cells.length > 3 ? extractText(cells[3]) : '';
     const handler = cells.length > 4 ? extractText(cells[4]) : '';
-
-    let resultsUrl: string | null = null;
-    if (link) {
-      resultsUrl = link.startsWith('http') ? link : `https://agilitydata.se${link}`;
-    }
 
     dogs.push({ dog_name: dogName, reg_name: regName, reg_nr: regNr, breed, handler, results_url: resultsUrl });
   }

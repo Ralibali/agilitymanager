@@ -184,9 +184,9 @@ export default function CompetitionPage() {
       });
   }, [user]);
 
-  // Auto-search historical results - use cache first, scrape only if stale (>24h)
-  useEffect(() => {
-    if (!handlerName || !user || uniqueDogs.length === 0 || historicalFetched) return;
+  // Fetch historical results - reusable function
+  const fetchHistoricalResults = async (forceRefresh = false) => {
+    if (!handlerName || !user || uniqueDogs.length === 0) return;
     setHistoricalFetched(true);
     setHistoricalLoading(true);
     setHistoricalError(null);
@@ -205,27 +205,29 @@ export default function CompetitionPage() {
     };
 
     const fetchForDog = async (dog: Dog) => {
-      // 1. Check cache
-      const { data: cached } = await supabase
-        .from('cached_dog_results')
-        .select('*')
-        .eq('dog_id', dog.id)
-        .eq('user_id', user.id)
-        .maybeSingle();
+      // 1. Check cache (skip if force refresh)
+      if (!forceRefresh) {
+        const { data: cached } = await supabase
+          .from('cached_dog_results')
+          .select('*')
+          .eq('dog_id', dog.id)
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-      if (cached && (Date.now() - new Date(cached.fetched_at).getTime()) < CACHE_TTL_MS) {
-        const result: HistoricalDogResult = {
-          dog_name: cached.dog_name,
-          reg_name: cached.reg_name,
-          reg_nr: cached.reg_nr,
-          breed: cached.breed,
-          handler: cached.handler,
-          results: cached.results as any[],
-          searched_dog: dog.name,
-          dog_id: dog.id,
-        };
-        upsertHistoricalResult(result);
-        return result;
+        if (cached && (Date.now() - new Date(cached.fetched_at).getTime()) < CACHE_TTL_MS) {
+          const result: HistoricalDogResult = {
+            dog_name: cached.dog_name,
+            reg_name: cached.reg_name,
+            reg_nr: cached.reg_nr,
+            breed: cached.breed,
+            handler: cached.handler,
+            results: cached.results as any[],
+            searched_dog: dog.name,
+            dog_id: dog.id,
+          };
+          upsertHistoricalResult(result);
+          return result;
+        }
       }
 
       // 2. Scrape from agilitydata.se
@@ -263,6 +265,12 @@ export default function CompetitionPage() {
     Promise.allSettled(uniqueDogs.map(fetchForDog)).then(() => {
       setHistoricalLoading(false);
     });
+  };
+
+  // Auto-search historical results on mount
+  useEffect(() => {
+    if (!handlerName || !user || uniqueDogs.length === 0 || historicalFetched) return;
+    fetchHistoricalResults();
   }, [handlerName, user, uniqueDogs, historicalFetched]);
 
   // Match logged results against competitions table to find agilitydata URLs

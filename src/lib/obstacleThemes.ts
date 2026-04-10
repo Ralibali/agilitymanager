@@ -54,9 +54,12 @@ export const GALICAN_THEME: ObstacleTheme = {
   tire:      { body: 'hsl(0, 0%, 20%)',    accent: 'hsl(25, 85%, 55%)' },
   start:     { body: 'hsl(120, 60%, 35%)' },
   finish:    { body: 'hsl(0, 70%, 45%)' },
+  hoop:           { body: 'hsl(50, 85%, 55%)',  accent: 'hsl(215, 60%, 50%)' },
+  hoopers_tunnel: { body: 'hsl(215, 55%, 50%)', accent: 'hsl(215, 40%, 70%)' },
+  barrel:         { body: 'hsl(215, 60%, 50%)', accent: 'hsl(215, 45%, 38%)' },
+  gate:           { body: 'hsl(25, 85%, 55%)',  accent: 'hsl(25, 70%, 42%)' },
+  handler_zone:   { body: 'hsl(0, 70%, 50%)' },
 };
-
-/* ─── Bing (another common manufacturer) ─── */
 export const BING_THEME: ObstacleTheme = {
   jump:      { body: 'hsl(0, 70%, 50%)',   accent: 'hsl(0, 0%, 92%)' },          // röd/vit
   long_jump: { body: 'hsl(0, 70%, 50%)',   accent: 'hsl(0, 0%, 92%)' },
@@ -71,9 +74,12 @@ export const BING_THEME: ObstacleTheme = {
   tire:      { body: 'hsl(0, 0%, 15%)',    accent: 'hsl(50, 85%, 55%)' },
   start:     { body: 'hsl(120, 60%, 35%)' },
   finish:    { body: 'hsl(0, 70%, 45%)' },
+  hoop:           { body: 'hsl(50, 80%, 50%)',  accent: 'hsl(215, 55%, 50%)' },
+  hoopers_tunnel: { body: 'hsl(50, 80%, 50%)', accent: 'hsl(50, 60%, 38%)' },
+  barrel:         { body: 'hsl(215, 55%, 50%)', accent: 'hsl(215, 45%, 38%)' },
+  gate:           { body: 'hsl(25, 85%, 55%)',  accent: 'hsl(25, 70%, 42%)' },
+  handler_zone:   { body: 'hsl(0, 70%, 50%)' },
 };
-
-/* ─── Mörk hall (high contrast planning) ─── */
 export const DARK_THEME: ObstacleTheme = {
   jump:      { body: 'hsl(0, 80%, 60%)',    accent: 'hsl(0, 0%, 95%)' },
   long_jump: { body: 'hsl(200, 80%, 60%)',  accent: 'hsl(0, 0%, 95%)' },
@@ -88,6 +94,11 @@ export const DARK_THEME: ObstacleTheme = {
   tire:      { body: 'hsl(180, 70%, 55%)', accent: 'hsl(50, 90%, 60%)' },
   start:     { body: 'hsl(120, 75%, 50%)' },
   finish:    { body: 'hsl(0, 80%, 55%)' },
+  hoop:           { body: 'hsl(50, 90%, 60%)',  accent: 'hsl(200, 80%, 60%)' },
+  hoopers_tunnel: { body: 'hsl(200, 80%, 60%)', accent: 'hsl(200, 60%, 45%)' },
+  barrel:         { body: 'hsl(200, 80%, 60%)', accent: 'hsl(200, 60%, 45%)' },
+  gate:           { body: 'hsl(30, 80%, 60%)',  accent: 'hsl(30, 65%, 45%)' },
+  handler_zone:   { body: 'hsl(0, 80%, 55%)' },
 };
 
 export const PRESET_THEMES: { id: string; label: string; theme: ObstacleTheme; darkCanvas?: boolean }[] = [

@@ -124,7 +124,180 @@ function TrainingFrequencyChart({ training, dogs }: { training: TrainingSession[
   );
 }
 
-// --- COMPETITION TREND CHARTS ---
+// --- TRAINING MOOD TREND ---
+function TrainingMoodTrend({ training }: { training: TrainingSession[] }) {
+  const data = useMemo(() => {
+    const sessionsWithMood = training
+      .filter(t => t.overall_mood && t.overall_mood > 0)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    if (sessionsWithMood.length < 2) return [];
+    return sessionsWithMood.map(t => ({
+      date: format(new Date(t.date), 'd/M', { locale: sv }),
+      mood: t.overall_mood,
+    }));
+  }, [training]);
+
+  if (data.length < 2) return null;
+
+  return (
+    <div className="bg-card rounded-xl p-4 shadow-card mb-4">
+      <h3 className="font-display font-semibold text-foreground mb-3 flex items-center gap-2 text-sm">
+        <Star size={16} className="text-accent" /> Känsla över tid
+      </h3>
+      <ResponsiveContainer width="100%" height={160}>
+        <LineChart data={data} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+          <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+          <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" domain={[1, 5]} />
+          <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+          <Line type="monotone" dataKey="mood" name="Känsla" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ r: 3 }} />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// --- OBSTACLE FAULT FREQUENCY ---
+function ObstacleFaultChart({ training }: { training: TrainingSession[] }) {
+  const data = useMemo(() => {
+    const faultMap: Record<string, number> = {};
+    training.forEach(t => {
+      if (t.obstacles_trained && t.fault_count && t.fault_count > 0) {
+        const perObstacle = t.fault_count / (t.obstacles_trained.length || 1);
+        t.obstacles_trained.forEach(o => {
+          faultMap[o] = (faultMap[o] || 0) + perObstacle;
+        });
+      }
+    });
+    return Object.entries(faultMap)
+      .map(([name, faults]) => ({ name, faults: Math.round(faults * 10) / 10 }))
+      .sort((a, b) => b.faults - a.faults)
+      .slice(0, 8);
+  }, [training]);
+
+  if (data.length === 0) return null;
+
+  return (
+    <div className="bg-card rounded-xl p-4 shadow-card mb-4">
+      <h3 className="font-display font-semibold text-foreground mb-3 flex items-center gap-2 text-sm">
+        <Target size={16} className="text-destructive" /> Felfrekvens per hinder
+      </h3>
+      <ResponsiveContainer width="100%" height={180}>
+        <BarChart data={data} layout="vertical" margin={{ top: 5, right: 10, left: 50, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+          <XAxis type="number" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+          <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" width={60} />
+          <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+          <Bar dataKey="faults" name="Fel" fill="hsl(var(--destructive))" radius={[0, 4, 4, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// --- HOOPERS DIRIGERING TREND ---
+function DirigeringTrend({ training }: { training: TrainingSession[] }) {
+  const data = useMemo(() => {
+    const sessions = training
+      .filter(t => t.sport === 'Hoopers' && (t.dirigering_score || t.banflyt_score))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    if (sessions.length < 2) return [];
+
+    return sessions.map((t, i) => {
+      // 7-session rolling average
+      const window = sessions.slice(Math.max(0, i - 6), i + 1);
+      const avgDir = window.reduce((s, w) => s + (w.dirigering_score || 0), 0) / window.length;
+      const avgFlow = window.reduce((s, w) => s + (w.banflyt_score || 0), 0) / window.length;
+      return {
+        date: format(new Date(t.date), 'd/M', { locale: sv }),
+        dirigering: t.dirigering_score,
+        banflyt: t.banflyt_score,
+        dirSnitt: Math.round(avgDir * 10) / 10,
+        flytSnitt: Math.round(avgFlow * 10) / 10,
+      };
+    });
+  }, [training]);
+
+  if (data.length < 2) return null;
+
+  return (
+    <div className="space-y-4 mb-4">
+      <div className="bg-card rounded-xl p-4 shadow-card">
+        <h3 className="font-display font-semibold text-foreground mb-3 flex items-center gap-2 text-sm">
+          <Zap size={16} className="text-primary" /> Dirigeringstrend (hoopers)
+        </h3>
+        <ResponsiveContainer width="100%" height={160}>
+          <LineChart data={data} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+            <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" domain={[1, 5]} />
+            <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+            <Line type="monotone" dataKey="dirigering" name="Dirigering" stroke="hsl(var(--primary))" strokeWidth={1.5} dot={{ r: 2 }} />
+            <Line type="monotone" dataKey="dirSnitt" name="Snitt (7)" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={false} strokeDasharray="5 3" />
+            <Legend wrapperStyle={{ fontSize: 10 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="bg-card rounded-xl p-4 shadow-card">
+        <h3 className="font-display font-semibold text-foreground mb-3 flex items-center gap-2 text-sm">
+          <TrendingUp size={16} className="text-success" /> Banflyt-trend (hoopers)
+        </h3>
+        <ResponsiveContainer width="100%" height={160}>
+          <LineChart data={data} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+            <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" domain={[1, 5]} />
+            <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+            <Line type="monotone" dataKey="banflyt" name="Banflyt" stroke="hsl(var(--success))" strokeWidth={1.5} dot={{ r: 2 }} />
+            <Line type="monotone" dataKey="flytSnitt" name="Snitt (7)" stroke="hsl(var(--success))" strokeWidth={2.5} dot={false} strokeDasharray="5 3" />
+            <Legend wrapperStyle={{ fontSize: 10 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// --- TRAINING STREAK BADGE ---
+function TrainingStreakBadge({ training }: { training: TrainingSession[] }) {
+  const streak = useMemo(() => {
+    const weekMap = new Map<string, boolean>();
+    training.forEach(t => {
+      const d = new Date(t.date);
+      const weekStart = startOfWeek(d, { weekStartsOn: 1 });
+      weekMap.set(weekStart.toISOString(), true);
+    });
+    const now = new Date();
+    let count = 0;
+    let check = startOfWeek(now, { weekStartsOn: 1 });
+    // If no training this week, check if last week had training
+    if (!weekMap.has(check.toISOString())) {
+      check = subWeeks(check, 1);
+      if (!weekMap.has(check.toISOString())) return 0;
+    }
+    while (weekMap.has(check.toISOString())) {
+      count++;
+      check = subWeeks(check, 1);
+    }
+    return count;
+  }, [training]);
+
+  if (streak < 2) return null;
+
+  return (
+    <div className="bg-accent/10 rounded-xl p-4 shadow-card mb-4 flex items-center gap-3">
+      <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+        <span className="text-2xl">🔥</span>
+      </div>
+      <div>
+        <div className="font-display font-bold text-foreground text-lg">{streak} veckor i rad!</div>
+        <div className="text-xs text-muted-foreground">Minst ett pass varje vecka</div>
+      </div>
+    </div>
+  );
+}
+
+
 function CompTrendCharts({ competitions, dogs }: { competitions: CompetitionResult[]; dogs: Dog[] }) {
   const dogIds = useMemo(() => [...new Set(competitions.map(c => c.dog_id))], [competitions]);
 

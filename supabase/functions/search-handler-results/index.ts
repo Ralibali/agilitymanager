@@ -40,94 +40,115 @@ Deno.serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get('FIRECRAWL_API_KEY');
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Firecrawl är inte konfigurerat' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     console.log(`Searching agilitydata.se: ${firstName} ${lastName}, dog: ${dogName || 'any'}`);
 
-    const actions: any[] = [
-      { type: 'wait', milliseconds: 2000 },
-    ];
+    // Step 1: Get the search page to obtain session cookie + form tokens
+    const searchPageRes = await fetch('https://agilitydata.se/resultat/soek-hund/', {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+    });
+    const searchPageHtml = await searchPageRes.text();
+    const cookies = extractCookies(searchPageRes.headers);
+    console.log('Got search page, cookies:', cookies.substring(0, 50));
 
-    if (dogName) {
-      actions.push({ type: 'click', selector: '#CommonName' });
-      actions.push({ type: 'write', text: dogName });
-    }
-    if (firstName) {
-      actions.push({ type: 'click', selector: '#FirstName' });
-      actions.push({ type: 'write', text: firstName });
-    }
-    if (lastName) {
-      actions.push({ type: 'click', selector: '#LastName' });
-      actions.push({ type: 'write', text: lastName });
-    }
-    actions.push({ type: 'click', selector: 'button[name="action"][value="SearchDogs"]' });
-    actions.push({ type: 'wait', milliseconds: 4000 });
-    actions.push({ type: 'click', selector: '#SearchDogsAdminGridContent tbody tr:first-child td:last-child a' });
-    actions.push({ type: 'wait', milliseconds: 5000 });
-    // Click first checkbox (Agility)
-    actions.push({ type: 'click', selector: 'input[type="checkbox"]:first-of-type' });
-    actions.push({ type: 'wait', milliseconds: 5000 });
-    // Click second checkbox (Hopp)
-    actions.push({ type: 'click', selector: 'input[type="checkbox"]:nth-of-type(2)' });
-    actions.push({ type: 'wait', milliseconds: 5000 });
+    // Extract form tokens (RequestVerificationToken, __RequestVerificationToken, etc.)
+    const formTokens = extractFormTokens(searchPageHtml);
 
-    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
+    // Step 2: Submit search form
+    const searchFormData = new URLSearchParams();
+    for (const [k, v] of Object.entries(formTokens)) {
+      searchFormData.append(k, v);
+    }
+    searchFormData.append('CommonName', dogName || '');
+    searchFormData.append('FirstName', firstName || '');
+    searchFormData.append('LastName', lastName || '');
+    searchFormData.append('ClubName', '');
+    searchFormData.append('action', 'SearchDogs');
+
+    const searchRes = await fetch('https://agilitydata.se/resultat/soek-hund/', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Cookie': cookies,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Origin': 'https://agilitydata.se',
+        'Referer': 'https://agilitydata.se/resultat/soek-hund/',
       },
-      body: JSON.stringify({
-        url: 'https://agilitydata.se/resultat/soek-hund/',
-        formats: ['markdown', 'html'],
-        onlyMainContent: false,
-        waitFor: 3000,
-        timeout: 60000,
-        actions,
-      }),
+      body: searchFormData.toString(),
+      redirect: 'manual',
     });
+    const searchResultHtml = await searchRes.text();
+    const searchCookies = mergeCookies(cookies, extractCookies(searchRes.headers));
+    console.log('Search result HTML length:', searchResultHtml.length);
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Firecrawl error:', JSON.stringify(data));
-      if (data?.code === 'SCRAPE_ACTION_ERROR' || data?.code === 'SCRAPE_TIMEOUT') {
-        console.log('Action failed/timeout, trying search-only mode...');
-        return await searchOnly(apiKey, firstName, lastName, dogName);
+    // Step 3: Find first dog link in results
+    const dogLinkMatch = searchResultHtml.match(/href="([^"]*hund-resultat[^"]*)"/i) ||
+                          searchResultHtml.match(/<a[^>]*href="([^"]*)"[^>]*>\s*Visa\s*<\/a>/i);
+    
+    // Also try finding the dog link from table rows
+    let dogPageUrl = '';
+    if (dogLinkMatch) {
+      dogPageUrl = dogLinkMatch[1];
+      if (dogPageUrl.startsWith('/')) dogPageUrl = 'https://agilitydata.se' + dogPageUrl;
+    } else {
+      // Try AJAX-style grid link
+      const gridLinkMatch = searchResultHtml.match(/data-swhgurl="([^"]*)"/i);
+      if (gridLinkMatch) {
+        dogPageUrl = gridLinkMatch[1];
+        if (dogPageUrl.startsWith('/')) dogPageUrl = 'https://agilitydata.se' + dogPageUrl;
       }
+    }
+
+    if (!dogPageUrl) {
+      // Try to find any link that looks like a dog result
+      const anyLink = searchResultHtml.match(/<td[^>]*>\s*<a[^>]*href="([^"]*)"[^>]*>/gi);
+      console.log('No dog link found. Table links:', anyLink?.length || 0);
+      console.log('Search HTML snippet (grid area):', searchResultHtml.substring(
+        Math.max(0, searchResultHtml.indexOf('SearchDogsAdminGridContent') - 100),
+        searchResultHtml.indexOf('SearchDogsAdminGridContent') + 2000
+      ));
+      
       return new Response(
-        JSON.stringify({ success: false, error: `Sökning misslyckades (${response.status})` }),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: true, data: { dog_name: dogName || '', reg_name: '', reg_nr: '', breed: '', handler: `${firstName} ${lastName}`, results: [], search_only: true, found_dogs: 0 } }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const html = data?.data?.html || '';
-    const markdown = data?.data?.markdown || '';
-    console.log('Result page HTML length:', html.length, 'Markdown length:', markdown.length);
-    if (markdown.length > 0) {
-      console.log('Markdown preview (first 2000 chars):', markdown.substring(0, 2000));
-    }
+    console.log('Dog page URL:', dogPageUrl);
 
-    let dogInfo = parseDogResultsPage(html);
+    // Step 4: Get dog details page
+    const dogPageRes = await fetch(dogPageUrl, {
+      headers: {
+        'Cookie': searchCookies,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': 'https://agilitydata.se/resultat/soek-hund/',
+      },
+    });
+    const dogPageHtml = await dogPageRes.text();
+    const dogCookies = mergeCookies(searchCookies, extractCookies(dogPageRes.headers));
+    console.log('Dog page HTML length:', dogPageHtml.length);
 
-    // If HTML parsing found no results, try parsing from markdown
-    if (dogInfo.results.length === 0 && markdown.length > 0) {
-      console.log('HTML parsing found 0 results, trying markdown parsing...');
-      const markdownResults = parseMarkdownResults(markdown);
-      if (markdownResults.length > 0) {
-        dogInfo.results = markdownResults;
-        console.log(`Markdown parsing found ${markdownResults.length} results`);
-      }
-    }
+    // Parse dog info
+    const dogInfo = parseDogInfo(dogPageHtml);
+
+    // Step 5: Submit form with Agility checkbox checked
+    const dogFormTokens = extractFormTokens(dogPageHtml);
+    const agilityResults = await fetchDisciplineResults(dogPageUrl, dogCookies, dogFormTokens, 'Agility');
+
+    // Step 6: Submit form with Hopp checkbox checked
+    const hoppResults = await fetchDisciplineResults(dogPageUrl, dogCookies, dogFormTokens, 'Hopp');
+
+    // Combine results
+    const allResults = [...agilityResults, ...hoppResults];
+    console.log(`Total results: ${allResults.length} (Agility: ${agilityResults.length}, Hopp: ${hoppResults.length})`);
 
     return new Response(
-      JSON.stringify({ success: true, data: dogInfo }),
+      JSON.stringify({
+        success: true,
+        data: {
+          ...dogInfo,
+          results: allResults,
+        },
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
@@ -139,98 +160,119 @@ Deno.serve(async (req) => {
   }
 });
 
-async function searchOnly(apiKey: string, firstName: string, lastName: string, dogName: string) {
-  const actions: any[] = [{ type: 'wait', milliseconds: 2000 }];
-  if (dogName) {
-    actions.push({ type: 'click', selector: '#CommonName' });
-    actions.push({ type: 'write', text: dogName });
+async function fetchDisciplineResults(
+  dogPageUrl: string,
+  cookies: string,
+  formTokens: Record<string, string>,
+  discipline: 'Agility' | 'Hopp'
+): Promise<DogResult[]> {
+  const formData = new URLSearchParams();
+  for (const [k, v] of Object.entries(formTokens)) {
+    formData.append(k, v);
   }
-  if (firstName) {
-    actions.push({ type: 'click', selector: '#FirstName' });
-    actions.push({ type: 'write', text: firstName });
+  
+  // Set the checkbox for the discipline
+  if (discipline === 'Agility') {
+    formData.append('ShowAgility', 'true');
+  } else {
+    formData.append('ShowHopp', 'true');
   }
-  if (lastName) {
-    actions.push({ type: 'click', selector: '#LastName' });
-    actions.push({ type: 'write', text: lastName });
-  }
-  actions.push({ type: 'click', selector: 'button[name="action"][value="SearchDogs"]' });
-  actions.push({ type: 'wait', milliseconds: 4000 });
+  formData.append('action', 'ShowResults');
 
-  const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      url: 'https://agilitydata.se/resultat/soek-hund/',
-      formats: ['html'],
-      onlyMainContent: true,
-      waitFor: 2000,
-      actions,
-    }),
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    return new Response(
-      JSON.stringify({ success: false, error: 'Sökning misslyckades' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  const html = data?.data?.html || '';
-  const dogs = parseSearchList(html);
-
-  return new Response(
-    JSON.stringify({
-      success: true,
-      data: {
-        dog_name: dogs[0]?.dog_name || dogName || '',
-        reg_name: dogs[0]?.reg_name || '',
-        reg_nr: dogs[0]?.reg_nr || '',
-        breed: dogs[0]?.breed || '',
-        handler: dogs[0]?.handler || `${firstName} ${lastName}`,
-        results: [],
-        search_only: true,
-        found_dogs: dogs.length,
+  try {
+    const res = await fetch(dogPageUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Cookie': cookies,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Origin': 'https://agilitydata.se',
+        'Referer': dogPageUrl,
       },
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
+      body: formData.toString(),
+      redirect: 'manual',
+    });
+    
+    // Handle redirect
+    if (res.status === 302 || res.status === 301) {
+      const redirectUrl = res.headers.get('Location') || '';
+      const fullUrl = redirectUrl.startsWith('/') ? 'https://agilitydata.se' + redirectUrl : redirectUrl;
+      const redirectCookies = mergeCookies(cookies, extractCookies(res.headers));
+      const redirectRes = await fetch(fullUrl, {
+        headers: {
+          'Cookie': redirectCookies,
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        },
+      });
+      const html = await redirectRes.text();
+      return parseResultsTable(html, discipline);
+    }
+    
+    const html = await res.text();
+    console.log(`${discipline} response length: ${html.length}`);
+    return parseResultsTable(html, discipline);
+  } catch (err) {
+    console.error(`Error fetching ${discipline} results:`, err);
+    return [];
+  }
 }
 
-function parseSearchList(html: string) {
-  const dogs: any[] = [];
-  const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-  let match;
-  while ((match = rowRegex.exec(html)) !== null) {
-    const row = match[1];
-    const cells = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi);
-    if (!cells || cells.length < 3) continue;
-    const extractText = (cell: string) => cell.replace(/<[^>]+>/g, '').trim();
-    const dn = extractText(cells[0]);
-    if (!dn || dn.toLowerCase().includes('tilltalsnamn')) continue;
-    dogs.push({
-      dog_name: dn,
-      reg_nr: cells.length > 1 ? extractText(cells[1]) : '',
-      reg_name: cells.length > 2 ? extractText(cells[2]) : '',
-      breed: cells.length > 3 ? extractText(cells[3]) : '',
-      handler: cells.length > 4 ? extractText(cells[4]) : '',
-    });
+function extractCookies(headers: Headers): string {
+  const setCookies = headers.getSetCookie?.() || [];
+  if (setCookies.length === 0) {
+    const raw = headers.get('set-cookie') || '';
+    if (!raw) return '';
+    return raw.split(',')
+      .map(c => c.split(';')[0].trim())
+      .filter(c => c.includes('='))
+      .join('; ');
   }
-  return dogs;
+  return setCookies
+    .map(c => c.split(';')[0].trim())
+    .filter(c => c.includes('='))
+    .join('; ');
+}
+
+function mergeCookies(existing: string, newCookies: string): string {
+  if (!newCookies) return existing;
+  if (!existing) return newCookies;
+  const map = new Map<string, string>();
+  for (const c of existing.split(';').map(s => s.trim())) {
+    const [k, ...v] = c.split('=');
+    if (k) map.set(k.trim(), v.join('='));
+  }
+  for (const c of newCookies.split(';').map(s => s.trim())) {
+    const [k, ...v] = c.split('=');
+    if (k) map.set(k.trim(), v.join('='));
+  }
+  return Array.from(map.entries()).map(([k, v]) => `${k}=${v}`).join('; ');
+}
+
+function extractFormTokens(html: string): Record<string, string> {
+  const tokens: Record<string, string> = {};
+  const inputRegex = /<input[^>]*type="hidden"[^>]*>/gi;
+  let match;
+  while ((match = inputRegex.exec(html)) !== null) {
+    const nameMatch = match[0].match(/name="([^"]*)"/);
+    const valueMatch = match[0].match(/value="([^"]*)"/);
+    if (nameMatch && valueMatch) {
+      tokens[nameMatch[1]] = valueMatch[1];
+    }
+  }
+  return tokens;
 }
 
 function extractText(html: string): string {
   return html.replace(/<[^>]+>/g, '').trim();
 }
 
-function parseDogResultsPage(html: string): DogSearchResult {
+function parseDogInfo(html: string): Omit<DogSearchResult, 'results'> {
   let dogName = '';
   let regName = '';
   let regNr = '';
   let breed = '';
   let handler = '';
 
-  // Extract dog info
   const tilltalsMatch = html.match(/Tilltalsnamn\s*(?:<[^>]*>)*\s*:\s*(?:<[^>]*>)*\s*([^<]+)/i);
   if (tilltalsMatch) dogName = tilltalsMatch[1].trim();
 
@@ -243,14 +285,31 @@ function parseDogResultsPage(html: string): DogSearchResult {
   const rasMatch = html.match(/Ras\s*(?:<[^>]*>)*\s*:\s*(?:<[^>]*>)*\s*([^<]+)/i);
   if (rasMatch) breed = rasMatch[1].trim();
 
-  // Find the results table by ID
+  return { dog_name: dogName, reg_name: regName, reg_nr: regNr, breed, handler };
+}
+
+function parseResultsTable(html: string, discipline: string): DogResult[] {
   const results: DogResult[] = [];
-  const resultsTableMatch = html.match(/<table[^>]*id="gridContentResultDogResultsTable"[^>]*>([\s\S]*?)<\/table>/i);
   
-  if (resultsTableMatch) {
-    console.log('Found gridContentResultDogResultsTable, length:', resultsTableMatch[1].length);
-    const tableHtml = resultsTableMatch[1];
-    
+  // Find result table - try multiple IDs
+  const tableIds = ['gridContentResultDogResultsTable'];
+  const tableIdRegex = /<table[^>]*id="([^"]*)"[^>]*/gi;
+  let idMatch;
+  while ((idMatch = tableIdRegex.exec(html)) !== null) {
+    const id = idMatch[1];
+    if (!tableIds.includes(id) && (id.toLowerCase().includes('result') || id.toLowerCase().includes('grid'))) {
+      tableIds.push(id);
+    }
+  }
+
+  for (const tableId of tableIds) {
+    const tableRegex = new RegExp(`<table[^>]*id="${tableId}"[^>]*>([\\s\\S]*?)<\\/table>`, 'i');
+    const tableMatch = html.match(tableRegex);
+    if (!tableMatch) continue;
+
+    const tableHtml = tableMatch[1];
+    console.log(`Parsing table ${tableId} for ${discipline}, length: ${tableHtml.length}`);
+
     // Extract headers
     const headerMatch = tableHtml.match(/<thead>([\s\S]*?)<\/thead>/i);
     const headers: string[] = [];
@@ -261,39 +320,36 @@ function parseDogResultsPage(html: string): DogSearchResult {
         headers.push(extractText(thMatch[1]).toLowerCase());
       }
     }
-    console.log('Result table headers:', headers.join(', '));
-    
+    console.log(`Headers: ${headers.join(', ')}`);
+
     // Extract body rows
     const bodyMatch = tableHtml.match(/<tbody>([\s\S]*?)<\/tbody>/i);
     const bodyHtml = bodyMatch ? bodyMatch[1] : tableHtml;
-    console.log('tbody found:', !!bodyMatch, 'bodyHtml length:', bodyHtml.length);
-    if (bodyHtml.length < 2000) {
-      console.log('bodyHtml content:', bodyHtml.substring(0, 1500));
-    }
-    
+    console.log(`tbody length: ${bodyHtml.length}`);
+
     const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
     let rowMatch;
     let rowCount = 0;
-    
+
     while ((rowMatch = rowRegex.exec(bodyHtml)) !== null) {
       const row = rowMatch[1];
       if (row.includes('<th')) continue;
-      
+
       const cellMatches = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi);
       if (!cellMatches || cellMatches.length < 3) continue;
-      
+
       const vals = cellMatches.map(c => extractText(c));
       rowCount++;
-      
+
       if (rowCount <= 2) {
-        console.log(`Row ${rowCount} values:`, vals.join(' | '));
+        console.log(`${discipline} Row ${rowCount}:`, vals.join(' | '));
       }
-      
+
       const getCol = (keywords: string[]) => {
         const idx = headers.findIndex(h => keywords.some(k => h.includes(k)));
         return idx >= 0 && idx < vals.length ? vals[idx] : '';
       };
-      
+
       const dateStr = getCol(['datum', 'date']);
       const comp = getCol(['arrangör', 'tävling', 'competition', 'arrangemang']);
       const cls = getCol(['klass', 'class']);
@@ -304,105 +360,9 @@ function parseDogResultsPage(html: string): DogSearchResult {
       const refusalStr = getCol(['vägran']);
       const timeFaultStr = getCol(['tidsfel']);
       const rawFaultStr = getCol(['fel']);
-      
-      // Skip non-date rows
-      if (!dateStr || !/\d{4}/.test(dateStr)) continue;
-      
-      // Calculate total faults
-      let totalFaults: number | null = null;
-      if (faultStr && faultStr.trim() !== '') {
-        const parsed = parseInt(faultStr);
-        totalFaults = isNaN(parsed) ? null : parsed;
-      } else if (rawFaultStr || refusalStr || timeFaultStr) {
-        const f = parseInt(rawFaultStr) || 0;
-        const r = parseInt(refusalStr) || 0;
-        const t = parseFloat(timeFaultStr) || 0;
-        totalFaults = f + r + t;
-      }
-      
-      // Determine pass/DQ from merit
-      const passed = meritStr ? !['ej', 'disk', '-'].includes(meritStr.toLowerCase().trim()) : true;
-      const disqualified = meritStr ? meritStr.toLowerCase().includes('disk') : false;
-      
-      results.push({
-        date: dateStr,
-        competition: comp,
-        discipline: '',
-        class: cls,
-        size: '',
-        placement: placStr ? parseInt(placStr) || null : null,
-        time_sec: speedStr ? parseFloat(speedStr.replace(',', '.')) || null : null,
-        faults: totalFaults,
-        passed,
-        disqualified,
-      });
-    }
-    
-    console.log(`Parsed ${results.length} results from ${rowCount} rows`);
-  } else {
-    console.log('gridContentResultDogResultsTable NOT found in HTML');
-    
-    // Log all table IDs for debugging
-    const tableIdRegex = /<table[^>]*id="([^"]*)"[^>]*/gi;
-    let tm;
-    while ((tm = tableIdRegex.exec(html)) !== null) {
-      console.log('Found table ID:', tm[1]);
-    }
-  }
 
-  return { dog_name: dogName, reg_name: regName, reg_nr: regNr, breed, handler, results };
-}
-
-// Parse results from markdown format (fallback when HTML tbody is empty due to AJAX)
-function parseMarkdownResults(markdown: string): DogResult[] {
-  const results: DogResult[] = [];
-  
-  // Markdown tables look like:
-  // | Ekipage | Arrangör | Datum | Klass | Fel | Vägran | Tidsfel | Tot. fel | m/s | Plac. | Merit |
-  // | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-  // | Luna / Malin Öster | SKK Jönköping | 2024-03-15 | K3 | 0 | 0 | 0.0 | 0 | 4.52 | 1 | Cert |
-  
-  const lines = markdown.split('\n');
-  let headerLine = -1;
-  let headers: string[] = [];
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line.startsWith('|')) continue;
-    
-    const cells = line.split('|').map(c => c.trim()).filter(c => c.length > 0);
-    
-    // Detect header row (contains keywords)
-    if (cells.some(c => /datum/i.test(c)) && cells.some(c => /klass/i.test(c))) {
-      headers = cells.map(c => c.toLowerCase());
-      headerLine = i;
-      console.log('Found markdown table headers at line', i, ':', headers.join(', '));
-      continue;
-    }
-    
-    // Skip separator row
-    if (headerLine >= 0 && /^[\-\s|]+$/.test(line)) continue;
-    
-    // Data rows (after header)
-    if (headerLine >= 0 && cells.length >= 3) {
-      const getCol = (keywords: string[]) => {
-        const idx = headers.findIndex(h => keywords.some(k => h.includes(k)));
-        return idx >= 0 && idx < cells.length ? cells[idx] : '';
-      };
-      
-      const dateStr = getCol(['datum', 'date']);
       if (!dateStr || !/\d{4}/.test(dateStr)) continue;
-      
-      const comp = getCol(['arrangör', 'tävling', 'arrangemang']);
-      const cls = getCol(['klass', 'class']);
-      const placStr = getCol(['plac']);
-      const faultStr = getCol(['tot. fel', 'tot fel']);
-      const meritStr = getCol(['merit']);
-      const speedStr = getCol(['m/s']);
-      const refusalStr = getCol(['vägran']);
-      const timeFaultStr = getCol(['tidsfel']);
-      const rawFaultStr = getCol(['fel']);
-      
+
       let totalFaults: number | null = null;
       if (faultStr && faultStr.trim() !== '') {
         const parsed = parseInt(faultStr);
@@ -410,14 +370,14 @@ function parseMarkdownResults(markdown: string): DogResult[] {
       } else if (rawFaultStr || refusalStr || timeFaultStr) {
         totalFaults = (parseInt(rawFaultStr) || 0) + (parseInt(refusalStr) || 0) + (parseFloat(timeFaultStr) || 0);
       }
-      
+
       const passed = meritStr ? !['ej', 'disk', '-'].includes(meritStr.toLowerCase().trim()) : true;
       const disqualified = meritStr ? meritStr.toLowerCase().includes('disk') : false;
-      
+
       results.push({
         date: dateStr,
         competition: comp,
-        discipline: '',
+        discipline,
         class: cls,
         size: '',
         placement: placStr ? parseInt(placStr) || null : null,
@@ -427,7 +387,9 @@ function parseMarkdownResults(markdown: string): DogResult[] {
         disqualified,
       });
     }
+
+    console.log(`${discipline}: Parsed ${results.length} from ${rowCount} rows`);
   }
-  
+
   return results;
 }

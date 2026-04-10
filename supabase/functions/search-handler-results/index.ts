@@ -67,18 +67,15 @@ Deno.serve(async (req) => {
       actions.push({ type: 'write', text: lastName });
     }
     actions.push({ type: 'click', selector: 'button[name="action"][value="SearchDogs"]' });
-    actions.push({ type: 'wait', milliseconds: 5000 });
+    actions.push({ type: 'wait', milliseconds: 4000 });
     actions.push({ type: 'click', selector: '#SearchDogsAdminGridContent tbody tr:first-child td:last-child a' });
-    actions.push({ type: 'wait', milliseconds: 6000 });
-    // Click first checkbox (Agility) to load results
+    actions.push({ type: 'wait', milliseconds: 5000 });
+    // Click first checkbox (Agility)
     actions.push({ type: 'click', selector: 'input[type="checkbox"]:first-of-type' });
-    actions.push({ type: 'wait', milliseconds: 6000 });
-    // Click second checkbox (Hopp) to load those results too
+    actions.push({ type: 'wait', milliseconds: 5000 });
+    // Click second checkbox (Hopp)
     actions.push({ type: 'click', selector: 'input[type="checkbox"]:nth-of-type(2)' });
-    actions.push({ type: 'wait', milliseconds: 6000 });
-    // Scroll down to ensure content renders
-    actions.push({ type: 'scroll', direction: 'down', amount: 3 });
-    actions.push({ type: 'wait', milliseconds: 3000 });
+    actions.push({ type: 'wait', milliseconds: 5000 });
 
     const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',
@@ -88,9 +85,10 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         url: 'https://agilitydata.se/resultat/soek-hund/',
-        formats: ['html'],
+        formats: ['markdown', 'html'],
         onlyMainContent: false,
-        waitFor: 5000,
+        waitFor: 3000,
+        timeout: 60000,
         actions,
       }),
     });

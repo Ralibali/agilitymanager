@@ -130,16 +130,23 @@ Deno.serve(async (req) => {
     // Parse dog info
     const dogInfo = parseDogInfo(dogPageHtml);
 
-    // Step 5: Submit form with Agility checkbox checked
+    // Step 5: Try submitting with BOTH Agility + Hopp checkboxes at once
     const dogFormTokens = extractFormTokens(dogPageHtml);
-    const agilityResults = await fetchDisciplineResults(dogPageUrl, dogCookies, dogFormTokens, 'Agility');
+    const bothResults = await fetchDisciplineResults(dogPageUrl, dogCookies, dogFormTokens, 'Both');
 
-    // Step 6: Submit form with Hopp checkbox checked
-    const hoppResults = await fetchDisciplineResults(dogPageUrl, dogCookies, dogFormTokens, 'Hopp');
+    let allResults: DogResult[];
 
-    // Combine results
-    const allResults = [...agilityResults, ...hoppResults];
-    console.log(`Total results: ${allResults.length} (Agility: ${agilityResults.length}, Hopp: ${hoppResults.length})`);
+    if (bothResults.length > 0) {
+      allResults = bothResults;
+      console.log(`Total results from combined request: ${allResults.length}`);
+    } else {
+      // Fallback: fetch each discipline separately
+      console.log('Combined request returned 0 results, trying separately...');
+      const agilityResults = await fetchDisciplineResults(dogPageUrl, dogCookies, dogFormTokens, 'Agility');
+      const hoppResults = await fetchDisciplineResults(dogPageUrl, dogCookies, dogFormTokens, 'Hopp');
+      allResults = [...agilityResults, ...hoppResults];
+      console.log(`Total results (separate): ${allResults.length} (Agility: ${agilityResults.length}, Hopp: ${hoppResults.length})`);
+    }
 
     return new Response(
       JSON.stringify({

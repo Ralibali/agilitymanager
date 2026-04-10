@@ -4,7 +4,8 @@ import { PageContainer } from '@/components/PageContainer';
 import { AddTrainingDialog } from '@/components/AddTrainingDialog';
 import { DogAvatar } from '@/components/DogAvatar';
 import { store } from '@/lib/store';
-import type { Dog, TrainingSession } from '@/types';
+import type { Dog, TrainingSession, CompetitionResult } from '@/types';
+import AITrainingInsights from '@/components/competitions/AITrainingInsights';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { Star, Clock, RotateCcw, Download, FileText, Send } from 'lucide-react';
@@ -17,12 +18,14 @@ import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 export default function TrainingPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
+  const [results, setResults] = useState<CompetitionResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [shareSession, setShareSession] = useState<TrainingSession | null>(null);
   const refresh = async () => {
-    const [d, t] = await Promise.all([store.getDogs(), store.getTraining()]);
+    const [d, t, r] = await Promise.all([store.getDogs(), store.getTraining(), store.getResults()]);
     setDogs(d);
     setSessions(t);
+    setResults(r);
     setLoading(false);
   };
   useEffect(() => { refresh(); }, []);

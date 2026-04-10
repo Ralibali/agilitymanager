@@ -536,21 +536,53 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
             </Dialog>
           )}
           {events.length === 0 && <p className="text-center text-muted-foreground text-sm py-8">Inga event planerade.</p>}
-          {events.map(e => (
-            <div key={e.id} className="bg-card rounded-xl p-3 shadow-card">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] text-muted-foreground">{eventTypeLabel[e.event_type] || e.event_type}</span>
-                  <h4 className="font-semibold text-sm text-foreground">{e.title}</h4>
-                  {e.description && <p className="text-xs text-muted-foreground mt-0.5">{e.description}</p>}
+          {events.map(e => {
+            const signups = eventSignups[e.id] || [];
+            const isSigned = signups.some(s => s.user_id === userId);
+            const isExpanded = expandedEvent === e.id;
+            return (
+              <div key={e.id} className="bg-card rounded-xl p-3 shadow-card">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] text-muted-foreground">{eventTypeLabel[e.event_type] || e.event_type}</span>
+                    <h4 className="font-semibold text-sm text-foreground">{e.title}</h4>
+                    {e.description && <p className="text-xs text-muted-foreground mt-0.5">{e.description}</p>}
+                  </div>
+                  <div className="text-right shrink-0 ml-2">
+                    <div className="text-xs font-medium text-foreground">{format(new Date(e.date), 'd MMM', { locale: sv })}</div>
+                    <div className="text-[10px] text-muted-foreground">{format(new Date(e.date), 'HH:mm')}</div>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs font-medium text-foreground">{format(new Date(e.date), 'd MMM', { locale: sv })}</div>
-                  <div className="text-[10px] text-muted-foreground">{format(new Date(e.date), 'HH:mm')}</div>
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
+                  <button
+                    onClick={() => setExpandedEvent(isExpanded ? null : e.id)}
+                    className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {signups.length} anmälda {isExpanded ? '▲' : '▼'}
+                  </button>
+                  {isSigned ? (
+                    <Button size="sm" variant="outline" className="text-xs h-7 gap-1" onClick={() => handleUnsignupEvent(e.id)}>
+                      <Check size={12} /> Anmäld
+                    </Button>
+                  ) : (
+                    <Button size="sm" className="text-xs h-7 gap-1" onClick={() => handleSignupEvent(e.id)}>
+                      <UserPlus size={12} /> Anmäl mig
+                    </Button>
+                  )}
                 </div>
+                {isExpanded && signups.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {signups.map(s => (
+                      <div key={s.id} className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                        {profiles[s.user_id] || 'Anonym'}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </TabsContent>
 
         {/* Groups */}

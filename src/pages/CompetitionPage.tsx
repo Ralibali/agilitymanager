@@ -317,6 +317,54 @@ export default function CompetitionPage() {
               })}
             </div>
           )}
+
+          {/* External results from agilitydata.se */}
+          <div className="mt-6 pt-4 border-t border-border">
+            <h3 className="font-display font-semibold text-foreground text-sm mb-3">
+              Hämta resultatlista från agilitydata.se
+            </h3>
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                const trimmed = externalResultUrl.trim();
+                if (!trimmed) return;
+                if (!trimmed.includes('agilitydata.se')) {
+                  toast.error('Ange en länk från agilitydata.se');
+                  return;
+                }
+                setActiveExternalUrl(trimmed);
+              }}
+              className="flex gap-2 mb-3"
+            >
+              <Input
+                value={externalResultUrl}
+                onChange={e => setExternalResultUrl(e.target.value)}
+                placeholder="Klistra in länk från agilitydata.se..."
+                className="h-8 text-xs flex-1"
+              />
+              <Button type="submit" size="sm" variant="outline" className="h-8 text-xs">
+                Hämta
+              </Button>
+            </form>
+
+            {activeExternalUrl && (
+              <CompetitionResultsViewer
+                url={activeExternalUrl}
+                friendNames={friendNames}
+              />
+            )}
+
+            <div className="mt-3 text-center">
+              <a
+                href="https://agilitydata.se"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+              >
+                🔍 Sök resultat på agilitydata.se <ExternalLink size={10} />
+              </a>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Checklist tab */}

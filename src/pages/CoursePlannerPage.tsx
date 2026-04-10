@@ -928,6 +928,16 @@ export default function CoursePlannerPage() {
         ctx.lineWidth = 1.2;
         ctx.beginPath(); ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0); ctx.stroke();
         ctx.setLineDash([]);
+      } else if (obs.type === 'hoop') {
+        drawHoop(ctx, obs);
+      } else if (obs.type === 'hoopers_tunnel') {
+        drawHoopersTunnel(ctx, obs);
+      } else if (obs.type === 'barrel') {
+        drawBarrel(ctx, obs);
+      } else if (obs.type === 'gate') {
+        drawGate(ctx, obs);
+      } else if (obs.type === 'handler_zone') {
+        drawHandlerZone(ctx, obs);
       } else {
         ctx.fillStyle = 'hsl(0, 0%, 50%)';
         ctx.fillRect(-hw, -hh, info.width, info.height);

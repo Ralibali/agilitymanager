@@ -156,6 +156,12 @@ export default function ImportResultsFromUrl({ dogs, userId, onImported }: Props
         dog_id: selectedDogId,
       };
 
+      if (!result.results || result.results.length === 0) {
+        setMode('paste');
+        toast.warning('Inga resultat hittades via URL. Prova att kopiera tabellen från agilitydata.se och klistra in den nedan.', { duration: 6000 });
+        return;
+      }
+
       await cacheResult(result);
       onImported(result);
       const methodLabel = data.method === 'visual-ai' ? ' (AI)' : '';

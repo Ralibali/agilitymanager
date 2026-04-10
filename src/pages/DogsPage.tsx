@@ -6,16 +6,21 @@ import { DogPhotoUpload } from '@/components/DogPhotoUpload';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { store } from '@/lib/store';
-import type { Dog, SizeClass, CompetitionLevel } from '@/types';
+import type { Dog, SizeClass, CompetitionLevel, CompetitionResult } from '@/types';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { motion } from 'framer-motion';
+import { TrendingUp } from 'lucide-react';
+import { calculatePromotionProgress } from '@/components/competitions/ClassPromotionTracker';
 
 export default function DogsPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
+  const [results, setResults] = useState<CompetitionResult[]>([]);
   const [loading, setLoading] = useState(true);
   const refresh = async () => {
-    setDogs(await store.getDogs());
+    const [d, r] = await Promise.all([store.getDogs(), store.getCompetitions()]);
+    setDogs(d);
+    setResults(r);
     setLoading(false);
   };
   useEffect(() => { refresh(); }, []);

@@ -7,10 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette, Copy, Ruler, ChevronDown, X } from 'lucide-react';
+import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette, Copy, Ruler, ChevronDown, X, MoreHorizontal, Settings2 } from 'lucide-react';
 import ShareCourseDialog from '@/components/course-planner/ShareCourseDialog';
 import ObstacleColorPanel from '@/components/course-planner/ObstacleColorPanel';
 import { CoursePlannerTutorial, TutorialButton } from '@/components/course-planner/CoursePlannerTutorial';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -327,6 +328,7 @@ export default function CoursePlannerPage() {
   // ── Feature 2: Snap-to-Grid + Magnetic snap ──
   const [snapEnabled, setSnapEnabled] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
   const SNAP_STEP = 0.5 * PX_PER_METER; // 0.5m
   const MAGNETIC_DIST = 0.8 * PX_PER_METER; // snap within 0.8m of another obstacle
 
@@ -2310,282 +2312,774 @@ export default function CoursePlannerPage() {
     <PageContainer title="Banplanerare" subtitle="Rita agility-banor">
       <PremiumGate fullPage featureName="Banplaneraren">
 
-      {/* Toolbar row 1 */}
-      <div className="flex gap-2 mb-2 items-center flex-wrap">
-        <TutorialButton onClick={() => setShowTutorial(true)} />
-        <Select
-          value={`${canvasSize.width}x${canvasSize.height}`}
-          onValueChange={(v) => {
-            const s = CANVAS_SIZES.find(s => `${s.width}x${s.height}` === v);
-            if (s) setCanvasSize(s);
-          }}
-        >
-          <SelectTrigger className="w-[120px] h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {CANVAS_SIZES.map(s => (
-              <SelectItem key={`${s.width}x${s.height}`} value={`${s.width}x${s.height}`}>{s.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* ═══ MOBILE-OPTIMIZED TOOLBAR ═══ */}
+      {isMobile ? (
+        <>
+          {/* Compact top bar: essential actions only */}
+          <div className="flex items-center gap-1 mb-2 overflow-x-auto pb-1 scrollbar-hide">
+            <TutorialButton onClick={() => setShowTutorial(true)} />
 
-        <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1 h-8" disabled={obstacles.length === 0}>
-              <Save size={14} /> Spara
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle className="font-display">Spara bana</DialogTitle></DialogHeader>
-            <div className="space-y-3 pt-2">
-              <div><Label>Namn</Label><Input value={courseName} onChange={e => setCourseName(e.target.value)} placeholder="T.ex. Söndagsträning" /></div>
-              <Button onClick={handleSave} className="w-full gradient-primary text-primary-foreground" disabled={!courseName.trim()}>Spara</Button>
+            <div className="flex items-center gap-0.5">
+              <Button variant="outline" size="icon" className="h-8 w-8 flex-shrink-0" onClick={handleUndo} disabled={!canUndo} title="Ångra">
+                <Undo2 size={14} />
+              </Button>
+              <Button variant="outline" size="icon" className="h-8 w-8 flex-shrink-0" onClick={handleRedo} disabled={!canRedo} title="Gör om">
+                <RotateCcw size={14} className="scale-x-[-1]" />
+              </Button>
             </div>
-          </DialogContent>
-        </Dialog>
 
-        <Button variant="outline" size="sm" className="gap-1 h-8" disabled={savedCourses.length === 0} onClick={() => setShareOpen(true)}>
-          <Share2 size={14} /> Dela
-        </Button>
+            <div className="h-5 w-px bg-border flex-shrink-0" />
 
-        <ShareCourseDialog
-          open={shareOpen}
-          onOpenChange={setShareOpen}
-          savedCourses={savedCourses}
-          currentCourseId={loadedCourseId}
-        />
+            {zoomControls(false)}
 
-        <Dialog open={loadOpen} onOpenChange={setLoadOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1 h-8">
-              <FolderOpen size={14} /> Ladda
+            <div className="h-5 w-px bg-border flex-shrink-0" />
+
+            <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="icon" className="h-8 w-8 flex-shrink-0" disabled={obstacles.length === 0} title="Spara">
+                  <Save size={14} />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle className="font-display">Spara bana</DialogTitle></DialogHeader>
+                <div className="space-y-3 pt-2">
+                  <div><Label>Namn</Label><Input value={courseName} onChange={e => setCourseName(e.target.value)} placeholder="T.ex. Söndagsträning" /></div>
+                  <Button onClick={handleSave} className="w-full gradient-primary text-primary-foreground" disabled={!courseName.trim()}>Spara</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={loadOpen} onOpenChange={setLoadOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="icon" className="h-8 w-8 flex-shrink-0" title="Ladda">
+                  <FolderOpen size={14} />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-h-[80vh] overflow-y-auto">
+                <DialogHeader><DialogTitle className="font-display">Ladda bana</DialogTitle></DialogHeader>
+                <div className="mb-4">
+                  <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1"><Sparkles size={12} /> Färdiga exempelbanor</h3>
+                  <div className="space-y-1.5">
+                    {PRESET_COURSES.map((p, i) => (
+                      <button key={i} onClick={() => loadPreset(p)}
+                        className="w-full text-left bg-primary/5 hover:bg-primary/10 rounded-lg p-2.5 transition-colors">
+                        <div className="text-sm font-medium text-foreground">{p.name}</div>
+                        <div className="text-[10px] text-muted-foreground">{p.description}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground mb-2">Dina sparade banor</h3>
+                  {savedCourses.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-2 text-center">Inga sparade banor.</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {savedCourses.map(c => (
+                        <div key={c.id} className="flex items-center justify-between bg-secondary rounded-lg p-2.5">
+                          <button onClick={() => loadCourse(c)} className="text-sm font-medium text-foreground text-left flex-1">{c.name}</button>
+                          <button onClick={() => handleDeleteCourse(c.id)} className="text-muted-foreground hover:text-destructive ml-2"><Trash2 size={14} /></button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Button variant="outline" size="icon" className="h-8 w-8 flex-shrink-0" onClick={toggleFullscreen} title="Fullskärm">
+              <Maximize size={14} />
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-h-[80vh] overflow-y-auto">
-            <DialogHeader><DialogTitle className="font-display">Ladda bana</DialogTitle></DialogHeader>
-            <div className="mb-4">
-              <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1"><Sparkles size={12} /> Färdiga exempelbanor</h3>
-              <div className="space-y-1.5">
-                {PRESET_COURSES.map((p, i) => (
-                  <button key={i} onClick={() => loadPreset(p)}
-                    className="w-full text-left bg-primary/5 hover:bg-primary/10 rounded-lg p-2.5 transition-colors">
-                    <div className="text-sm font-medium text-foreground">{p.name}</div>
-                    <div className="text-[10px] text-muted-foreground">{p.description}</div>
+
+            {/* More tools button */}
+            <Button variant="outline" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => setMobileToolsOpen(true)} title="Fler verktyg">
+              <Settings2 size={14} />
+            </Button>
+
+            {isDirty && (
+              <span className="text-[10px] text-amber-500 font-medium flex-shrink-0">●</span>
+            )}
+          </div>
+
+          {/* Mobile tool modes - horizontal scroll strip */}
+          <div className="flex gap-1.5 mb-2 overflow-x-auto pb-1 scrollbar-hide">
+            <button
+              onClick={() => { setDrawingMode(!drawingMode); setNumberingMode(false); if (drawingMode) setIsDrawing(false); }}
+              className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors flex items-center gap-1 flex-shrink-0 ${drawingMode ? 'bg-orange-500/15 border-orange-500 text-orange-600' : 'bg-secondary border-border text-muted-foreground'}`}
+            >
+              <Pencil size={11} /> {drawingMode ? 'Rita: PÅ' : 'Rita'}
+            </button>
+
+            {(drawingMode || handlerPath.length > 0) && (
+              <>
+                <Select value={handlerColor} onValueChange={setHandlerColor}>
+                  <SelectTrigger className="h-7 w-12 text-[10px] border-none px-1 flex-shrink-0">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: handlerColor }} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {HANDLER_COLORS.map(c => (
+                      <SelectItem key={c.value} value={c.value} className="text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c.value }} />
+                          {c.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {handlerPath.length > 0 && (
+                  <button onClick={() => setHandlerPath([])} className="text-[11px] px-2 py-1 rounded-full border border-border text-muted-foreground hover:text-destructive flex items-center gap-1 flex-shrink-0">
+                    <Eraser size={10} />
                   </button>
+                )}
+              </>
+            )}
+
+            <button
+              onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); setMeasureMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } }}
+              className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors flex items-center gap-1 flex-shrink-0 ${numberingMode ? 'bg-blue-500/15 border-blue-500 text-blue-600' : 'bg-secondary border-border text-muted-foreground'}`}
+            >
+              <Hash size={11} /> Nr
+            </button>
+
+            <button
+              onClick={() => { setMeasureMode(!measureMode); setDrawingMode(false); setNumberingMode(false); setMeasurePoints([]); }}
+              className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors flex items-center gap-1 flex-shrink-0 ${measureMode ? 'bg-yellow-500/15 border-yellow-500 text-yellow-600' : 'bg-secondary border-border text-muted-foreground'}`}
+            >
+              <Ruler size={11} /> Mät
+            </button>
+
+            <button
+              onClick={() => setShowStartFinish(!showStartFinish)}
+              className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors flex items-center gap-1 flex-shrink-0 ${showStartFinish ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
+            >
+              ▸◼
+            </button>
+
+            <button
+              onClick={() => setSnapEnabled(!snapEnabled)}
+              className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors flex items-center gap-1 flex-shrink-0 ${snapEnabled ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
+            >
+              📐
+            </button>
+
+            {selected && (
+              <button
+                onClick={copySelected}
+                className="text-[11px] px-2.5 py-1 rounded-full border border-border bg-secondary text-muted-foreground flex items-center gap-1 flex-shrink-0"
+              >
+                <Copy size={11} />
+              </button>
+            )}
+          </div>
+
+          {/* Numbering toolbar (compact) */}
+          {numberingMode && (
+            <div className="mb-2 bg-blue-500/5 border border-blue-500/20 rounded-lg p-2">
+              <div className="flex items-center gap-1 mb-1">
+                <Hash size={10} className="text-blue-600" />
+                <span className="text-[10px] font-semibold text-foreground">Numrera</span>
+                <span className="text-[9px] text-muted-foreground ml-1">Tryck på banan</span>
+              </div>
+              {numberingToolbar(false)}
+            </div>
+          )}
+
+          {/* Measure result */}
+          {measureMode && measurePoints.length === 2 && (
+            <div className="mb-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2 text-xs text-foreground flex items-center gap-2">
+              <Ruler size={14} className="text-yellow-600" />
+              <span className="font-semibold">
+                {(Math.sqrt(
+                  Math.pow(measurePoints[0].x - measurePoints[1].x, 2) +
+                  Math.pow(measurePoints[0].y - measurePoints[1].y, 2)
+                ) * METERS_PER_PX).toFixed(1)} m
+              </span>
+            </div>
+          )}
+
+          {/* Selected obstacle controls (compact) */}
+          {selectedObs && !numberingMode && (
+            <div className="flex gap-1.5 mb-2 items-center flex-wrap bg-card rounded-lg p-2 shadow-card border border-border">
+              <Button variant="outline" size="sm" onClick={rotateSelected} className="gap-1 h-7 text-xs">
+                <RotateCcw size={12} /> 15°
+              </Button>
+              <Input
+                type="number"
+                value={Math.round(selectedObs.rotation)}
+                onChange={e => setRotationManual(parseInt(e.target.value) || 0)}
+                className="w-12 h-7 text-xs text-center"
+              />
+              <Button variant="outline" size="sm" onClick={deleteSelected} className="gap-1 h-7 text-destructive">
+                <Trash2 size={12} />
+              </Button>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-muted-foreground">Nr:</span>
+                <Input
+                  type="number"
+                  min={1}
+                  value={numberInput}
+                  onChange={e => setNumberInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { addNumberToSelected(parseInt(numberInput) || 0); setNumberInput(''); } }}
+                  placeholder="+"
+                  className="w-10 h-7 text-xs text-center"
+                />
+                <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => { addNumberToSelected(parseInt(numberInput) || 0); setNumberInput(''); }} disabled={!numberInput}>
+                  <Plus size={12} />
+                </Button>
+              </div>
+              {selectedObs.type === 'tunnel' && (
+                <>
+                  <Button variant="outline" size="sm" className="h-7 text-xs" onClick={toggleTunnelLength}>
+                    {selectedObs.tunnelLength || 4}m
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateTunnelBend(-15)}>
+                      <Minus size={12} />
+                    </Button>
+                    <span className="text-xs font-medium w-8 text-center text-foreground">{selectedObs.bendAngle || 0}°</span>
+                    <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateTunnelBend(15)}>
+                      <Plus size={12} />
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Mobile tools drawer */}
+          <Drawer open={mobileToolsOpen} onOpenChange={setMobileToolsOpen}>
+            <DrawerContent className="max-h-[70vh]">
+              <DrawerHeader>
+                <DrawerTitle>Verktyg</DrawerTitle>
+              </DrawerHeader>
+              <div className="px-4 pb-6 space-y-4 overflow-y-auto">
+                {/* Canvas size */}
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Banstorlek</label>
+                  <Select
+                    value={`${canvasSize.width}x${canvasSize.height}`}
+                    onValueChange={(v) => {
+                      const s = CANVAS_SIZES.find(s => `${s.width}x${s.height}` === v);
+                      if (s) setCanvasSize(s);
+                    }}
+                  >
+                    <SelectTrigger className="w-full h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CANVAS_SIZES.map(s => (
+                        <SelectItem key={`${s.width}x${s.height}`} value={`${s.width}x${s.height}`}>{s.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Course stats */}
+                {obstacles.length > 0 && (
+                  <div className="bg-secondary/50 rounded-lg px-3 py-2 text-[11px] text-muted-foreground space-y-0.5">
+                    <div className="font-medium text-foreground">{courseStats.total} hinder</div>
+                    {courseStats.contactCount > 0 && <div>{courseStats.contactCount} kontakt</div>}
+                    {courseStats.length > 0 && <div>Banlängd: ~{Math.round(courseStats.length)}m</div>}
+                    {courseStats.warnings.map((w, i) => (
+                      <div key={i} className="text-amber-500">{w}</div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Export / Import */}
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Exportera & importera</label>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="gap-1 flex-1" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportPNG(); setMobileToolsOpen(false); }} disabled={obstacles.length === 0}>
+                      <Download size={12} /> PNG
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-1 flex-1" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportJSON(); setMobileToolsOpen(false); }} disabled={obstacles.length === 0}>
+                      <Download size={12} /> JSON
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-1 flex-1" onClick={() => { fileInputRef.current?.click(); setMobileToolsOpen(false); }}>
+                      <Upload size={12} /> Import
+                    </Button>
+                  </div>
+                  <input ref={fileInputRef} type="file" accept=".json" onChange={importJSON} className="hidden" />
+                </div>
+
+                {/* Share */}
+                <Button variant="outline" size="sm" className="gap-1 w-full" disabled={savedCourses.length === 0} onClick={() => { setShareOpen(true); setMobileToolsOpen(false); }}>
+                  <Share2 size={14} /> Dela bana
+                </Button>
+
+                {/* Color theme */}
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Hinderfärger</label>
+                  <button
+                    onClick={() => { setShowColorPanel(true); setMobileToolsOpen(false); }}
+                    className="flex items-center gap-1.5 text-sm text-foreground"
+                  >
+                    <Palette size={14} />
+                    <span>{PRESET_THEMES.find(p => p.id === activeThemeId)?.label ?? 'Anpassad'}</span>
+                  </button>
+                </div>
+
+                {/* Distances toggle */}
+                <button
+                  onClick={() => { setShowDistances(!showDistances); }}
+                  className={`w-full text-left text-sm px-3 py-2 rounded-lg border transition-colors ${showDistances ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-foreground'}`}
+                >
+                  📏 {showDistances ? 'Mått: PÅ' : 'Mått: AV'}
+                </button>
+
+                {/* Clear */}
+                <Button variant="outline" size="sm" className="gap-1 w-full text-destructive" onClick={() => {
+                  const emptyObs: Obstacle[] = [];
+                  setObstaclesRaw(emptyObs);
+                  setSelected(null);
+                  setHandlerPath([]);
+                  setFreeNumbers([]);
+                  setNumberingMode(false);
+                  setNextNumberToAssign(1);
+                  setNumberingHistory([]);
+                  pushHistory(emptyObs, [], 'Rensade banan');
+                  setIsDirty(true);
+                  setMobileToolsOpen(false);
+                }}>
+                  <Trash2 size={14} /> Rensa banan
+                </Button>
+              </div>
+            </DrawerContent>
+          </Drawer>
+
+          <ShareCourseDialog
+            open={shareOpen}
+            onOpenChange={setShareOpen}
+            savedCourses={savedCourses}
+            currentCourseId={loadedCourseId}
+          />
+        </>
+      ) : (
+        /* ═══ DESKTOP TOOLBAR (unchanged) ═══ */
+        <>
+          {/* Toolbar row 1 */}
+          <div className="flex gap-2 mb-2 items-center flex-wrap">
+            <TutorialButton onClick={() => setShowTutorial(true)} />
+            <Select
+              value={`${canvasSize.width}x${canvasSize.height}`}
+              onValueChange={(v) => {
+                const s = CANVAS_SIZES.find(s => `${s.width}x${s.height}` === v);
+                if (s) setCanvasSize(s);
+              }}
+            >
+              <SelectTrigger className="w-[120px] h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CANVAS_SIZES.map(s => (
+                  <SelectItem key={`${s.width}x${s.height}`} value={`${s.width}x${s.height}`}>{s.label}</SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+
+            <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1 h-8" disabled={obstacles.length === 0}>
+                  <Save size={14} /> Spara
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle className="font-display">Spara bana</DialogTitle></DialogHeader>
+                <div className="space-y-3 pt-2">
+                  <div><Label>Namn</Label><Input value={courseName} onChange={e => setCourseName(e.target.value)} placeholder="T.ex. Söndagsträning" /></div>
+                  <Button onClick={handleSave} className="w-full gradient-primary text-primary-foreground" disabled={!courseName.trim()}>Spara</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Button variant="outline" size="sm" className="gap-1 h-8" disabled={savedCourses.length === 0} onClick={() => setShareOpen(true)}>
+              <Share2 size={14} /> Dela
+            </Button>
+
+            <ShareCourseDialog
+              open={shareOpen}
+              onOpenChange={setShareOpen}
+              savedCourses={savedCourses}
+              currentCourseId={loadedCourseId}
+            />
+
+            <Dialog open={loadOpen} onOpenChange={setLoadOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1 h-8">
+                  <FolderOpen size={14} /> Ladda
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-h-[80vh] overflow-y-auto">
+                <DialogHeader><DialogTitle className="font-display">Ladda bana</DialogTitle></DialogHeader>
+                <div className="mb-4">
+                  <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1"><Sparkles size={12} /> Färdiga exempelbanor</h3>
+                  <div className="space-y-1.5">
+                    {PRESET_COURSES.map((p, i) => (
+                      <button key={i} onClick={() => loadPreset(p)}
+                        className="w-full text-left bg-primary/5 hover:bg-primary/10 rounded-lg p-2.5 transition-colors">
+                        <div className="text-sm font-medium text-foreground">{p.name}</div>
+                        <div className="text-[10px] text-muted-foreground">{p.description}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground mb-2">Dina sparade banor</h3>
+                  {savedCourses.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-2 text-center">Inga sparade banor.</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {savedCourses.map(c => (
+                        <div key={c.id} className="flex items-center justify-between bg-secondary rounded-lg p-2.5">
+                          <button onClick={() => loadCourse(c)} className="text-sm font-medium text-foreground text-left flex-1">{c.name}</button>
+                          <button onClick={() => handleDeleteCourse(c.id)} className="text-muted-foreground hover:text-destructive ml-2"><Trash2 size={14} /></button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Button variant="outline" size="sm" className="gap-1 h-8" onClick={toggleFullscreen} title="Fullskärm">
+              <Maximize size={14} />
+            </Button>
+
+            {/* Undo/Redo */}
+            <div className="flex items-center gap-0.5">
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleUndo} disabled={!canUndo} title="Ångra (Ctrl+Z)">
+                <Undo2 size={14} />
+              </Button>
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleRedo} disabled={!canRedo} title="Gör om (Ctrl+Y)">
+                <RotateCcw size={14} className="scale-x-[-1]" />
+              </Button>
+              <div className="relative">
+                <Button variant="ghost" size="icon" className="h-8 w-6" onClick={() => setShowHistoryDropdown(!showHistoryDropdown)} title="Historik">
+                  <ChevronDown size={12} />
+                </Button>
+                {showHistoryDropdown && (
+                  <div className="absolute top-full left-0 z-50 mt-1 bg-card border border-border rounded-lg shadow-lg p-2 min-w-[200px] max-w-[260px]">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-semibold text-muted-foreground">Senaste åtgärder</span>
+                      <button onClick={() => setShowHistoryDropdown(false)} className="text-muted-foreground hover:text-foreground"><X size={10} /></button>
+                    </div>
+                    {getRecentActions(8).length === 0 ? (
+                      <p className="text-[10px] text-muted-foreground py-1">Ingen historik ännu</p>
+                    ) : (
+                      getRecentActions(8).map((a, i) => (
+                        <div key={i} className="text-[10px] text-foreground py-0.5 border-b border-border/50 last:border-0">{a}</div>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
             </div>
-            <div>
-              <h3 className="text-xs font-semibold text-muted-foreground mb-2">Dina sparade banor</h3>
-              {savedCourses.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-2 text-center">Inga sparade banor.</p>
-              ) : (
-                <div className="space-y-1.5">
-                  {savedCourses.map(c => (
-                    <div key={c.id} className="flex items-center justify-between bg-secondary rounded-lg p-2.5">
-                      <button onClick={() => loadCourse(c)} className="text-sm font-medium text-foreground text-left flex-1">{c.name}</button>
-                      <button onClick={() => handleDeleteCourse(c.id)} className="text-muted-foreground hover:text-destructive ml-2"><Trash2 size={14} /></button>
-                    </div>
+
+            {zoomControls(false)}
+
+            {/* Unsaved indicator */}
+            {isDirty && (
+              <span className="text-[10px] text-amber-500 font-medium flex items-center gap-1">
+                ● Osparade ändringar
+              </span>
+            )}
+
+            <Button variant="outline" size="sm" onClick={() => {
+              const emptyObs: Obstacle[] = [];
+              setObstaclesRaw(emptyObs);
+              setSelected(null);
+              setHandlerPath([]);
+              setFreeNumbers([]);
+              setNumberingMode(false);
+              setNextNumberToAssign(1);
+              setNumberingHistory([]);
+              pushHistory(emptyObs, [], 'Rensade banan');
+              setIsDirty(true);
+            }} className="gap-1 h-8 ml-auto">
+              Rensa
+            </Button>
+          </div>
+
+          {/* Course stats bar */}
+          {obstacles.length > 0 && (
+            <div className="flex gap-3 mb-2 items-center flex-wrap text-[11px] text-muted-foreground bg-secondary/50 rounded-lg px-3 py-1.5">
+              <span className="font-medium text-foreground">{courseStats.total} hinder</span>
+              {courseStats.contactCount > 0 && <span>{courseStats.contactCount} kontakt</span>}
+              {courseStats.length > 0 && <span>Banlängd: ~{Math.round(courseStats.length)}m</span>}
+              <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${snapEnabled ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'}`}>
+                <button onClick={() => setSnapEnabled(!snapEnabled)} className="flex items-center gap-1">
+                  📐 Snap {snapEnabled ? 'PÅ' : 'AV'}
+                </button>
+              </span>
+              {courseStats.warnings.length > 0 && (
+                <div className="w-full mt-1">
+                  {courseStats.warnings.map((w, i) => (
+                    <div key={i} className="text-[10px] text-amber-500">{w}</div>
                   ))}
                 </div>
               )}
             </div>
-          </DialogContent>
-        </Dialog>
+          )}
 
-        <Button variant="outline" size="sm" className="gap-1 h-8" onClick={toggleFullscreen} title="Fullskärm">
-          <Maximize size={14} />
-        </Button>
-
-        {/* Undo/Redo */}
-        <div className="flex items-center gap-0.5">
-          <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleUndo} disabled={!canUndo} title="Ångra (Ctrl+Z)">
-            <Undo2 size={14} />
-          </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleRedo} disabled={!canRedo} title="Gör om (Ctrl+Y)">
-            <RotateCcw size={14} className="scale-x-[-1]" />
-          </Button>
-          <div className="relative">
-            <Button variant="ghost" size="icon" className="h-8 w-6" onClick={() => setShowHistoryDropdown(!showHistoryDropdown)} title="Historik">
-              <ChevronDown size={12} />
+          {/* Toolbar row 2 */}
+          <div className="flex gap-1.5 mb-3 items-center flex-wrap">
+            <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportPNG(); }} disabled={obstacles.length === 0}>
+              <Download size={12} /> PNG {!isPremium && <PremiumBadge />}
             </Button>
-            {showHistoryDropdown && (
-              <div className="absolute top-full left-0 z-50 mt-1 bg-card border border-border rounded-lg shadow-lg p-2 min-w-[200px] max-w-[260px]">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-semibold text-muted-foreground">Senaste åtgärder</span>
-                  <button onClick={() => setShowHistoryDropdown(false)} className="text-muted-foreground hover:text-foreground"><X size={10} /></button>
-                </div>
-                {getRecentActions(8).length === 0 ? (
-                  <p className="text-[10px] text-muted-foreground py-1">Ingen historik ännu</p>
-                ) : (
-                  getRecentActions(8).map((a, i) => (
-                    <div key={i} className="text-[10px] text-foreground py-0.5 border-b border-border/50 last:border-0">{a}</div>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+            <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportJSON(); }} disabled={obstacles.length === 0}>
+              <Download size={12} /> JSON {!isPremium && <PremiumBadge />}
+            </Button>
+            <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => fileInputRef.current?.click()}>
+              <Upload size={12} /> Importera
+            </Button>
+            <input ref={fileInputRef} type="file" accept=".json" onChange={importJSON} className="hidden" />
 
-        {zoomControls(false)}
+            <div className="h-4 w-px bg-border mx-1" />
 
-        {/* Unsaved indicator */}
-        {isDirty && (
-          <span className="text-[10px] text-amber-500 font-medium flex items-center gap-1">
-            ● Osparade ändringar
-          </span>
-        )}
-
-        <Button variant="outline" size="sm" onClick={() => {
-          const emptyObs: Obstacle[] = [];
-          setObstaclesRaw(emptyObs);
-          setSelected(null);
-          setHandlerPath([]);
-          setFreeNumbers([]);
-          setNumberingMode(false);
-          setNextNumberToAssign(1);
-          setNumberingHistory([]);
-          pushHistory(emptyObs, [], 'Rensade banan');
-          setIsDirty(true);
-        }} className="gap-1 h-8 ml-auto">
-          Rensa
-        </Button>
-      </div>
-
-      {/* Course stats bar */}
-      {obstacles.length > 0 && (
-        <div className="flex gap-3 mb-2 items-center flex-wrap text-[11px] text-muted-foreground bg-secondary/50 rounded-lg px-3 py-1.5">
-          <span className="font-medium text-foreground">{courseStats.total} hinder</span>
-          {courseStats.contactCount > 0 && <span>{courseStats.contactCount} kontakt</span>}
-          {courseStats.length > 0 && <span>Banlängd: ~{Math.round(courseStats.length)}m</span>}
-          <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${snapEnabled ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'}`}>
-            <button onClick={() => setSnapEnabled(!snapEnabled)} className="flex items-center gap-1">
-              📐 Snap {snapEnabled ? 'PÅ' : 'AV'}
+            <button
+              onClick={() => { setDrawingMode(!drawingMode); setNumberingMode(false); if (drawingMode) setIsDrawing(false); }}
+              className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${drawingMode ? 'bg-orange-500/15 border-orange-500 text-orange-600' : 'bg-secondary border-border text-muted-foreground'}`}
+            >
+              <Pencil size={10} /> {drawingMode ? 'Rita: PÅ' : 'Förarlinje'}
             </button>
-          </span>
-          {courseStats.warnings.length > 0 && (
-            <div className="w-full mt-1">
-              {courseStats.warnings.map((w, i) => (
-                <div key={i} className="text-[10px] text-amber-500">{w}</div>
-              ))}
+
+            {(drawingMode || handlerPath.length > 0) && (
+              <>
+                <Select value={handlerColor} onValueChange={setHandlerColor}>
+                  <SelectTrigger className="h-6 w-16 text-[10px] border-none px-1">
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: handlerColor }} />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {HANDLER_COLORS.map(c => (
+                      <SelectItem key={c.value} value={c.value} className="text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c.value }} />
+                          {c.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <button
+                  onClick={() => setHandlerDashed(!handlerDashed)}
+                  className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${handlerDashed ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
+                >
+                  {handlerDashed ? '- - -' : '───'}
+                </button>
+              </>
+            )}
+            {handlerPath.length > 0 && (
+              <button onClick={() => setHandlerPath([])} className="text-xs px-2 py-0.5 rounded-full border border-border text-muted-foreground hover:text-destructive flex items-center gap-1">
+                <Eraser size={10} /> Radera linje
+              </button>
+            )}
+
+            <div className="h-4 w-px bg-border mx-1" />
+
+            <button
+              onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); setMeasureMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } }}
+              className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${numberingMode ? 'bg-blue-500/15 border-blue-500 text-blue-600' : 'bg-secondary border-border text-muted-foreground'}`}
+            >
+              <Hash size={10} /> {numberingMode ? 'Numrera bana' : 'Numrera bana'}
+            </button>
+
+            <button
+              onClick={() => { setMeasureMode(!measureMode); setDrawingMode(false); setNumberingMode(false); setMeasurePoints([]); }}
+              className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${measureMode ? 'bg-yellow-500/15 border-yellow-500 text-yellow-600' : 'bg-secondary border-border text-muted-foreground'}`}
+            >
+              <Ruler size={10} /> {measureMode ? 'Mät: PÅ' : 'Mät'}
+            </button>
+
+            {selected && (
+              <button
+                onClick={copySelected}
+                className="text-xs px-2 py-0.5 rounded-full border border-border bg-secondary text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                title="Kopiera hinder (Ctrl+C, sedan Ctrl+V)"
+              >
+                <Copy size={10} /> Kopiera
+              </button>
+            )}
+
+            <button
+              onClick={() => setShowStartFinish(!showStartFinish)}
+              className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${showStartFinish ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
+            >
+              ▸◼ {showStartFinish ? 'Start/Mål: PÅ' : 'Start/Mål'}
+            </button>
+
+            <button
+              onClick={() => setShowDistances(!showDistances)}
+              className={`ml-auto text-xs px-2 py-0.5 rounded-full border transition-colors ${showDistances ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
+            >
+              {showDistances ? '📏 Mått på' : '📏 Mått av'}
+            </button>
+          </div>
+
+          {/* Measure result */}
+          {measureMode && measurePoints.length === 2 && (
+            <div className="mb-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2 text-xs text-foreground flex items-center gap-2">
+              <Ruler size={14} className="text-yellow-600" />
+              <span className="font-semibold">
+                {(Math.sqrt(
+                  Math.pow(measurePoints[0].x - measurePoints[1].x, 2) +
+                  Math.pow(measurePoints[0].y - measurePoints[1].y, 2)
+                ) * METERS_PER_PX).toFixed(1)} m
+              </span>
+              <span className="text-muted-foreground">— Klicka för att mäta igen</span>
             </div>
           )}
-        </div>
+
+          {/* Color theme panel */}
+          {showColorPanel && (
+            <ObstacleColorPanel
+              activeThemeId={activeThemeId}
+              currentTheme={currentTheme}
+              customOverrides={customOverrides}
+              onSelectPreset={handleSelectPreset}
+              onSetTypeColor={handleSetTypeColor}
+              onResetAll={handleResetColors}
+              onClose={() => setShowColorPanel(false)}
+            />
+          )}
+
+          {/* Color theme toggle button + reset */}
+          {!showColorPanel && (
+            <div className="flex items-center gap-3 mb-2">
+              <button
+                onClick={() => setShowColorPanel(true)}
+                className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Palette size={12} />
+                <span>Hinderfärger ({PRESET_THEMES.find(p => p.id === activeThemeId)?.label ?? 'Anpassad'})</span>
+              </button>
+              {(activeThemeId !== 'standard' || Object.keys(customOverrides).length > 0) && (
+                <button
+                  onClick={handleResetColors}
+                  className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  <RotateCcw size={10} /> Återställ
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Numbering toolbar */}
+          {numberingMode && (
+            <div className="mb-3 bg-blue-500/5 border border-blue-500/20 rounded-lg p-2">
+              <div className="flex items-center gap-1 mb-1.5">
+                <Hash size={12} className="text-blue-600" />
+                <span className="text-xs font-semibold text-foreground">Numreringsläge</span>
+                <span className="text-[10px] text-muted-foreground ml-1">– Tryck var som helst på banan för att placera nummer. Dra för att flytta.</span>
+              </div>
+              {numberingToolbar(false)}
+            </div>
+          )}
+
+          {/* Selected obstacle controls */}
+          {selectedObs && !numberingMode && (
+            <div className="flex gap-2 mb-3 items-center flex-wrap bg-card rounded-lg p-2 shadow-card border border-border">
+              <Button variant="outline" size="sm" onClick={rotateSelected} className="gap-1 h-8">
+                <RotateCcw size={14} /> 15°
+              </Button>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-muted-foreground">Grader:</span>
+                <Input
+                  type="number"
+                  value={Math.round(selectedObs.rotation)}
+                  onChange={e => setRotationManual(parseInt(e.target.value) || 0)}
+                  className="w-14 h-7 text-xs text-center"
+                />
+              </div>
+              <Button variant="outline" size="sm" onClick={deleteSelected} className="gap-1 h-8 text-destructive">
+                <Trash2 size={14} />
+              </Button>
+
+              <div className="flex items-center gap-1 ml-2">
+                <span className="text-[10px] text-muted-foreground">Nr:</span>
+                {selectedObs.numbers.length > 0 && (
+                  <div className="flex gap-0.5">
+                    {[...selectedObs.numbers].sort((a, b) => a - b).map(n => (
+                      <button
+                        key={n}
+                        onClick={() => removeNumberFromSelected(n)}
+                        className="text-xs font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded hover:bg-destructive/10 hover:text-destructive transition-colors"
+                        title={`Klicka för att ta bort ${n}`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <Input
+                  type="number"
+                  min={1}
+                  value={numberInput}
+                  onChange={e => setNumberInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { addNumberToSelected(parseInt(numberInput) || 0); setNumberInput(''); } }}
+                  placeholder="+"
+                  className="w-10 h-7 text-xs text-center"
+                />
+                <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => { addNumberToSelected(parseInt(numberInput) || 0); setNumberInput(''); }} disabled={!numberInput}>
+                  <Plus size={12} />
+                </Button>
+              </div>
+
+               {selectedObs.type === 'tunnel' && (
+                <>
+                  <div className="flex items-center gap-1 ml-2">
+                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={toggleTunnelLength}>
+                      {selectedObs.tunnelLength || 4}m
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground">Böj:</span>
+                    <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateTunnelBend(-15)}>
+                      <Minus size={12} />
+                    </Button>
+                    <span className="text-xs font-medium w-10 text-center text-foreground">{selectedObs.bendAngle || 0}°</span>
+                    <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateTunnelBend(15)}>
+                      <Plus size={12} />
+                    </Button>
+                  </div>
+                  <div className="flex gap-0.5 flex-wrap">
+                    {[0, 45, 90, 135, 180, 270].map(a => (
+                      <button
+                        key={a}
+                        onClick={() => setTunnelBend(a)}
+                        className={`text-[9px] px-1.5 py-0.5 rounded border transition-colors ${
+                          (selectedObs.bendAngle || 0) === a
+                            ? 'bg-primary/15 border-primary text-primary'
+                            : 'bg-secondary border-border text-muted-foreground hover:border-primary/50'
+                        }`}
+                      >
+                        {a === 0 ? 'Rak' : a === 180 ? 'U' : `${a}°`}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1 w-full">
+                    <input
+                      type="range"
+                      min={-360}
+                      max={360}
+                      step={5}
+                      value={selectedObs.bendAngle || 0}
+                      onChange={e => setTunnelBend(Number(e.target.value))}
+                      className="flex-1 h-1.5 accent-primary"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </>
       )}
 
-      {/* Toolbar row 2 */}
-      <div className="flex gap-1.5 mb-3 items-center flex-wrap">
-        <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportPNG(); }} disabled={obstacles.length === 0}>
-          <Download size={12} /> PNG {!isPremium && <PremiumBadge />}
-        </Button>
-        <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportJSON(); }} disabled={obstacles.length === 0}>
-          <Download size={12} /> JSON {!isPremium && <PremiumBadge />}
-        </Button>
-        <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => fileInputRef.current?.click()}>
-          <Upload size={12} /> Importera
-        </Button>
-        <input ref={fileInputRef} type="file" accept=".json" onChange={importJSON} className="hidden" />
-
-        <div className="h-4 w-px bg-border mx-1" />
-
-        <button
-          onClick={() => { setDrawingMode(!drawingMode); setNumberingMode(false); if (drawingMode) setIsDrawing(false); }}
-          className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${drawingMode ? 'bg-orange-500/15 border-orange-500 text-orange-600' : 'bg-secondary border-border text-muted-foreground'}`}
-        >
-          <Pencil size={10} /> {drawingMode ? 'Rita: PÅ' : 'Förarlinje'}
-        </button>
-
-        {(drawingMode || handlerPath.length > 0) && (
-          <>
-            <Select value={handlerColor} onValueChange={setHandlerColor}>
-              <SelectTrigger className="h-6 w-16 text-[10px] border-none px-1">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: handlerColor }} />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                {HANDLER_COLORS.map(c => (
-                  <SelectItem key={c.value} value={c.value} className="text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c.value }} />
-                      {c.label}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <button
-              onClick={() => setHandlerDashed(!handlerDashed)}
-              className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${handlerDashed ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
-            >
-              {handlerDashed ? '- - -' : '───'}
-            </button>
-          </>
-        )}
-        {handlerPath.length > 0 && (
-          <button onClick={() => setHandlerPath([])} className="text-xs px-2 py-0.5 rounded-full border border-border text-muted-foreground hover:text-destructive flex items-center gap-1">
-            <Eraser size={10} /> Radera linje
-          </button>
-        )}
-
-        <div className="h-4 w-px bg-border mx-1" />
-
-        <button
-          onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); setMeasureMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } }}
-          className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${numberingMode ? 'bg-blue-500/15 border-blue-500 text-blue-600' : 'bg-secondary border-border text-muted-foreground'}`}
-        >
-          <Hash size={10} /> {numberingMode ? 'Numrera bana' : 'Numrera bana'}
-        </button>
-
-        <button
-          onClick={() => { setMeasureMode(!measureMode); setDrawingMode(false); setNumberingMode(false); setMeasurePoints([]); }}
-          className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${measureMode ? 'bg-yellow-500/15 border-yellow-500 text-yellow-600' : 'bg-secondary border-border text-muted-foreground'}`}
-        >
-          <Ruler size={10} /> {measureMode ? 'Mät: PÅ' : 'Mät'}
-        </button>
-
-        {selected && (
-          <button
-            onClick={copySelected}
-            className="text-xs px-2 py-0.5 rounded-full border border-border bg-secondary text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
-            title="Kopiera hinder (Ctrl+C, sedan Ctrl+V)"
-          >
-            <Copy size={10} /> Kopiera
-          </button>
-        )}
-
-        <button
-          onClick={() => setShowStartFinish(!showStartFinish)}
-          className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${showStartFinish ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
-        >
-          ▸◼ {showStartFinish ? 'Start/Mål: PÅ' : 'Start/Mål'}
-        </button>
-
-        <button
-          onClick={() => setShowDistances(!showDistances)}
-          className={`ml-auto text-xs px-2 py-0.5 rounded-full border transition-colors ${showDistances ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
-        >
-          {showDistances ? '📏 Mått på' : '📏 Mått av'}
-        </button>
-      </div>
-
-      {/* Measure result */}
-      {measureMode && measurePoints.length === 2 && (
-        <div className="mb-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2 text-xs text-foreground flex items-center gap-2">
-          <Ruler size={14} className="text-yellow-600" />
-          <span className="font-semibold">
-            {(Math.sqrt(
-              Math.pow(measurePoints[0].x - measurePoints[1].x, 2) +
-              Math.pow(measurePoints[0].y - measurePoints[1].y, 2)
-            ) * METERS_PER_PX).toFixed(1)} m
-          </span>
-          <span className="text-muted-foreground">— Klicka för att mäta igen</span>
-        </div>
-      )}
-
-      {/* Color theme panel */}
-      {showColorPanel && (
+      {/* Color theme panel (mobile) */}
+      {isMobile && showColorPanel && (
         <ObstacleColorPanel
           activeThemeId={activeThemeId}
           currentTheme={currentTheme}
@@ -2597,141 +3091,11 @@ export default function CoursePlannerPage() {
         />
       )}
 
-      {/* Color theme toggle button + reset */}
-      {!showColorPanel && (
-        <div className="flex items-center gap-3 mb-2">
-          <button
-            onClick={() => setShowColorPanel(true)}
-            className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Palette size={12} />
-            <span>Hinderfärger ({PRESET_THEMES.find(p => p.id === activeThemeId)?.label ?? 'Anpassad'})</span>
-          </button>
-          {(activeThemeId !== 'standard' || Object.keys(customOverrides).length > 0) && (
-            <button
-              onClick={handleResetColors}
-              className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive transition-colors"
-            >
-              <RotateCcw size={10} /> Återställ
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Numbering toolbar */}
-      {numberingMode && (
-        <div className="mb-3 bg-blue-500/5 border border-blue-500/20 rounded-lg p-2">
-          <div className="flex items-center gap-1 mb-1.5">
-            <Hash size={12} className="text-blue-600" />
-            <span className="text-xs font-semibold text-foreground">Numreringsläge</span>
-            <span className="text-[10px] text-muted-foreground ml-1">– Tryck var som helst på banan för att placera nummer. Dra för att flytta.</span>
-          </div>
-          {numberingToolbar(false)}
-        </div>
-      )}
-
-      {/* Selected obstacle controls */}
-      {selectedObs && !numberingMode && (
-        <div className="flex gap-2 mb-3 items-center flex-wrap bg-card rounded-lg p-2 shadow-card border border-border">
-          <Button variant="outline" size="sm" onClick={rotateSelected} className="gap-1 h-8">
-            <RotateCcw size={14} /> 15°
-          </Button>
-          <div className="flex items-center gap-1">
-            <span className="text-[10px] text-muted-foreground">Grader:</span>
-            <Input
-              type="number"
-              value={Math.round(selectedObs.rotation)}
-              onChange={e => setRotationManual(parseInt(e.target.value) || 0)}
-              className="w-14 h-7 text-xs text-center"
-            />
-          </div>
-          <Button variant="outline" size="sm" onClick={deleteSelected} className="gap-1 h-8 text-destructive">
-            <Trash2 size={14} />
-          </Button>
-
-          <div className="flex items-center gap-1 ml-2">
-            <span className="text-[10px] text-muted-foreground">Nr:</span>
-            {selectedObs.numbers.length > 0 && (
-              <div className="flex gap-0.5">
-                {[...selectedObs.numbers].sort((a, b) => a - b).map(n => (
-                  <button
-                    key={n}
-                    onClick={() => removeNumberFromSelected(n)}
-                    className="text-xs font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded hover:bg-destructive/10 hover:text-destructive transition-colors"
-                    title={`Klicka för att ta bort ${n}`}
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
-            )}
-            <Input
-              type="number"
-              min={1}
-              value={numberInput}
-              onChange={e => setNumberInput(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') { addNumberToSelected(parseInt(numberInput) || 0); setNumberInput(''); } }}
-              placeholder="+"
-              className="w-10 h-7 text-xs text-center"
-            />
-            <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => { addNumberToSelected(parseInt(numberInput) || 0); setNumberInput(''); }} disabled={!numberInput}>
-              <Plus size={12} />
-            </Button>
-          </div>
-
-           {selectedObs.type === 'tunnel' && (
-            <>
-              <div className="flex items-center gap-1 ml-2">
-                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={toggleTunnelLength}>
-                  {selectedObs.tunnelLength || 4}m
-                </Button>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-[10px] text-muted-foreground">Böj:</span>
-                <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateTunnelBend(-15)}>
-                  <Minus size={12} />
-                </Button>
-                <span className="text-xs font-medium w-10 text-center text-foreground">{selectedObs.bendAngle || 0}°</span>
-                <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateTunnelBend(15)}>
-                  <Plus size={12} />
-                </Button>
-              </div>
-              <div className="flex gap-0.5 flex-wrap">
-                {[0, 45, 90, 135, 180, 270].map(a => (
-                  <button
-                    key={a}
-                    onClick={() => setTunnelBend(a)}
-                    className={`text-[9px] px-1.5 py-0.5 rounded border transition-colors ${
-                      (selectedObs.bendAngle || 0) === a
-                        ? 'bg-primary/15 border-primary text-primary'
-                        : 'bg-secondary border-border text-muted-foreground hover:border-primary/50'
-                    }`}
-                  >
-                    {a === 0 ? 'Rak' : a === 180 ? 'U' : `${a}°`}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-1 w-full">
-                <input
-                  type="range"
-                  min={-360}
-                  max={360}
-                  step={5}
-                  value={selectedObs.bendAngle || 0}
-                  onChange={e => setTunnelBend(Number(e.target.value))}
-                  className="flex-1 h-1.5 accent-primary"
-                />
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
       {/* Canvas */}
       <div
         ref={containerRef}
         className="bg-card rounded-xl shadow-elevated overflow-hidden mb-3 relative"
-        style={{ touchAction: 'none', minHeight: isMobile ? 300 : 500, height: isDesktop ? 'calc(100vh - 340px)' : undefined }}
+        style={{ touchAction: 'none', minHeight: isMobile ? 350 : 500, height: isMobile ? 'calc(100vh - 280px)' : isDesktop ? 'calc(100vh - 340px)' : undefined }}
         onMouseDown={handlePointerDown}
         onMouseMove={handlePointerMove}
         onMouseUp={handlePointerUp}
@@ -2805,18 +3169,18 @@ export default function CoursePlannerPage() {
       </div>
 
       {/* Quick-select obstacle palette (portrait/desktop) */}
-      <div className="sticky bottom-16 bg-background/95 backdrop-blur-sm border-t border-border pt-2 pb-2 -mx-4 px-4 rounded-t-xl shadow-elevated z-10">
+      <div className={`sticky bottom-16 bg-background/95 backdrop-blur-sm border-t border-border pt-2 pb-2 -mx-4 px-4 rounded-t-xl shadow-elevated z-10 ${isMobile ? 'pb-3' : ''}`}>
         {obstaclePalette(false)}
       </div>
 
-      <p className="text-xs text-muted-foreground text-center mt-2">
-        Dra hinder för att flytta · Dra i ⟳ för att rotera · Scrollhjul/pinch för att zooma · Shift+klick = markera flera
-        {!isMobile && (
+      {!isMobile && (
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          Dra hinder för att flytta · Dra i ⟳ för att rotera · Scrollhjul/pinch för att zooma · Shift+klick = markera flera
           <span className="block mt-0.5 text-[10px]">
             Del = radera · Ctrl+Z/Y = ångra/gör om · Ctrl+C/V = kopiera · Ctrl+S = spara · Escape = avmarkera
           </span>
-        )}
-      </p>
+        </p>
+      )}
       </PremiumGate>
     </PageContainer>
     <CoursePlannerTutorial forceOpen={showTutorial} onClose={() => setShowTutorial(false)} />

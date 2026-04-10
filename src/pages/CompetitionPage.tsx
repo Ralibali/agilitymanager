@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PageContainer } from '@/components/PageContainer';
 import { AddCompetitionDialog } from '@/components/AddCompetitionDialog';
 import { DogAvatar } from '@/components/DogAvatar';
@@ -21,6 +21,29 @@ import CompetitionResultsViewer from '@/components/competitions/CompetitionResul
 import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAttribution';
 import HistoricalResultsStats from '@/components/competitions/HistoricalResultsStats';
 import { useAuth } from '@/contexts/AuthContext';
+
+type HistoricalDogResult = {
+  dog_name: string;
+  reg_name: string;
+  reg_nr: string;
+  breed: string;
+  handler: string;
+  results: {
+    date: string;
+    competition: string;
+    discipline: string;
+    class: string;
+    size: string;
+    placement: number | null;
+    time_sec: number | null;
+    faults: number | null;
+    passed: boolean;
+    disqualified: boolean;
+  }[];
+  searched_dog: string;
+  dog_id: string;
+  search_only?: boolean;
+};
 
 const CHECKLIST_ITEMS = [
   'Vaccinationsintyg',
@@ -46,7 +69,7 @@ export default function CompetitionPage() {
   const [competitionUrlMap, setCompetitionUrlMap] = useState<Record<string, string>>({});
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [handlerName, setHandlerName] = useState<{ first: string; last: string } | null>(null);
-  const [historicalResults, setHistoricalResults] = useState<any[]>([]);
+  const [historicalResults, setHistoricalResults] = useState<HistoricalDogResult[]>([]);
   const [historicalLoading, setHistoricalLoading] = useState(false);
   const [historicalError, setHistoricalError] = useState<string | null>(null);
   const [historicalFetched, setHistoricalFetched] = useState(false);
@@ -59,6 +82,14 @@ export default function CompetitionPage() {
   const [newItem, setNewItem] = useState('');
   const [shareResult, setShareResult] = useState<CompetitionResult | null>(null);
   const { user } = useAuth();
+  const uniqueDogs = useMemo(() => {
+    const seen = new Set<string>();
+    return dogs.filter((dog) => {
+      if (seen.has(dog.id)) return false;
+      seen.add(dog.id);
+      return true;
+    });
+  }, [dogs]);
   
   const refresh = async () => {
     const [d, r, p] = await Promise.all([
@@ -122,16 +153,28 @@ export default function CompetitionPage() {
 
   // Auto-search historical results - parallel calls, show results as they arrive
   useEffect(() => {
-    if (!handlerName || dogs.length === 0 || historicalFetched) return;
+    if (!handlerName || uniqueDogs.length === 0 || historicalFetched) return;
     setHistoricalFetched(true);
     setHistoricalLoading(true);
     setHistoricalError(null);
+    setHistoricalResults([]);
 
     let completed = 0;
-    const total = dogs.length;
+    const total = uniqueDogs.length;
+
+    const upsertHistoricalResult = (nextResult: HistoricalDogResult) => {
+      setHistoricalResults((prev) => {
+        const next = prev.filter((item) => item.dog_id !== nextResult.dog_id);
+        next.push(nextResult);
+
+        return uniqueDogs
+          .map((dog) => next.find((item) => item.dog_id === dog.id))
+          .filter(Boolean) as HistoricalDogResult[];
+      });
+    };
 
     // Launch all searches in parallel
-    const promises = dogs.map(async (dog) => {
+    const promises = uniqueDogs.map(async (dog) => {
       try {
         const { data, error } = await supabase.functions.invoke('search-handler-results', {
           body: { firstName: handlerName.first, lastName: handlerName.last, dogName: dog.name },
@@ -143,9 +186,8 @@ export default function CompetitionPage() {
           return null;
         }
         if (data?.success && data.data) {
-          const result = { ...data.data, searched_dog: dog.name, dog_id: dog.id };
-          // Add result immediately as it arrives
-          setHistoricalResults(prev => [...prev, result]);
+          const result: HistoricalDogResult = { ...data.data, searched_dog: dog.name, dog_id: dog.id };
+          upsertHistoricalResult(result);
           return result;
         }
         return null;
@@ -160,7 +202,7 @@ export default function CompetitionPage() {
     Promise.allSettled(promises).then(() => {
       setHistoricalLoading(false);
     });
-  }, [handlerName, dogs, historicalFetched]);
+  }, [handlerName, uniqueDogs, historicalFetched]);
 
   // Match logged results against competitions table to find agilitydata URLs
   useEffect(() => {
@@ -441,7 +483,7 @@ export default function CompetitionPage() {
                 <div className="text-center py-4">
                   <Loader2 size={18} className="mx-auto mb-1 animate-spin text-primary" />
                   <p className="text-xs text-muted-foreground">
-                    Söker resultat på agilitydata.se ({historicalResults.length}/{dogs.length} hundar klara)...
+                    Söker resultat på agilitydata.se ({historicalResults.length}/{uniqueDogs.length} hundar klara)...
                   </p>
                   <p className="text-[10px] text-muted-foreground mt-1">Det kan ta upp till 30 sekunder</p>
                 </div>

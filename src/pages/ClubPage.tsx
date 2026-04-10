@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Users, MapPin, Crown, MessageSquare, Calendar, UserPlus, LogOut, Pin, ChevronLeft, Trash2 } from 'lucide-react';
+import { Plus, Search, Users, MapPin, Crown, MessageSquare, Calendar, UserPlus, LogOut, Pin, ChevronLeft, Trash2, UsersRound } from 'lucide-react';
+import { ClubGroupsTab } from '@/components/clubs/ClubGroupsTab';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -371,6 +372,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
         <TabsList className="w-full">
           <TabsTrigger value="posts" className="flex-1 text-xs gap-1"><MessageSquare size={12} /> Inlägg</TabsTrigger>
           <TabsTrigger value="calendar" className="flex-1 text-xs gap-1"><Calendar size={12} /> Kalender</TabsTrigger>
+          <TabsTrigger value="groups" className="flex-1 text-xs gap-1"><UsersRound size={12} /> Grupper</TabsTrigger>
           <TabsTrigger value="members" className="flex-1 text-xs gap-1"><Users size={12} /> Medlemmar</TabsTrigger>
         </TabsList>
 
@@ -456,6 +458,17 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
               </div>
             </div>
           ))}
+        </TabsContent>
+
+        {/* Groups */}
+        <TabsContent value="groups" className="mt-3">
+          <ClubGroupsTab
+            clubId={club.id}
+            userId={userId}
+            isAdmin={isAdmin}
+            profiles={profiles}
+            acceptedMemberIds={acceptedMembers.map(m => m.user_id)}
+          />
         </TabsContent>
 
         {/* Members */}

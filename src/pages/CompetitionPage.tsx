@@ -44,6 +44,11 @@ export default function CompetitionPage() {
   const [activeExternalUrl, setActiveExternalUrl] = useState<string | null>(null);
   const [competitionUrlMap, setCompetitionUrlMap] = useState<Record<string, string>>({});
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+  const [handlerName, setHandlerName] = useState<{ first: string; last: string } | null>(null);
+  const [historicalResults, setHistoricalResults] = useState<any[]>([]);
+  const [historicalLoading, setHistoricalLoading] = useState(false);
+  const [historicalError, setHistoricalError] = useState<string | null>(null);
+  const [historicalFetched, setHistoricalFetched] = useState(false);
   const [customItems, setCustomItems] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('custom-checklist');

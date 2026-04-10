@@ -3,6 +3,7 @@ import { PageContainer } from '@/components/PageContainer';
 import { AddDogDialog } from '@/components/AddDogDialog';
 import { AddTrainingDialog } from '@/components/AddTrainingDialog';
 import { AddCompetitionDialog } from '@/components/AddCompetitionDialog';
+import { OnboardingWizard } from '@/components/OnboardingWizard';
 import { DogAvatar } from '@/components/DogAvatar';
 import { MeritBadge, MeritProgress, calculateMerit } from '@/components/MeritTracker';
 import { store } from '@/lib/store';
@@ -48,6 +49,13 @@ const Index = () => {
       if (data?.display_name) setDisplayName(data.display_name);
     });
   }, [user?.id]);
+
+  // Onboarding check
+  const showOnboarding = !loading && dogs.length === 0 && user?.user_metadata?.onboarding_complete !== true;
+
+  if (showOnboarding) {
+    return <OnboardingWizard onComplete={refresh} />;
+  }
 
   if (loading) {
     return <PageContainer><div className="flex items-center justify-center min-h-[60vh] text-muted-foreground">Laddar...</div></PageContainer>;

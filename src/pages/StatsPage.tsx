@@ -417,6 +417,8 @@ function DogComparison({ competitions, dogs }: { competitions: CompetitionResult
     ];
   }, [competitions, dogIds]);
 
+  if (dogIds.length < 2) return null;
+
   return (
     <div className="bg-card rounded-xl p-4 shadow-card mb-4">
       <h3 className="font-display font-semibold text-foreground mb-3 flex items-center gap-2 text-sm">

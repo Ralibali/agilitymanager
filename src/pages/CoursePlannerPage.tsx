@@ -108,6 +108,7 @@ const CANVAS_SIZES = [
   { label: '20×30 m', width: 20 * PX_PER_METER, height: 30 * PX_PER_METER },
   { label: '20×40 m', width: 20 * PX_PER_METER, height: 40 * PX_PER_METER },
   { label: '25×40 m', width: 25 * PX_PER_METER, height: 40 * PX_PER_METER },
+  { label: '30×30 m (Hoopers)', width: 30 * PX_PER_METER, height: 30 * PX_PER_METER },
   { label: '30×40 m', width: 30 * PX_PER_METER, height: 40 * PX_PER_METER },
 ];
 

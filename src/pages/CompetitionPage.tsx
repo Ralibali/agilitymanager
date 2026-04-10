@@ -100,6 +100,56 @@ export default function CompetitionPage() {
     })();
   }, [user]);
 
+  // Fetch handler name from profile
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('handler_first_name, handler_last_name')
+      .eq('user_id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          const first = (data as any).handler_first_name || '';
+          const last = (data as any).handler_last_name || '';
+          if (first || last) {
+            setHandlerName({ first, last });
+          }
+        }
+      });
+  }, [user]);
+
+  // Auto-search historical results when handler name is set and dogs are loaded
+  useEffect(() => {
+    if (!handlerName || dogs.length === 0 || historicalFetched) return;
+    setHistoricalFetched(true);
+    setHistoricalLoading(true);
+    setHistoricalError(null);
+
+    (async () => {
+      try {
+        const allResults: any[] = [];
+        // Search for each dog
+        for (const dog of dogs) {
+          const { data, error } = await supabase.functions.invoke('search-handler-results', {
+            body: { firstName: handlerName.first, lastName: handlerName.last, dogName: dog.name },
+          });
+          if (error) {
+            console.error('Search error for', dog.name, error);
+            continue;
+          }
+          if (data?.success && data.data?.dogs?.length > 0) {
+            allResults.push(...data.data.dogs.map((d: any) => ({ ...d, searched_dog: dog.name, dog_id: dog.id })));
+          }
+        }
+        setHistoricalResults(allResults);
+      } catch (e: any) {
+        setHistoricalError(e.message || 'Sökning misslyckades');
+      } finally {
+        setHistoricalLoading(false);
+      }
+    })();
+
   // Match logged results against competitions table to find agilitydata URLs
   useEffect(() => {
     if (results.length === 0) return;

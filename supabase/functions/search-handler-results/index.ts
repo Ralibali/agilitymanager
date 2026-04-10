@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
     actions.push({ type: 'wait', milliseconds: 4000 });
     // Click the first dog result link to navigate to results page
     actions.push({ type: 'click', selector: '#SearchDogsAdminGridContent tbody tr:first-child td:last-child a' });
-    actions.push({ type: 'wait', milliseconds: 5000 });
+    actions.push({ type: 'wait', milliseconds: 8000 });
 
     const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',

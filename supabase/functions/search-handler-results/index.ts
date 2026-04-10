@@ -97,8 +97,8 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       console.error('Firecrawl error:', JSON.stringify(data));
-      if (data?.code === 'SCRAPE_ACTION_ERROR') {
-        console.log('Action failed, trying search-only mode...');
+      if (data?.code === 'SCRAPE_ACTION_ERROR' || data?.code === 'SCRAPE_TIMEOUT') {
+        console.log('Action failed/timeout, trying search-only mode...');
         return await searchOnly(apiKey, firstName, lastName, dogName);
       }
       return new Response(
@@ -108,9 +108,23 @@ Deno.serve(async (req) => {
     }
 
     const html = data?.data?.html || '';
-    console.log('Result page HTML length:', html.length);
+    const markdown = data?.data?.markdown || '';
+    console.log('Result page HTML length:', html.length, 'Markdown length:', markdown.length);
+    if (markdown.length > 0) {
+      console.log('Markdown preview (first 2000 chars):', markdown.substring(0, 2000));
+    }
 
-    const dogInfo = parseDogResultsPage(html);
+    let dogInfo = parseDogResultsPage(html);
+
+    // If HTML parsing found no results, try parsing from markdown
+    if (dogInfo.results.length === 0 && markdown.length > 0) {
+      console.log('HTML parsing found 0 results, trying markdown parsing...');
+      const markdownResults = parseMarkdownResults(markdown);
+      if (markdownResults.length > 0) {
+        dogInfo.results = markdownResults;
+        console.log(`Markdown parsing found ${markdownResults.length} results`);
+      }
+    }
 
     return new Response(
       JSON.stringify({ success: true, data: dogInfo }),

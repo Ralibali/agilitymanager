@@ -2312,6 +2312,7 @@ export default function CoursePlannerPage() {
 
       {/* Toolbar row 1 */}
       <div className="flex gap-2 mb-2 items-center flex-wrap">
+        <TutorialButton onClick={() => setShowTutorial(true)} />
         <Select
           value={`${canvasSize.width}x${canvasSize.height}`}
           onValueChange={(v) => {

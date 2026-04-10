@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ExternalLink, Link, Loader2 } from 'lucide-react';
+import { ExternalLink, Link, Loader2, Sparkles, Code } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Dog } from '@/types';
 
@@ -24,10 +24,13 @@ interface Props {
   onImported: (result: HistoricalDogResult) => void;
 }
 
+type ImportMethod = 'visual-ai' | 'html-parse';
+
 export default function ImportResultsFromUrl({ dogs, userId, onImported }: Props) {
   const [url, setUrl] = useState('');
   const [selectedDogId, setSelectedDogId] = useState<string>(dogs.length === 1 ? dogs[0].id : '');
   const [loading, setLoading] = useState(false);
+  const [method, setMethod] = useState<ImportMethod>('visual-ai');
 
   const handleImport = async () => {
     const trimmedUrl = url.trim();
@@ -46,9 +49,22 @@ export default function ImportResultsFromUrl({ dogs, userId, onImported }: Props
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('search-handler-results', {
-        body: { dogUrl: trimmedUrl },
-      });
+      let data: any;
+      let error: any;
+
+      if (method === 'visual-ai') {
+        const res = await supabase.functions.invoke('visual-extract-results', {
+          body: { url: trimmedUrl },
+        });
+        data = res.data;
+        error = res.error;
+      } else {
+        const res = await supabase.functions.invoke('search-handler-results', {
+          body: { dogUrl: trimmedUrl },
+        });
+        data = res.data;
+        error = res.error;
+      }
 
       if (error || !data?.success || !data.data) {
         throw new Error(data?.error || 'Kunde inte hämta resultat');
@@ -78,7 +94,8 @@ export default function ImportResultsFromUrl({ dogs, userId, onImported }: Props
       );
 
       onImported(result);
-      toast.success(`Importerade ${result.results.length} resultat för ${result.dog_name || dog?.name}`);
+      const methodLabel = data.method === 'visual-ai' ? ' (AI)' : '';
+      toast.success(`Importerade ${result.results.length} resultat för ${result.dog_name || dog?.name}${methodLabel}`);
       setUrl('');
     } catch (e: any) {
       toast.error(e.message || 'Import misslyckades');
@@ -121,6 +138,34 @@ export default function ImportResultsFromUrl({ dogs, userId, onImported }: Props
         </Select>
       )}
 
+      {/* Method toggle */}
+      <div className="flex gap-1">
+        <button
+          type="button"
+          onClick={() => setMethod('visual-ai')}
+          disabled={loading}
+          className={`flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-colors ${
+            method === 'visual-ai'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+          }`}
+        >
+          <Sparkles size={10} /> AI-extraktion
+        </button>
+        <button
+          type="button"
+          onClick={() => setMethod('html-parse')}
+          disabled={loading}
+          className={`flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-colors ${
+            method === 'html-parse'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+          }`}
+        >
+          <Code size={10} /> HTML-parsning
+        </button>
+      </div>
+
       <Button
         size="sm"
         className="w-full gap-1.5 text-xs"
@@ -128,7 +173,7 @@ export default function ImportResultsFromUrl({ dogs, userId, onImported }: Props
         disabled={loading || !url.trim() || !selectedDogId}
       >
         {loading ? (
-          <><Loader2 size={12} className="animate-spin" /> Hämtar resultat...</>
+          <><Loader2 size={12} className="animate-spin" /> {method === 'visual-ai' ? 'AI analyserar sidan...' : 'Hämtar resultat...'}</>
         ) : (
           <><Link size={12} /> Importera resultat</>
         )}

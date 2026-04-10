@@ -29,9 +29,10 @@ interface CompetitionResults {
 interface Props {
   url: string;
   friendNames?: string[];
+  autoFetch?: boolean;
 }
 
-export default function CompetitionResultsViewer({ url, friendNames = [] }: Props) {
+export default function CompetitionResultsViewer({ url, friendNames = [], autoFetch = false }: Props) {
   const [data, setData] = useState<CompetitionResults | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

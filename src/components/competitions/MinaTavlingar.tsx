@@ -104,7 +104,7 @@ export function MinaTavlingar() {
             )}
             {daysToReg !== null && daysToReg > 0 && (
               <a
-                href={comp.source_url || 'https://agilitydata.se/taevlingar/'}
+                href={comp.source_url || `https://agilitydata.se/taevlingar/${comp.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >

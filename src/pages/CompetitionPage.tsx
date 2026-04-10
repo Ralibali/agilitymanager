@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Dog, CompetitionResult, PlannedCompetition } from '@/types';
 import { format, differenceInDays } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { CheckCircle2, XCircle, Medal, ExternalLink, Calendar, CheckSquare, Square, Trash2, Plus, X, Download, FileText, Send } from 'lucide-react';
+import { CheckCircle2, XCircle, Medal, ExternalLink, Calendar, CheckSquare, Square, Trash2, Plus, X, Download, FileText, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { downloadCsv } from '@/lib/csv';
 import { downloadPdf } from '@/lib/pdf';
@@ -44,6 +44,11 @@ export default function CompetitionPage() {
   const [activeExternalUrl, setActiveExternalUrl] = useState<string | null>(null);
   const [competitionUrlMap, setCompetitionUrlMap] = useState<Record<string, string>>({});
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+  const [handlerName, setHandlerName] = useState<{ first: string; last: string } | null>(null);
+  const [historicalResults, setHistoricalResults] = useState<any[]>([]);
+  const [historicalLoading, setHistoricalLoading] = useState(false);
+  const [historicalError, setHistoricalError] = useState<string | null>(null);
+  const [historicalFetched, setHistoricalFetched] = useState(false);
   const [customItems, setCustomItems] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('custom-checklist');
@@ -94,6 +99,57 @@ export default function CompetitionPage() {
       }
     })();
   }, [user]);
+
+  // Fetch handler name from profile
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('handler_first_name, handler_last_name')
+      .eq('user_id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          const first = (data as any).handler_first_name || '';
+          const last = (data as any).handler_last_name || '';
+          if (first || last) {
+            setHandlerName({ first, last });
+          }
+        }
+      });
+  }, [user]);
+
+  // Auto-search historical results when handler name is set and dogs are loaded
+  useEffect(() => {
+    if (!handlerName || dogs.length === 0 || historicalFetched) return;
+    setHistoricalFetched(true);
+    setHistoricalLoading(true);
+    setHistoricalError(null);
+
+    (async () => {
+      try {
+        const allResults: any[] = [];
+        // Search for each dog
+        for (const dog of dogs) {
+          const { data, error } = await supabase.functions.invoke('search-handler-results', {
+            body: { firstName: handlerName.first, lastName: handlerName.last, dogName: dog.name },
+          });
+          if (error) {
+            console.error('Search error for', dog.name, error);
+            continue;
+          }
+          if (data?.success && data.data?.dogs?.length > 0) {
+            allResults.push(...data.data.dogs.map((d: any) => ({ ...d, searched_dog: dog.name, dog_id: dog.id })));
+          }
+        }
+        setHistoricalResults(allResults);
+      } catch (e: any) {
+        setHistoricalError(e.message || 'Sökning misslyckades');
+      } finally {
+        setHistoricalLoading(false);
+      }
+    })();
+  }, [handlerName, dogs, historicalFetched]);
 
   // Match logged results against competitions table to find agilitydata URLs
   useEffect(() => {
@@ -357,6 +413,87 @@ export default function CompetitionPage() {
                   </motion.div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Historical results from agilitydata.se */}
+          {handlerName && (
+            <div className="mt-6 pt-4 border-t border-border">
+              <h3 className="font-display font-semibold text-foreground text-sm mb-2">
+                🔍 Historiska resultat — {handlerName.first} {handlerName.last}
+              </h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                Automatiskt sökta från agilitydata.se baserat på ditt förarnamn och dina hundar.
+              </p>
+              
+              {historicalLoading && (
+                <div className="text-center py-4">
+                  <Loader2 size={18} className="mx-auto mb-1 animate-spin text-primary" />
+                  <p className="text-xs text-muted-foreground">Söker resultat på agilitydata.se...</p>
+                </div>
+              )}
+
+              {historicalError && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3 text-center">
+                  <p className="text-xs text-muted-foreground">{historicalError}</p>
+                  <Button size="sm" variant="outline" className="mt-2" onClick={() => { setHistoricalFetched(false); }}>
+                    Försök igen
+                  </Button>
+                </div>
+              )}
+
+              {!historicalLoading && !historicalError && historicalResults.length === 0 && historicalFetched && (
+                <p className="text-xs text-muted-foreground text-center py-3">
+                  Inga historiska resultat hittades. Kontrollera att ditt förarnamn stämmer i Inställningar.
+                </p>
+              )}
+
+              {historicalResults.length > 0 && (
+                <div className="space-y-2">
+                  {historicalResults.map((dog, i) => (
+                    <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                      className="bg-card rounded-xl p-3 shadow-card border border-border">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold text-foreground text-sm">{dog.dog_name}</h4>
+                          {dog.reg_name && <p className="text-[11px] text-muted-foreground">{dog.reg_name}</p>}
+                          {dog.breed && <p className="text-[11px] text-muted-foreground">{dog.breed}</p>}
+                          <p className="text-[11px] text-muted-foreground">Sökt med: {dog.searched_dog}</p>
+                        </div>
+                        {dog.results_url && (
+                          <a href={dog.results_url} target="_blank" rel="noopener noreferrer">
+                            <Button size="sm" variant="outline" className="gap-1 text-xs">
+                              Resultat <ExternalLink size={12} />
+                            </Button>
+                          </a>
+                        )}
+                      </div>
+                      {/* Auto-load results if we have a URL */}
+                      {dog.results_url && (
+                        <div className="mt-2 pt-2 border-t border-border">
+                          <CompetitionResultsViewer
+                            url={dog.results_url}
+                            friendNames={friendNames}
+                            autoFetch
+                          />
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-2">
+                <AgilityDataAttribution sourceUrl="https://agilitydata.se/resultat/soek-hund/" />
+              </div>
+            </div>
+          )}
+
+          {!handlerName && (
+            <div className="mt-6 pt-4 border-t border-border text-center">
+              <p className="text-xs text-muted-foreground mb-2">
+                💡 Ange ditt förarnamn i Inställningar för att automatiskt hitta dina resultat från agilitydata.se
+              </p>
             </div>
           )}
 

@@ -4,7 +4,8 @@ import { useAuth, PLANS } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Crown, Sparkles, LogOut, ExternalLink, Check, Loader2, Settings, Moon, Sun, Eye, EyeOff } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Crown, Sparkles, LogOut, ExternalLink, Check, Loader2, Settings, Moon, Sun, Eye, EyeOff, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useSearchParams } from 'react-router-dom';
@@ -202,6 +203,9 @@ export default function SettingsPage() {
       </div>
 
 
+      {/* Handler name for agilitydata.se */}
+      <HandlerNameSettings userId={user?.id} />
+
       {/* Privacy Settings */}
       <PrivacySettings userId={user?.id} />
 
@@ -285,6 +289,76 @@ function PrivacySettings({ userId }: { userId?: string }) {
         </div>
         <Switch checked={showResults} onCheckedChange={(v) => { setShowResults(v); update('show_results_to_friends', v); }} />
       </div>
+    </div>
+  );
+}
+
+function HandlerNameSettings({ userId }: { userId?: string }) {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [loaded, setLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    supabase
+      .from('profiles')
+      .select('handler_first_name, handler_last_name')
+      .eq('user_id', userId)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setFirstName((data as any).handler_first_name || '');
+          setLastName((data as any).handler_last_name || '');
+        }
+        setLoaded(true);
+      });
+  }, [userId]);
+
+  const save = async () => {
+    if (!userId) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ handler_first_name: firstName.trim(), handler_last_name: lastName.trim() } as any)
+      .eq('user_id', userId);
+    setSaving(false);
+    if (error) {
+      toast.error('Kunde inte spara');
+    } else {
+      toast.success('Förarnamn sparat! Dina resultat kan nu hämtas automatiskt.');
+    }
+  };
+
+  if (!loaded) return null;
+
+  return (
+    <div className="bg-card rounded-xl p-4 shadow-card mb-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <User size={16} className="text-primary" />
+        <h3 className="font-display font-semibold text-foreground">Förarnamn</h3>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Ange ditt förnamn och efternamn som du tävlar under. Vi söker automatiskt efter dina resultat på agilitydata.se.
+      </p>
+      <div className="flex gap-2">
+        <Input
+          placeholder="Förnamn"
+          value={firstName}
+          onChange={e => setFirstName(e.target.value)}
+          className="h-9 text-sm"
+        />
+        <Input
+          placeholder="Efternamn"
+          value={lastName}
+          onChange={e => setLastName(e.target.value)}
+          className="h-9 text-sm"
+        />
+      </div>
+      <Button size="sm" onClick={save} disabled={saving || (!firstName.trim() && !lastName.trim())} className="w-full">
+        {saving ? <Loader2 size={14} className="animate-spin mr-1" /> : null}
+        Spara förarnamn
+      </Button>
     </div>
   );
 }

@@ -116,3 +116,42 @@ export const HOOPERS_MIN_DISTANCES: { types: [string, string]; minMeters: number
   { types: ['hoop', 'barrel'], minMeters: 5, label: 'Hoop och Tunna' },
   { types: ['barrel', 'barrel'], minMeters: 5, label: 'Två tunnor' },
 ];
+
+/* ═══ SHoK class rules ═══ */
+
+export type SHoKClass = {
+  label: string;
+  minObstacles: number;
+  maxObstacles: number;
+  doSizeM: number;        // Dirigeringsområde (handler zone) diameter in meters
+  maxHandlerZones: number;
+  canUseTunnel: boolean;
+  canUseGate: boolean;
+  pointsToPromote: number;
+};
+
+export const SHOK_CLASSES: SHoKClass[] = [
+  { label: 'Startklass', minObstacles: 10, maxObstacles: 15, doSizeM: 4, maxHandlerZones: 1, canUseTunnel: false, canUseGate: false, pointsToPromote: 200 },
+  { label: 'Klass 1',    minObstacles: 13, maxObstacles: 20, doSizeM: 3, maxHandlerZones: 2, canUseTunnel: true,  canUseGate: false, pointsToPromote: 300 },
+  { label: 'Klass 2',    minObstacles: 17, maxObstacles: 22, doSizeM: 2, maxHandlerZones: 2, canUseTunnel: true,  canUseGate: true,  pointsToPromote: 500 },
+  { label: 'Klass 3',    minObstacles: 20, maxObstacles: 24, doSizeM: 2, maxHandlerZones: 3, canUseTunnel: true,  canUseGate: true,  pointsToPromote: 0 },
+];
+
+/* ═══ SHoK scoring ═══ */
+
+export type SHoKScoringRule = {
+  code: string;
+  label: string;
+  description: string;
+};
+
+export const SHOK_SCORING: SHoKScoringRule[] = [
+  { code: 'DO',  label: 'Dirigeringsområde',    description: 'Föraren stannar i DO. +10 bonuspoäng per lopp.' },
+  { code: 'BO',  label: 'Bonusområde',          description: 'Föraren stannar i BO istället för att följa med. +5 bonuspoäng.' },
+  { code: 'UL1', label: 'Utökad ledning 1',     description: 'Hunden klarar ett hinder på >5m avstånd. +5 bonuspoäng.' },
+  { code: 'UL2', label: 'Utökad ledning 2',     description: 'Hunden klarar ett hinder på >8m avstånd. +10 bonuspoäng.' },
+  { code: 'UL3', label: 'Utökad ledning 3',     description: 'Hunden klarar ett hinder på >12m avstånd. +15 bonuspoäng.' },
+];
+
+// Standard hoopers arena size
+export const HOOPERS_ARENA_SIZE = { widthM: 30, heightM: 30 };

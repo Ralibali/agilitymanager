@@ -92,6 +92,16 @@ const OBSTACLE_TYPES = [
   { type: 'finish',    label: 'Mål',      symbol: '◼', width: 1.2 * PX_PER_METER, height: 0.1 * PX_PER_METER },
 ];
 
+const HOOPERS_OBSTACLE_TYPES = [
+  { type: 'hoop',           label: 'Hoop',    symbol: '⌒', width: 0.88 * PX_PER_METER, height: 0.15 * PX_PER_METER },
+  { type: 'hoopers_tunnel', label: 'Tunnel',  symbol: '▬', width: 0.8 * PX_PER_METER,  height: 1 * PX_PER_METER },
+  { type: 'barrel',         label: 'Tunna',   symbol: '●', width: 0.6 * PX_PER_METER,  height: 0.6 * PX_PER_METER },
+  { type: 'gate',           label: 'Staket',  symbol: '╫', width: 1.1 * PX_PER_METER,  height: 0.15 * PX_PER_METER },
+  { type: 'handler_zone',   label: 'Zon',     symbol: '☐', width: 3 * PX_PER_METER,    height: 3 * PX_PER_METER },
+  { type: 'start',          label: 'Start',   symbol: '▸', width: 1.2 * PX_PER_METER,  height: 0.1 * PX_PER_METER },
+  { type: 'finish',         label: 'Mål',     symbol: '◼', width: 1.2 * PX_PER_METER,  height: 0.1 * PX_PER_METER },
+];
+
 const CANVAS_SIZES = [
   { label: '20×30 m', width: 20 * PX_PER_METER, height: 30 * PX_PER_METER },
   { label: '20×40 m', width: 20 * PX_PER_METER, height: 40 * PX_PER_METER },

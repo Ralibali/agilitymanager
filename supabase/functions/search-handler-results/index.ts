@@ -130,16 +130,23 @@ Deno.serve(async (req) => {
     // Parse dog info
     const dogInfo = parseDogInfo(dogPageHtml);
 
-    // Step 5: Submit form with Agility checkbox checked
+    // Step 5: Try submitting with BOTH Agility + Hopp checkboxes at once
     const dogFormTokens = extractFormTokens(dogPageHtml);
-    const agilityResults = await fetchDisciplineResults(dogPageUrl, dogCookies, dogFormTokens, 'Agility');
+    const bothResults = await fetchDisciplineResults(dogPageUrl, dogCookies, dogFormTokens, 'Both');
 
-    // Step 6: Submit form with Hopp checkbox checked
-    const hoppResults = await fetchDisciplineResults(dogPageUrl, dogCookies, dogFormTokens, 'Hopp');
+    let allResults: DogResult[];
 
-    // Combine results
-    const allResults = [...agilityResults, ...hoppResults];
-    console.log(`Total results: ${allResults.length} (Agility: ${agilityResults.length}, Hopp: ${hoppResults.length})`);
+    if (bothResults.length > 0) {
+      allResults = bothResults;
+      console.log(`Total results from combined request: ${allResults.length}`);
+    } else {
+      // Fallback: fetch each discipline separately
+      console.log('Combined request returned 0 results, trying separately...');
+      const agilityResults = await fetchDisciplineResults(dogPageUrl, dogCookies, dogFormTokens, 'Agility');
+      const hoppResults = await fetchDisciplineResults(dogPageUrl, dogCookies, dogFormTokens, 'Hopp');
+      allResults = [...agilityResults, ...hoppResults];
+      console.log(`Total results (separate): ${allResults.length} (Agility: ${agilityResults.length}, Hopp: ${hoppResults.length})`);
+    }
 
     return new Response(
       JSON.stringify({
@@ -164,17 +171,18 @@ async function fetchDisciplineResults(
   dogPageUrl: string,
   cookies: string,
   formTokens: Record<string, string>,
-  discipline: 'Agility' | 'Hopp'
+  discipline: 'Agility' | 'Hopp' | 'Both'
 ): Promise<DogResult[]> {
   const formData = new URLSearchParams();
   for (const [k, v] of Object.entries(formTokens)) {
     formData.append(k, v);
   }
   
-  // Set the checkbox for the discipline
-  if (discipline === 'Agility') {
+  // Set the checkbox(es) for the discipline(s)
+  if (discipline === 'Both' || discipline === 'Agility') {
     formData.append('ShowAgility', 'true');
-  } else {
+  }
+  if (discipline === 'Both' || discipline === 'Hopp') {
     formData.append('ShowHopp', 'true');
   }
   formData.append('action', 'ShowResults');
@@ -353,6 +361,7 @@ function parseResultsTable(html: string, discipline: string): DogResult[] {
       const dateStr = getCol(['datum', 'date']);
       const comp = getCol(['arrangör', 'tävling', 'competition', 'arrangemang']);
       const cls = getCol(['klass', 'class']);
+      const discCol = getCol(['gren', 'discipline', 'lopp']);
       const placStr = getCol(['plac']);
       const faultStr = getCol(['tot. fel', 'tot fel']);
       const meritStr = getCol(['merit']);
@@ -374,10 +383,18 @@ function parseResultsTable(html: string, discipline: string): DogResult[] {
       const passed = meritStr ? !['ej', 'disk', '-'].includes(meritStr.toLowerCase().trim()) : true;
       const disqualified = meritStr ? meritStr.toLowerCase().includes('disk') : false;
 
+      // Determine discipline: use column data if available, otherwise fall back to parameter
+      let rowDiscipline = discipline;
+      if (discCol) {
+        const d = discCol.toLowerCase();
+        if (d.includes('hopp') || d.includes('jump')) rowDiscipline = 'Hopp';
+        else if (d.includes('agility')) rowDiscipline = 'Agility';
+      }
+
       results.push({
         date: dateStr,
         competition: comp,
-        discipline,
+        discipline: rowDiscipline === 'Both' ? 'Agility' : rowDiscipline,
         class: cls,
         size: '',
         placement: placStr ? parseInt(placStr) || null : null,

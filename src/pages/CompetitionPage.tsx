@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Dog, CompetitionResult, PlannedCompetition } from '@/types';
 import { format, differenceInDays } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { CheckCircle2, XCircle, Medal, ExternalLink, Calendar, CheckSquare, Square, Trash2, Plus, X, Download, FileText, Send, Loader2 } from 'lucide-react';
+import { CheckCircle2, XCircle, Medal, ExternalLink, Calendar, CheckSquare, Square, Trash2, Plus, X, Download, FileText, Send, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { downloadCsv } from '@/lib/csv';
 import { downloadPdf } from '@/lib/pdf';
@@ -184,9 +184,9 @@ export default function CompetitionPage() {
       });
   }, [user]);
 
-  // Auto-search historical results - use cache first, scrape only if stale (>24h)
-  useEffect(() => {
-    if (!handlerName || !user || uniqueDogs.length === 0 || historicalFetched) return;
+  // Fetch historical results - reusable function
+  const fetchHistoricalResults = async (forceRefresh = false) => {
+    if (!handlerName || !user || uniqueDogs.length === 0) return;
     setHistoricalFetched(true);
     setHistoricalLoading(true);
     setHistoricalError(null);
@@ -205,27 +205,29 @@ export default function CompetitionPage() {
     };
 
     const fetchForDog = async (dog: Dog) => {
-      // 1. Check cache
-      const { data: cached } = await supabase
-        .from('cached_dog_results')
-        .select('*')
-        .eq('dog_id', dog.id)
-        .eq('user_id', user.id)
-        .maybeSingle();
+      // 1. Check cache (skip if force refresh)
+      if (!forceRefresh) {
+        const { data: cached } = await supabase
+          .from('cached_dog_results')
+          .select('*')
+          .eq('dog_id', dog.id)
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-      if (cached && (Date.now() - new Date(cached.fetched_at).getTime()) < CACHE_TTL_MS) {
-        const result: HistoricalDogResult = {
-          dog_name: cached.dog_name,
-          reg_name: cached.reg_name,
-          reg_nr: cached.reg_nr,
-          breed: cached.breed,
-          handler: cached.handler,
-          results: cached.results as any[],
-          searched_dog: dog.name,
-          dog_id: dog.id,
-        };
-        upsertHistoricalResult(result);
-        return result;
+        if (cached && (Date.now() - new Date(cached.fetched_at).getTime()) < CACHE_TTL_MS) {
+          const result: HistoricalDogResult = {
+            dog_name: cached.dog_name,
+            reg_name: cached.reg_name,
+            reg_nr: cached.reg_nr,
+            breed: cached.breed,
+            handler: cached.handler,
+            results: cached.results as any[],
+            searched_dog: dog.name,
+            dog_id: dog.id,
+          };
+          upsertHistoricalResult(result);
+          return result;
+        }
       }
 
       // 2. Scrape from agilitydata.se
@@ -263,6 +265,12 @@ export default function CompetitionPage() {
     Promise.allSettled(uniqueDogs.map(fetchForDog)).then(() => {
       setHistoricalLoading(false);
     });
+  };
+
+  // Auto-search historical results on mount
+  useEffect(() => {
+    if (!handlerName || !user || uniqueDogs.length === 0 || historicalFetched) return;
+    fetchHistoricalResults();
   }, [handlerName, user, uniqueDogs, historicalFetched]);
 
   // Match logged results against competitions table to find agilitydata URLs
@@ -564,11 +572,23 @@ export default function CompetitionPage() {
           {/* Historical results from agilitydata.se */}
           {handlerName && (
             <div className="mt-6 pt-4 border-t border-border">
-              <h3 className="font-display font-semibold text-foreground text-sm mb-2">
-                🔍 Historiska resultat — {handlerName.first} {handlerName.last}
-              </h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-display font-semibold text-foreground text-sm">
+                  🔍 Historiska resultat — {handlerName.first} {handlerName.last}
+                </h3>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5 text-xs"
+                  disabled={historicalLoading}
+                  onClick={() => fetchHistoricalResults(true)}
+                >
+                  <RefreshCw size={12} className={historicalLoading ? 'animate-spin' : ''} />
+                  {historicalFetched ? 'Uppdatera' : 'Hämta resultat'}
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground mb-3">
-                Automatiskt sökta från agilitydata.se baserat på ditt förarnamn och dina hundar.
+                Sökta från agilitydata.se baserat på ditt förarnamn och dina hundar.
               </p>
               
               {historicalLoading && (
@@ -582,9 +602,9 @@ export default function CompetitionPage() {
               )}
 
               {historicalError && (
-                <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3 text-center">
+              <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3 text-center">
                   <p className="text-xs text-muted-foreground">{historicalError}</p>
-                  <Button size="sm" variant="outline" className="mt-2" onClick={() => { setHistoricalFetched(false); setHistoricalResults([]); }}>
+                  <Button size="sm" variant="outline" className="mt-2" onClick={() => fetchHistoricalResults(true)}>
                     Försök igen
                   </Button>
                 </div>

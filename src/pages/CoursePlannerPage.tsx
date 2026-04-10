@@ -1252,11 +1252,26 @@ export default function CoursePlannerPage() {
       return;
     }
 
+    // Group drag
+    if (groupDragging && multiSelected.size > 0) {
+      e.preventDefault();
+      const pos = getCanvasPos(e);
+      const dx = pos.x - groupDragStart.x;
+      const dy = pos.y - groupDragStart.y;
+      setObstaclesRaw(prev => prev.map(o => {
+        if (!multiSelected.has(o.id)) return o;
+        return { ...o, x: snapToGrid(o.x + dx), y: snapToGrid(o.y + dy) };
+      }));
+      setGroupDragStart({ x: pos.x, y: pos.y });
+      return;
+    }
+
     if (dragging) {
       e.preventDefault();
       const pos = getCanvasPos(e);
-      const newX = snapToGrid(pos.x - dragOffset.x);
-      const newY = snapToGrid(pos.y - dragOffset.y);
+      const rawX = pos.x - dragOffset.x;
+      const rawY = pos.y - dragOffset.y;
+      const { x: newX, y: newY } = magneticSnap(rawX, rawY, dragging);
       setObstaclesRaw(prev => prev.map(o =>
         o.id === dragging ? { ...o, x: newX, y: newY } : o
       ));

@@ -439,24 +439,38 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
 
       {/* Invite code for admins */}
       {isAdmin && (
-        <div className="bg-secondary/50 rounded-xl p-3 mb-4 flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Inbjudningskod</span>
-            <p className="text-sm font-mono font-semibold text-foreground">{club.invite_code}</p>
+        <div className="bg-secondary/50 rounded-xl p-3 mb-4 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Inbjudningskod</span>
+              <p className="text-sm font-mono font-semibold text-foreground">{club.invite_code}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1 shrink-0"
+              onClick={() => {
+                navigator.clipboard.writeText(club.invite_code);
+                setCodeCopied(true);
+                toast.success('Kod kopierad!');
+                setTimeout(() => setCodeCopied(false), 2000);
+              }}
+            >
+              {codeCopied ? <Check size={14} /> : <Copy size={14} />}
+              {codeCopied ? 'Kopierad' : 'Kopiera kod'}
+            </Button>
           </div>
           <Button
             variant="outline"
             size="sm"
-            className="gap-1 shrink-0"
+            className="w-full gap-1 text-xs"
             onClick={() => {
-              navigator.clipboard.writeText(club.invite_code);
-              setCodeCopied(true);
-              toast.success('Kod kopierad!');
-              setTimeout(() => setCodeCopied(false), 2000);
+              const url = `${window.location.origin}/club-invite/${club.invite_code}`;
+              navigator.clipboard.writeText(url);
+              toast.success('Inbjudningslänk kopierad!');
             }}
           >
-            {codeCopied ? <Check size={14} /> : <Copy size={14} />}
-            {codeCopied ? 'Kopierad' : 'Kopiera'}
+            <Link2 size={14} /> Kopiera inbjudningslänk
           </Button>
         </div>
       )}

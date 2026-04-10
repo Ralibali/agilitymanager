@@ -309,6 +309,9 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [isAdmin, setIsAdmin] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
+  const [calendarGroupFilter, setCalendarGroupFilter] = useState<string>('all'); // 'all' | 'mine' | group_id
+  const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
+  const [myGroupIds, setMyGroupIds] = useState<string[]>([]);
 
   // New event form
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
@@ -316,19 +319,32 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [eventDesc, setEventDesc] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [eventType, setEventType] = useState('training');
+  const [eventGroupId, setEventGroupId] = useState<string>('');
 
   const fetchData = async () => {
-    const [{ data: m }, { data: p }, { data: e }] = await Promise.all([
+    const [{ data: m }, { data: p }, { data: e }, { data: g }] = await Promise.all([
       supabase.from('club_members').select('*').eq('club_id', club.id),
       supabase.from('club_posts').select('*').eq('club_id', club.id).order('pinned', { ascending: false }).order('created_at', { ascending: false }),
       supabase.from('club_events').select('*').eq('club_id', club.id).order('date', { ascending: true }),
+      supabase.from('club_groups').select('id, name').eq('club_id', club.id),
     ]);
     setMembers(m || []);
     setPosts(p || []);
     setEvents(e || []);
+    setGroups(g || []);
 
     const me = (m || []).find(mb => mb.user_id === userId);
     setIsAdmin(me?.role === 'admin');
+
+    // Fetch user's group memberships
+    if (g && g.length > 0) {
+      const { data: gm } = await supabase
+        .from('club_group_members')
+        .select('group_id')
+        .eq('user_id', userId)
+        .in('group_id', g.map(gr => gr.id));
+      setMyGroupIds((gm || []).map(x => x.group_id));
+    }
 
     // Fetch signups for all events
     if (e && e.length > 0) {
@@ -394,12 +410,15 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
       description: eventDesc.trim(),
       date: eventDate,
       event_type: eventType,
+      group_id: eventGroupId || null,
     });
-    await notifyClubMembers(`📅 Nytt event i ${club.name}: ${eventTitle.trim()}`, userId);
-    sendClubEmail('Nytt event', `Nytt event i ${club.name}: ${eventTitle.trim()}`, eventDesc.trim() || undefined);
+    const groupName = eventGroupId ? groups.find(g => g.id === eventGroupId)?.name : null;
+    const eventLabel = groupName ? `${eventTitle.trim()} (${groupName})` : eventTitle.trim();
+    await notifyClubMembers(`📅 Nytt event i ${club.name}: ${eventLabel}`, userId);
+    sendClubEmail('Nytt event', `Nytt event i ${club.name}: ${eventLabel}`, eventDesc.trim() || undefined);
     toast.success('Event skapat!');
     setEventDialogOpen(false);
-    setEventTitle(''); setEventDesc(''); setEventDate(''); setEventType('training');
+    setEventTitle(''); setEventDesc(''); setEventDate(''); setEventType('training'); setEventGroupId('');
     fetchData();
   };
 
@@ -575,21 +594,79 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                       </Button>
                     ))}
                   </div>
+                  {groups.length > 0 && (
+                    <select
+                      value={eventGroupId}
+                      onChange={e => setEventGroupId(e.target.value)}
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="">Alla medlemmar (ingen grupp)</option>
+                      {groups.map(g => (
+                        <option key={g.id} value={g.id}>{g.name}</option>
+                      ))}
+                    </select>
+                  )}
                   <Button onClick={handleCreateEvent} className="w-full">Skapa</Button>
                 </div>
               </DialogContent>
             </Dialog>
           )}
-          {events.length === 0 && <p className="text-center text-muted-foreground text-sm py-8">Inga event planerade.</p>}
-          {events.map(e => {
-            const signups = eventSignups[e.id] || [];
-            const isSigned = signups.some(s => s.user_id === userId);
-            const isExpanded = expandedEvent === e.id;
-            return (
-              <div key={e.id} className="bg-card rounded-xl p-3 shadow-card">
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] text-muted-foreground">{eventTypeLabel[e.event_type] || e.event_type}</span>
+
+          {/* Group filter */}
+          {groups.length > 0 && (
+            <div className="flex gap-1.5 flex-wrap">
+              <Button
+                size="sm"
+                variant={calendarGroupFilter === 'all' ? 'default' : 'outline'}
+                onClick={() => setCalendarGroupFilter('all')}
+                className="text-xs h-7"
+              >
+                Alla
+              </Button>
+              <Button
+                size="sm"
+                variant={calendarGroupFilter === 'mine' ? 'default' : 'outline'}
+                onClick={() => setCalendarGroupFilter('mine')}
+                className="text-xs h-7"
+              >
+                Mina grupper
+              </Button>
+              {groups.map(g => (
+                <Button
+                  key={g.id}
+                  size="sm"
+                  variant={calendarGroupFilter === g.id ? 'default' : 'outline'}
+                  onClick={() => setCalendarGroupFilter(g.id)}
+                  className="text-xs h-7"
+                >
+                  {g.name}
+                </Button>
+              ))}
+            </div>
+          )}
+
+          {(() => {
+            const filtered = events.filter(e => {
+              if (calendarGroupFilter === 'all') return true;
+              if (calendarGroupFilter === 'mine') return !e.group_id || myGroupIds.includes(e.group_id);
+              return e.group_id === calendarGroupFilter || !e.group_id;
+            });
+            if (filtered.length === 0) return <p className="text-center text-muted-foreground text-sm py-8">Inga event att visa.</p>;
+            return filtered.map(e => {
+              const signups = eventSignups[e.id] || [];
+              const isSigned = signups.some(s => s.user_id === userId);
+              const isExpanded = expandedEvent === e.id;
+              const groupName = e.group_id ? groups.find(g => g.id === e.group_id)?.name : null;
+              return (
+                <div key={e.id} className="bg-card rounded-xl p-3 shadow-card">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-muted-foreground">{eventTypeLabel[e.event_type] || e.event_type}</span>
+                        {groupName && <Badge variant="outline" className="text-[9px] px-1 py-0">{groupName}</Badge>}
+                      </div>
+                      <h4 className="font-semibold text-sm text-foreground">{e.title}</h4>
+                      {e.description && <p className="text-xs text-muted-foreground mt-0.5">{e.description}</p>}
                     <h4 className="font-semibold text-sm text-foreground">{e.title}</h4>
                     {e.description && <p className="text-xs text-muted-foreground mt-0.5">{e.description}</p>}
                   </div>
@@ -626,8 +703,9 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                   </div>
                 )}
               </div>
-            );
-          })}
+              );
+            });
+          })()}
         </TabsContent>
 
         {/* Groups */}

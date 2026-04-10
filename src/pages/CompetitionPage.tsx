@@ -416,6 +416,87 @@ export default function CompetitionPage() {
             </div>
           )}
 
+          {/* Historical results from agilitydata.se */}
+          {handlerName && (
+            <div className="mt-6 pt-4 border-t border-border">
+              <h3 className="font-display font-semibold text-foreground text-sm mb-2">
+                🔍 Historiska resultat — {handlerName.first} {handlerName.last}
+              </h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                Automatiskt sökta från agilitydata.se baserat på ditt förarnamn och dina hundar.
+              </p>
+              
+              {historicalLoading && (
+                <div className="text-center py-4">
+                  <Loader2 size={18} className="mx-auto mb-1 animate-spin text-primary" />
+                  <p className="text-xs text-muted-foreground">Söker resultat på agilitydata.se...</p>
+                </div>
+              )}
+
+              {historicalError && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3 text-center">
+                  <p className="text-xs text-muted-foreground">{historicalError}</p>
+                  <Button size="sm" variant="outline" className="mt-2" onClick={() => { setHistoricalFetched(false); }}>
+                    Försök igen
+                  </Button>
+                </div>
+              )}
+
+              {!historicalLoading && !historicalError && historicalResults.length === 0 && historicalFetched && (
+                <p className="text-xs text-muted-foreground text-center py-3">
+                  Inga historiska resultat hittades. Kontrollera att ditt förarnamn stämmer i Inställningar.
+                </p>
+              )}
+
+              {historicalResults.length > 0 && (
+                <div className="space-y-2">
+                  {historicalResults.map((dog, i) => (
+                    <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                      className="bg-card rounded-xl p-3 shadow-card border border-border">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold text-foreground text-sm">{dog.dog_name}</h4>
+                          {dog.reg_name && <p className="text-[11px] text-muted-foreground">{dog.reg_name}</p>}
+                          {dog.breed && <p className="text-[11px] text-muted-foreground">{dog.breed}</p>}
+                          <p className="text-[11px] text-muted-foreground">Sökt med: {dog.searched_dog}</p>
+                        </div>
+                        {dog.results_url && (
+                          <a href={dog.results_url} target="_blank" rel="noopener noreferrer">
+                            <Button size="sm" variant="outline" className="gap-1 text-xs">
+                              Resultat <ExternalLink size={12} />
+                            </Button>
+                          </a>
+                        )}
+                      </div>
+                      {/* Auto-load results if we have a URL */}
+                      {dog.results_url && (
+                        <div className="mt-2 pt-2 border-t border-border">
+                          <CompetitionResultsViewer
+                            url={dog.results_url}
+                            friendNames={friendNames}
+                            autoFetch
+                          />
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-2">
+                <AgilityDataAttribution sourceUrl="https://agilitydata.se/resultat/soek-hund/" />
+              </div>
+            </div>
+          )}
+
+          {!handlerName && (
+            <div className="mt-6 pt-4 border-t border-border text-center">
+              <p className="text-xs text-muted-foreground mb-2">
+                💡 Ange ditt förarnamn i Inställningar för att automatiskt hitta dina resultat från agilitydata.se
+              </p>
+            </div>
+          )}
+
           {/* External results from agilitydata.se */}
           <div className="mt-6 pt-4 border-t border-border">
             <h3 className="font-display font-semibold text-foreground text-sm mb-3">

@@ -47,6 +47,7 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
       sport: 'Agility',
       hoopers_level: 'Startklass',
       hoopers_size: 'Large',
+      withers_cm: null,
     });
     setLoading(false);
     setOpen(false);

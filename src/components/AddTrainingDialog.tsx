@@ -66,6 +66,13 @@ export function AddTrainingDialog({ onAdded, dogs, trigger }: Props) {
       dog_energy: dogEnergy,
       handler_energy: handlerEnergy,
       tags: selectedTags,
+      obstacles_trained: [],
+      fault_count: 0,
+      best_time_sec: null,
+      jump_height_used: null,
+      handler_zone_kept: null,
+      overall_mood: null,
+      location: '',
     });
     setLoading(false);
     setOpen(false);

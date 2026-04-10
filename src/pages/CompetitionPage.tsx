@@ -440,7 +440,10 @@ export default function CompetitionPage() {
               {historicalLoading && (
                 <div className="text-center py-4">
                   <Loader2 size={18} className="mx-auto mb-1 animate-spin text-primary" />
-                  <p className="text-xs text-muted-foreground">Söker resultat på agilitydata.se...</p>
+                  <p className="text-xs text-muted-foreground">
+                    Söker resultat på agilitydata.se ({historicalResults.length}/{dogs.length} hundar klara)...
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Det kan ta upp till 30 sekunder</p>
                 </div>
               )}
 

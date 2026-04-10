@@ -20,6 +20,7 @@ import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 import CompetitionResultsViewer from '@/components/competitions/CompetitionResultsViewer';
 import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAttribution';
 import HistoricalResultsStats from '@/components/competitions/HistoricalResultsStats';
+import ImportResultsFromUrl from '@/components/competitions/ImportResultsFromUrl';
 import { useAuth } from '@/contexts/AuthContext';
 
 type HistoricalDogResult = {
@@ -622,6 +623,22 @@ export default function CompetitionPage() {
                   getDog={getDog}
                 />
               )}
+
+              {/* URL import */}
+              <div className="mt-3">
+                <ImportResultsFromUrl
+                  dogs={uniqueDogs}
+                  userId={user!.id}
+                  onImported={(result) => {
+                    setHistoricalResults(prev => {
+                      const next = prev.filter(r => r.dog_id !== result.dog_id);
+                      next.push(result);
+                      return next;
+                    });
+                    setHistoricalFetched(true);
+                  }}
+                />
+              </div>
 
               <div className="mt-2">
                 <AgilityDataAttribution sourceUrl="https://agilitydata.se/resultat/soek-hund/" />

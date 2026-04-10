@@ -31,7 +31,47 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { firstName, lastName, dogName } = await req.json();
+    const { firstName, lastName, dogName, dogUrl } = await req.json();
+
+    // Direct URL mode: skip search, go straight to dog page
+    if (dogUrl) {
+      const urlStr = String(dogUrl).trim();
+      if (!urlStr.startsWith('https://agilitydata.se/')) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'URL måste börja med https://agilitydata.se/' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      console.log(`Direct URL import: ${urlStr}`);
+
+      // Fetch the dog page directly
+      const dogPageRes = await fetch(urlStr, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      });
+      const dogPageHtml = await dogPageRes.text();
+      const dogCookies = extractCookies(dogPageRes.headers);
+      console.log('Dog page HTML length:', dogPageHtml.length);
+
+      const dogInfo = parseDogInfo(dogPageHtml);
+      const dogFormTokens = extractFormTokens(dogPageHtml);
+
+      const bothResults = await fetchDisciplineResults(urlStr, dogCookies, dogFormTokens, 'Both');
+      let allResults: DogResult[];
+
+      if (bothResults.length > 0) {
+        allResults = bothResults;
+      } else {
+        const agilityResults = await fetchDisciplineResults(urlStr, dogCookies, dogFormTokens, 'Agility');
+        const hoppResults = await fetchDisciplineResults(urlStr, dogCookies, dogFormTokens, 'Hopp');
+        allResults = [...agilityResults, ...hoppResults];
+      }
+      console.log(`Direct URL results: ${allResults.length}`);
+
+      return new Response(
+        JSON.stringify({ success: true, data: { ...dogInfo, results: allResults } }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (!firstName && !lastName && !dogName) {
       return new Response(

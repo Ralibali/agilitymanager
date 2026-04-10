@@ -450,7 +450,7 @@ export default function CompetitionPage() {
               {historicalError && (
                 <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3 text-center">
                   <p className="text-xs text-muted-foreground">{historicalError}</p>
-                  <Button size="sm" variant="outline" className="mt-2" onClick={() => { setHistoricalFetched(false); }}>
+                  <Button size="sm" variant="outline" className="mt-2" onClick={() => { setHistoricalFetched(false); setHistoricalResults([]); }}>
                     Försök igen
                   </Button>
                 </div>

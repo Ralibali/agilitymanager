@@ -572,11 +572,23 @@ export default function CompetitionPage() {
           {/* Historical results from agilitydata.se */}
           {handlerName && (
             <div className="mt-6 pt-4 border-t border-border">
-              <h3 className="font-display font-semibold text-foreground text-sm mb-2">
-                🔍 Historiska resultat — {handlerName.first} {handlerName.last}
-              </h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-display font-semibold text-foreground text-sm">
+                  🔍 Historiska resultat — {handlerName.first} {handlerName.last}
+                </h3>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5 text-xs"
+                  disabled={historicalLoading}
+                  onClick={() => fetchHistoricalResults(true)}
+                >
+                  <RefreshCw size={12} className={historicalLoading ? 'animate-spin' : ''} />
+                  {historicalFetched ? 'Uppdatera' : 'Hämta resultat'}
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground mb-3">
-                Automatiskt sökta från agilitydata.se baserat på ditt förarnamn och dina hundar.
+                Sökta från agilitydata.se baserat på ditt förarnamn och dina hundar.
               </p>
               
               {historicalLoading && (

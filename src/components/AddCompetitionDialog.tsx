@@ -72,6 +72,8 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
       placement: placement ? parseInt(placement) : null,
       course_length_m: courseLength ? parseFloat(courseLength) : 0,
       notes: notes.trim(),
+      hoopers_points: 0,
+      lopp_number: null,
     });
     setLoading(false);
     setOpen(false);

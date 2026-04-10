@@ -22,6 +22,7 @@ import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAtt
 import HistoricalResultsStats from '@/components/competitions/HistoricalResultsStats';
 import ImportResultsFromUrl from '@/components/competitions/ImportResultsFromUrl';
 import ClassPromotionTracker from '@/components/competitions/ClassPromotionTracker';
+import HoopersPointsTracker from '@/components/competitions/HoopersPointsTracker';
 import { useAuth } from '@/contexts/AuthContext';
 
 type HistoricalDogResult = {
@@ -93,6 +94,7 @@ export default function CompetitionPage() {
       return true;
     });
   }, [dogs]);
+  const hasHoopersDog = useMemo(() => dogs.some(d => d.sport === 'Hoopers'), [dogs]);
   
   const refresh = async () => {
     const [d, r, p] = await Promise.all([
@@ -405,6 +407,7 @@ export default function CompetitionPage() {
         <TabsList className="w-full">
           <TabsTrigger value="calendar" className="flex-1 text-xs">Kalender</TabsTrigger>
           <TabsTrigger value="results" className="flex-1 text-xs">Resultat ({results.length})</TabsTrigger>
+          {hasHoopersDog && <TabsTrigger value="hoopers" className="flex-1 text-xs">Hoopers</TabsTrigger>}
           <TabsTrigger value="checklist" className="flex-1 text-xs">Checklista</TabsTrigger>
         </TabsList>
 
@@ -697,6 +700,13 @@ export default function CompetitionPage() {
         </TabsContent>
 
         {/* Checklist tab */}
+        {/* Hoopers tab */}
+        {hasHoopersDog && (
+          <TabsContent value="hoopers" className="mt-3">
+            <HoopersPointsTracker dogs={dogs} />
+          </TabsContent>
+        )}
+
         <TabsContent value="checklist" className="mt-3">
           <div className="bg-card rounded-xl p-4 shadow-card">
             <h3 className="font-display font-semibold text-foreground mb-3">Checklista inför tävling</h3>

@@ -285,20 +285,24 @@ Deno.serve(async (req) => {
 function parseFromMarkdown(md: string): HoopersCompetition[] {
   const competitions: HoopersCompetition[] = [];
   
-  // Split by competition entries - each starts with "Officiell tävling" or "Inofficell tävling"
-  const entries = md.split(/(?=####\s+(?:Officiell|Inofficell|Inofficiell)\s+tävling)/i);
+  // Split by competition entries - each starts with "#### Officiell/Inofficell tävling  \- _Name_"
+  const entries = md.split(/(?=-\s*####\s+(?:Officiell|Inofficell|Inofficiell)\s+tävling)/i);
   
   for (const entry of entries) {
     if (entry.length < 30) continue;
     
-    const dateMatch = entry.match(/(\d{4}-\d{2}-\d{2})/);
+    const dateMatch = entry.match(/Datum:\s*(\d{4}-\d{2}-\d{2})/);
     if (!dateMatch) continue;
     
     const isOfficial = /Officiell\s+tävling/i.test(entry);
     
-    // Location: usually on its own line after date info, e.g. "Trelleborg, Skåne län"
-    const locMatch = entry.match(/\n\s*([A-Za-zÀ-ÿåäöÅÄÖ]+(?:\s+[A-Za-zÀ-ÿåäöÅÄÖ]+)*),\s*([A-Za-zÀ-ÿåäöÅÄÖ\s]+län)/);
-    const location = locMatch ? locMatch[1].trim() : "";
+    // Name from "#### ... _Name_" pattern
+    const nameMatch = entry.match(/tävling\s+\\?-\s*_([^_]+)_/i);
+    const compName = nameMatch ? nameMatch[1].trim() : "";
+    
+    // Location: "City, County län" on its own line
+    const locMatch = entry.match(/\n\s*([A-Za-zÀ-ÿåäöÅÄÖ][A-Za-zÀ-ÿåäöÅÄÖ\s]*?)\s*,\s*([A-Za-zÀ-ÿåäöÅÄÖ\s]+län)\s*\n/);
+    const location = locMatch ? locMatch[1].trim().replace(/\s+$/, '') : "";
     const county = locMatch ? locMatch[2].trim() : "";
     
     // Classes and lopp
@@ -307,29 +311,22 @@ function parseFromMarkdown(md: string): HoopersCompetition[] {
     
     const skMatch = entry.match(/Startklass[:\s]*(\d+)\s*lopp/i);
     if (skMatch) { classes.push("Startklass"); loppPerClass["Startklass"] = parseInt(skMatch[1]); }
-    else if (/Startklass/i.test(entry)) { classes.push("Startklass"); }
     
     const k1Match = entry.match(/Klass\s*1[:\s]*(\d+)\s*lopp/i);
     if (k1Match) { classes.push("Klass 1"); loppPerClass["Klass 1"] = parseInt(k1Match[1]); }
-    else if (/Klass\s+1/i.test(entry)) { classes.push("Klass 1"); }
     
     const k2Match = entry.match(/Klass\s*2[:\s]*(\d+)\s*lopp/i);
     if (k2Match) { classes.push("Klass 2"); loppPerClass["Klass 2"] = parseInt(k2Match[1]); }
-    else if (/Klass\s+2/i.test(entry)) { classes.push("Klass 2"); }
     
     const k3Match = entry.match(/Klass\s*3[:\s]*(\d+)\s*lopp/i);
     if (k3Match) { classes.push("Klass 3"); loppPerClass["Klass 3"] = parseInt(k3Match[1]); }
-    else if (/Klass\s+3/i.test(entry)) { classes.push("Klass 3"); }
     
-    // Name (in italics _name_)
-    const nameMatch = entry.match(/_([^_\n]+?)_/);
-    const compName = nameMatch ? nameMatch[1].trim() : "";
-    
-    // Club
-    const clubMatch = entry.match(/Arrangör:\s*(.+?)(?:\n|$)/i);
+    // Club - "Arrangör:" or "Arrangerande klubb:"
+    const clubMatch = entry.match(/Arrangerande klubb:\s*\n?\s*(.+?)(?:\n|$)/i)
+      || entry.match(/Arrangör:\s*(.+?)(?:\n|$)/i);
     const clubName = clubMatch ? clubMatch[1].trim() : "";
     
-    // Organizer
+    // Organizer  
     const orgMatch = entry.match(/Anordnare:\s*(.+?)(?:\n|$)/i);
     const organizer = orgMatch ? orgMatch[1].replace(/_/g, "").trim() : clubName;
     
@@ -338,23 +335,21 @@ function parseFromMarkdown(md: string): HoopersCompetition[] {
     
     // Registration
     const regOpens = entry.match(/Anmälan\s+öppnar:\s*(\d{4}-\d{2}-\d{2})/i);
-    const regCloses = entry.match(/Anmälan\s+stänger:\s*(\d{4}-\d{2}-\d{2})/i);
+    const regCloses = entry.match(/Anmälan\s+stänger:\s*(?:~~)?(\d{4}-\d{2}-\d{2})/i);
     let regStatus = "";
     if (/Anmälan\s+stängd/i.test(entry)) regStatus = "Stängd";
-    else if (/Anmälan\s+öppen/i.test(entry) || /Anmäl\s+dig/i.test(entry)) regStatus = "Öppen";
+    else if (/Anmäl\s+dig/i.test(entry) || /Anmälan\s+(?:är\s+)?öppen/i.test(entry)) regStatus = "Öppen";
     
-    // Judge
+    // Judge & Contact
     const judgeMatch = entry.match(/Domare:\s*(.+?)(?:\n|$)/i);
-    
-    // Contact
     const contactMatch = entry.match(/Kontaktperson:\s*(.+?)(?:\n|$)/i);
-    const emailMatch = entry.match(/Kontaktmail:\s*\[?(\S+@\S+?)\]?(?:\(|$|\n|\s)/i);
+    const emailMatch = entry.match(/Kontaktmail:\s*\[?([^\]\s(]+@[^\]\s)]+)/i);
     
-    const competitionId = `hoopers_${dateMatch[1]}_${location.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_åäö]/g, '')}`;
+    const compId = `hoopers_${dateMatch[1]}_${(location || compName).toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_åäö]/g, '')}`;
     
     if (location || compName) {
       competitions.push({
-        competition_id: competitionId,
+        competition_id: compId,
         competition_name: compName || `Hooperstävling ${location}`,
         date: dateMatch[1],
         location,

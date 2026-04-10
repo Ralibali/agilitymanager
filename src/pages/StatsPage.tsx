@@ -461,6 +461,7 @@ export default function StatsPage() {
           </TabsList>
 
           <TabsContent value="overview" className="mt-3 space-y-4">
+            <AITrainingInsights dogs={dogs} sessions={training} results={competitions} />
             <CompStatsSummary competitions={competitions} />
             <TrainingFrequencyChart training={training} dogs={dogs} />
             {competitions.length >= 2 && (

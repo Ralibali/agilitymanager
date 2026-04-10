@@ -39,6 +39,7 @@ export default function CompetitionResultsViewer({ url, friendNames = [], autoFe
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState('');
   const [sizeFilter, setSizeFilter] = useState<string>('all');
+  const [hasFetched, setHasFetched] = useState(false);
 
   const fetchResults = async () => {
     setLoading(true);

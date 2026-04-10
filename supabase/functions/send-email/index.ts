@@ -150,8 +150,25 @@ const TEMPLATES: Record<string, (data: any) => TemplateResult> = {
       </div>
     `, data.unsubUrl),
   }),
-}
 
+  club_activity: (data) => ({
+    subject: `${data.club_name}: ${data.title}`,
+    html: wrap(data.club_name || 'Klubbnyhet', `
+      <p style="color:#333;font-size:15px;line-height:1.6">
+        Hej${data.name ? ` ${data.name}` : ''}! 👋
+      </p>
+      <p style="color:#555;font-size:14px;line-height:1.6">
+        ${data.message || 'Det finns en ny uppdatering i din klubb.'}
+      </p>
+      ${data.content ? `<div style="background:#f8f8f8;border-radius:8px;padding:16px;margin:16px 0"><p style="color:#333;font-size:14px;line-height:1.6;margin:0">${data.content}</p></div>` : ''}
+      <div style="text-align:center;margin:24px 0">
+        <a href="${SITE_URL}/clubs" style="background:#4f46e5;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;display:inline-block">
+          Öppna klubben →
+        </a>
+      </div>
+    `, data.unsubUrl),
+  }),
+}
 // ---------- HANDLER ----------
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {

@@ -149,6 +149,7 @@ export default function CompetitionPage() {
         setHistoricalLoading(false);
       }
     })();
+  }, [handlerName, dogs, historicalFetched]);
 
   // Match logged results against competitions table to find agilitydata URLs
   useEffect(() => {

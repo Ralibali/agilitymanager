@@ -124,7 +124,7 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'fjälkinge': 'Skåne', 'hästveda': 'Skåne', 'söderåsen': 'Skåne',
   'svalövs': 'Skåne', 'genarp': 'Skåne', 'oxie': 'Skåne',
   'limhamn': 'Skåne', 'husie': 'Skåne', 'bara': 'Skåne',
-  'anderslöv': 'Skåne', 'svedala': 'Skåne', 'smygehamn': 'Skåne',
+  'anderslöv': 'Skåne', 'smygehamn': 'Skåne',
   'hammenhög': 'Skåne', 'kivik': 'Skåne', 'brösarp': 'Skåne',
 
   // Stockholms
@@ -164,7 +164,7 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'östhammar': 'Uppsala', 'älvkarleby': 'Uppsala', 'heby': 'Uppsala',
   'storvreta': 'Uppsala', 'björklinge': 'Uppsala', 'vattholma': 'Uppsala',
   'öregrund': 'Uppsala', 'gimo': 'Uppsala', 'alunda': 'Uppsala',
-  'skutskär': 'Uppsala', 'söderfors': 'Uppsala', 'österbybruk': 'Uppsala',
+  'söderfors': 'Uppsala', 'österbybruk': 'Uppsala',
   'skokloster': 'Uppsala', 'grillby': 'Uppsala', 'örsundsbro': 'Uppsala',
 
   // Värmlands
@@ -251,7 +251,7 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'axvall': 'Västra Götalands', 'varnhem': 'Västra Götalands',
   'stenstorp': 'Västra Götalands', 'floby': 'Västra Götalands',
   'nossebro': 'Västra Götalands', 'grästorp': 'Västra Götalands',
-  'åmål': 'Västra Götalands', 'brastad': 'Västra Götalands',
+  'brastad': 'Västra Götalands',
   'ljungskile': 'Västra Götalands', 'henån': 'Västra Götalands',
   'ellös': 'Västra Götalands', 'smögen': 'Västra Götalands',
   'bovallstrand': 'Västra Götalands', 'grebbestad': 'Västra Götalands',
@@ -259,7 +259,7 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'tanumshede': 'Västra Götalands', 'hunnebostrand': 'Västra Götalands',
   'kungshamn': 'Västra Götalands', 'skärhamn': 'Västra Götalands',
   'åby': 'Västra Götalands', 'värsås': 'Västra Götalands',
-  'gullspång': 'Västra Götalands', 'hova': 'Västra Götalands',
+  'hova': 'Västra Götalands',
 
   // Örebro
   'kumla': 'Örebro', 'örebro': 'Örebro', 'hallsberg': 'Örebro',

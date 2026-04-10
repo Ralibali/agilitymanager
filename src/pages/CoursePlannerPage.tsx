@@ -257,6 +257,7 @@ export default function CoursePlannerPage() {
   const [loadOpen, setLoadOpen] = useState(false);
   const [showDistances, setShowDistances] = useState(true);
   const [canvasSize, setCanvasSize] = useState(CANVAS_SIZES[1]);
+  const [sportMode, setSportMode] = useState<'agility' | 'hoopers'>('agility');
 
   const [handlerPath, setHandlerPath] = useState<PathPoint[]>([]);
   const [drawingMode, setDrawingMode] = useState(false);

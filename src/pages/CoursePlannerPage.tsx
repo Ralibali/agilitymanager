@@ -331,6 +331,7 @@ export default function CoursePlannerPage() {
   const [snapEnabled, setSnapEnabled] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
+  const [fabOpen, setFabOpen] = useState(false);
   const SNAP_STEP = 0.5 * PX_PER_METER; // 0.5m
   const MAGNETIC_DIST = 0.8 * PX_PER_METER; // snap within 0.8m of another obstacle
 

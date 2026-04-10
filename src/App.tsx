@@ -126,6 +126,7 @@ const App = () => (
                 <Route path="/friend-stats/:userId" element={<FriendStatsPage />} />
                 <Route path="/chat/:friendId" element={<ChatPage />} />
                 <Route path="/admin" element={<AdminPage />} />
+                <Route path="/clubs" element={<ClubPage />} />
                 <Route path="/index" element={<Navigate to="/dashboard" replace />} />
               </Route>
 

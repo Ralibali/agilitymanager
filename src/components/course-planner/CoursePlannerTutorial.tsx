@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
   MousePointer2, Move, RotateCcw, Copy, Pencil, Hash, Ruler,
-  ZoomIn, Save, Undo2, Grid3X3, Users, Sparkles, ChevronRight, ChevronLeft, X,
+  ZoomIn, Save, Undo2, Grid3X3, Users, Sparkles, ChevronRight, ChevronLeft, X, Lightbulb,
 } from 'lucide-react';
 
 const STEPS = [

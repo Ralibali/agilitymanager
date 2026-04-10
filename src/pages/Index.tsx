@@ -201,6 +201,9 @@ const Index = () => {
         </div>
       )}
 
+      {/* Upcoming club events */}
+      <UpcomingClubEvents />
+
       {/* Latest training */}
       {latestTraining && (
         <div className="bg-card p-4 rounded-xl shadow-card mb-4">

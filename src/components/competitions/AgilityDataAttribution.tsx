@@ -1,23 +1,15 @@
 import { useState, useEffect } from 'react';
 import { ExternalLink, Info, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useIsMobile } from '@/hooks/use-mobile';
+
+const MOBILE_BREAKPOINT = 768;
 
 interface Props {
   sourceUrl?: string;
 }
 
 export function AgilityDataAttribution({ sourceUrl }: Props) {
-  const isMobile = useIsMobile();
-  const [open, setOpen] = useState(false);
-  const [initialized, setInitialized] = useState(false);
-
-  useEffect(() => {
-    if (!initialized) {
-      setOpen(!isMobile);
-      setInitialized(true);
-    }
-  }, [isMobile, initialized]);
+  const [open, setOpen] = useState(() => window.innerWidth >= MOBILE_BREAKPOINT);
 
   return (
     <div className="mt-6 bg-muted/50 border border-border rounded-xl text-xs text-muted-foreground">

@@ -111,9 +111,10 @@ const NUMBERING_COLORS = [
 ];
 
 
-const PRESET_COURSES: { name: string; obstacles: Obstacle[] }[] = [
+const PRESET_COURSES: { name: string; description: string; obstacles: Obstacle[] }[] = [
   {
     name: 'Nybörjarbana (6 hinder)',
+    description: 'Enkel bana med hopp, tunnel och slalom',
     obstacles: [
       { id: 'p1', type: 'start', x: 200, y: 700, rotation: 0, label: 'Start', numbers: [], colorNumbers: [] },
       { id: 'p2', type: 'jump', x: 200, y: 600, rotation: 0, label: 'Hopp', numbers: [1], colorNumbers: [{ num: 1, color: '#22c55e' }] },
@@ -126,6 +127,7 @@ const PRESET_COURSES: { name: string; obstacles: Obstacle[] }[] = [
   },
   {
     name: 'Kontaktbana (8 hinder)',
+    description: 'A-hinder, brygga, vipp och tunnel',
     obstacles: [
       { id: 'c1', type: 'start', x: 100, y: 720, rotation: 0, label: 'Start', numbers: [], colorNumbers: [] },
       { id: 'c2', type: 'jump', x: 100, y: 620, rotation: 0, label: 'Hopp', numbers: [1], colorNumbers: [{ num: 1, color: '#22c55e' }] },
@@ -136,6 +138,63 @@ const PRESET_COURSES: { name: string; obstacles: Obstacle[] }[] = [
       { id: 'c7', type: 'jump', x: 260, y: 120, rotation: 30, label: 'Hopp', numbers: [6], colorNumbers: [{ num: 6, color: '#22c55e' }] },
       { id: 'c8', type: 'weave', x: 300, y: 60, rotation: 0, label: 'Slalom', numbers: [7], colorNumbers: [{ num: 7, color: '#22c55e' }] },
       { id: 'c9', type: 'finish', x: 300, y: 20, rotation: 0, label: 'Mål', numbers: [], colorNumbers: [] },
+    ],
+  },
+  {
+    name: 'Klass 1-bana (12 hinder)',
+    description: 'Typisk tävlingsbana för klass 1',
+    obstacles: [
+      { id: 'k1_s', type: 'start', x: 100, y: 750, rotation: 0, label: 'Start', numbers: [], colorNumbers: [] },
+      { id: 'k1_1', type: 'jump', x: 100, y: 650, rotation: 0, label: 'Hopp', numbers: [1], colorNumbers: [{ num: 1, color: '#22c55e' }] },
+      { id: 'k1_2', type: 'jump', x: 200, y: 560, rotation: 30, label: 'Hopp', numbers: [2], colorNumbers: [{ num: 2, color: '#22c55e' }] },
+      { id: 'k1_3', type: 'tunnel', x: 300, y: 460, rotation: 90, label: 'Tunnel', numbers: [3], colorNumbers: [{ num: 3, color: '#22c55e' }], tunnelLength: 4, bendAngle: 30 },
+      { id: 'k1_4', type: 'a_frame', x: 200, y: 360, rotation: 0, label: 'A-hinder', numbers: [4], colorNumbers: [{ num: 4, color: '#22c55e' }] },
+      { id: 'k1_5', type: 'jump', x: 100, y: 280, rotation: -15, label: 'Hopp', numbers: [5], colorNumbers: [{ num: 5, color: '#22c55e' }] },
+      { id: 'k1_6', type: 'weave', x: 250, y: 210, rotation: 0, label: 'Slalom', numbers: [6], colorNumbers: [{ num: 6, color: '#22c55e' }] },
+      { id: 'k1_7', type: 'jump', x: 350, y: 140, rotation: 0, label: 'Hopp', numbers: [7], colorNumbers: [{ num: 7, color: '#22c55e' }] },
+      { id: 'k1_8', type: 'dog_walk', x: 250, y: 80, rotation: 90, label: 'Brygga', numbers: [8], colorNumbers: [{ num: 8, color: '#22c55e' }] },
+      { id: 'k1_9', type: 'jump', x: 150, y: 140, rotation: -30, label: 'Hopp', numbers: [9], colorNumbers: [{ num: 9, color: '#22c55e' }] },
+      { id: 'k1_10', type: 'tire', x: 80, y: 200, rotation: 0, label: 'Däck', numbers: [10], colorNumbers: [{ num: 10, color: '#22c55e' }] },
+      { id: 'k1_11', type: 'jump', x: 80, y: 120, rotation: 0, label: 'Hopp', numbers: [11], colorNumbers: [{ num: 11, color: '#22c55e' }] },
+      { id: 'k1_12', type: 'jump', x: 150, y: 40, rotation: 0, label: 'Hopp', numbers: [12], colorNumbers: [{ num: 12, color: '#22c55e' }] },
+      { id: 'k1_f', type: 'finish', x: 250, y: 40, rotation: 0, label: 'Mål', numbers: [], colorNumbers: [] },
+    ],
+  },
+  {
+    name: 'Klass 3-bana (18 hinder)',
+    description: 'Avancerad bana med alla kontaktfält',
+    obstacles: [
+      { id: 'k3_s', type: 'start', x: 60, y: 750, rotation: 0, label: 'Start', numbers: [], colorNumbers: [] },
+      { id: 'k3_1', type: 'jump', x: 60, y: 660, rotation: 0, label: 'Hopp', numbers: [1], colorNumbers: [{ num: 1, color: '#22c55e' }] },
+      { id: 'k3_2', type: 'jump', x: 150, y: 580, rotation: 30, label: 'Hopp', numbers: [2], colorNumbers: [{ num: 2, color: '#22c55e' }] },
+      { id: 'k3_3', type: 'tunnel', x: 280, y: 520, rotation: 0, label: 'Tunnel', numbers: [3], colorNumbers: [{ num: 3, color: '#22c55e' }], tunnelLength: 6, bendAngle: 60 },
+      { id: 'k3_4', type: 'a_frame', x: 200, y: 420, rotation: 0, label: 'A-hinder', numbers: [4], colorNumbers: [{ num: 4, color: '#22c55e' }] },
+      { id: 'k3_5', type: 'jump', x: 80, y: 360, rotation: -20, label: 'Hopp', numbers: [5], colorNumbers: [{ num: 5, color: '#22c55e' }] },
+      { id: 'k3_6', type: 'jump', x: 150, y: 300, rotation: 10, label: 'Hopp', numbers: [6], colorNumbers: [{ num: 6, color: '#22c55e' }] },
+      { id: 'k3_7', type: 'weave', x: 300, y: 260, rotation: 0, label: 'Slalom', numbers: [7], colorNumbers: [{ num: 7, color: '#22c55e' }] },
+      { id: 'k3_8', type: 'seesaw', x: 200, y: 180, rotation: 90, label: 'Vipp', numbers: [8], colorNumbers: [{ num: 8, color: '#22c55e' }] },
+      { id: 'k3_9', type: 'jump', x: 340, y: 180, rotation: 0, label: 'Hopp', numbers: [9], colorNumbers: [{ num: 9, color: '#22c55e' }] },
+      { id: 'k3_10', type: 'tunnel', x: 350, y: 100, rotation: 90, label: 'Tunnel', numbers: [10], colorNumbers: [{ num: 10, color: '#22c55e' }], tunnelLength: 4, bendAngle: 0 },
+      { id: 'k3_11', type: 'jump', x: 260, y: 120, rotation: -30, label: 'Hopp', numbers: [11], colorNumbers: [{ num: 11, color: '#22c55e' }] },
+      { id: 'k3_12', type: 'tire', x: 180, y: 100, rotation: 0, label: 'Däck', numbers: [12], colorNumbers: [{ num: 12, color: '#22c55e' }] },
+      { id: 'k3_13', type: 'dog_walk', x: 100, y: 100, rotation: 0, label: 'Brygga', numbers: [13], colorNumbers: [{ num: 13, color: '#22c55e' }] },
+      { id: 'k3_14', type: 'jump', x: 60, y: 180, rotation: 0, label: 'Hopp', numbers: [14], colorNumbers: [{ num: 14, color: '#22c55e' }] },
+      { id: 'k3_15', type: 'long_jump', x: 60, y: 260, rotation: 0, label: 'Långhopp', numbers: [15], colorNumbers: [{ num: 15, color: '#22c55e' }] },
+      { id: 'k3_16', type: 'jump', x: 140, y: 60, rotation: 45, label: 'Hopp', numbers: [16], colorNumbers: [{ num: 16, color: '#22c55e' }] },
+      { id: 'k3_17', type: 'jump', x: 260, y: 40, rotation: 0, label: 'Hopp', numbers: [17], colorNumbers: [{ num: 17, color: '#22c55e' }] },
+      { id: 'k3_18', type: 'jump', x: 340, y: 40, rotation: 0, label: 'Hopp', numbers: [18], colorNumbers: [{ num: 18, color: '#22c55e' }] },
+      { id: 'k3_f', type: 'finish', x: 380, y: 40, rotation: 0, label: 'Mål', numbers: [], colorNumbers: [] },
+    ],
+  },
+  {
+    name: 'Slalomträning',
+    description: 'Fokus på slalom med hopp in/ut',
+    obstacles: [
+      { id: 'sl_1', type: 'jump', x: 200, y: 600, rotation: 0, label: 'Hopp', numbers: [1], colorNumbers: [{ num: 1, color: '#22c55e' }] },
+      { id: 'sl_2', type: 'weave', x: 200, y: 460, rotation: 0, label: 'Slalom', numbers: [2], colorNumbers: [{ num: 2, color: '#22c55e' }] },
+      { id: 'sl_3', type: 'jump', x: 200, y: 320, rotation: 0, label: 'Hopp', numbers: [3], colorNumbers: [{ num: 3, color: '#22c55e' }] },
+      { id: 'sl_4', type: 'weave', x: 200, y: 180, rotation: 90, label: 'Slalom', numbers: [4], colorNumbers: [{ num: 4, color: '#22c55e' }] },
+      { id: 'sl_5', type: 'jump', x: 200, y: 80, rotation: 0, label: 'Hopp', numbers: [5], colorNumbers: [{ num: 5, color: '#22c55e' }] },
     ],
   },
 ];

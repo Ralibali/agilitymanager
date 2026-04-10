@@ -3,6 +3,7 @@ import { PageContainer } from '@/components/PageContainer';
 import { AddDogDialog } from '@/components/AddDogDialog';
 import { AddTrainingDialog } from '@/components/AddTrainingDialog';
 import { AddCompetitionDialog } from '@/components/AddCompetitionDialog';
+import { OnboardingWizard } from '@/components/OnboardingWizard';
 import { DogAvatar } from '@/components/DogAvatar';
 import { MeritBadge, MeritProgress, calculateMerit } from '@/components/MeritTracker';
 import { store } from '@/lib/store';

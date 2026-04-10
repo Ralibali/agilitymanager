@@ -1317,10 +1317,19 @@ export default function CoursePlannerPage() {
   };
 
   const handlePointerUp = () => {
+    // Cancel long press
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
     // Push history on drag end
     if (dragging) {
       const obs = obstacles.find(o => o.id === dragging);
       pushHistory(obstacles, handlerPath, `Flyttade ${obs?.label || 'hinder'}`);
+      setIsDirty(true);
+    }
+    if (groupDragging) {
+      pushHistory(obstacles, handlerPath, `Flyttade ${multiSelected.size} hinder`);
       setIsDirty(true);
     }
     if (draggingNumber) {
@@ -1342,6 +1351,7 @@ export default function CoursePlannerPage() {
     setTouchRotating(false);
     setIsPanning(false);
     setPinchStartDist(0);
+    setGroupDragging(false);
   };
 
   // Mouse wheel zoom

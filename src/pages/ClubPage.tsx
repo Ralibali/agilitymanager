@@ -594,13 +594,65 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                       </Button>
                     ))}
                   </div>
+                  {groups.length > 0 && (
+                    <select
+                      value={eventGroupId}
+                      onChange={e => setEventGroupId(e.target.value)}
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="">Alla medlemmar (ingen grupp)</option>
+                      {groups.map(g => (
+                        <option key={g.id} value={g.id}>{g.name}</option>
+                      ))}
+                    </select>
+                  )}
                   <Button onClick={handleCreateEvent} className="w-full">Skapa</Button>
                 </div>
               </DialogContent>
             </Dialog>
           )}
-          {events.length === 0 && <p className="text-center text-muted-foreground text-sm py-8">Inga event planerade.</p>}
-          {events.map(e => {
+
+          {/* Group filter */}
+          {groups.length > 0 && (
+            <div className="flex gap-1.5 flex-wrap">
+              <Button
+                size="sm"
+                variant={calendarGroupFilter === 'all' ? 'default' : 'outline'}
+                onClick={() => setCalendarGroupFilter('all')}
+                className="text-xs h-7"
+              >
+                Alla
+              </Button>
+              <Button
+                size="sm"
+                variant={calendarGroupFilter === 'mine' ? 'default' : 'outline'}
+                onClick={() => setCalendarGroupFilter('mine')}
+                className="text-xs h-7"
+              >
+                Mina grupper
+              </Button>
+              {groups.map(g => (
+                <Button
+                  key={g.id}
+                  size="sm"
+                  variant={calendarGroupFilter === g.id ? 'default' : 'outline'}
+                  onClick={() => setCalendarGroupFilter(g.id)}
+                  className="text-xs h-7"
+                >
+                  {g.name}
+                </Button>
+              ))}
+            </div>
+          )}
+
+          {(() => {
+            const filtered = events.filter(e => {
+              if (calendarGroupFilter === 'all') return true;
+              if (calendarGroupFilter === 'mine') return !e.group_id || myGroupIds.includes(e.group_id);
+              return e.group_id === calendarGroupFilter || !e.group_id;
+            });
+            if (filtered.length === 0) return <p className="text-center text-muted-foreground text-sm py-8">Inga event att visa.</p>;
+            return filtered.map(e => {
             const signups = eventSignups[e.id] || [];
             const isSigned = signups.some(s => s.user_id === userId);
             const isExpanded = expandedEvent === e.id;

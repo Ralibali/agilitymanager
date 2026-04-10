@@ -382,7 +382,7 @@ export function RecommendedCompetitions({ dogs }: RecommendedCompetitionsProps) 
                     )}
                   </div>
                   <a
-                    href={comp.source_url || `https://agilitydata.se/taevlingar/${comp.id}`}
+                    href={comp.source_url || `https://agilitydata.se/taevlingar/lopplista/?competitionId=${comp.id}&competitionPartKey=${comp.part_key}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[10px] text-primary flex items-center gap-0.5 hover:underline"

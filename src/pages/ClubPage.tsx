@@ -309,6 +309,9 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [isAdmin, setIsAdmin] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
+  const [calendarGroupFilter, setCalendarGroupFilter] = useState<string>('all'); // 'all' | 'mine' | group_id
+  const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
+  const [myGroupIds, setMyGroupIds] = useState<string[]>([]);
 
   // New event form
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
@@ -316,6 +319,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [eventDesc, setEventDesc] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [eventType, setEventType] = useState('training');
+  const [eventGroupId, setEventGroupId] = useState<string>('');
 
   const fetchData = async () => {
     const [{ data: m }, { data: p }, { data: e }] = await Promise.all([

@@ -393,8 +393,7 @@ function CompTrendCharts({ competitions, dogs }: { competitions: CompetitionResu
 
 // --- DOG COMPARISON ---
 function DogComparison({ competitions, dogs }: { competitions: CompetitionResult[]; dogs: Dog[] }) {
-  const dogIds = [...new Set(competitions.map(c => c.dog_id))];
-  if (dogIds.length < 2) return null;
+  const dogIds = useMemo(() => [...new Set(competitions.map(c => c.dog_id))], [competitions]);
 
   const radarData = useMemo(() => {
     const metrics = dogIds.map(id => {

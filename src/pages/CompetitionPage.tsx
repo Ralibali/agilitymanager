@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 import CompetitionResultsViewer from '@/components/competitions/CompetitionResultsViewer';
 import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAttribution';
+import HistoricalResultsStats from '@/components/competitions/HistoricalResultsStats';
 import { useAuth } from '@/contexts/AuthContext';
 
 const CHECKLIST_ITEMS = [
@@ -449,62 +450,10 @@ export default function CompetitionPage() {
               )}
 
               {historicalResults.length > 0 && (
-                <div className="space-y-3">
-                  {historicalResults.map((dogData, i) => {
-                    const matchedDog = getDog(dogData.dog_id);
-                    return (
-                      <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                        className="bg-card rounded-xl p-3 shadow-card border border-border">
-                        <div className="flex items-center gap-2 mb-2">
-                          {matchedDog && <DogAvatar dog={matchedDog} size="sm" />}
-                          <div>
-                            <h4 className="font-semibold text-foreground text-sm">
-                              {dogData.dog_name || dogData.searched_dog}
-                            </h4>
-                            {dogData.reg_nr && <p className="text-[11px] text-muted-foreground">{dogData.reg_nr}</p>}
-                            {dogData.breed && <p className="text-[11px] text-muted-foreground">{dogData.breed}</p>}
-                          </div>
-                        </div>
-
-                        {dogData.results && dogData.results.length > 0 ? (
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-xs">
-                              <thead>
-                                <tr className="border-b border-border bg-secondary/50">
-                                  <th className="text-left px-1.5 py-1 font-medium text-muted-foreground">Datum</th>
-                                  <th className="text-left px-1.5 py-1 font-medium text-muted-foreground">Tävling</th>
-                                  <th className="text-left px-1.5 py-1 font-medium text-muted-foreground">Klass</th>
-                                  <th className="text-right px-1.5 py-1 font-medium text-muted-foreground">Tid</th>
-                                  <th className="text-right px-1.5 py-1 font-medium text-muted-foreground">Fel</th>
-                                  <th className="text-center px-1.5 py-1 font-medium text-muted-foreground">🏆</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {dogData.results.map((r: any, j: number) => (
-                                  <tr key={j} className={`border-b border-border/50 last:border-0 ${j % 2 === 0 ? '' : 'bg-secondary/20'}`}>
-                                    <td className="px-1.5 py-1 text-foreground whitespace-nowrap">{r.date}</td>
-                                    <td className="px-1.5 py-1 text-foreground">{r.competition}</td>
-                                    <td className="px-1.5 py-1 text-muted-foreground">{r.class || r.discipline}</td>
-                                    <td className="px-1.5 py-1 text-right text-foreground">{r.time_sec ? `${r.time_sec}s` : '-'}</td>
-                                    <td className={`px-1.5 py-1 text-right ${r.faults && r.faults > 0 ? 'text-destructive' : 'text-success'}`}>{r.faults ?? '-'}</td>
-                                    <td className="px-1.5 py-1 text-center">{r.disqualified ? '❌' : r.passed ? '✅' : '—'}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                            <p className="text-[10px] text-muted-foreground mt-2 text-center">
-                              {dogData.results.length} starter hittade
-                            </p>
-                          </div>
-                        ) : (
-                          <p className="text-xs text-muted-foreground py-2">
-                            {dogData.search_only ? 'Hund hittad, men resultathistoriken kunde inte laddas automatiskt.' : 'Inga resultat hittades.'}
-                          </p>
-                        )}
-                      </motion.div>
-                    );
-                  })}
-                </div>
+                <HistoricalResultsStats
+                  historicalResults={historicalResults}
+                  getDog={getDog}
+                />
               )}
 
               <div className="mt-2">

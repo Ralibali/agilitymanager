@@ -421,6 +421,24 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     fetchData();
   };
 
+  const handleToggleAdmin = async (memberId: string, currentRole: string) => {
+    const newRole = currentRole === 'admin' ? 'member' : 'admin';
+    await supabase.from('club_members').update({ role: newRole }).eq('id', memberId);
+    toast.success(newRole === 'admin' ? 'Befordrad till admin!' : 'Degraderad till medlem');
+    fetchData();
+  };
+
+  // Notify all members except sender
+  const notifyClubMembers = async (message: string, excludeUserId: string) => {
+    const accepted = members.filter(m => m.status === 'accepted' && m.user_id !== excludeUserId);
+    if (accepted.length === 0) return;
+    const notifications = accepted.map(m => ({
+      user_id: m.user_id,
+      message,
+    }));
+    await supabase.from('notifications').insert(notifications);
+  };
+
   const acceptedMembers = members.filter(m => m.status === 'accepted');
   const pendingMembers = members.filter(m => m.status === 'pending');
   const eventTypeLabel: Record<string, string> = { training: '🏋️ Träning', competition: '🏆 Tävling', social: '🎉 Socialt' };

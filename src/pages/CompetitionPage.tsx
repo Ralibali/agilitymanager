@@ -21,6 +21,7 @@ import CompetitionResultsViewer from '@/components/competitions/CompetitionResul
 import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAttribution';
 import HistoricalResultsStats from '@/components/competitions/HistoricalResultsStats';
 import ImportResultsFromUrl from '@/components/competitions/ImportResultsFromUrl';
+import ClassPromotionTracker from '@/components/competitions/ClassPromotionTracker';
 import { useAuth } from '@/contexts/AuthContext';
 
 type HistoricalDogResult = {
@@ -516,6 +517,7 @@ export default function CompetitionPage() {
 
         {/* Results tab */}
         <TabsContent value="results" className="mt-3">
+          <ClassPromotionTracker results={results} dogs={dogs} />
           {results.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <p className="mb-2">Inga tävlingsresultat ännu.</p>

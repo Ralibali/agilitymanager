@@ -64,6 +64,7 @@ export default function ClubPage() {
   const [myClubs, setMyClubs] = useState<Club[]>([]);
   const [searchResults, setSearchResults] = useState<Club[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [createOpen, setCreateOpen] = useState(false);

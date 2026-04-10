@@ -1,4 +1,4 @@
-import { Home, Dog, Dumbbell, Trophy, Timer, Heart, BarChart3, Settings, PencilRuler, Shield, CalendarDays, Users } from 'lucide-react';
+import { Home, Dog, Dumbbell, Trophy, Timer, Heart, BarChart3, Settings, PencilRuler, Shield, CalendarDays, Users, Building2 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { forwardRef, useState, useEffect } from 'react';
@@ -18,6 +18,7 @@ const moreTabs = [
   { path: '/dogs', icon: Dog, label: 'Hundar' },
   { path: '/training', icon: Dumbbell, label: 'Träning' },
   { path: '/competition', icon: Trophy, label: 'Resultat' },
+  { path: '/clubs', icon: Building2, label: 'Klubbar' },
   { path: '/stopwatch', icon: Timer, label: 'Tidtagarur' },
   { path: '/health', icon: Heart, label: 'Hälsa' },
   { path: '/stats', icon: BarChart3, label: 'Statistik' },

@@ -41,6 +41,7 @@ const FriendStatsPage = React.lazy(() => import("./pages/FriendStatsPage"));
 const InvitePage = React.lazy(() => import("./pages/InvitePage"));
 const ChatPage = React.lazy(() => import("./pages/ChatPage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
+const ClubPage = React.lazy(() => import("./pages/ClubPage"));
 
 const queryClient = new QueryClient();
 
@@ -125,6 +126,7 @@ const App = () => (
                 <Route path="/friend-stats/:userId" element={<FriendStatsPage />} />
                 <Route path="/chat/:friendId" element={<ChatPage />} />
                 <Route path="/admin" element={<AdminPage />} />
+                <Route path="/clubs" element={<ClubPage />} />
                 <Route path="/index" element={<Navigate to="/dashboard" replace />} />
               </Route>
 

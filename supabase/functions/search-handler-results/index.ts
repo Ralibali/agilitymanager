@@ -12,11 +12,6 @@ interface DogSearchResult {
   results_url: string | null;
 }
 
-interface HandlerSearchResponse {
-  dogs: DogSearchResult[];
-  source_url: string;
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -42,20 +37,26 @@ Deno.serve(async (req) => {
 
     console.log(`Searching agilitydata.se: ${firstName} ${lastName}, dog: ${dogName || 'any'}`);
 
-    // Build Firecrawl actions to fill in the search form and click search
-    const actions: any[] = [];
-    
+    // Build Firecrawl actions: click into fields, type, then search
+    // The form has: #DogName, #FirstName, #LastName, #SearchDogs
+    const actions: any[] = [
+      { type: 'wait', milliseconds: 2000 },
+    ];
+
     if (dogName) {
-      actions.push({ type: 'write', selector: '#DogName', value: dogName });
+      actions.push({ type: 'click', selector: '#DogName' });
+      actions.push({ type: 'write', text: dogName });
     }
     if (firstName) {
-      actions.push({ type: 'write', selector: '#FirstName', value: firstName });
+      actions.push({ type: 'click', selector: '#FirstName' });
+      actions.push({ type: 'write', text: firstName });
     }
     if (lastName) {
-      actions.push({ type: 'write', selector: '#LastName', value: lastName });
+      actions.push({ type: 'click', selector: '#LastName' });
+      actions.push({ type: 'write', text: lastName });
     }
     actions.push({ type: 'click', selector: '#SearchDogs' });
-    actions.push({ type: 'wait', milliseconds: 4000 });
+    actions.push({ type: 'wait', milliseconds: 5000 });
 
     const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',
@@ -67,7 +68,7 @@ Deno.serve(async (req) => {
         url: 'https://agilitydata.se/resultat/soek-hund/',
         formats: ['markdown', 'html'],
         onlyMainContent: true,
-        waitFor: 3000,
+        waitFor: 2000,
         actions,
       }),
     });
@@ -75,7 +76,7 @@ Deno.serve(async (req) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('Firecrawl error:', data);
+      console.error('Firecrawl error:', JSON.stringify(data));
       return new Response(
         JSON.stringify({ success: false, error: `Sökning misslyckades (${response.status})` }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -86,9 +87,9 @@ Deno.serve(async (req) => {
     const markdown = data?.data?.markdown || '';
     
     console.log('Search result markdown length:', markdown.length);
-    console.log('Search result HTML length:', html.length);
+    console.log('Markdown preview:', markdown.substring(0, 500));
 
-    // Parse the search results from the HTML
+    // Parse the search results
     const dogs = parseSearchResults(html, markdown);
 
     return new Response(
@@ -96,7 +97,8 @@ Deno.serve(async (req) => {
         success: true, 
         data: { 
           dogs, 
-          source_url: 'https://agilitydata.se/resultat/soek-hund/' 
+          source_url: 'https://agilitydata.se/resultat/soek-hund/',
+          debug_markdown_length: markdown.length,
         } 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -113,9 +115,7 @@ Deno.serve(async (req) => {
 function parseSearchResults(html: string, markdown: string): DogSearchResult[] {
   const dogs: DogSearchResult[] = [];
 
-  // Try parsing from HTML table rows in the search results grid
-  // The grid has columns like: Tilltalsnamn, Reg.namn, Regnr, Ras, Förare
-  // Look for table rows with links
+  // Try parsing from HTML - look for table rows in the search results grid
   const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
   let match;
   
@@ -130,11 +130,9 @@ function parseSearchResults(html: string, markdown: string): DogSearchResult[] {
       return linkMatch ? linkMatch[1] : null;
     };
 
-    // Try to find a link in the first cell (dog name usually links to results)
     const link = extractLink(cells[0]);
     const dogName = extractText(cells[0]);
     
-    // Skip header rows
     if (dogName.toLowerCase().includes('tilltalsnamn') || !dogName) continue;
 
     const regName = cells.length > 1 ? extractText(cells[1]) : '';
@@ -147,17 +145,10 @@ function parseSearchResults(html: string, markdown: string): DogSearchResult[] {
       resultsUrl = link.startsWith('http') ? link : `https://agilitydata.se${link}`;
     }
 
-    dogs.push({
-      dog_name: dogName,
-      reg_name: regName,
-      reg_nr: regNr,
-      breed,
-      handler,
-      results_url: resultsUrl,
-    });
+    dogs.push({ dog_name: dogName, reg_name: regName, reg_nr: regNr, breed, handler, results_url: resultsUrl });
   }
 
-  // Fallback: parse markdown tables if HTML parsing didn't work
+  // Fallback: parse markdown tables
   if (dogs.length === 0 && markdown) {
     const lines = markdown.split('\n');
     for (const line of lines) {
@@ -166,13 +157,12 @@ function parseSearchResults(html: string, markdown: string): DogSearchResult[] {
       if (cells.length < 3) continue;
       if (cells[0].includes('---') || cells[0].toLowerCase().includes('tilltalsnamn')) continue;
       
-      // Extract link from markdown format [text](url)
       const linkMatch = cells[0].match(/\[([^\]]+)\]\(([^)]+)\)/);
-      const dogName = linkMatch ? linkMatch[1] : cells[0];
+      const dogNameParsed = linkMatch ? linkMatch[1] : cells[0];
       const resultsUrl = linkMatch ? (linkMatch[2].startsWith('http') ? linkMatch[2] : `https://agilitydata.se${linkMatch[2]}`) : null;
 
       dogs.push({
-        dog_name: dogName,
+        dog_name: dogNameParsed,
         reg_name: cells.length > 1 ? cells[1] : '',
         reg_nr: cells.length > 2 ? cells[2] : '',
         breed: cells.length > 3 ? cells[3] : '',

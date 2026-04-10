@@ -111,9 +111,10 @@ const NUMBERING_COLORS = [
 ];
 
 
-const PRESET_COURSES: { name: string; obstacles: Obstacle[] }[] = [
+const PRESET_COURSES: { name: string; description: string; obstacles: Obstacle[] }[] = [
   {
     name: 'Nybörjarbana (6 hinder)',
+    description: 'Enkel bana med hopp, tunnel och slalom',
     obstacles: [
       { id: 'p1', type: 'start', x: 200, y: 700, rotation: 0, label: 'Start', numbers: [], colorNumbers: [] },
       { id: 'p2', type: 'jump', x: 200, y: 600, rotation: 0, label: 'Hopp', numbers: [1], colorNumbers: [{ num: 1, color: '#22c55e' }] },
@@ -126,6 +127,7 @@ const PRESET_COURSES: { name: string; obstacles: Obstacle[] }[] = [
   },
   {
     name: 'Kontaktbana (8 hinder)',
+    description: 'A-hinder, brygga, vipp och tunnel',
     obstacles: [
       { id: 'c1', type: 'start', x: 100, y: 720, rotation: 0, label: 'Start', numbers: [], colorNumbers: [] },
       { id: 'c2', type: 'jump', x: 100, y: 620, rotation: 0, label: 'Hopp', numbers: [1], colorNumbers: [{ num: 1, color: '#22c55e' }] },
@@ -136,6 +138,63 @@ const PRESET_COURSES: { name: string; obstacles: Obstacle[] }[] = [
       { id: 'c7', type: 'jump', x: 260, y: 120, rotation: 30, label: 'Hopp', numbers: [6], colorNumbers: [{ num: 6, color: '#22c55e' }] },
       { id: 'c8', type: 'weave', x: 300, y: 60, rotation: 0, label: 'Slalom', numbers: [7], colorNumbers: [{ num: 7, color: '#22c55e' }] },
       { id: 'c9', type: 'finish', x: 300, y: 20, rotation: 0, label: 'Mål', numbers: [], colorNumbers: [] },
+    ],
+  },
+  {
+    name: 'Klass 1-bana (12 hinder)',
+    description: 'Typisk tävlingsbana för klass 1',
+    obstacles: [
+      { id: 'k1_s', type: 'start', x: 100, y: 750, rotation: 0, label: 'Start', numbers: [], colorNumbers: [] },
+      { id: 'k1_1', type: 'jump', x: 100, y: 650, rotation: 0, label: 'Hopp', numbers: [1], colorNumbers: [{ num: 1, color: '#22c55e' }] },
+      { id: 'k1_2', type: 'jump', x: 200, y: 560, rotation: 30, label: 'Hopp', numbers: [2], colorNumbers: [{ num: 2, color: '#22c55e' }] },
+      { id: 'k1_3', type: 'tunnel', x: 300, y: 460, rotation: 90, label: 'Tunnel', numbers: [3], colorNumbers: [{ num: 3, color: '#22c55e' }], tunnelLength: 4, bendAngle: 30 },
+      { id: 'k1_4', type: 'a_frame', x: 200, y: 360, rotation: 0, label: 'A-hinder', numbers: [4], colorNumbers: [{ num: 4, color: '#22c55e' }] },
+      { id: 'k1_5', type: 'jump', x: 100, y: 280, rotation: -15, label: 'Hopp', numbers: [5], colorNumbers: [{ num: 5, color: '#22c55e' }] },
+      { id: 'k1_6', type: 'weave', x: 250, y: 210, rotation: 0, label: 'Slalom', numbers: [6], colorNumbers: [{ num: 6, color: '#22c55e' }] },
+      { id: 'k1_7', type: 'jump', x: 350, y: 140, rotation: 0, label: 'Hopp', numbers: [7], colorNumbers: [{ num: 7, color: '#22c55e' }] },
+      { id: 'k1_8', type: 'dog_walk', x: 250, y: 80, rotation: 90, label: 'Brygga', numbers: [8], colorNumbers: [{ num: 8, color: '#22c55e' }] },
+      { id: 'k1_9', type: 'jump', x: 150, y: 140, rotation: -30, label: 'Hopp', numbers: [9], colorNumbers: [{ num: 9, color: '#22c55e' }] },
+      { id: 'k1_10', type: 'tire', x: 80, y: 200, rotation: 0, label: 'Däck', numbers: [10], colorNumbers: [{ num: 10, color: '#22c55e' }] },
+      { id: 'k1_11', type: 'jump', x: 80, y: 120, rotation: 0, label: 'Hopp', numbers: [11], colorNumbers: [{ num: 11, color: '#22c55e' }] },
+      { id: 'k1_12', type: 'jump', x: 150, y: 40, rotation: 0, label: 'Hopp', numbers: [12], colorNumbers: [{ num: 12, color: '#22c55e' }] },
+      { id: 'k1_f', type: 'finish', x: 250, y: 40, rotation: 0, label: 'Mål', numbers: [], colorNumbers: [] },
+    ],
+  },
+  {
+    name: 'Klass 3-bana (18 hinder)',
+    description: 'Avancerad bana med alla kontaktfält',
+    obstacles: [
+      { id: 'k3_s', type: 'start', x: 60, y: 750, rotation: 0, label: 'Start', numbers: [], colorNumbers: [] },
+      { id: 'k3_1', type: 'jump', x: 60, y: 660, rotation: 0, label: 'Hopp', numbers: [1], colorNumbers: [{ num: 1, color: '#22c55e' }] },
+      { id: 'k3_2', type: 'jump', x: 150, y: 580, rotation: 30, label: 'Hopp', numbers: [2], colorNumbers: [{ num: 2, color: '#22c55e' }] },
+      { id: 'k3_3', type: 'tunnel', x: 280, y: 520, rotation: 0, label: 'Tunnel', numbers: [3], colorNumbers: [{ num: 3, color: '#22c55e' }], tunnelLength: 6, bendAngle: 60 },
+      { id: 'k3_4', type: 'a_frame', x: 200, y: 420, rotation: 0, label: 'A-hinder', numbers: [4], colorNumbers: [{ num: 4, color: '#22c55e' }] },
+      { id: 'k3_5', type: 'jump', x: 80, y: 360, rotation: -20, label: 'Hopp', numbers: [5], colorNumbers: [{ num: 5, color: '#22c55e' }] },
+      { id: 'k3_6', type: 'jump', x: 150, y: 300, rotation: 10, label: 'Hopp', numbers: [6], colorNumbers: [{ num: 6, color: '#22c55e' }] },
+      { id: 'k3_7', type: 'weave', x: 300, y: 260, rotation: 0, label: 'Slalom', numbers: [7], colorNumbers: [{ num: 7, color: '#22c55e' }] },
+      { id: 'k3_8', type: 'seesaw', x: 200, y: 180, rotation: 90, label: 'Vipp', numbers: [8], colorNumbers: [{ num: 8, color: '#22c55e' }] },
+      { id: 'k3_9', type: 'jump', x: 340, y: 180, rotation: 0, label: 'Hopp', numbers: [9], colorNumbers: [{ num: 9, color: '#22c55e' }] },
+      { id: 'k3_10', type: 'tunnel', x: 350, y: 100, rotation: 90, label: 'Tunnel', numbers: [10], colorNumbers: [{ num: 10, color: '#22c55e' }], tunnelLength: 4, bendAngle: 0 },
+      { id: 'k3_11', type: 'jump', x: 260, y: 120, rotation: -30, label: 'Hopp', numbers: [11], colorNumbers: [{ num: 11, color: '#22c55e' }] },
+      { id: 'k3_12', type: 'tire', x: 180, y: 100, rotation: 0, label: 'Däck', numbers: [12], colorNumbers: [{ num: 12, color: '#22c55e' }] },
+      { id: 'k3_13', type: 'dog_walk', x: 100, y: 100, rotation: 0, label: 'Brygga', numbers: [13], colorNumbers: [{ num: 13, color: '#22c55e' }] },
+      { id: 'k3_14', type: 'jump', x: 60, y: 180, rotation: 0, label: 'Hopp', numbers: [14], colorNumbers: [{ num: 14, color: '#22c55e' }] },
+      { id: 'k3_15', type: 'long_jump', x: 60, y: 260, rotation: 0, label: 'Långhopp', numbers: [15], colorNumbers: [{ num: 15, color: '#22c55e' }] },
+      { id: 'k3_16', type: 'jump', x: 140, y: 60, rotation: 45, label: 'Hopp', numbers: [16], colorNumbers: [{ num: 16, color: '#22c55e' }] },
+      { id: 'k3_17', type: 'jump', x: 260, y: 40, rotation: 0, label: 'Hopp', numbers: [17], colorNumbers: [{ num: 17, color: '#22c55e' }] },
+      { id: 'k3_18', type: 'jump', x: 340, y: 40, rotation: 0, label: 'Hopp', numbers: [18], colorNumbers: [{ num: 18, color: '#22c55e' }] },
+      { id: 'k3_f', type: 'finish', x: 380, y: 40, rotation: 0, label: 'Mål', numbers: [], colorNumbers: [] },
+    ],
+  },
+  {
+    name: 'Slalomträning',
+    description: 'Fokus på slalom med hopp in/ut',
+    obstacles: [
+      { id: 'sl_1', type: 'jump', x: 200, y: 600, rotation: 0, label: 'Hopp', numbers: [1], colorNumbers: [{ num: 1, color: '#22c55e' }] },
+      { id: 'sl_2', type: 'weave', x: 200, y: 460, rotation: 0, label: 'Slalom', numbers: [2], colorNumbers: [{ num: 2, color: '#22c55e' }] },
+      { id: 'sl_3', type: 'jump', x: 200, y: 320, rotation: 0, label: 'Hopp', numbers: [3], colorNumbers: [{ num: 3, color: '#22c55e' }] },
+      { id: 'sl_4', type: 'weave', x: 200, y: 180, rotation: 90, label: 'Slalom', numbers: [4], colorNumbers: [{ num: 4, color: '#22c55e' }] },
+      { id: 'sl_5', type: 'jump', x: 200, y: 80, rotation: 0, label: 'Hopp', numbers: [5], colorNumbers: [{ num: 5, color: '#22c55e' }] },
     ],
   },
 ];
@@ -264,22 +323,38 @@ export default function CoursePlannerPage() {
     return h.slice(start, end).map(e => e.label).reverse();
   }, [historyVersion]);
 
-  // ── Feature 2: Snap-to-Grid ──
+  // ── Feature 2: Snap-to-Grid + Magnetic snap ──
   const [snapEnabled, setSnapEnabled] = useState(true);
   const SNAP_STEP = 0.5 * PX_PER_METER; // 0.5m
+  const MAGNETIC_DIST = 0.8 * PX_PER_METER; // snap within 0.8m of another obstacle
 
   const snapToGrid = useCallback((val: number) => {
     if (!snapEnabled) return val;
     return Math.round(val / SNAP_STEP) * SNAP_STEP;
   }, [snapEnabled]);
 
+  const magneticSnap = useCallback((x: number, y: number, excludeId?: string): { x: number; y: number; snapped: boolean } => {
+    if (!snapEnabled) return { x, y, snapped: false };
+    let snappedX = snapToGrid(x);
+    let snappedY = snapToGrid(y);
+    let didSnap = false;
+    for (const obs of obstacles) {
+      if (obs.id === excludeId) continue;
+      if (Math.abs(snappedX - obs.x) < MAGNETIC_DIST) { snappedX = obs.x; didSnap = true; }
+      if (Math.abs(snappedY - obs.y) < MAGNETIC_DIST) { snappedY = obs.y; didSnap = true; }
+    }
+    return { x: snappedX, y: snappedY, snapped: didSnap };
+  }, [snapEnabled, obstacles, snapToGrid]);
+
   // ── Feature 4: Copy/Paste ──
   const clipboardRef = useRef<Obstacle | null>(null);
 
-  // ── Feature 5: Multi-select ──
+  // ── Feature 5: Multi-select + Group operations ──
   const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
   const [groupDragging, setGroupDragging] = useState(false);
   const [groupDragStart, setGroupDragStart] = useState({ x: 0, y: 0 });
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
 
   // ── Feature 6: Minimap ──
   const [showMinimap, setShowMinimap] = useState(true);
@@ -1167,6 +1242,34 @@ export default function CoursePlannerPage() {
         });
         return;
       }
+
+      // Mobile: multi-select mode tap
+      if (multiSelectMode) {
+        setMultiSelected(prev => {
+          const next = new Set(prev);
+          if (next.has(obs.id)) next.delete(obs.id);
+          else next.add(obs.id);
+          return next;
+        });
+        return;
+      }
+
+      // If clicking a multi-selected obstacle, start group drag
+      if (multiSelected.has(obs.id) && multiSelected.size > 0) {
+        setGroupDragging(true);
+        setGroupDragStart({ x: pos.x, y: pos.y });
+        return;
+      }
+
+      // Mobile: long-press to enter multi-select mode
+      if ('touches' in e) {
+        longPressTimer.current = setTimeout(() => {
+          setMultiSelectMode(true);
+          setMultiSelected(new Set([obs.id]));
+          longPressTimer.current = null;
+        }, 500);
+      }
+
       setSelected(obs.id);
       setMultiSelected(new Set());
       setDragging(obs.id);
@@ -1174,6 +1277,7 @@ export default function CoursePlannerPage() {
     } else {
       setSelected(null);
       setMultiSelected(new Set());
+      setMultiSelectMode(false);
       // Start panning
       const client = getClientPos(e);
       setIsPanning(true);
@@ -1236,11 +1340,26 @@ export default function CoursePlannerPage() {
       return;
     }
 
+    // Group drag
+    if (groupDragging && multiSelected.size > 0) {
+      e.preventDefault();
+      const pos = getCanvasPos(e);
+      const dx = pos.x - groupDragStart.x;
+      const dy = pos.y - groupDragStart.y;
+      setObstaclesRaw(prev => prev.map(o => {
+        if (!multiSelected.has(o.id)) return o;
+        return { ...o, x: snapToGrid(o.x + dx), y: snapToGrid(o.y + dy) };
+      }));
+      setGroupDragStart({ x: pos.x, y: pos.y });
+      return;
+    }
+
     if (dragging) {
       e.preventDefault();
       const pos = getCanvasPos(e);
-      const newX = snapToGrid(pos.x - dragOffset.x);
-      const newY = snapToGrid(pos.y - dragOffset.y);
+      const rawX = pos.x - dragOffset.x;
+      const rawY = pos.y - dragOffset.y;
+      const { x: newX, y: newY } = magneticSnap(rawX, rawY, dragging);
       setObstaclesRaw(prev => prev.map(o =>
         o.id === dragging ? { ...o, x: newX, y: newY } : o
       ));
@@ -1257,10 +1376,19 @@ export default function CoursePlannerPage() {
   };
 
   const handlePointerUp = () => {
+    // Cancel long press
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
     // Push history on drag end
     if (dragging) {
       const obs = obstacles.find(o => o.id === dragging);
       pushHistory(obstacles, handlerPath, `Flyttade ${obs?.label || 'hinder'}`);
+      setIsDirty(true);
+    }
+    if (groupDragging) {
+      pushHistory(obstacles, handlerPath, `Flyttade ${multiSelected.size} hinder`);
       setIsDirty(true);
     }
     if (draggingNumber) {
@@ -1282,6 +1410,7 @@ export default function CoursePlannerPage() {
     setTouchRotating(false);
     setIsPanning(false);
     setPinchStartDist(0);
+    setGroupDragging(false);
   };
 
   // Mouse wheel zoom
@@ -1439,6 +1568,44 @@ export default function CoursePlannerPage() {
         ? { ...o, bendAngle: angle }
         : o
     ));
+  };
+
+  // ── Group rotate ──
+  const rotateGroup = (delta: number) => {
+    if (multiSelected.size === 0) return;
+    const selectedObs = obstacles.filter(o => multiSelected.has(o.id));
+    if (selectedObs.length === 0) return;
+    const cx = selectedObs.reduce((s, o) => s + o.x, 0) / selectedObs.length;
+    const cy = selectedObs.reduce((s, o) => s + o.y, 0) / selectedObs.length;
+    const rad = (delta * Math.PI) / 180;
+    setObstaclesRaw(prev => {
+      const next = prev.map(o => {
+        if (!multiSelected.has(o.id)) return o;
+        const dx = o.x - cx;
+        const dy = o.y - cy;
+        return {
+          ...o,
+          x: snapToGrid(cx + dx * Math.cos(rad) - dy * Math.sin(rad)),
+          y: snapToGrid(cy + dx * Math.sin(rad) + dy * Math.cos(rad)),
+          rotation: (o.rotation + delta + 360) % 360,
+        };
+      });
+      pushHistory(next, handlerPath, `Roterade ${multiSelected.size} hinder`);
+      setIsDirty(true);
+      return next;
+    });
+  };
+
+  const deleteMultiSelected = () => {
+    if (multiSelected.size === 0) return;
+    setObstaclesRaw(prev => {
+      const next = prev.filter(o => !multiSelected.has(o.id));
+      pushHistory(next, handlerPath, `Raderade ${multiSelected.size} hinder`);
+      setIsDirty(true);
+      return next;
+    });
+    setMultiSelected(new Set());
+    setMultiSelectMode(false);
   };
 
   const toggleTunnelLength = () => {
@@ -1991,6 +2158,33 @@ export default function CoursePlannerPage() {
               )}
             </div>
           )}
+
+          {/* Multi-select controls overlay */}
+          {multiSelected.size > 0 && !numberingMode && !selectedObs && (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 bg-card/95 backdrop-blur-sm border border-primary/30 rounded-lg p-2 shadow-lg flex gap-2 items-center"
+              onMouseDown={e => e.stopPropagation()}
+              onTouchStart={e => e.stopPropagation()}
+            >
+              <span className="text-[10px] font-medium text-primary">{multiSelected.size} markerade</span>
+              <button onClick={() => rotateGroup(15)} className="p-1.5 rounded bg-secondary hover:bg-secondary/80 transition-colors" title="Rotera grupp 15°">
+                <RotateCcw size={14} />
+              </button>
+              <button onClick={deleteMultiSelected} className="p-1.5 rounded bg-secondary hover:bg-destructive/20 text-destructive transition-colors" title="Radera markerade">
+                <Trash2 size={14} />
+              </button>
+              <button onClick={() => { setMultiSelected(new Set()); setMultiSelectMode(false); }} className="p-1.5 rounded bg-secondary hover:bg-secondary/80 transition-colors" title="Avmarkera">
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
+          {/* Multi-select mode indicator (mobile) */}
+          {multiSelectMode && isMobile && (
+            <div className="absolute top-2 left-2 z-20 bg-primary/90 text-primary-foreground text-[10px] px-2 py-1 rounded-lg shadow-sm">
+              Multimarkering · Tryck hinder för att markera
+              <button onClick={() => { setMultiSelectMode(false); setMultiSelected(new Set()); }} className="ml-2 underline">Avsluta</button>
+            </div>
+          )}
         </div>
 
         {/* Sidebar toggle when collapsed */}
@@ -2016,6 +2210,13 @@ export default function CoursePlannerPage() {
             →
           </button>
           <div className="flex flex-col gap-0.5 p-1 border-b border-border">
+            <button onClick={handleUndo} disabled={!canUndo} className="p-1.5 rounded hover:bg-secondary transition-colors disabled:opacity-30" title="Ångra (Ctrl+Z)">
+              <Undo2 size={14} />
+            </button>
+            <button onClick={handleRedo} disabled={!canRedo} className="p-1.5 rounded hover:bg-secondary transition-colors disabled:opacity-30" title="Gör om (Ctrl+Y)">
+              <RotateCcw size={14} className="scale-x-[-1]" />
+            </button>
+            <div className="h-px bg-border" />
             <button
               onClick={toggleFullscreen}
               className="p-1.5 rounded hover:bg-secondary transition-colors"
@@ -2037,10 +2238,20 @@ export default function CoursePlannerPage() {
             >
               <Hash size={14} />
             </button>
+            <button
+              onClick={() => { setMeasureMode(!measureMode); setDrawingMode(false); setNumberingMode(false); setMeasurePoints([]); }}
+              className={`p-1.5 rounded transition-colors ${measureMode ? 'bg-yellow-500/15 text-yellow-600' : 'hover:bg-secondary'}`}
+              title="Mätverktyg"
+            >
+              <Ruler size={14} />
+            </button>
             {selected && (
               <>
                 <button onClick={rotateSelected} className="p-1.5 rounded hover:bg-secondary" title="Rotera 15°">
                   <RotateCcw size={14} />
+                </button>
+                <button onClick={copySelected} className="p-1.5 rounded hover:bg-secondary" title="Kopiera">
+                  <Copy size={14} />
                 </button>
                 <button onClick={deleteSelected} className="p-1.5 rounded hover:bg-secondary text-destructive" title="Radera">
                   <Trash2 size={14} />
@@ -2054,6 +2265,19 @@ export default function CoursePlannerPage() {
             )}
             {zoomControls(true)}
           </div>
+          {/* Course stats in sidebar */}
+          {obstacles.length > 0 && (
+            <div className="p-1 border-b border-border text-[8px] text-muted-foreground space-y-0.5">
+              <div className="font-medium text-foreground">{courseStats.total} hinder</div>
+              {courseStats.contactCount > 0 && <div>{courseStats.contactCount} kontakt</div>}
+              {courseStats.length > 0 && <div>~{Math.round(courseStats.length)}m</div>}
+              <button onClick={() => setSnapEnabled(!snapEnabled)}
+                className={`text-[8px] px-1 rounded ${snapEnabled ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>
+                Snap {snapEnabled ? 'PÅ' : 'AV'}
+              </button>
+              {isDirty && <div className="text-amber-500 font-medium">● Osparad</div>}
+            </div>
+          )}
 
           {/* Numbering color picker in compact mode */}
           {numberingMode && (
@@ -2140,8 +2364,9 @@ export default function CoursePlannerPage() {
               <div className="space-y-1.5">
                 {PRESET_COURSES.map((p, i) => (
                   <button key={i} onClick={() => loadPreset(p)}
-                    className="w-full text-left text-sm font-medium text-foreground bg-primary/5 hover:bg-primary/10 rounded-lg p-2.5 transition-colors">
-                    {p.name}
+                    className="w-full text-left bg-primary/5 hover:bg-primary/10 rounded-lg p-2.5 transition-colors">
+                    <div className="text-sm font-medium text-foreground">{p.name}</div>
+                    <div className="text-[10px] text-muted-foreground">{p.description}</div>
                   </button>
                 ))}
               </div>

@@ -248,6 +248,10 @@ function parseDogResultsPage(html: string): DogSearchResult {
     // Extract body rows
     const bodyMatch = tableHtml.match(/<tbody>([\s\S]*?)<\/tbody>/i);
     const bodyHtml = bodyMatch ? bodyMatch[1] : tableHtml;
+    console.log('tbody found:', !!bodyMatch, 'bodyHtml length:', bodyHtml.length);
+    if (bodyHtml.length < 2000) {
+      console.log('bodyHtml content:', bodyHtml.substring(0, 1500));
+    }
     
     const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
     let rowMatch;

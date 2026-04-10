@@ -2449,6 +2449,14 @@ export default function CoursePlannerPage() {
             </div>
           )}
 
+          {/* Sport mode toggle */}
+          <div className="p-1 border-b border-border">
+            <div className="flex rounded-md overflow-hidden border border-border text-[8px]">
+              <button onClick={() => setSportMode('agility')} className={`flex-1 py-1 font-medium transition-colors ${sportMode === 'agility' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-secondary'}`}>Agility</button>
+              <button onClick={() => setSportMode('hoopers')} className={`flex-1 py-1 font-medium transition-colors ${sportMode === 'hoopers' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-secondary'}`}>Hoopers</button>
+            </div>
+          </div>
+
           {/* Obstacle palette */}
           <div className="flex-1 overflow-y-auto">
             {obstaclePalette(true)}

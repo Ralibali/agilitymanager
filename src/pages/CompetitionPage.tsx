@@ -42,6 +42,7 @@ export default function CompetitionPage() {
   const [friendNames, setFriendNames] = useState<string[]>([]);
   const [externalResultUrl, setExternalResultUrl] = useState('');
   const [activeExternalUrl, setActiveExternalUrl] = useState<string | null>(null);
+  const [competitionUrlMap, setCompetitionUrlMap] = useState<Record<string, string>>({});
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [customItems, setCustomItems] = useState<string[]>(() => {
     try {

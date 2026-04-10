@@ -70,12 +70,12 @@ Deno.serve(async (req) => {
     actions.push({ type: 'wait', milliseconds: 4000 });
     actions.push({ type: 'click', selector: '#SearchDogsAdminGridContent tbody tr:first-child td:last-child a' });
     actions.push({ type: 'wait', milliseconds: 5000 });
-    // Click first checkbox (Agility) to load results
+    // Click first checkbox (Agility)
     actions.push({ type: 'click', selector: 'input[type="checkbox"]:first-of-type' });
-    actions.push({ type: 'wait', milliseconds: 4000 });
-    // Click second checkbox (Hopp) to load those results too
+    actions.push({ type: 'wait', milliseconds: 5000 });
+    // Click second checkbox (Hopp)
     actions.push({ type: 'click', selector: 'input[type="checkbox"]:nth-of-type(2)' });
-    actions.push({ type: 'wait', milliseconds: 4000 });
+    actions.push({ type: 'wait', milliseconds: 5000 });
 
     const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',
@@ -85,9 +85,10 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         url: 'https://agilitydata.se/resultat/soek-hund/',
-        formats: ['html'],
+        formats: ['markdown', 'html'],
         onlyMainContent: false,
         waitFor: 3000,
+        timeout: 60000,
         actions,
       }),
     });
@@ -96,8 +97,8 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       console.error('Firecrawl error:', JSON.stringify(data));
-      if (data?.code === 'SCRAPE_ACTION_ERROR') {
-        console.log('Action failed, trying search-only mode...');
+      if (data?.code === 'SCRAPE_ACTION_ERROR' || data?.code === 'SCRAPE_TIMEOUT') {
+        console.log('Action failed/timeout, trying search-only mode...');
         return await searchOnly(apiKey, firstName, lastName, dogName);
       }
       return new Response(
@@ -107,9 +108,23 @@ Deno.serve(async (req) => {
     }
 
     const html = data?.data?.html || '';
-    console.log('Result page HTML length:', html.length);
+    const markdown = data?.data?.markdown || '';
+    console.log('Result page HTML length:', html.length, 'Markdown length:', markdown.length);
+    if (markdown.length > 0) {
+      console.log('Markdown preview (first 2000 chars):', markdown.substring(0, 2000));
+    }
 
-    const dogInfo = parseDogResultsPage(html);
+    let dogInfo = parseDogResultsPage(html);
+
+    // If HTML parsing found no results, try parsing from markdown
+    if (dogInfo.results.length === 0 && markdown.length > 0) {
+      console.log('HTML parsing found 0 results, trying markdown parsing...');
+      const markdownResults = parseMarkdownResults(markdown);
+      if (markdownResults.length > 0) {
+        dogInfo.results = markdownResults;
+        console.log(`Markdown parsing found ${markdownResults.length} results`);
+      }
+    }
 
     return new Response(
       JSON.stringify({ success: true, data: dogInfo }),
@@ -228,36 +243,13 @@ function parseDogResultsPage(html: string): DogSearchResult {
   const rasMatch = html.match(/Ras\s*(?:<[^>]*>)*\s*:\s*(?:<[^>]*>)*\s*([^<]+)/i);
   if (rasMatch) breed = rasMatch[1].trim();
 
-  // Find ALL result tables - there may be one per discipline (Agility, Hopp)
+  // Find the results table by ID
   const results: DogResult[] = [];
+  const resultsTableMatch = html.match(/<table[^>]*id="gridContentResultDogResultsTable"[^>]*>([\s\S]*?)<\/table>/i);
   
-  // Try specific table ID first, then find all tables with result-like IDs
-  const tableIds = ['gridContentResultDogResultsTable'];
-  const tableIdRegex = /<table[^>]*id="([^"]*)"[^>]*/gi;
-  let idMatch;
-  while ((idMatch = tableIdRegex.exec(html)) !== null) {
-    const id = idMatch[1];
-    if (!tableIds.includes(id) && (id.toLowerCase().includes('result') || id.toLowerCase().includes('grid'))) {
-      tableIds.push(id);
-    }
-  }
-  console.log('Table IDs to parse:', tableIds.join(', '));
-
-  for (const tableId of tableIds) {
-    const tableRegex = new RegExp(`<table[^>]*id="${tableId}"[^>]*>([\\s\\S]*?)<\\/table>`, 'i');
-    const resultsTableMatch = html.match(tableRegex);
-    
-    if (!resultsTableMatch) continue;
-    
-    console.log(`Parsing table ${tableId}, length:`, resultsTableMatch[1].length);
+  if (resultsTableMatch) {
+    console.log('Found gridContentResultDogResultsTable, length:', resultsTableMatch[1].length);
     const tableHtml = resultsTableMatch[1];
-    
-    // Determine discipline from context (look for heading before the table)
-    let discipline = '';
-    const tablePos = html.indexOf(resultsTableMatch[0]);
-    const precedingHtml = html.substring(Math.max(0, tablePos - 500), tablePos);
-    if (/hopp/i.test(precedingHtml)) discipline = 'Hopp';
-    else if (/agility/i.test(precedingHtml)) discipline = 'Agility';
     
     // Extract headers
     const headerMatch = tableHtml.match(/<thead>([\s\S]*?)<\/thead>/i);
@@ -269,7 +261,7 @@ function parseDogResultsPage(html: string): DogSearchResult {
         headers.push(extractText(thMatch[1]).toLowerCase());
       }
     }
-    console.log(`Table ${tableId} headers:`, headers.join(', '), '| discipline:', discipline);
+    console.log('Result table headers:', headers.join(', '));
     
     // Extract body rows
     const bodyMatch = tableHtml.match(/<tbody>([\s\S]*?)<\/tbody>/i);
@@ -335,7 +327,7 @@ function parseDogResultsPage(html: string): DogSearchResult {
       results.push({
         date: dateStr,
         competition: comp,
-        discipline,
+        discipline: '',
         class: cls,
         size: '',
         placement: placStr ? parseInt(placStr) || null : null,
@@ -346,19 +338,96 @@ function parseDogResultsPage(html: string): DogSearchResult {
       });
     }
     
-    console.log(`Parsed ${results.length} results from ${rowCount} rows in table ${tableId}`);
-  }
-  
-  if (results.length === 0) {
-    console.log('No results found in any table');
-    const allTableIds: string[] = [];
-    const allIdRegex = /<table[^>]*id="([^"]*)"[^>]*/gi;
+    console.log(`Parsed ${results.length} results from ${rowCount} rows`);
+  } else {
+    console.log('gridContentResultDogResultsTable NOT found in HTML');
+    
+    // Log all table IDs for debugging
+    const tableIdRegex = /<table[^>]*id="([^"]*)"[^>]*/gi;
     let tm;
-    while ((tm = allIdRegex.exec(html)) !== null) {
-      allTableIds.push(tm[1]);
+    while ((tm = tableIdRegex.exec(html)) !== null) {
+      console.log('Found table ID:', tm[1]);
     }
-    console.log('All table IDs in HTML:', allTableIds.join(', '));
   }
 
   return { dog_name: dogName, reg_name: regName, reg_nr: regNr, breed, handler, results };
+}
+
+// Parse results from markdown format (fallback when HTML tbody is empty due to AJAX)
+function parseMarkdownResults(markdown: string): DogResult[] {
+  const results: DogResult[] = [];
+  
+  // Markdown tables look like:
+  // | Ekipage | Arrangör | Datum | Klass | Fel | Vägran | Tidsfel | Tot. fel | m/s | Plac. | Merit |
+  // | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+  // | Luna / Malin Öster | SKK Jönköping | 2024-03-15 | K3 | 0 | 0 | 0.0 | 0 | 4.52 | 1 | Cert |
+  
+  const lines = markdown.split('\n');
+  let headerLine = -1;
+  let headers: string[] = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line.startsWith('|')) continue;
+    
+    const cells = line.split('|').map(c => c.trim()).filter(c => c.length > 0);
+    
+    // Detect header row (contains keywords)
+    if (cells.some(c => /datum/i.test(c)) && cells.some(c => /klass/i.test(c))) {
+      headers = cells.map(c => c.toLowerCase());
+      headerLine = i;
+      console.log('Found markdown table headers at line', i, ':', headers.join(', '));
+      continue;
+    }
+    
+    // Skip separator row
+    if (headerLine >= 0 && /^[\-\s|]+$/.test(line)) continue;
+    
+    // Data rows (after header)
+    if (headerLine >= 0 && cells.length >= 3) {
+      const getCol = (keywords: string[]) => {
+        const idx = headers.findIndex(h => keywords.some(k => h.includes(k)));
+        return idx >= 0 && idx < cells.length ? cells[idx] : '';
+      };
+      
+      const dateStr = getCol(['datum', 'date']);
+      if (!dateStr || !/\d{4}/.test(dateStr)) continue;
+      
+      const comp = getCol(['arrangör', 'tävling', 'arrangemang']);
+      const cls = getCol(['klass', 'class']);
+      const placStr = getCol(['plac']);
+      const faultStr = getCol(['tot. fel', 'tot fel']);
+      const meritStr = getCol(['merit']);
+      const speedStr = getCol(['m/s']);
+      const refusalStr = getCol(['vägran']);
+      const timeFaultStr = getCol(['tidsfel']);
+      const rawFaultStr = getCol(['fel']);
+      
+      let totalFaults: number | null = null;
+      if (faultStr && faultStr.trim() !== '') {
+        const parsed = parseInt(faultStr);
+        totalFaults = isNaN(parsed) ? null : parsed;
+      } else if (rawFaultStr || refusalStr || timeFaultStr) {
+        totalFaults = (parseInt(rawFaultStr) || 0) + (parseInt(refusalStr) || 0) + (parseFloat(timeFaultStr) || 0);
+      }
+      
+      const passed = meritStr ? !['ej', 'disk', '-'].includes(meritStr.toLowerCase().trim()) : true;
+      const disqualified = meritStr ? meritStr.toLowerCase().includes('disk') : false;
+      
+      results.push({
+        date: dateStr,
+        competition: comp,
+        discipline: '',
+        class: cls,
+        size: '',
+        placement: placStr ? parseInt(placStr) || null : null,
+        time_sec: speedStr ? parseFloat(speedStr.replace(',', '.')) || null : null,
+        faults: totalFaults,
+        passed,
+        disqualified,
+      });
+    }
+  }
+  
+  return results;
 }

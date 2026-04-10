@@ -11,6 +11,7 @@ import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus,
 import ShareCourseDialog from '@/components/course-planner/ShareCourseDialog';
 import ObstacleColorPanel from '@/components/course-planner/ObstacleColorPanel';
 import { CoursePlannerTutorial, TutorialButton } from '@/components/course-planner/CoursePlannerTutorial';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
 import { useIsMobile } from '@/hooks/use-mobile';

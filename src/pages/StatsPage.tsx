@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
+import AITrainingInsights from '@/components/competitions/AITrainingInsights';
 import { PageContainer } from '@/components/PageContainer';
 import { store } from '@/lib/store';
 import type { Dog, TrainingSession, CompetitionResult } from '@/types';

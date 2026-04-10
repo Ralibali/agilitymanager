@@ -315,6 +315,7 @@ export default function CompetitionPage() {
             <div className="space-y-3">
               {results.map((r, i) => {
                 const dog = getDog(r.dog_id);
+                const matchedUrl = competitionUrlMap[r.id];
                 return (
                   <motion.div key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                     className="bg-card rounded-xl p-4 shadow-card">
@@ -340,6 +341,17 @@ export default function CompetitionPage() {
                           {r.placement && <span className="flex items-center gap-0.5 text-accent font-medium"><Medal size={12} /> #{r.placement}</span>}
                         </div>
                         {r.notes && <p className="mt-1.5 text-xs text-muted-foreground">{r.notes}</p>}
+                        
+                        {/* Auto-matched results from agilitydata.se */}
+                        {matchedUrl && (
+                          <div className="mt-3 pt-2 border-t border-border">
+                            <CompetitionResultsViewer
+                              url={matchedUrl}
+                              friendNames={friendNames}
+                              autoFetch
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </motion.div>

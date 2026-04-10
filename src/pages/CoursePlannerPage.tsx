@@ -102,6 +102,8 @@ const HOOPERS_OBSTACLE_TYPES = [
   { type: 'finish',         label: 'Mål',     symbol: '◼', width: 1.2 * PX_PER_METER,  height: 0.1 * PX_PER_METER },
 ];
 
+const ALL_OBSTACLE_TYPES = [...OBSTACLE_TYPES, ...HOOPERS_OBSTACLE_TYPES.filter(h => !OBSTACLE_TYPES.find(a => a.type === h.type))];
+
 const CANVAS_SIZES = [
   { label: '20×30 m', width: 20 * PX_PER_METER, height: 30 * PX_PER_METER },
   { label: '20×40 m', width: 20 * PX_PER_METER, height: 40 * PX_PER_METER },

@@ -6,7 +6,10 @@
 export const CITY_TO_COUNTY: Record<string, string> = {
   // Blekinge
   'karlshamn': 'Blekinge', 'karlskrona': 'Blekinge', 'olofström': 'Blekinge',
-  'ronneby': 'Blekinge', 'sölvesborg': 'Blekinge',
+  'ronneby': 'Blekinge', 'sölvesborg': 'Blekinge', 'mörrum': 'Blekinge',
+  'nättraby': 'Blekinge', 'bräkne-hoby': 'Blekinge', 'jämjö': 'Blekinge',
+  'svängsta': 'Blekinge', 'kallinge': 'Blekinge', 'asarum': 'Blekinge',
+  'lyckeby': 'Blekinge', 'mjällby': 'Blekinge',
 
   // Dalarnas
   'avesta': 'Dalarnas', 'borlänge': 'Dalarnas', 'falun': 'Dalarnas',
@@ -16,29 +19,48 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'vansbro': 'Dalarnas', 'älvdalen': 'Dalarnas', 'smedjebacken': 'Dalarnas',
   'dala floda': 'Dalarnas', 'djurås': 'Dalarnas', 'mockfjärd': 'Dalarnas',
   'bjursås': 'Dalarnas', 'siljansnäs': 'Dalarnas', 'insjön': 'Dalarnas',
-  'vikarbyn': 'Dalarnas', 'enviken': 'Dalarnas',
+  'vikarbyn': 'Dalarnas', 'enviken': 'Dalarnas', 'furudal': 'Dalarnas',
+  'grycksbo': 'Dalarnas', 'krylbo': 'Dalarnas', 'nås': 'Dalarnas',
+  'svärdsjö': 'Dalarnas', 'tällberg': 'Dalarnas', 'idre': 'Dalarnas',
+  'särna': 'Dalarnas', 'dala-järna': 'Dalarnas', 'nyhammar': 'Dalarnas',
+  'grängesberg': 'Dalarnas', 'horndal': 'Dalarnas', 'fors': 'Dalarnas',
 
   // Gotlands
   'visby': 'Gotlands', 'gotland': 'Gotlands', 'roma': 'Gotlands',
   'hemse': 'Gotlands', 'slite': 'Gotlands', 'klintehamn': 'Gotlands',
   'fröjel': 'Gotlands', 'fårösund': 'Gotlands', 'lärbro': 'Gotlands',
+  'dalhem': 'Gotlands', 'stånga': 'Gotlands', 'havdhem': 'Gotlands',
+  'burgsvik': 'Gotlands',
 
   // Gävleborgs
   'gävle': 'Gävleborgs', 'sandviken': 'Gävleborgs', 'hudiksvall': 'Gävleborgs',
   'söderhamn': 'Gävleborgs', 'bollnäs': 'Gävleborgs', 'ljusdal': 'Gävleborgs',
   'ockelbo': 'Gävleborgs', 'ovanåker': 'Gävleborgs', 'nordanstig': 'Gävleborgs',
   'hofors': 'Gävleborgs', 'edsbyn': 'Gävleborgs', 'gårdskär': 'Gävleborgs',
+  'bergsjö': 'Gävleborgs', 'järbo': 'Gävleborgs', 'storvik': 'Gävleborgs',
+  'skutskär': 'Gävleborgs', 'valbo': 'Gävleborgs', 'forsbacka': 'Gävleborgs',
+  'kilafors': 'Gävleborgs', 'delsbo': 'Gävleborgs', 'arbrå': 'Gävleborgs',
+  'los': 'Gävleborgs', 'färila': 'Gävleborgs', 'hamrånge': 'Gävleborgs',
 
   // Hallands
   'halmstad': 'Hallands', 'varberg': 'Hallands', 'kungsbacka': 'Hallands',
   'falkenberg': 'Hallands', 'laholm': 'Hallands', 'hylte': 'Hallands',
-  'genevad': 'Hallands', 'getinge': 'Hallands',
+  'genevad': 'Hallands', 'getinge': 'Hallands', 'oskarström': 'Hallands',
+  'träslövsläge': 'Hallands', 'åsa': 'Hallands', 'onsala': 'Hallands',
+  'vallda': 'Hallands', 'tvååker': 'Hallands', 'torup': 'Hallands',
+  'vessige': 'Hallands', 'enslöv': 'Hallands', 'harplinge': 'Hallands',
+  'eldsberga': 'Hallands', 'unnaryd': 'Hallands', 'knäred': 'Hallands',
 
   // Jämtlands
   'östersund': 'Jämtlands', 'krokom': 'Jämtlands', 'strömsund': 'Jämtlands',
   'åre': 'Jämtlands', 'berg': 'Jämtlands', 'härjedalen': 'Jämtlands',
   'sveg': 'Jämtlands', 'bräcke': 'Jämtlands', 'ragunda': 'Jämtlands',
-  'hammarstrand': 'Jämtlands', 'lit': 'Jämtlands',
+  'hammarstrand': 'Jämtlands', 'lit': 'Jämtlands', 'hallen': 'Jämtlands',
+  'brunflo': 'Jämtlands', 'ås': 'Jämtlands', 'undersåker': 'Jämtlands',
+  'järpen': 'Jämtlands', 'mörsil': 'Jämtlands', 'gäddede': 'Jämtlands',
+  'hoting': 'Jämtlands', 'hammerdal': 'Jämtlands', 'oviken': 'Jämtlands',
+  'myrviken': 'Jämtlands', 'svenstavik': 'Jämtlands', 'funäsdalen': 'Jämtlands',
+  'hede': 'Jämtlands', 'vemdalen': 'Jämtlands', 'linsell': 'Jämtlands',
 
   // Jönköpings
   'jönköping': 'Jönköpings', 'huskvarna': 'Jönköpings', 'nässjö': 'Jönköpings',
@@ -46,25 +68,40 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'eksjö': 'Jönköpings', 'gislaved': 'Jönköpings', 'vaggeryd': 'Jönköpings',
   'sävsjö': 'Jönköpings', 'aneby': 'Jönköpings', 'habo': 'Jönköpings',
   'mullsjö': 'Jönköpings', 'gränna': 'Jönköpings', 'kinnared': 'Jönköpings',
+  'skillingaryd': 'Jönköpings', 'bodafors': 'Jönköpings', 'landsbro': 'Jönköpings',
+  'rydaholm': 'Jönköpings', 'forserum': 'Jönköpings', 'bankeryd': 'Jönköpings',
+  'norrahammar': 'Jönköpings', 'taberg': 'Jönköpings', 'anderstorp': 'Jönköpings',
+  'smålandsstenar': 'Jönköpings', 'reftele': 'Jönköpings',
 
   // Kalmar
   'kalmar': 'Kalmar', 'västervik': 'Kalmar', 'oskarshamn': 'Kalmar',
   'vimmerby': 'Kalmar', 'nybro': 'Kalmar', 'mörbylånga': 'Kalmar',
   'borgholm': 'Kalmar', 'emmaboda': 'Kalmar', 'hultsfred': 'Kalmar',
   'mönsterås': 'Kalmar', 'torsås': 'Kalmar', 'högsby': 'Kalmar',
-  'färjestaden': 'Kalmar',
+  'färjestaden': 'Kalmar', 'virserum': 'Kalmar', 'gamleby': 'Kalmar',
+  'blomstermåla': 'Kalmar', 'ankarsrum': 'Kalmar', 'överum': 'Kalmar',
+  'rockneby': 'Kalmar', 'rinkabyholm': 'Kalmar', 'lindsdal': 'Kalmar',
+  'döderhult': 'Kalmar', 'påryd': 'Kalmar',
 
   // Kronobergs
   'växjö': 'Kronobergs', 'ljungby': 'Kronobergs', 'älmhult': 'Kronobergs',
   'alvesta': 'Kronobergs', 'markaryd': 'Kronobergs', 'tingsryd': 'Kronobergs',
-  'lessebo': 'Kronobergs', 'uppvidinge': 'Kronobergs',
+  'lessebo': 'Kronobergs', 'uppvidinge': 'Kronobergs', 'lenhovda': 'Kronobergs',
+  'åseda': 'Kronobergs', 'braås': 'Kronobergs', 'lammhult': 'Kronobergs',
+  'moheda': 'Kronobergs', 'ingelstad': 'Kronobergs', 'ryd': 'Kronobergs',
+  'gemla': 'Kronobergs', 'hovmantorp': 'Kronobergs', 'vislanda': 'Kronobergs',
+  'strömsnäsbruk': 'Kronobergs',
 
   // Norrbottens
   'luleå': 'Norrbottens', 'piteå': 'Norrbottens', 'kiruna': 'Norrbottens',
   'gällivare': 'Norrbottens', 'boden': 'Norrbottens', 'kalix': 'Norrbottens',
   'haparanda': 'Norrbottens', 'älvsbyn': 'Norrbottens', 'jokkmokk': 'Norrbottens',
   'pajala': 'Norrbottens', 'arjeplog': 'Norrbottens', 'arvidsjaur': 'Norrbottens',
-  'överkalix': 'Norrbottens', 'övertorneå': 'Norrbottens',
+  'överkalix': 'Norrbottens', 'övertorneå': 'Norrbottens', 'porjus': 'Norrbottens',
+  'malmberget': 'Norrbottens', 'koskullskulle': 'Norrbottens',
+  'gammelstad': 'Norrbottens', 'råneå': 'Norrbottens', 'sävast': 'Norrbottens',
+  'roknäs': 'Norrbottens', 'norrfjärden': 'Norrbottens', 'töre': 'Norrbottens',
+  'byske': 'Norrbottens', 'vuollerim': 'Norrbottens',
 
   // Skåne
   'malmö': 'Skåne', 'helsingborg': 'Skåne', 'lund': 'Skåne',
@@ -80,6 +117,15 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'löddeköpinge': 'Skåne', 'arlöv': 'Skåne', 'åstorp': 'Skåne',
   'hörby': 'Skåne', 'örkelljunga': 'Skåne', 'degeberga': 'Skåne',
   'falsterbo': 'Skåne', 'veberöd': 'Skåne', 'västra torup': 'Skåne',
+  'skanör': 'Skåne', 'dalby': 'Skåne', 'furulund': 'Skåne',
+  'billesholm': 'Skåne', 'röstånga': 'Skåne', 'tollarp': 'Skåne',
+  'vittsjö': 'Skåne', 'vinslöv': 'Skåne', 'tyringe': 'Skåne',
+  'sösdala': 'Skåne', 'knislinge': 'Skåne', 'broby': 'Skåne',
+  'fjälkinge': 'Skåne', 'hästveda': 'Skåne', 'söderåsen': 'Skåne',
+  'svalövs': 'Skåne', 'genarp': 'Skåne', 'oxie': 'Skåne',
+  'limhamn': 'Skåne', 'husie': 'Skåne', 'bara': 'Skåne',
+  'anderslöv': 'Skåne', 'svedala': 'Skåne', 'smygehamn': 'Skåne',
+  'hammenhög': 'Skåne', 'kivik': 'Skåne', 'brösarp': 'Skåne',
 
   // Stockholms
   'stockholm': 'Stockholms', 'södertälje': 'Stockholms', 'täby': 'Stockholms',
@@ -94,17 +140,32 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'salem': 'Stockholms', 'nykvarn': 'Stockholms', 'norsborg': 'Stockholms',
   'ågesta': 'Stockholms', 'ösmo': 'Stockholms', 'österhaninge': 'Stockholms',
   'bro': 'Stockholms', 'skå': 'Stockholms', 'lindholmen': 'Stockholms',
-  'väddö': 'Stockholms',
+  'väddö': 'Stockholms', 'hässelby': 'Stockholms', 'bromma': 'Stockholms',
+  'skärholmen': 'Stockholms', 'farsta': 'Stockholms', 'enskede': 'Stockholms',
+  'älvsjö': 'Stockholms', 'hägersten': 'Stockholms', 'vällingby': 'Stockholms',
+  'spånga': 'Stockholms', 'kista': 'Stockholms', 'tensta': 'Stockholms',
+  'rinkeby': 'Stockholms', 'bredäng': 'Stockholms', 'skarpnäck': 'Stockholms',
+  'älta': 'Stockholms', 'saltsjöbaden': 'Stockholms', 'saltsjö-boo': 'Stockholms',
+  'fisksätra': 'Stockholms', 'tullinge': 'Stockholms', 'bergshamra': 'Stockholms',
+  'rosersberg': 'Stockholms', 'arlanda': 'Stockholms', 'rimbo': 'Stockholms',
+  'hallstavik': 'Stockholms', 'grisslehamn': 'Stockholms',
 
   // Södermanlands
   'eskilstuna': 'Södermanlands', 'nyköping': 'Södermanlands', 'katrineholm': 'Södermanlands',
   'strängnäs': 'Södermanlands', 'flen': 'Södermanlands', 'oxelösund': 'Södermanlands',
   'trosa': 'Södermanlands', 'gnesta': 'Södermanlands', 'vingåker': 'Södermanlands',
+  'mariefred': 'Södermanlands', 'malmköping': 'Södermanlands', 'torshälla': 'Södermanlands',
+  'stallarholmen': 'Södermanlands', 'hälleforsnäs': 'Södermanlands',
+  'vagnhärad': 'Södermanlands', 'åkers styckebruk': 'Södermanlands',
 
   // Uppsala
   'uppsala': 'Uppsala', 'enköping': 'Uppsala', 'bålsta': 'Uppsala',
   'håbo': 'Uppsala', 'knivsta': 'Uppsala', 'tierp': 'Uppsala',
   'östhammar': 'Uppsala', 'älvkarleby': 'Uppsala', 'heby': 'Uppsala',
+  'storvreta': 'Uppsala', 'björklinge': 'Uppsala', 'vattholma': 'Uppsala',
+  'öregrund': 'Uppsala', 'gimo': 'Uppsala', 'alunda': 'Uppsala',
+  'skutskär': 'Uppsala', 'söderfors': 'Uppsala', 'österbybruk': 'Uppsala',
+  'skokloster': 'Uppsala', 'grillby': 'Uppsala', 'örsundsbro': 'Uppsala',
 
   // Värmlands
   'karlstad': 'Värmlands', 'arvika': 'Värmlands', 'kristinehamn': 'Värmlands',
@@ -112,7 +173,11 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'säffle': 'Värmlands', 'åmål': 'Värmlands', 'eda': 'Värmlands',
   'forshaga': 'Värmlands', 'grums': 'Värmlands', 'hammarö': 'Värmlands',
   'kil': 'Värmlands', 'munkfors': 'Värmlands', 'storfors': 'Värmlands',
-  'torsby': 'Värmlands', 'årjäng': 'Värmlands',
+  'torsby': 'Värmlands', 'årjäng': 'Värmlands', 'charlottenberg': 'Värmlands',
+  'skoghall': 'Värmlands', 'deje': 'Värmlands', 'molkom': 'Värmlands',
+  'skattkärr': 'Värmlands', 'vålberg': 'Värmlands', 'ekshärad': 'Värmlands',
+  'ransäter': 'Värmlands', 'rottneros': 'Värmlands', 'lysvik': 'Värmlands',
+  'uddeholm': 'Värmlands', 'lesjöfors': 'Värmlands',
 
   // Västerbottens
   'umeå': 'Västerbottens', 'skellefteå': 'Västerbottens',
@@ -122,19 +187,35 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'robertsfors': 'Västerbottens', 'norsjö': 'Västerbottens',
   'dorotea': 'Västerbottens', 'åsele': 'Västerbottens',
   'sorsele': 'Västerbottens', 'malå': 'Västerbottens',
-  'bjurholm': 'Västerbottens',
+  'bjurholm': 'Västerbottens', 'boliden': 'Västerbottens',
+  'bureå': 'Västerbottens', 'jörn': 'Västerbottens',
+  'lövånger': 'Västerbottens', 'burträsk': 'Västerbottens',
+  'hällnäs': 'Västerbottens', 'holmsund': 'Västerbottens',
+  'obbola': 'Västerbottens', 'sävar': 'Västerbottens',
+  'hörnefors': 'Västerbottens', 'täfteå': 'Västerbottens',
 
   // Västernorrlands
   'sundsvall': 'Västernorrlands', 'härnösand': 'Västernorrlands',
   'örnsköldsvik': 'Västernorrlands', 'sollefteå': 'Västernorrlands',
   'kramfors': 'Västernorrlands', 'timrå': 'Västernorrlands',
   'ånge': 'Västernorrlands', 'nordansjö': 'Västernorrlands',
+  'matfors': 'Västernorrlands', 'njurunda': 'Västernorrlands',
+  'stöde': 'Västernorrlands', 'alnö': 'Västernorrlands',
+  'bredbyn': 'Västernorrlands', 'bjästa': 'Västernorrlands',
+  'domsjö': 'Västernorrlands', 'köpmanholmen': 'Västernorrlands',
+  'nyland': 'Västernorrlands', 'junsele': 'Västernorrlands',
+  'ramsele': 'Västernorrlands', 'långsele': 'Västernorrlands',
+  'docksta': 'Västernorrlands', 'ullånger': 'Västernorrlands',
 
   // Västmanlands
   'västerås': 'Västmanlands', 'sala': 'Västmanlands', 'köping': 'Västmanlands',
   'arboga': 'Västmanlands', 'fagersta': 'Västmanlands', 'hallstahammar': 'Västmanlands',
   'surahammar': 'Västmanlands', 'norberg': 'Västmanlands',
   'skinnskatteberg': 'Västmanlands', 'kungsör': 'Västmanlands',
+  'kolbäck': 'Västmanlands', 'ängelsberg': 'Västmanlands',
+  'virsbo': 'Västmanlands', 'ransta': 'Västmanlands',
+  'hökåsen': 'Västmanlands', 'dingtuna': 'Västmanlands',
+  'tillberga': 'Västmanlands', 'barkarö': 'Västmanlands',
 
   // Västra Götalands
   'göteborg': 'Västra Götalands', 'borås': 'Västra Götalands',
@@ -161,13 +242,34 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'tjörn': 'Västra Götalands', 'svenljunga': 'Västra Götalands',
   'dannike': 'Västra Götalands', 'fristad': 'Västra Götalands',
   'rångedala': 'Västra Götalands', 'risa': 'Västra Götalands',
+  'surte': 'Västra Götalands', 'nödinge': 'Västra Götalands',
+  'floda': 'Västra Götalands', 'gråbo': 'Västra Götalands',
+  'landvetter': 'Västra Götalands', 'mölnlycke': 'Västra Götalands',
+  'bollebygd': 'Västra Götalands', 'tranemo': 'Västra Götalands',
+  'limmared': 'Västra Götalands', 'dalsjöfors': 'Västra Götalands',
+  'sandared': 'Västra Götalands', 'sjömarken': 'Västra Götalands',
+  'axvall': 'Västra Götalands', 'varnhem': 'Västra Götalands',
+  'stenstorp': 'Västra Götalands', 'floby': 'Västra Götalands',
+  'nossebro': 'Västra Götalands', 'grästorp': 'Västra Götalands',
+  'åmål': 'Västra Götalands', 'brastad': 'Västra Götalands',
+  'ljungskile': 'Västra Götalands', 'henån': 'Västra Götalands',
+  'ellös': 'Västra Götalands', 'smögen': 'Västra Götalands',
+  'bovallstrand': 'Västra Götalands', 'grebbestad': 'Västra Götalands',
+  'fjällbacka': 'Västra Götalands', 'hamburgsund': 'Västra Götalands',
+  'tanumshede': 'Västra Götalands', 'hunnebostrand': 'Västra Götalands',
+  'kungshamn': 'Västra Götalands', 'skärhamn': 'Västra Götalands',
+  'åby': 'Västra Götalands', 'värsås': 'Västra Götalands',
+  'gullspång': 'Västra Götalands', 'hova': 'Västra Götalands',
 
   // Örebro
   'kumla': 'Örebro', 'örebro': 'Örebro', 'hallsberg': 'Örebro',
   'lindesberg': 'Örebro', 'nora': 'Örebro', 'askersund': 'Örebro',
   'degerfors': 'Örebro', 'hällefors': 'Örebro', 'karlskoga': 'Örebro',
   'laxå': 'Örebro', 'ljusnarsberg': 'Örebro', 'lekeberg': 'Örebro',
-  'fjugesta': 'Örebro',
+  'fjugesta': 'Örebro', 'kopparberg': 'Örebro', 'pålsboda': 'Örebro',
+  'frövi': 'Örebro', 'fellingsbro': 'Örebro', 'vintrosa': 'Örebro',
+  'garphyttan': 'Örebro', 'kilsmo': 'Örebro', 'odensbacken': 'Örebro',
+  'stora mellösa': 'Örebro', 'hampetorp': 'Örebro',
 
   // Östergötlands
   'linköping': 'Östergötlands', 'norrköping': 'Östergötlands',
@@ -176,7 +278,14 @@ export const CITY_TO_COUNTY: Record<string, string> = {
   'söderköping': 'Östergötlands', 'åtvidaberg': 'Östergötlands',
   'kinda': 'Östergötlands', 'boxholm': 'Östergötlands',
   'ödeshög': 'Östergötlands', 'ydre': 'Östergötlands',
-  'valdemarsvik': 'Östergötlands',
+  'valdemarsvik': 'Östergötlands', 'mantorp': 'Östergötlands',
+  'skänninge': 'Östergötlands', 'borensberg': 'Östergötlands',
+  'linghem': 'Östergötlands', 'ljungsbro': 'Östergötlands',
+  'vikingstad': 'Östergötlands', 'malmslätt': 'Östergötlands',
+  'sturefors': 'Östergötlands', 'rimforsa': 'Östergötlands',
+  'kisa': 'Östergötlands', 'kolmården': 'Östergötlands',
+  'kimstad': 'Östergötlands', 'skärblacka': 'Östergötlands',
+  'gusum': 'Östergötlands', 'gryt': 'Östergötlands',
 };
 
 /**

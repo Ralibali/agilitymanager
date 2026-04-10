@@ -2825,6 +2825,15 @@ export default function CoursePlannerPage() {
                 <DrawerTitle>Verktyg</DrawerTitle>
               </DrawerHeader>
               <div className="px-4 pb-6 space-y-4 overflow-y-auto">
+                {/* Sport toggle */}
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Sport</label>
+                  <div className="flex rounded-lg overflow-hidden border border-border">
+                    <button onClick={() => setSportMode('agility')} className={`flex-1 py-2 text-sm font-medium transition-colors ${sportMode === 'agility' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-secondary'}`}>🐕 Agility</button>
+                    <button onClick={() => setSportMode('hoopers')} className={`flex-1 py-2 text-sm font-medium transition-colors ${sportMode === 'hoopers' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-secondary'}`}>🎯 Hoopers</button>
+                  </div>
+                </div>
+
                 {/* Canvas size */}
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-1 block">Banstorlek</label>

@@ -2295,7 +2295,7 @@ export default function CoursePlannerPage() {
           </div>
         </div>
         )}
-        {showTutorial && <CoursePlannerTutorial />}
+        <CoursePlannerTutorial forceOpen={showTutorial} onClose={() => setShowTutorial(false)} />
       </div>
     );
   }

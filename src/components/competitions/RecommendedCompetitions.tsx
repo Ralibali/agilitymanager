@@ -410,6 +410,8 @@ export function RecommendedCompetitions({ dogs }: RecommendedCompetitionsProps) 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AgilityDataAttribution sourceUrl="https://agilitydata.se/taevlingar/" />
     </div>
   );
 }

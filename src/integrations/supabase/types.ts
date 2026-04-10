@@ -477,6 +477,8 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          handler_first_name: string | null
+          handler_last_name: string | null
           id: string
           premium_until: string | null
           referral_code: string | null
@@ -494,6 +496,8 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          handler_first_name?: string | null
+          handler_last_name?: string | null
           id?: string
           premium_until?: string | null
           referral_code?: string | null
@@ -511,6 +515,8 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          handler_first_name?: string | null
+          handler_last_name?: string | null
           id?: string
           premium_until?: string | null
           referral_code?: string | null

@@ -3235,6 +3235,7 @@ export default function CoursePlannerPage() {
               onOpenChange={setShareOpen}
               savedCourses={savedCourses}
               currentCourseId={loadedCourseId}
+              onExportPNG={obstacles.length > 0 ? getExportDataUrl : undefined}
             />
 
             <Dialog open={loadOpen} onOpenChange={setLoadOpen}>

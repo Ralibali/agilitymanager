@@ -182,14 +182,14 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <motion.div {...inViewFadeUp()} className="text-center mb-14">
             <h2 className="font-display font-bold text-foreground text-2xl sm:text-3xl mb-3">
-              Träningslogg, banplanerare och tävlingsresultat – allt du behöver
+              Allt du behöver – i en app
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              AgilityManager fungerar för nybörjaren som vill strukturera träningen och för tävlaren i klass 3 som vill optimera varje sekund.
+              Träningslogg, banplanerare, tävlingskalender, klubbar, chatt, AI-insikter och mer. AgilityManager fungerar för nybörjaren och tävlaren i klass 3.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {features.map((f, i) => (
               <motion.div
                 key={f.title}

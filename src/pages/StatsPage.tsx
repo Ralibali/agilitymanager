@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import AITrainingInsights from '@/components/competitions/AITrainingInsights';
-import { ResultsImporter } from '@/components/competitions/ResultsImporter';
 import { PageContainer } from '@/components/PageContainer';
 import { store } from '@/lib/store';
 import type { Dog, TrainingSession, CompetitionResult } from '@/types';
@@ -614,17 +613,10 @@ export default function StatsPage() {
   const [competitions, setCompetitions] = useState<CompetitionResult[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadData = useCallback(() => {
+  useEffect(() => {
     Promise.all([store.getDogs(), store.getTraining(), store.getCompetitions()]).then(([d, t, c]) => {
       setDogs(d); setTraining(t); setCompetitions(c); setLoading(false);
     });
-  }, []);
-
-  useEffect(() => { loadData(); }, [loadData]);
-
-  const handleImported = useCallback(() => {
-    // Reload competitions after import
-    store.getCompetitions().then(c => setCompetitions(c));
   }, []);
 
   if (loading) return <PageContainer title="Statistik"><div className="text-center py-20 text-muted-foreground">Laddar...</div></PageContainer>;
@@ -647,7 +639,6 @@ export default function StatsPage() {
           </TabsList>
 
           <TabsContent value="overview" className="mt-3 space-y-4">
-            <ResultsImporter dogs={dogs} onImported={handleImported} autoFetch compact />
             <TrainingStreakBadge training={training} />
             <AITrainingInsights dogs={dogs} sessions={training} results={competitions} />
             <CompStatsSummary competitions={competitions} />
@@ -669,7 +660,6 @@ export default function StatsPage() {
           </TabsContent>
 
           <TabsContent value="competitions" className="mt-3 space-y-4">
-            <ResultsImporter dogs={dogs} onImported={handleImported} />
             <CompStatsSummary competitions={competitions} />
             <DogComparison competitions={competitions} dogs={dogs} />
             {competitions.length >= 2 && (

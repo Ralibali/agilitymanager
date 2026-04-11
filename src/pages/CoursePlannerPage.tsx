@@ -2380,7 +2380,7 @@ export default function CoursePlannerPage() {
               })}
             </div>
             {/* Fade-out right edge */}
-            <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none bg-gradient-to-l from-background to-transparent" />
+            <div className={`absolute right-0 top-0 bottom-0 w-8 pointer-events-none bg-gradient-to-l ${isMobile ? 'from-[hsl(221,25%,10%)]' : 'from-background'} to-transparent`} />
           </div>
         </TooltipProvider>
       );

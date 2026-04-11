@@ -676,7 +676,9 @@ export default function StatsPage() {
               <CompTrendCharts competitions={competitions} dogs={dogs} />
             )}
             {competitions.length === 0 && (
-              <p className="text-center text-muted-foreground py-8 text-sm">Inga tävlingsresultat loggade ännu.</p>
+              <p className="text-center text-muted-foreground py-8 text-sm">
+                Inga tävlingsresultat ännu. Klicka på "Importera resultat" ovan eller logga manuellt på Tävlingssidan.
+              </p>
             )}
           </TabsContent>
 

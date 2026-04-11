@@ -1948,13 +1948,15 @@ export default function CoursePlannerPage() {
       const tunnelCount = obstacles.filter(o => o.type === 'hoopers_tunnel').length;
       const gateCount = obstacles.filter(o => o.type === 'gate').length;
 
-      // SHoK class matching with detailed rules
-      for (const cls of SHOK_CLASSES) {
+      // SHoK class validation against selected class
+      const cls = SHOK_CLASSES[shokClassIndex];
+      if (cls) {
         const fits = total >= cls.minObstacles && total <= cls.maxObstacles;
-        if (!fits) continue;
-
-        // DO size check
-        warnings.push(`ℹ️ Passar ${cls.label} (${cls.minObstacles}–${cls.maxObstacles} hinder, DO ${cls.doSizeM}m)`);
+        if (fits) {
+          warnings.push(`✅ Passar ${cls.label} (${cls.minObstacles}–${cls.maxObstacles} hinder, DO ${cls.doSizeM}m)`);
+        } else if (total > 0) {
+          warnings.push(`⚠️ ${total} hinder passar inte ${cls.label} (${cls.minObstacles}–${cls.maxObstacles})`);
+        }
 
         // Max handler zones
         if (handlerZones.length > cls.maxHandlerZones) {
@@ -1972,16 +1974,6 @@ export default function CoursePlannerPage() {
         }
       }
 
-      // No match at all
-      const anyMatch = SHOK_CLASSES.some(c => total >= c.minObstacles && total <= c.maxObstacles);
-      if (total > 0 && !anyMatch) {
-        if (total < SHOK_CLASSES[0].minObstacles) {
-          warnings.push(`ℹ️ ${total} hinder – för få för SHoK Startklass (min ${SHOK_CLASSES[0].minObstacles})`);
-        } else if (total > SHOK_CLASSES[SHOK_CLASSES.length - 1].maxObstacles) {
-          warnings.push(`ℹ️ ${total} hinder – fler än SHoK Klass 3 max (${SHOK_CLASSES[SHOK_CLASSES.length - 1].maxObstacles})`);
-        }
-      }
-
       // Scoring info
       if (total > 0) {
         const doCount = handlerZones.length;
@@ -1994,7 +1986,7 @@ export default function CoursePlannerPage() {
     }
 
     return { total, contactCount, length, warnings };
-  }, [obstacles, sportMode]);
+  }, [obstacles, sportMode, shokClassIndex]);
 
   /* ───── Feature 10: Unsaved changes warning ───── */
 

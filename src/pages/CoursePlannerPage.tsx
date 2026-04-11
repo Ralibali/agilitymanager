@@ -2460,7 +2460,7 @@ export default function CoursePlannerPage() {
   // Fullscreen landscape layout
   if (isFullscreen || showLandscapeLayout) {
     return (
-      <div ref={fullscreenContainerRef} className="fixed inset-0 z-50 bg-background flex">
+      <div ref={fullscreenContainerRef} className="fixed inset-0 z-50 flex" style={{ background: '#0F1117' }}>
         {/* Main canvas area */}
         <div
           ref={containerRef}
@@ -2603,7 +2603,7 @@ export default function CoursePlannerPage() {
 
         {/* Right sidebar */}
         {!sidebarCollapsed && (
-        <div className="w-16 sm:w-[70px] bg-card border-l border-border flex flex-col overflow-hidden relative">
+        <div className="w-[72px] flex flex-col overflow-hidden relative" style={{ background: '#1A1D27', borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
           {/* Collapse button */}
           <button
             onClick={() => setSidebarCollapsed(true)}
@@ -3651,7 +3651,8 @@ export default function CoursePlannerPage() {
       {/* Canvas */}
       <div
         ref={containerRef}
-        className={`rounded-xl shadow-elevated overflow-hidden mb-3 relative ${isMobile ? 'bg-[hsl(221,25%,10%)]' : 'bg-card'}`}
+        className="rounded-xl overflow-hidden mb-0 relative border border-[rgba(255,255,255,0.06)]"
+        style={{ background: '#0F1117' }}
         style={{ touchAction: 'none', minHeight: isMobile ? 350 : 500, height: isMobile ? 'calc(100vh - 260px)' : isDesktop ? 'calc(100vh - 340px)' : undefined }}
         onMouseDown={handlePointerDown}
         onMouseMove={handlePointerMove}
@@ -3832,21 +3833,41 @@ export default function CoursePlannerPage() {
         )}
       </div>
 
+      {/* Status bar */}
+      {!isMobile && obstacles.length > 0 && (
+        <div className="flex items-center justify-between px-4 py-1 rounded-b-xl mb-1 text-[11px] font-mono" style={{ background: '#1A1D27', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              <button onClick={() => setZoom(z => Math.max(0.2, z * 0.8))} className="px-1 text-[#94A3B8] hover:text-[#F8FAFC] transition-colors">−</button>
+              <button onClick={fitToScreen} className="text-[#94A3B8] hover:text-[#F8FAFC] transition-colors min-w-[36px] text-center">{Math.round(zoom * 100)}%</button>
+              <button onClick={() => setZoom(z => Math.min(3, z * 1.2))} className="px-1 text-[#94A3B8] hover:text-[#F8FAFC] transition-colors">+</button>
+              <button onClick={fitToScreen} className="ml-1 text-[#94A3B8] hover:text-[#F8FAFC] transition-colors">⊡</button>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 text-[#94A3B8]">
+            <span>{courseStats.total} hinder</span>
+            {courseStats.contactCount > 0 && <span>{courseStats.contactCount} kontakt</span>}
+            {courseStats.length > 0 && <span>~{Math.round(courseStats.length)}m</span>}
+          </div>
+          <div className="flex items-center gap-2">
+            {isDirty ? (
+              <span className="text-amber-400 flex items-center gap-1"><span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400" /> Osparade ändringar</span>
+            ) : (
+              <span className="text-emerald-400 flex items-center gap-1"><span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400" /> Sparat</span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Quick-select obstacle palette (portrait/desktop) */}
-      <div className={`sticky bottom-16 backdrop-blur-xl border-t pt-2 pb-2 -mx-4 px-4 rounded-t-xl shadow-elevated z-10 ${
-        isMobile
-          ? 'bg-[hsl(221,25%,10%)]/95 border-[hsl(221,20%,18%)] pb-3'
-          : 'bg-background/95 border-border'
-      }`}>
+      <div className="sticky bottom-16 backdrop-blur-xl border-t pt-2 pb-2 -mx-4 px-4 rounded-t-xl shadow-elevated z-10"
+        style={{ background: isMobile ? 'rgba(15,17,23,0.95)' : 'rgba(26,29,39,0.95)', borderColor: 'rgba(255,255,255,0.06)' }}>
         {obstaclePalette(false)}
       </div>
 
       {!isMobile && (
-        <p className="text-xs text-muted-foreground text-center mt-2">
-          Dra hinder för att flytta · Dra i ⟳ för att rotera · Scrollhjul/pinch för att zooma · Shift+klick = markera flera
-          <span className="block mt-0.5 text-[10px]">
-            Del = radera · Ctrl+Z/Y = ångra/gör om · Ctrl+C/V = kopiera · Ctrl+S = spara · Escape = avmarkera
-          </span>
+        <p className="text-[10px] text-[#94A3B8] text-center mt-1 mb-0">
+          Dra = flytta · ⟳ = rotera · Scrollhjul = zooma · Shift+klick = markera flera · Del = radera · Ctrl+Z/Y · Ctrl+C/V · Ctrl+S
         </p>
       )}
       </PremiumGate>

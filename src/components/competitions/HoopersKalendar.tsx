@@ -372,6 +372,26 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
                   </div>
 
                   <div className="flex flex-col items-end gap-1 shrink-0">
+                    {/* Interest buttons */}
+                    {user && (
+                      <div className="flex gap-1 mb-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleInterest(comp, 'interested'); }}
+                          className="p-1 rounded-md hover:bg-secondary transition-colors"
+                          title="Intresserad"
+                        >
+                          <Star size={16} className={interests[comp.id] === 'interested' || interests[comp.id] === 'registered' ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'} />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleInterest(comp, 'registered'); }}
+                          className="p-1 rounded-md hover:bg-secondary transition-colors"
+                          title="Anmäld"
+                        >
+                          <CheckCircle2 size={16} className={interests[comp.id] === 'registered' ? 'fill-green-500 text-green-500' : 'text-muted-foreground'} />
+                        </button>
+                      </div>
+                    )}
+
                     {/* Type badge */}
                     <Badge
                       variant="outline"

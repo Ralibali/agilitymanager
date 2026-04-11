@@ -2601,6 +2601,26 @@ export default function CoursePlannerPage() {
               <div className="font-medium text-foreground">{courseStats.total} hinder</div>
               {courseStats.contactCount > 0 && <div>{courseStats.contactCount} kontakt</div>}
               {courseStats.length > 0 && <div>~{Math.round(courseStats.length)}m</div>}
+              {sportMode === 'hoopers' && courseStats.recommendedClasses.length > 0 && (
+                <div className="flex flex-wrap gap-0.5 mt-0.5">
+                  {courseStats.recommendedClasses.map(rc => (
+                    <button
+                      key={rc.index}
+                      onClick={() => setShokClassIndex(rc.index)}
+                      className={`px-1 py-0 rounded text-[7px] font-semibold transition-colors ${
+                        rc.match === 'perfect'
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 border border-green-300 dark:border-green-700'
+                          : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border border-amber-300 dark:border-amber-700'
+                      } ${rc.index === shokClassIndex ? 'ring-1 ring-primary' : ''}`}
+                    >
+                      {rc.match === 'perfect' ? '✅' : '⚠️'} {rc.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {sportMode === 'hoopers' && courseStats.recommendedClasses.length === 0 && courseStats.total > 0 && (
+                <div className="text-[7px] text-destructive font-medium">❌ Passar ingen SHoK-klass</div>
+              )}
               <button onClick={() => setSnapEnabled(!snapEnabled)}
                 className={`text-[8px] px-1 rounded ${snapEnabled ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>
                 Snap {snapEnabled ? 'PÅ' : 'AV'}
@@ -2956,6 +2976,29 @@ export default function CoursePlannerPage() {
                     <div className="font-medium text-foreground">{courseStats.total} hinder</div>
                     {courseStats.contactCount > 0 && <div>{courseStats.contactCount} kontakt</div>}
                     {courseStats.length > 0 && <div>Banlängd: ~{Math.round(courseStats.length)}m</div>}
+                    {sportMode === 'hoopers' && courseStats.recommendedClasses.length > 0 && (
+                      <div className="mt-1.5">
+                        <div className="text-[10px] font-medium text-foreground mb-1">🎯 Rekommenderad klass:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {courseStats.recommendedClasses.map(rc => (
+                            <button
+                              key={rc.index}
+                              onClick={() => setShokClassIndex(rc.index)}
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
+                                rc.match === 'perfect'
+                                  ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 border border-green-300 dark:border-green-700'
+                                  : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border border-amber-300 dark:border-amber-700'
+                              } ${rc.index === shokClassIndex ? 'ring-2 ring-primary ring-offset-1' : 'hover:opacity-80'}`}
+                            >
+                              {rc.match === 'perfect' ? '✅' : '⚠️'} {rc.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {sportMode === 'hoopers' && courseStats.recommendedClasses.length === 0 && courseStats.total > 0 && (
+                      <div className="text-[10px] text-destructive font-medium mt-1">❌ Banan passar ingen SHoK-klass</div>
+                    )}
                     {courseStats.warnings.map((w, i) => (
                       <div key={i} className="text-amber-500">{w}</div>
                     ))}
@@ -3188,7 +3231,27 @@ export default function CoursePlannerPage() {
                   📐 Snap {snapEnabled ? 'PÅ' : 'AV'}
                 </button>
               </span>
-              {courseStats.warnings.length > 0 && (
+              {sportMode === 'hoopers' && courseStats.recommendedClasses.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-medium text-foreground">🎯</span>
+                  {courseStats.recommendedClasses.map(rc => (
+                    <button
+                      key={rc.index}
+                      onClick={() => setShokClassIndex(rc.index)}
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
+                        rc.match === 'perfect'
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 border border-green-300 dark:border-green-700'
+                          : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border border-amber-300 dark:border-amber-700'
+                      } ${rc.index === shokClassIndex ? 'ring-2 ring-primary ring-offset-1' : 'hover:opacity-80'}`}
+                    >
+                      {rc.match === 'perfect' ? '✅' : '⚠️'} {rc.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {sportMode === 'hoopers' && courseStats.recommendedClasses.length === 0 && courseStats.total > 0 && (
+                <span className="text-[10px] text-destructive font-medium">❌ Ingen SHoK-klass</span>
+              )}
                 <div className="w-full mt-1">
                   {courseStats.warnings.map((w, i) => (
                     <div key={i} className="text-[10px] text-amber-500">{w}</div>

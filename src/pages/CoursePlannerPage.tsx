@@ -2568,6 +2568,22 @@ export default function CoursePlannerPage() {
             </div>
           </div>
 
+          {/* SHoK class selector (hoopers only) */}
+          {sportMode === 'hoopers' && (
+            <div className="px-1 pb-1 border-b border-border">
+              <Select value={String(shokClassIndex)} onValueChange={(v) => setShokClassIndex(Number(v))}>
+                <SelectTrigger className="w-full h-7 text-[9px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SHOK_CLASSES.map((cls, i) => (
+                    <SelectItem key={i} value={String(i)} className="text-xs">{cls.label} (DO {cls.doSizeM}m)</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* Obstacle palette */}
           <div className="flex-1 overflow-y-auto">
             {obstaclePalette(true)}

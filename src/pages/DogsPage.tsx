@@ -7,6 +7,9 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { store } from '@/lib/store';
 import type { Dog, SizeClass, CompetitionLevel, CompetitionResult } from '@/types';
+import type { Database } from '@/integrations/supabase/types';
+type HoopersLevel = Database['public']['Enums']['hoopers_level'];
+type HoopersSize = Database['public']['Enums']['hoopers_size'];
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { motion } from 'framer-motion';
@@ -119,6 +122,44 @@ export default function DogsPage() {
                         <SelectItem value="K3">Klass 3</SelectItem>
                       </SelectContent>
                     </Select>
+                    {(dog.sport === 'Hoopers' || dog.sport === 'Agility') && (
+                      <Select
+                        value={dog.hoopers_level}
+                        onValueChange={async (v) => {
+                          const val = v as HoopersLevel;
+                          setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, hoopers_level: val } : d));
+                          await store.updateDog(dog.id, { hoopers_level: val });
+                        }}
+                      >
+                        <SelectTrigger className="h-6 text-[10px] px-2 w-auto min-w-0 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-none font-medium rounded-full">
+                          <span className="mr-0.5">HO</span> <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Startklass">Startklass</SelectItem>
+                          <SelectItem value="Klass 1">Klass 1</SelectItem>
+                          <SelectItem value="Klass 2">Klass 2</SelectItem>
+                          <SelectItem value="Klass 3">Klass 3</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                    {(dog.sport === 'Hoopers' || dog.sport === 'Agility') && (
+                      <Select
+                        value={dog.hoopers_size}
+                        onValueChange={async (v) => {
+                          const val = v as HoopersSize;
+                          setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, hoopers_size: val } : d));
+                          await store.updateDog(dog.id, { hoopers_size: val });
+                        }}
+                      >
+                        <SelectTrigger className="h-6 text-[10px] px-2 w-auto min-w-0 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-none font-medium rounded-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Small">Small (&lt;40cm)</SelectItem>
+                          <SelectItem value="Large">Large (≥40cm)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                     {dog.birthdate && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
                         Född {format(new Date(dog.birthdate), 'd MMM yyyy', { locale: sv })}

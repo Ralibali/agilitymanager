@@ -398,6 +398,11 @@ export default function CoursePlannerPage() {
   const [rotatingId, setRotatingId] = useState<string | null>(null);
   const [rotateStart, setRotateStart] = useState({ angle: 0, obsRotation: 0 });
   const [touchRotating, setTouchRotating] = useState(false);
+
+  // Animation state
+  const [recentlyPlaced, setRecentlyPlaced] = useState<string | null>(null);
+  const animFrameRef = useRef(0);
+  const marchOffsetRef = useRef(0);
   const [touchStartAngle, setTouchStartAngle] = useState(0);
   const [touchStartRotation, setTouchStartRotation] = useState(0);
 

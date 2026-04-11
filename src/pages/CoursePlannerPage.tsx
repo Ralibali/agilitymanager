@@ -305,6 +305,10 @@ export default function CoursePlannerPage() {
   const [showDistances, setShowDistances] = useState(true);
   const [canvasSize, setCanvasSize] = useState(CANVAS_SIZES[1]);
   const [sportMode, setSportMode] = useState<'agility' | 'hoopers'>('agility');
+  const [shokClassIndex, setShokClassIndex] = useState(0); // index into SHOK_CLASSES
+
+  const shokDoSizeM = SHOK_CLASSES[shokClassIndex]?.doSizeM ?? 4;
+  const shokDoPx = shokDoSizeM * PX_PER_METER;
 
   const [handlerPath, setHandlerPath] = useState<PathPoint[]>([]);
   const [drawingMode, setDrawingMode] = useState(false);
@@ -717,7 +721,7 @@ export default function CoursePlannerPage() {
 
   const drawHandlerZone = (ctx: CanvasRenderingContext2D, _obs: Obstacle) => {
     const c = getTypeColors('handler_zone');
-    const size = 3 * PX_PER_METER;
+    const size = shokDoPx;
     const hs = size / 2;
     ctx.fillStyle = c.body.replace(')', ', 0.12)').replace('hsl(', 'hsla(');
     ctx.fillRect(-hs, -hs, size, size);
@@ -730,7 +734,7 @@ export default function CoursePlannerPage() {
     ctx.font = 'bold 8px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-     ctx.fillText('DIRIGERINGSZON', 0, 0);
+    ctx.fillText(`DO ${shokDoSizeM}m`, 0, 0);
   };
 
   const draw = useCallback(() => {
@@ -1179,7 +1183,7 @@ export default function CoursePlannerPage() {
     }
 
     ctx.restore(); // restore MARGIN translate
-  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas, multiSelected, measurePoints, freeNumbers, draggingNumber]);
+  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas, multiSelected, measurePoints, freeNumbers, draggingNumber, shokDoPx]);
 
   useEffect(() => { draw(); }, [draw]);
 
@@ -1253,7 +1257,8 @@ export default function CoursePlannerPage() {
       const obs = obstacles[i];
       const info = ALL_OBSTACLE_TYPES.find(o => o.type === obs.type);
       if (!info) continue;
-      const hitR = Math.max(info.width, info.height, 20) / 2 + 8;
+      const dynSize = obs.type === 'handler_zone' ? shokDoPx : undefined;
+      const hitR = Math.max(dynSize ?? info.width, dynSize ?? info.height, 20) / 2 + 8;
       if (Math.abs(cx - obs.x) <= hitR && Math.abs(cy - obs.y) <= hitR) return obs;
     }
     return null;
@@ -1266,7 +1271,8 @@ export default function CoursePlannerPage() {
     const info = ALL_OBSTACLE_TYPES.find(o => o.type === obs.type);
     if (!info) return false;
 
-    const selSize = Math.max(info.width, info.height, 20) / 2 + 6;
+    const dynSize = obs.type === 'handler_zone' ? shokDoPx : undefined;
+    const selSize = Math.max(dynSize ?? info.width, dynSize ?? info.height, 20) / 2 + 6;
     const handleDist = selSize + 14;
     const rad = (obs.rotation * Math.PI) / 180;
     const localX = 0;
@@ -1942,13 +1948,15 @@ export default function CoursePlannerPage() {
       const tunnelCount = obstacles.filter(o => o.type === 'hoopers_tunnel').length;
       const gateCount = obstacles.filter(o => o.type === 'gate').length;
 
-      // SHoK class matching with detailed rules
-      for (const cls of SHOK_CLASSES) {
+      // SHoK class validation against selected class
+      const cls = SHOK_CLASSES[shokClassIndex];
+      if (cls) {
         const fits = total >= cls.minObstacles && total <= cls.maxObstacles;
-        if (!fits) continue;
-
-        // DO size check
-        warnings.push(`ℹ️ Passar ${cls.label} (${cls.minObstacles}–${cls.maxObstacles} hinder, DO ${cls.doSizeM}m)`);
+        if (fits) {
+          warnings.push(`✅ Passar ${cls.label} (${cls.minObstacles}–${cls.maxObstacles} hinder, DO ${cls.doSizeM}m)`);
+        } else if (total > 0) {
+          warnings.push(`⚠️ ${total} hinder passar inte ${cls.label} (${cls.minObstacles}–${cls.maxObstacles})`);
+        }
 
         // Max handler zones
         if (handlerZones.length > cls.maxHandlerZones) {
@@ -1966,16 +1974,6 @@ export default function CoursePlannerPage() {
         }
       }
 
-      // No match at all
-      const anyMatch = SHOK_CLASSES.some(c => total >= c.minObstacles && total <= c.maxObstacles);
-      if (total > 0 && !anyMatch) {
-        if (total < SHOK_CLASSES[0].minObstacles) {
-          warnings.push(`ℹ️ ${total} hinder – för få för SHoK Startklass (min ${SHOK_CLASSES[0].minObstacles})`);
-        } else if (total > SHOK_CLASSES[SHOK_CLASSES.length - 1].maxObstacles) {
-          warnings.push(`ℹ️ ${total} hinder – fler än SHoK Klass 3 max (${SHOK_CLASSES[SHOK_CLASSES.length - 1].maxObstacles})`);
-        }
-      }
-
       // Scoring info
       if (total > 0) {
         const doCount = handlerZones.length;
@@ -1988,7 +1986,7 @@ export default function CoursePlannerPage() {
     }
 
     return { total, contactCount, length, warnings };
-  }, [obstacles, sportMode]);
+  }, [obstacles, sportMode, shokClassIndex]);
 
   /* ───── Feature 10: Unsaved changes warning ───── */
 
@@ -2562,6 +2560,22 @@ export default function CoursePlannerPage() {
             </div>
           </div>
 
+          {/* SHoK class selector (hoopers only) */}
+          {sportMode === 'hoopers' && (
+            <div className="px-1 pb-1 border-b border-border">
+              <Select value={String(shokClassIndex)} onValueChange={(v) => setShokClassIndex(Number(v))}>
+                <SelectTrigger className="w-full h-7 text-[9px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SHOK_CLASSES.map((cls, i) => (
+                    <SelectItem key={i} value={String(i)} className="text-xs">{cls.label} (DO {cls.doSizeM}m)</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* Obstacle palette */}
           <div className="flex-1 overflow-y-auto">
             {obstaclePalette(true)}
@@ -2833,6 +2847,23 @@ export default function CoursePlannerPage() {
                     <button onClick={() => setSportMode('hoopers')} className={`flex-1 py-2 text-sm font-medium transition-colors ${sportMode === 'hoopers' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-secondary'}`}>🎯 Hoopers</button>
                   </div>
                 </div>
+
+                {/* SHoK class (hoopers only) */}
+                {sportMode === 'hoopers' && (
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">SHoK-klass (DO-storlek)</label>
+                    <Select value={String(shokClassIndex)} onValueChange={(v) => setShokClassIndex(Number(v))}>
+                      <SelectTrigger className="w-full h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SHOK_CLASSES.map((cls, i) => (
+                          <SelectItem key={i} value={String(i)}>{cls.label} (DO {cls.doSizeM}m)</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 {/* Canvas size */}
                 <div>

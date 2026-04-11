@@ -14,7 +14,12 @@ export function useUnreadCounts() {
   const [counts, setCounts] = useState<UnreadCounts>({ messages: 0, notifications: 0, friendRequests: 0, total: 0 });
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setCounts({ messages: 0, notifications: 0, friendRequests: 0, total: 0 });
+      return;
+    }
+
+    let isActive = true;
 
     const fetchCounts = async () => {
       const [msgRes, notifRes, friendRes] = await Promise.all([
@@ -35,6 +40,8 @@ export function useUnreadCounts() {
           .eq('status', 'pending'),
       ]);
 
+      if (!isActive) return;
+
       const messages = msgRes.count ?? 0;
       const notifications = notifRes.count ?? 0;
       const friendRequests = friendRes.count ?? 0;
@@ -47,34 +54,33 @@ export function useUnreadCounts() {
       });
     };
 
-    fetchCounts();
+    void fetchCounts();
 
-    // Subscribe to realtime changes for messages
-    const channelName = `unread-counts-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const channel = supabase
-      .channel(channelName)
+      .channel(`unread-counts:${user.id}:${Date.now()}:${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'messages',
         filter: `receiver_id=eq.${user.id}`,
-      }, () => fetchCounts())
+      }, fetchCounts)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'notifications',
         filter: `user_id=eq.${user.id}`,
-      }, () => fetchCounts())
+      }, fetchCounts)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'friendships',
         filter: `receiver_id=eq.${user.id}`,
-      }, () => fetchCounts())
+      }, fetchCounts)
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      isActive = false;
+      void supabase.removeChannel(channel);
     };
   }, [user?.id]);
 

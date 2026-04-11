@@ -1257,7 +1257,8 @@ export default function CoursePlannerPage() {
       const obs = obstacles[i];
       const info = ALL_OBSTACLE_TYPES.find(o => o.type === obs.type);
       if (!info) continue;
-      const hitR = Math.max(info.width, info.height, 20) / 2 + 8;
+      const dynSize = obs.type === 'handler_zone' ? shokDoPx : undefined;
+      const hitR = Math.max(dynSize ?? info.width, dynSize ?? info.height, 20) / 2 + 8;
       if (Math.abs(cx - obs.x) <= hitR && Math.abs(cy - obs.y) <= hitR) return obs;
     }
     return null;
@@ -1270,7 +1271,8 @@ export default function CoursePlannerPage() {
     const info = ALL_OBSTACLE_TYPES.find(o => o.type === obs.type);
     if (!info) return false;
 
-    const selSize = Math.max(info.width, info.height, 20) / 2 + 6;
+    const dynSize = obs.type === 'handler_zone' ? shokDoPx : undefined;
+    const selSize = Math.max(dynSize ?? info.width, dynSize ?? info.height, 20) / 2 + 6;
     const handleDist = selSize + 14;
     const rad = (obs.rotation * Math.PI) / 180;
     const localX = 0;

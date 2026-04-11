@@ -36,7 +36,8 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const isHoopers = sport === 'Hoopers';
+  const isHoopers = sport === 'Hoopers' || sport === 'Båda';
+  const isAgility = sport === 'Agility' || sport === 'Båda';
 
   // Auto-suggest hoopers size from withers
   const suggestedSize: HoopersSize | null = withersCm
@@ -107,8 +108,8 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
           {/* Sport selector */}
           <div>
             <Label>Sport</Label>
-            <div className="grid grid-cols-2 gap-2 mt-1">
-              {(['Agility', 'Hoopers'] as Sport[]).map(s => (
+            <div className="grid grid-cols-3 gap-2 mt-1">
+              {(['Agility', 'Hoopers', 'Båda'] as Sport[]).map(s => (
                 <button
                   key={s}
                   type="button"
@@ -119,7 +120,7 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
                       : 'border-border bg-card hover:border-primary/40'
                   }`}
                 >
-                  <span className="text-xl block">{s === 'Agility' ? '🐕' : '🅞'}</span>
+                  <span className="text-xl block">{s === 'Agility' ? '🐕' : s === 'Hoopers' ? '🅞' : '🐕🅞'}</span>
                   <span className="text-xs font-semibold text-foreground">{s}</span>
                 </button>
               ))}
@@ -162,38 +163,9 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
             )}
           </div>
 
-          {/* Sport-specific fields */}
-          {isHoopers ? (
+          {/* Agility fields */}
+          {isAgility && (
             <>
-              {/* Hoopers fields */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>Hoopers-storlek</Label>
-                  <Select value={hoopersSize} onValueChange={v => setHoopersSize(v as HoopersSize)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Small">Small (&lt;40 cm)</SelectItem>
-                      <SelectItem value="Large">Large (≥40 cm)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Hoopers-klass</Label>
-                  <Select value={hoopersLevel} onValueChange={v => setHoopersLevel(v as HoopersLevel)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Startklass">Startklass</SelectItem>
-                      <SelectItem value="Klass 1">Klass 1</SelectItem>
-                      <SelectItem value="Klass 2">Klass 2</SelectItem>
-                      <SelectItem value="Klass 3">Klass 3</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Agility fields */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Storleksklass</Label>
@@ -233,6 +205,34 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
                 </Select>
               </div>
             </>
+          )}
+
+          {/* Hoopers fields */}
+          {isHoopers && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Hoopers-storlek</Label>
+                <Select value={hoopersSize} onValueChange={v => setHoopersSize(v as HoopersSize)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Small">Small (&lt;40 cm)</SelectItem>
+                    <SelectItem value="Large">Large (≥40 cm)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Hoopers-klass</Label>
+                <Select value={hoopersLevel} onValueChange={v => setHoopersLevel(v as HoopersLevel)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Startklass">Startklass</SelectItem>
+                    <SelectItem value="Klass 1">Klass 1</SelectItem>
+                    <SelectItem value="Klass 2">Klass 2</SelectItem>
+                    <SelectItem value="Klass 3">Klass 3</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           )}
 
           <div>

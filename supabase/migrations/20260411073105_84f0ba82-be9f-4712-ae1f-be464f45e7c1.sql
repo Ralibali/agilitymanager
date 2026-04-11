@@ -1,0 +1,1 @@
+ALTER TYPE public.sport ADD VALUE IF NOT EXISTS 'Båda';

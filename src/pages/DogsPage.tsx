@@ -10,6 +10,7 @@ import type { Dog, SizeClass, CompetitionLevel, CompetitionResult } from '@/type
 import type { Database } from '@/integrations/supabase/types';
 type HoopersLevel = Database['public']['Enums']['hoopers_level'];
 type HoopersSize = Database['public']['Enums']['hoopers_size'];
+type Sport = Database['public']['Enums']['sport'];
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { motion } from 'framer-motion';

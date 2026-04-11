@@ -448,7 +448,6 @@ export default function CompetitionPage() {
           <TabsTrigger value="calendar" className="flex-1 text-xs">Kalender</TabsTrigger>
           <TabsTrigger value="mine" className="flex-1 text-xs">Mina</TabsTrigger>
           <TabsTrigger value="results" className="flex-1 text-xs">Resultat ({sportFilter === 'Hoopers' ? hoopersResults.length : sportFilter === 'Agility' ? results.length : allResults.length})</TabsTrigger>
-          {hasHoopersDog && <TabsTrigger value="hoopers" className="flex-1 text-xs">Hoopers</TabsTrigger>}
           <TabsTrigger value="checklist" className="flex-1 text-xs">Checklista</TabsTrigger>
         </TabsList>
 
@@ -459,90 +458,164 @@ export default function CompetitionPage() {
 
         {/* Calendar tab */}
         <TabsContent value="calendar" className="mt-3">
-          {/* Agida link */}
-          <a
-            href="https://www.agida.se"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl p-3 mb-4 hover:bg-primary/10 transition-colors"
-          >
-            <Calendar size={18} className="text-primary" />
-            <div className="flex-1">
-              <div className="text-sm font-semibold text-foreground">Hitta tävlingar på Agida</div>
-              <div className="text-xs text-muted-foreground">Se kommande agilitytävlingar i hela Sverige</div>
-            </div>
-            <ExternalLink size={14} className="text-muted-foreground" />
-          </a>
-
-          {/* Upcoming */}
-          <h3 className="font-display font-semibold text-foreground text-sm mb-2">Kommande tävlingar</h3>
-          {upcoming.length === 0 && interestedComps.length === 0 ? (
-            <p className="text-sm text-muted-foreground mb-4">Inga kommande tävlingar.</p>
-          ) : (
-            <div className="space-y-2 mb-4">
-              {upcoming.map((p, i) => {
-                const dog = getDog(p.dog_id);
-                const daysLeft = differenceInDays(new Date(p.date), new Date());
-                return (
-                  <motion.div key={p.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                    className="bg-card rounded-xl p-3 shadow-card border-l-4 border-accent">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-2">
-                        {dog && <DogAvatar dog={dog} size="sm" />}
-                        <div>
-                          <h4 className="font-semibold text-foreground text-sm">{p.event_name}</h4>
-                          <div className="text-xs text-muted-foreground">
-                            {format(new Date(p.date), 'd MMMM yyyy', { locale: sv })}
-                            {p.location && ` · ${p.location}`}
-                          </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs font-medium text-primary">{daysLeft} dagar kvar</span>
-                            <span className="text-xs px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground">{p.status}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <button onClick={() => handleDeletePlanned(p.id)} className="text-muted-foreground hover:text-destructive">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </motion.div>
-                );
-              })}
-
-              {/* Interested / registered competitions from calendar */}
-              {interestedComps.map((ic, i) => {
-                const daysLeft = differenceInDays(new Date(ic.comp.date_start!), new Date());
-                const statusLabel = ic.status === 'registered' ? 'Anmäld' : 'Intresserad';
-                const borderColor = ic.status === 'registered' ? 'border-primary' : 'border-orange-400';
-                return (
-                  <motion.div key={ic.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: (upcoming.length + i) * 0.03 }}
-                    className={`bg-card rounded-xl p-3 shadow-card border-l-4 ${borderColor}`}>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-semibold text-foreground text-sm">{ic.comp.competition_name || 'Tävling'}</h4>
-                        <div className="text-xs text-muted-foreground">
-                          {format(new Date(ic.comp.date_start!), 'd MMMM yyyy', { locale: sv })}
-                          {ic.comp.location && ` · ${ic.comp.location}`}
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs font-medium text-primary">{daysLeft} dagar kvar</span>
-                          <span className={`text-xs px-1.5 py-0.5 rounded-full ${ic.status === 'registered' ? 'bg-primary/10 text-primary' : 'bg-orange-100 text-orange-700'}`}>{statusLabel}</span>
-                          {ic.dog_name && <span className="text-xs text-muted-foreground">🐾 {ic.dog_name}</span>}
-                        </div>
-                      </div>
-                      {ic.comp.source_url && (
-                        <a href={ic.comp.source_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
-                          <ExternalLink size={14} />
-                        </a>
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
+          {/* Agida link - show when not filtering Hoopers only */}
+          {sportFilter !== 'Hoopers' && (
+            <a
+              href="https://www.agida.se"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl p-3 mb-4 hover:bg-primary/10 transition-colors"
+            >
+              <Calendar size={18} className="text-primary" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-foreground">Hitta tävlingar på Agida</div>
+                <div className="text-xs text-muted-foreground">Se kommande agilitytävlingar i hela Sverige</div>
+              </div>
+              <ExternalLink size={14} className="text-muted-foreground" />
+            </a>
           )}
 
-          {past.length > 0 && (
+          {/* SHoK link - show when filtering Hoopers or Alla */}
+          {sportFilter !== 'Agility' && hasHoopersDog && (
+            <a
+              href="https://shoktavling.se/?page=tavlingar"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl p-3 mb-4 hover:bg-primary/10 transition-colors"
+            >
+              <Calendar size={18} className="text-primary" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-foreground">Hitta tävlingar på SHoK</div>
+                <div className="text-xs text-muted-foreground">Se kommande hoopers-tävlingar på shoktavling.se</div>
+              </div>
+              <ExternalLink size={14} className="text-muted-foreground" />
+            </a>
+          )}
+
+          {/* Upcoming planned competitions - show when not filtering Hoopers only */}
+          {sportFilter !== 'Hoopers' && (
+            <>
+              <h3 className="font-display font-semibold text-foreground text-sm mb-2">Kommande tävlingar</h3>
+              {upcoming.length === 0 && interestedComps.length === 0 ? (
+                <p className="text-sm text-muted-foreground mb-4">Inga kommande tävlingar.</p>
+              ) : (
+                <div className="space-y-2 mb-4">
+                  {upcoming.map((p, i) => {
+                    const dog = getDog(p.dog_id);
+                    const daysLeft = differenceInDays(new Date(p.date), new Date());
+                    return (
+                      <motion.div key={p.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                        className="bg-card rounded-xl p-3 shadow-card border-l-4 border-accent">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-2">
+                            {dog && <DogAvatar dog={dog} size="sm" />}
+                            <div>
+                              <h4 className="font-semibold text-foreground text-sm">{p.event_name}</h4>
+                              <div className="text-xs text-muted-foreground">
+                                {format(new Date(p.date), 'd MMMM yyyy', { locale: sv })}
+                                {p.location && ` · ${p.location}`}
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs font-medium text-primary">{daysLeft} dagar kvar</span>
+                                <span className="text-xs px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground">{p.status}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <button onClick={() => handleDeletePlanned(p.id)} className="text-muted-foreground hover:text-destructive">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+
+                  {/* Interested / registered competitions from calendar */}
+                  {interestedComps.map((ic, i) => {
+                    const daysLeft = differenceInDays(new Date(ic.comp.date_start!), new Date());
+                    const statusLabel = ic.status === 'registered' ? 'Anmäld' : 'Intresserad';
+                    const borderColor = ic.status === 'registered' ? 'border-primary' : 'border-orange-400';
+                    return (
+                      <motion.div key={ic.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: (upcoming.length + i) * 0.03 }}
+                        className={`bg-card rounded-xl p-3 shadow-card border-l-4 ${borderColor}`}>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h4 className="font-semibold text-foreground text-sm">{ic.comp.competition_name || 'Tävling'}</h4>
+                            <div className="text-xs text-muted-foreground">
+                              {format(new Date(ic.comp.date_start!), 'd MMMM yyyy', { locale: sv })}
+                              {ic.comp.location && ` · ${ic.comp.location}`}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs font-medium text-primary">{daysLeft} dagar kvar</span>
+                              <span className={`text-xs px-1.5 py-0.5 rounded-full ${ic.status === 'registered' ? 'bg-primary/10 text-primary' : 'bg-orange-100 text-orange-700'}`}>{statusLabel}</span>
+                              {ic.dog_name && <span className="text-xs text-muted-foreground">🐾 {ic.dog_name}</span>}
+                            </div>
+                          </div>
+                          {ic.comp.source_url && (
+                            <a href={ic.comp.source_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                              <ExternalLink size={14} />
+                            </a>
+                          )}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Upcoming hoopers competitions - show when filtering Hoopers or Alla */}
+          {sportFilter !== 'Agility' && hasHoopersDog && (
+            <>
+              <h3 className="font-display font-semibold text-foreground text-sm mb-2 mt-4">Kommande hoopers-tävlingar</h3>
+              {upcomingHoopers.length === 0 ? (
+                <p className="text-sm text-muted-foreground mb-4">Inga kommande hoopers-tävlingar hittade.</p>
+              ) : (
+                <div className="space-y-2 mb-4">
+                  {upcomingHoopers.map((comp, i) => {
+                    const daysLeft = comp.date ? differenceInDays(new Date(comp.date), new Date()) : null;
+                    return (
+                      <motion.div key={comp.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                        className="bg-card rounded-xl p-3 shadow-card border-l-4 border-accent">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h4 className="font-semibold text-foreground text-sm">{comp.competition_name || 'Hoopers-tävling'}</h4>
+                            <div className="text-xs text-muted-foreground">
+                              {comp.date && format(new Date(comp.date), 'd MMMM yyyy', { locale: sv })}
+                              {comp.location && ` · ${comp.location}`}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              {daysLeft !== null && <span className="text-xs font-medium text-primary">{daysLeft} dagar kvar</span>}
+                              {comp.club_name && <span className="text-xs text-muted-foreground">{comp.club_name}</span>}
+                              {comp.type && (
+                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${comp.type === 'Officiell' ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'}`}>
+                                  {comp.type}
+                                </span>
+                              )}
+                            </div>
+                            {comp.classes && comp.classes.length > 0 && (
+                              <div className="flex gap-1 mt-1.5 flex-wrap">
+                                {comp.classes.map(c => (
+                                  <span key={c} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{c}</span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          {comp.source_url && (
+                            <a href={comp.source_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                              <ExternalLink size={14} />
+                            </a>
+                          )}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+
+          {past.length > 0 && sportFilter !== 'Hoopers' && (
             <>
               <h3 className="font-display font-semibold text-foreground text-sm mb-2 mt-4">Tidigare planerade</h3>
               <div className="space-y-2">
@@ -596,11 +669,13 @@ export default function CompetitionPage() {
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {format(new Date(r.date), 'd MMM yyyy', { locale: sv })} · {r.discipline} · {r.size_class} · {r.competition_level}
+                          {r.lopp_number && ` · Lopp ${r.lopp_number}`}
                         </div>
                         {r.organizer && <div className="text-xs text-muted-foreground">{r.organizer}</div>}
                         <div className="flex items-center gap-4 mt-2 text-xs">
-                          <span className="text-foreground font-medium">{r.time_sec}s</span>
+                          {r.time_sec > 0 && <span className="text-foreground font-medium">{r.time_sec}s</span>}
                           <span className={r.faults > 0 ? 'text-destructive' : 'text-success'}>{r.faults} fel</span>
+                          {r.hoopers_points != null && r.hoopers_points > 0 && <span className="text-primary font-medium">{r.hoopers_points}p</span>}
                           {r.placement && <span className="flex items-center gap-0.5 text-accent font-medium"><Medal size={12} /> #{r.placement}</span>}
                         </div>
                         {r.notes && <p className="mt-1.5 text-xs text-muted-foreground">{r.notes}</p>}
@@ -748,133 +823,6 @@ export default function CompetitionPage() {
         </TabsContent>
 
         {/* Checklist tab */}
-        {/* Hoopers tab */}
-        {hasHoopersDog && (
-          <TabsContent value="hoopers" className="mt-3">
-            <Tabs defaultValue="hoopers-calendar">
-              <TabsList className="w-full mb-3">
-                <TabsTrigger value="hoopers-calendar" className="flex-1 text-xs">Kalender</TabsTrigger>
-                <TabsTrigger value="hoopers-results" className="flex-1 text-xs">Resultat ({hoopersResults.length})</TabsTrigger>
-                <TabsTrigger value="hoopers-points" className="flex-1 text-xs">Poäng</TabsTrigger>
-              </TabsList>
-
-              {/* Hoopers Calendar */}
-              <TabsContent value="hoopers-calendar" className="mt-2">
-                <a
-                  href="https://shoktavling.se/?page=tavlingar"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl p-3 mb-4 hover:bg-primary/10 transition-colors"
-                >
-                  <Calendar size={18} className="text-primary" />
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold text-foreground">Hitta tävlingar på SHoK</div>
-                    <div className="text-xs text-muted-foreground">Se kommande hoopers-tävlingar på shoktavling.se</div>
-                  </div>
-                  <ExternalLink size={14} className="text-muted-foreground" />
-                </a>
-
-                <h3 className="font-display font-semibold text-foreground text-sm mb-2">Kommande hoopers-tävlingar</h3>
-                {upcomingHoopers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground mb-4">Inga kommande hoopers-tävlingar hittade.</p>
-                ) : (
-                  <div className="space-y-2 mb-4">
-                    {upcomingHoopers.map((comp, i) => {
-                      const daysLeft = comp.date ? differenceInDays(new Date(comp.date), new Date()) : null;
-                      return (
-                        <motion.div key={comp.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                          className="bg-card rounded-xl p-3 shadow-card border-l-4 border-accent">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h4 className="font-semibold text-foreground text-sm">{comp.competition_name || 'Hoopers-tävling'}</h4>
-                              <div className="text-xs text-muted-foreground">
-                                {comp.date && format(new Date(comp.date), 'd MMMM yyyy', { locale: sv })}
-                                {comp.location && ` · ${comp.location}`}
-                              </div>
-                              <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                {daysLeft !== null && <span className="text-xs font-medium text-primary">{daysLeft} dagar kvar</span>}
-                                {comp.club_name && <span className="text-xs text-muted-foreground">{comp.club_name}</span>}
-                                {comp.type && (
-                                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${comp.type === 'Officiell' ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'}`}>
-                                    {comp.type}
-                                  </span>
-                                )}
-                              </div>
-                              {comp.classes && comp.classes.length > 0 && (
-                                <div className="flex gap-1 mt-1.5 flex-wrap">
-                                  {comp.classes.map(c => (
-                                    <span key={c} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{c}</span>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                            {comp.source_url && (
-                              <a href={comp.source_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
-                                <ExternalLink size={14} />
-                              </a>
-                            )}
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                )}
-              </TabsContent>
-
-              {/* Hoopers Results */}
-              <TabsContent value="hoopers-results" className="mt-2">
-                {hoopersResults.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <p className="mb-2">Inga hoopers-resultat ännu.</p>
-                    <p className="text-xs">Importera resultat via Poäng-fliken eller logga manuellt.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {hoopersResults.map((r, i) => {
-                      const dog = getDog(r.dog_id);
-                      return (
-                        <motion.div key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                          className="bg-card rounded-xl p-4 shadow-card">
-                          <div className="flex items-start gap-3">
-                            {dog && <DogAvatar dog={dog} size="sm" />}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-display font-semibold text-foreground text-sm">{r.event_name}</h3>
-                                <div className="flex items-center gap-1">
-                                  <button onClick={() => setShareResult(r)} className="p-1 rounded-full hover:bg-secondary" title="Dela resultat">
-                                    <Send size={14} className="text-muted-foreground" />
-                                  </button>
-                                  {r.passed ? <CheckCircle2 size={18} className="text-success flex-shrink-0" /> : <XCircle size={18} className="text-destructive flex-shrink-0" />}
-                                </div>
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {format(new Date(r.date), 'd MMM yyyy', { locale: sv })} · {r.competition_level} · {r.size_class}
-                                {r.lopp_number && ` · Lopp ${r.lopp_number}`}
-                              </div>
-                              {r.organizer && <div className="text-xs text-muted-foreground">{r.organizer}</div>}
-                              <div className="flex items-center gap-4 mt-2 text-xs">
-                                {r.time_sec > 0 && <span className="text-foreground font-medium">{r.time_sec}s</span>}
-                                <span className={r.faults > 0 ? 'text-destructive' : 'text-success'}>{r.faults} fel</span>
-                                {r.hoopers_points != null && r.hoopers_points > 0 && <span className="text-primary font-medium">{r.hoopers_points}p</span>}
-                                {r.placement && <span className="flex items-center gap-0.5 text-accent font-medium"><Medal size={12} /> #{r.placement}</span>}
-                              </div>
-                              {r.notes && <p className="mt-1.5 text-xs text-muted-foreground">{r.notes}</p>}
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                )}
-              </TabsContent>
-
-              {/* Hoopers Points */}
-              <TabsContent value="hoopers-points" className="mt-2">
-                <HoopersPointsTracker dogs={dogs} />
-              </TabsContent>
-            </Tabs>
-          </TabsContent>
-        )}
 
         <TabsContent value="checklist" className="mt-3">
           <div className="bg-card rounded-xl p-4 shadow-card">

@@ -561,7 +561,7 @@ export default function CompetitionPage() {
         <TabsContent value="results" className="mt-3 space-y-4">
           <ResultsImporter dogs={dogs} onImported={() => refresh()} autoFetch />
           {sportFilter !== 'Hoopers' && <ClassPromotionTracker results={results} dogs={dogs} />}
-          {sportFilter === 'Hoopers' && <HoopersPointsTracker results={hoopersResults} dogs={dogs} />}
+          {sportFilter === 'Hoopers' && <HoopersPointsTracker dogs={dogs} />}
           {filteredResults.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <p className="mb-2">Inga tävlingsresultat ännu.</p>

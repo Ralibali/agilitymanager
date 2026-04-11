@@ -159,7 +159,7 @@ export default function DogsPage() {
                           <SelectItem value="Large">Large (≥40cm)</SelectItem>
                         </SelectContent>
                       </Select>
-                    )
+                    )}
                     {dog.birthdate && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
                         Född {format(new Date(dog.birthdate), 'd MMM yyyy', { locale: sv })}

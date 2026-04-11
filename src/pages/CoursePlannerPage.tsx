@@ -3640,8 +3640,8 @@ export default function CoursePlannerPage() {
       {/* Canvas */}
       <div
         ref={containerRef}
-        className="bg-card rounded-xl shadow-elevated overflow-hidden mb-3 relative"
-        style={{ touchAction: 'none', minHeight: isMobile ? 350 : 500, height: isMobile ? 'calc(100vh - 280px)' : isDesktop ? 'calc(100vh - 340px)' : undefined }}
+        className={`rounded-xl shadow-elevated overflow-hidden mb-3 relative ${isMobile ? 'bg-[hsl(221,25%,10%)]' : 'bg-card'}`}
+        style={{ touchAction: 'none', minHeight: isMobile ? 350 : 500, height: isMobile ? 'calc(100vh - 260px)' : isDesktop ? 'calc(100vh - 340px)' : undefined }}
         onMouseDown={handlePointerDown}
         onMouseMove={handlePointerMove}
         onMouseUp={handlePointerUp}
@@ -3650,6 +3650,33 @@ export default function CoursePlannerPage() {
         onTouchMove={handlePointerMove}
         onTouchEnd={handlePointerUp}
       >
+        {/* Empty canvas onboarding */}
+        {obstacles.length === 0 && !drawingMode && !numberingMode && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center pointer-events-none">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+              <Sparkles size={28} className="text-primary/60" />
+            </div>
+            <h3 className={`font-display font-bold text-lg mb-1 ${isMobile ? 'text-[hsl(210,20%,85%)]' : 'text-foreground'}`}>
+              Bygg din bana
+            </h3>
+            <p className={`text-sm max-w-xs mb-4 ${isMobile ? 'text-[hsl(210,15%,50%)]' : 'text-muted-foreground'}`}>
+              Välj ett hinder {isMobile ? 'nedan' : 'nedan'} för att börja
+            </p>
+            <div className="flex gap-2 pointer-events-auto">
+              <Dialog open={loadOpen} onOpenChange={setLoadOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                    <FolderOpen size={14} /> Ladda sparad bana
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setLoadOpen(true)}>
+                <Sparkles size={14} /> Starta från mall
+              </Button>
+            </div>
+          </div>
+        )}
+
         {canvasElement}
         {/* Orientation hint */}
         {showOrientationHint && isMobile && !isLandscape && (
@@ -3665,9 +3692,11 @@ export default function CoursePlannerPage() {
           </div>
         )}
         {/* Zoom indicator */}
-        <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-background/80 rounded px-1.5 py-0.5 pointer-events-none">
-          {Math.round(zoom * 100)}%
-        </div>
+        {!isMobile && (
+          <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-background/80 rounded px-1.5 py-0.5 pointer-events-none">
+            {Math.round(zoom * 100)}%
+          </div>
+        )}
 
         {/* Minimap */}
         {showMinimap && zoom < 0.95 && obstacles.length > 0 && !isMobile && (

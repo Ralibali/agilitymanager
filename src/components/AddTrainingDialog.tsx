@@ -83,11 +83,15 @@ export function AddTrainingDialog({ onAdded, dogs, trigger, prefillTime, prefill
   const [handlerZoneKept, setHandlerZoneKept] = useState(false);
 
   const selectedDog = useMemo(() => dogs.find(d => d.id === dogId), [dogs, dogId]);
+  const isBoth = selectedDog?.sport === 'Båda';
   const isHoopers = selectedDog?.sport === 'Hoopers';
-  const isBoth = false; // Could be 'båda' if we add that option
-  const sportTab = isHoopers ? 'hoopers' : 'agility';
+  const [sportTab, setSportTab] = useState<'agility' | 'hoopers'>(isHoopers ? 'hoopers' : 'agility');
 
-  const trainingTypes = isHoopers ? HOOPERS_TRAINING_TYPES : TRAINING_TYPES;
+  // Reset tab when dog changes
+  const effectiveSportTab = isBoth ? sportTab : (isHoopers ? 'hoopers' : 'agility');
+  const showHoopersFields = effectiveSportTab === 'hoopers';
+
+  const trainingTypes = showHoopersFields ? HOOPERS_TRAINING_TYPES : TRAINING_TYPES;
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
@@ -100,10 +104,11 @@ export function AddTrainingDialog({ onAdded, dogs, trigger, prefillTime, prefill
   const handleSubmit = async () => {
     if (!dogId) return;
     setLoading(true);
+    const saveSport = isBoth ? (effectiveSportTab === 'hoopers' ? 'Hoopers' : 'Agility') : (selectedDog?.sport || 'Agility');
     await store.addTraining({
-      sport: selectedDog?.sport || 'Agility',
-      dirigering_score: isHoopers ? distanceRating : null,
-      banflyt_score: isHoopers ? flowRating : null,
+      sport: saveSport as any,
+      dirigering_score: showHoopersFields ? distanceRating : null,
+      banflyt_score: showHoopersFields ? flowRating : null,
       dog_id: dogId,
       date,
       duration_min: parseInt(duration) || 0,
@@ -117,8 +122,8 @@ export function AddTrainingDialog({ onAdded, dogs, trigger, prefillTime, prefill
       obstacles_trained: obstaclesTrained,
       fault_count: parseInt(faultCount) || 0,
       best_time_sec: bestTimeSec ? parseFloat(bestTimeSec) : null,
-      jump_height_used: !isHoopers ? (selectedDog?.size_class || null) : null,
-      handler_zone_kept: isHoopers ? handlerZoneKept : null,
+      jump_height_used: !showHoopersFields ? (selectedDog?.size_class || null) : null,
+      handler_zone_kept: showHoopersFields ? handlerZoneKept : null,
       overall_mood: overallMood,
       location: location.trim(),
     });
@@ -149,7 +154,7 @@ export function AddTrainingDialog({ onAdded, dogs, trigger, prefillTime, prefill
               <SelectContent>
                 {dogs.map(d => (
                   <SelectItem key={d.id} value={d.id}>
-                    {d.name} {d.sport === 'Hoopers' ? '🅞' : '🐕'}
+                    {d.name} {d.sport === 'Båda' ? '🐕🅞' : d.sport === 'Hoopers' ? '🅞' : '🐕'}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -183,16 +188,26 @@ export function AddTrainingDialog({ onAdded, dogs, trigger, prefillTime, prefill
             </div>
           </div>
 
+          {/* Sport tabs for 'Båda' dogs */}
+          {isBoth && (
+            <Tabs value={effectiveSportTab} onValueChange={v => setSportTab(v as 'agility' | 'hoopers')} className="w-full">
+              <TabsList className="w-full grid grid-cols-2">
+                <TabsTrigger value="agility">🐕 Agility</TabsTrigger>
+                <TabsTrigger value="hoopers">🅞 Hoopers</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
+
           {/* Sport-specific section */}
           <div className="bg-secondary/30 rounded-lg p-3 space-y-3">
             <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              {isHoopers ? '🅞 Hoopers' : '🐕 Agility'}-specifikt
+              {showHoopersFields ? '🅞 Hoopers' : '🐕 Agility'}-specifikt
             </Label>
 
             <div>
               <Label className="text-xs">Tränade hinder</Label>
               <ObstacleCheckboxes
-                options={isHoopers ? HOOPERS_OBSTACLES : AGILITY_OBSTACLES}
+                options={showHoopersFields ? HOOPERS_OBSTACLES : AGILITY_OBSTACLES}
                 selected={obstaclesTrained}
                 onToggle={toggleObstacle}
               />
@@ -209,7 +224,7 @@ export function AddTrainingDialog({ onAdded, dogs, trigger, prefillTime, prefill
               </div>
             </div>
 
-            {isHoopers && (
+            {showHoopersFields && (
               <>
                 <StarRating value={distanceRating} onChange={setDistanceRating} label="Dirigeringskvalitet" />
                 <StarRating value={flowRating} onChange={setFlowRating} label="Banflyt" />

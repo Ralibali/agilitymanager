@@ -2650,7 +2650,7 @@ export default function CoursePlannerPage() {
 
         {/* Right sidebar */}
         {!sidebarCollapsed && (
-        <div className="w-16 sm:w-[70px] bg-card border-l border-border flex flex-col overflow-hidden relative">
+        <div className={`w-16 sm:w-[70px] border-l flex flex-col overflow-hidden relative ${isMobile ? 'bg-[hsl(221,25%,12%)] border-[hsl(221,20%,20%)]' : 'bg-card border-border'}`}>
           {/* Collapse button */}
           <button
             onClick={() => setSidebarCollapsed(true)}

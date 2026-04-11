@@ -444,8 +444,9 @@ export default function CompetitionPage() {
       </div>
 
       <Tabs defaultValue="competitions" className="mb-4">
-        <TabsList className="w-full grid grid-cols-3">
-          <TabsTrigger value="competitions" className="flex-1 text-xs">Tävlingar & Resultat</TabsTrigger>
+        <TabsList className="w-full grid grid-cols-4">
+          <TabsTrigger value="competitions" className="flex-1 text-xs">Tävlingar</TabsTrigger>
+          <TabsTrigger value="results" className="flex-1 text-xs">Resultat</TabsTrigger>
           <TabsTrigger value="mine" className="flex-1 text-xs">Mina</TabsTrigger>
           <TabsTrigger value="checklist" className="flex-1 text-xs">Checklista</TabsTrigger>
         </TabsList>
@@ -455,7 +456,7 @@ export default function CompetitionPage() {
           <MinaTavlingar />
         </TabsContent>
 
-        {/* Competitions + results tab */}
+        {/* Tävlingar tab */}
         <TabsContent value="competitions" className="mt-3 space-y-4">
           {/* Agida link - show when not filtering Hoopers only */}
           {sportFilter !== 'Hoopers' && (
@@ -491,7 +492,7 @@ export default function CompetitionPage() {
             </a>
           )}
 
-          {/* Upcoming planned competitions - show when not filtering Hoopers only */}
+          {/* Upcoming planned competitions */}
           {sportFilter !== 'Hoopers' && (
             <>
               <h3 className="font-display font-semibold text-foreground text-sm mb-2">Kommande tävlingar</h3>
@@ -563,7 +564,7 @@ export default function CompetitionPage() {
             </>
           )}
 
-          {/* Upcoming hoopers competitions - show when filtering Hoopers or Alla */}
+          {/* Upcoming hoopers competitions */}
           {sportFilter !== 'Agility' && hasHoopersDog && (
             <>
               <h3 className="font-display font-semibold text-foreground text-sm mb-2 mt-4">Kommande hoopers-tävlingar</h3>
@@ -634,8 +635,11 @@ export default function CompetitionPage() {
               </div>
             </>
           )}
+        </TabsContent>
 
-          <div className="pt-4 border-t border-border space-y-4">
+        {/* Resultat tab */}
+        <TabsContent value="results" className="mt-3 space-y-4">
+          <div className="space-y-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <h3 className="font-display font-semibold text-foreground text-sm">
                 Resultat ({sportFilter === 'Hoopers' ? hoopersResults.length : sportFilter === 'Agility' ? results.length : allResults.length})

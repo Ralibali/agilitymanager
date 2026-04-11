@@ -2856,6 +2856,23 @@ export default function CoursePlannerPage() {
                   </div>
                 </div>
 
+                {/* SHoK class (hoopers only) */}
+                {sportMode === 'hoopers' && (
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">SHoK-klass (DO-storlek)</label>
+                    <Select value={String(shokClassIndex)} onValueChange={(v) => setShokClassIndex(Number(v))}>
+                      <SelectTrigger className="w-full h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SHOK_CLASSES.map((cls, i) => (
+                          <SelectItem key={i} value={String(i)}>{cls.label} (DO {cls.doSizeM}m)</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 {/* Canvas size */}
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-1 block">Banstorlek</label>

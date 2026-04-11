@@ -2256,7 +2256,7 @@ export default function CoursePlannerPage() {
     const heightM = Math.round(canvasHeight / PX_PER_METER);
     const obstacleCount = obstacles.filter(o => o.type !== 'start' && o.type !== 'finish' && o.type !== 'handler_zone').length;
     const today = new Date().toLocaleDateString('sv-SE');
-    const sportLabel = sport === 'hoopers' ? 'Hoopers' : 'Agility';
+    const sportLabel = sportMode === 'hoopers' ? 'Hoopers' : 'Agility';
 
     // Render canvas to image
     const dpr = window.devicePixelRatio || 1;

@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { ResultsImporter } from '@/components/competitions/ResultsImporter';
 import { useState, useEffect, useMemo } from 'react';
 import { PageContainer } from '@/components/PageContainer';
 import { AddCompetitionDialog } from '@/components/AddCompetitionDialog';
@@ -536,7 +537,8 @@ export default function CompetitionPage() {
         </TabsContent>
 
         {/* Results tab */}
-        <TabsContent value="results" className="mt-3">
+        <TabsContent value="results" className="mt-3 space-y-4">
+          <ResultsImporter dogs={dogs} onImported={() => refresh()} autoFetch />
           <ClassPromotionTracker results={results} dogs={dogs} />
           {results.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">

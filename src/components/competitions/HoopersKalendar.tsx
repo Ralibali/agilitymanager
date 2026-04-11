@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { RefreshCw, MapPin, ExternalLink, Calendar as CalendarIcon, Filter, Star, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Dog } from '@/types';
@@ -31,14 +30,6 @@ interface HoopersCompetition {
   source_url: string;
   extra_info: string;
   fetched_at: string;
-}
-
-interface CompetitionInterest {
-  id: string;
-  competition_id: string;
-  status: string;
-  dog_name: string | null;
-  class: string | null;
 }
 
 const HOOPERS_CLASS_FILTERS = [
@@ -90,17 +81,63 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
   const [countyFilter, setCountyFilter] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [interests, setInterests] = useState<Map<string, CompetitionInterest>>(new Map());
-  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; compId: string }>({ open: false, compId: '' });
+  const [interests, setInterests] = useState<Record<string, 'interested' | 'registered'>>({});
 
-  // Hoopers dogs for interest marking
-  const hoopersDogs = useMemo(() => dogs.filter(d => d.sport === 'Hoopers' || d.sport === 'Båda'), [dogs]);
+  // Load user interests
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('competition_interests')
+      .select('competition_id, status')
+      .eq('user_id', user.id)
+      .then(({ data }) => {
+        if (data) {
+          const map: Record<string, 'interested' | 'registered'> = {};
+          data.forEach((d: any) => { map[d.competition_id] = d.status; });
+          setInterests(map);
+        }
+      });
+  }, [user]);
+
+  const toggleInterest = async (comp: HoopersCompetition, targetStatus: 'interested' | 'registered') => {
+    if (!user) return;
+    const current = interests[comp.id];
+
+    if (current === targetStatus) {
+      // Remove
+      await supabase.from('competition_interests').delete().eq('user_id', user.id).eq('competition_id', comp.id);
+      setInterests(prev => { const next = { ...prev }; delete next[comp.id]; return next; });
+      toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
+      return;
+    }
+
+    // Determine dog info
+    const dog = selectedDog || dogs.find(d => d.sport === 'Hoopers' || d.sport === 'Båda');
+    const dogName = dog?.name || null;
+    const dogClass = dog?.hoopers_level || null;
+
+    if (current) {
+      // Update
+      await supabase.from('competition_interests').update({ status: targetStatus }).eq('user_id', user.id).eq('competition_id', comp.id);
+    } else {
+      // Insert
+      await supabase.from('competition_interests').insert({
+        user_id: user.id,
+        competition_id: comp.id,
+        status: targetStatus,
+        dog_name: dogName,
+        class: dogClass,
+      });
+    }
+    setInterests(prev => ({ ...prev, [comp.id]: targetStatus }));
+    toast.success(targetStatus === 'interested' ? '⭐ Markerad som intresserad' : '✅ Markerad som anmäld');
+  };
 
   // Auto-filter based on selected dog's hoopers level
   const selectedDog = useMemo(() => dogs.find(d => d.id === selectedDogId), [dogs, selectedDogId]);
 
   useEffect(() => {
-    if (selectedDog && (selectedDog.sport === 'Hoopers' || selectedDog.sport === 'Båda')) {
+    if (selectedDog && selectedDog.sport === 'Hoopers') {
       const level = selectedDog.hoopers_level;
       setClassFilters(new Set([level]));
     } else {
@@ -126,24 +163,13 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
       console.error('Error fetching hoopers competitions:', error);
     }
 
-    // Fetch interests
-    if (user) {
-      const { data: intData } = await supabase
-        .from('competition_interests')
-        .select('*')
-        .eq('user_id', user.id);
-      const map = new Map<string, CompetitionInterest>();
-      (intData || []).forEach((i: any) => map.set(i.competition_id, i as CompetitionInterest));
-      setInterests(map);
-    }
-
     // If no data, trigger a scrape
     if (!data || data.length === 0) {
       await handleRefresh(true);
     }
 
     setLoading(false);
-  }, [user]);
+  }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -168,60 +194,16 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
     }
   };
 
-  const toggleInterest = async (compId: string, type: 'interested' | 'registered') => {
-    if (!user) return;
-    const current = interests.get(compId);
-    const dogName = selectedDog?.name || hoopersDogs[0]?.name || null;
-    const dogClass = selectedDog
-      ? selectedDog.hoopers_level
-      : hoopersDogs[0]?.hoopers_level || null;
-
-    if (type === 'interested' && current?.status === 'registered') {
-      setConfirmDialog({ open: true, compId });
-      return;
-    }
-
-    if (current?.status === type) {
-      await supabase.from('competition_interests').delete().eq('id', current.id);
-      const newMap = new Map(interests);
-      newMap.delete(compId);
-      setInterests(newMap);
-    } else if (current) {
-      await supabase.from('competition_interests').update({ status: type, dog_name: dogName, class: dogClass }).eq('id', current.id);
-      const newMap = new Map(interests);
-      newMap.set(compId, { ...current, status: type, dog_name: dogName, class: dogClass });
-      setInterests(newMap);
-    } else {
-      const { data } = await supabase.from('competition_interests')
-        .insert({ user_id: user.id, competition_id: compId, status: type, dog_name: dogName, class: dogClass })
-        .select().single();
-      if (data) {
-        const newMap = new Map(interests);
-        newMap.set(compId, data as unknown as CompetitionInterest);
-        setInterests(newMap);
-      }
-    }
-  };
-
-  const handleConfirmDowngrade = async () => {
-    const compId = confirmDialog.compId;
-    const current = interests.get(compId);
-    if (current) {
-      await supabase.from('competition_interests').update({ status: 'interested' }).eq('id', current.id);
-      const newMap = new Map(interests);
-      newMap.set(compId, { ...current, status: 'interested' });
-      setInterests(newMap);
-    }
-    setConfirmDialog({ open: false, compId: '' });
-  };
-
   const filtered = useMemo(() => {
     return competitions.filter(comp => {
+      // Class filter
       if (classFilters.size > 0) {
         const hasMatchingClass = comp.classes.some(c => classFilters.has(c));
         if (!hasMatchingClass) return false;
       }
+      // Type filter
       if (typeFilter && comp.type !== typeFilter) return false;
+      // County filter
       if (countyFilter && comp.county !== countyFilter) return false;
       return true;
     });
@@ -272,6 +254,7 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
       {/* Filters */}
       {showFilters && (
         <div className="bg-card border rounded-xl p-3 mb-3 space-y-2">
+          {/* Class filters */}
           <div>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Klass</div>
             <div className="flex flex-wrap gap-1.5">
@@ -291,6 +274,7 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
             </div>
           </div>
 
+          {/* Type filters */}
           <div>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Typ</div>
             <div className="flex flex-wrap gap-1.5">
@@ -310,6 +294,7 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
             </div>
           </div>
 
+          {/* County filter */}
           <div>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Län</div>
             <select
@@ -338,7 +323,7 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
       )}
 
       {/* Selected dog info */}
-      {selectedDog && (selectedDog.sport === 'Hoopers' || selectedDog.sport === 'Båda') && (
+      {selectedDog && selectedDog.sport === 'Hoopers' && (
         <div className="bg-primary/5 border border-primary/20 rounded-lg px-3 py-2 mb-3 text-xs text-primary">
           🐕 Visar tävlingar för <strong>{selectedDog.name}</strong> — {selectedDog.hoopers_level}, {selectedDog.hoopers_size}
         </div>
@@ -353,147 +338,122 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
         </div>
       ) : (
         <div className="space-y-2.5">
-          {filtered.map(comp => {
-            const interest = interests.get(comp.competition_id);
-            return (
-              <div
-                key={comp.id}
-                className="bg-card border rounded-xl overflow-hidden transition-shadow hover:shadow-md relative"
+          {filtered.map(comp => (
+            <div
+              key={comp.id}
+              className="bg-card border rounded-xl overflow-hidden transition-shadow hover:shadow-md"
+            >
+              <button
+                className="w-full text-left p-3"
+                onClick={() => setExpanded(expanded === comp.id ? null : comp.id)}
               >
-                {/* Interest buttons */}
-                <div className="absolute top-3 right-3 flex gap-1 z-10">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); toggleInterest(comp.competition_id, 'interested'); }}
-                    className="p-1 rounded-full hover:bg-secondary transition-colors"
-                    title="Intresserad"
-                  >
-                    <Star
-                      size={18}
-                      className={interest?.status === 'interested' || interest?.status === 'registered'
-                        ? 'fill-accent text-accent'
-                        : 'text-muted-foreground'}
-                    />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); toggleInterest(comp.competition_id, 'registered'); }}
-                    className="p-1 rounded-full hover:bg-secondary transition-colors"
-                    title="Anmäld"
-                  >
-                    <CheckCircle2
-                      size={18}
-                      className={interest?.status === 'registered'
-                        ? 'fill-green-500 text-green-600'
-                        : 'text-muted-foreground'}
-                    />
-                  </button>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    {/* Date */}
+                    <div className="text-[11px] font-medium text-primary mb-0.5">
+                      {formatDate(comp.date)}
+                    </div>
+
+                    {/* Name */}
+                    <div className="font-semibold text-sm truncate">
+                      {comp.competition_name || 'Hooperstävling'}
+                    </div>
+
+                    {/* Location */}
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                      <MapPin size={11} />
+                      <span>{comp.location}{comp.county ? `, ${comp.county}` : ''}</span>
+                    </div>
+
+                    {/* Club */}
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
+                      {comp.club_name}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    {/* Interest buttons */}
+                    {user && (
+                      <div className="flex gap-1 mb-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleInterest(comp, 'interested'); }}
+                          className="p-1 rounded-md hover:bg-secondary transition-colors"
+                          title="Intresserad"
+                        >
+                          <Star size={16} className={interests[comp.id] === 'interested' || interests[comp.id] === 'registered' ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'} />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleInterest(comp, 'registered'); }}
+                          className="p-1 rounded-md hover:bg-secondary transition-colors"
+                          title="Anmäld"
+                        >
+                          <CheckCircle2 size={16} className={interests[comp.id] === 'registered' ? 'fill-green-500 text-green-500' : 'text-muted-foreground'} />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Type badge */}
+                    <Badge
+                      variant="outline"
+                      className={`text-[9px] px-1.5 py-0 ${
+                        comp.type === 'Officiell'
+                          ? 'border-green-500/50 text-green-700 dark:text-green-400'
+                          : 'border-muted-foreground/30 text-muted-foreground'
+                      }`}
+                    >
+                      {comp.type}
+                    </Badge>
+
+                    {/* Registration status */}
+                    {comp.registration_status && (
+                      <Badge className={`text-[9px] px-1.5 py-0 ${regStatusColor(comp.registration_status)}`}>
+                        {comp.registration_status}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
 
-                {/* Interest info badge */}
-                {interest && (
-                  <div className="absolute top-11 right-3 z-10">
-                    <span className="text-[9px] bg-accent/10 text-accent px-1.5 py-0.5 rounded-full font-medium">
-                      {interest.dog_name}{interest.class ? ` · ${interest.class}` : ''}
-                    </span>
-                  </div>
-                )}
+                {/* Classes */}
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {comp.classes.map(cls => (
+                    <Badge key={cls} variant="secondary" className="text-[10px] px-1.5 py-0">
+                      {cls}
+                      {comp.lopp_per_class && comp.lopp_per_class[cls] ? ` (${comp.lopp_per_class[cls]} lopp)` : ''}
+                    </Badge>
+                  ))}
+                </div>
+              </button>
 
-                <button
-                  className="w-full text-left p-3 pr-16"
-                  onClick={() => setExpanded(expanded === comp.id ? null : comp.id)}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[11px] font-medium text-primary mb-0.5">
-                        {formatDate(comp.date)}
-                      </div>
-                      <div className="font-semibold text-sm truncate">
-                        {comp.competition_name || 'Hooperstävling'}
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                        <MapPin size={11} />
-                        <span>{comp.location}{comp.county ? `, ${comp.county}` : ''}</span>
-                      </div>
-                      <div className="text-[11px] text-muted-foreground mt-0.5">
-                        {comp.club_name}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-1 shrink-0 mr-8">
-                      <Badge
-                        variant="outline"
-                        className={`text-[9px] px-1.5 py-0 ${
-                          comp.type === 'Officiell'
-                            ? 'border-green-500/50 text-green-700 dark:text-green-400'
-                            : 'border-muted-foreground/30 text-muted-foreground'
-                        }`}
-                      >
-                        {comp.type}
-                      </Badge>
-                      {comp.registration_status && (
-                        <Badge className={`text-[9px] px-1.5 py-0 ${regStatusColor(comp.registration_status)}`}>
-                          {comp.registration_status}
-                        </Badge>
-                      )}
-                    </div>
+              {/* Expanded details */}
+              {expanded === comp.id && (
+                <div className="px-3 pb-3 pt-0 border-t space-y-1.5 text-xs text-muted-foreground">
+                  {comp.organizer && comp.organizer !== comp.club_name && (
+                    <div>Anordnare: {comp.organizer}</div>
+                  )}
+                  {comp.judge && <div>Domare: {comp.judge}</div>}
+                  {comp.price_per_lopp && <div>Pris/lopp: {comp.price_per_lopp}</div>}
+                  {comp.registration_opens && <div>Anmälan öppnar: {comp.registration_opens}</div>}
+                  {comp.registration_closes && <div>Anmälan stänger: {comp.registration_closes}</div>}
+                  {comp.contact_person && <div>Kontakt: {comp.contact_person}</div>}
+                  {comp.contact_email && (
+                    <div>E-post: <a href={`mailto:${comp.contact_email}`} className="text-primary underline">{comp.contact_email}</a></div>
+                  )}
+                  <div className="pt-1">
+                    <a
+                      href={comp.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-primary hover:underline"
+                    >
+                      <ExternalLink size={11} /> Visa på shoktavling.se
+                    </a>
                   </div>
-
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {comp.classes.map(cls => (
-                      <Badge key={cls} variant="secondary" className="text-[10px] px-1.5 py-0">
-                        {cls}
-                        {comp.lopp_per_class && comp.lopp_per_class[cls] ? ` (${comp.lopp_per_class[cls]} lopp)` : ''}
-                      </Badge>
-                    ))}
-                  </div>
-                </button>
-
-                {/* Expanded details */}
-                {expanded === comp.id && (
-                  <div className="px-3 pb-3 pt-0 border-t space-y-1.5 text-xs text-muted-foreground">
-                    {comp.organizer && comp.organizer !== comp.club_name && (
-                      <div>Anordnare: {comp.organizer}</div>
-                    )}
-                    {comp.judge && <div>Domare: {comp.judge}</div>}
-                    {comp.price_per_lopp && <div>Pris/lopp: {comp.price_per_lopp}</div>}
-                    {comp.registration_opens && <div>Anmälan öppnar: {comp.registration_opens}</div>}
-                    {comp.registration_closes && <div>Anmälan stänger: {comp.registration_closes}</div>}
-                    {comp.contact_person && <div>Kontakt: {comp.contact_person}</div>}
-                    {comp.contact_email && (
-                      <div>E-post: <a href={`mailto:${comp.contact_email}`} className="text-primary underline">{comp.contact_email}</a></div>
-                    )}
-                    <div className="pt-1">
-                      <a
-                        href={comp.source_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-primary hover:underline"
-                      >
-                        <ExternalLink size={11} /> Visa på shoktavling.se
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
-
-      {/* Confirm downgrade dialog */}
-      <AlertDialog open={confirmDialog.open} onOpenChange={open => !open && setConfirmDialog({ open: false, compId: '' })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Ta bort anmälan?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Du är markerad som anmäld till denna tävling. Vill du ändra tillbaka till intresserad?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Avbryt</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDowngrade}>Ändra till intresserad</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Attribution */}
       <div className="mt-4 text-center text-[10px] text-muted-foreground/60">

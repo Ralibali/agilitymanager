@@ -122,7 +122,7 @@ export default function DogsPage() {
                         <SelectItem value="K3">Klass 3</SelectItem>
                       </SelectContent>
                     </Select>
-                    {(dog.sport === 'Hoopers' || dog.sport === 'Båda') && (
+                    {(dog.sport === 'Hoopers' || dog.sport === 'Agility') && (
                       <Select
                         value={dog.hoopers_level}
                         onValueChange={async (v) => {
@@ -142,7 +142,7 @@ export default function DogsPage() {
                         </SelectContent>
                       </Select>
                     )}
-                    {(dog.sport === 'Hoopers' || dog.sport === 'Båda') && (
+                    {(dog.sport === 'Hoopers' || dog.sport === 'Agility') && (
                       <Select
                         value={dog.hoopers_size}
                         onValueChange={async (v) => {

@@ -106,42 +106,46 @@ export default function DogsPage() {
                         </SelectContent>
                       </Select>
                     )}
-                    <Select
-                      value={dog.competition_level}
-                      onValueChange={async (v) => {
-                        const val = v as CompetitionLevel;
-                        setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, competition_level: val } : d));
-                        await store.updateDog(dog.id, { competition_level: val });
-                      }}
-                    >
-                      <SelectTrigger className="h-6 text-[10px] px-2 w-auto min-w-0 bg-accent/10 text-accent border-none font-medium rounded-full">
-                        <span className="mr-0.5">AG</span> <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Nollklass">Nollklass</SelectItem>
-                        <SelectItem value="K1">Klass 1</SelectItem>
-                        <SelectItem value="K2">Klass 2</SelectItem>
-                        <SelectItem value="K3">Klass 3</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select
-                      value={dog.jumping_level}
-                      onValueChange={async (v) => {
-                        const val = v as CompetitionLevel;
-                        setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, jumping_level: val } : d));
-                        await store.updateDog(dog.id, { jumping_level: val });
-                      }}
-                    >
-                      <SelectTrigger className="h-6 text-[10px] px-2 w-auto min-w-0 bg-accent/10 text-accent border-none font-medium rounded-full">
-                        <span className="mr-0.5">Hopp</span> <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Nollklass">Nollklass</SelectItem>
-                        <SelectItem value="K1">Klass 1</SelectItem>
-                        <SelectItem value="K2">Klass 2</SelectItem>
-                        <SelectItem value="K3">Klass 3</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {(dog.sport === 'Agility' || dog.sport === 'Båda') && (
+                      <>
+                        <Select
+                          value={dog.competition_level}
+                          onValueChange={async (v) => {
+                            const val = v as CompetitionLevel;
+                            setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, competition_level: val } : d));
+                            await store.updateDog(dog.id, { competition_level: val });
+                          }}
+                        >
+                          <SelectTrigger className="h-6 text-[10px] px-2 w-auto min-w-0 bg-accent/10 text-accent border-none font-medium rounded-full">
+                            <span className="mr-0.5">AG</span> <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Nollklass">Nollklass</SelectItem>
+                            <SelectItem value="K1">Klass 1</SelectItem>
+                            <SelectItem value="K2">Klass 2</SelectItem>
+                            <SelectItem value="K3">Klass 3</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={dog.jumping_level}
+                          onValueChange={async (v) => {
+                            const val = v as CompetitionLevel;
+                            setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, jumping_level: val } : d));
+                            await store.updateDog(dog.id, { jumping_level: val });
+                          }}
+                        >
+                          <SelectTrigger className="h-6 text-[10px] px-2 w-auto min-w-0 bg-accent/10 text-accent border-none font-medium rounded-full">
+                            <span className="mr-0.5">Hopp</span> <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Nollklass">Nollklass</SelectItem>
+                            <SelectItem value="K1">Klass 1</SelectItem>
+                            <SelectItem value="K2">Klass 2</SelectItem>
+                            <SelectItem value="K3">Klass 3</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </>
+                    )}
                     {(dog.sport === 'Hoopers' || dog.sport === 'Båda') && (
                       <Select
                         value={dog.hoopers_level}

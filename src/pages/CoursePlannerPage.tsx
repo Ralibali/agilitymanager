@@ -305,6 +305,10 @@ export default function CoursePlannerPage() {
   const [showDistances, setShowDistances] = useState(true);
   const [canvasSize, setCanvasSize] = useState(CANVAS_SIZES[1]);
   const [sportMode, setSportMode] = useState<'agility' | 'hoopers'>('agility');
+  const [shokClassIndex, setShokClassIndex] = useState(0); // index into SHOK_CLASSES
+
+  const shokDoSizeM = SHOK_CLASSES[shokClassIndex]?.doSizeM ?? 4;
+  const shokDoPx = shokDoSizeM * PX_PER_METER;
 
   const [handlerPath, setHandlerPath] = useState<PathPoint[]>([]);
   const [drawingMode, setDrawingMode] = useState(false);
@@ -717,7 +721,7 @@ export default function CoursePlannerPage() {
 
   const drawHandlerZone = (ctx: CanvasRenderingContext2D, _obs: Obstacle) => {
     const c = getTypeColors('handler_zone');
-    const size = 3 * PX_PER_METER;
+    const size = shokDoPx;
     const hs = size / 2;
     ctx.fillStyle = c.body.replace(')', ', 0.12)').replace('hsl(', 'hsla(');
     ctx.fillRect(-hs, -hs, size, size);
@@ -730,7 +734,7 @@ export default function CoursePlannerPage() {
     ctx.font = 'bold 8px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-     ctx.fillText('DIRIGERINGSZON', 0, 0);
+    ctx.fillText(`DO ${shokDoSizeM}m`, 0, 0);
   };
 
   const draw = useCallback(() => {

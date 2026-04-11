@@ -38,7 +38,9 @@ export default function StopwatchPage() {
   const selectedDog = useMemo(() => dogs.find(d => d.id === dogId), [dogs, dogId]);
   const isHoopers = selectedDog?.sport === 'Hoopers';
   const faultTypes = isHoopers ? HOOPERS_FAULT_TYPES : AGILITY_FAULT_TYPES;
-  const totalFaults = faultEntries.reduce((s, f) => s + f.count, 0);
+  const currentFaults = faultEntries.reduce((s, f) => s + f.count, 0);
+  const lapFaults = laps.reduce((s, lap) => s + lap.faults.reduce((ls, f) => ls + f.count, 0), 0);
+  const totalFaults = currentFaults + lapFaults;
 
   useEffect(() => {
     store.getDogs().then(d => {
@@ -137,7 +139,9 @@ export default function StopwatchPage() {
     setSaving(true);
     const userId = (await (await import('@/integrations/supabase/client')).supabase.auth.getUser()).data.user?.id;
     if (!userId) return;
-    const refusals = faultEntries.find(f => f.type === 'Refus')?.count || 0;
+    const currentRefusals = faultEntries.find(f => f.type === 'Refus')?.count || 0;
+    const lapRefusals = laps.reduce((s, lap) => s + (lap.faults.find(f => f.type === 'Refus')?.count || 0), 0);
+    const refusals = currentRefusals + lapRefusals;
     const { error } = await (await import('@/integrations/supabase/client')).supabase
       .from('stopwatch_results')
       .insert({

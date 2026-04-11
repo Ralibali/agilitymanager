@@ -38,7 +38,9 @@ export default function StopwatchPage() {
   const selectedDog = useMemo(() => dogs.find(d => d.id === dogId), [dogs, dogId]);
   const isHoopers = selectedDog?.sport === 'Hoopers';
   const faultTypes = isHoopers ? HOOPERS_FAULT_TYPES : AGILITY_FAULT_TYPES;
-  const totalFaults = faultEntries.reduce((s, f) => s + f.count, 0);
+  const currentFaults = faultEntries.reduce((s, f) => s + f.count, 0);
+  const lapFaults = laps.reduce((s, lap) => s + lap.faults.reduce((ls, f) => ls + f.count, 0), 0);
+  const totalFaults = currentFaults + lapFaults;
 
   useEffect(() => {
     store.getDogs().then(d => {

@@ -1363,7 +1363,7 @@ export type Database = {
       hoopers_level: "Startklass" | "Klass 1" | "Klass 2" | "Klass 3"
       hoopers_size: "Small" | "Large"
       size_class: "XS" | "S" | "M" | "L"
-      sport: "Agility" | "Hoopers"
+      sport: "Agility" | "Hoopers" | "Båda"
       ticket_status: "open" | "answered" | "closed"
       training_type:
         | "Bana"
@@ -1514,7 +1514,7 @@ export const Constants = {
       hoopers_level: ["Startklass", "Klass 1", "Klass 2", "Klass 3"],
       hoopers_size: ["Small", "Large"],
       size_class: ["XS", "S", "M", "L"],
-      sport: ["Agility", "Hoopers"],
+      sport: ["Agility", "Hoopers", "Båda"],
       ticket_status: ["open", "answered", "closed"],
       training_type: [
         "Bana",

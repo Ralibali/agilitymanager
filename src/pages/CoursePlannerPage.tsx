@@ -1166,7 +1166,10 @@ export default function CoursePlannerPage() {
       ctx.lineWidth = 2.5;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      if (handlerDashed) ctx.setLineDash([6, 4]);
+      if (handlerDashed) {
+        ctx.setLineDash([6, 4]);
+        ctx.lineDashOffset = -marchOffsetRef.current; // marching ants effect
+      }
       ctx.globalAlpha = 0.8;
       ctx.beginPath();
       ctx.moveTo(handlerPath[0].x, handlerPath[0].y);
@@ -1179,6 +1182,7 @@ export default function CoursePlannerPage() {
       ctx.lineTo(last.x, last.y);
       ctx.stroke();
       ctx.setLineDash([]);
+      ctx.lineDashOffset = 0;
       ctx.globalAlpha = 1;
 
       if (handlerPath.length >= 2) {

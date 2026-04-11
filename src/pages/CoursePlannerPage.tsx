@@ -1282,7 +1282,7 @@ export default function CoursePlannerPage() {
     }
 
     ctx.restore(); // restore MARGIN translate
-  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas, multiSelected, measurePoints, freeNumbers, draggingNumber, shokDoPx]);
+  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas, multiSelected, measurePoints, freeNumbers, draggingNumber, shokDoPx, recentlyPlaced]);
 
   // Animation loop for marching ants + selection glow
   useEffect(() => {

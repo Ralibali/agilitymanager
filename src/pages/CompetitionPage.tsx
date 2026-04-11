@@ -443,11 +443,10 @@ export default function CompetitionPage() {
         ))}
       </div>
 
-      <Tabs defaultValue="calendar" className="mb-4">
-        <TabsList className="w-full">
-          <TabsTrigger value="calendar" className="flex-1 text-xs">Kalender</TabsTrigger>
+      <Tabs defaultValue="competitions" className="mb-4">
+        <TabsList className="w-full grid grid-cols-3">
+          <TabsTrigger value="competitions" className="flex-1 text-xs">Tävlingar & Resultat</TabsTrigger>
           <TabsTrigger value="mine" className="flex-1 text-xs">Mina</TabsTrigger>
-          <TabsTrigger value="results" className="flex-1 text-xs">Resultat ({sportFilter === 'Hoopers' ? hoopersResults.length : sportFilter === 'Agility' ? results.length : allResults.length})</TabsTrigger>
           <TabsTrigger value="checklist" className="flex-1 text-xs">Checklista</TabsTrigger>
         </TabsList>
 
@@ -456,8 +455,8 @@ export default function CompetitionPage() {
           <MinaTavlingar />
         </TabsContent>
 
-        {/* Calendar tab */}
-        <TabsContent value="calendar" className="mt-3">
+        {/* Competitions + results tab */}
+        <TabsContent value="competitions" className="mt-3 space-y-4">
           {/* Agida link - show when not filtering Hoopers only */}
           {sportFilter !== 'Hoopers' && (
             <a
@@ -635,190 +634,191 @@ export default function CompetitionPage() {
               </div>
             </>
           )}
-        </TabsContent>
 
-        {/* Results tab */}
-        <TabsContent value="results" className="mt-3 space-y-4">
-          <ResultsImporter dogs={dogs} onImported={() => refresh()} autoFetch />
-          {sportFilter !== 'Hoopers' && <ClassPromotionTracker results={results} dogs={dogs} />}
-          {sportFilter === 'Hoopers' && <HoopersPointsTracker dogs={dogs} />}
-          {filteredResults.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <p className="mb-2">Inga tävlingsresultat ännu.</p>
-              {dogs.length > 0 ? <AddCompetitionDialog dogs={dogs} onAdded={refresh} /> : <p className="text-sm">Lägg till en hund först!</p>}
+          <div className="pt-4 border-t border-border space-y-4">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <h3 className="font-display font-semibold text-foreground text-sm">
+                Resultat ({sportFilter === 'Hoopers' ? hoopersResults.length : sportFilter === 'Agility' ? results.length : allResults.length})
+              </h3>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredResults.map((r, i) => {
-                const dog = getDog(r.dog_id);
-                const matchedUrl = competitionUrlMap[r.id];
-                return (
-                  <motion.div key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                    className="bg-card rounded-xl p-4 shadow-card">
-                    <div className="flex items-start gap-3">
-                      {dog && <DogAvatar dog={dog} size="sm" />}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-display font-semibold text-foreground text-sm">{r.event_name}</h3>
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => setShareResult(r)} className="p-1 rounded-full hover:bg-secondary" title="Dela resultat">
-                              <Send size={14} className="text-muted-foreground" />
-                            </button>
-                            {r.passed ? <CheckCircle2 size={18} className="text-success flex-shrink-0" /> : <XCircle size={18} className="text-destructive flex-shrink-0" />}
+
+            <ResultsImporter dogs={dogs} onImported={() => refresh()} autoFetch />
+            {sportFilter !== 'Hoopers' && <ClassPromotionTracker results={results} dogs={dogs} />}
+            {sportFilter === 'Hoopers' && <HoopersPointsTracker dogs={dogs} />}
+            {filteredResults.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <p className="mb-2">Inga tävlingsresultat ännu.</p>
+                {dogs.length > 0 ? <AddCompetitionDialog dogs={dogs} onAdded={refresh} /> : <p className="text-sm">Lägg till en hund först!</p>}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredResults.map((r, i) => {
+                  const dog = getDog(r.dog_id);
+                  const matchedUrl = competitionUrlMap[r.id];
+                  return (
+                    <motion.div key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                      className="bg-card rounded-xl p-4 shadow-card">
+                      <div className="flex items-start gap-3">
+                        {dog && <DogAvatar dog={dog} size="sm" />}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-display font-semibold text-foreground text-sm">{r.event_name}</h3>
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => setShareResult(r)} className="p-1 rounded-full hover:bg-secondary" title="Dela resultat">
+                                <Send size={14} className="text-muted-foreground" />
+                              </button>
+                              {r.passed ? <CheckCircle2 size={18} className="text-success flex-shrink-0" /> : <XCircle size={18} className="text-destructive flex-shrink-0" />}
+                            </div>
                           </div>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {format(new Date(r.date), 'd MMM yyyy', { locale: sv })} · {r.discipline} · {r.size_class} · {r.competition_level}
-                          {r.lopp_number && ` · Lopp ${r.lopp_number}`}
-                        </div>
-                        {r.organizer && <div className="text-xs text-muted-foreground">{r.organizer}</div>}
-                        <div className="flex items-center gap-4 mt-2 text-xs">
-                          {r.time_sec > 0 && <span className="text-foreground font-medium">{r.time_sec}s</span>}
-                          <span className={r.faults > 0 ? 'text-destructive' : 'text-success'}>{r.faults} fel</span>
-                          {r.hoopers_points != null && r.hoopers_points > 0 && <span className="text-primary font-medium">{r.hoopers_points}p</span>}
-                          {r.placement && <span className="flex items-center gap-0.5 text-accent font-medium"><Medal size={12} /> #{r.placement}</span>}
-                        </div>
-                        {r.notes && <p className="mt-1.5 text-xs text-muted-foreground">{r.notes}</p>}
-                        
-                        {/* Auto-matched results from agilitydata.se */}
-                        {matchedUrl && (
-                          <div className="mt-3 pt-2 border-t border-border">
-                            <CompetitionResultsViewer
-                              url={matchedUrl}
-                              friendNames={friendNames}
-                              autoFetch
-                            />
+                          <div className="text-xs text-muted-foreground">
+                            {format(new Date(r.date), 'd MMM yyyy', { locale: sv })} · {r.discipline} · {r.size_class} · {r.competition_level}
+                            {r.lopp_number && ` · Lopp ${r.lopp_number}`}
                           </div>
-                        )}
+                          {r.organizer && <div className="text-xs text-muted-foreground">{r.organizer}</div>}
+                          <div className="flex items-center gap-4 mt-2 text-xs">
+                            {r.time_sec > 0 && <span className="text-foreground font-medium">{r.time_sec}s</span>}
+                            <span className={r.faults > 0 ? 'text-destructive' : 'text-success'}>{r.faults} fel</span>
+                            {r.hoopers_points != null && r.hoopers_points > 0 && <span className="text-primary font-medium">{r.hoopers_points}p</span>}
+                            {r.placement && <span className="flex items-center gap-0.5 text-accent font-medium"><Medal size={12} /> #{r.placement}</span>}
+                          </div>
+                          {r.notes && <p className="mt-1.5 text-xs text-muted-foreground">{r.notes}</p>}
+
+                          {matchedUrl && (
+                            <div className="mt-3 pt-2 border-t border-border">
+                              <CompetitionResultsViewer
+                                url={matchedUrl}
+                                friendNames={friendNames}
+                                autoFetch
+                              />
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Historical results from agilitydata.se */}
-          {handlerName && (
-            <div className="mt-6 pt-4 border-t border-border">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-display font-semibold text-foreground text-sm">
-                  🔍 Historiska resultat — {handlerName.first} {handlerName.last}
-                </h3>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="gap-1.5 text-xs"
-                  disabled={historicalLoading}
-                  onClick={() => fetchHistoricalResults(true)}
-                >
-                  <RefreshCw size={12} className={historicalLoading ? 'animate-spin' : ''} />
-                  {historicalFetched ? 'Uppdatera' : 'Hämta resultat'}
-                </Button>
+                    </motion.div>
+                  );
+                })}
               </div>
-              <p className="text-xs text-muted-foreground mb-3">
-                Sökta från agilitydata.se baserat på ditt förarnamn och dina hundar.
-              </p>
-              
-              {historicalLoading && (
-                <div className="text-center py-4">
-                  <Loader2 size={18} className="mx-auto mb-1 animate-spin text-primary" />
-                  <p className="text-xs text-muted-foreground">
-                    Söker resultat på agilitydata.se ({historicalResults.length}/{uniqueDogs.length} hundar klara)...
-                  </p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Det kan ta upp till 30 sekunder</p>
-                </div>
-              )}
-
-              {historicalError && (
-              <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3 text-center">
-                  <p className="text-xs text-muted-foreground">{historicalError}</p>
-                  <Button size="sm" variant="outline" className="mt-2" onClick={() => fetchHistoricalResults(true)}>
-                    Försök igen
-                  </Button>
-                </div>
-              )}
-
-              {!historicalLoading && !historicalError && historicalResults.length === 0 && historicalFetched && (
-                <p className="text-xs text-muted-foreground text-center py-3">
-                  Inga historiska resultat hittades. Kontrollera att ditt förarnamn stämmer i Inställningar.
-                </p>
-              )}
-
-              {historicalResults.length > 0 && (
-                <HistoricalResultsStats
-                  historicalResults={historicalResults}
-                  getDog={getDog}
-                />
-              )}
-
-              {/* URL import */}
-              <div className="mt-3">
-                <ImportResultsFromUrl
-                  dogs={uniqueDogs}
-                  userId={user!.id}
-                  onImported={(result) => {
-                    setHistoricalResults(prev => {
-                      const next = prev.filter(r => r.dog_id !== result.dog_id);
-                      next.push(result);
-                      return next;
-                    });
-                    setHistoricalFetched(true);
-                  }}
-                />
-              </div>
-
-              <div className="mt-2">
-                <AgilityDataAttribution sourceUrl="https://agilitydata.se/resultat/soek-hund/" />
-              </div>
-            </div>
-          )}
-
-          {!handlerName && (
-            <div className="mt-6 pt-4 border-t border-border text-center">
-              <p className="text-xs text-muted-foreground mb-2">
-                💡 Ange ditt förarnamn i Inställningar för att automatiskt hitta dina resultat från agilitydata.se
-              </p>
-            </div>
-          )}
-
-          {/* External results from agilitydata.se */}
-          <div className="mt-6 pt-4 border-t border-border">
-            <h3 className="font-display font-semibold text-foreground text-sm mb-3">
-              Hämta resultatlista från agilitydata.se
-            </h3>
-            <form
-              onSubmit={e => {
-                e.preventDefault();
-                const trimmed = externalResultUrl.trim();
-                if (!trimmed) return;
-                if (!trimmed.includes('agilitydata.se')) {
-                  toast.error('Ange en länk från agilitydata.se');
-                  return;
-                }
-                setActiveExternalUrl(trimmed);
-              }}
-              className="flex gap-2 mb-3"
-            >
-              <Input
-                value={externalResultUrl}
-                onChange={e => setExternalResultUrl(e.target.value)}
-                placeholder="Klistra in länk från agilitydata.se..."
-                className="h-8 text-xs flex-1"
-              />
-              <Button type="submit" size="sm" variant="outline" className="h-8 text-xs">
-                Hämta
-              </Button>
-            </form>
-
-            {activeExternalUrl && (
-              <CompetitionResultsViewer
-                url={activeExternalUrl}
-                friendNames={friendNames}
-              />
             )}
 
-            <AgilityDataAttribution sourceUrl={activeExternalUrl || 'https://agilitydata.se'} />
+            {handlerName && (
+              <div className="mt-6 pt-4 border-t border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-display font-semibold text-foreground text-sm">
+                    🔍 Historiska resultat — {handlerName.first} {handlerName.last}
+                  </h3>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5 text-xs"
+                    disabled={historicalLoading}
+                    onClick={() => fetchHistoricalResults(true)}
+                  >
+                    <RefreshCw size={12} className={historicalLoading ? 'animate-spin' : ''} />
+                    {historicalFetched ? 'Uppdatera' : 'Hämta resultat'}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Sökta från agilitydata.se baserat på ditt förarnamn och dina hundar.
+                </p>
+
+                {historicalLoading && (
+                  <div className="text-center py-4">
+                    <Loader2 size={18} className="mx-auto mb-1 animate-spin text-primary" />
+                    <p className="text-xs text-muted-foreground">
+                      Söker resultat på agilitydata.se ({historicalResults.length}/{uniqueDogs.length} hundar klara)...
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-1">Det kan ta upp till 30 sekunder</p>
+                  </div>
+                )}
+
+                {historicalError && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3 text-center">
+                    <p className="text-xs text-muted-foreground">{historicalError}</p>
+                    <Button size="sm" variant="outline" className="mt-2" onClick={() => fetchHistoricalResults(true)}>
+                      Försök igen
+                    </Button>
+                  </div>
+                )}
+
+                {!historicalLoading && !historicalError && historicalResults.length === 0 && historicalFetched && (
+                  <p className="text-xs text-muted-foreground text-center py-3">
+                    Inga historiska resultat hittades. Kontrollera att ditt förarnamn stämmer i Inställningar.
+                  </p>
+                )}
+
+                {historicalResults.length > 0 && (
+                  <HistoricalResultsStats
+                    historicalResults={historicalResults}
+                    getDog={getDog}
+                  />
+                )}
+
+                <div className="mt-3">
+                  <ImportResultsFromUrl
+                    dogs={uniqueDogs}
+                    userId={user!.id}
+                    onImported={(result) => {
+                      setHistoricalResults(prev => {
+                        const next = prev.filter(r => r.dog_id !== result.dog_id);
+                        next.push(result);
+                        return next;
+                      });
+                      setHistoricalFetched(true);
+                    }}
+                  />
+                </div>
+
+                <div className="mt-2">
+                  <AgilityDataAttribution sourceUrl="https://agilitydata.se/resultat/soek-hund/" />
+                </div>
+              </div>
+            )}
+
+            {!handlerName && (
+              <div className="mt-6 pt-4 border-t border-border text-center">
+                <p className="text-xs text-muted-foreground mb-2">
+                  💡 Ange ditt förarnamn i Inställningar för att automatiskt hitta dina resultat från agilitydata.se
+                </p>
+              </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t border-border">
+              <h3 className="font-display font-semibold text-foreground text-sm mb-3">
+                Hämta resultatlista från agilitydata.se
+              </h3>
+              <form
+                onSubmit={e => {
+                  e.preventDefault();
+                  const trimmed = externalResultUrl.trim();
+                  if (!trimmed) return;
+                  if (!trimmed.includes('agilitydata.se')) {
+                    toast.error('Ange en länk från agilitydata.se');
+                    return;
+                  }
+                  setActiveExternalUrl(trimmed);
+                }}
+                className="flex gap-2 mb-3"
+              >
+                <Input
+                  value={externalResultUrl}
+                  onChange={e => setExternalResultUrl(e.target.value)}
+                  placeholder="Klistra in länk från agilitydata.se..."
+                  className="h-8 text-xs flex-1"
+                />
+                <Button type="submit" size="sm" variant="outline" className="h-8 text-xs">
+                  Hämta
+                </Button>
+              </form>
+
+              {activeExternalUrl && (
+                <CompetitionResultsViewer
+                  url={activeExternalUrl}
+                  friendNames={friendNames}
+                />
+              )}
+
+              <AgilityDataAttribution sourceUrl={activeExternalUrl || 'https://agilitydata.se'} />
+            </div>
           </div>
         </TabsContent>
 

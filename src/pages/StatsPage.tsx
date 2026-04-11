@@ -624,8 +624,8 @@ export default function StatsPage() {
   return (
     <>
       <Helmet>
-        <title>Statistik & Trendanalys | AgilityManager</title>
-        <meta name="description" content="Avancerad statistik med trendanalys, hundjämförelse och pinnräknare för din agilitykarriär." />
+        <title>Statistik & Trendanalys – Agility & Hoopers | AgilityManager</title>
+        <meta name="description" content="Avancerad statistik med trendanalys, hundjämförelse och framstegsöversikt för agility och hoopers." />
       </Helmet>
       <PageContainer title="Statistik">
         <OverviewCards training={training} competitions={competitions} />

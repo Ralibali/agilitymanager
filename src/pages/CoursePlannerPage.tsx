@@ -2028,7 +2028,28 @@ export default function CoursePlannerPage() {
       }
     }
 
-    return { total, contactCount, length, warnings };
+    // Auto-recommend SHoK class based on obstacles
+    let recommendedClasses: { label: string; index: number; match: 'perfect' | 'partial' }[] = [];
+    if (sportMode === 'hoopers' && total > 0) {
+      const tunnelCount = obstacles.filter(o => o.type === 'hoopers_tunnel').length;
+      const gateCount = obstacles.filter(o => o.type === 'gate').length;
+      const doCount = obstacles.filter(o => o.type === 'handler_zone').length;
+
+      for (let i = 0; i < SHOK_CLASSES.length; i++) {
+        const c = SHOK_CLASSES[i];
+        const countFits = total >= c.minObstacles && total <= c.maxObstacles;
+        const tunnelOk = c.canUseTunnel || tunnelCount === 0;
+        const gateOk = c.canUseGate || gateCount === 0;
+        const doOk = doCount <= c.maxHandlerZones;
+        if (countFits && tunnelOk && gateOk && doOk) {
+          recommendedClasses.push({ label: c.label, index: i, match: 'perfect' });
+        } else if (countFits && (tunnelOk || gateOk)) {
+          recommendedClasses.push({ label: c.label, index: i, match: 'partial' });
+        }
+      }
+    }
+
+    return { total, contactCount, length, warnings, recommendedClasses };
   }, [obstacles, sportMode, shokClassIndex]);
 
   /* ───── Feature 10: Unsaved changes warning ───── */

@@ -80,7 +80,7 @@ export default function TrainingPage() {
               size="sm"
               className="gap-1"
               onClick={() => {
-                const headers = ['Datum', 'Hund', 'Typ', 'Min', 'Rep', 'Hund ⚡', 'Förare ⚡', 'Bra', 'Förbättra', 'Taggar'];
+                const headers = ['Datum', 'Hund', 'Typ', 'Min', 'Rep', 'Hund energi', 'Forare energi', 'Bra', 'Forbattra', 'Taggar'];
                 const pdfRows = sessions.map(s => {
                   const dog = getDog(s.dog_id);
                   return [

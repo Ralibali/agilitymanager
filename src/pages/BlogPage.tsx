@@ -1,10 +1,12 @@
+import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Clock, BookOpen, ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { blogPosts } from '@/lib/blogData';
+import { Skeleton } from '@/components/ui/skeleton';
+import { fetchBlogPosts, type BlogPost } from '@/lib/blogData';
 import { useNavigate } from 'react-router-dom';
 
 const categoryColors: Record<string, string> = {
@@ -18,6 +20,12 @@ const categoryColors: Record<string, string> = {
 
 export default function BlogPage() {
   const navigate = useNavigate();
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchBlogPosts().then(p => { setPosts(p); setLoading(false); });
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -32,7 +40,7 @@ export default function BlogPage() {
           "description": "Tips och guider för agility",
           "url": "https://agilitymanager.se/blogg",
           "publisher": { "@type": "Organization", "name": "AgilityManager" },
-          "blogPost": blogPosts.map(p => ({
+          "blogPost": posts.map(p => ({
             "@type": "BlogPosting",
             "headline": p.title,
             "description": p.excerpt,
@@ -60,7 +68,9 @@ export default function BlogPage() {
       {/* Articles */}
       <main className="px-4 pb-20 max-w-2xl mx-auto">
         <div className="space-y-4">
-          {blogPosts.map((post, i) => (
+          {loading ? (
+            [1, 2, 3].map(i => <Skeleton key={i} className="h-32 rounded-xl" />)
+          ) : posts.map((post, i) => (
             <motion.article
               key={post.slug}
               initial={{ opacity: 0, y: 12 }}

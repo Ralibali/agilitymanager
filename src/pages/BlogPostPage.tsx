@@ -1,9 +1,10 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, ArrowRight, Clock, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getPostBySlug, blogPosts } from '@/lib/blogData';
+import { Skeleton } from '@/components/ui/skeleton';
+import { fetchPostBySlug, fetchBlogPosts, type BlogPost } from '@/lib/blogData';
 
 // Parse inline markdown: **bold** and [link](/url)
 function parseInline(text: string): React.ReactNode[] {
@@ -130,7 +131,29 @@ function renderContent(content: string) {
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const post = slug ? getPostBySlug(slug) : undefined;
+  const [post, setPost] = useState<BlogPost | undefined>(undefined);
+  const [otherPosts, setOtherPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!slug) return;
+    setLoading(true);
+    Promise.all([fetchPostBySlug(slug), fetchBlogPosts()]).then(([p, all]) => {
+      setPost(p);
+      setOtherPosts(all.filter(a => a.slug !== slug).slice(0, 3));
+      setLoading(false);
+    });
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background px-4 pt-8 max-w-2xl mx-auto space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-6 w-full" />
+        <Skeleton className="h-64 w-full rounded-xl" />
+      </div>
+    );
+  }
 
   if (!post) {
     return (
@@ -142,8 +165,6 @@ export default function BlogPostPage() {
       </div>
     );
   }
-
-  const otherPosts = blogPosts.filter(p => p.slug !== post.slug).slice(0, 3);
 
   return (
     <div className="min-h-screen bg-background">

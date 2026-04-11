@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import {
   Users, Loader2, Trash2, Shield, Dog, Dumbbell, Trophy, Heart, Timer,
-  Search, Eye, CalendarDays, MessageCircle, BarChart3, Gift
+  Search, Eye, CalendarDays, MessageCircle, BarChart3, Gift, FileText
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,6 +22,7 @@ import UserDetailModal from '@/components/admin/UserDetailModal';
 import SupportTicketsTab from '@/components/admin/SupportTicketsTab';
 import AnalyticsTab from '@/components/admin/AnalyticsTab';
 import ReferralStatsTab from '@/components/admin/ReferralStatsTab';
+import BlogPostsTab from '@/components/admin/BlogPostsTab';
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -171,6 +172,9 @@ export default function AdminPage() {
             <TabsTrigger value="referrals" className="text-xs sm:text-sm gap-1 rounded-lg flex-1">
               <Gift className="h-3.5 w-3.5" /> Referrals
             </TabsTrigger>
+            <TabsTrigger value="blog" className="text-xs sm:text-sm gap-1 rounded-lg flex-1">
+              <FileText className="h-3.5 w-3.5" /> Blogg
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-3">
@@ -265,6 +269,9 @@ export default function AdminPage() {
           </TabsContent>
           <TabsContent value="referrals">
             <ReferralStatsTab />
+          </TabsContent>
+          <TabsContent value="blog">
+            <BlogPostsTab />
           </TabsContent>
         </Tabs>
 

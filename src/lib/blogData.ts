@@ -1335,3 +1335,54 @@ Logga varje pass i AgilityManager – följ dirigeringskvalitet och banflyt öve
 export function getPostBySlug(slug: string): BlogPost | undefined {
   return blogPosts.find((p) => p.slug === slug);
 }
+
+// --- Database-backed blog functions ---
+import { supabase } from '@/integrations/supabase/client';
+
+export async function fetchBlogPosts(): Promise<BlogPost[]> {
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .select('slug, title, excerpt, content, category, read_time, date, author')
+    .eq('published', true)
+    .order('date', { ascending: false });
+
+  if (error || !data || data.length === 0) {
+    // Fallback to static data
+    return blogPosts;
+  }
+
+  return data.map((d: any) => ({
+    slug: d.slug,
+    title: d.title,
+    excerpt: d.excerpt,
+    content: d.content,
+    category: d.category,
+    readTime: d.read_time,
+    date: d.date,
+    author: d.author,
+  }));
+}
+
+export async function fetchPostBySlug(slug: string): Promise<BlogPost | undefined> {
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .select('slug, title, excerpt, content, category, read_time, date, author')
+    .eq('slug', slug)
+    .eq('published', true)
+    .maybeSingle();
+
+  if (error || !data) {
+    return getPostBySlug(slug);
+  }
+
+  return {
+    slug: data.slug,
+    title: data.title,
+    excerpt: data.excerpt,
+    content: data.content,
+    category: data.category,
+    readTime: (data as any).read_time,
+    date: data.date,
+    author: data.author,
+  };
+}

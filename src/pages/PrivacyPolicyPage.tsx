@@ -13,14 +13,14 @@ export default function PrivacyPolicyPage() {
       <LandingNavbar />
       <div className="max-w-3xl mx-auto px-4 py-20">
         <h1 className="text-3xl font-display font-bold text-foreground mb-4">Integritetspolicy</h1>
-        <p className="text-sm text-muted-foreground mb-8">Senast uppdaterad: 9 april 2026</p>
+        <p className="text-sm text-muted-foreground mb-8">Senast uppdaterad: 11 april 2026</p>
 
         <div className="prose prose-sm dark:prose-invert max-w-none space-y-8">
 
           <section>
             <h2 className="text-xl font-display font-semibold text-foreground">1. Inledning</h2>
             <p className="text-muted-foreground">
-              Denna integritetspolicy beskriver hur Aurora Media, org.nr [ange org.nr] ("vi", "oss", "vår"),
+              Denna integritetspolicy beskriver hur Aurora Media ("vi", "oss", "vår")
               behandlar dina personuppgifter när du använder tjänsten AgilityManager ("Tjänsten").
               Policyn är upprättad i enlighet med Europaparlamentets och rådets förordning (EU) 2016/679
               (dataskyddsförordningen, "GDPR") samt den svenska lagen (2018:218) med kompletterande
@@ -49,12 +49,13 @@ export default function PrivacyPolicyPage() {
             <h3 className="text-lg font-semibold text-foreground mt-3">3.1 Uppgifter du lämnar till oss</h3>
             <ul className="list-disc pl-5 text-muted-foreground space-y-1">
               <li><strong>Kontouppgifter:</strong> E-postadress och valfritt visningsnamn vid registrering.</li>
-              <li><strong>Profiluppgifter:</strong> Profilbild, visningsnamn och integritetsinställningar.</li>
-              <li><strong>Hunddata:</strong> Information om dina hundar (namn, ras, födelsedatum, vikt, storleksklass m.m.).</li>
-              <li><strong>Tränings- och tävlingsdata:</strong> Träningsloggar, tävlingsresultat, tidtagningar och noteringar.</li>
+              <li><strong>Profiluppgifter:</strong> Profilbild, visningsnamn, förarnamn och integritetsinställningar.</li>
+              <li><strong>Hunddata:</strong> Information om dina hundar (namn, ras, födelsedatum, vikt, storleksklass, mankhöjd, foto m.m.).</li>
+              <li><strong>Tränings- och tävlingsdata:</strong> Träningsloggar, träningsmål, delmål, tävlingsresultat, tidtagningar, stoppursmätningar och noteringar.</li>
               <li><strong>Hälsodata:</strong> Hälsologgar för dina hundar (veterinärbesök, vaccinationer, viktkurva).</li>
-              <li><strong>Banplaneringsdata:</strong> Sparade banritningar och kurser.</li>
-              <li><strong>Social data:</strong> Vänskapsförfrågningar, delade banor och meddelanden till kompisar.</li>
+              <li><strong>Banplaneringsdata:</strong> Sparade banritningar och kurser, inklusive exporterade filer (PNG, PDF, JSON).</li>
+              <li><strong>Social data:</strong> Vänskapsförfrågningar, delade banor, chattmeddelanden och QR-kodsbaserade inbjudningar.</li>
+              <li><strong>Klubbdata:</strong> Klubbmedlemskap, klubbinlägg, grupper, evenemang och anmälningar.</li>
               <li><strong>Supportärenden:</strong> Ämne och meddelande du skickar via supportformuläret.</li>
             </ul>
 
@@ -96,7 +97,7 @@ export default function PrivacyPolicyPage() {
                   <tr className="border-b border-border/50">
                     <td className="py-2 pr-4">Tillhandahålla Tjänstens funktioner</td>
                     <td className="py-2 pr-4">Fullgörande av avtal (art. 6.1 b)</td>
-                    <td className="py-2">Hunddata, träning, tävling, hälsa, banor</td>
+                    <td className="py-2">Hunddata, träning, tävling, hälsa, banor, klubbar</td>
                   </tr>
                   <tr className="border-b border-border/50">
                     <td className="py-2 pr-4">Hantera betalningar och prenumerationer</td>
@@ -104,9 +105,24 @@ export default function PrivacyPolicyPage() {
                     <td className="py-2">E-post, prenumerationsuppgifter</td>
                   </tr>
                   <tr className="border-b border-border/50">
-                    <td className="py-2 pr-4">Sociala funktioner (kompisar, delning)</td>
+                    <td className="py-2 pr-4">Sociala funktioner (kompisar, chatt, delning)</td>
                     <td className="py-2 pr-4">Fullgörande av avtal (art. 6.1 b)</td>
-                    <td className="py-2">Visningsnamn, profilbild, integritetsinställningar</td>
+                    <td className="py-2">Visningsnamn, profilbild, meddelanden</td>
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="py-2 pr-4">Klubbar och gruppfunktioner</td>
+                    <td className="py-2 pr-4">Fullgörande av avtal (art. 6.1 b)</td>
+                    <td className="py-2">Medlemskap, inlägg, evenemang, grupptillhörighet</td>
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="py-2 pr-4">AI-baserade träningsinsikter</td>
+                    <td className="py-2 pr-4">Fullgörande av avtal (art. 6.1 b)</td>
+                    <td className="py-2">Träningsdata, tävlingsresultat (anonymiseras vid bearbetning)</td>
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="py-2 pr-4">Importera tävlingsresultat från externa källor</td>
+                    <td className="py-2 pr-4">Fullgörande av avtal (art. 6.1 b)</td>
+                    <td className="py-2">Förarnamn, hundnamn, registreringsnummer</td>
                   </tr>
                   <tr className="border-b border-border/50">
                     <td className="py-2 pr-4">Besvara supportärenden</td>
@@ -162,6 +178,25 @@ export default function PrivacyPolicyPage() {
                   Resends integritetspolicy
                 </a>
               </li>
+              <li>
+                <strong>Google LLC (Gemini API) / OpenAI Inc:</strong> AI-modeller som används för
+                att generera träningsinsikter. Data som skickas till AI-modeller är begränsad till
+                aggregerad tränings- och tävlingsstatistik och innehåller inga direkt identifierbara
+                personuppgifter. Behandling sker med stöd av EU-U.S. Data Privacy Framework.{' '}
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                  Googles integritetspolicy
+                </a>{' '}|{' '}
+                <a href="https://openai.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                  OpenAIs integritetspolicy
+                </a>
+              </li>
+              <li>
+                <strong>Firecrawl (Mendable Inc):</strong> Webskrapning av publika tävlingsresultat
+                från agilitydata.se vid användarens uttryckliga begäran.{' '}
+                <a href="https://www.firecrawl.dev/privacy" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                  Firecrawls integritetspolicy
+                </a>
+              </li>
             </ul>
           </section>
 
@@ -169,7 +204,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-xl font-display font-semibold text-foreground">6. Överföring till tredje land</h2>
             <p className="text-muted-foreground">
               Vår primära datalagring sker inom EU/EES. I de fall personuppgifter överförs till
-              USA (via Stripe och Resend) sker detta med stöd av EU-U.S. Data Privacy Framework
+              USA (via Stripe, Resend, Google eller OpenAI) sker detta med stöd av EU-U.S. Data Privacy Framework
               (adequacy decision) eller standardavtalsklausuler (SCC) enligt artikel 46.2 c GDPR,
               för att säkerställa en adekvat skyddsnivå.
             </p>
@@ -183,9 +218,12 @@ export default function PrivacyPolicyPage() {
             </p>
             <ul className="list-disc pl-5 text-muted-foreground space-y-1">
               <li><strong>Kontouppgifter och appdata:</strong> Så länge ditt konto är aktivt.</li>
+              <li><strong>Chattmeddelanden:</strong> Så länge båda parter har ett aktivt konto.</li>
+              <li><strong>Klubbdata:</strong> Så länge klubben och ditt konto är aktivt.</li>
               <li><strong>Supportärenden:</strong> I upp till 12 månader efter att ärendet stängts.</li>
               <li><strong>Registreringskälla (UTM):</strong> Så länge kontot är aktivt.</li>
               <li><strong>Referral-data:</strong> Så länge kontot är aktivt.</li>
+              <li><strong>Cachade tävlingsresultat:</strong> Uppdateras vid varje ny hämtning och raderas vid kontoborttagning.</li>
               <li><strong>Bokföringsunderlag:</strong> I 7 år enligt bokföringslagen (1999:1078).</li>
             </ul>
             <p className="text-muted-foreground mt-2">
@@ -212,7 +250,7 @@ export default function PrivacyPolicyPage() {
                 att behandlingen av dina uppgifter begränsas i vissa situationer.</li>
               <li><strong>Rätt till dataportabilitet (art. 20):</strong> Du har rätt att få
                 ut dina uppgifter i ett strukturerat, allmänt använt och maskinläsbart
-                format. I Tjänsten kan du exportera dina data via JSON-export.</li>
+                format. I Tjänsten kan du exportera dina data via JSON- och CSV-export.</li>
               <li><strong>Rätt att göra invändningar (art. 21):</strong> Du har rätt att
                 invända mot behandling som grundar sig på berättigat intresse.</li>
               <li><strong>Rätt att återkalla samtycke (art. 7.3):</strong> Om behandling
@@ -259,6 +297,7 @@ export default function PrivacyPolicyPage() {
               <li>Row Level Security (RLS) säkerställer att varje användare bara kan se sin egen data.</li>
               <li>Autentiseringstoken har begränsad livstid och förnyas automatiskt.</li>
               <li>Betalkortsuppgifter hanteras uteslutande av Stripe (PCI DSS-certifierat).</li>
+              <li>Klubbdata skyddas med rollbaserade åtkomstkontroller (admin/medlem).</li>
             </ul>
           </section>
 
@@ -266,7 +305,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-xl font-display font-semibold text-foreground">11. Cookies</h2>
             <p className="text-muted-foreground">
               Information om vilka cookies vi använder finns i vår separata{' '}
-              <a href="/cookie-policy" className="text-primary underline">cookiepolicy</a>.
+              <a href="/cookiepolicy" className="text-primary underline">cookiepolicy</a>.
               Vi använder enbart nödvändiga cookies för autentisering och funktionalitet — inga
               spårnings- eller annonscookies.
             </p>

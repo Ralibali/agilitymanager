@@ -8,12 +8,12 @@ export default function CookiePolicyPage() {
       <Helmet>
         <title>Cookiepolicy | AgilityManager</title>
         <meta name="description" content="Cookiepolicy för AgilityManager – information om vilka cookies vi använder och dina valmöjligheter." />
-        <link rel="canonical" href="https://agilitymanager.se/cookie-policy" />
+        <link rel="canonical" href="https://agilitymanager.se/cookiepolicy" />
       </Helmet>
       <LandingNavbar />
       <div className="max-w-3xl mx-auto px-4 py-20">
         <h1 className="text-3xl font-display font-bold text-foreground mb-4">Cookiepolicy</h1>
-        <p className="text-sm text-muted-foreground mb-8">Senast uppdaterad: 9 april 2026</p>
+        <p className="text-sm text-muted-foreground mb-8">Senast uppdaterad: 11 april 2026</p>
 
         <div className="prose prose-sm dark:prose-invert max-w-none space-y-8">
 
@@ -56,10 +56,15 @@ export default function CookiePolicyPage() {
                     <td className="py-2 pr-4">PKCE-verifiering vid inloggning</td>
                     <td className="py-2">Temporär</td>
                   </tr>
-                  <tr>
+                  <tr className="border-b border-border/50">
                     <td className="py-2 pr-4">vite-ui-theme (localStorage)</td>
                     <td className="py-2 pr-4">Sparar ditt valda tema (ljust/mörkt)</td>
                     <td className="py-2">Persistent</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-4">course-planner-* (localStorage)</td>
+                    <td className="py-2 pr-4">Sparar lokalt tillstånd i banplaneraren (t.ex. ångra-historik)</td>
+                    <td className="py-2">Session</td>
                   </tr>
                 </tbody>
               </table>

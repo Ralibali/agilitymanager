@@ -50,8 +50,9 @@ export function useUnreadCounts() {
     fetchCounts();
 
     // Subscribe to realtime changes for messages
+    const channelName = `unread-counts-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const channel = supabase
-      .channel(`unread-counts-${Date.now()}`)
+      .channel(channelName)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
@@ -69,9 +70,8 @@ export function useUnreadCounts() {
         schema: 'public',
         table: 'friendships',
         filter: `receiver_id=eq.${user.id}`,
-      }, () => fetchCounts());
-
-    channel.subscribe();
+      }, () => fetchCounts())
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);

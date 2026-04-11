@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import jsPDF from 'jspdf';
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { PageContainer } from '@/components/PageContainer';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette, Copy, Ruler, ChevronDown, X, MoreHorizontal, Settings2, Wrench } from 'lucide-react';
+import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette, Copy, Ruler, ChevronDown, X, MoreHorizontal, Settings2, Wrench, FileText } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { motion as m } from 'framer-motion';
 import ShareCourseDialog from '@/components/course-planner/ShareCourseDialog';
@@ -2245,6 +2246,73 @@ export default function CoursePlannerPage() {
     link.click();
     URL.revokeObjectURL(url);
     toast.success('Bana exporterad som JSON');
+  };
+
+  const exportPDF = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const widthM = Math.round(canvasWidth / PX_PER_METER);
+    const heightM = Math.round(canvasHeight / PX_PER_METER);
+    const obstacleCount = obstacles.filter(o => o.type !== 'start' && o.type !== 'finish' && o.type !== 'handler_zone').length;
+    const today = new Date().toLocaleDateString('sv-SE');
+    const sportLabel = sport === 'hoopers' ? 'Hoopers' : 'Agility';
+
+    // Render canvas to image
+    const dpr = window.devicePixelRatio || 1;
+    const padding = 20;
+    const imgCanvas = document.createElement('canvas');
+    const imgW = canvasWidth + MARGIN;
+    const imgH = canvasHeight + MARGIN;
+    imgCanvas.width = imgW * dpr;
+    imgCanvas.height = imgH * dpr;
+    const imgCtx = imgCanvas.getContext('2d')!;
+    imgCtx.scale(dpr, dpr);
+    imgCtx.fillStyle = '#ffffff';
+    imgCtx.fillRect(0, 0, imgW, imgH);
+    imgCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, imgW, imgH);
+    const imgData = imgCanvas.toDataURL('image/png');
+
+    // Create PDF in landscape A4
+    const isWide = widthM >= heightM;
+    const doc = new jsPDF({ orientation: isWide ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+
+    // Header
+    doc.setFillColor(30, 30, 90);
+    doc.rect(0, 0, pageW, 16, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AgilityManager - Banplanerare', 10, 10.5);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(today, pageW - 10, 10.5, { align: 'right' });
+
+    // Metadata line
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(10);
+    const metaY = 24;
+    doc.text(`Sport: ${sportLabel}   |   Banstorlek: ${widthM} x ${heightM} m   |   Antal hinder: ${obstacleCount}`, 10, metaY);
+
+    // Canvas image - fit within page with margins
+    const availW = pageW - 20;
+    const availH = pageH - metaY - 22;
+    const scale = Math.min(availW / imgW, availH / imgH);
+    const drawW = imgW * scale;
+    const drawH = imgH * scale;
+    const drawX = (pageW - drawW) / 2;
+    const drawY = metaY + 6;
+    doc.addImage(imgData, 'PNG', drawX, drawY, drawW, drawH);
+
+    // Footer
+    doc.setFontSize(7);
+    doc.setTextColor(140, 140, 140);
+    doc.text('Skapad med AgilityManager - agilitymanager.se', pageW / 2, pageH - 6, { align: 'center' });
+
+    doc.save('agility-bana.pdf');
+    toast.success('Bana exporterad som PDF');
   };
 
   const importJSON = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -23,6 +23,7 @@ Deno.serve(async (req) => {
     in1Day.setDate(today.getDate() + 1);
 
     const fmt = (d: Date) => d.toISOString().split("T")[0];
+    const todayStr = fmt(today);
     const twoDaysAgo = new Date(today);
     twoDaysAgo.setDate(today.getDate() - 2);
 
@@ -45,30 +46,61 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get related competitions
     const compIds = [...new Set(interests.map((i: any) => i.competition_id))];
-    const { data: comps } = await supabase
-      .from("competitions")
-      .select("id, competition_name, location, last_registration_date")
-      .in("id", compIds);
 
-    const compMap = new Map((comps || []).map((c: any) => [c.id, c]));
+    // Fetch from both agility and hoopers tables in parallel
+    const [agilityRes, hoopersRes] = await Promise.all([
+      supabase
+        .from("competitions")
+        .select("id, competition_name, location, last_registration_date")
+        .in("id", compIds),
+      supabase
+        .from("hoopers_competitions")
+        .select("id, competition_name, location, registration_opens, registration_closes")
+        .in("id", compIds),
+    ]);
+
+    const agilityMap = new Map((agilityRes.data || []).map((c: any) => [c.id, c]));
+    const hoopersMap = new Map((hoopersRes.data || []).map((c: any) => [c.id, c]));
 
     let notifiedCount = 0;
     const notifications: any[] = [];
     const interestIds: string[] = [];
 
     for (const interest of interests) {
-      const comp = compMap.get(interest.competition_id);
-      if (!comp || !comp.last_registration_date) continue;
-
-      const lastReg = comp.last_registration_date;
+      const agilityComp = agilityMap.get(interest.competition_id);
+      const hoopersComp = hoopersMap.get(interest.competition_id);
       let message: string | null = null;
 
-      if (lastReg === fmt(in3Days)) {
-        message = `⭐️ ${comp.competition_name} i ${comp.location} — anmälan stänger om 3 dagar!`;
-      } else if (lastReg === fmt(in1Day)) {
-        message = `⚠️ Sista chansen! ${comp.competition_name} stänger imorgon!`;
+      if (agilityComp && agilityComp.last_registration_date) {
+        const lastReg = agilityComp.last_registration_date;
+        if (lastReg === fmt(in3Days)) {
+          message = `⭐️ ${agilityComp.competition_name} i ${agilityComp.location} — anmälan stänger om 3 dagar!`;
+        } else if (lastReg === fmt(in1Day)) {
+          message = `⚠️ Sista chansen! ${agilityComp.competition_name} stänger imorgon!`;
+        }
+      }
+
+      if (hoopersComp) {
+        const regOpens = hoopersComp.registration_opens;
+        const regCloses = hoopersComp.registration_closes;
+        const name = hoopersComp.competition_name || "Hooperstävling";
+        const loc = hoopersComp.location || "";
+
+        // Notify when registration opens today
+        if (regOpens === todayStr) {
+          message = `🐕 Anmälan öppnar idag för ${name}${loc ? ` i ${loc}` : ""}!`;
+        }
+        // Notify day before registration opens
+        else if (regOpens === fmt(in1Day)) {
+          message = `🐕 Anmälan öppnar imorgon för ${name}${loc ? ` i ${loc}` : ""}!`;
+        }
+        // Also warn when registration closes soon
+        else if (regCloses === fmt(in3Days)) {
+          message = `⭐️ ${name}${loc ? ` i ${loc}` : ""} — anmälan stänger om 3 dagar!`;
+        } else if (regCloses === fmt(in1Day)) {
+          message = `⚠️ Sista chansen! ${name} — anmälan stänger imorgon!`;
+        }
       }
 
       if (message) {

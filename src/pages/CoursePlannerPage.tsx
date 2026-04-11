@@ -2352,9 +2352,14 @@ export default function CoursePlannerPage() {
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => addObstacle(o.type)}
-                    className={`flex flex-col items-center gap-0.5 rounded-lg font-medium bg-card shadow-card border border-border hover:border-primary active:scale-95 transition-all ${
-                      vertical ? 'px-1 py-1 text-[9px] min-h-[44px] min-w-[44px]' : 'px-1 py-1.5 text-[10px] min-h-[44px]'
+                    className={`flex flex-col items-center gap-0.5 rounded-lg font-medium active:scale-95 transition-all ${
+                      vertical
+                        ? 'px-1 py-1 text-[9px] min-h-[44px] min-w-[44px]'
+                        : 'px-1 py-1.5 text-[10px] min-h-[44px]'
                     }`}
+                    style={{ background: '#1A1D27', border: '1px solid rgba(255,255,255,0.08)', color: '#F8FAFC' }}
+                    onMouseEnter={e => { (e.target as HTMLElement).style.borderColor = '#3B82F6'; }}
+                    onMouseLeave={e => { (e.target as HTMLElement).style.borderColor = 'rgba(255,255,255,0.08)'; }}
                   >
                     <span className={vertical ? "text-sm leading-none" : "text-base leading-none"}>{o.symbol}</span>
                     {!vertical && o.label}
@@ -3192,10 +3197,10 @@ export default function CoursePlannerPage() {
           />
         </>
       ) : (
-        /* ═══ DESKTOP TOOLBAR (unchanged) ═══ */
+        /* ═══ DESKTOP TOOLBAR — dark glassmorphism ═══ */
         <>
           {/* Toolbar row 1 */}
-          <div className="flex gap-2 mb-2 items-center flex-wrap">
+          <div className="flex gap-2 mb-2 items-center flex-wrap rounded-xl px-3 py-2" style={{ background: 'rgba(26,29,39,0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
             <TutorialButton onClick={() => setShowTutorial(true)} />
             <Select
               value={`${canvasSize.width}x${canvasSize.height}`}

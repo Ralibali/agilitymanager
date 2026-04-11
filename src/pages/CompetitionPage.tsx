@@ -669,11 +669,13 @@ export default function CompetitionPage() {
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {format(new Date(r.date), 'd MMM yyyy', { locale: sv })} · {r.discipline} · {r.size_class} · {r.competition_level}
+                          {r.lopp_number && ` · Lopp ${r.lopp_number}`}
                         </div>
                         {r.organizer && <div className="text-xs text-muted-foreground">{r.organizer}</div>}
                         <div className="flex items-center gap-4 mt-2 text-xs">
-                          <span className="text-foreground font-medium">{r.time_sec}s</span>
+                          {r.time_sec > 0 && <span className="text-foreground font-medium">{r.time_sec}s</span>}
                           <span className={r.faults > 0 ? 'text-destructive' : 'text-success'}>{r.faults} fel</span>
+                          {r.hoopers_points != null && r.hoopers_points > 0 && <span className="text-primary font-medium">{r.hoopers_points}p</span>}
                           {r.placement && <span className="flex items-center gap-0.5 text-accent font-medium"><Medal size={12} /> #{r.placement}</span>}
                         </div>
                         {r.notes && <p className="mt-1.5 text-xs text-muted-foreground">{r.notes}</p>}

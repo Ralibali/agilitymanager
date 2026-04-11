@@ -70,23 +70,42 @@ export default function DogsPage() {
                   </div>
                   <div className="flex gap-2 mt-1.5 flex-wrap items-center">
                     <Select
-                      value={dog.size_class}
+                      value={dog.sport}
                       onValueChange={async (v) => {
-                        const val = v as SizeClass;
-                        setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, size_class: val } : d));
-                        await store.updateDog(dog.id, { size_class: val });
+                        const val = v as Sport;
+                        setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, sport: val } : d));
+                        await store.updateDog(dog.id, { sport: val });
                       }}
                     >
-                      <SelectTrigger className="h-6 text-[10px] px-2 w-auto min-w-0 bg-primary/10 text-primary border-none font-medium rounded-full">
+                      <SelectTrigger className="h-6 text-[10px] px-2 w-auto min-w-0 bg-secondary text-secondary-foreground border-none font-medium rounded-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="XS">XS</SelectItem>
-                        <SelectItem value="S">S</SelectItem>
-                        <SelectItem value="M">M</SelectItem>
-                        <SelectItem value="L">L</SelectItem>
+                        <SelectItem value="Agility">🏃 Agility</SelectItem>
+                        <SelectItem value="Hoopers">🐕 Hoopers</SelectItem>
+                        <SelectItem value="Båda">🏃🐕 Båda</SelectItem>
                       </SelectContent>
                     </Select>
+                    {(dog.sport === 'Agility' || dog.sport === 'Båda') && (
+                      <Select
+                        value={dog.size_class}
+                        onValueChange={async (v) => {
+                          const val = v as SizeClass;
+                          setDogs(prev => prev.map(d => d.id === dog.id ? { ...d, size_class: val } : d));
+                          await store.updateDog(dog.id, { size_class: val });
+                        }}
+                      >
+                        <SelectTrigger className="h-6 text-[10px] px-2 w-auto min-w-0 bg-primary/10 text-primary border-none font-medium rounded-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="XS">XS</SelectItem>
+                          <SelectItem value="S">S</SelectItem>
+                          <SelectItem value="M">M</SelectItem>
+                          <SelectItem value="L">L</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                     <Select
                       value={dog.competition_level}
                       onValueChange={async (v) => {

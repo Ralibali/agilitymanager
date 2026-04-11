@@ -135,7 +135,12 @@ export default function TrainingPage() {
                   {dog && <DogAvatar dog={dog} size="sm" />}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-display font-semibold text-foreground text-sm">{s.type}</h3>
+                      <h3 className="font-display font-semibold text-foreground text-sm flex items-center gap-1.5">
+                        {s.type}
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${s.sport === 'Hoopers' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-primary/10 text-primary'}`}>
+                          {s.sport === 'Hoopers' ? '🅞 Hoopers' : 'AG'}
+                        </span>
+                      </h3>
                       <div className="flex items-center gap-1">
                         <button onClick={() => setShareSession(s)} className="p-1 rounded-full hover:bg-secondary" title="Dela med kompis">
                           <Send size={14} className="text-muted-foreground" />

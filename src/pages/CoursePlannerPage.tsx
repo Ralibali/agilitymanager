@@ -3252,6 +3252,7 @@ export default function CoursePlannerPage() {
               {sportMode === 'hoopers' && courseStats.recommendedClasses.length === 0 && courseStats.total > 0 && (
                 <span className="text-[10px] text-destructive font-medium">❌ Ingen SHoK-klass</span>
               )}
+              {courseStats.warnings.length > 0 && (
                 <div className="w-full mt-1">
                   {courseStats.warnings.map((w, i) => (
                     <div key={i} className="text-[10px] text-amber-500">{w}</div>

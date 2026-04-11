@@ -560,15 +560,16 @@ export default function CompetitionPage() {
         {/* Results tab */}
         <TabsContent value="results" className="mt-3 space-y-4">
           <ResultsImporter dogs={dogs} onImported={() => refresh()} autoFetch />
-          <ClassPromotionTracker results={results} dogs={dogs} />
-          {results.length === 0 ? (
+          {sportFilter !== 'Hoopers' && <ClassPromotionTracker results={results} dogs={dogs} />}
+          {sportFilter === 'Hoopers' && <HoopersPointsTracker results={hoopersResults} dogs={dogs} />}
+          {filteredResults.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <p className="mb-2">Inga tävlingsresultat ännu.</p>
               {dogs.length > 0 ? <AddCompetitionDialog dogs={dogs} onAdded={refresh} /> : <p className="text-sm">Lägg till en hund först!</p>}
             </div>
           ) : (
             <div className="space-y-3">
-              {results.map((r, i) => {
+              {filteredResults.map((r, i) => {
                 const dog = getDog(r.dog_id);
                 const matchedUrl = competitionUrlMap[r.id];
                 return (

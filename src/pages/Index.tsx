@@ -8,7 +8,7 @@ import { DogAvatar } from '@/components/DogAvatar';
 import { MeritBadge, MeritProgress, calculateMerit } from '@/components/MeritTracker';
 import { store } from '@/lib/store';
 import type { Dog, TrainingSession, CompetitionResult, PlannedCompetition } from '@/types';
-import { Dumbbell, Trophy, Flame, Calendar, Sparkles, ArrowRight, Timer, Heart, Map, TrendingUp, Plus } from 'lucide-react';
+import { Dumbbell, Trophy, Flame, Calendar, Sparkles, ArrowRight, Timer, Heart, Map, TrendingUp, Plus, MessageCircle, Bell, Users, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { format, differenceInDays } from 'date-fns';
@@ -16,6 +16,7 @@ import { sv } from 'date-fns/locale';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { UpcomingClubEvents } from '@/components/dashboard/UpcomingClubEvents';
+import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 
 const Index = () => {
   const [dogs, setDogs] = useState<Dog[]>([]);
@@ -24,8 +25,10 @@ const Index = () => {
   const [planned, setPlanned] = useState<PlannedCompetition[]>([]);
   const [loading, setLoading] = useState(true);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [recentNotifications, setRecentNotifications] = useState<{ id: string; message: string; created_at: string }[]>([]);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const unread = useUnreadCounts();
 
   const refresh = async () => {
     const [d, t, c, p] = await Promise.all([
@@ -48,6 +51,21 @@ const Index = () => {
     supabase.from('profiles').select('display_name').eq('user_id', user.id).maybeSingle().then(({ data }) => {
       if (data?.display_name) setDisplayName(data.display_name);
     });
+  }, [user?.id]);
+
+  // Fetch recent unread notifications
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from('notifications')
+      .select('id, message, created_at')
+      .eq('user_id', user.id)
+      .eq('read', false)
+      .order('created_at', { ascending: false })
+      .limit(5)
+      .then(({ data }) => {
+        if (data) setRecentNotifications(data);
+      });
   }, [user?.id]);
 
   // Onboarding check
@@ -91,6 +109,14 @@ const Index = () => {
   });
   const totalMinutes = trainingThisMonth.reduce((sum, t) => sum + t.duration_min, 0);
 
+  // Days since last training
+  const daysSinceTraining = latestTraining
+    ? differenceInDays(new Date(), new Date(latestTraining.date))
+    : null;
+
+  // Recent competition results (last 3)
+  const recentResults = competitions.slice(0, 3);
+
   if (dogs.length === 0) {
     return (
       <PageContainer>
@@ -123,18 +149,119 @@ const Index = () => {
     );
   }
 
+  const markNotificationsRead = async () => {
+    if (!user?.id || recentNotifications.length === 0) return;
+    const ids = recentNotifications.map(n => n.id);
+    await supabase.from('notifications').update({ read: true }).in('id', ids);
+    setRecentNotifications([]);
+  };
+
   return (
     <PageContainer title={displayName ? `Hej ${displayName} 👋` : 'Dashboard'} subtitle={`${dogs.length} hund${dogs.length > 1 ? 'ar' : ''} registrerad${dogs.length > 1 ? 'e' : ''}`}>
+
+      {/* Notification center - unread messages & notifications */}
+      {(unread.total > 0 || recentNotifications.length > 0) && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-primary/5 border border-primary/20 rounded-xl p-3 mb-4 space-y-2"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bell size={16} className="text-primary" />
+              <span className="text-xs font-semibold text-foreground">Notiser</span>
+            </div>
+            {recentNotifications.length > 0 && (
+              <button onClick={markNotificationsRead} className="text-[10px] text-primary hover:underline">
+                Markera alla som lästa
+              </button>
+            )}
+          </div>
+
+          {unread.messages > 0 && (
+            <button
+              onClick={() => navigate('/friends')}
+              className="flex items-center gap-2.5 w-full text-left p-2 rounded-lg hover:bg-primary/5 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <MessageCircle size={14} className="text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-medium text-foreground">
+                  {unread.messages} oläst{unread.messages > 1 ? 'a' : ''} meddelande{unread.messages > 1 ? 'n' : ''}
+                </span>
+              </div>
+              <ArrowRight size={14} className="text-muted-foreground" />
+            </button>
+          )}
+
+          {unread.friendRequests > 0 && (
+            <button
+              onClick={() => navigate('/friends')}
+              className="flex items-center gap-2.5 w-full text-left p-2 rounded-lg hover:bg-primary/5 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                <Users size={14} className="text-accent" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-medium text-foreground">
+                  {unread.friendRequests} väntande kompisförfråg{unread.friendRequests > 1 ? 'ningar' : 'an'}
+                </span>
+              </div>
+              <ArrowRight size={14} className="text-muted-foreground" />
+            </button>
+          )}
+
+          {recentNotifications.map(n => (
+            <div key={n.id} className="flex items-start gap-2.5 p-2 rounded-lg">
+              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Bell size={14} className="text-muted-foreground" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm text-foreground">{n.message}</p>
+                <span className="text-[10px] text-muted-foreground">
+                  {format(new Date(n.created_at), 'd MMM HH:mm', { locale: sv })}
+                </span>
+              </div>
+            </div>
+          ))}
+        </motion.div>
+      )}
+
+      {/* Training reminder */}
+      {daysSinceTraining !== null && daysSinceTraining >= 7 && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-accent/10 border border-accent/20 rounded-xl p-3 mb-4 flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+            <AlertCircle size={18} className="text-accent" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-foreground">
+              {daysSinceTraining} dagar sedan senaste träningen
+            </p>
+            <p className="text-xs text-muted-foreground">Dags för ett nytt pass?</p>
+          </div>
+          <AddTrainingDialog dogs={dogs} onAdded={refresh} trigger={
+            <button className="px-3 py-1.5 rounded-lg bg-accent text-accent-foreground text-xs font-semibold">
+              Logga
+            </button>
+          } />
+        </motion.div>
+      )}
+
       {/* Quick actions */}
       <div className="grid grid-cols-2 gap-3 mb-5">
         <AddTrainingDialog dogs={dogs} onAdded={refresh} trigger={
-          <button className="flex items-center gap-2 p-4 rounded-xl gradient-primary text-primary-foreground font-semibold shadow-card text-left">
+          <button className="flex items-center gap-2 p-4 rounded-xl gradient-primary text-primary-foreground font-semibold shadow-card text-left w-full">
             <Dumbbell size={20} />
             <span>Logga träning</span>
           </button>
         } />
         <AddCompetitionDialog dogs={dogs} onAdded={refresh} trigger={
-          <button className="flex items-center gap-2 p-4 rounded-xl gradient-accent text-accent-foreground font-semibold shadow-card text-left">
+          <button className="flex items-center gap-2 p-4 rounded-xl gradient-accent text-accent-foreground font-semibold shadow-card text-left w-full">
             <Trophy size={20} />
             <span>Logga tävling</span>
           </button>
@@ -167,37 +294,18 @@ const Index = () => {
         </motion.div>
       </div>
 
-      {/* Shortcuts */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => navigate('/stopwatch')}
-          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center">
-          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-            <Timer size={18} className="text-primary" />
-          </div>
-          <span className="text-xs font-medium text-foreground">Tidtagarur</span>
-        </motion.button>
-        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => navigate('/health')}
-          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center">
-          <div className="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center">
-            <Heart size={18} className="text-accent" />
-          </div>
-          <span className="text-xs font-medium text-foreground">Hälsa</span>
-        </motion.button>
-        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => navigate('/course-planner')}
-          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center">
-          <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center">
-            <Map size={18} className="text-foreground" />
-          </div>
-          <span className="text-xs font-medium text-foreground">Banplanerare</span>
-        </motion.button>
-      </div>
-
       {/* Next competition */}
       {nextCompetition && (
-        <div className="bg-card p-4 rounded-xl shadow-card mb-4 border-l-4 border-accent">
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card p-4 rounded-xl shadow-card mb-4 border-l-4 border-accent cursor-pointer"
+          onClick={() => navigate('/competition')}
+        >
           <div className="flex items-center gap-2 mb-1">
             <Calendar size={16} className="text-accent" />
             <span className="text-xs font-medium text-accent">Nästa tävling</span>
+            <ArrowRight size={12} className="text-muted-foreground ml-auto" />
           </div>
           <div className="font-semibold text-foreground">{nextCompetition.event_name}</div>
           <div className="text-sm text-muted-foreground">
@@ -206,7 +314,7 @@ const Index = () => {
           <div className="text-xs text-primary font-medium mt-1">
             {differenceInDays(new Date(nextCompetition.date), new Date())} dagar kvar
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Upcoming club events */}
@@ -214,32 +322,85 @@ const Index = () => {
 
       {/* Latest training */}
       {latestTraining && (
-        <div className="bg-card p-4 rounded-xl shadow-card mb-4">
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card p-4 rounded-xl shadow-card mb-4 cursor-pointer"
+          onClick={() => navigate('/training')}
+        >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-muted-foreground">Senaste träning</span>
-            <button onClick={() => navigate('/training')} className="text-xs text-primary flex items-center gap-0.5">
+            <span className="text-xs text-primary flex items-center gap-0.5">
               Visa alla <ArrowRight size={12} />
-            </button>
+            </span>
           </div>
           <div className="flex items-center gap-3">
             {dogs.find(d => d.id === latestTraining.dog_id) && (
               <DogAvatar dog={dogs.find(d => d.id === latestTraining.dog_id)!} size="sm" />
             )}
-            <div>
+            <div className="flex-1">
               <div className="font-medium text-foreground text-sm">
                 {latestTraining.type} · {latestTraining.duration_min} min
               </div>
               <div className="text-xs text-muted-foreground">
                 {format(new Date(latestTraining.date), 'd MMM', { locale: sv })}
+                {latestTraining.notes_good && (
+                  <span className="ml-1 text-success">· {latestTraining.notes_good.slice(0, 40)}{latestTraining.notes_good.length > 40 ? '...' : ''}</span>
+                )}
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
+      )}
+
+      {/* Recent competition results */}
+      {recentResults.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card p-4 rounded-xl shadow-card mb-4"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Trophy size={16} className="text-accent" />
+              <span className="text-xs font-semibold text-foreground">Senaste resultat</span>
+            </div>
+            <button onClick={() => navigate('/competition')} className="text-xs text-primary flex items-center gap-0.5">
+              Alla resultat <ArrowRight size={12} />
+            </button>
+          </div>
+          <div className="space-y-2.5">
+            {recentResults.map(r => {
+              const dog = dogs.find(d => d.id === r.dog_id);
+              return (
+                <div key={r.id} className="flex items-center gap-3">
+                  {dog && <DogAvatar dog={dog} size="sm" />}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-foreground truncate">{r.event_name}</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {format(new Date(r.date), 'd MMM', { locale: sv })} · {r.discipline} · {r.competition_level}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {r.time_sec > 0 && <span className="text-xs font-medium text-foreground">{r.time_sec}s</span>}
+                    <span className={`text-xs font-medium ${r.passed ? 'text-success' : 'text-destructive'}`}>
+                      {r.passed ? '✓' : '✗'}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
       )}
 
       {/* Merit tracking per dog */}
       {dogs.length > 0 && competitions.length > 0 && (
-        <div className="bg-card p-4 rounded-xl shadow-card mb-4">
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card p-4 rounded-xl shadow-card mb-4"
+        >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <TrendingUp size={16} className="text-primary" />
@@ -266,8 +427,45 @@ const Index = () => {
               );
             })}
           </div>
-        </div>
+        </motion.div>
       )}
+
+      {/* Shortcuts */}
+      <div className="grid grid-cols-4 gap-2 mb-5">
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => navigate('/stopwatch')}
+          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center">
+          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+            <Timer size={18} className="text-primary" />
+          </div>
+          <span className="text-[10px] font-medium text-foreground">Tidtagarur</span>
+        </motion.button>
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => navigate('/health')}
+          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center">
+          <div className="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center">
+            <Heart size={18} className="text-accent" />
+          </div>
+          <span className="text-[10px] font-medium text-foreground">Hälsa</span>
+        </motion.button>
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => navigate('/course-planner')}
+          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center">
+          <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center">
+            <Map size={18} className="text-foreground" />
+          </div>
+          <span className="text-[10px] font-medium text-foreground">Banplanerare</span>
+        </motion.button>
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => navigate('/friends')}
+          className="bg-card p-3 rounded-xl shadow-card flex flex-col items-center gap-1.5 text-center relative">
+          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center relative">
+            <Users size={18} className="text-primary" />
+            {unread.messages > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+                {unread.messages > 9 ? '9+' : unread.messages}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] font-medium text-foreground">Kompisar</span>
+        </motion.button>
+      </div>
 
       {/* Dogs */}
       <div className="mb-4">
@@ -288,6 +486,7 @@ const Index = () => {
               <DogAvatar dog={dog} />
               <div className="mt-2 font-semibold text-foreground text-sm">{dog.name}</div>
               <div className="text-[10px] text-muted-foreground">{dog.breed} · {dog.size_class}</div>
+              <div className="text-[10px] text-muted-foreground">{dog.sport} · {dog.sport === 'Hoopers' ? dog.hoopers_level : dog.competition_level}</div>
             </motion.div>
           ))}
         </div>

@@ -3652,8 +3652,7 @@ export default function CoursePlannerPage() {
       <div
         ref={containerRef}
         className="rounded-xl overflow-hidden mb-0 relative border border-[rgba(255,255,255,0.06)]"
-        style={{ background: '#0F1117' }}
-        style={{ touchAction: 'none', minHeight: isMobile ? 350 : 500, height: isMobile ? 'calc(100vh - 260px)' : isDesktop ? 'calc(100vh - 340px)' : undefined }}
+        style={{ background: '#0F1117', touchAction: 'none', minHeight: isMobile ? 350 : 500, height: isMobile ? 'calc(100vh - 260px)' : isDesktop ? 'calc(100vh - 340px)' : undefined }}
         onMouseDown={handlePointerDown}
         onMouseMove={handlePointerMove}
         onMouseUp={handlePointerUp}

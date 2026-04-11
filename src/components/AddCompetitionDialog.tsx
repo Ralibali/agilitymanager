@@ -130,7 +130,7 @@ export function AddCompetitionDialog({ onAdded, dogs, trigger }: Props) {
               <SelectContent>
                 {dogs.map(d => (
                   <SelectItem key={d.id} value={d.id}>
-                    {d.name} {d.sport === 'Hoopers' ? '🅞' : '🐕'}
+                    {d.name} {d.sport === 'Båda' ? '🐕🅞' : d.sport === 'Hoopers' ? '🅞' : '🐕'}
                   </SelectItem>
                 ))}
               </SelectContent>

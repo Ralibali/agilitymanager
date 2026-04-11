@@ -105,12 +105,27 @@ export default function CompetitionPage() {
       store.getPlanned(),
     ]);
     setDogs(d);
-    setResults(r);
+    setResults(r.filter(res => res.sport !== 'Hoopers'));
+    setHoopersResults(r.filter(res => res.sport === 'Hoopers'));
     setPlanned(p);
     setLoading(false);
   };
 
   useEffect(() => { refresh(); }, []);
+
+  // Fetch upcoming hoopers competitions
+  useEffect(() => {
+    (async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data } = await supabase
+        .from('hoopers_competitions')
+        .select('id, competition_name, date, location, club_name, classes, source_url, type')
+        .gte('date', today)
+        .order('date', { ascending: true })
+        .limit(20);
+      if (data) setUpcomingHoopers(data);
+    })();
+  }, []);
 
   // Fetch competitions the user has shown interest in
   useEffect(() => {

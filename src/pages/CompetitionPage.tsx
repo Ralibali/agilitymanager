@@ -446,10 +446,16 @@ export default function CompetitionPage() {
       <Tabs defaultValue="calendar" className="mb-4">
         <TabsList className="w-full">
           <TabsTrigger value="calendar" className="flex-1 text-xs">Kalender</TabsTrigger>
+          <TabsTrigger value="mine" className="flex-1 text-xs">Mina</TabsTrigger>
           <TabsTrigger value="results" className="flex-1 text-xs">Resultat ({sportFilter === 'Hoopers' ? hoopersResults.length : sportFilter === 'Agility' ? results.length : allResults.length})</TabsTrigger>
           {hasHoopersDog && <TabsTrigger value="hoopers" className="flex-1 text-xs">Hoopers</TabsTrigger>}
           <TabsTrigger value="checklist" className="flex-1 text-xs">Checklista</TabsTrigger>
         </TabsList>
+
+        {/* Mina tävlingar tab */}
+        <TabsContent value="mine" className="mt-3">
+          <MinaTavlingar />
+        </TabsContent>
 
         {/* Calendar tab */}
         <TabsContent value="calendar" className="mt-3">

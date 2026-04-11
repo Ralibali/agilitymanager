@@ -38,8 +38,8 @@ export default function TrainingPage() {
   return (
     <>
     <Helmet>
-      <title>Träningslogg Agility – Logga varje pass | AgilityManager</title>
-      <meta name="description" content="Strukturera din agilityträning med AgilityManagers träningslogg. Logga datum, hund, fokusområde och notat. Bygg historik pass för pass." />
+      <title>Träningslogg – Agility & Hoopers | AgilityManager</title>
+      <meta name="description" content="Strukturera din träning med AgilityManagers logg. Logga agility och hoopers – datum, hund, fokusområde och notat. Bygg historik pass för pass." />
       <link rel="canonical" href="https://agilitymanager.se/traning" />
     </Helmet>
     <PageContainer

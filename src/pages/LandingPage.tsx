@@ -3,7 +3,8 @@ import { Helmet } from 'react-helmet-async';
 import { motion, useInView } from 'framer-motion';
 import {
   ClipboardList, LayoutGrid, Trophy, TrendingUp, Target, Shield,
-  ChevronDown, ArrowRight, Check, Star, Zap,
+  ChevronDown, ArrowRight, Check, Star, Zap, Users, MessageCircle,
+  Timer, Brain, Download, Calendar,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LandingNavbar } from '@/components/LandingNavbar';
@@ -30,31 +31,38 @@ const inViewFadeUp = (delay = 0) => ({
 
 /* ────── data ────── */
 const usps = [
-  { icon: ClipboardList, title: 'Träningslogg', desc: 'Logga varje pass – agility och hoopers. Se vad som funkar för just din hund.' },
-  { icon: LayoutGrid, title: 'Banplanerare', desc: 'Rita och spara banor med alla SAgiK-godkända hinder.' },
-  { icon: Trophy, title: 'Tävlingsresultat', desc: 'Håll koll på pinnar, klasser och din väg mot championat.' },
+  { icon: ClipboardList, title: 'Träningslogg', desc: 'Logga varje pass – agility och hoopers. Sätt träningsmål och följ din progression.' },
+  { icon: LayoutGrid, title: 'Banplanerare', desc: 'Rita banor med alla hinder, exportera som PNG eller PDF och dela med vänner.' },
+  { icon: Trophy, title: 'Tävling & resultat', desc: 'Tävlingskalender, resultatlogg, klassuppflyttning och automatisk resultatimport.' },
 ];
 
 const features = [
-  { icon: ClipboardList, title: 'Träningslogg', desc: 'Datum, hund, fokusområde och notat. Bygg upp din historik pass för pass – för agility och hoopers.' },
-  { icon: LayoutGrid, title: 'Banplanerare', desc: 'Designa banor med alla SAgiK-godkända hinder. Snap-to-grid, mallar, mätverktyg och delning.' },
-  { icon: Trophy, title: 'Tävlingsresultat', desc: 'Logga tävlingar, klass, tid, fel och pinnar. Hämta resultat direkt från agilitydata.se.' },
-  { icon: TrendingUp, title: 'Statistik & progression', desc: 'Diagram över din och hundens utveckling. Identifiera vad ni behöver träna mer.' },
-  { icon: Target, title: 'Tävlingskalender', desc: 'Se alla kommande tävlingar i Sverige. Filtrera på län, anmäl dig och få påminnelser.' },
-  { icon: Shield, title: 'Hälsologg & vikt', desc: 'Logga veterinärbesök, vaccinationer och vikt. Håll koll på nästa besök.' },
+  { icon: ClipboardList, title: 'Träningslogg', desc: 'Logga datum, hund, fokusområde, energinivå och notat. Betygsätt dirigering och banflyt. Bygg upp din historik pass för pass.' },
+  { icon: LayoutGrid, title: 'Banplanerare', desc: 'Designa banor med alla SAgiK- och SHoK-godkända hinder. Snap-to-grid, mätverktyg, färgteman och exempelbanor.' },
+  { icon: Download, title: 'Exportera banor', desc: 'Exportera dina banor som PNG eller PDF med metadata – datum, banstorlek och antal hinder. Helt gratis.' },
+  { icon: Trophy, title: 'Tävlingsresultat', desc: 'Logga tävlingar med klass, tid, fel och pinnar. Hämta resultat automatiskt från agilitydata.se.' },
+  { icon: Calendar, title: 'Tävlingskalender', desc: 'Se alla kommande agility- och hooperstävlingar i Sverige. Filtrera på län, bevaka och få påminnelser.' },
+  { icon: TrendingUp, title: 'Statistik & progression', desc: 'Diagram över tid, fel, godkänt-andel och utveckling per hund. Identifiera vad ni behöver träna mer.' },
+  { icon: Target, title: 'Träningsmål', desc: 'Sätt upp mål med delmål och följ din progress. Kategorisera per träningsområde.' },
+  { icon: Brain, title: 'AI-träningsinsikter', desc: 'Få personliga träningsrekommendationer baserade på din loggade data och ditt tävlingsresultat.' },
+  { icon: Shield, title: 'Hälsologg & vikt', desc: 'Logga veterinärbesök, vaccinationer och vikt med viktdiagram. Håll koll på nästa besök.' },
+  { icon: Users, title: 'Klubbar & grupper', desc: 'Skapa eller gå med i din agilityklubb. Anslagstavla, delade kalendrar, event-anmälan och grupper.' },
+  { icon: MessageCircle, title: 'Vänner & chatt', desc: 'Lägg till vänner, chatta, dela banor och jämför statistik. Skanna QR-kod för snabb tillägg.' },
+  { icon: Timer, title: 'Tidtagning', desc: 'Inbyggd stoppur för träning med felräkning. Spara tider per hund och följ förbättringar.' },
 ];
 
 const testimonials = [
   { quote: 'Äntligen ett ställe att samla allt. Jag kan se exakt var vi tappat tid de senaste 6 månaderna.', name: 'Sofia L.', dog: 'Border Collie, Klass 3' },
   { quote: 'Banplaneraren är guld. Jag skissar upp träningsbanor på tio minuter istället för att rita på papper.', name: 'Marcus K.', dog: 'Shetland Sheepdog, Klass 2' },
-  { quote: 'Hade ingen aning om vilken försäkring som var bäst för en tävlingshund. Nu vet jag.', name: 'Anna P.', dog: 'Australian Shepherd, Klass 1' },
+  { quote: 'Älskar att man kan logga hoopers också. Perfekt att ha allt samlat i en app.', name: 'Anna P.', dog: 'Australian Shepherd, Klass 1' },
 ];
 
 const faqs = [
   { q: 'Vad är agility och hur fungerar klassystemet?', a: 'Agility är en hinderbana på tid. I Sverige tävlar man i klass 1–3 under SAgiK/SKK. Man behöver 3 pinnar per klass för att flytta upp.' },
   { q: 'Vad är hoopers?', a: 'Hoopers är en hundsport där hunden springer igenom bågar, tunnlar och runt tunnor – utan hopp. Föraren dirigerar på distans. Det är officiell SKK-sport sedan november 2025.' },
   { q: 'Kan jag logga både agility och hoopers?', a: 'Ja. Du väljer sport per hund, så kan du ha en agilityträning och en hoopers-hund i samma konto.' },
-  { q: 'Hur loggar jag träning i AgilityManager?', a: 'Skapa ett träningspass, välj hund, ange datum och fokusområde. Lägg till notat och bilder. Historiken byggs upp automatiskt.' },
+  { q: 'Hur fungerar banplaneraren?', a: 'Dra och släpp hinder på en canvas med rutnät. Du kan exportera banan som PNG eller PDF med metadata. Både agility- och hoopers-hinder stöds.' },
+  { q: 'Kan jag dela banor med andra?', a: 'Ja. Du kan dela banor direkt via appen till vänner, eller exportera som bild/PDF och dela via valfri kanal.' },
   { q: 'Stöder appen SHoK:s regelverk?', a: 'Ja. Klasstruktur, hinderkategorier och storleksindelning följer Svenska Hoopersklubbens officiella regler.' },
   { q: 'Fungerar appen för nybörjare?', a: 'Ja. Du behöver inga förkunskaper. Fyll i vad du tränat, hur det gick och appen gör resten.' },
   { q: 'Är AgilityManager gratis?', a: 'Grundversionen är gratis utan tidsbegränsning. Du får 7 dagars gratis Pro när du skapar ett konto – ingen betalning krävs. Därefter kan du uppgradera till Pro för full tillgång.' },

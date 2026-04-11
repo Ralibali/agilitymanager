@@ -272,7 +272,7 @@ export default function LandingPage() {
                 Precis börjat träna agility? AgilityManager hjälper dig strukturera träningen, förstå regelverket och bygga en grund att stå på.
               </p>
               <ul className="space-y-2.5">
-                {['Enkel träningslogg utan krångel', 'Guide till klasser, pinnar och championat', 'Hälsologg för veterinärbesök och vikt'].map(t => (
+                {['Enkel träningslogg utan krångel', 'Banplanerare med export (PNG/PDF)', 'Hälsologg och träningsmål', 'Gå med i klubbar och grupper'].map(t => (
                   <li key={t} className="flex items-start gap-2 text-sm text-white/80">
                     <Check size={16} className="text-warning mt-0.5 flex-shrink-0" />
                     {t}
@@ -295,7 +295,7 @@ export default function LandingPage() {
                 Jagar du pinnar i klass 1–3 eller siktar på SM? Håll koll på varje start, analysera dina resultat och planera nästa träning strategiskt.
               </p>
               <ul className="space-y-2.5">
-                {['Detaljerad tävlingsstatistik per hund', 'Banplanerare med mallar och delning', 'Tävlingskalender och resultat från agilitydata.se'].map(t => (
+                {['Detaljerad tävlingsstatistik per hund', 'AI-träningsinsikter och klassuppflyttning', 'Tävlingskalender med påminnelser', 'Vänner, chatt och bandelning'].map(t => (
                   <li key={t} className="flex items-start gap-2 text-sm text-foreground">
                     <Check size={16} className="text-primary mt-0.5 flex-shrink-0" />
                     {t}
@@ -373,7 +373,7 @@ export default function LandingPage() {
               <p className="text-muted-foreground text-sm mb-6">Perfekt för att komma igång</p>
               <div className="font-display font-bold text-3xl text-foreground mb-6">0 kr<span className="text-base font-normal text-muted-foreground">/mån</span></div>
               <ul className="space-y-3 mb-8">
-                {['Träningslogg (obegränsat)', 'Banplanerare (3 sparade banor)', 'Tävlingsresultat (senaste 10)', 'Hundförsäkringsjämförelse'].map(f => (
+                {['Träningslogg (obegränsat)', '1 hund', 'Banplanerare (3 sparade banor)', 'Tävlingsresultat (senaste 10)', 'Banexport (PNG & PDF)', 'Hundförsäkringsjämförelse'].map(f => (
                   <li key={f} className="flex items-start gap-2 text-sm text-foreground">
                     <Check size={16} className="text-success mt-0.5 flex-shrink-0" />
                     {f}
@@ -410,13 +410,15 @@ export default function LandingPage() {
               <ul className="space-y-3 mb-8">
                 {[
                   'Allt i Gratis',
+                  'Obegränsat antal hundar',
                   'Obegränsade sparade banor',
                   'Full tävlingshistorik',
-                  'Avancerad statistik & diagram',
-                  'Vänner, chat och bandelning',
+                  'Avancerad statistik (90+ dagar)',
+                  'AI-träningsinsikter',
+                  'Vänner, chatt och bandelning',
                   'Tävlingskalender med påminnelser',
                   'Hämta resultat från agilitydata.se',
-                  'Prioriterad support',
+                  'CSV-export av träningsdata',
                 ].map(f => (
                   <li key={f} className="flex items-start gap-2 text-sm text-foreground">
                     <Check size={16} className="text-primary mt-0.5 flex-shrink-0" />

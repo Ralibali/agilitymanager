@@ -894,7 +894,7 @@ export default function CoursePlannerPage() {
     });
 
     if (numberedObs.length > 1 && showDistances) {
-      ctx.strokeStyle = 'hsl(0, 0%, 70%)';
+      ctx.strokeStyle = 'rgba(148,163,184,0.3)';
       ctx.lineWidth = 0.8;
       ctx.setLineDash([3, 3]);
       ctx.beginPath();
@@ -905,7 +905,7 @@ export default function CoursePlannerPage() {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      ctx.font = '8px sans-serif';
+      ctx.font = '8px monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       for (let i = 1; i < numberedObs.length; i++) {
@@ -915,10 +915,10 @@ export default function CoursePlannerPage() {
         const my = (a.y + b.y) / 2;
         const dist = distBetween(a, b);
         const text = `${dist.toFixed(1)}m`;
-        const tw = ctx.measureText(text).width + 4;
-        ctx.fillStyle = 'hsla(0, 0%, 100%, 0.9)';
-        ctx.fillRect(mx - tw / 2, my - 5, tw, 10);
-        ctx.fillStyle = 'hsl(0, 0%, 40%)';
+        const tw = ctx.measureText(text).width + 6;
+        ctx.fillStyle = 'rgba(15,17,23,0.85)';
+        ctx.fillRect(mx - tw / 2, my - 6, tw, 12);
+        ctx.fillStyle = 'rgba(148,163,184,0.9)';
         ctx.fillText(text, mx, my);
       }
     }
@@ -1061,22 +1061,25 @@ export default function CoursePlannerPage() {
         ctx.fillRect(-hw, -hh, info.width, info.height);
       }
 
-      // Selection highlight
+      // Selection highlight — electric blue glow
       const isMultiSel = multiSelected.has(obs.id);
       if (selected === obs.id || isMultiSel) {
-        ctx.strokeStyle = isMultiSel ? 'hsl(200, 90%, 50%)' : 'hsl(221, 79%, 48%)';
+        ctx.shadowColor = '#3B82F6';
+        ctx.shadowBlur = 12;
+        ctx.strokeStyle = isMultiSel ? '#38BDF8' : '#3B82F6';
         ctx.lineWidth = 1.5;
         ctx.setLineDash([4, 3]);
         const selSize = Math.max(info.width, info.height, 20) / 2 + 6;
         ctx.strokeRect(-selSize, -selSize, selSize * 2, selSize * 2);
         ctx.setLineDash([]);
+        ctx.shadowBlur = 0;
 
         // Rotation handle (only for primary selection)
         if (selected === obs.id) {
           const handleY = -selSize - 14;
-          ctx.fillStyle = 'hsl(221, 79%, 48%)';
+          ctx.fillStyle = '#3B82F6';
           ctx.beginPath(); ctx.arc(0, handleY, 6, 0, Math.PI * 2); ctx.fill();
-          ctx.strokeStyle = 'hsl(221, 79%, 48%)';
+          ctx.strokeStyle = '#3B82F6';
           ctx.lineWidth = 1;
           ctx.beginPath(); ctx.moveTo(0, -selSize); ctx.lineTo(0, handleY + 6); ctx.stroke();
           ctx.fillStyle = '#ffffff';
@@ -1207,10 +1210,10 @@ export default function CoursePlannerPage() {
     });
 
     // "1 ruta = 1 meter" label
-    ctx.fillStyle = 'hsla(0, 0%, 100%, 0.85)';
-    ctx.fillRect(4, 4, 80, 14);
-    ctx.fillStyle = 'hsl(0, 0%, 45%)';
-    ctx.font = '8px sans-serif';
+    ctx.fillStyle = 'rgba(15,17,23,0.7)';
+    ctx.fillRect(4, 4, 82, 14);
+    ctx.fillStyle = 'rgba(148,163,184,0.5)';
+    ctx.font = '8px monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     ctx.fillText('1 ruta = 1 meter', 8, 6);
@@ -1252,7 +1255,7 @@ export default function CoursePlannerPage() {
     }
 
     ctx.restore(); // restore MARGIN translate
-  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas, multiSelected, measurePoints, freeNumbers, draggingNumber, shokDoPx]);
+  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, multiSelected, measurePoints, freeNumbers, draggingNumber, shokDoPx]);
 
   useEffect(() => { draw(); }, [draw]);
 
@@ -1267,7 +1270,7 @@ export default function CoursePlannerPage() {
     const sx = mw / canvasWidth;
     const sy = mh / canvasHeight;
     ctx.clearRect(0, 0, mw, mh);
-    ctx.fillStyle = isDarkCanvas ? '#1a1a1a' : '#f5f5f5';
+    ctx.fillStyle = '#0F1117';
     ctx.fillRect(0, 0, mw, mh);
     // Draw obstacles as dots
     obstacles.forEach(obs => {
@@ -1290,7 +1293,7 @@ export default function CoursePlannerPage() {
       ctx.lineWidth = 1;
       ctx.strokeRect(Math.max(0, vx), Math.max(0, vy), Math.min(vw, mw), Math.min(vh, mh));
     }
-  }, [obstacles, zoom, panX, panY, canvasWidth, canvasHeight, showMinimap, isDarkCanvas]);
+  }, [obstacles, zoom, panX, panY, canvasWidth, canvasHeight, showMinimap]);
 
   /* ───── Interaction (with zoom/pan transform) ───── */
 

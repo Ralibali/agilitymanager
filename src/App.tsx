@@ -33,6 +33,8 @@ const BlogPage = React.lazy(() => import("./pages/BlogPage"));
 const BlogPostPage = React.lazy(() => import("./pages/BlogPostPage"));
 const AdminPage = React.lazy(() => import("./pages/AdminPage"));
 const AboutAgilityPage = React.lazy(() => import("./pages/AboutAgilityPage"));
+const HoopersLandingPage = React.lazy(() => import("./pages/HoopersLandingPage"));
+const HoopersRulesPage = React.lazy(() => import("./pages/HoopersRulesPage"));
 const PrivacyPolicyPage = React.lazy(() => import("./pages/PrivacyPolicyPage"));
 const CookiePolicyPage = React.lazy(() => import("./pages/CookiePolicyPage"));
 const UnsubscribePage = React.lazy(() => import("./pages/UnsubscribePage"));
@@ -104,6 +106,8 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/hundforsakring" element={<InsurancePage />} />
               <Route path="/om-agility" element={<AboutAgilityPage />} />
+              <Route path="/hoopers" element={<HoopersLandingPage />} />
+              <Route path="/hoopers-regler" element={<HoopersRulesPage />} />
               <Route path="/blogg" element={<BlogPage />} />
               <Route path="/blogg/:slug" element={<BlogPostPage />} />
               <Route path="/integritetspolicy" element={<PrivacyPolicyPage />} />

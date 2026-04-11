@@ -17,7 +17,8 @@ const supportLinks = [
 
 const sportLinks = [
   { label: 'Om agility', href: '/om-agility' },
-  { label: 'Hoopers', href: '/blogg/hoopers-hund' },
+  { label: 'Hoopers', href: '/hoopers' },
+  { label: 'Hoopers-regler', href: '/hoopers-regler' },
   { label: 'SAgiK', href: 'https://agilityklubben.se', external: true },
   { label: 'SHoK', href: 'https://www.svenskahoopersklubben.se', external: true },
   { label: 'Agilitydata.se', href: 'https://agilitydata.se/', external: true },

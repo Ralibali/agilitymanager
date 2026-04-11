@@ -22,6 +22,7 @@ export default function TrainingPage() {
   const [results, setResults] = useState<CompetitionResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [shareSession, setShareSession] = useState<TrainingSession | null>(null);
+  const [sportFilter, setSportFilter] = useState<'Alla' | 'Agility' | 'Hoopers'>('Alla');
   const refresh = async () => {
     const [d, t, r] = await Promise.all([store.getDogs(), store.getTraining(), store.getCompetitions()]);
     setDogs(d);

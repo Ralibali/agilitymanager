@@ -1358,6 +1358,9 @@ export default function CoursePlannerPage() {
       setIsDirty(true);
       return next;
     });
+    // Pop animation
+    setRecentlyPlaced(newObs.id);
+    setTimeout(() => setRecentlyPlaced(null), 400);
   };
 
   const findFreeNumberAt = (cx: number, cy: number): FreeNumber | null => {

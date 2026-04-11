@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import AITrainingInsights from '@/components/competitions/AITrainingInsights';
 import { PageContainer } from '@/components/PageContainer';

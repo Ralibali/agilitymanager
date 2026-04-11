@@ -22,6 +22,7 @@ export default function TrainingPage() {
   const [results, setResults] = useState<CompetitionResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [shareSession, setShareSession] = useState<TrainingSession | null>(null);
+  const [sportFilter, setSportFilter] = useState<'Alla' | 'Agility' | 'Hoopers'>('Alla');
   const refresh = async () => {
     const [d, t, r] = await Promise.all([store.getDogs(), store.getTraining(), store.getCompetitions()]);
     setDogs(d);
@@ -118,10 +119,26 @@ export default function TrainingPage() {
         </div>
       ) : (
         <>
+        {/* Sport filter */}
+        <div className="flex gap-1.5 mb-3">
+          {(['Alla', 'Agility', 'Hoopers'] as const).map(s => (
+            <button
+              key={s}
+              onClick={() => setSportFilter(s)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                sportFilter === s
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              {s === 'Alla' ? '🏆 Alla' : s === 'Agility' ? '🏃 Agility' : '🐕 Hoopers'}
+            </button>
+          ))}
+        </div>
         <TrainingGoals dogs={dogs} />
         <AITrainingInsights dogs={dogs} sessions={sessions} results={results} />
         <div className="space-y-3 mt-3">
-          {sessions.map((s, i) => {
+          {sessions.filter(s => sportFilter === 'Alla' || s.sport === sportFilter).map((s, i) => {
             const dog = getDog(s.dog_id);
             return (
               <motion.div

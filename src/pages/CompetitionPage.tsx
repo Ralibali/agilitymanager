@@ -65,7 +65,9 @@ const CHECKLIST_ITEMS = [
 export default function CompetitionPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [results, setResults] = useState<CompetitionResult[]>([]);
+  const [allResults, setAllResults] = useState<CompetitionResult[]>([]);
   const [planned, setPlanned] = useState<PlannedCompetition[]>([]);
+  const [sportFilter, setSportFilter] = useState<'Alla' | 'Agility' | 'Hoopers'>('Alla');
   const [interestedComps, setInterestedComps] = useState<{ id: string; competition_id: string; status: string; dog_name: string | null; comp: { competition_name: string | null; date_start: string | null; location: string | null; source_url: string | null } }[]>([]);
   const [upcomingHoopers, setUpcomingHoopers] = useState<{ id: string; competition_name: string | null; date: string | null; location: string | null; club_name: string | null; classes: string[] | null; source_url: string | null; type: string | null }[]>([]);
   const [hoopersResults, setHoopersResults] = useState<CompetitionResult[]>([]);
@@ -106,6 +108,7 @@ export default function CompetitionPage() {
       store.getPlanned(),
     ]);
     setDogs(d);
+    setAllResults(r);
     setResults(r.filter(res => res.sport !== 'Hoopers'));
     setHoopersResults(r.filter(res => res.sport === 'Hoopers'));
     setPlanned(p);
@@ -343,6 +346,7 @@ export default function CompetitionPage() {
 
   const upcoming = planned.filter(p => new Date(p.date) >= new Date()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const past = planned.filter(p => new Date(p.date) < new Date());
+  const filteredResults = sportFilter === 'Hoopers' ? hoopersResults : sportFilter === 'Agility' ? results : allResults;
 
   return (
     <>
@@ -421,10 +425,27 @@ export default function CompetitionPage() {
         </div>
       }
     >
+      {/* Sport filter */}
+      <div className="flex gap-1.5 mb-3">
+        {(['Alla', 'Agility', 'Hoopers'] as const).map(s => (
+          <button
+            key={s}
+            onClick={() => setSportFilter(s)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              sportFilter === s
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+            }`}
+          >
+            {s === 'Alla' ? '🏆 Alla' : s === 'Agility' ? '🏃 Agility' : '🐕 Hoopers'}
+          </button>
+        ))}
+      </div>
+
       <Tabs defaultValue="calendar" className="mb-4">
         <TabsList className="w-full">
           <TabsTrigger value="calendar" className="flex-1 text-xs">Kalender</TabsTrigger>
-          <TabsTrigger value="results" className="flex-1 text-xs">Resultat ({results.length})</TabsTrigger>
+          <TabsTrigger value="results" className="flex-1 text-xs">Resultat ({sportFilter === 'Hoopers' ? hoopersResults.length : sportFilter === 'Agility' ? results.length : allResults.length})</TabsTrigger>
           {hasHoopersDog && <TabsTrigger value="hoopers" className="flex-1 text-xs">Hoopers</TabsTrigger>}
           <TabsTrigger value="checklist" className="flex-1 text-xs">Checklista</TabsTrigger>
         </TabsList>
@@ -539,15 +560,16 @@ export default function CompetitionPage() {
         {/* Results tab */}
         <TabsContent value="results" className="mt-3 space-y-4">
           <ResultsImporter dogs={dogs} onImported={() => refresh()} autoFetch />
-          <ClassPromotionTracker results={results} dogs={dogs} />
-          {results.length === 0 ? (
+          {sportFilter !== 'Hoopers' && <ClassPromotionTracker results={results} dogs={dogs} />}
+          {sportFilter === 'Hoopers' && <HoopersPointsTracker dogs={dogs} />}
+          {filteredResults.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <p className="mb-2">Inga tävlingsresultat ännu.</p>
               {dogs.length > 0 ? <AddCompetitionDialog dogs={dogs} onAdded={refresh} /> : <p className="text-sm">Lägg till en hund först!</p>}
             </div>
           ) : (
             <div className="space-y-3">
-              {results.map((r, i) => {
+              {filteredResults.map((r, i) => {
                 const dog = getDog(r.dog_id);
                 const matchedUrl = competitionUrlMap[r.id];
                 return (

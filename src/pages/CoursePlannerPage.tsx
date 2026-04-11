@@ -2507,7 +2507,7 @@ export default function CoursePlannerPage() {
   // Fullscreen landscape layout
   if (isFullscreen || showLandscapeLayout) {
     return (
-      <div ref={fullscreenContainerRef} className="fixed inset-0 z-50 bg-background flex">
+      <div ref={fullscreenContainerRef} className="fixed inset-0 z-[60] bg-[hsl(221,25%,8%)] flex">
         {/* Main canvas area */}
         <div
           ref={containerRef}

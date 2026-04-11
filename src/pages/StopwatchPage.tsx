@@ -139,7 +139,9 @@ export default function StopwatchPage() {
     setSaving(true);
     const userId = (await (await import('@/integrations/supabase/client')).supabase.auth.getUser()).data.user?.id;
     if (!userId) return;
-    const refusals = faultEntries.find(f => f.type === 'Refus')?.count || 0;
+    const currentRefusals = faultEntries.find(f => f.type === 'Refus')?.count || 0;
+    const lapRefusals = laps.reduce((s, lap) => s + (lap.faults.find(f => f.type === 'Refus')?.count || 0), 0);
+    const refusals = currentRefusals + lapRefusals;
     const { error } = await (await import('@/integrations/supabase/client')).supabase
       .from('stopwatch_results')
       .insert({

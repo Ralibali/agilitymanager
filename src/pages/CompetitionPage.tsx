@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { ResultsImporter } from '@/components/competitions/ResultsImporter';
+import { MinaTavlingar } from '@/components/competitions/MinaTavlingar';
 import { useState, useEffect, useMemo } from 'react';
 import { PageContainer } from '@/components/PageContainer';
 import { AddCompetitionDialog } from '@/components/AddCompetitionDialog';

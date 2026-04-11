@@ -819,8 +819,8 @@ export default function CoursePlannerPage() {
     canvas.height = totalH * dpr;
     ctx.scale(dpr, dpr);
 
-    // Background
-    ctx.fillStyle = isDarkCanvas ? '#1a1a1a' : '#ffffff';
+    // Background — always dark
+    ctx.fillStyle = '#0F1117';
     ctx.fillRect(0, 0, totalW, totalH);
 
     // All drawing in MARGIN-translated space
@@ -828,11 +828,11 @@ export default function CoursePlannerPage() {
     ctx.translate(MARGIN, 0);
 
     // Course area
-    ctx.fillStyle = isDarkCanvas ? 'hsl(0, 0%, 10%)' : 'hsl(0, 0%, 97%)';
+    ctx.fillStyle = '#0F1117';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     // Minor grid (1m)
-    ctx.strokeStyle = isDarkCanvas ? 'hsl(0, 0%, 20%)' : 'hsl(0, 0%, 90%)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
     ctx.lineWidth = 0.3;
     for (let x = 0; x <= canvasWidth; x += GRID_STEP) {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvasHeight); ctx.stroke();
@@ -842,7 +842,7 @@ export default function CoursePlannerPage() {
     }
 
     // Major grid (5m)
-    ctx.strokeStyle = isDarkCanvas ? 'hsl(0, 0%, 30%)' : 'hsl(0, 0%, 78%)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
     ctx.lineWidth = 0.8;
     const majorStep = GRID_STEP * 5;
     for (let x = 0; x <= canvasWidth; x += majorStep) {
@@ -853,8 +853,8 @@ export default function CoursePlannerPage() {
     }
 
     // Coordinate labels
-    ctx.fillStyle = 'hsl(0, 0%, 50%)';
-    ctx.font = '8px sans-serif';
+    ctx.fillStyle = 'rgba(148,163,184,0.6)';
+    ctx.font = '8px monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     for (let x = 0; x <= canvasWidth; x += majorStep) {
@@ -869,7 +869,7 @@ export default function CoursePlannerPage() {
     // Scale indicator
     const scaleX = canvasWidth - 5 * PX_PER_METER - 8;
     const scaleY = canvasHeight - 8;
-    ctx.strokeStyle = 'hsl(0, 0%, 40%)';
+    ctx.strokeStyle = 'rgba(148,163,184,0.4)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(scaleX, scaleY);
@@ -878,8 +878,8 @@ export default function CoursePlannerPage() {
     ctx.beginPath();
     ctx.moveTo(scaleX, scaleY - 3); ctx.lineTo(scaleX, scaleY + 3); ctx.stroke();
     ctx.moveTo(scaleX + 5 * PX_PER_METER, scaleY - 3); ctx.lineTo(scaleX + 5 * PX_PER_METER, scaleY + 3); ctx.stroke();
-    ctx.fillStyle = 'hsl(0, 0%, 35%)';
-    ctx.font = '8px sans-serif';
+    ctx.fillStyle = 'rgba(148,163,184,0.5)';
+    ctx.font = '8px monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillText('5 m', scaleX + 2.5 * PX_PER_METER, scaleY - 3);

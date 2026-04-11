@@ -3386,7 +3386,7 @@ export default function CoursePlannerPage() {
           )}
 
           {/* Toolbar row 2 */}
-          <div className="flex gap-1.5 mb-3 items-center flex-wrap">
+          <div className="flex gap-1.5 mb-3 items-center flex-wrap rounded-xl px-3 py-1.5" style={{ background: 'rgba(26,29,39,0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
             <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportPNG(); }} disabled={obstacles.length === 0}>
               <Download size={12} /> PNG {!isPremium && <PremiumBadge />}
             </Button>
@@ -3672,10 +3672,10 @@ export default function CoursePlannerPage() {
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
               <Sparkles size={28} className="text-primary/60" />
             </div>
-            <h3 className={`font-display font-bold text-lg mb-1 ${isMobile ? 'text-[hsl(210,20%,85%)]' : 'text-foreground'}`}>
+            <h3 className="font-display font-bold text-lg mb-1 text-[#F8FAFC]">
               Bygg din bana
             </h3>
-            <p className={`text-sm max-w-xs mb-4 ${isMobile ? 'text-[hsl(210,15%,50%)]' : 'text-muted-foreground'}`}>
+            <p className="text-sm max-w-xs mb-4 text-[#94A3B8]">
               Välj ett hinder {isMobile ? 'nedan' : 'nedan'} för att börja
             </p>
             <div className="flex gap-2 pointer-events-auto">

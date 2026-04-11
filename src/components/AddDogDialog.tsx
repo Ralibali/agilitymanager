@@ -233,7 +233,7 @@ export function AddDogDialog({ onAdded, trigger }: Props) {
                 </Select>
               </div>
             </div>
-          )
+          )}
 
           <div>
             <Label>Anteckningar</Label>

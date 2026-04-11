@@ -1066,14 +1066,24 @@ export default function CoursePlannerPage() {
         ctx.fillRect(-hw, -hh, info.width, info.height);
       }
 
-      // Selection highlight
+      // Selection highlight with pulsing glow
       const isMultiSel = multiSelected.has(obs.id);
       if (selected === obs.id || isMultiSel) {
-        ctx.strokeStyle = isMultiSel ? 'hsl(200, 90%, 50%)' : 'hsl(221, 79%, 48%)';
+        const glowPhase = Math.sin(animFrameRef.current * Math.PI / 60) * 0.3 + 0.7;
+        const baseColor = isMultiSel ? 'hsl(200, 90%, 50%)' : 'hsl(221, 79%, 48%)';
+        ctx.globalAlpha = glowPhase;
+        ctx.strokeStyle = baseColor;
         ctx.lineWidth = 1.5;
         ctx.setLineDash([4, 3]);
         const selSize = Math.max(info.width, info.height, 20) / 2 + 6;
         ctx.strokeRect(-selSize, -selSize, selSize * 2, selSize * 2);
+        // Outer glow
+        ctx.strokeStyle = baseColor;
+        ctx.lineWidth = 4;
+        ctx.globalAlpha = glowPhase * 0.15;
+        ctx.setLineDash([]);
+        ctx.strokeRect(-selSize - 2, -selSize - 2, (selSize + 2) * 2, (selSize + 2) * 2);
+        ctx.globalAlpha = 1;
         ctx.setLineDash([]);
 
         // Rotation handle (only for primary selection)
@@ -1090,6 +1100,17 @@ export default function CoursePlannerPage() {
           ctx.textBaseline = 'middle';
           ctx.fillText('⟳', 0, handleY);
         }
+      }
+
+      // Pop animation for recently placed obstacle
+      if (obs.id === recentlyPlaced) {
+        const popScale = 1; // scale is handled via CSS/state timing
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = 'hsl(142, 60%, 50%)';
+        ctx.lineWidth = 3;
+        const popR = Math.max(info.width, info.height, 20) / 2 + 12;
+        ctx.beginPath(); ctx.arc(0, 0, popR, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
       }
 
       ctx.restore();

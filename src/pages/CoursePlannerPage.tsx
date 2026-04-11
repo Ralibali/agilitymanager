@@ -2704,36 +2704,85 @@ export default function CoursePlannerPage() {
       <meta name="description" content="Designa agility- och hoopersbanor med korrekta hinder. Hoops, tunnlar, tunnor och staket enligt SHoK:s regelverk. Spara och dela." />
       <link rel="canonical" href="https://agilitymanager.se/banplanerare" />
     </Helmet>
-    <PageContainer title="Banplanerare" subtitle="Rita agility-banor">
+    <PageContainer title={isMobile ? undefined : "Banplanerare"} subtitle={isMobile ? undefined : "Rita agility-banor"}>
       <PremiumGate fullPage featureName="Banplaneraren">
 
       {/* ═══ MOBILE-OPTIMIZED TOOLBAR ═══ */}
       {isMobile ? (
         <>
-          {/* Compact top bar: essential actions only */}
-          <div className="flex items-center gap-1 mb-2 overflow-x-auto pb-1 scrollbar-hide">
-            <TutorialButton onClick={() => setShowTutorial(true)} />
-
-            <div className="flex items-center gap-0.5">
-              <Button variant="outline" size="icon" className="h-8 w-8 flex-shrink-0" onClick={handleUndo} disabled={!canUndo} title="Ångra">
-                <Undo2 size={14} />
-              </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8 flex-shrink-0" onClick={handleRedo} disabled={!canRedo} title="Gör om">
-                <RotateCcw size={14} className="scale-x-[-1]" />
-              </Button>
+          {/* Sport mode toggle - pill-shaped */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex bg-[hsl(221,25%,14%)] rounded-full p-0.5">
+              <button
+                onClick={() => setSportMode('agility')}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                  sportMode === 'agility'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-[hsl(215,15%,55%)] hover:text-[hsl(215,15%,70%)]'
+                }`}
+              >
+                🐕 Agility
+              </button>
+              <button
+                onClick={() => setSportMode('hoopers')}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                  sportMode === 'hoopers'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-[hsl(215,15%,55%)] hover:text-[hsl(215,15%,70%)]'
+                }`}
+              >
+                🎯 Hoopers
+              </button>
             </div>
+            {isDirty && (
+              <span className="text-[10px] text-amber-500 font-medium">● Osparad</span>
+            )}
+          </div>
 
-            <div className="h-5 w-px bg-border flex-shrink-0" />
+          {/* Dark glassmorphism toolbar */}
+          <div className="flex items-center gap-1.5 mb-2 bg-[hsl(221,25%,12%)]/95 backdrop-blur-xl rounded-xl p-1.5 border border-[hsl(221,20%,20%)]">
+            {/* Undo */}
+            <button
+              onClick={handleUndo}
+              disabled={!canUndo}
+              className="w-9 h-9 flex items-center justify-center rounded-lg transition-all active:scale-95 disabled:opacity-30 text-[hsl(210,20%,80%)] hover:bg-[hsl(221,20%,20%)]"
+              title="Ångra"
+            >
+              <Undo2 size={16} />
+            </button>
+            {/* Redo */}
+            <button
+              onClick={handleRedo}
+              disabled={!canRedo}
+              className="w-9 h-9 flex items-center justify-center rounded-lg transition-all active:scale-95 disabled:opacity-30 text-[hsl(210,20%,80%)] hover:bg-[hsl(221,20%,20%)]"
+              title="Gör om"
+            >
+              <RotateCcw size={16} className="scale-x-[-1]" />
+            </button>
 
-            {zoomControls(false)}
+            <div className="w-px h-6 bg-[hsl(221,20%,22%)]" />
 
-            <div className="h-5 w-px bg-border flex-shrink-0" />
+            {/* Zoom display - tap for fit */}
+            <button
+              onClick={fitToScreen}
+              className="px-2 h-9 flex items-center justify-center rounded-lg text-[11px] font-mono font-medium text-[hsl(210,20%,70%)] hover:bg-[hsl(221,20%,20%)] transition-all active:scale-95"
+              title="Anpassa till skärm"
+            >
+              {Math.round(zoom * 100)}%
+            </button>
 
+            <div className="w-px h-6 bg-[hsl(221,20%,22%)]" />
+
+            {/* Save */}
             <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="icon" className="h-8 w-8 flex-shrink-0" disabled={obstacles.length === 0} title="Spara">
-                  <Save size={14} />
-                </Button>
+                <button
+                  disabled={obstacles.length === 0}
+                  className="w-9 h-9 flex items-center justify-center rounded-lg transition-all active:scale-95 disabled:opacity-30 text-[hsl(210,20%,80%)] hover:bg-[hsl(221,20%,20%)]"
+                  title="Spara"
+                >
+                  <Save size={16} />
+                </button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader><DialogTitle className="font-display">Spara bana</DialogTitle></DialogHeader>
@@ -2744,11 +2793,15 @@ export default function CoursePlannerPage() {
               </DialogContent>
             </Dialog>
 
+            {/* Load */}
             <Dialog open={loadOpen} onOpenChange={setLoadOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="icon" className="h-8 w-8 flex-shrink-0" title="Ladda">
-                  <FolderOpen size={14} />
-                </Button>
+                <button
+                  className="w-9 h-9 flex items-center justify-center rounded-lg transition-all active:scale-95 text-[hsl(210,20%,80%)] hover:bg-[hsl(221,20%,20%)]"
+                  title="Ladda"
+                >
+                  <FolderOpen size={16} />
+                </button>
               </DialogTrigger>
               <DialogContent className="max-h-[80vh] overflow-y-auto">
                 <DialogHeader><DialogTitle className="font-display">Ladda bana</DialogTitle></DialogHeader>
@@ -2782,34 +2835,30 @@ export default function CoursePlannerPage() {
               </DialogContent>
             </Dialog>
 
-            <Button variant="outline" size="icon" className="h-8 w-8 flex-shrink-0" onClick={toggleFullscreen} title="Fullskärm">
-              <Maximize size={14} />
-            </Button>
-
-            {/* More tools button */}
-            <Button variant="outline" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => setMobileToolsOpen(true)} title="Fler verktyg">
-              <Settings2 size={14} />
-            </Button>
-
-            {isDirty && (
-              <span className="text-[10px] text-amber-500 font-medium flex-shrink-0">●</span>
-            )}
+            {/* More tools */}
+            <button
+              onClick={() => setMobileToolsOpen(true)}
+              className="w-9 h-9 flex items-center justify-center rounded-lg transition-all active:scale-95 text-[hsl(210,20%,80%)] hover:bg-[hsl(221,20%,20%)]"
+              title="Fler verktyg"
+            >
+              <MoreHorizontal size={16} />
+            </button>
           </div>
 
-          {/* Mobile tool modes - horizontal scroll strip */}
+          {/* Mobile tool modes - pill buttons */}
           <div className="flex gap-1.5 mb-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={() => { setDrawingMode(!drawingMode); setNumberingMode(false); if (drawingMode) setIsDrawing(false); }}
-              className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors flex items-center gap-1 flex-shrink-0 ${drawingMode ? 'bg-orange-500/15 border-orange-500 text-orange-600' : 'bg-secondary border-border text-muted-foreground'}`}
+              className={`text-[11px] px-3 py-1.5 rounded-full border transition-all duration-200 flex items-center gap-1.5 flex-shrink-0 active:scale-95 ${drawingMode ? 'bg-[hsl(25,85%,55%)] border-[hsl(25,85%,55%)] text-white font-semibold' : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)] text-[hsl(210,15%,60%)]'}`}
             >
-              <Pencil size={11} /> {drawingMode ? 'Rita: PÅ' : 'Rita'}
+              <Pencil size={12} /> {drawingMode ? 'Rita: PÅ' : 'Rita'}
             </button>
 
             {(drawingMode || handlerPath.length > 0) && (
               <>
                 <Select value={handlerColor} onValueChange={setHandlerColor}>
-                  <SelectTrigger className="h-7 w-12 text-[10px] border-none px-1 flex-shrink-0">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: handlerColor }} />
+                  <SelectTrigger className="h-7 w-12 text-[10px] border-[hsl(221,20%,22%)] bg-[hsl(221,25%,14%)] px-1 flex-shrink-0">
+                    <div className="w-3.5 h-3.5 rounded-full border border-white/20" style={{ backgroundColor: handlerColor }} />
                   </SelectTrigger>
                   <SelectContent>
                     {HANDLER_COLORS.map(c => (
@@ -2823,8 +2872,8 @@ export default function CoursePlannerPage() {
                   </SelectContent>
                 </Select>
                 {handlerPath.length > 0 && (
-                  <button onClick={() => setHandlerPath([])} className="text-[11px] px-2 py-1 rounded-full border border-border text-muted-foreground hover:text-destructive flex items-center gap-1 flex-shrink-0">
-                    <Eraser size={10} />
+                  <button onClick={() => setHandlerPath([])} className="text-[11px] px-2.5 py-1.5 rounded-full bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] text-[hsl(210,15%,60%)] hover:text-destructive flex items-center gap-1 flex-shrink-0 active:scale-95">
+                    <Eraser size={11} />
                   </button>
                 )}
               </>
@@ -2832,36 +2881,29 @@ export default function CoursePlannerPage() {
 
             <button
               onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); setMeasureMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } }}
-              className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors flex items-center gap-1 flex-shrink-0 ${numberingMode ? 'bg-blue-500/15 border-blue-500 text-blue-600' : 'bg-secondary border-border text-muted-foreground'}`}
+              className={`text-[11px] px-3 py-1.5 rounded-full border transition-all duration-200 flex items-center gap-1.5 flex-shrink-0 active:scale-95 ${numberingMode ? 'bg-primary border-primary text-primary-foreground font-semibold' : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)] text-[hsl(210,15%,60%)]'}`}
             >
-              <Hash size={11} /> Nr
+              <Hash size={12} /> Nr
             </button>
 
             <button
               onClick={() => { setMeasureMode(!measureMode); setDrawingMode(false); setNumberingMode(false); setMeasurePoints([]); }}
-              className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors flex items-center gap-1 flex-shrink-0 ${measureMode ? 'bg-yellow-500/15 border-yellow-500 text-yellow-600' : 'bg-secondary border-border text-muted-foreground'}`}
+              className={`text-[11px] px-3 py-1.5 rounded-full border transition-all duration-200 flex items-center gap-1.5 flex-shrink-0 active:scale-95 ${measureMode ? 'bg-[hsl(50,100%,45%)] border-[hsl(50,100%,45%)] text-[hsl(50,20%,10%)] font-semibold' : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)] text-[hsl(210,15%,60%)]'}`}
             >
-              <Ruler size={11} /> Mät
+              <Ruler size={12} /> Mät
             </button>
 
             <button
               onClick={() => setShowStartFinish(!showStartFinish)}
-              className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors flex items-center gap-1 flex-shrink-0 ${showStartFinish ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
+              className={`text-[11px] px-3 py-1.5 rounded-full border transition-all duration-200 flex items-center gap-1 flex-shrink-0 active:scale-95 ${showStartFinish ? 'bg-primary/15 border-primary text-primary' : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)] text-[hsl(210,15%,60%)]'}`}
             >
               ▸◼
-            </button>
-
-            <button
-              onClick={() => setSnapEnabled(!snapEnabled)}
-              className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors flex items-center gap-1 flex-shrink-0 ${snapEnabled ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary border-border text-muted-foreground'}`}
-            >
-              📐
             </button>
 
             {selected && (
               <button
                 onClick={copySelected}
-                className="text-[11px] px-2.5 py-1 rounded-full border border-border bg-secondary text-muted-foreground flex items-center gap-1 flex-shrink-0"
+                className="text-[11px] px-3 py-1.5 rounded-full bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] text-[hsl(210,15%,60%)] flex items-center gap-1 flex-shrink-0 active:scale-95"
               >
                 <Copy size={11} />
               </button>

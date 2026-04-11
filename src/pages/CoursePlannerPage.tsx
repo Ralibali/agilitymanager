@@ -3183,11 +3183,14 @@ export default function CoursePlannerPage() {
                 {/* Export / Import */}
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Exportera & importera</label>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="gap-1 flex-1" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportPNG(); setMobileToolsOpen(false); }} disabled={obstacles.length === 0}>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button variant="outline" size="sm" className="gap-1 flex-1" onClick={() => { exportPNG(); setMobileToolsOpen(false); }} disabled={obstacles.length === 0}>
                       <Download size={12} /> PNG
                     </Button>
-                    <Button variant="outline" size="sm" className="gap-1 flex-1" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportJSON(); setMobileToolsOpen(false); }} disabled={obstacles.length === 0}>
+                    <Button variant="outline" size="sm" className="gap-1 flex-1" onClick={() => { exportPDF(); setMobileToolsOpen(false); }} disabled={obstacles.length === 0}>
+                      <FileText size={12} /> PDF
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-1 flex-1" onClick={() => { exportJSON(); setMobileToolsOpen(false); }} disabled={obstacles.length === 0}>
                       <Download size={12} /> JSON
                     </Button>
                     <Button variant="outline" size="sm" className="gap-1 flex-1" onClick={() => { fileInputRef.current?.click(); setMobileToolsOpen(false); }}>
@@ -3439,11 +3442,14 @@ export default function CoursePlannerPage() {
 
           {/* Toolbar row 2 */}
           <div className="flex gap-1.5 mb-3 items-center flex-wrap">
-            <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportPNG(); }} disabled={obstacles.length === 0}>
-              <Download size={12} /> PNG {!isPremium && <PremiumBadge />}
+            <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={exportPNG} disabled={obstacles.length === 0}>
+              <Download size={12} /> PNG
             </Button>
-            <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => { if (!isPremium) { toast.error('Export kräver Premium'); return; } exportJSON(); }} disabled={obstacles.length === 0}>
-              <Download size={12} /> JSON {!isPremium && <PremiumBadge />}
+            <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={exportPDF} disabled={obstacles.length === 0}>
+              <FileText size={12} /> PDF
+            </Button>
+            <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={exportJSON} disabled={obstacles.length === 0}>
+              <Download size={12} /> JSON
             </Button>
             <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => fileInputRef.current?.click()}>
               <Upload size={12} /> Importera

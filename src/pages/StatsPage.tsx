@@ -32,8 +32,12 @@ function OverviewCards({ training, competitions }: { training: TrainingSession[]
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
   const totalMin = training.reduce((s, t) => s + t.duration_min, 0);
+  const agilityComps = competitions.filter(c => c.sport === 'Agility');
+  const hoopersComps = competitions.filter(c => c.sport === 'Hoopers');
   const passRate = competitions.length > 0
     ? Math.round(competitions.filter(c => c.passed).length / competitions.length * 100) : 0;
+  const hasHoopers = hoopersComps.length > 0;
+  const passLabel = hasHoopers && agilityComps.length === 0 ? 'Godkänd' : agilityComps.length > 0 && hoopersComps.length > 0 ? 'Godkänd' : 'Pinnar';
 
   return (
     <div className="grid grid-cols-3 gap-2 mb-6">
@@ -45,7 +49,7 @@ function OverviewCards({ training, competitions }: { training: TrainingSession[]
       <div className="bg-card p-3 rounded-xl shadow-card text-center">
         <Trophy size={18} className="text-accent mx-auto mb-1" />
         <div className="text-xl font-bold font-display text-foreground">{passRate}%</div>
-        <div className="text-[10px] text-muted-foreground">Pinnar</div>
+        <div className="text-[10px] text-muted-foreground">{passLabel}</div>
       </div>
       <div className="bg-card p-3 rounded-xl shadow-card text-center">
         <TrendingUp size={18} className="text-success mx-auto mb-1" />

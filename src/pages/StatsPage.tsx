@@ -613,17 +613,10 @@ export default function StatsPage() {
   const [competitions, setCompetitions] = useState<CompetitionResult[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadData = useCallback(() => {
+  useEffect(() => {
     Promise.all([store.getDogs(), store.getTraining(), store.getCompetitions()]).then(([d, t, c]) => {
       setDogs(d); setTraining(t); setCompetitions(c); setLoading(false);
     });
-  }, []);
-
-  useEffect(() => { loadData(); }, [loadData]);
-
-  const handleImported = useCallback(() => {
-    // Reload competitions after import
-    store.getCompetitions().then(c => setCompetitions(c));
   }, []);
 
   if (loading) return <PageContainer title="Statistik"><div className="text-center py-20 text-muted-foreground">Laddar...</div></PageContainer>;

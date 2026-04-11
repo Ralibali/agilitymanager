@@ -10,14 +10,13 @@ import { supabase } from '@/integrations/supabase/client';
 const mainTabs = [
   { path: '/dashboard', icon: Home, label: 'Hem' },
   { path: '/course-planner', icon: PencilRuler, label: 'Banplanerare' },
-  { path: '/competition-calendar', icon: Trophy, label: 'Tävlingar' },
+  { path: '/competition', icon: Trophy, label: 'Tävlingar & Resultat', compact: true },
   { path: '/friends', icon: Users, label: 'Kompisar' },
 ];
 
 const moreTabs = [
   { path: '/dogs', icon: Dog, label: 'Hundar' },
   { path: '/training', icon: Dumbbell, label: 'Träning' },
-  { path: '/competition', icon: Trophy, label: 'Resultat' },
   { path: '/clubs', icon: Building2, label: 'Klubbar' },
   { path: '/stopwatch', icon: Timer, label: 'Tidtagarur' },
   { path: '/health', icon: Heart, label: 'Hälsa' },
@@ -65,7 +64,9 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
                 />
               )}
               <Icon size={20} className={isActive ? 'text-primary' : 'text-muted-foreground'} />
-              <span className={`text-[10px] font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+              <span
+                className={`${tab.compact ? 'text-[9px] leading-none text-center max-w-[4.75rem]' : 'text-[10px]'} font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
+              >
                 {tab.label}
               </span>
             </button>

@@ -343,7 +343,7 @@ export default function CompetitionPage() {
     refresh();
   };
 
-  if (loading) return <PageContainer title="Tävling"><div className="text-center py-20 text-muted-foreground">Laddar...</div></PageContainer>;
+  if (loading) return <PageContainer title="Tävlingar & Resultat"><div className="text-center py-20 text-muted-foreground">Laddar...</div></PageContainer>;
 
   const upcoming = planned.filter(p => new Date(p.date) >= new Date()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const past = planned.filter(p => new Date(p.date) < new Date());
@@ -352,12 +352,12 @@ export default function CompetitionPage() {
   return (
     <>
     <Helmet>
-      <title>Tävlingsresultat Agility – Följ pinnar och klass | AgilityManager</title>
-      <meta name="description" content="Logga dina agilitytävlingar, håll koll på pinnar per klass och följ din väg mot agilitychampionat. För klass 1, 2 och 3." />
-      <link rel="canonical" href="https://agilitymanager.se/tavlingsresultat" />
+      <title>Tävlingar & Resultat | AgilityManager</title>
+      <meta name="description" content="Planera tävlingar, följ starter, importera resultat och se historik för agility och hoopers i samma vy." />
+      <link rel="canonical" href="https://agilitymanager.se/competition" />
     </Helmet>
     <PageContainer
-      title="Tävling"
+      title="Tävlingar & Resultat"
       action={
         <div className="flex items-center gap-2">
           {results.length > 0 && (

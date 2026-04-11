@@ -346,6 +346,7 @@ export default function CompetitionPage() {
 
   const upcoming = planned.filter(p => new Date(p.date) >= new Date()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const past = planned.filter(p => new Date(p.date) < new Date());
+  const filteredResults = sportFilter === 'Hoopers' ? hoopersResults : sportFilter === 'Agility' ? results : allResults;
 
   return (
     <>

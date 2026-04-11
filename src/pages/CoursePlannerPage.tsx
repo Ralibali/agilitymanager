@@ -1259,7 +1259,24 @@ export default function CoursePlannerPage() {
     ctx.restore(); // restore MARGIN translate
   }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas, multiSelected, measurePoints, freeNumbers, draggingNumber, shokDoPx]);
 
-  useEffect(() => { draw(); }, [draw]);
+  // Animation loop for marching ants + selection glow
+  useEffect(() => {
+    let running = true;
+    const animate = () => {
+      if (!running) return;
+      marchOffsetRef.current = (marchOffsetRef.current + 0.3) % 20;
+      animFrameRef.current = (animFrameRef.current + 1) % 120;
+      draw();
+      requestAnimationFrame(animate);
+    };
+    // Only run animation loop when there's something to animate
+    if ((selected || handlerPath.length > 1) && !dragging) {
+      animate();
+    } else {
+      draw();
+    }
+    return () => { running = false; };
+  }, [draw, selected, dragging, handlerPath.length]);
 
   // Minimap rendering
   useEffect(() => {

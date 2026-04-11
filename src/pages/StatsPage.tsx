@@ -647,6 +647,7 @@ export default function StatsPage() {
           </TabsList>
 
           <TabsContent value="overview" className="mt-3 space-y-4">
+            <ResultsImporter dogs={dogs} onImported={handleImported} autoFetch compact />
             <TrainingStreakBadge training={training} />
             <AITrainingInsights dogs={dogs} sessions={training} results={competitions} />
             <CompStatsSummary competitions={competitions} />
@@ -667,7 +668,8 @@ export default function StatsPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="competitions" className="mt-3">
+          <TabsContent value="competitions" className="mt-3 space-y-4">
+            <ResultsImporter dogs={dogs} onImported={handleImported} />
             <CompStatsSummary competitions={competitions} />
             <DogComparison competitions={competitions} dogs={dogs} />
             {competitions.length >= 2 && (

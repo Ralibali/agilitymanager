@@ -3822,7 +3822,11 @@ export default function CoursePlannerPage() {
       </div>
 
       {/* Quick-select obstacle palette (portrait/desktop) */}
-      <div className={`sticky bottom-16 bg-background/95 backdrop-blur-sm border-t border-border pt-2 pb-2 -mx-4 px-4 rounded-t-xl shadow-elevated z-10 ${isMobile ? 'pb-3' : ''}`}>
+      <div className={`sticky bottom-16 backdrop-blur-xl border-t pt-2 pb-2 -mx-4 px-4 rounded-t-xl shadow-elevated z-10 ${
+        isMobile
+          ? 'bg-[hsl(221,25%,10%)]/95 border-[hsl(221,20%,18%)] pb-3'
+          : 'bg-background/95 border-border'
+      }`}>
         {obstaclePalette(false)}
       </div>
 

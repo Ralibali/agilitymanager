@@ -2291,6 +2291,45 @@ export default function CoursePlannerPage() {
     const types = showStartFinish
       ? baseTypes
       : baseTypes.filter(o => o.type !== 'start' && o.type !== 'finish');
+
+    // Mobile: horizontal scroll row
+    if (isMobile && !vertical) {
+      return (
+        <TooltipProvider delayDuration={300}>
+          <div className="relative">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1 px-0.5">
+              {types.map(o => {
+                const info = OBSTACLE_INFO[o.type];
+                return (
+                  <Tooltip key={o.type}>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => addObstacle(o.type)}
+                        className="flex flex-col items-center justify-center gap-1 rounded-xl font-medium bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary active:scale-95 transition-all flex-shrink-0"
+                        style={{ width: 70, height: 70 }}
+                      >
+                        <span className="text-lg leading-none text-[hsl(210,20%,85%)]">{o.symbol}</span>
+                        <span className="text-[10px] text-[hsl(210,15%,55%)] leading-tight">{o.label}</span>
+                      </button>
+                    </TooltipTrigger>
+                    {info && (
+                      <TooltipContent side="top" className="max-w-[200px]">
+                        <p className="font-semibold text-xs">{o.label}</p>
+                        <p className="text-[10px] text-muted-foreground">{info.dimensions}</p>
+                        <p className="text-[10px] text-muted-foreground">{info.classes}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                );
+              })}
+            </div>
+            {/* Fade-out right edge */}
+            <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none bg-gradient-to-l from-background to-transparent" />
+          </div>
+        </TooltipProvider>
+      );
+    }
+
     return (
       <TooltipProvider delayDuration={300}>
         <div className={vertical

@@ -2191,9 +2191,9 @@ export default function CoursePlannerPage() {
     toast.success('Bana raderad');
   };
 
-  const exportPNG = () => {
+  const getExportDataUrl = useCallback((): string | null => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) return null;
     const dpr = window.devicePixelRatio || 1;
     const padding = 40;
     const headerH = 48;
@@ -2228,9 +2228,15 @@ export default function CoursePlannerPage() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('Skapad med AgilityManager · agilitymanager.se', totalW / 2, footerY + footerH / 2);
+    return exportCanvas.toDataURL('image/png');
+  }, [canvasWidth, canvasHeight]);
+
+  const exportPNG = () => {
+    const dataUrl = getExportDataUrl();
+    if (!dataUrl) return;
     const link = document.createElement('a');
     link.download = 'agility-bana.png';
-    link.href = exportCanvas.toDataURL('image/png');
+    link.href = dataUrl;
     link.click();
     toast.success('Bana exporterad som PNG');
   };

@@ -398,6 +398,11 @@ export default function CoursePlannerPage() {
   const [rotatingId, setRotatingId] = useState<string | null>(null);
   const [rotateStart, setRotateStart] = useState({ angle: 0, obsRotation: 0 });
   const [touchRotating, setTouchRotating] = useState(false);
+
+  // Animation state
+  const [recentlyPlaced, setRecentlyPlaced] = useState<string | null>(null);
+  const animFrameRef = useRef(0);
+  const marchOffsetRef = useRef(0);
   const [touchStartAngle, setTouchStartAngle] = useState(0);
   const [touchStartRotation, setTouchStartRotation] = useState(0);
 
@@ -1061,14 +1066,24 @@ export default function CoursePlannerPage() {
         ctx.fillRect(-hw, -hh, info.width, info.height);
       }
 
-      // Selection highlight
+      // Selection highlight with pulsing glow
       const isMultiSel = multiSelected.has(obs.id);
       if (selected === obs.id || isMultiSel) {
-        ctx.strokeStyle = isMultiSel ? 'hsl(200, 90%, 50%)' : 'hsl(221, 79%, 48%)';
+        const glowPhase = Math.sin(animFrameRef.current * Math.PI / 60) * 0.3 + 0.7;
+        const baseColor = isMultiSel ? 'hsl(200, 90%, 50%)' : 'hsl(221, 79%, 48%)';
+        ctx.globalAlpha = glowPhase;
+        ctx.strokeStyle = baseColor;
         ctx.lineWidth = 1.5;
         ctx.setLineDash([4, 3]);
         const selSize = Math.max(info.width, info.height, 20) / 2 + 6;
         ctx.strokeRect(-selSize, -selSize, selSize * 2, selSize * 2);
+        // Outer glow
+        ctx.strokeStyle = baseColor;
+        ctx.lineWidth = 4;
+        ctx.globalAlpha = glowPhase * 0.15;
+        ctx.setLineDash([]);
+        ctx.strokeRect(-selSize - 2, -selSize - 2, (selSize + 2) * 2, (selSize + 2) * 2);
+        ctx.globalAlpha = 1;
         ctx.setLineDash([]);
 
         // Rotation handle (only for primary selection)
@@ -1085,6 +1100,17 @@ export default function CoursePlannerPage() {
           ctx.textBaseline = 'middle';
           ctx.fillText('⟳', 0, handleY);
         }
+      }
+
+      // Pop animation for recently placed obstacle
+      if (obs.id === recentlyPlaced) {
+        const popScale = 1; // scale is handled via CSS/state timing
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = 'hsl(142, 60%, 50%)';
+        ctx.lineWidth = 3;
+        const popR = Math.max(info.width, info.height, 20) / 2 + 12;
+        ctx.beginPath(); ctx.arc(0, 0, popR, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
       }
 
       ctx.restore();
@@ -1140,7 +1166,10 @@ export default function CoursePlannerPage() {
       ctx.lineWidth = 2.5;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      if (handlerDashed) ctx.setLineDash([6, 4]);
+      if (handlerDashed) {
+        ctx.setLineDash([6, 4]);
+        ctx.lineDashOffset = -marchOffsetRef.current; // marching ants effect
+      }
       ctx.globalAlpha = 0.8;
       ctx.beginPath();
       ctx.moveTo(handlerPath[0].x, handlerPath[0].y);
@@ -1153,6 +1182,7 @@ export default function CoursePlannerPage() {
       ctx.lineTo(last.x, last.y);
       ctx.stroke();
       ctx.setLineDash([]);
+      ctx.lineDashOffset = 0;
       ctx.globalAlpha = 1;
 
       if (handlerPath.length >= 2) {
@@ -1252,9 +1282,26 @@ export default function CoursePlannerPage() {
     }
 
     ctx.restore(); // restore MARGIN translate
-  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas, multiSelected, measurePoints, freeNumbers, draggingNumber, shokDoPx]);
+  }, [obstacles, selected, showDistances, canvasWidth, canvasHeight, handlerPath, handlerColor, handlerDashed, currentTheme, isDarkCanvas, multiSelected, measurePoints, freeNumbers, draggingNumber, shokDoPx, recentlyPlaced]);
 
-  useEffect(() => { draw(); }, [draw]);
+  // Animation loop for marching ants + selection glow
+  useEffect(() => {
+    let running = true;
+    const animate = () => {
+      if (!running) return;
+      marchOffsetRef.current = (marchOffsetRef.current + 0.3) % 20;
+      animFrameRef.current = (animFrameRef.current + 1) % 120;
+      draw();
+      requestAnimationFrame(animate);
+    };
+    // Only run animation loop when there's something to animate
+    if ((selected || handlerPath.length > 1) && !dragging) {
+      animate();
+    } else {
+      draw();
+    }
+    return () => { running = false; };
+  }, [draw, selected, dragging, handlerPath.length]);
 
   // Minimap rendering
   useEffect(() => {
@@ -1311,6 +1358,9 @@ export default function CoursePlannerPage() {
       setIsDirty(true);
       return next;
     });
+    // Pop animation
+    setRecentlyPlaced(newObs.id);
+    setTimeout(() => setRecentlyPlaced(null), 400);
   };
 
   const findFreeNumberAt = (cx: number, cy: number): FreeNumber | null => {
@@ -2330,7 +2380,7 @@ export default function CoursePlannerPage() {
               })}
             </div>
             {/* Fade-out right edge */}
-            <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none bg-gradient-to-l from-background to-transparent" />
+            <div className={`absolute right-0 top-0 bottom-0 w-8 pointer-events-none bg-gradient-to-l ${isMobile ? 'from-[hsl(221,25%,10%)]' : 'from-background'} to-transparent`} />
           </div>
         </TooltipProvider>
       );
@@ -2457,7 +2507,7 @@ export default function CoursePlannerPage() {
   // Fullscreen landscape layout
   if (isFullscreen || showLandscapeLayout) {
     return (
-      <div ref={fullscreenContainerRef} className="fixed inset-0 z-50 bg-background flex">
+      <div ref={fullscreenContainerRef} className="fixed inset-0 z-[60] bg-[hsl(221,25%,8%)] flex">
         {/* Main canvas area */}
         <div
           ref={containerRef}
@@ -2600,7 +2650,7 @@ export default function CoursePlannerPage() {
 
         {/* Right sidebar */}
         {!sidebarCollapsed && (
-        <div className="w-16 sm:w-[70px] bg-card border-l border-border flex flex-col overflow-hidden relative">
+        <div className={`w-16 sm:w-[70px] border-l flex flex-col overflow-hidden relative ${isMobile ? 'bg-[hsl(221,25%,12%)] border-[hsl(221,20%,20%)]' : 'bg-card border-border'}`}>
           {/* Collapse button */}
           <button
             onClick={() => setSidebarCollapsed(true)}

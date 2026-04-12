@@ -231,11 +231,12 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
 
           <Button onClick={handleSubmit} className="w-full gap-2" disabled={!file || !question.trim() || isSubmitting}>
             {isSubmitting ? (
-              <><Loader2 size={14} className="animate-spin" /> Skickar...</>
+              <><Loader2 size={14} className="animate-spin" /> Bearbetar...</>
             ) : (
-              <><Upload size={14} /> Skicka till coach</>
+              <><Upload size={14} /> Betala 99 kr & skicka till coach</>
             )}
           </Button>
+          <p className="text-[10px] text-muted-foreground text-center">Engångsbetalning 99 kr per videoanalys via Stripe</p>
         </div>
 
         {/* History */}

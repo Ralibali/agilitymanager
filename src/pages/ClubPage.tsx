@@ -783,6 +783,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                       <div key={s.id} className="text-xs text-muted-foreground flex items-center gap-1.5">
                         <span className="text-red-400">❌</span>
                         {profiles[s.user_id] || 'Anonym'}
+                        {s.comment && <span className="ml-1">– {s.comment}</span>}
                       </div>
                     ))}
                   </div>

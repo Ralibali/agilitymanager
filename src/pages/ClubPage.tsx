@@ -583,6 +583,8 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                   <Input value={eventTitle} onChange={e => setEventTitle(e.target.value)} placeholder="Titel" />
                   <Textarea value={eventDesc} onChange={e => setEventDesc(e.target.value)} placeholder="Beskrivning" rows={2} />
                   <Input type="datetime-local" value={eventDate} onChange={e => setEventDate(e.target.value)} />
+                  <Input value={eventLocation} onChange={e => setEventLocation(e.target.value)} placeholder="Plats (valfritt)" />
+                  <Input type="number" value={eventMaxPart} onChange={e => setEventMaxPart(e.target.value)} placeholder="Max deltagare (valfritt)" min="1" />
                   <div className="flex gap-2">
                     {(['training', 'competition', 'social'] as const).map(t => (
                       <Button

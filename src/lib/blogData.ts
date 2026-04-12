@@ -1330,7 +1330,451 @@ Logga varje pass i AgilityManager – följ dirigeringskvalitet och banflyt öve
 - [Börja med hoopers](/blogg/borja-med-hoopers)
     `,
   },
+  {
+    slug: 'slalom-komplett-guide',
+    title: 'Så tränar du slalom i agility – den kompletta guiden',
+    excerpt: 'Allt om slalomträning: metoder, ingångar, självständighet och tävlingsförberedelse. En djupguide för alla nivåer.',
+    category: 'Teknik',
+    readTime: 15,
+    date: '2026-04-10',
+    author: 'AgilityManager',
+    content: `
+## Vad är det egentligen som gör slalom svårt?
+
+Slalom är ett av de tekniskt svåraste hindren i agility. Det kräver mer träning, mer tålamod och mer systematik än nästan allt annat på banan. Men det är också ett av de hinder där skillnaden mellan ett mediokert och ett riktigt bra ekipage syns allra tydligast.
+
+De flesta hinder i agility kräver att hunden hoppar, springer eller balanserar. Slalom kräver att hunden rör sig i ett mönster som är fullständigt onaturligt för en hund. Rörelsemönstret måste läras in på muskelminnes-nivå – hunden ska inte *tänka* sig fram, den ska bara göra det.
+
+Hunden måste lära sig tre separata saker:
+
+1. **Ingången** – alltid från höger sida av pinne ett
+2. **Rörelsekedjan** – rytmiskt sicksackmönster hela vägen igenom
+3. **Självständigheten** – att hålla mönstret utan att förlita sig på förarens exakta position
+
+## De vanligaste misstagen tidiga i träningen
+
+**Misstag 1: Öppna pinnar för länge** – Hunden lär sig att springa i en kanal, inte att väva. Stäng ner gradvis och tidigare än du tror att du behöver.
+
+**Misstag 2: Träna alltid på samma sida** – Om du alltid springer till vänster om hunden, lär den sig att du ska vara där. Variera din position från dag ett.
+
+**Misstag 3: Belöna efter hindret istället för under** – Träna istället att belöna rytmen – använd gärna en belöning som uppmuntrar rörelse framåt.
+
+**Misstag 4: Hoppa över problem** – Om hunden konsekvent missar pinne sex, sju eller åtta – ta reda på varför. Problem i mitten av slalomen är nästan alltid förarrelaterade.
+
+## Metoder för att lära in slalom
+
+### 1. Channel weaves (öppna pinnar)
+
+Du börjar med pinnarna separerade i två rader och låter hunden springa rakt igenom kanalen. Gradvis minskar du bredden tills pinnarna är i linje och hunden väver.
+
+**Passar:** Hundar som är snabba och drivna framåt. Hundar som är nervösa för pinnar.
+
+### 2. 2×2-metoden
+
+Populär metod som Susan Garrett populariserade. Du tränar med bara två pinnar i taget och bygger upp förståelse för ingångar och rytm.
+
+**Passar:** Hundar som tenderar att chansa sig fram. Förare som gillar att systematisera.
+
+### 3. Pinnar i rät linje från start
+
+Hunden tränar på alla 12 pinnar direkt, men med tydlig hjälp av förare, mat eller tug.
+
+**Passar:** Hundar med hög driv och naturlig kroppskännedom.
+
+## Ingången – det som avgör allt
+
+Ingången är ingångsvinkel + fart + fokus. Om en av de tre sakerna är fel, är chansen stor att slalomen går snett.
+
+**Träna ingångar separat.** Ställ upp bara de tre första pinnarna och träna att hunden hittar in korrekt från olika vinklar – 45 grader till vänster, 45 grader till höger, rakt framifrån. Belöna varje korrekt ingång generöst.
+
+## Rytm och självständighet
+
+Det finns ett enkelt test: kör slalomen och börja sakta ner halvvägs igenom. Om hunden saktar ner med dig har den inte självständigheten. Om den fortsätter i sin egen rytm – bra, ni är på rätt väg.
+
+### Tre övningar för bättre självständighet
+
+**Övning 1: Förarens haltande tempo** – Spring in med full fart, men sakta ner dramatiskt vid pinne fyra eller fem.
+
+**Övning 2: Föraren stannar helt** – Spring de tre första pinnarna och stanna sedan. Kan hunden avsluta ensam?
+
+**Övning 3: Variera din sida** – Kör slalomen med dig till vänster, till höger, far bakom. Variera tills det inte spelar roll var du är.
+
+## Slalom under tävlingstryck
+
+Tävlingsmiljön skapar mer driv och spänning – och en hund med extra driv tenderar att köra lite slarvigare. Träna slalom när hunden är pigg och med lite mer stimuli i närheten. Träna tävlingsrelevanta ingångar med skarpa vinklar och hoppkombinationer precis innan slalomen.
+
+## En enkel progressionsplan
+
+- **Vecka 1–3:** Välj metod. Lägg grunden, ingen fart ännu.
+- **Vecka 4–6:** Stäng ner pinnarna. Börja lägga till fart gradvis.
+- **Vecka 7–10:** Ingångar från alla vinklar separat och i kombination.
+- **Vecka 11–14:** Självständighet. Variera din position och hastighet.
+- **Vecka 15+:** Tävlingsrelevant träning. Hinder före och efter, skarpa vinklar, hög driv.
+
+## Filma din slalom
+
+Titta på: din position relativt hunden, din blick, din hastighet och hundens rytm. Filma minst var fjärde träning – de fem minuterna ger dig mer information än timmar av träning utan reflektion.
+
+## Slalom i olika väder och underlag
+
+Träna slalom på fler underlag – betong, gräs, konstgräs, grus. Ju fler underlag hunden tränat slalom på, desto robustare är beteendet. Samma princip gäller för väder.
+
+## Hur länge tar det att lära in slalom?
+
+Med konsekvent träning tre till fyra gånger i veckan kan en hund ha en fungerande slalom på 10–12 veckor. Men den tävlingsstabila slalomen tar oftast en full säsong att bygga.
+
+## Läs vidare
+
+- [Slalomträning – grunderna](/blogg/slalom-traning-agility)
+- [Kontaktzonskträning – 5 metoder](/blogg/kontaktzoner-traning)
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+    `,
+  },
+  {
+    slug: 'beloning-agility-guide',
+    title: 'Belöning i agility – hur du väljer rätt och gör hunden till en tävlingsmaskin',
+    excerpt: 'Mat eller leksak? Timing, variabel belöning och hur du bygger en hund som brinner för att arbeta med dig.',
+    category: 'Träning',
+    readTime: 12,
+    date: '2026-04-08',
+    author: 'AgilityManager',
+    content: `
+## Belöning är kommunikation
+
+Belöning är inte bara en positiv upplevelse för hunden. Det är information – det säger till hunden: *det du precis gjorde var rätt, gör det igen*. Kvaliteten på belöningen och timingen avgör hur tydlig den informationen är.
+
+## Mat eller leksak – och varför svaret inte är antingen/eller
+
+De bästa tränarna använder båda – men i olika situationer och för olika syften.
+
+### Mat – styrkor och svagheter
+
+Mat är oerhört exakt. Du kan belöna precis det du vill belöna och variera värdet enkelt. Matens svaghet i agility är att den tenderar att bromsa hunden.
+
+**Bäst lämpad för:** Inlärning av nya beteenden, precisionsövningar (kontaktfält, [slalomingångar](/blogg/slalom-komplett-guide)), lugnare träningsmoment.
+
+### Leksak och tug – styrkor och svagheter
+
+Rätt använt är tuggen ett av de mäktigaste verktygen i agilitytränares arsenal. Den skapar rörelse, driv och en nästan adrenalinfylld energi hos rätt hund.
+
+**Bäst lämpad för:** Driv- och energibyggande, kontaktfältsarbete med rörelse, avslutsbelöning, återhämta motivation efter misslyckande.
+
+## Fem sätt att göra tuggen hetare
+
+1. **Tuggen är bara synlig under träning** – Den ska inte vara ett vanligt leksak, utan ett specialverktyg.
+2. **Träna tug-leken separat** – Dedikera tid till att bara leka med tuggen, spring med hunden, låt hunden vinna ofta.
+3. **Använd tuggen för att invittera** – Håll tuggen framför hunden och spring iväg. Låt hunden jaga den.
+4. **Håll sessionerna korta** – Tio intensiva minuter bygger mer driv än fyrtio halvhjärtade minuter.
+5. **Testa vad din hund föredrar** – Mjuka tuggar, hård gummi, squeeky toys, snöre med påse – experimentera.
+
+## Olika belöningar för olika moment
+
+- **Kontaktfält (stanna):** Mat – statiskt beteende belönas bäst utan rörelseuppmuntran.
+- **Kontaktfält (running contact):** Tug i rörelse, kastad framåt.
+- **[Slalomingångar](/blogg/slalom-komplett-guide):** Mat för precision.
+- **Hopp i sekvens:** Tug eller boll kastad framåt.
+- **Tunneln:** Tug eller boll vid utloppet.
+
+## Timing – det viktigaste du inte tänker på
+
+Hundens hjärna kopplar ihop handling med konsekvens under en väldigt kort tidsperiod – under en sekund. Använd en markör (klicker eller markörord som "ja!") för att märka exakt rätt beteende och följ sedan med belöning.
+
+## Belöning på tävling
+
+Belöningen under träningen bygger hundens motivation och förståelse. På tävling kör hunden på den inbyggda motivationen. En hund som är genuint motiverad att arbeta med dig behöver inte mat i ringen.
+
+**Praktisk övning:** Ibland under träning – inte alltid – kör du en hel sekvens utan belöning under körningen. Avsluta med en storbuss efteråt.
+
+## Jackpot och variabel belöning
+
+Variabel belöning skapar starkare och mer uthålliga beteenden. Bygg in tillfällen där hunden får en ovanligt stor belöning för ett specifikt bra beteende. Var strategisk – ge den när hunden gör något verkligen bra.
+
+## Att hantera en hund som tappar motivationen
+
+- **Fysiskt trött:** Vila är träning.
+- **Mentalt mätt:** Korta ner och variera.
+- **Belöningsvärdet har sjunkit:** Byt upp, introducera något nytt.
+- **Stress eller obehag:** Ge hunden benefit of the doubt.
+
+## Läs vidare
+
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Mentala förberedelser inför tävling](/blogg/mentala-foreberedelser-tavling)
+- [Undvik skador i agility](/blogg/undvik-skador-agility)
+    `,
+  },
+  {
+    slug: 'agility-nyborjare-komplett',
+    title: 'Agility för nybörjare – allt du behöver veta innan du börjar',
+    excerpt: 'En djupgående guide för dig som aldrig tränat agility. Hindren, utrustning, första träningen och vanliga misstag.',
+    category: 'Nybörjare',
+    readTime: 14,
+    date: '2026-04-06',
+    author: 'AgilityManager',
+    content: `
+## Vad är agility egentligen?
+
+Agility är en hindersport för hund och förare. Hunden springer fritt runt en bana med 15–22 hinder och föraren styr hunden enbart med kropp och röst. Målet är att klara banan felfritt och på kortast möjliga tid.
+
+Banan ritas av en officiell domare och är aldrig densamma från tävling till tävling – du och hunden måste läsa varje ny bana.
+
+## Hindren – en snabb genomgång
+
+- **Hopphinder** – Hunden hoppar över en bom. Finns i varianter som mur, däck och långhopp.
+- **Tunneln** – De flesta hundars favorit. Böjbar tunnel som hunden springer igenom.
+- **[Slalomen](/blogg/slalom-komplett-guide)** – Tolv pinnar i rad som hunden väver igenom. Tekniskt krävande.
+- **Balansbommen** – Smal bräda på stativ, cirka 120 cm upp. Med kontaktzoner i varje ände.
+- **A-hindret** – A-format klätterredskap. Hunden klättrar upp och ner. Med kontaktzoner.
+- **Gungbrädan** – Tippar när hunden passerar mittpunkten. Kräver nervstyrka.
+
+[Kontaktzonerna](/blogg/kontaktzoner-traning) är målade områden som hunden måste trampa i – ett säkerhetssystem.
+
+## Passar min hund?
+
+I princip alla hundar över 18 månader kan träna agility oavsett ras. Läs mer om [vilka raser som passar bäst](/blogg/basta-hundraser-agility).
+
+- **Ålder:** Valpar under 18 månader ska inte träna på höjder.
+- **Hälsa:** Prata med din veterinär om du är osäker.
+- **Temperament:** Hunden ska tycka det är roligt – tvinga aldrig!
+- **Storlek:** Det finns [klasser för alla storlekar](/blogg/sagik-klasser-forklarat).
+
+## Vad behöver du som förare?
+
+- **Inga förkunskaper** – allt lärs ut från grunden.
+- **Rimlig rörelsefrihet** – du behöver inte vara löpare.
+- **Tålamod** – det viktigaste.
+- **Bra skor** – griplande sulor, stöd och bekvämlighet. Gör enorm skillnad.
+
+## Hitta en kurs eller klubb
+
+Sök efter agilityklubb eller brukshundklubb i din stad. Fråga om nybörjarkurser. Gå gärna på ett träningstillfälle som åskådare först.
+
+### Fråga klubben:
+- Vilken metod använder ni för slalom och kontaktfält?
+- Hur stora är kursgrupperna?
+- Är det positiv förstärkning som gäller?
+- Vad kostar det och ingår fortsatt träning?
+
+## Din första träning
+
+**Introduktion till hindren** – ni presenteras för hindren en i taget, i låg höjd.
+
+**Fokus och kontakt** – bygga förarens förmåga att ha hundens uppmärksamhet.
+
+**Positivt och roligt** – allt ska vara roligt för hunden. Om hunden inte tycker det är kul – ta ett steg tillbaka.
+
+## De vanligaste nybörjarmisstagen
+
+- **Träna för länge per pass** – 10–15 minuter aktiv träning räcker.
+- **Kräva för mycket för tidigt** – det ger sköra beteenden som spricker under press.
+- **Glömma att träna sig själv** – din position och ditt kroppsspråk påverkar enormt. [Filma dig själv](/blogg/slalom-komplett-guide).
+- **Jämföra dig med erfarna förare** – de har tränat i år, du i veckor.
+- **Glömma att ha kul** – hunden känner av din energi.
+
+## Utrustning du behöver
+
+- Bra skor med grepp
+- Bekväma kläder
+- Godbitar eller tug
+- Koppel och halsband
+
+**Du behöver inte:** Dyra specialkläder, egna hinder eller en speciell ras.
+
+## Tävla – när är man redo?
+
+Du är redo att tävla när hunden och du klarar en komplett bana relativt stabilt i träning. [Tävling i Nollklass](/blogg/sagik-klasser-forklarat) är väldigt tillgängligt.
+
+## Läs vidare
+
+- [Börja med agility – grundguide](/blogg/borja-med-agility)
+- [Belöning i agility](/blogg/beloning-agility-guide)
+- [SAgiK-klasser förklarade](/blogg/sagik-klasser-forklarat)
+    `,
+  },
+  {
+    slug: 'kontaktfalt-komplett-guide',
+    title: 'Kontaktfält i agility – den kompletta guiden till A-hinder, balansbom och gungbräda',
+    excerpt: 'Allt om kontaktfältsträning: stoppad vs rinnande kontakt, de tre hindren, proofing och underhåll.',
+    category: 'Teknik',
+    readTime: 16,
+    date: '2026-04-04',
+    author: 'AgilityManager',
+    content: `
+## Vad är ett kontaktfält?
+
+Kontaktfält är de nedsatta, färgade zonerna i botten av A-hindret, balansbommen och gungbrädan. Hunden måste placera minst en tass i kontaktzonen på väg ned. Missar hunden kontaktzonen blir det fel.
+
+Kontaktzonerna finns av säkerhetsskäl – utan dem skulle hundar riskera att hoppa av från höjd med skador som följd.
+
+## De tre hindren
+
+### A-hindret
+
+A-format klätterredskap, cirka 170 cm högt. Kräver mod, kontroll och träff i kontaktzonen. Snabba hundar tenderar att hoppa av före kontaktzonen – träningen handlar om att göra kontaktzonen till en vana.
+
+### Balansbommen
+
+Smal bräda (cirka 12 cm bred) på stativ med ramper. Kräver balans och kroppskontroll. Mest känslig för hundens tempo – för tveksam = tappa balansen, för fort = halka.
+
+### Gungbrädan
+
+Brädan tippar när hunden passerar mittpunkten. Kräver nervstyrka. Många hundar är nervösa i början – pressa aldrig en hund igenom sin rädsla.
+
+**Bygg förtroende gradvis:** Börja med brädan på marken utan rörelse. Stabilisera under träning, tillåt lite rörelse i taget. Kontrollera tippningspunkten manuellt.
+
+## Stoppad vs rinnande kontakt
+
+### Stoppad kontakt
+
+Hunden stannar i kontaktzonen i en specifik position (liggande, sittande eller "2on2off").
+
+**Fördelar:** Tydlig, konsekvent, lättare att träna till tillförlitlighet.
+**Nackdelar:** Tar tid, hunden stannar, väntar, startar om.
+
+### Rinnande kontakt (running contact)
+
+Hunden springer hela vägen igenom utan att stanna – kontaktzonen fångas i farten.
+
+**Fördelar:** Snabbare, mer naturligt flyt.
+**Nackdelar:** Extremt svårt att träna korrekt, sköra vid stress.
+
+## Hur du tränar kontaktfält
+
+### Steg 1: Lär in positionen
+
+Separera inlärningen av positionen från själva hindret. Använd en platta på marken, träna hunden att erbjuda rätt position. Hög belöning.
+
+### Steg 2: Flytta till hindret
+
+Börja med hindret i lägsta möjliga höjd. Låt hunden hitta positionen på hindret.
+
+### Steg 3: Bygg fart gradvis
+
+Först: promenadtempo. Sedan: lätt trav. Sedan: jogg. Sedan: full fart. Skynda inte – varje steg ska vara stabilt innan du ökar.
+
+### Steg 4: Proofing
+
+Testa beteendet med distraktioner, hinder precis efter, i ny miljö. Varje gång beteendet håller är det mer robust.
+
+## Vanliga problem och lösningar
+
+- **Hunden hoppar av utan kontaktzon:** Gå tillbaka till långsammare körningar, mer tydlig vägledning.
+- **Hunden stannar mitt på hindret:** Konfidenproblem. Sänk höjden, bygg förtroende.
+- **Kontakten håller hemma men inte på tävling:** Behöver mer proofing – fler miljöer, mer distraktion.
+- **Hunden springer igenom utan att bry sig:** Kontaktzonen inte tillräckligt förstärkt. Gå tillbaka till grunderna med hög belöning.
+
+## Underhåll – kontaktfält är färskvara
+
+Inkludera kontaktfältet i varje träningspass, även om det bara är 1–3 körningar. En till två gånger per säsong: gå tillbaka till grundläggande kontaktfältsträning med låg fart och hög belöning.
+
+## Kontaktfälten och hundens ålder
+
+- **Ung hund:** Ingen fart, ingen press, bara tydlig inlärning i låg höjd.
+- **Hund i träning (1–3 år):** Bygg fart och robusthet. Proofing är prioritet.
+- **Erfaren tävlingshund:** Underhåll och fånga tidiga tecken på att kontakten börjar slira.
+- **Äldre hund:** Var lyhörd för hundens kropp, anpassa vid behov.
+
+## Läs vidare
+
+- [Kontaktzonskträning – 5 metoder](/blogg/kontaktzoner-traning)
+- [Undvik skador i agility](/blogg/undvik-skador-agility)
+- [Uppvärmning för agilityhundar](/blogg/uppvarmning-hund-agility)
+    `,
+  },
+  {
+    slug: 'traningslogg-guide',
+    title: 'Varför varje agilityförare behöver en träningslogg',
+    excerpt: 'Så använder du en träningslogg för att bli en bättre tränare, se mönster och nå dina mål snabbare.',
+    category: 'Träning',
+    readTime: 14,
+    date: '2026-04-02',
+    author: 'AgilityManager',
+    content: `
+## Det mänskliga minnesproblemet
+
+Vårt minne är katastrofalt dåligt på att komma ihåg träning korrekt. Hjärnan sorterar minnen baserat på känslomässig laddning, inte exakthet. Den där perfekta [slalomkörningen](/blogg/slalom-komplett-guide) minns du – torsdagssessionen med sex missade ingångar suddar ut sig.
+
+En träningslogg är ett sätt att komma runt det. Faktum är vad faktum är.
+
+## Vad du faktiskt kan lära dig av en logg
+
+### Mönster i kontaktfält under stress
+
+Du loggar varje tävling och träningspass. Efter tre månader ser du tydligt: hunden missar [kontaktzonen](/blogg/kontaktfalt-komplett-guide) i A-hindret specifikt när det finns ett hopp precis efter. På neutral bana: 100%. Med hopp efter: 60%.
+
+### Samband mellan träningsvolym och resultat
+
+Du hittar din hunds optimala träningsvolym – kanske tre till fyra pass per vecka, inte mer, inte mindre.
+
+### Slalomens dåliga perioder
+
+Slalomen var bra i mars, börjar krackelera i april. Loggen visar: elva dagars uppehåll + direkt in i tävlingssäsongen utan grundrepetition. Nu vet du vad hunden behöver.
+
+### Framsteg som är osynliga ögonblick för ögonblick
+
+Din hund kör slalom på 4,2 sekunder nu – loggen visar att det var 6,8 sekunder för sex månader sedan.
+
+## Vad du bör logga
+
+### Alltid:
+- **Datum och längd** – grunddata för att se mönster
+- **Hund** – om du har flera
+- **Fokus för sessionen** – "slalom ingångar", "kontaktfält under fart", en mening räcker
+- **Hur det gick – ärligt** – siffror om du kan, beskrivning om inte
+- **Noteringar** – allt som sticker ut
+
+### Bra men inte nödvändigt:
+- Video-länk om du filmade
+- Väder och underlag
+- Egenbedömning av ditt körande
+
+## Tävlingsloggen – separat kapitel
+
+### Logga per tävling:
+- Datum, tävlingens namn, klass
+- Hund och bana (agility/hopp)
+- Resultat: tid, antal fel, feltyp
+- Kort kommentar: vad gick bra/sämre
+
+### Vad tävlingsloggen visar:
+- Din nollrundsandel
+- Vilka feltyper som är vanligast
+- Hur tiderna utvecklas klass för klass
+- Eventuella mönster
+
+## Hur du faktiskt hinner med det
+
+**Logga direkt efter sessionen** – väntar du till kvällen glömmer du hälften.
+
+**Håll det enkelt** – en app med snabb inmatning är bättre än ett Excel-ark du aldrig öppnar.
+
+**Gör det till en vana** – koppla loggningen till något du alltid gör efter träning.
+
+**Analysera en gång i månaden** – femton minuter. Vad ser du? Vad förvånar dig?
+
+## Loggning som mental träning
+
+En logg ger perspektiv. En vecka som känns som "vi kom ingen vart" – öppna loggen. Ni körde [kontaktfält](/blogg/kontaktfalt-komplett-guide) och det höll 85%. Det är framsteg.
+
+Förare som slutar med agility gör det ofta för att det "inte känns roligt längre" – ofta för att de bara ser misslyckandena utan att se progressionen. En logg motverkar det.
+
+## Tre saker att logga från din nästa träning
+
+1. Datum och vad ni tränade (ett ord räcker)
+2. En sak som gick bra
+3. En sak att jobba vidare med
+
+Gör det tjugo träningar och du har plötsligt ett mönster du aldrig hade sett annars. AgilityManager gör det enkelt med automatisk statistik och [trendgrafer](/competition).
+
+## Läs vidare
+
+- [Planera din agilityträning effektivt](/blogg/effektiv-traningsplanering)
+- [Belöning i agility](/blogg/beloning-agility-guide)
+- [Mentala förberedelser inför tävling](/blogg/mentala-foreberedelser-tavling)
+    `,
+  },
 ];
+
 
 export function getPostBySlug(slug: string): BlogPost | undefined {
   return blogPosts.find((p) => p.slug === slug);

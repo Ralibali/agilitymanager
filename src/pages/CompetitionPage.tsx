@@ -25,6 +25,7 @@ import HistoricalResultsStats from '@/components/competitions/HistoricalResultsS
 import ImportResultsFromUrl from '@/components/competitions/ImportResultsFromUrl';
 import ClassPromotionTracker from '@/components/competitions/ClassPromotionTracker';
 import HoopersPointsTracker from '@/components/competitions/HoopersPointsTracker';
+import { CompetitionStatsCard } from '@/components/competitions/CompetitionStatsCard';
 import { useAuth } from '@/contexts/AuthContext';
 
 type HistoricalDogResult = {
@@ -646,6 +647,8 @@ export default function CompetitionPage() {
               </h3>
             </div>
 
+            <CompetitionStatsCard results={filteredResults} dogs={dogs} />
+
             <ResultsImporter dogs={dogs} onImported={() => refresh()} autoFetch />
             {sportFilter !== 'Hoopers' && <ClassPromotionTracker results={results} dogs={dogs} />}
             {sportFilter === 'Hoopers' && <HoopersPointsTracker dogs={dogs} />}
@@ -655,53 +658,80 @@ export default function CompetitionPage() {
                 {dogs.length > 0 ? <AddCompetitionDialog dogs={dogs} onAdded={refresh} /> : <p className="text-sm">Lägg till en hund först!</p>}
               </div>
             ) : (
-              <div className="space-y-3">
-                {filteredResults.map((r, i) => {
-                  const dog = getDog(r.dog_id);
-                  const matchedUrl = competitionUrlMap[r.id];
-                  return (
-                    <motion.div key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                      className="bg-card rounded-xl p-4 shadow-card">
-                      <div className="flex items-start gap-3">
-                        {dog && <DogAvatar dog={dog} size="sm" />}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-display font-semibold text-foreground text-sm">{r.event_name}</h3>
-                            <div className="flex items-center gap-1">
-                              <button onClick={() => setShareResult(r)} className="p-1 rounded-full hover:bg-secondary" title="Dela resultat">
-                                <Send size={14} className="text-muted-foreground" />
-                              </button>
-                              {r.passed ? <CheckCircle2 size={18} className="text-success flex-shrink-0" /> : <XCircle size={18} className="text-destructive flex-shrink-0" />}
-                            </div>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {format(new Date(r.date), 'd MMM yyyy', { locale: sv })} · {r.discipline} · {r.size_class} · {r.competition_level}
-                            {r.lopp_number && ` · Lopp ${r.lopp_number}`}
-                          </div>
-                          {r.organizer && <div className="text-xs text-muted-foreground">{r.organizer}</div>}
-                          <div className="flex items-center gap-4 mt-2 text-xs">
-                            {r.time_sec > 0 && <span className="text-foreground font-medium">{r.time_sec}s</span>}
-                            <span className={r.faults > 0 ? 'text-destructive' : 'text-success'}>{r.faults} fel</span>
-                            {r.hoopers_points != null && r.hoopers_points > 0 && <span className="text-primary font-medium">{r.hoopers_points}p</span>}
-                            {r.placement && <span className="flex items-center gap-0.5 text-accent font-medium"><Medal size={12} /> #{r.placement}</span>}
-                          </div>
-                          {r.notes && <p className="mt-1.5 text-xs text-muted-foreground">{r.notes}</p>}
+              (() => {
+                // Group by year
+                const byYear: Record<number, CompetitionResult[]> = {};
+                for (const r of filteredResults) {
+                  const yr = new Date(r.date).getFullYear();
+                  (byYear[yr] ||= []).push(r);
+                }
+                const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
 
-                          {matchedUrl && (
-                            <div className="mt-3 pt-2 border-t border-border">
-                              <CompetitionResultsViewer
-                                url={matchedUrl}
-                                friendNames={friendNames}
-                                autoFetch
-                              />
+                const getResultBadge = (r: CompetitionResult) => {
+                  if (r.disqualified) return { label: 'Diskad', className: 'bg-destructive/15 text-destructive' };
+                  if (r.passed && r.faults === 0) return { label: 'Nollrunda', className: 'bg-success/15 text-success' };
+                  if (r.faults > 0) return { label: `${r.faults} fel`, className: 'bg-warning/15 text-warning' };
+                  return { label: 'Godkänd', className: 'bg-success/15 text-success' };
+                };
+
+                return years.map(year => (
+                  <div key={year}>
+                    <h4 className="font-display font-bold text-foreground text-sm mb-2 mt-2 flex items-center gap-2">
+                      <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs">{year}</span>
+                      <span className="text-muted-foreground text-xs font-normal">({byYear[year].length} starter)</span>
+                    </h4>
+                    <div className="space-y-2">
+                      {byYear[year].map((r, i) => {
+                        const dog = getDog(r.dog_id);
+                        const matchedUrl = competitionUrlMap[r.id];
+                        const badge = getResultBadge(r);
+                        return (
+                          <motion.div key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}
+                            className="bg-card rounded-xl p-4 shadow-card">
+                            <div className="flex items-start gap-3">
+                              {dog && <DogAvatar dog={dog} size="sm" />}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2">
+                                  <h3 className="font-display font-semibold text-foreground text-sm truncate">{r.event_name}</h3>
+                                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${badge.className}`}>
+                                      {badge.label}
+                                    </span>
+                                    <button onClick={() => setShareResult(r)} className="p-1 rounded-full hover:bg-secondary" title="Dela resultat">
+                                      <Send size={14} className="text-muted-foreground" />
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {format(new Date(r.date), 'd MMM yyyy', { locale: sv })} · {r.discipline} · {r.size_class} · {r.competition_level}
+                                  {r.lopp_number && ` · Lopp ${r.lopp_number}`}
+                                </div>
+                                {r.organizer && <div className="text-xs text-muted-foreground">{r.organizer}</div>}
+                                <div className="flex items-center gap-4 mt-2 text-xs">
+                                  {r.time_sec > 0 && <span className="text-foreground font-medium">{r.time_sec}s</span>}
+                                  {r.hoopers_points != null && r.hoopers_points > 0 && <span className="text-primary font-medium">{r.hoopers_points}p</span>}
+                                  {r.placement && <span className="flex items-center gap-0.5 text-accent font-medium"><Medal size={12} /> #{r.placement}</span>}
+                                </div>
+                                {r.notes && <p className="mt-1.5 text-xs text-muted-foreground">{r.notes}</p>}
+
+                                {matchedUrl && (
+                                  <div className="mt-3 pt-2 border-t border-border">
+                                    <CompetitionResultsViewer
+                                      url={matchedUrl}
+                                      friendNames={friendNames}
+                                      autoFetch
+                                    />
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ));
+              })()
             )}
 
             {handlerName && (

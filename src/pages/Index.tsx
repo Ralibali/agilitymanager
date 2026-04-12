@@ -463,7 +463,7 @@ const Index = () => {
       )}
 
       {/* Merit tracking per dog */}
-      {dogs.length > 0 && competitions.length > 0 && (
+      {dogs.length > 0 && fCompetitions.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
@@ -479,8 +479,8 @@ const Index = () => {
             </button>
           </div>
           <div className="space-y-3">
-            {dogs.map(dog => {
-              const dogResults = competitions.filter(c => c.dog_id === dog.id);
+            {(selectedDogId ? dogs.filter(d => d.id === selectedDogId) : dogs).map(dog => {
+              const dogResults = fCompetitions.filter(c => c.dog_id === dog.id);
               if (dogResults.length === 0) return null;
               const merit = calculateMerit(dogResults, dog.competition_level);
               return (

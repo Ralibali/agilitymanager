@@ -682,6 +682,7 @@ export default function CompetitionPage() {
 
             <CompetitionStatsCard results={filteredResults} dogs={dogs} />
             <CleanRunTrendChart results={filteredResults} />
+            <PerformanceTrendChart results={filteredResults} dogs={dogs} />
 
             <ResultsImporter dogs={dogs} onImported={() => refresh()} autoFetch />
             {sportFilter !== 'Hoopers' && <ClassPromotionTracker results={results} dogs={dogs} />}

@@ -321,7 +321,8 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [eventDate, setEventDate] = useState('');
   const [eventType, setEventType] = useState('training');
   const [eventGroupId, setEventGroupId] = useState<string>('');
-
+  const [eventLocation, setEventLocation] = useState('');
+  const [eventMaxPart, setEventMaxPart] = useState('');
   const fetchData = async () => {
     const [{ data: m }, { data: p }, { data: e }, { data: g }] = await Promise.all([
       supabase.from('club_members').select('*').eq('club_id', club.id),

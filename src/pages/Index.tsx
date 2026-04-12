@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { UpcomingClubEvents } from '@/components/dashboard/UpcomingClubEvents';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
+import AchievementsGrid from '@/components/AchievementsGrid';
 
 const Index = () => {
   const [dogs, setDogs] = useState<Dog[]>([]);
@@ -292,6 +293,11 @@ const Index = () => {
           </div>
           <div className="text-[9px] text-muted-foreground">Godkänd</div>
         </motion.div>
+      </div>
+
+      {/* Achievements summary */}
+      <div className="mb-5 cursor-pointer" onClick={() => navigate('/goals')}>
+        <AchievementsGrid dogs={dogs} training={training} competitions={competitions} compact />
       </div>
 
       {/* Next competition */}

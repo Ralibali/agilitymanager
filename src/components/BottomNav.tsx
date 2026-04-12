@@ -128,6 +128,11 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
                   >
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center relative ${isActive ? 'bg-primary/10' : 'bg-secondary'}`}>
                       <Icon size={22} className={isActive ? 'text-primary' : 'text-muted-foreground'} />
+                      {tab.path === '/clubs' && isClubMember && (
+                        <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-[7px] font-bold px-1 py-0.5 rounded-full leading-none">
+                          Klubb
+                        </span>
+                      )}
                     </div>
                     <span className={`text-xs font-medium ${isActive ? 'text-primary' : 'text-foreground'}`}>{tab.label}</span>
                   </button>

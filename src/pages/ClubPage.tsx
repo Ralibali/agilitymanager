@@ -444,17 +444,21 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     onBack();
   };
 
+  const [signupComments, setSignupComments] = useState<Record<string, string>>({});
+
   const handleSignupEvent = async (eventId: string, status: string = 'signed_up') => {
+    const comment = signupComments[eventId]?.trim() || '';
     const existing = (eventSignups[eventId] || []).find(s => s.user_id === userId);
     if (existing) {
-      await supabase.from('club_event_signups').update({ status }).eq('id', existing.id);
+      await supabase.from('club_event_signups').update({ status, comment }).eq('id', existing.id);
       toast.success(status === 'not_going' ? 'Markerad som ej kommande' : 'Anmäld!');
     } else {
-      const { error } = await supabase.from('club_event_signups').insert({ event_id: eventId, user_id: userId, status });
+      const { error } = await supabase.from('club_event_signups').insert({ event_id: eventId, user_id: userId, status, comment });
       if (error?.code === '23505') { toast.info('Du är redan anmäld'); return; }
       if (error) { toast.error('Kunde inte anmäla'); return; }
       toast.success(status === 'not_going' ? 'Markerad som ej kommande' : 'Anmäld!');
     }
+    setSignupComments(prev => ({ ...prev, [eventId]: '' }));
     fetchData();
   };
 

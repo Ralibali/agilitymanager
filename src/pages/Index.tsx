@@ -230,6 +230,31 @@ const Index = () => {
         </motion.div>
       )}
 
+      {/* Onboarding skipped banner */}
+      {!bannerDismissed && user?.user_metadata?.onboarding_skipped === true && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-primary/5 border border-primary/20 rounded-xl p-3 mb-4 flex items-center gap-3"
+        >
+          <div className="flex-1">
+            <p className="text-sm font-medium text-foreground">Slutför din profil – det tar 2 minuter →</p>
+          </div>
+          <button
+            onClick={() => navigate('/dogs')}
+            className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shrink-0"
+          >
+            Slutför
+          </button>
+          <button
+            onClick={() => { setBannerDismissed(true); localStorage.setItem('onboarding_banner_dismissed', 'true'); }}
+            className="text-muted-foreground hover:text-foreground text-xs shrink-0"
+          >
+            ✕
+          </button>
+        </motion.div>
+      )}
+
       {/* Training reminder */}
       {daysSinceTraining !== null && daysSinceTraining >= 7 && (
         <motion.div

@@ -82,7 +82,12 @@ const Index = () => {
     return <PageContainer><div className="flex items-center justify-center min-h-[60vh] text-muted-foreground">Laddar...</div></PageContainer>;
   }
 
-  const latestTraining = training[0];
+  // Filtered data based on selected dog
+  const fTraining = selectedDogId ? training.filter(t => t.dog_id === selectedDogId) : training;
+  const fCompetitions = selectedDogId ? competitions.filter(c => c.dog_id === selectedDogId) : competitions;
+  const fPlanned = selectedDogId ? planned.filter(p => p.dog_id === selectedDogId) : planned;
+
+  const latestTraining = fTraining[0];
   const nextCompetition = planned.find(p => new Date(p.date) >= new Date());
 
   const getStreak = () => {

@@ -321,7 +321,7 @@ const Index = () => {
         <motion.div whileHover={{ scale: 1.02 }} className="bg-card p-2.5 rounded-xl shadow-card text-center">
           <Trophy size={16} className="text-accent mx-auto mb-0.5" />
           <div className="text-lg font-bold font-display text-foreground">
-            {competitions.length > 0 ? Math.round(competitions.filter(c => c.passed).length / competitions.length * 100) : 0}%
+            {fCompetitions.length > 0 ? Math.round(fCompetitions.filter(c => c.passed).length / fCompetitions.length * 100) : 0}%
           </div>
           <div className="text-[9px] text-muted-foreground">Godkänd</div>
         </motion.div>

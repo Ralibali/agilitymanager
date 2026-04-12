@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          achievement_key: string
+          dog_id: string | null
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_key: string
+          dog_id?: string | null
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_key?: string
+          dog_id?: string | null
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievements_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author: string
@@ -153,6 +185,8 @@ export type Database = {
           event_type: string
           group_id: string | null
           id: string
+          location: string
+          max_participants: number | null
           title: string
           user_id: string
         }
@@ -164,6 +198,8 @@ export type Database = {
           event_type?: string
           group_id?: string | null
           id?: string
+          location?: string
+          max_participants?: number | null
           title: string
           user_id: string
         }
@@ -175,6 +211,8 @@ export type Database = {
           event_type?: string
           group_id?: string | null
           id?: string
+          location?: string
+          max_participants?: number | null
           title?: string
           user_id?: string
         }
@@ -1405,11 +1443,14 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          current_value: number | null
           description: string
           dog_id: string
+          goal_type: string
           id: string
           status: string
           target_date: string | null
+          target_value: number | null
           title: string
           updated_at: string
           user_id: string
@@ -1417,11 +1458,14 @@ export type Database = {
         Insert: {
           category?: string
           created_at?: string
+          current_value?: number | null
           description?: string
           dog_id: string
+          goal_type?: string
           id?: string
           status?: string
           target_date?: string | null
+          target_value?: number | null
           title: string
           updated_at?: string
           user_id: string
@@ -1429,11 +1473,14 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          current_value?: number | null
           description?: string
           dog_id?: string
+          goal_type?: string
           id?: string
           status?: string
           target_date?: string | null
+          target_value?: number | null
           title?: string
           updated_at?: string
           user_id?: string

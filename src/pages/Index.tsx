@@ -111,7 +111,7 @@ const Index = () => {
 
   // Total training minutes this month
   const now = new Date();
-  const trainingThisMonth = training.filter(t => {
+  const trainingThisMonth = fTraining.filter(t => {
     const d = new Date(t.date);
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });

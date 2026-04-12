@@ -413,6 +413,8 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
       date: eventDate,
       event_type: eventType,
       group_id: eventGroupId || null,
+      location: eventLocation.trim(),
+      max_participants: eventMaxPart ? parseInt(eventMaxPart) : null,
     });
     const groupName = eventGroupId ? groups.find(g => g.id === eventGroupId)?.name : null;
     const eventLabel = groupName ? `${eventTitle.trim()} (${groupName})` : eventTitle.trim();
@@ -421,6 +423,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     toast.success('Event skapat!');
     setEventDialogOpen(false);
     setEventTitle(''); setEventDesc(''); setEventDate(''); setEventType('training'); setEventGroupId('');
+    setEventLocation(''); setEventMaxPart('');
     fetchData();
   };
 

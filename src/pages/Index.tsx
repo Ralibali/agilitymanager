@@ -544,7 +544,7 @@ const Index = () => {
           </button>
         </div>
         <div className="flex gap-3 overflow-x-auto pb-2">
-          {dogs.map(dog => {
+          {(selectedDogId ? dogs.filter(d => d.id === selectedDogId) : dogs).map(dog => {
             const dogTraining = training.filter(t => t.dog_id === dog.id);
             const lastSession = dogTraining[0];
             const daysSince = lastSession

@@ -28,6 +28,7 @@ const Index = () => {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [recentNotifications, setRecentNotifications] = useState<{ id: string; message: string; created_at: string }[]>([]);
   const [bannerDismissed, setBannerDismissed] = useState(() => localStorage.getItem('onboarding_banner_dismissed') === 'true');
+  const [selectedDogId, setSelectedDogId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
   const unread = useUnreadCounts();
@@ -81,11 +82,16 @@ const Index = () => {
     return <PageContainer><div className="flex items-center justify-center min-h-[60vh] text-muted-foreground">Laddar...</div></PageContainer>;
   }
 
-  const latestTraining = training[0];
-  const nextCompetition = planned.find(p => new Date(p.date) >= new Date());
+  // Filtered data based on selected dog
+  const fTraining = selectedDogId ? training.filter(t => t.dog_id === selectedDogId) : training;
+  const fCompetitions = selectedDogId ? competitions.filter(c => c.dog_id === selectedDogId) : competitions;
+  const fPlanned = selectedDogId ? planned.filter(p => p.dog_id === selectedDogId) : planned;
+
+  const latestTraining = fTraining[0];
+  const nextCompetition = fPlanned.find(p => new Date(p.date) >= new Date());
 
   const getStreak = () => {
-    const dates = [...new Set(training.map(t => t.date))].sort().reverse();
+    const dates = [...new Set(fTraining.map(t => t.date))].sort().reverse();
     if (!dates.length) return 0;
     let streak = 1;
     const today = new Date().toISOString().split('T')[0];
@@ -101,11 +107,11 @@ const Index = () => {
   // Training this week
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
-  const trainingThisWeek = training.filter(t => new Date(t.date) >= weekAgo).length;
+  const trainingThisWeek = fTraining.filter(t => new Date(t.date) >= weekAgo).length;
 
   // Total training minutes this month
   const now = new Date();
-  const trainingThisMonth = training.filter(t => {
+  const trainingThisMonth = fTraining.filter(t => {
     const d = new Date(t.date);
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
@@ -117,7 +123,7 @@ const Index = () => {
     : null;
 
   // Recent competition results (last 3)
-  const recentResults = competitions.slice(0, 3);
+  const recentResults = fCompetitions.slice(0, 3);
 
   if (dogs.length === 0) {
     return (
@@ -160,6 +166,36 @@ const Index = () => {
 
   return (
     <PageContainer title={displayName ? `Hej ${displayName} 👋` : 'Dashboard'} subtitle={`${dogs.length} hund${dogs.length > 1 ? 'ar' : ''} registrerad${dogs.length > 1 ? 'e' : ''}`}>
+
+      {/* Dog filter pills */}
+      {dogs.length > 1 && (
+        <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1">
+          <button
+            onClick={() => setSelectedDogId(null)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+              !selectedDogId
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+            }`}
+          >
+            Alla hundar
+          </button>
+          {dogs.map(dog => (
+            <button
+              key={dog.id}
+              onClick={() => setSelectedDogId(selectedDogId === dog.id ? null : dog.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                selectedDogId === dog.id
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              <DogAvatar dog={dog} size="xs" />
+              {dog.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Notification center - unread messages & notifications */}
       {(unread.total > 0 || recentNotifications.length > 0) && (
@@ -315,7 +351,7 @@ const Index = () => {
         <motion.div whileHover={{ scale: 1.02 }} className="bg-card p-2.5 rounded-xl shadow-card text-center">
           <Trophy size={16} className="text-accent mx-auto mb-0.5" />
           <div className="text-lg font-bold font-display text-foreground">
-            {competitions.length > 0 ? Math.round(competitions.filter(c => c.passed).length / competitions.length * 100) : 0}%
+            {fCompetitions.length > 0 ? Math.round(fCompetitions.filter(c => c.passed).length / fCompetitions.length * 100) : 0}%
           </div>
           <div className="text-[9px] text-muted-foreground">Godkänd</div>
         </motion.div>
@@ -323,7 +359,7 @@ const Index = () => {
 
       {/* Achievements summary */}
       <div className="mb-5 cursor-pointer" onClick={() => navigate('/goals')}>
-        <AchievementsGrid dogs={dogs} training={training} competitions={competitions} compact />
+        <AchievementsGrid dogs={selectedDogId ? dogs.filter(d => d.id === selectedDogId) : dogs} training={fTraining} competitions={fCompetitions} compact />
       </div>
 
       {/* Next competition */}
@@ -427,7 +463,7 @@ const Index = () => {
       )}
 
       {/* Merit tracking per dog */}
-      {dogs.length > 0 && competitions.length > 0 && (
+      {dogs.length > 0 && fCompetitions.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
@@ -443,8 +479,8 @@ const Index = () => {
             </button>
           </div>
           <div className="space-y-3">
-            {dogs.map(dog => {
-              const dogResults = competitions.filter(c => c.dog_id === dog.id);
+            {(selectedDogId ? dogs.filter(d => d.id === selectedDogId) : dogs).map(dog => {
+              const dogResults = fCompetitions.filter(c => c.dog_id === dog.id);
               if (dogResults.length === 0) return null;
               const merit = calculateMerit(dogResults, dog.competition_level);
               return (
@@ -508,7 +544,7 @@ const Index = () => {
           </button>
         </div>
         <div className="flex gap-3 overflow-x-auto pb-2">
-          {dogs.map(dog => {
+          {(selectedDogId ? dogs.filter(d => d.id === selectedDogId) : dogs).map(dog => {
             const dogTraining = training.filter(t => t.dog_id === dog.id);
             const lastSession = dogTraining[0];
             const daysSince = lastSession

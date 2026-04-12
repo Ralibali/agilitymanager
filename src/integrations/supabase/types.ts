@@ -362,6 +362,50 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_feedback: {
+        Row: {
+          ai_response: string | null
+          created_at: string
+          dog_id: string | null
+          id: string
+          question: string
+          sport: string
+          status: string
+          user_id: string
+          video_url: string
+        }
+        Insert: {
+          ai_response?: string | null
+          created_at?: string
+          dog_id?: string | null
+          id?: string
+          question: string
+          sport?: string
+          status?: string
+          user_id: string
+          video_url: string
+        }
+        Update: {
+          ai_response?: string | null
+          created_at?: string
+          dog_id?: string | null
+          id?: string
+          question?: string
+          sport?: string
+          status?: string
+          user_id?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_feedback_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       competition_interests: {
         Row: {
           class: string | null

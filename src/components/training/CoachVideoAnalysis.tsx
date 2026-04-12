@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { DogAvatar } from '@/components/DogAvatar';
 import { Video, Upload, Loader2, MessageSquare, Trash2, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { PremiumGate, PremiumBadge } from '@/components/PremiumGate';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -170,9 +171,11 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
         <CardTitle className="text-base font-display flex items-center gap-2">
           <Sparkles size={18} className="text-primary" />
           AI Coach – Videoanalys
+          <PremiumBadge />
         </CardTitle>
       </CardHeader>
       <CardContent className="pb-3 space-y-3">
+        <PremiumGate fullPage featureName="AI Coach – Videoanalys">
         {/* Upload form */}
         <div className="space-y-3 p-3 rounded-lg bg-secondary/30 border border-border/50">
           <div>
@@ -341,6 +344,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
             </AnimatePresence>
           </div>
         )}
+        </PremiumGate>
       </CardContent>
     </Card>
   );

@@ -303,7 +303,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [members, setMembers] = useState<ClubMember[]>([]);
   const [posts, setPosts] = useState<ClubPost[]>([]);
   const [events, setEvents] = useState<ClubEvent[]>([]);
-  const [eventSignups, setEventSignups] = useState<Record<string, { id: string; user_id: string; comment: string }[]>>({});
+  const [eventSignups, setEventSignups] = useState<Record<string, { id: string; user_id: string; comment: string; status: string }[]>>({});
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [newPost, setNewPost] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
@@ -353,10 +353,10 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
         .from('club_event_signups')
         .select('*')
         .in('event_id', eventIds);
-      const grouped: Record<string, { id: string; user_id: string; comment: string }[]> = {};
+      const grouped: Record<string, { id: string; user_id: string; comment: string; status: string }[]> = {};
       (signups || []).forEach(s => {
         if (!grouped[s.event_id]) grouped[s.event_id] = [];
-        grouped[s.event_id].push({ id: s.id, user_id: s.user_id, comment: s.comment });
+        grouped[s.event_id].push({ id: s.id, user_id: s.user_id, comment: s.comment, status: s.status });
       });
       setEventSignups(grouped);
     }
@@ -439,11 +439,17 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     onBack();
   };
 
-  const handleSignupEvent = async (eventId: string) => {
-    const { error } = await supabase.from('club_event_signups').insert({ event_id: eventId, user_id: userId });
-    if (error?.code === '23505') { toast.info('Du är redan anmäld'); return; }
-    if (error) { toast.error('Kunde inte anmäla'); return; }
-    toast.success('Anmäld!');
+  const handleSignupEvent = async (eventId: string, status: string = 'signed_up') => {
+    const existing = (eventSignups[eventId] || []).find(s => s.user_id === userId);
+    if (existing) {
+      await supabase.from('club_event_signups').update({ status }).eq('id', existing.id);
+      toast.success(status === 'not_going' ? 'Markerad som ej kommande' : 'Anmäld!');
+    } else {
+      const { error } = await supabase.from('club_event_signups').insert({ event_id: eventId, user_id: userId, status });
+      if (error?.code === '23505') { toast.info('Du är redan anmäld'); return; }
+      if (error) { toast.error('Kunde inte anmäla'); return; }
+      toast.success(status === 'not_going' ? 'Markerad som ej kommande' : 'Anmäld!');
+    }
     fetchData();
   };
 
@@ -654,7 +660,10 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
             if (filtered.length === 0) return <p className="text-center text-muted-foreground text-sm py-8">Inga event att visa.</p>;
             return filtered.map(e => {
               const signups = eventSignups[e.id] || [];
-              const isSigned = signups.some(s => s.user_id === userId);
+              const mySignup = signups.find(s => s.user_id === userId);
+              const isSigned = !!mySignup;
+              const goingCount = signups.filter(s => s.status === 'signed_up').length;
+              const notGoingCount = signups.filter(s => s.status === 'not_going').length;
               const isExpanded = expandedEvent === e.id;
               const groupName = e.group_id ? groups.find(g => g.id === e.group_id)?.name : null;
               return (
@@ -680,23 +689,56 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                     onClick={() => setExpandedEvent(isExpanded ? null : e.id)}
                     className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {signups.length} anmälda {isExpanded ? '▲' : '▼'}
+                    ✅ {goingCount} {notGoingCount > 0 && <span className="ml-1">❌ {notGoingCount}</span>} {isExpanded ? '▲' : '▼'}
                   </button>
-                  {isSigned ? (
-                    <Button size="sm" variant="outline" className="text-xs h-7 gap-1" onClick={() => handleUnsignupEvent(e.id)}>
-                      <Check size={12} /> Anmäld
-                    </Button>
-                  ) : (
-                    <Button size="sm" className="text-xs h-7 gap-1" onClick={() => handleSignupEvent(e.id)}>
-                      <UserPlus size={12} /> Anmäl mig
-                    </Button>
-                  )}
+                  <div className="flex gap-1">
+                    {isSigned && mySignup?.status === 'signed_up' ? (
+                      <>
+                        <Button size="sm" variant="outline" className="text-xs h-7 gap-1 border-primary/50 text-primary" onClick={() => handleUnsignupEvent(e.id)}>
+                          <Check size={12} /> Kommer
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-xs h-7 gap-1 text-muted-foreground" onClick={() => handleSignupEvent(e.id, 'not_going')}>
+                          ❌
+                        </Button>
+                      </>
+                    ) : isSigned && mySignup?.status === 'not_going' ? (
+                      <>
+                        <Button size="sm" variant="ghost" className="text-xs h-7 gap-1 text-muted-foreground" onClick={() => handleSignupEvent(e.id, 'signed_up')}>
+                          ✅
+                        </Button>
+                        <Button size="sm" variant="outline" className="text-xs h-7 gap-1 border-destructive/50 text-destructive" onClick={() => handleUnsignupEvent(e.id)}>
+                          Kommer inte
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button size="sm" className="text-xs h-7 gap-1" onClick={() => handleSignupEvent(e.id, 'signed_up')}>
+                          <UserPlus size={12} /> Kommer
+                        </Button>
+                        <Button size="sm" variant="outline" className="text-xs h-7 gap-1" onClick={() => handleSignupEvent(e.id, 'not_going')}>
+                          ❌
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
                 {isExpanded && signups.length > 0 && (
                   <div className="mt-2 space-y-1">
-                    {signups.map(s => (
+                    {signups.filter(s => s.status === 'signed_up').length > 0 && (
+                      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-1">Kommer</p>
+                    )}
+                    {signups.filter(s => s.status === 'signed_up').map(s => (
+                      <div key={s.id} className="text-xs text-foreground flex items-center gap-1.5">
+                        <span className="text-green-500">✅</span>
+                        {profiles[s.user_id] || 'Anonym'}
+                      </div>
+                    ))}
+                    {signups.filter(s => s.status === 'not_going').length > 0 && (
+                      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-2">Kommer inte</p>
+                    )}
+                    {signups.filter(s => s.status === 'not_going').map(s => (
                       <div key={s.id} className="text-xs text-muted-foreground flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                        <span className="text-red-400">❌</span>
                         {profiles[s.user_id] || 'Anonym'}
                       </div>
                     ))}

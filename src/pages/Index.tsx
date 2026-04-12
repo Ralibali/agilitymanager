@@ -357,6 +357,94 @@ const Index = () => {
         </motion.div>
       </div>
 
+      {/* Kennel stats overview - only when "Alla hundar" and multiple dogs */}
+      {!selectedDogId && dogs.length > 1 && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card rounded-xl shadow-card p-4 mb-5 border border-border"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">🏠</span>
+            <h3 className="font-display font-semibold text-sm text-foreground">Kennelöversikt</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {dogs.map(dog => {
+              const dt = training.filter(t => t.dog_id === dog.id);
+              const dc = competitions.filter(c => c.dog_id === dog.id);
+              const thisMonthDog = dt.filter(t => {
+                const d = new Date(t.date);
+                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+              });
+              const mins = thisMonthDog.reduce((s, t) => s + t.duration_min, 0);
+              const cleanPct = dc.length > 0
+                ? Math.round(dc.filter(c => c.passed && c.faults === 0 && !c.disqualified).length / dc.length * 100)
+                : null;
+              const currentClass = dog.sport === 'Hoopers' ? dog.hoopers_level : dog.competition_level;
+              const lastT = dt[0];
+              const daysSince = lastT ? differenceInDays(new Date(), new Date(lastT.date)) : null;
+
+              return (
+                <div
+                  key={dog.id}
+                  onClick={() => setSelectedDogId(dog.id)}
+                  className="bg-secondary/50 rounded-lg p-3 cursor-pointer hover:bg-secondary/80 transition-colors"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <DogAvatar dog={dog} size="sm" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-foreground truncate">{dog.name}</div>
+                      <div className="text-[10px] text-muted-foreground">{dog.sport} · {currentClass}</div>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-muted-foreground">Träning/mån</span>
+                      <span className="font-medium text-foreground">{thisMonthDog.length} pass · {mins} min</span>
+                    </div>
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-muted-foreground">Tävlingar</span>
+                      <span className="font-medium text-foreground">{dc.length} starter</span>
+                    </div>
+                    {cleanPct !== null && (
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-muted-foreground">Nollrundor</span>
+                        <span className="font-medium text-success">{cleanPct}%</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-muted-foreground">Senast</span>
+                      <span className={`font-medium ${daysSince !== null && daysSince <= 3 ? 'text-success' : daysSince !== null && daysSince <= 7 ? 'text-warning' : 'text-muted-foreground'}`}>
+                        {daysSince !== null ? (daysSince === 0 ? 'Idag' : `${daysSince}d sedan`) : '–'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {/* Totals row */}
+          <div className="mt-3 pt-3 border-t border-border flex justify-around text-center">
+            <div>
+              <div className="text-lg font-bold text-foreground">{training.length}</div>
+              <div className="text-[9px] text-muted-foreground uppercase tracking-wide">Totalt pass</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-foreground">{competitions.length}</div>
+              <div className="text-[9px] text-muted-foreground uppercase tracking-wide">Starter</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-foreground">
+                {competitions.length > 0
+                  ? Math.round(competitions.filter(c => c.passed && c.faults === 0 && !c.disqualified).length / competitions.length * 100)
+                  : 0}%
+              </div>
+              <div className="text-[9px] text-muted-foreground uppercase tracking-wide">Nollrundor</div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Achievements summary */}
       <div className="mb-5 cursor-pointer" onClick={() => navigate('/goals')}>
         <AchievementsGrid dogs={selectedDogId ? dogs.filter(d => d.id === selectedDogId) : dogs} training={fTraining} competitions={fCompetitions} compact />

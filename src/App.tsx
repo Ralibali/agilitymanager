@@ -45,6 +45,7 @@ const NotFound = React.lazy(() => import("./pages/NotFound"));
 const ClubPage = React.lazy(() => import("./pages/ClubPage"));
 const ClubInvitePage = React.lazy(() => import("./pages/ClubInvitePage"));
 const CoursesPage = React.lazy(() => import("./pages/CoursesPage"));
+const GoalsPage = React.lazy(() => import("./pages/GoalsPage"));
 
 const queryClient = new QueryClient();
 
@@ -134,6 +135,7 @@ const App = () => (
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/clubs" element={<ClubPage />} />
                 <Route path="/courses" element={<CoursesPage />} />
+                <Route path="/goals" element={<GoalsPage />} />
                 <Route path="/index" element={<Navigate to="/dashboard" replace />} />
               </Route>
 

@@ -15,6 +15,7 @@ import { downloadCsv } from '@/lib/csv';
 import { downloadPdf } from '@/lib/pdf';
 import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 import TrainingGoals from '@/components/training/TrainingGoals';
+import CoachVideoAnalysis from '@/components/training/CoachVideoAnalysis';
 
 export default function TrainingPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
@@ -135,6 +136,7 @@ export default function TrainingPage() {
             </button>
           ))}
         </div>
+        <CoachVideoAnalysis dogs={dogs} />
         <TrainingGoals dogs={dogs} />
         <AITrainingInsights dogs={dogs} sessions={sessions} results={results} />
         <div className="space-y-3 mt-3">

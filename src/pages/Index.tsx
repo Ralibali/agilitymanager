@@ -167,6 +167,36 @@ const Index = () => {
   return (
     <PageContainer title={displayName ? `Hej ${displayName} 👋` : 'Dashboard'} subtitle={`${dogs.length} hund${dogs.length > 1 ? 'ar' : ''} registrerad${dogs.length > 1 ? 'e' : ''}`}>
 
+      {/* Dog filter pills */}
+      {dogs.length > 1 && (
+        <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1">
+          <button
+            onClick={() => setSelectedDogId(null)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+              !selectedDogId
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+            }`}
+          >
+            Alla hundar
+          </button>
+          {dogs.map(dog => (
+            <button
+              key={dog.id}
+              onClick={() => setSelectedDogId(selectedDogId === dog.id ? null : dog.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                selectedDogId === dog.id
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              <DogAvatar dog={dog} size="xs" />
+              {dog.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Notification center - unread messages & notifications */}
       {(unread.total > 0 || recentNotifications.length > 0) && (
         <motion.div

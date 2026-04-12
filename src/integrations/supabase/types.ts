@@ -365,6 +365,7 @@ export type Database = {
       coach_feedback: {
         Row: {
           ai_response: string | null
+          coach_response: string | null
           created_at: string
           dog_id: string | null
           id: string
@@ -376,6 +377,7 @@ export type Database = {
         }
         Insert: {
           ai_response?: string | null
+          coach_response?: string | null
           created_at?: string
           dog_id?: string | null
           id?: string
@@ -387,6 +389,7 @@ export type Database = {
         }
         Update: {
           ai_response?: string | null
+          coach_response?: string | null
           created_at?: string
           dog_id?: string | null
           id?: string

@@ -27,6 +27,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [recentNotifications, setRecentNotifications] = useState<{ id: string; message: string; created_at: string }[]>([]);
+  const [bannerDismissed, setBannerDismissed] = useState(() => localStorage.getItem('onboarding_banner_dismissed') === 'true');
   const navigate = useNavigate();
   const { user } = useAuth();
   const unread = useUnreadCounts();

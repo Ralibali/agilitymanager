@@ -35,12 +35,16 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
   const [moreOpen, setMoreOpen] = useState(false);
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isClubMember, setIsClubMember] = useState(false);
   const unread = useUnreadCounts();
 
   useEffect(() => {
     if (!user?.id) return;
     supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' }).then(({ data }) => {
       setIsAdmin(!!data);
+    });
+    supabase.from('club_members').select('id').eq('user_id', user.id).eq('status', 'accepted').limit(1).then(({ data }) => {
+      setIsClubMember(!!(data && data.length > 0));
     });
   }, [user?.id]);
 

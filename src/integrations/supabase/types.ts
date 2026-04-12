@@ -1020,6 +1020,71 @@ export type Database = {
           },
         ]
       }
+      planned_training: {
+        Row: {
+          completed: boolean
+          created_at: string
+          date: string
+          description: string
+          dog_id: string | null
+          id: string
+          location: string
+          recurring: string
+          reminder_minutes_before: number
+          sport: string
+          time_end: string | null
+          time_start: string | null
+          title: string
+          training_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          date: string
+          description?: string
+          dog_id?: string | null
+          id?: string
+          location?: string
+          recurring?: string
+          reminder_minutes_before?: number
+          sport?: string
+          time_end?: string | null
+          time_start?: string | null
+          title: string
+          training_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          date?: string
+          description?: string
+          dog_id?: string | null
+          id?: string
+          location?: string
+          recurring?: string
+          reminder_minutes_before?: number
+          sport?: string
+          time_end?: string | null
+          time_start?: string | null
+          title?: string
+          training_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planned_training_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

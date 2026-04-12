@@ -734,6 +734,36 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                     )}
                   </div>
                 </div>
+                {/* Comment input for RSVP */}
+                {!isSigned && (
+                  <div className="mt-2">
+                    <Input
+                      placeholder="Kommentar, t.ex. 'Kommer med två hundar'"
+                      value={signupComments[e.id] || ''}
+                      onChange={(ev) => setSignupComments(prev => ({ ...prev, [e.id]: ev.target.value }))}
+                      className="text-xs h-8"
+                      maxLength={200}
+                    />
+                  </div>
+                )}
+                {isSigned && mySignup && (
+                  <div className="mt-2">
+                    <Input
+                      placeholder="Lägg till en kommentar..."
+                      value={signupComments[e.id] ?? mySignup.comment ?? ''}
+                      onChange={(ev) => setSignupComments(prev => ({ ...prev, [e.id]: ev.target.value }))}
+                      onBlur={async () => {
+                        const newComment = (signupComments[e.id] ?? '').trim();
+                        if (newComment !== (mySignup.comment || '')) {
+                          await supabase.from('club_event_signups').update({ comment: newComment }).eq('id', mySignup.id);
+                          fetchData();
+                        }
+                      }}
+                      className="text-xs h-8"
+                      maxLength={200}
+                    />
+                  </div>
+                )}
                 {isExpanded && signups.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {signups.filter(s => s.status === 'signed_up').length > 0 && (

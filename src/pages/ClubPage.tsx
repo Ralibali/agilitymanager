@@ -716,6 +716,16 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
           })()}
         </TabsContent>
 
+        {/* Stats */}
+        <TabsContent value="stats" className="mt-3">
+          <ClubAdminStats
+            clubId={club.id}
+            memberUserIds={acceptedMembers.map(m => m.user_id)}
+            profiles={profiles}
+            isAdmin={isAdmin}
+          />
+        </TabsContent>
+
         {/* Groups */}
         <TabsContent value="groups" className="mt-3">
           <ClubGroupsTab

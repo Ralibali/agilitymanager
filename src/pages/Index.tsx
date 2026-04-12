@@ -91,7 +91,7 @@ const Index = () => {
   const nextCompetition = fPlanned.find(p => new Date(p.date) >= new Date());
 
   const getStreak = () => {
-    const dates = [...new Set(training.map(t => t.date))].sort().reverse();
+    const dates = [...new Set(fTraining.map(t => t.date))].sort().reverse();
     if (!dates.length) return 0;
     let streak = 1;
     const today = new Date().toISOString().split('T')[0];
@@ -107,7 +107,7 @@ const Index = () => {
   // Training this week
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
-  const trainingThisWeek = training.filter(t => new Date(t.date) >= weekAgo).length;
+  const trainingThisWeek = fTraining.filter(t => new Date(t.date) >= weekAgo).length;
 
   // Total training minutes this month
   const now = new Date();

@@ -359,7 +359,7 @@ const Index = () => {
 
       {/* Achievements summary */}
       <div className="mb-5 cursor-pointer" onClick={() => navigate('/goals')}>
-        <AchievementsGrid dogs={dogs} training={training} competitions={competitions} compact />
+        <AchievementsGrid dogs={selectedDogId ? dogs.filter(d => d.id === selectedDogId) : dogs} training={fTraining} competitions={fCompetitions} compact />
       </div>
 
       {/* Next competition */}

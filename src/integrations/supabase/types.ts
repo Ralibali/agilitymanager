@@ -588,6 +588,113 @@ export type Database = {
         }
         Relationships: []
       }
+      course_purchases: {
+        Row: {
+          amount_paid_sek: number
+          course_id: string
+          created_at: string
+          id: string
+          purchased_at: string
+          status: string
+          stripe_session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_paid_sek?: number
+          course_id: string
+          created_at?: string
+          id?: string
+          purchased_at?: string
+          status?: string
+          stripe_session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_paid_sek?: number
+          course_id?: string
+          created_at?: string
+          id?: string
+          purchased_at?: string
+          status?: string
+          stripe_session_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_purchases_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          discounted_price_sek: number | null
+          id: string
+          image_url: string | null
+          instructor_bio: string
+          instructor_name: string
+          long_description: string
+          partner_name: string
+          partner_url: string
+          price_sek: number
+          published: boolean
+          slug: string
+          stripe_price_id: string | null
+          stripe_product_id: string | null
+          title: string
+          trailer_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string
+          discounted_price_sek?: number | null
+          id?: string
+          image_url?: string | null
+          instructor_bio?: string
+          instructor_name?: string
+          long_description?: string
+          partner_name?: string
+          partner_url?: string
+          price_sek?: number
+          published?: boolean
+          slug: string
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          title: string
+          trailer_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          discounted_price_sek?: number | null
+          id?: string
+          image_url?: string | null
+          instructor_bio?: string
+          instructor_name?: string
+          long_description?: string
+          partner_name?: string
+          partner_url?: string
+          price_sek?: number
+          published?: boolean
+          slug?: string
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          title?: string
+          trailer_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       dogs: {
         Row: {
           birthdate: string | null

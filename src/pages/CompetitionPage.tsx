@@ -26,6 +26,7 @@ import ImportResultsFromUrl from '@/components/competitions/ImportResultsFromUrl
 import ClassPromotionTracker from '@/components/competitions/ClassPromotionTracker';
 import HoopersPointsTracker from '@/components/competitions/HoopersPointsTracker';
 import { CompetitionStatsCard } from '@/components/competitions/CompetitionStatsCard';
+import { CleanRunTrendChart } from '@/components/competitions/CleanRunTrendChart';
 import { useAuth } from '@/contexts/AuthContext';
 
 type HistoricalDogResult = {

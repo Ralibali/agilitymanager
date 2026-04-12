@@ -476,19 +476,37 @@ const Index = () => {
           </button>
         </div>
         <div className="flex gap-3 overflow-x-auto pb-2">
-          {dogs.map(dog => (
-            <motion.div
-              key={dog.id}
-              whileHover={{ scale: 1.03 }}
-              className="bg-card p-3 rounded-xl shadow-card min-w-[140px] flex-shrink-0 cursor-pointer"
-              onClick={() => navigate('/dogs')}
-            >
-              <DogAvatar dog={dog} />
-              <div className="mt-2 font-semibold text-foreground text-sm">{dog.name}</div>
-              <div className="text-[10px] text-muted-foreground">{dog.breed} · {dog.size_class}</div>
-              <div className="text-[10px] text-muted-foreground">{dog.sport} · {dog.sport === 'Hoopers' ? dog.hoopers_level : dog.competition_level}</div>
-            </motion.div>
-          ))}
+          {dogs.map(dog => {
+            const dogTraining = training.filter(t => t.dog_id === dog.id);
+            const lastSession = dogTraining[0];
+            const daysSince = lastSession
+              ? differenceInDays(new Date(), new Date(lastSession.date))
+              : null;
+            const currentClass = dog.sport === 'Hoopers' ? dog.hoopers_level : dog.competition_level;
+
+            return (
+              <motion.div
+                key={dog.id}
+                whileHover={{ scale: 1.03 }}
+                className="bg-card p-3 rounded-xl shadow-card min-w-[160px] flex-shrink-0"
+              >
+                <div className="cursor-pointer" onClick={() => navigate('/dogs')}>
+                  <DogAvatar dog={dog} />
+                  <div className="mt-2 font-semibold text-foreground text-sm">{dog.name}</div>
+                  <div className="text-[10px] text-muted-foreground">{dog.breed} · {dog.size_class}</div>
+                  <div className="text-[10px] text-muted-foreground">{dog.sport} · {currentClass}</div>
+                  <div className={`text-[10px] mt-1 font-medium ${daysSince !== null && daysSince <= 3 ? 'text-success' : daysSince !== null && daysSince <= 7 ? 'text-warning' : 'text-muted-foreground'}`}>
+                    {daysSince !== null ? (daysSince === 0 ? 'Tränade idag' : `${daysSince}d sedan träning`) : 'Ingen träning ännu'}
+                  </div>
+                </div>
+                <AddTrainingDialog dogs={dogs} onAdded={refresh} trigger={
+                  <button className="mt-2 w-full flex items-center justify-center gap-1 px-2 py-1 rounded-lg bg-primary/10 text-primary text-[10px] font-semibold hover:bg-primary/20 transition-colors">
+                    <Plus size={10} /> Logga träning
+                  </button>
+                } />
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </PageContainer>

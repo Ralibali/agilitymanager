@@ -23,6 +23,7 @@ import SupportTicketsTab from '@/components/admin/SupportTicketsTab';
 import AnalyticsTab from '@/components/admin/AnalyticsTab';
 import ReferralStatsTab from '@/components/admin/ReferralStatsTab';
 import BlogPostsTab from '@/components/admin/BlogPostsTab';
+import CoachFeedbackTab from '@/components/admin/CoachFeedbackTab';
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -175,6 +176,9 @@ export default function AdminPage() {
             <TabsTrigger value="blog" className="text-xs sm:text-sm gap-1 rounded-lg flex-1">
               <FileText className="h-3.5 w-3.5" /> Blogg
             </TabsTrigger>
+            <TabsTrigger value="coach" className="text-xs sm:text-sm gap-1 rounded-lg flex-1">
+              <MessageCircle className="h-3.5 w-3.5" /> Coach
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-3">
@@ -272,6 +276,9 @@ export default function AdminPage() {
           </TabsContent>
           <TabsContent value="blog">
             <BlogPostsTab />
+          </TabsContent>
+          <TabsContent value="coach">
+            <CoachFeedbackTab />
           </TabsContent>
         </Tabs>
 

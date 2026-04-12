@@ -88,7 +88,7 @@ const Index = () => {
   const fPlanned = selectedDogId ? planned.filter(p => p.dog_id === selectedDogId) : planned;
 
   const latestTraining = fTraining[0];
-  const nextCompetition = planned.find(p => new Date(p.date) >= new Date());
+  const nextCompetition = fPlanned.find(p => new Date(p.date) >= new Date());
 
   const getStreak = () => {
     const dates = [...new Set(training.map(t => t.date))].sort().reverse();

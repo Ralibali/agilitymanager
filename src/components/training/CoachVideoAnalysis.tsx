@@ -9,14 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { DogAvatar } from '@/components/DogAvatar';
-import { Video, Upload, Loader2, MessageSquare, Trash2, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { Video, Upload, Loader2, MessageSquare, Trash2, ChevronDown, ChevronUp, GraduationCap, Clock, CheckCircle2 } from 'lucide-react';
 import { PremiumGate, PremiumBadge } from '@/components/PremiumGate';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import ReactMarkdown from 'react-markdown';
 import type { Dog } from '@/types';
 
 interface CoachFeedback {
@@ -25,7 +23,7 @@ interface CoachFeedback {
   dog_id: string | null;
   video_url: string;
   question: string;
-  ai_response: string | null;
+  coach_response: string | null;
   sport: string;
   status: string;
   created_at: string;
@@ -43,7 +41,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
   const [dogId, setDogId] = useState(dogs[0]?.id || '');
   const [sport, setSport] = useState('Agility');
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: history = [] } = useQuery({
     queryKey: ['coach-feedback', user?.id],
@@ -75,15 +73,8 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    const maxSize = 20 * 1024 * 1024; // 20MB
-    if (f.size > maxSize) {
-      toast.error('Max filstorlek är 20 MB');
-      return;
-    }
-    if (!f.type.startsWith('video/')) {
-      toast.error('Välj en videofil');
-      return;
-    }
+    if (f.size > 20 * 1024 * 1024) { toast.error('Max filstorlek är 20 MB'); return; }
+    if (!f.type.startsWith('video/')) { toast.error('Välj en videofil'); return; }
     setFile(f);
   };
 
@@ -92,22 +83,14 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
       toast.error('Ladda upp en video och skriv en fråga');
       return;
     }
-
-    setIsAnalyzing(true);
-
+    setIsSubmitting(true);
     try {
-      // Upload video
       const ext = file.name.split('.').pop() || 'mp4';
       const filePath = `${user.id}/${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from('training-videos')
-        .upload(filePath, file);
-
+      const { error: uploadError } = await supabase.storage.from('training-videos').upload(filePath, file);
       if (uploadError) throw uploadError;
 
-      // Create feedback record
-      const dog = dogs.find(d => d.id === dogId);
-      const { data: feedbackRow, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from('coach_feedback')
         .insert({
           user_id: user.id,
@@ -115,51 +98,21 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
           video_url: filePath,
           question: question.trim(),
           sport,
-          status: 'analyzing',
-        } as any)
-        .select()
-        .single();
-
+          status: 'pending',
+        } as any);
       if (insertError) throw insertError;
 
-      // Call edge function
-      const { data: session } = await supabase.auth.getSession();
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/coach-video-analysis`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session?.session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({
-            feedbackId: (feedbackRow as any).id,
-            videoPath: filePath,
-            question: question.trim(),
-            sport,
-            dogName: dog?.name || '',
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || 'Analys misslyckades');
-      }
-
-      toast.success('Analys klar!');
+      toast.success('Video inskickad! Coachen kommer granska och svara.');
       queryClient.invalidateQueries({ queryKey: ['coach-feedback'] });
       setFile(null);
       setQuestion('');
-      // Reset file input
       const fileInput = document.getElementById('coach-video-input') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
     } catch (e: any) {
-      console.error('Coach analysis error:', e);
+      console.error('Submit error:', e);
       toast.error(e.message || 'Något gick fel');
     } finally {
-      setIsAnalyzing(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -169,44 +122,37 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
     <Card className="mb-4 border-border/50">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-display flex items-center gap-2">
-          <Sparkles size={18} className="text-primary" />
-          AI Coach – Videoanalys
+          <GraduationCap size={18} className="text-primary" />
+          Coach – Videoanalys
           <PremiumBadge />
         </CardTitle>
       </CardHeader>
       <CardContent className="pb-3 space-y-3">
-        <PremiumGate fullPage featureName="AI Coach – Videoanalys">
+        <PremiumGate fullPage featureName="Coach – Videoanalys">
+        <p className="text-xs text-muted-foreground">
+          Ladda upp en träningsvideo och ställ en fråga – vår coach granskar och ger personlig feedback.
+        </p>
+
         {/* Upload form */}
         <div className="space-y-3 p-3 rounded-lg bg-secondary/30 border border-border/50">
           <div>
             <Label className="text-xs">Träningsvideo (max 20 MB)</Label>
             <div className="mt-1">
-              <input
-                id="coach-video-input"
-                type="file"
-                accept="video/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
+              <input id="coach-video-input" type="file" accept="video/*" onChange={handleFileChange} className="hidden" />
               <Button
                 variant="outline"
                 className="w-full justify-start text-left font-normal gap-2"
                 onClick={() => document.getElementById('coach-video-input')?.click()}
-                disabled={isAnalyzing}
+                disabled={isSubmitting}
               >
                 {file ? (
                   <>
                     <Video size={14} className="text-primary" />
                     <span className="truncate">{file.name}</span>
-                    <Badge variant="secondary" className="text-[10px] ml-auto">
-                      {(file.size / 1024 / 1024).toFixed(1)} MB
-                    </Badge>
+                    <Badge variant="secondary" className="text-[10px] ml-auto">{(file.size / 1024 / 1024).toFixed(1)} MB</Badge>
                   </>
                 ) : (
-                  <>
-                    <Upload size={14} />
-                    Välj video...
-                  </>
+                  <><Upload size={14} /> Välj video...</>
                 )}
               </Button>
             </div>
@@ -229,9 +175,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
                 <Select value={dogId} onValueChange={setDogId}>
                   <SelectTrigger className="mt-1"><SelectValue placeholder="Välj hund" /></SelectTrigger>
                   <SelectContent>
-                    {dogs.map(d => (
-                      <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                    ))}
+                    {dogs.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -239,32 +183,22 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
           </div>
 
           <div>
-            <Label className="text-xs">Din fråga till AI-coachen</Label>
+            <Label className="text-xs">Din fråga till coachen</Label>
             <Textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="T.ex. Hur ser mina kontakter ut? Vad kan jag förbättra i min dirigering?"
               className="mt-1"
               rows={2}
-              disabled={isAnalyzing}
+              disabled={isSubmitting}
             />
           </div>
 
-          <Button
-            onClick={handleSubmit}
-            className="w-full gap-2"
-            disabled={!file || !question.trim() || isAnalyzing}
-          >
-            {isAnalyzing ? (
-              <>
-                <Loader2 size={14} className="animate-spin" />
-                Analyserar video...
-              </>
+          <Button onClick={handleSubmit} className="w-full gap-2" disabled={!file || !question.trim() || isSubmitting}>
+            {isSubmitting ? (
+              <><Loader2 size={14} className="animate-spin" /> Skickar...</>
             ) : (
-              <>
-                <Sparkles size={14} />
-                Analysera
-              </>
+              <><Upload size={14} /> Skicka till coach</>
             )}
           </Button>
         </div>
@@ -272,76 +206,89 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
         {/* History */}
         {history.length > 0 && (
           <div className="pt-2">
-            <h4 className="text-xs font-semibold text-muted-foreground mb-2">Tidigare analyser</h4>
-            <AnimatePresence mode="popLayout">
-              <div className="space-y-2">
-                {history.map((fb, i) => {
-                  const dog = getDog(fb.dog_id);
-                  const isExpanded = expandedId === fb.id;
-                  return (
-                    <motion.div
-                      key={fb.id}
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ delay: i * 0.03 }}
-                      className="rounded-lg border border-border/50 bg-secondary/20 overflow-hidden"
+            <h4 className="text-xs font-semibold text-muted-foreground mb-2">Mina ärenden</h4>
+            <div className="space-y-2">
+              {history.map((fb, i) => {
+                const dog = getDog(fb.dog_id);
+                const isExpanded = expandedId === fb.id;
+                const isPending = fb.status === 'pending';
+                return (
+                  <motion.div
+                    key={fb.id}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.03 }}
+                    className="rounded-lg border border-border/50 bg-secondary/20 overflow-hidden"
+                  >
+                    <button
+                      onClick={() => setExpandedId(isExpanded ? null : fb.id)}
+                      className="w-full text-left p-3 flex items-start gap-2"
                     >
-                      <button
-                        onClick={() => setExpandedId(isExpanded ? null : fb.id)}
-                        className="w-full text-left p-3 flex items-start gap-2"
-                      >
-                        <MessageSquare size={14} className="text-primary mt-0.5 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{fb.question}</p>
-                          <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            <Badge variant="secondary" className="text-[10px] h-4">{fb.sport}</Badge>
-                            {dog && (
-                              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                <DogAvatar dog={dog} size="xs" /> {dog.name}
-                              </span>
-                            )}
-                            <span className="text-[10px] text-muted-foreground">
-                              {format(new Date(fb.created_at), 'd MMM', { locale: sv })}
+                      {isPending ? (
+                        <Clock size={14} className="text-amber-500 mt-0.5 shrink-0" />
+                      ) : (
+                        <CheckCircle2 size={14} className="text-green-500 mt-0.5 shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{fb.question}</p>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <Badge variant="secondary" className="text-[10px] h-4">{fb.sport}</Badge>
+                          {dog && (
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <DogAvatar dog={dog} size="xs" /> {dog.name}
                             </span>
-                            {fb.status === 'analyzing' && (
-                              <Badge variant="secondary" className="text-[10px] h-4 animate-pulse">Analyserar...</Badge>
-                            )}
-                          </div>
+                          )}
+                          <span className="text-[10px] text-muted-foreground">
+                            {format(new Date(fb.created_at), 'd MMM', { locale: sv })}
+                          </span>
+                          {isPending && (
+                            <Badge variant="secondary" className="text-[10px] h-4 text-amber-600">Väntar på svar</Badge>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(fb.id); }}
-                            className="p-1 rounded hover:bg-destructive/10"
-                          >
-                            <Trash2 size={12} className="text-destructive" />
-                          </button>
-                          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                        </div>
-                      </button>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(fb.id); }}
+                          className="p-1 rounded hover:bg-destructive/10"
+                        >
+                          <Trash2 size={12} className="text-destructive" />
+                        </button>
+                        {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </div>
+                    </button>
 
-                      <AnimatePresence>
-                        {isExpanded && fb.ai_response && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="px-3 pb-3 border-t border-border/50 pt-2">
-                              <div className="prose prose-sm dark:prose-invert max-w-none text-xs">
-                                <ReactMarkdown>{fb.ai_response}</ReactMarkdown>
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </AnimatePresence>
+                    <AnimatePresence>
+                      {isExpanded && fb.coach_response && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-3 pb-3 border-t border-border/50 pt-2">
+                            <p className="text-[10px] font-semibold text-primary mb-1">Coachens svar:</p>
+                            <p className="text-xs whitespace-pre-wrap">{fb.coach_response}</p>
+                          </div>
+                        </motion.div>
+                      )}
+                      {isExpanded && isPending && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-3 pb-3 border-t border-border/50 pt-2">
+                            <p className="text-xs text-muted-foreground italic">Coachen har ännu inte svarat. Du får besked här när svaret är klart.</p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
         )}
         </PremiumGate>

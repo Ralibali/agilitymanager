@@ -83,6 +83,36 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
       toast.error('Ladda upp en video och skriv en fråga');
       return;
     }
+
+    // Check if user already paid (came back from Stripe with coach_paid=true)
+    const params = new URLSearchParams(window.location.search);
+    const hasPaid = params.get('coach_paid') === 'true';
+
+    if (!hasPaid) {
+      // Save form state to sessionStorage before redirecting to Stripe
+      sessionStorage.setItem('coach_pending', JSON.stringify({
+        question: question.trim(),
+        dogId,
+        sport,
+        fileName: file.name,
+      }));
+      // Redirect to Stripe payment
+      setIsSubmitting(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('create-coach-payment');
+        if (error) throw error;
+        if (data?.url) {
+          window.location.href = data.url;
+        }
+      } catch (e: any) {
+        toast.error('Kunde inte starta betalning');
+        console.error(e);
+      }
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Payment confirmed – upload video and submit
     setIsSubmitting(true);
     try {
       const ext = file.name.split('.').pop() || 'mp4';
@@ -108,6 +138,11 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
       setQuestion('');
       const fileInput = document.getElementById('coach-video-input') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
+      // Clean up URL param
+      const url = new URL(window.location.href);
+      url.searchParams.delete('coach_paid');
+      window.history.replaceState({}, '', url.toString());
+      sessionStorage.removeItem('coach_pending');
     } catch (e: any) {
       console.error('Submit error:', e);
       toast.error(e.message || 'Något gick fel');
@@ -196,11 +231,12 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
 
           <Button onClick={handleSubmit} className="w-full gap-2" disabled={!file || !question.trim() || isSubmitting}>
             {isSubmitting ? (
-              <><Loader2 size={14} className="animate-spin" /> Skickar...</>
+              <><Loader2 size={14} className="animate-spin" /> Bearbetar...</>
             ) : (
-              <><Upload size={14} /> Skicka till coach</>
+              <><Upload size={14} /> Betala 99 kr & skicka till coach</>
             )}
           </Button>
+          <p className="text-[10px] text-muted-foreground text-center">Engångsbetalning 99 kr per videoanalys via Stripe</p>
         </div>
 
         {/* History */}

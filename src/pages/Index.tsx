@@ -123,7 +123,7 @@ const Index = () => {
     : null;
 
   // Recent competition results (last 3)
-  const recentResults = competitions.slice(0, 3);
+  const recentResults = fCompetitions.slice(0, 3);
 
   if (dogs.length === 0) {
     return (

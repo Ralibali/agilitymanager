@@ -125,6 +125,17 @@ export default function SettingsPage() {
         </button>
       </div>
 
+      {/* Trial banner */}
+      {subscription.isTrial && (
+        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 mb-4 flex items-center gap-3">
+          <span className="text-2xl">🎉</span>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Din provperiod är gratis i 7 dagar!</p>
+            <p className="text-xs text-muted-foreground">Testa alla Pro-funktioner utan kostnad. Ingen betalning krävs förrän provperioden är slut.</p>
+          </div>
+        </div>
+      )}
+
       {/* Premium section */}
       <div className="bg-card rounded-xl p-5 shadow-elevated mb-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 gradient-accent opacity-10 rounded-full -translate-y-10 translate-x-10" />

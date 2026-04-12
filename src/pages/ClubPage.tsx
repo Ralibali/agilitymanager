@@ -444,17 +444,21 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     onBack();
   };
 
+  const [signupComments, setSignupComments] = useState<Record<string, string>>({});
+
   const handleSignupEvent = async (eventId: string, status: string = 'signed_up') => {
+    const comment = signupComments[eventId]?.trim() || '';
     const existing = (eventSignups[eventId] || []).find(s => s.user_id === userId);
     if (existing) {
-      await supabase.from('club_event_signups').update({ status }).eq('id', existing.id);
+      await supabase.from('club_event_signups').update({ status, comment }).eq('id', existing.id);
       toast.success(status === 'not_going' ? 'Markerad som ej kommande' : 'Anmäld!');
     } else {
-      const { error } = await supabase.from('club_event_signups').insert({ event_id: eventId, user_id: userId, status });
+      const { error } = await supabase.from('club_event_signups').insert({ event_id: eventId, user_id: userId, status, comment });
       if (error?.code === '23505') { toast.info('Du är redan anmäld'); return; }
       if (error) { toast.error('Kunde inte anmäla'); return; }
       toast.success(status === 'not_going' ? 'Markerad som ej kommande' : 'Anmäld!');
     }
+    setSignupComments(prev => ({ ...prev, [eventId]: '' }));
     fetchData();
   };
 
@@ -730,6 +734,36 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                     )}
                   </div>
                 </div>
+                {/* Comment input for RSVP */}
+                {!isSigned && (
+                  <div className="mt-2">
+                    <Input
+                      placeholder="Kommentar, t.ex. 'Kommer med två hundar'"
+                      value={signupComments[e.id] || ''}
+                      onChange={(ev) => setSignupComments(prev => ({ ...prev, [e.id]: ev.target.value }))}
+                      className="text-xs h-8"
+                      maxLength={200}
+                    />
+                  </div>
+                )}
+                {isSigned && mySignup && (
+                  <div className="mt-2">
+                    <Input
+                      placeholder="Lägg till en kommentar..."
+                      value={signupComments[e.id] ?? mySignup.comment ?? ''}
+                      onChange={(ev) => setSignupComments(prev => ({ ...prev, [e.id]: ev.target.value }))}
+                      onBlur={async () => {
+                        const newComment = (signupComments[e.id] ?? '').trim();
+                        if (newComment !== (mySignup.comment || '')) {
+                          await supabase.from('club_event_signups').update({ comment: newComment }).eq('id', mySignup.id);
+                          fetchData();
+                        }
+                      }}
+                      className="text-xs h-8"
+                      maxLength={200}
+                    />
+                  </div>
+                )}
                 {isExpanded && signups.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {signups.filter(s => s.status === 'signed_up').length > 0 && (
@@ -739,6 +773,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                       <div key={s.id} className="text-xs text-foreground flex items-center gap-1.5">
                         <span className="text-green-500">✅</span>
                         {profiles[s.user_id] || 'Anonym'}
+                        {s.comment && <span className="text-muted-foreground ml-1">– {s.comment}</span>}
                       </div>
                     ))}
                     {signups.filter(s => s.status === 'not_going').length > 0 && (
@@ -748,6 +783,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                       <div key={s.id} className="text-xs text-muted-foreground flex items-center gap-1.5">
                         <span className="text-red-400">❌</span>
                         {profiles[s.user_id] || 'Anonym'}
+                        {s.comment && <span className="ml-1">– {s.comment}</span>}
                       </div>
                     ))}
                   </div>

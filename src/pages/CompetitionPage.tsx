@@ -27,6 +27,7 @@ import ClassPromotionTracker from '@/components/competitions/ClassPromotionTrack
 import HoopersPointsTracker from '@/components/competitions/HoopersPointsTracker';
 import { CompetitionStatsCard } from '@/components/competitions/CompetitionStatsCard';
 import { CleanRunTrendChart } from '@/components/competitions/CleanRunTrendChart';
+import { PerformanceTrendChart } from '@/components/competitions/PerformanceTrendChart';
 import { useAuth } from '@/contexts/AuthContext';
 
 type HistoricalDogResult = {
@@ -682,6 +683,7 @@ export default function CompetitionPage() {
 
             <CompetitionStatsCard results={filteredResults} dogs={dogs} />
             <CleanRunTrendChart results={filteredResults} />
+            <PerformanceTrendChart results={filteredResults} dogs={dogs} />
 
             <ResultsImporter dogs={dogs} onImported={() => refresh()} autoFetch />
             {sportFilter !== 'Hoopers' && <ClassPromotionTracker results={results} dogs={dogs} />}

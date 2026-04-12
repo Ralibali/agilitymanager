@@ -70,6 +70,7 @@ export default function CompetitionPage() {
   const [allResults, setAllResults] = useState<CompetitionResult[]>([]);
   const [planned, setPlanned] = useState<PlannedCompetition[]>([]);
   const [sportFilter, setSportFilter] = useState<'Alla' | 'Agility' | 'Hoopers'>('Alla');
+  const [dogFilter, setDogFilter] = useState<string | null>(null);
   const [interestedComps, setInterestedComps] = useState<{ id: string; competition_id: string; status: string; dog_name: string | null; comp: { competition_name: string | null; date_start: string | null; location: string | null; source_url: string | null } }[]>([]);
   const [upcomingHoopers, setUpcomingHoopers] = useState<{ id: string; competition_name: string | null; date: string | null; location: string | null; club_name: string | null; classes: string[] | null; source_url: string | null; type: string | null }[]>([]);
   const [hoopersResults, setHoopersResults] = useState<CompetitionResult[]>([]);

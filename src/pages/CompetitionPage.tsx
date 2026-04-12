@@ -645,9 +645,39 @@ export default function CompetitionPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <h3 className="font-display font-semibold text-foreground text-sm">
-                Resultat ({sportFilter === 'Hoopers' ? hoopersResults.length : sportFilter === 'Agility' ? results.length : allResults.length})
+                Resultat ({filteredResults.length})
               </h3>
             </div>
+
+            {/* Dog filter */}
+            {dogs.length > 1 && (
+              <div className="flex gap-1.5 flex-wrap">
+                <button
+                  onClick={() => setDogFilter(null)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    !dogFilter
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  }`}
+                >
+                  Alla hundar
+                </button>
+                {dogs.map(dog => (
+                  <button
+                    key={dog.id}
+                    onClick={() => setDogFilter(dogFilter === dog.id ? null : dog.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      dogFilter === dog.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                    }`}
+                  >
+                    <DogAvatar dog={dog} size="xs" />
+                    {dog.name}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <CompetitionStatsCard results={filteredResults} dogs={dogs} />
 

@@ -773,6 +773,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                       <div key={s.id} className="text-xs text-foreground flex items-center gap-1.5">
                         <span className="text-green-500">✅</span>
                         {profiles[s.user_id] || 'Anonym'}
+                        {s.comment && <span className="text-muted-foreground ml-1">– {s.comment}</span>}
                       </div>
                     ))}
                     {signups.filter(s => s.status === 'not_going').length > 0 && (

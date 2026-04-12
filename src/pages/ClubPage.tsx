@@ -10,8 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Users, MapPin, Crown, MessageSquare, Calendar, UserPlus, LogOut, Pin, ChevronLeft, Trash2, UsersRound, Link2, Copy, Check, ShieldCheck, ShieldOff } from 'lucide-react';
+import { Plus, Search, Users, MapPin, Crown, MessageSquare, Calendar, UserPlus, LogOut, Pin, ChevronLeft, Trash2, UsersRound, Link2, Copy, Check, ShieldCheck, ShieldOff, BarChart3, Mail } from 'lucide-react';
 import { ClubGroupsTab } from '@/components/clubs/ClubGroupsTab';
+import ClubAdminStats from '@/components/clubs/ClubAdminStats';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -320,7 +321,8 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [eventDate, setEventDate] = useState('');
   const [eventType, setEventType] = useState('training');
   const [eventGroupId, setEventGroupId] = useState<string>('');
-
+  const [eventLocation, setEventLocation] = useState('');
+  const [eventMaxPart, setEventMaxPart] = useState('');
   const fetchData = async () => {
     const [{ data: m }, { data: p }, { data: e }, { data: g }] = await Promise.all([
       supabase.from('club_members').select('*').eq('club_id', club.id),
@@ -411,6 +413,8 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
       date: eventDate,
       event_type: eventType,
       group_id: eventGroupId || null,
+      location: eventLocation.trim(),
+      max_participants: eventMaxPart ? parseInt(eventMaxPart) : null,
     });
     const groupName = eventGroupId ? groups.find(g => g.id === eventGroupId)?.name : null;
     const eventLabel = groupName ? `${eventTitle.trim()} (${groupName})` : eventTitle.trim();
@@ -419,6 +423,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     toast.success('Event skapat!');
     setEventDialogOpen(false);
     setEventTitle(''); setEventDesc(''); setEventDate(''); setEventType('training'); setEventGroupId('');
+    setEventLocation(''); setEventMaxPart('');
     fetchData();
   };
 
@@ -526,11 +531,12 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
       )}
 
       <Tabs defaultValue="posts">
-        <TabsList className="w-full">
-          <TabsTrigger value="posts" className="flex-1 text-xs gap-1"><MessageSquare size={12} /> Inlägg</TabsTrigger>
-          <TabsTrigger value="calendar" className="flex-1 text-xs gap-1"><Calendar size={12} /> Kalender</TabsTrigger>
-          <TabsTrigger value="groups" className="flex-1 text-xs gap-1"><UsersRound size={12} /> Grupper</TabsTrigger>
-          <TabsTrigger value="members" className="flex-1 text-xs gap-1"><Users size={12} /> Medlemmar</TabsTrigger>
+        <TabsList className="w-full grid grid-cols-5">
+          <TabsTrigger value="posts" className="flex-1 text-[10px] gap-0.5"><MessageSquare size={11} /> Inlägg</TabsTrigger>
+          <TabsTrigger value="calendar" className="flex-1 text-[10px] gap-0.5"><Calendar size={11} /> Kalender</TabsTrigger>
+          <TabsTrigger value="stats" className="flex-1 text-[10px] gap-0.5"><BarChart3 size={11} /> Stats</TabsTrigger>
+          <TabsTrigger value="groups" className="flex-1 text-[10px] gap-0.5"><UsersRound size={11} /> Grupper</TabsTrigger>
+          <TabsTrigger value="members" className="flex-1 text-[10px] gap-0.5"><Users size={11} /> Medl.</TabsTrigger>
         </TabsList>
 
         {/* Posts / bulletin */}
@@ -581,6 +587,8 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                   <Input value={eventTitle} onChange={e => setEventTitle(e.target.value)} placeholder="Titel" />
                   <Textarea value={eventDesc} onChange={e => setEventDesc(e.target.value)} placeholder="Beskrivning" rows={2} />
                   <Input type="datetime-local" value={eventDate} onChange={e => setEventDate(e.target.value)} />
+                  <Input value={eventLocation} onChange={e => setEventLocation(e.target.value)} placeholder="Plats (valfritt)" />
+                  <Input type="number" value={eventMaxPart} onChange={e => setEventMaxPart(e.target.value)} placeholder="Max deltagare (valfritt)" min="1" />
                   <div className="flex gap-2">
                     {(['training', 'competition', 'social'] as const).map(t => (
                       <Button
@@ -708,6 +716,16 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
           })()}
         </TabsContent>
 
+        {/* Stats */}
+        <TabsContent value="stats" className="mt-3">
+          <ClubAdminStats
+            clubId={club.id}
+            memberUserIds={acceptedMembers.map(m => m.user_id)}
+            profiles={profiles}
+            isAdmin={isAdmin}
+          />
+        </TabsContent>
+
         {/* Groups */}
         <TabsContent value="groups" className="mt-3">
           <ClubGroupsTab
@@ -744,19 +762,28 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                 <span className="text-sm text-foreground">{profiles[m.user_id] || 'Anonym'}</span>
                 {m.role === 'admin' && <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-0.5"><Crown size={8} /> Admin</Badge>}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 {isAdmin && m.user_id !== userId && (
-                  <button
-                    onClick={() => handleToggleAdmin(m.id, m.role)}
-                    className="p-1.5 hover:bg-secondary rounded-lg transition-colors"
-                    title={m.role === 'admin' ? 'Ta bort admin' : 'Gör till admin'}
-                  >
-                    {m.role === 'admin' ? (
-                      <ShieldOff size={14} className="text-muted-foreground" />
-                    ) : (
-                      <ShieldCheck size={14} className="text-primary" />
-                    )}
-                  </button>
+                  <>
+                    <button
+                      onClick={() => handleToggleAdmin(m.id, m.role)}
+                      className="p-1.5 hover:bg-secondary rounded-lg transition-colors"
+                      title={m.role === 'admin' ? 'Ta bort admin' : 'Gör till admin'}
+                    >
+                      {m.role === 'admin' ? (
+                        <ShieldOff size={14} className="text-muted-foreground" />
+                      ) : (
+                        <ShieldCheck size={14} className="text-primary" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleRejectMember(m.id)}
+                      className="p-1.5 hover:bg-secondary rounded-lg transition-colors"
+                      title="Ta bort medlem"
+                    >
+                      <Trash2 size={14} className="text-destructive" />
+                    </button>
+                  </>
                 )}
                 <span className="text-[10px] text-muted-foreground">{format(new Date(m.joined_at), 'd MMM yyyy', { locale: sv })}</span>
               </div>

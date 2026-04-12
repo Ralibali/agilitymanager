@@ -185,6 +185,8 @@ export type Database = {
           event_type: string
           group_id: string | null
           id: string
+          location: string
+          max_participants: number | null
           title: string
           user_id: string
         }
@@ -196,6 +198,8 @@ export type Database = {
           event_type?: string
           group_id?: string | null
           id?: string
+          location?: string
+          max_participants?: number | null
           title: string
           user_id: string
         }
@@ -207,6 +211,8 @@ export type Database = {
           event_type?: string
           group_id?: string | null
           id?: string
+          location?: string
+          max_participants?: number | null
           title?: string
           user_id?: string
         }

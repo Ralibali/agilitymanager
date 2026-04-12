@@ -1,4 +1,4 @@
-import { Home, Dog, Dumbbell, Trophy, Timer, Heart, BarChart3, Settings, PencilRuler, Shield, Users, Building2, GraduationCap } from 'lucide-react';
+import { Home, Dog, Dumbbell, Trophy, Timer, Heart, BarChart3, Settings, PencilRuler, Shield, Users, Building2, GraduationCap, Target } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { forwardRef, useState, useEffect } from 'react';
@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 import { NotificationBadge } from '@/components/NotificationBadge';
+import { Badge } from '@/components/ui/badge';
 
 const mainTabs = [
   { path: '/dashboard', icon: Home, label: 'Hem', badgeKey: null as string | null },
@@ -19,6 +20,7 @@ const mainTabs = [
 const moreTabs = [
   { path: '/dogs', icon: Dog, label: 'Hundar' },
   { path: '/training', icon: Dumbbell, label: 'Träning' },
+  { path: '/goals', icon: Target, label: 'Mål' },
   { path: '/courses', icon: GraduationCap, label: 'Kurser' },
   { path: '/clubs', icon: Building2, label: 'Klubbar' },
   { path: '/stopwatch', icon: Timer, label: 'Tidtagarur' },
@@ -33,12 +35,16 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
   const [moreOpen, setMoreOpen] = useState(false);
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isClubMember, setIsClubMember] = useState(false);
   const unread = useUnreadCounts();
 
   useEffect(() => {
     if (!user?.id) return;
     supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' }).then(({ data }) => {
       setIsAdmin(!!data);
+    });
+    supabase.from('club_members').select('id').eq('user_id', user.id).eq('status', 'accepted').limit(1).then(({ data }) => {
+      setIsClubMember(!!(data && data.length > 0));
     });
   }, [user?.id]);
 
@@ -122,6 +128,11 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
                   >
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center relative ${isActive ? 'bg-primary/10' : 'bg-secondary'}`}>
                       <Icon size={22} className={isActive ? 'text-primary' : 'text-muted-foreground'} />
+                      {tab.path === '/clubs' && isClubMember && (
+                        <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-[7px] font-bold px-1 py-0.5 rounded-full leading-none">
+                          Klubb
+                        </span>
+                      )}
                     </div>
                     <span className={`text-xs font-medium ${isActive ? 'text-primary' : 'text-foreground'}`}>{tab.label}</span>
                   </button>

@@ -736,7 +736,24 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                 </div>
                 {/* Comment input for RSVP */}
                 {!isSigned && (
-                  <div className="mt-2">
+                  <div className="mt-2 space-y-1.5">
+                    <div className="flex flex-wrap gap-1">
+                      {['🐕 Kommer med hund', '🐕‍🦺 Två hundar', '⏰ Kommer sent', '🚗 Kan skjutsa', '🆕 Första gången'].map(quick => (
+                        <button
+                          key={quick}
+                          type="button"
+                          onClick={() => {
+                            const current = signupComments[e.id] || '';
+                            const tag = quick;
+                            const updated = current ? `${current}, ${tag}` : tag;
+                            setSignupComments(prev => ({ ...prev, [e.id]: updated }));
+                          }}
+                          className="px-2 py-0.5 rounded-full bg-secondary text-[10px] font-medium text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                        >
+                          {quick}
+                        </button>
+                      ))}
+                    </div>
                     <Input
                       placeholder="Kommentar, t.ex. 'Kommer med två hundar'"
                       value={signupComments[e.id] || ''}
@@ -747,7 +764,24 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                   </div>
                 )}
                 {isSigned && mySignup && (
-                  <div className="mt-2">
+                  <div className="mt-2 space-y-1.5">
+                    <div className="flex flex-wrap gap-1">
+                      {['🐕 Kommer med hund', '🐕‍🦺 Två hundar', '⏰ Kommer sent', '🚗 Kan skjutsa', '🆕 Första gången'].map(quick => (
+                        <button
+                          key={quick}
+                          type="button"
+                          onClick={() => {
+                            const current = signupComments[e.id] ?? mySignup.comment ?? '';
+                            const tag = quick;
+                            const updated = current ? `${current}, ${tag}` : tag;
+                            setSignupComments(prev => ({ ...prev, [e.id]: updated }));
+                          }}
+                          className="px-2 py-0.5 rounded-full bg-secondary text-[10px] font-medium text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                        >
+                          {quick}
+                        </button>
+                      ))}
+                    </div>
                     <Input
                       placeholder="Lägg till en kommentar..."
                       value={signupComments[e.id] ?? mySignup.comment ?? ''}

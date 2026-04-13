@@ -1,0 +1,1 @@
+ALTER TABLE public.clubs ADD COLUMN quick_tags text[] NOT NULL DEFAULT ARRAY['🐕 Kommer med hund', '🐕‍🦺 Två hundar', '⏰ Kommer sent', '🚗 Kan skjutsa', '🆕 Första gången', '🏥 Hund i löp', '👶 Tar med barn', '📷 Kan filma'];

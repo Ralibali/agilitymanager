@@ -190,12 +190,14 @@ const Index = () => {
           Alla hundar
         </button>
         {dogs.map((dog, i) => (
+          /* Haptic hint: light haptic on dog chip switch */
           <button
             key={dog.id}
             onClick={() => setSelectedDogId(selectedDogId === dog.id ? null : dog.id)}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-medium whitespace-nowrap flex-shrink-0 transition-all"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-medium whitespace-nowrap flex-shrink-0"
             style={{
               borderRadius: 40,
+              transition: 'background 150ms, color 150ms, border-color 150ms',
               background: selectedDogId === dog.id ? '#111' : '#fff',
               color: selectedDogId === dog.id ? '#fff' : '#111',
               border: selectedDogId === dog.id ? '1px solid #111' : '1px solid rgba(0,0,0,0.12)',

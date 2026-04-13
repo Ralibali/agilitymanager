@@ -8,7 +8,7 @@ import type { Dog, TrainingSession, CompetitionResult } from '@/types';
 import AITrainingInsights from '@/components/competitions/AITrainingInsights';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { Star, Clock, RotateCcw, Download, FileText, Send, Sparkles } from 'lucide-react';
+import { Star, Clock, RotateCcw, Download, FileText, Send, Sparkles, Flame } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { downloadCsv } from '@/lib/csv';
@@ -106,7 +106,16 @@ export default function TrainingPage() {
       <link rel="canonical" href="https://agilitymanager.se/traning" />
     </Helmet>
     <PageContainer
-      title="Träning"
+      title={
+        <span className="flex items-center gap-2">
+          Träning
+          {getStreak() > 0 && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-orange-500 to-amber-400 text-white shadow-sm">
+              <Flame size={12} /> {getStreak()} dagar
+            </span>
+          )}
+        </span>
+      }
       subtitle={`${sessions.length} träningspass`}
       action={
         <div className="flex items-center gap-2">

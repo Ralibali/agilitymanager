@@ -236,9 +236,7 @@ export default function CompetitionPage() {
     refresh();
   };
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center text-muted-foreground">Laddar...</div>
-  );
+  if (loading) return <CompetitionSkeleton />;
 
   const upcoming = planned.filter(p => new Date(p.date) >= new Date()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const past = planned.filter(p => new Date(p.date) < new Date());

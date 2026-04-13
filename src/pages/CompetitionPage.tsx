@@ -483,7 +483,7 @@ export default function CompetitionPage() {
           )}
 
           {/* SHoK link - show when filtering Hoopers or Alla */}
-          {sportFilter !== 'Agility' && hasHoopersDog && (
+          {sportFilter !== 'Agility' && (hasHoopersDog || sportFilter === 'Hoopers') && (
             <a
               href="https://shoktavling.se/?page=tavlingar"
               target="_blank"
@@ -572,7 +572,7 @@ export default function CompetitionPage() {
           )}
 
           {/* Upcoming hoopers competitions */}
-          {sportFilter !== 'Agility' && hasHoopersDog && (
+          {sportFilter !== 'Agility' && (hasHoopersDog || sportFilter === 'Hoopers') && (
             <>
               <h3 className="font-display font-semibold text-foreground text-sm mb-2 mt-4">Kommande hoopers-tävlingar</h3>
               {upcomingHoopers.length === 0 ? (

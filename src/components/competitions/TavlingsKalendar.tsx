@@ -369,40 +369,45 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
             const interest = interests.get(comp.id);
             return (
               <div key={comp.id} className="bg-card rounded-xl border border-border p-4 relative">
-                {/* Interest buttons */}
-                <div className="absolute top-3 right-3 flex gap-1">
-                  <button
-                    onClick={() => toggleInterest(comp.id, 'interested')}
-                    className="p-1 rounded-full hover:bg-secondary transition-colors"
-                    title="Intresserad"
-                  >
-                    <Star
-                      size={18}
-                      className={interest?.status === 'interested' || interest?.status === 'registered'
-                        ? 'fill-yellow-400 text-yellow-400'
-                        : 'text-muted-foreground'}
-                    />
-                  </button>
-                  <button
-                    onClick={() => toggleInterest(comp.id, 'registered')}
-                    className="p-1 rounded-full hover:bg-secondary transition-colors"
-                    title="Anmäld"
-                  >
-                    <CheckCircle2
-                      size={18}
-                      className={interest?.status === 'registered'
-                        ? 'fill-green-500 text-green-500'
-                        : 'text-muted-foreground'}
-                    />
-                  </button>
-                  <button
-                    onClick={() => setShareComp({ open: true, comp })}
-                    className="p-1 rounded-full hover:bg-secondary transition-colors"
-                    title="Tipsa kompis"
-                  >
-                    <Send size={16} className="text-muted-foreground" />
-                  </button>
-                </div>
+                {/* Interest action row */}
+                {user && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <button
+                      onClick={() => toggleInterest(comp.id, 'interested')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
+                        interest?.status === 'interested'
+                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                          : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                      }`}
+                    >
+                      <Star size={13} className={interest?.status === 'interested' ? 'fill-amber-500 text-amber-500' : ''} />
+                      {interest?.status === 'interested' ? 'Intresserad' : 'Intresse'}
+                    </button>
+                    <button
+                      onClick={() => toggleInterest(comp.id, 'registered')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
+                        interest?.status === 'registered'
+                          ? 'text-white'
+                          : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                      }`}
+                      style={interest?.status === 'registered' ? { background: '#1a6b3c' } : {}}
+                    >
+                      <CheckCircle2 size={13} className={interest?.status === 'registered' ? 'fill-white text-white' : ''} />
+                      {interest?.status === 'registered' ? 'Anmäld ✓' : 'Anmäld'}
+                    </button>
+                    <button
+                      onClick={() => setShareComp({ open: true, comp })}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground hover:bg-secondary/80 transition-all btn-press ml-auto"
+                    >
+                      <Send size={13} /> Tipsa
+                    </button>
+                    {interest && selectedDog && (
+                      <span className="text-[10px] text-muted-foreground">
+                        🐕 {selectedDog.name}
+                      </span>
+                    )}
+                  </div>
+                )}
                 <div className="text-lg font-bold font-display text-primary mb-1">
                   {formatDateRange(comp.date_start, comp.date_end)}
                 </div>

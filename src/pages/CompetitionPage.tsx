@@ -73,6 +73,7 @@ export default function CompetitionPage() {
   const [planned, setPlanned] = useState<PlannedCompetition[]>([]);
   const [sportFilter, setSportFilter] = useState<'Alla' | 'Agility' | 'Hoopers'>('Alla');
   const [dogFilter, setDogFilter] = useState<string | null>(null);
+  const [disciplineFilter, setDisciplineFilter] = useState<string | null>(null);
   const [interestedComps, setInterestedComps] = useState<{ id: string; competition_id: string; status: string; dog_name: string | null; comp: { competition_name: string | null; date_start: string | null; location: string | null; source_url: string | null } }[]>([]);
   const [upcomingHoopers, setUpcomingHoopers] = useState<{ id: string; competition_name: string | null; date: string | null; location: string | null; club_name: string | null; classes: string[] | null; source_url: string | null; type: string | null }[]>([]);
   const [hoopersResults, setHoopersResults] = useState<CompetitionResult[]>([]);
@@ -352,7 +353,8 @@ export default function CompetitionPage() {
   const upcoming = planned.filter(p => new Date(p.date) >= new Date()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const past = planned.filter(p => new Date(p.date) < new Date());
   const sportFilteredResults = sportFilter === 'Hoopers' ? hoopersResults : sportFilter === 'Agility' ? results : allResults;
-  const filteredResults = dogFilter ? sportFilteredResults.filter(r => r.dog_id === dogFilter) : sportFilteredResults;
+  const disciplineFiltered = disciplineFilter ? sportFilteredResults.filter(r => r.discipline === disciplineFilter) : sportFilteredResults;
+  const filteredResults = dogFilter ? disciplineFiltered.filter(r => r.dog_id === dogFilter) : disciplineFiltered;
 
   return (
     <>
@@ -680,6 +682,23 @@ export default function CompetitionPage() {
                 ))}
               </div>
             )}
+
+            {/* Discipline filter */}
+            <div className="flex gap-1.5 flex-wrap">
+              {[{ value: null, label: 'Alla grenar' }, { value: 'Agility', label: 'Agility' }, { value: 'Jumping', label: 'Hopp' }, { value: 'Nollklass', label: 'Nollklass' }].map(opt => (
+                <button
+                  key={opt.label}
+                  onClick={() => setDisciplineFilter(disciplineFilter === opt.value ? null : opt.value)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    disciplineFilter === opt.value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
 
             <CompetitionStatsCard results={filteredResults} dogs={dogs} />
             <CleanRunTrendChart results={filteredResults} />

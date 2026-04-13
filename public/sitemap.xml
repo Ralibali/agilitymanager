@@ -126,6 +126,36 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://agilitymanager.se/blogg/slalom-komplett-guide</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/beloning-agility-guide</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/agility-nyborjare-komplett</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/kontaktfalt-komplett-guide</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/traningslogg-guide</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/borja-med-agility</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://agilitymanager.se/hoopers</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>

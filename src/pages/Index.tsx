@@ -8,6 +8,10 @@ import { MeritBadge, MeritProgress, calculateMerit } from '@/components/MeritTra
 import { store } from '@/lib/store';
 import type { Dog, TrainingSession, CompetitionResult, PlannedCompetition } from '@/types';
 import { ArrowRight, Sparkles, Plus } from 'lucide-react';
+import { CountUp } from '@/components/CountUp';
+import { HomeSkeleton } from '@/components/SkeletonScreens';
+import { PullToRefresh } from '@/components/PullToRefresh';
+import { EmptyState } from '@/components/EmptyState';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { format, differenceInDays } from 'date-fns';

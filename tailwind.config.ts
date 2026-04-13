@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["'Instrument Serif'", "serif"],
-        body: ["'Geist'", "sans-serif"],
+        display: ["'Outfit'", "sans-serif"],
+        body: ["'Figtree'", "sans-serif"],
       },
       fontSize: {
         base: ["14px", "1.5"],

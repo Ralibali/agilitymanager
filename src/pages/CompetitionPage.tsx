@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Dog, CompetitionResult, PlannedCompetition } from '@/types';
 import { format, differenceInDays } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { ArrowRight, Download, FileText, ExternalLink, Trash2, Plus, X, Send, Loader2, RefreshCw, Medal, CheckSquare, Square } from 'lucide-react';
+import { ArrowRight, Download, FileText, ExternalLink, Trash2, Plus, X, Send, Loader2, RefreshCw, Medal, CheckSquare, Square, Calendar, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { downloadCsv } from '@/lib/csv';
 import { downloadPdf } from '@/lib/pdf';
@@ -31,9 +31,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import TrainingCelebration from '@/components/training/TrainingCelebration';
 import { useCallback } from 'react';
 
-/** Strip HTML tags from API strings to prevent XSS / ugly rendering */
 const stripHtml = (str: string | null | undefined): string =>
   (str ?? '').replace(/<[^>]*>/g, '').trim();
+
+const stagger = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.05 } },
+};
+const fadeSlide = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] as const } },
+};
 
 type HistoricalDogResult = {
   dog_name: string;
@@ -70,6 +78,38 @@ const CHECKLIST_ITEMS = [
   'Ombyte & bekväma skor',
   'Laddad mobil',
 ];
+
+/* ── Chip component ── */
+function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className="px-3.5 py-1.5 text-xs font-medium whitespace-nowrap flex-shrink-0 transition-all"
+      style={{
+        borderRadius: 'var(--radius-pill)',
+        background: active ? 'hsl(var(--foreground))' : 'hsl(var(--card))',
+        color: active ? 'hsl(var(--card))' : 'hsl(var(--foreground))',
+        border: `1px solid ${active ? 'hsl(var(--foreground))' : 'hsl(var(--border))'}`,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* ── Section header ── */
+function SectionHeader({ children, count }: { children: React.ReactNode; count?: number }) {
+  return (
+    <h3 className="text-[13px] font-semibold text-foreground flex items-center gap-2">
+      {children}
+      {count !== undefined && (
+        <span className="text-[10px] font-medium px-1.5 py-0.5 bg-secondary text-secondary-foreground" style={{ borderRadius: 'var(--radius-badge)' }}>
+          {count}
+        </span>
+      )}
+    </h3>
+  );
+}
 
 export default function CompetitionPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
@@ -121,11 +161,8 @@ export default function CompetitionPage() {
   useEffect(() => { refresh(); }, []);
 
   const handleResultAdded = useCallback(async () => {
-    const countBefore = allResults.length;
     await refresh();
-    if (countBefore >= 0) {
-      setShowCelebration(true);
-    }
+    setShowCelebration(true);
   }, [allResults.length]);
 
   useEffect(() => {
@@ -274,90 +311,72 @@ export default function CompetitionPage() {
       </Helmet>
 
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        variants={stagger}
+        initial="hidden"
+        animate="show"
         id="main-content"
-        className="min-h-screen pb-24 px-4 pt-6 max-w-lg mx-auto"
+        className="min-h-screen pb-24 px-4 pt-5 max-w-lg mx-auto"
       >
-        {/* PAGE HEADER */}
-        <div className="flex items-start justify-between mb-1">
+        {/* ═══ PAGE HEADER ═══ */}
+        <motion.div variants={fadeSlide} className="flex items-start justify-between mb-4">
           <div>
-            <h1 className="font-display text-foreground" style={{ fontSize: 26, fontWeight: 400 }}>
+            <h1 className="text-xl font-semibold font-display text-foreground tracking-tight">
               Tävlingar & Resultat
             </h1>
-            <p className="text-muted-foreground mt-0.5" style={{ fontSize: 13 }}>
-              Säsong {currentYear} · {activeCompCount} anmälning{activeCompCount !== 1 ? 'ar' : ''} aktiv{activeCompCount !== 1 ? 'a' : ''}
+            <p className="text-[12px] text-muted-foreground mt-0.5">
+              Säsong {currentYear} · {activeCompCount} aktiv{activeCompCount !== 1 ? 'a' : ''}
             </p>
           </div>
           {results.length > 0 && (
-            <div className="flex items-center gap-1.5 flex-shrink-0 mt-1">
-              <button
-                onClick={() => {
-                  const rows = results.map(r => {
-                    const dog = getDog(r.dog_id);
-                    return { Datum: r.date, Hund: dog?.name ?? '', Tävling: stripHtml(r.event_name), Arrangör: r.organizer, Gren: r.discipline, Klass: r.competition_level, Storlek: r.size_class, 'Tid (s)': r.time_sec, Fel: r.faults, 'Banlängd (m)': r.course_length_m ?? '', Placering: r.placement ?? '', Godkänd: r.passed ? 'Ja' : 'Nej', Diskad: r.disqualified ? 'Ja' : 'Nej', Noteringar: r.notes };
-                  });
-                  downloadCsv(rows, `tavlingsresultat-${format(new Date(), 'yyyy-MM-dd')}.csv`);
-                }}
-                className="px-2.5 py-1.5 text-xs font-medium bg-white border text-foreground flex items-center gap-1"
-                style={{ borderRadius: 10, borderColor: 'rgba(0,0,0,0.12)' }}
-              >
-                <Download size={12} /> CSV
-              </button>
-              <button
-                onClick={() => {
-                  const headers = ['Datum', 'Hund', 'Tävling', 'Gren', 'Klass', 'Tid', 'Fel', 'Plac.', 'Godkänd', 'Noteringar'];
-                  const pdfRows = results.map(r => {
-                    const dog = getDog(r.dog_id);
-                    return [r.date, dog?.name ?? '', stripHtml(r.event_name), r.discipline, r.competition_level, String(r.time_sec), String(r.faults), r.placement != null ? String(r.placement) : '-', r.passed ? 'Ja' : 'Nej', r.notes];
-                  });
-                  downloadPdf({ title: 'Tävlingsresultat', subtitle: `${results.length} starter – exporterad ${format(new Date(), 'yyyy-MM-dd')}`, headers, rows: pdfRows, filename: `tavlingsresultat-${format(new Date(), 'yyyy-MM-dd')}.pdf`, landscape: true });
-                }}
-                className="px-2.5 py-1.5 text-xs font-medium bg-white border text-foreground flex items-center gap-1"
-                style={{ borderRadius: 10, borderColor: 'rgba(0,0,0,0.12)' }}
-              >
-                <FileText size={12} /> PDF
-              </button>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1 px-2" onClick={() => {
+                const rows = results.map(r => {
+                  const dog = getDog(r.dog_id);
+                  return { Datum: r.date, Hund: dog?.name ?? '', Tävling: stripHtml(r.event_name), Arrangör: r.organizer, Gren: r.discipline, Klass: r.competition_level, Storlek: r.size_class, 'Tid (s)': r.time_sec, Fel: r.faults, 'Banlängd (m)': r.course_length_m ?? '', Placering: r.placement ?? '', Godkänd: r.passed ? 'Ja' : 'Nej', Diskad: r.disqualified ? 'Ja' : 'Nej', Noteringar: r.notes };
+                });
+                downloadCsv(rows, `tavlingsresultat-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+              }}>
+                <Download size={11} /> CSV
+              </Button>
+              <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1 px-2" onClick={() => {
+                const headers = ['Datum', 'Hund', 'Tävling', 'Gren', 'Klass', 'Tid', 'Fel', 'Plac.', 'Godkänd', 'Noteringar'];
+                const pdfRows = results.map(r => {
+                  const dog = getDog(r.dog_id);
+                  return [r.date, dog?.name ?? '', stripHtml(r.event_name), r.discipline, r.competition_level, String(r.time_sec), String(r.faults), r.placement != null ? String(r.placement) : '-', r.passed ? 'Ja' : 'Nej', r.notes];
+                });
+                downloadPdf({ title: 'Tävlingsresultat', subtitle: `${results.length} starter – exporterad ${format(new Date(), 'yyyy-MM-dd')}`, headers, rows: pdfRows, filename: `tavlingsresultat-${format(new Date(), 'yyyy-MM-dd')}.pdf`, landscape: true });
+              }}>
+                <FileText size={11} /> PDF
+              </Button>
             </div>
           )}
-        </div>
+        </motion.div>
 
-        {/* Add competition button */}
+        {/* ═══ ADD BUTTON ═══ */}
         {dogs.length > 0 && (
-          <div className="mb-4 mt-2">
+          <motion.div variants={fadeSlide} className="mb-4">
             <AddCompetitionDialog dogs={dogs} onAdded={handleResultAdded} />
-          </div>
+          </motion.div>
         )}
 
-        {/* SPORT FILTER CHIPS */}
-        <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-1">
+        {/* ═══ SPORT FILTER ═══ */}
+        <motion.div variants={fadeSlide} className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-1">
           {(['Alla', 'Agility', 'Hoopers'] as const).map(s => (
-            <button
-              key={s}
-              onClick={() => setSportFilter(s)}
-              className="px-4 py-2 text-xs font-medium whitespace-nowrap flex-shrink-0 transition-all"
-              style={{
-                borderRadius: 40,
-                background: sportFilter === s ? '#111' : '#fff',
-                color: sportFilter === s ? '#fff' : '#111',
-                border: sportFilter === s ? '1px solid #111' : '1px solid rgba(0,0,0,0.12)',
-              }}
-            >
+            <FilterChip key={s} active={sportFilter === s} onClick={() => setSportFilter(s)}>
               {s === 'Alla' ? '🏆 Alla' : s === 'Agility' ? '🏃 Agility' : '🐕 Hoopers'}
-            </button>
+            </FilterChip>
           ))}
-        </div>
+        </motion.div>
 
-        {/* TABS */}
-        <div className="flex border-b mb-4" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+        {/* ═══ TABS ═══ */}
+        <motion.div variants={fadeSlide} className="flex border-b border-border mb-4">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className="flex-1 pb-2.5 text-xs font-medium text-center transition-colors relative"
               style={{
-                color: activeTab === tab.id ? '#1a6b3c' : '#999',
+                color: activeTab === tab.id ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
                 fontWeight: activeTab === tab.id ? 600 : 500,
               }}
             >
@@ -365,97 +384,72 @@ export default function CompetitionPage() {
               {activeTab === tab.id && (
                 <motion.div
                   layoutId="compTabUnderline"
-                  className="absolute bottom-0 left-2 right-2"
-                  style={{ height: 2, background: '#1a6b3c', borderRadius: 1 }}
+                  className="absolute bottom-0 left-3 right-3"
+                  style={{ height: 2, background: 'hsl(var(--primary))', borderRadius: 1 }}
                 />
               )}
             </button>
           ))}
-        </div>
+        </motion.div>
 
-        {/* TAB: Tävlingar */}
+        {/* ═══ TAB: Tävlingar ═══ */}
         {activeTab === 'competitions' && (
-          <div className="space-y-4">
+          <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-4">
             {/* Agida banner */}
             {sportFilter !== 'Hoopers' && (
-              <a
+              <motion.a
+                variants={fadeSlide}
                 href="https://www.agida.se"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-4 transition-opacity hover:opacity-90"
-                style={{
-                  borderRadius: 16,
-                  background: 'linear-gradient(135deg, #e8f4ed, #d4ecdf)',
-                  border: '1px solid rgba(26,107,60,0.2)',
-                }}
+                className="flex items-center gap-3 p-3.5 bg-card border border-border card-hover block"
+                style={{ borderRadius: 'var(--radius-card)' }}
               >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white text-lg"
-                  style={{ background: '#1a6b3c' }}
-                >
-                  📅
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 gradient-primary">
+                  <Calendar size={16} className="text-primary-foreground" />
                 </div>
                 <div className="flex-1">
-                  <div className="text-sm font-semibold text-foreground">Hitta tävlingar på Agida</div>
-                  <div className="text-xs" style={{ color: '#666' }}>Se kommande agilitytävlingar i hela Sverige</div>
+                  <div className="text-[13px] font-semibold text-foreground">Hitta tävlingar på Agida</div>
+                  <div className="text-[11px] text-muted-foreground">Kommande agilitytävlingar i hela Sverige</div>
                 </div>
-                <ArrowRight size={16} style={{ color: '#1a6b3c' }} />
-              </a>
+                <ArrowRight size={14} className="text-primary" />
+              </motion.a>
             )}
 
             {/* SHoK banner */}
             {sportFilter !== 'Agility' && (hasHoopersDog || sportFilter === 'Hoopers') && (
-              <a
+              <motion.a
+                variants={fadeSlide}
                 href="https://shoktavling.se/?page=tavlingar"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-4 transition-opacity hover:opacity-90"
-                style={{
-                  borderRadius: 16,
-                  background: 'linear-gradient(135deg, #fdf0e8, #fce4d2)',
-                  border: '1px solid rgba(200,93,30,0.2)',
-                }}
+                className="flex items-center gap-3 p-3.5 bg-card border border-border card-hover block"
+                style={{ borderRadius: 'var(--radius-card)' }}
               >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white text-lg"
-                  style={{ background: '#c85d1e' }}
-                >
-                  🐕
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 gradient-accent">
+                  <Calendar size={16} className="text-accent-foreground" />
                 </div>
                 <div className="flex-1">
-                  <div className="text-sm font-semibold text-foreground">Hitta tävlingar på SHoK</div>
-                  <div className="text-xs" style={{ color: '#666' }}>Se kommande hoopers-tävlingar på shoktavling.se</div>
+                  <div className="text-[13px] font-semibold text-foreground">Hitta tävlingar på SHoK</div>
+                  <div className="text-[11px] text-muted-foreground">Kommande hoopers-tävlingar</div>
                 </div>
-                <ArrowRight size={16} style={{ color: '#c85d1e' }} />
-              </a>
+                <ArrowRight size={14} className="text-accent" />
+              </motion.a>
             )}
 
-            {/* Upcoming agility competitions */}
+            {/* Upcoming agility */}
             {sportFilter !== 'Hoopers' && (
-              <>
-                <h3 className="text-sm font-semibold text-foreground">Kommande tävlingar</h3>
+              <motion.div variants={fadeSlide}>
+                <SectionHeader>Kommande tävlingar</SectionHeader>
                 {upcoming.length === 0 && interestedComps.length === 0 ? (
-                  <div
-                    className="text-center py-8 px-4"
-                    style={{ borderRadius: 16, border: '2px dashed rgba(0,0,0,0.1)' }}
-                  >
-                    <div className="text-3xl mb-2">🐾</div>
-                    <div className="text-sm font-semibold text-foreground mb-1">Inga fler anmälningar</div>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Kolla in Agida för att hitta nästa tävling att anmäla dig till!
-                    </p>
-                    <a
-                      href="https://www.agida.se"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-medium inline-flex items-center gap-1"
-                      style={{ color: '#1a6b3c' }}
-                    >
-                      Sök tävlingar på Agida <ExternalLink size={11} />
-                    </a>
-                  </div>
+                  <EmptyCard
+                    text="Inga fler anmälningar"
+                    sub="Kolla in Agida för att hitta nästa tävling!"
+                    linkText="Sök tävlingar på Agida"
+                    linkUrl="https://www.agida.se"
+                  />
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2.5 mt-2.5">
                     {upcoming.map((p, i) => {
                       const dog = getDog(p.dog_id);
                       const daysLeft = differenceInDays(new Date(p.date), new Date());
@@ -463,19 +457,17 @@ export default function CompetitionPage() {
                         <CompCard
                           key={p.id}
                           index={i}
-                          color="#1a6b3c"
+                          color="primary"
                           date={format(new Date(p.date), 'd MMMM yyyy', { locale: sv })}
                           daysLeft={daysLeft}
                           name={stripHtml(p.event_name)}
                           location={p.location}
                           status={p.status}
-                          statusColor="#c85d1e"
                           dogName={dog?.name}
                           onDelete={() => handleDeletePlanned(p.id)}
                         />
                       );
                     })}
-
                     {interestedComps.map((ic, i) => {
                       const daysLeft = differenceInDays(new Date(ic.comp.date_start!), new Date());
                       const statusLabel = ic.status === 'registered' ? 'Anmäld' : 'Intresserad';
@@ -483,13 +475,12 @@ export default function CompetitionPage() {
                         <CompCard
                           key={ic.id}
                           index={upcoming.length + i}
-                          color={ic.status === 'registered' ? '#1a6b3c' : '#c85d1e'}
+                          color={ic.status === 'registered' ? 'primary' : 'accent'}
                           date={format(new Date(ic.comp.date_start!), 'd MMMM yyyy', { locale: sv })}
                           daysLeft={daysLeft}
                           name={stripHtml(ic.comp.competition_name)}
                           location={stripHtml(ic.comp.location)}
                           status={statusLabel}
-                          statusColor={ic.status === 'registered' ? '#1a6b3c' : '#c85d1e'}
                           dogName={ic.dog_name ?? undefined}
                           sourceUrl={ic.comp.source_url ?? undefined}
                         />
@@ -497,42 +488,29 @@ export default function CompetitionPage() {
                     })}
                   </div>
                 )}
-              </>
+              </motion.div>
             )}
 
             {/* Upcoming hoopers */}
             {sportFilter !== 'Agility' && (hasHoopersDog || sportFilter === 'Hoopers') && (
-              <>
-                <h3 className="text-sm font-semibold text-foreground mt-4">Kommande hoopers-tävlingar</h3>
+              <motion.div variants={fadeSlide}>
+                <SectionHeader>Kommande hoopers-tävlingar</SectionHeader>
                 {upcomingHoopers.length === 0 ? (
-                  <div
-                    className="text-center py-8 px-4"
-                    style={{ borderRadius: 16, border: '2px dashed rgba(0,0,0,0.1)' }}
-                  >
-                    <div className="text-3xl mb-2">🐾</div>
-                    <div className="text-sm font-semibold text-foreground mb-1">Inga kommande hoopers-tävlingar</div>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Kolla SHoK för att hitta nästa hoopers-tävling!
-                    </p>
-                    <a
-                      href="https://shoktavling.se/?page=tavlingar"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-medium inline-flex items-center gap-1"
-                      style={{ color: '#c85d1e' }}
-                    >
-                      Sök tävlingar på SHoK <ExternalLink size={11} />
-                    </a>
-                  </div>
+                  <EmptyCard
+                    text="Inga kommande hoopers-tävlingar"
+                    sub="Kolla SHoK för att hitta nästa tävling!"
+                    linkText="Sök tävlingar på SHoK"
+                    linkUrl="https://shoktavling.se/?page=tavlingar"
+                  />
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2.5 mt-2.5">
                     {upcomingHoopers.map((comp, i) => {
                       const daysLeft = comp.date ? differenceInDays(new Date(comp.date), new Date()) : null;
                       return (
                         <CompCard
                           key={comp.id}
                           index={i}
-                          color="#c85d1e"
+                          color="accent"
                           date={comp.date ? format(new Date(comp.date), 'd MMMM yyyy', { locale: sv }) : ''}
                           daysLeft={daysLeft}
                           name={stripHtml(comp.competition_name) || 'Hoopers-tävling'}
@@ -546,85 +524,79 @@ export default function CompetitionPage() {
                     })}
                   </div>
                 )}
-              </>
+              </motion.div>
             )}
 
             {/* Past planned */}
             {past.length > 0 && sportFilter !== 'Hoopers' && (
-              <>
-                <h3 className="text-sm font-semibold text-foreground mt-4">Tidigare planerade</h3>
-                <div className="space-y-2">
+              <motion.div variants={fadeSlide}>
+                <SectionHeader>Tidigare planerade</SectionHeader>
+                <div className="space-y-2 mt-2.5">
                   {past.map(p => (
-                    <div key={p.id} className="bg-white p-3 opacity-60 flex items-center justify-between"
-                      style={{ borderRadius: 16, border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
+                    <div key={p.id} className="bg-card p-3 opacity-50 flex items-center justify-between border border-border"
+                      style={{ borderRadius: 'var(--radius-card)' }}>
                       <div>
-                        <div className="font-medium text-foreground text-sm">{stripHtml(p.event_name)}</div>
-                        <div className="text-xs text-muted-foreground">{format(new Date(p.date), 'd MMM yyyy', { locale: sv })}</div>
+                        <div className="font-medium text-foreground text-[13px]">{stripHtml(p.event_name)}</div>
+                        <div className="text-[11px] text-muted-foreground">{format(new Date(p.date), 'd MMM yyyy', { locale: sv })}</div>
                       </div>
-                      <button onClick={() => handleDeletePlanned(p.id)} className="text-muted-foreground hover:text-destructive">
+                      <button onClick={() => handleDeletePlanned(p.id)} className="text-muted-foreground hover:text-destructive p-1">
                         <Trash2 size={14} />
                       </button>
                     </div>
                   ))}
                 </div>
-              </>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         )}
 
-        {/* TAB: Mina */}
+        {/* ═══ TAB: Mina ═══ */}
         {activeTab === 'mine' && <MinaTavlingar />}
 
-        {/* TAB: Resultat */}
+        {/* ═══ TAB: Resultat ═══ */}
         {activeTab === 'results' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <h3 className="text-sm font-semibold text-foreground">Resultat ({filteredResults.length})</h3>
-            </div>
+          <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-4">
+            <motion.div variants={fadeSlide} className="flex items-center justify-between gap-3">
+              <SectionHeader count={filteredResults.length}>Resultat</SectionHeader>
+            </motion.div>
 
             {/* Dog filter */}
             {dogs.length > 1 && (
-              <div className="flex gap-2 flex-wrap">
-                <button onClick={() => setDogFilter(null)} className="px-4 py-2 text-xs font-medium transition-all"
-                  style={{ borderRadius: 40, background: !dogFilter ? '#111' : '#fff', color: !dogFilter ? '#fff' : '#111', border: !dogFilter ? '1px solid #111' : '1px solid rgba(0,0,0,0.12)' }}>
-                  Alla hundar
-                </button>
+              <motion.div variants={fadeSlide} className="flex gap-2 flex-wrap">
+                <FilterChip active={!dogFilter} onClick={() => setDogFilter(null)}>Alla hundar</FilterChip>
                 {dogs.map(dog => (
-                  <button key={dog.id} onClick={() => setDogFilter(dogFilter === dog.id ? null : dog.id)}
-                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium transition-all"
-                    style={{ borderRadius: 40, background: dogFilter === dog.id ? '#111' : '#fff', color: dogFilter === dog.id ? '#fff' : '#111', border: dogFilter === dog.id ? '1px solid #111' : '1px solid rgba(0,0,0,0.12)' }}>
-                    <DogAvatar dog={dog} size="xs" />{dog.name}
-                  </button>
+                  <FilterChip key={dog.id} active={dogFilter === dog.id} onClick={() => setDogFilter(dogFilter === dog.id ? null : dog.id)}>
+                    <span className="flex items-center gap-1.5"><DogAvatar dog={dog} size="xs" />{dog.name}</span>
+                  </FilterChip>
                 ))}
-              </div>
+              </motion.div>
             )}
 
             {/* Discipline filter */}
-            <div className="flex gap-2 flex-wrap">
+            <motion.div variants={fadeSlide} className="flex gap-2 flex-wrap">
               {[{ value: null, label: 'Alla grenar' }, { value: 'Agility', label: 'Agility' }, { value: 'Jumping', label: 'Hopp' }, { value: 'Nollklass', label: 'Nollklass' }].map(opt => (
-                <button key={opt.label} onClick={() => setDisciplineFilter(disciplineFilter === opt.value ? null : opt.value)}
-                  className="px-4 py-2 text-xs font-medium transition-all"
-                  style={{ borderRadius: 40, background: disciplineFilter === opt.value ? '#111' : '#fff', color: disciplineFilter === opt.value ? '#fff' : '#111', border: disciplineFilter === opt.value ? '1px solid #111' : '1px solid rgba(0,0,0,0.12)' }}>
+                <FilterChip key={opt.label} active={disciplineFilter === opt.value} onClick={() => setDisciplineFilter(disciplineFilter === opt.value ? null : opt.value)}>
                   {opt.label}
-                </button>
+                </FilterChip>
               ))}
-            </div>
+            </motion.div>
 
-            <CompetitionStatsCard results={filteredResults} dogs={dogs} />
-            <CleanRunTrendChart results={filteredResults} />
-            <PerformanceTrendChart results={filteredResults} dogs={dogs} />
+            <motion.div variants={fadeSlide}><CompetitionStatsCard results={filteredResults} dogs={dogs} /></motion.div>
+            <motion.div variants={fadeSlide}><CleanRunTrendChart results={filteredResults} /></motion.div>
+            <motion.div variants={fadeSlide}><PerformanceTrendChart results={filteredResults} dogs={dogs} /></motion.div>
 
-            <ResultsImporter dogs={dogs} onImported={handleResultAdded} autoFetch />
-            {sportFilter !== 'Hoopers' && <ClassPromotionTracker results={results} dogs={dogs} />}
-            {sportFilter === 'Hoopers' && <HoopersPointsTracker dogs={dogs} />}
+            <motion.div variants={fadeSlide}><ResultsImporter dogs={dogs} onImported={handleResultAdded} autoFetch /></motion.div>
+            {sportFilter !== 'Hoopers' && <motion.div variants={fadeSlide}><ClassPromotionTracker results={results} dogs={dogs} /></motion.div>}
+            {sportFilter === 'Hoopers' && <motion.div variants={fadeSlide}><HoopersPointsTracker dogs={dogs} /></motion.div>}
 
             {filteredResults.length === 0 ? (
-              <div className="text-center py-8 px-4" style={{ borderRadius: 16, border: '2px dashed rgba(0,0,0,0.1)' }}>
-                <div className="text-3xl mb-2">🐾</div>
-                <div className="text-sm font-semibold text-foreground mb-1">Inga tävlingsresultat ännu</div>
-                <p className="text-xs text-muted-foreground mb-3">Logga ditt första resultat för att börja spåra framsteg!</p>
-                {dogs.length > 0 ? <AddCompetitionDialog dogs={dogs} onAdded={handleResultAdded} /> : <p className="text-sm text-muted-foreground">Lägg till en hund först!</p>}
-              </div>
+              <motion.div variants={fadeSlide}>
+                <EmptyCard
+                  text="Inga tävlingsresultat ännu"
+                  sub="Logga ditt första resultat för att börja spåra framsteg!"
+                  action={dogs.length > 0 ? <AddCompetitionDialog dogs={dogs} onAdded={handleResultAdded} /> : <p className="text-sm text-muted-foreground">Lägg till en hund först!</p>}
+                />
+              </motion.div>
             ) : (
               (() => {
                 const byYear: Record<number, CompetitionResult[]> = {};
@@ -632,52 +604,63 @@ export default function CompetitionPage() {
                 const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
 
                 const getResultBadge = (r: CompetitionResult) => {
-                  if (r.disqualified) return { label: 'Diskad', bg: '#fde8e8', color: '#dc2626' };
-                  if (r.passed && r.faults === 0) return { label: 'Nollrunda', bg: '#e8f4ed', color: '#1a6b3c' };
-                  if (r.faults > 0) return { label: `${r.faults} fel`, bg: '#fdf0e8', color: '#c85d1e' };
-                  return { label: 'Godkänd', bg: '#e8f4ed', color: '#1a6b3c' };
+                  if (r.disqualified) return { label: 'Diskad', variant: 'destructive' as const };
+                  if (r.passed && r.faults === 0) return { label: 'Nollrunda', variant: 'success' as const };
+                  if (r.faults > 0) return { label: `${r.faults} fel`, variant: 'warning' as const };
+                  return { label: 'Godkänd', variant: 'success' as const };
+                };
+
+                const badgeColors = {
+                  destructive: { bg: 'hsl(var(--destructive) / 0.1)', color: 'hsl(var(--destructive))' },
+                  success: { bg: 'hsl(var(--primary) / 0.1)', color: 'hsl(var(--primary))' },
+                  warning: { bg: 'hsl(var(--accent) / 0.1)', color: 'hsl(var(--accent))' },
                 };
 
                 return years.map(year => (
-                  <div key={year}>
-                    <h4 className="text-sm font-semibold text-foreground mb-2 mt-2 flex items-center gap-2">
-                      <span className="px-2 py-0.5 text-xs font-medium" style={{ borderRadius: 40, background: '#e8f4ed', color: '#1a6b3c' }}>{year}</span>
-                      <span className="text-xs text-muted-foreground font-normal">({byYear[year].length} starter)</span>
-                    </h4>
-                    <div className="space-y-3">
+                  <motion.div key={year} variants={fadeSlide}>
+                    <div className="flex items-center gap-2 mb-2.5 mt-1">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 text-primary" style={{ borderRadius: 'var(--radius-badge)', background: 'hsl(var(--primary) / 0.08)' }}>{year}</span>
+                      <span className="text-[11px] text-muted-foreground">({byYear[year].length} starter)</span>
+                    </div>
+                    <div className="space-y-2.5">
                       {byYear[year].map((r, i) => {
                         const dog = getDog(r.dog_id);
                         const matchedUrl = competitionUrlMap[r.id];
                         const badge = getResultBadge(r);
+                        const colors = badgeColors[badge.variant];
                         return (
-                          <motion.div key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}
-                            className="bg-white p-4"
-                            style={{ borderRadius: 16, border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
+                          <motion.div key={r.id}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.02 }}
+                            className="bg-card p-3.5 border border-border"
+                            style={{ borderRadius: 'var(--radius-card)' }}
+                          >
                             <div className="flex items-start gap-3">
                               {dog && <DogAvatar dog={dog} size="sm" />}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between gap-2">
-                                  <h3 className="font-semibold text-foreground text-sm truncate">{stripHtml(r.event_name)}</h3>
+                                  <h3 className="font-semibold text-foreground text-[13px] truncate">{stripHtml(r.event_name)}</h3>
                                   <div className="flex items-center gap-1.5 flex-shrink-0">
-                                    <span className="text-[10px] font-semibold px-2 py-0.5" style={{ borderRadius: 10, background: badge.bg, color: badge.color }}>
+                                    <span className="text-[10px] font-semibold px-2 py-0.5" style={{ borderRadius: 'var(--radius-badge)', background: colors.bg, color: colors.color }}>
                                       {badge.label}
                                     </span>
-                                    <button onClick={() => setShareResult(r)} className="p-1 rounded-full hover:bg-secondary" title="Dela resultat">
-                                      <Send size={14} className="text-muted-foreground" />
+                                    <button onClick={() => setShareResult(r)} className="p-1 rounded-md hover:bg-secondary transition-colors" title="Dela resultat">
+                                      <Send size={13} className="text-muted-foreground" />
                                     </button>
                                   </div>
                                 </div>
-                                <div className="text-xs text-muted-foreground">
+                                <div className="text-[11px] text-muted-foreground mt-0.5">
                                   {format(new Date(r.date), 'd MMM yyyy', { locale: sv })} · {r.discipline} · {r.size_class} · {r.competition_level}
                                   {r.lopp_number && ` · Lopp ${r.lopp_number}`}
                                 </div>
-                                {r.organizer && <div className="text-xs text-muted-foreground">{stripHtml(r.organizer)}</div>}
+                                {r.organizer && <div className="text-[11px] text-muted-foreground">{stripHtml(r.organizer)}</div>}
                                 <div className="flex items-center gap-4 mt-2 text-xs">
                                   {r.time_sec > 0 && <span className="text-foreground font-medium">{r.time_sec}s</span>}
-                                  {r.hoopers_points != null && r.hoopers_points > 0 && <span className="font-medium" style={{ color: '#1a6b3c' }}>{r.hoopers_points}p</span>}
-                                  {r.placement && <span className="flex items-center gap-0.5 font-medium" style={{ color: '#c85d1e' }}><Medal size={12} /> #{r.placement}</span>}
+                                  {r.hoopers_points != null && r.hoopers_points > 0 && <span className="font-medium text-primary">{r.hoopers_points}p</span>}
+                                  {r.placement && <span className="flex items-center gap-0.5 font-medium text-accent"><Medal size={12} /> #{r.placement}</span>}
                                 </div>
-                                {r.notes && <p className="mt-1.5 text-xs text-muted-foreground">{r.notes}</p>}
+                                {r.notes && <p className="mt-1.5 text-[11px] text-muted-foreground">{r.notes}</p>}
                                 {matchedUrl && (
                                   <div className="mt-3 pt-2 border-t border-border">
                                     <CompetitionResultsViewer url={matchedUrl} friendNames={friendNames} autoFetch />
@@ -689,96 +672,99 @@ export default function CompetitionPage() {
                         );
                       })}
                     </div>
-                  </div>
+                  </motion.div>
                 ));
               })()
             )}
 
             {/* Historical results */}
             {handlerName && (
-              <div className="mt-6 pt-4 border-t border-border">
+              <motion.div variants={fadeSlide} className="mt-6 pt-4 border-t border-border">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-semibold text-foreground">🔍 Historiska resultat — {handlerName.first} {handlerName.last}</h3>
-                  <Button size="sm" variant="outline" className="gap-1.5 text-xs" disabled={historicalLoading} onClick={() => fetchHistoricalResults(true)}>
-                    <RefreshCw size={12} className={historicalLoading ? 'animate-spin' : ''} />
-                    {historicalFetched ? 'Uppdatera' : 'Hämta resultat'}
+                  <SectionHeader>Historiska resultat</SectionHeader>
+                  <Button size="sm" variant="outline" className="gap-1.5 text-[11px] h-7" disabled={historicalLoading} onClick={() => fetchHistoricalResults(true)}>
+                    <RefreshCw size={11} className={historicalLoading ? 'animate-spin' : ''} />
+                    {historicalFetched ? 'Uppdatera' : 'Hämta'}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mb-3">Sökta från agilitydata.se baserat på ditt förarnamn och dina hundar.</p>
+                <p className="text-[11px] text-muted-foreground mb-3">Från agilitydata.se – {handlerName.first} {handlerName.last}</p>
                 {historicalLoading && (
                   <div className="text-center py-4">
-                    <Loader2 size={18} className="mx-auto mb-1 animate-spin" style={{ color: '#1a6b3c' }} />
-                    <p className="text-xs text-muted-foreground">Söker resultat på agilitydata.se ({historicalResults.length}/{uniqueDogs.length} hundar klara)...</p>
+                    <Loader2 size={16} className="mx-auto mb-1 animate-spin text-primary" />
+                    <p className="text-[11px] text-muted-foreground">Söker resultat ({historicalResults.length}/{uniqueDogs.length} hundar)...</p>
                   </div>
                 )}
                 {historicalError && (
-                  <div className="bg-destructive/10 border border-destructive/20 p-3 text-center" style={{ borderRadius: 16 }}>
-                    <p className="text-xs text-muted-foreground">{historicalError}</p>
-                    <Button size="sm" variant="outline" className="mt-2" onClick={() => fetchHistoricalResults(true)}>Försök igen</Button>
+                  <div className="bg-destructive/10 border border-destructive/20 p-3 text-center" style={{ borderRadius: 'var(--radius-card)' }}>
+                    <p className="text-[11px] text-muted-foreground">{historicalError}</p>
+                    <Button size="sm" variant="outline" className="mt-2 h-7 text-[11px]" onClick={() => fetchHistoricalResults(true)}>Försök igen</Button>
                   </div>
                 )}
                 {!historicalLoading && !historicalError && historicalResults.length === 0 && historicalFetched && (
-                  <p className="text-xs text-muted-foreground text-center py-3">Inga historiska resultat hittades. Kontrollera att ditt förarnamn stämmer i Inställningar.</p>
+                  <p className="text-[11px] text-muted-foreground text-center py-3">Inga historiska resultat hittades.</p>
                 )}
                 {historicalResults.length > 0 && <HistoricalResultsStats historicalResults={historicalResults} getDog={getDog} />}
                 <div className="mt-3">
                   <ImportResultsFromUrl dogs={uniqueDogs} userId={user!.id} onImported={(result) => { setHistoricalResults(prev => { const next = prev.filter(r => r.dog_id !== result.dog_id); next.push(result); return next; }); setHistoricalFetched(true); }} />
                 </div>
                 <div className="mt-2"><AgilityDataAttribution sourceUrl="https://agilitydata.se/resultat/soek-hund/" /></div>
-              </div>
+              </motion.div>
             )}
 
             {!handlerName && (
-              <div className="mt-6 pt-4 border-t border-border">
-                <p className="text-xs text-muted-foreground mb-3">💡 Ange ditt förarnamn i Inställningar för att automatiskt hitta dina resultat från agilitydata.se</p>
+              <motion.div variants={fadeSlide} className="mt-6 pt-4 border-t border-border">
+                <p className="text-[11px] text-muted-foreground mb-3">💡 Ange ditt förarnamn i Inställningar för att hitta dina resultat automatiskt</p>
                 <ImportResultsFromUrl dogs={uniqueDogs} userId={user!.id} onImported={(result) => { setHistoricalResults(prev => { const next = prev.filter(r => r.dog_id !== result.dog_id); next.push(result); return next; }); setHistoricalFetched(true); }} />
-              </div>
+              </motion.div>
             )}
 
-            <div className="mt-6 pt-4 border-t border-border">
-              <h3 className="text-sm font-semibold text-foreground mb-3">Hämta resultatlista från agilitydata.se</h3>
-              <form onSubmit={e => { e.preventDefault(); const trimmed = externalResultUrl.trim(); if (!trimmed) return; if (!trimmed.includes('agilitydata.se')) { toast.error('Ange en länk från agilitydata.se'); return; } setActiveExternalUrl(trimmed); }} className="flex gap-2 mb-3">
-                <Input value={externalResultUrl} onChange={e => setExternalResultUrl(e.target.value)} placeholder="Klistra in länk från agilitydata.se..." className="h-8 text-xs flex-1" />
-                <Button type="submit" size="sm" variant="outline" className="h-8 text-xs">Hämta</Button>
+            <motion.div variants={fadeSlide} className="mt-6 pt-4 border-t border-border">
+              <SectionHeader>Hämta resultatlista</SectionHeader>
+              <form onSubmit={e => { e.preventDefault(); const trimmed = externalResultUrl.trim(); if (!trimmed) return; if (!trimmed.includes('agilitydata.se')) { toast.error('Ange en länk från agilitydata.se'); return; } setActiveExternalUrl(trimmed); }} className="flex gap-2 mb-3 mt-2">
+                <Input value={externalResultUrl} onChange={e => setExternalResultUrl(e.target.value)} placeholder="Klistra in länk från agilitydata.se..." className="h-8 text-[11px] flex-1" />
+                <Button type="submit" size="sm" variant="outline" className="h-8 text-[11px]">Hämta</Button>
               </form>
               {activeExternalUrl && <CompetitionResultsViewer url={activeExternalUrl} friendNames={friendNames} />}
               <AgilityDataAttribution sourceUrl={activeExternalUrl || 'https://agilitydata.se'} />
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
 
-        {/* TAB: Checklist */}
+        {/* ═══ TAB: Checklist ═══ */}
         {activeTab === 'checklist' && (
-          <div className="bg-white p-4" style={{ borderRadius: 16, border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
-            <h3 className="font-semibold text-foreground mb-3">Checklista inför tävling</h3>
-            <div className="space-y-2">
+          <motion.div variants={fadeSlide} initial="hidden" animate="show"
+            className="bg-card p-4 border border-border"
+            style={{ borderRadius: 'var(--radius-card)' }}
+          >
+            <h3 className="font-semibold text-foreground text-[13px] mb-3">Checklista inför tävling</h3>
+            <div className="space-y-1.5">
               {[...CHECKLIST_ITEMS, ...customItems].map(item => (
                 <div key={item} className="flex items-center gap-2.5 w-full">
-                  <button onClick={() => toggleCheck(item)} className="flex items-center gap-2.5 flex-1 text-left py-1">
+                  <button onClick={() => toggleCheck(item)} className="flex items-center gap-2.5 flex-1 text-left py-1.5">
                     {checkedItems.has(item)
-                      ? <CheckSquare size={18} style={{ color: '#1a6b3c' }} className="flex-shrink-0" />
-                      : <Square size={18} className="text-muted-foreground flex-shrink-0" />}
-                    <span className={`text-sm ${checkedItems.has(item) ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{item}</span>
+                      ? <CheckSquare size={16} className="text-primary flex-shrink-0" />
+                      : <Square size={16} className="text-muted-foreground flex-shrink-0" />}
+                    <span className={`text-[13px] ${checkedItems.has(item) ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{item}</span>
                   </button>
                   {customItems.includes(item) && (
                     <button onClick={() => { const updated = customItems.filter(ci => ci !== item); setCustomItems(updated); localStorage.setItem('custom-checklist', JSON.stringify(updated)); const next = new Set(checkedItems); next.delete(item); setCheckedItems(next); }} className="text-muted-foreground hover:text-destructive p-1">
-                      <X size={14} />
+                      <X size={13} />
                     </button>
                   )}
                 </div>
               ))}
             </div>
             <form onSubmit={(e) => { e.preventDefault(); const trimmed = newItem.trim(); if (!trimmed) return; if ([...CHECKLIST_ITEMS, ...customItems].includes(trimmed)) { toast.error('Finns redan i listan'); return; } const updated = [...customItems, trimmed]; setCustomItems(updated); localStorage.setItem('custom-checklist', JSON.stringify(updated)); setNewItem(''); }} className="flex items-center gap-2 mt-4 pt-3 border-t border-border">
-              <Plus size={18} className="text-muted-foreground flex-shrink-0" />
-              <Input value={newItem} onChange={(e) => setNewItem(e.target.value)} placeholder="Lägg till egen punkt..." className="h-8 text-sm" />
+              <Plus size={16} className="text-muted-foreground flex-shrink-0" />
+              <Input value={newItem} onChange={(e) => setNewItem(e.target.value)} placeholder="Lägg till egen punkt..." className="h-8 text-[13px]" />
             </form>
             <div className="mt-3 pt-3 border-t border-border text-center">
-              <span className="text-xs text-muted-foreground">{checkedItems.size}/{CHECKLIST_ITEMS.length + customItems.length} klart</span>
+              <span className="text-[11px] text-muted-foreground">{checkedItems.size}/{CHECKLIST_ITEMS.length + customItems.length} klart</span>
               {checkedItems.size > 0 && (
-                <button onClick={() => setCheckedItems(new Set())} className="text-xs ml-3" style={{ color: '#1a6b3c' }}>Rensa alla</button>
+                <button onClick={() => setCheckedItems(new Set())} className="text-[11px] ml-3 text-primary font-medium">Rensa alla</button>
               )}
             </div>
-          </div>
+          </motion.div>
         )}
       </motion.div>
 
@@ -811,19 +797,38 @@ export default function CompetitionPage() {
   );
 }
 
-/* Reusable competition card component */
+/* ── Empty state card ── */
+function EmptyCard({ text, sub, linkText, linkUrl, action }: { text: string; sub: string; linkText?: string; linkUrl?: string; action?: React.ReactNode }) {
+  return (
+    <div
+      className="text-center py-8 px-4 mt-2.5 border-2 border-dashed border-border"
+      style={{ borderRadius: 'var(--radius-card)' }}
+    >
+      <div className="text-2xl mb-2">🐾</div>
+      <div className="text-[13px] font-semibold text-foreground mb-1">{text}</div>
+      <p className="text-[11px] text-muted-foreground mb-3">{sub}</p>
+      {linkUrl && linkText && (
+        <a href={linkUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium inline-flex items-center gap-1 text-primary">
+          {linkText} <ExternalLink size={11} />
+        </a>
+      )}
+      {action}
+    </div>
+  );
+}
+
+/* ── Competition card ── */
 function CompCard({
-  index, color, date, daysLeft, name, location, status, statusColor,
+  index, color, date, daysLeft, name, location, status,
   dogName, sourceUrl, onDelete, classes, clubName, type,
 }: {
   index: number;
-  color: string;
+  color: 'primary' | 'accent';
   date: string;
   daysLeft: number | null;
   name: string;
   location?: string;
   status?: string;
-  statusColor?: string;
   dogName?: string;
   sourceUrl?: string;
   onDelete?: () => void;
@@ -831,63 +836,66 @@ function CompCard({
   clubName?: string;
   type?: string;
 }) {
+  const isPrimary = color === 'primary';
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03 }}
-      className="bg-white overflow-hidden"
-      style={{
-        borderRadius: 16,
-        border: '1px solid rgba(0,0,0,0.07)',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
-      }}
+      className="bg-card overflow-hidden border border-border card-hover"
+      style={{ borderRadius: 'var(--radius-card)' }}
     >
-      {/* Colored header strip */}
-      <div className="px-4 py-2 flex items-center justify-between" style={{ background: color }}>
-        <span className="text-white text-xs font-medium">{date}</span>
+      {/* Header strip */}
+      <div
+        className="px-3.5 py-2 flex items-center justify-between"
+        style={{ background: isPrimary ? 'hsl(var(--primary))' : 'hsl(var(--accent))' }}
+      >
+        <span className="text-[11px] font-medium" style={{ color: isPrimary ? 'hsl(var(--primary-foreground))' : 'hsl(var(--accent-foreground))' }}>
+          {date}
+        </span>
         {daysLeft !== null && (
-          <span
-            className="text-xs font-medium px-2 py-0.5"
-            style={{ borderRadius: 40, background: 'rgba(255,255,255,0.2)', color: '#fff' }}
-          >
+          <span className="text-[10px] font-medium px-2 py-0.5 bg-white/20 text-white" style={{ borderRadius: 'var(--radius-pill)' }}>
             {daysLeft} dagar kvar
           </span>
         )}
       </div>
 
       {/* Body */}
-      <div className="p-4">
-        <h4 className="font-semibold text-foreground text-sm mb-1">{name}</h4>
+      <div className="p-3.5">
+        <h4 className="font-semibold text-foreground text-[13px] mb-1">{name}</h4>
         {location && (
-          <div className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
-            📍 {location}
+          <div className="text-[11px] text-muted-foreground flex items-center gap-1 mb-1.5">
+            <MapPin size={11} /> {location}
           </div>
         )}
-        {clubName && (
-          <div className="text-xs text-muted-foreground mb-2">{clubName}</div>
-        )}
+        {clubName && <div className="text-[11px] text-muted-foreground mb-1.5">{clubName}</div>}
 
-        {/* Tags row */}
+        {/* Tags */}
         <div className="flex items-center gap-1.5 flex-wrap mb-2">
           {status && (
-            <span
-              className="text-[10px] font-semibold px-2 py-0.5"
-              style={{ borderRadius: 10, background: statusColor === '#1a6b3c' ? '#e8f4ed' : '#fdf0e8', color: statusColor }}
-            >
+            <span className="text-[10px] font-semibold px-2 py-0.5" style={{
+              borderRadius: 'var(--radius-badge)',
+              background: isPrimary ? 'hsl(var(--primary) / 0.08)' : 'hsl(var(--accent) / 0.08)',
+              color: isPrimary ? 'hsl(var(--primary))' : 'hsl(var(--accent))',
+            }}>
               {status}
             </span>
           )}
           {type && (
-            <span
-              className="text-[10px] font-medium px-2 py-0.5"
-              style={{ borderRadius: 10, background: type === 'Officiell' ? '#e8f4ed' : '#f2f0ed', color: type === 'Officiell' ? '#1a6b3c' : '#666' }}
-            >
+            <span className="text-[10px] font-medium px-2 py-0.5" style={{
+              borderRadius: 'var(--radius-badge)',
+              background: type === 'Officiell' ? 'hsl(var(--primary) / 0.08)' : 'hsl(var(--secondary))',
+              color: type === 'Officiell' ? 'hsl(var(--primary))' : 'hsl(var(--secondary-foreground))',
+            }}>
               {type}
             </span>
           )}
           {classes && classes.map(c => (
-            <span key={c} className="text-[10px] px-1.5 py-0.5 font-medium" style={{ borderRadius: 10, background: '#e8f4ed', color: '#1a6b3c' }}>
+            <span key={c} className="text-[10px] px-1.5 py-0.5 font-medium" style={{
+              borderRadius: 'var(--radius-badge)',
+              background: 'hsl(var(--primary) / 0.08)',
+              color: 'hsl(var(--primary))',
+            }}>
               {c}
             </span>
           ))}
@@ -895,23 +903,16 @@ function CompCard({
 
         {/* Footer */}
         <div className="flex items-center justify-between">
-          {dogName && <span className="text-xs text-muted-foreground">🐾 {dogName}</span>}
-          {!dogName && <span />}
+          {dogName ? <span className="text-[11px] text-muted-foreground">🐾 {dogName}</span> : <span />}
           <div className="flex items-center gap-2">
             {sourceUrl && (
-              <a
-                href={sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-medium flex items-center gap-1"
-                style={{ color: '#1a6b3c' }}
-              >
-                Se detaljer <ArrowRight size={12} />
+              <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium flex items-center gap-1 text-primary">
+                Detaljer <ArrowRight size={11} />
               </a>
             )}
             {onDelete && (
-              <button onClick={onDelete} className="text-muted-foreground hover:text-destructive">
-                <Trash2 size={14} />
+              <button onClick={onDelete} className="text-muted-foreground hover:text-destructive p-1">
+                <Trash2 size={13} />
               </button>
             )}
           </div>

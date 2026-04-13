@@ -365,6 +365,12 @@ export default function TrainingPage() {
         }}
       />
     )}
+
+    <TrainingCelebration
+      show={showCelebration}
+      streak={getStreak()}
+      onDone={() => setShowCelebration(false)}
+    />
     </>
   );
 }

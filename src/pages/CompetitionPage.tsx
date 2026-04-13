@@ -683,6 +683,23 @@ export default function CompetitionPage() {
               </div>
             )}
 
+            {/* Discipline filter */}
+            <div className="flex gap-1.5 flex-wrap">
+              {[{ value: null, label: 'Alla grenar' }, { value: 'Agility', label: 'Agility' }, { value: 'Jumping', label: 'Hopp' }, { value: 'Nollklass', label: 'Nollklass' }].map(opt => (
+                <button
+                  key={opt.label}
+                  onClick={() => setDisciplineFilter(disciplineFilter === opt.value ? null : opt.value)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    disciplineFilter === opt.value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
             <CompetitionStatsCard results={filteredResults} dogs={dogs} />
             <CleanRunTrendChart results={filteredResults} />
             <PerformanceTrendChart results={filteredResults} dogs={dogs} />

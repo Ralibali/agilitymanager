@@ -246,22 +246,25 @@ const Index = () => {
       {/* STATS ROW */}
       <div className="grid grid-cols-4 gap-2 mb-6">
         {[
-          { emoji: '🔥', value: streak, label: 'Dagar i rad', accent: '#f59e0b' },
-          { emoji: '💪', value: trainingThisWeek, label: 'Denna vecka', accent: '#1a6b3c' },
-          { emoji: '⏱️', value: totalMinutes, label: 'Min i mån', accent: '#4f46e5' },
-          { emoji: '✅', value: `${passedPct}%`, label: 'Godkänd', accent: '#c85d1e' },
+          { emoji: '🔥', value: streak, label: 'Dagar i rad', accent: '#f59e0b', suffix: '' },
+          { emoji: '💪', value: trainingThisWeek, label: 'Denna vecka', accent: '#1a6b3c', suffix: '' },
+          { emoji: '⏱️', value: totalMinutes, label: 'Min i mån', accent: '#4f46e5', suffix: '' },
+          { emoji: '✅', value: passedPct, label: 'Godkänd', accent: '#c85d1e', suffix: '%' },
         ].map((stat, i) => (
           <motion.div
             key={i}
             whileHover={{ scale: 1.03 }}
-            className="relative overflow-hidden bg-white text-center p-2.5"
+            whileTap={{ scale: 0.98 }}
+            className="relative overflow-hidden bg-white text-center p-2.5 tappable"
             style={{
               borderRadius: 10,
               border: '1px solid rgba(0,0,0,0.07)',
             }}
           >
             <div className="text-sm mb-0.5">{stat.emoji}</div>
-            <div className="text-lg font-display font-bold text-foreground">{stat.value}</div>
+            <div className="text-lg font-display font-bold text-foreground">
+              <CountUp end={typeof stat.value === 'number' ? stat.value : 0} duration={0.6} suffix={stat.suffix} />
+            </div>
             <div className="text-muted-foreground" style={{ fontSize: 9 }}>{stat.label}</div>
             <div
               className="absolute bottom-0 left-0 right-0"

@@ -804,6 +804,8 @@ export default function CompetitionPage() {
         show={showCelebration}
         streak={allResults.length}
         onDone={() => setShowCelebration(false)}
+        title="Resultat loggat! 🏆"
+        subtitle="Snyggt jobbat – fortsätt bygga din tävlingshistorik!"
       />
     </>
   );

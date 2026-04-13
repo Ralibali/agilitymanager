@@ -110,7 +110,7 @@ export default function TrainingPage() {
         <span className="flex items-center gap-2">
           Träning
           {getStreak() > 0 && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-orange-500 to-amber-400 text-white shadow-sm">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-sm">
               <Flame size={12} /> {getStreak()} dagar
             </span>
           )}

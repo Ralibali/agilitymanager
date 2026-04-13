@@ -739,7 +739,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                 {!isSigned && (
                   <div className="mt-2 space-y-1.5">
                     <div className="flex flex-wrap gap-1">
-                      {['🐕 Kommer med hund', '🐕‍🦺 Två hundar', '⏰ Kommer sent', '🚗 Kan skjutsa', '🆕 Första gången'].map(quick => (
+                      {(club.quick_tags || []).map(quick => (
                         <button
                           key={quick}
                           type="button"
@@ -767,7 +767,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
                 {isSigned && mySignup && (
                   <div className="mt-2 space-y-1.5">
                     <div className="flex flex-wrap gap-1">
-                      {['🐕 Kommer med hund', '🐕‍🦺 Två hundar', '⏰ Kommer sent', '🚗 Kan skjutsa', '🆕 Första gången'].map(quick => (
+                      {(club.quick_tags || []).map(quick => (
                         <button
                           key={quick}
                           type="button"

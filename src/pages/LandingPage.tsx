@@ -369,19 +369,19 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-10">
             <motion.div {...inViewFadeUp(0.1)}>
               <div className="font-display text-3xl sm:text-4xl mb-1" style={{ color: '#e8a05c' }}>
-                <CountUp end={100000} suffix="+" className="font-display text-3xl sm:text-4xl" style={{ color: '#e8a05c' }} />
+                <CountUp end={100000} suffix="+" className="font-display text-3xl sm:text-4xl" />
               </div>
               <p className="text-sm font-body" style={{ color: 'rgba(255,255,255,0.5)' }}>tävlingsstarter per år i Sverige</p>
             </motion.div>
             <motion.div {...inViewFadeUp(0.2)}>
               <div className="font-display text-3xl sm:text-4xl mb-1" style={{ color: '#e8a05c' }}>
-                <CountUp end={3} className="font-display text-3xl sm:text-4xl" style={{ color: '#e8a05c' }} /> <span className="font-display text-3xl sm:text-4xl" style={{ color: '#e8a05c' }}>klasser</span>
+                <CountUp end={3} className="font-display text-3xl sm:text-4xl" /> <span>klasser</span>
               </div>
               <p className="text-sm font-body" style={{ color: 'rgba(255,255,255,0.5)' }}>från nybörjare till champion</p>
             </motion.div>
             <motion.div {...inViewFadeUp(0.3)}>
               <div className="font-display text-3xl sm:text-4xl mb-1" style={{ color: '#e8a05c' }}>
-                <CountUp end={5} className="font-display text-3xl sm:text-4xl" style={{ color: '#e8a05c' }} /> <span className="font-display text-3xl sm:text-4xl" style={{ color: '#e8a05c' }}>storleksklasser</span>
+                <CountUp end={5} className="font-display text-3xl sm:text-4xl" /> <span>storleksklasser</span>
               </div>
               <p className="text-sm font-body" style={{ color: 'rgba(255,255,255,0.5)' }}>alla hundraser välkomna</p>
             </motion.div>

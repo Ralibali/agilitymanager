@@ -371,27 +371,7 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    {/* Interest buttons */}
-                    {user && (
-                      <div className="flex gap-1 mb-1">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); toggleInterest(comp, 'interested'); }}
-                          className="p-1 rounded-md hover:bg-secondary transition-colors"
-                          title="Intresserad"
-                        >
-                          <Star size={16} className={interests[comp.id] === 'interested' || interests[comp.id] === 'registered' ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'} />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); toggleInterest(comp, 'registered'); }}
-                          className="p-1 rounded-md hover:bg-secondary transition-colors"
-                          title="Anmäld"
-                        >
-                          <CheckCircle2 size={16} className={interests[comp.id] === 'registered' ? 'fill-green-500 text-green-500' : 'text-muted-foreground'} />
-                        </button>
-                      </div>
-                    )}
-
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
                     {/* Type badge */}
                     <Badge
                       variant="outline"
@@ -423,6 +403,40 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
                   ))}
                 </div>
               </button>
+
+              {/* Interest action row */}
+              {user && (
+                <div className="flex items-center gap-2 px-3 pb-2.5 -mt-1">
+                  <button
+                    onClick={() => toggleInterest(comp, 'interested')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
+                      interests[comp.id] === 'interested'
+                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                        : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                    }`}
+                  >
+                    <Star size={13} className={interests[comp.id] === 'interested' ? 'fill-amber-500 text-amber-500' : ''} />
+                    {interests[comp.id] === 'interested' ? 'Intresserad' : 'Intresse'}
+                  </button>
+                  <button
+                    onClick={() => toggleInterest(comp, 'registered')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
+                      interests[comp.id] === 'registered'
+                        ? 'text-white'
+                        : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                    }`}
+                    style={interests[comp.id] === 'registered' ? { background: '#1a6b3c' } : {}}
+                  >
+                    <CheckCircle2 size={13} className={interests[comp.id] === 'registered' ? 'fill-white text-white' : ''} />
+                    {interests[comp.id] === 'registered' ? 'Anmäld ✓' : 'Anmäld'}
+                  </button>
+                  {interests[comp.id] && selectedDog && (
+                    <span className="text-[10px] text-muted-foreground ml-auto">
+                      🐕 {selectedDog.name}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Expanded details */}
               {expanded === comp.id && (

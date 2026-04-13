@@ -541,6 +541,65 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
           >
             <Link2 size={14} /> Kopiera inbjudningslänk
           </Button>
+
+          {/* Quick tags editor */}
+          <div className="pt-2 border-t border-border">
+            <button
+              onClick={() => { setEditingTags(!editingTags); setTagDraft(club.quick_tags || []); setNewTagInput(''); }}
+              className="text-[10px] text-muted-foreground hover:text-foreground transition-colors font-medium uppercase tracking-wider"
+            >
+              ✏️ Redigera snabbvalstaggar
+            </button>
+            {editingTags && (
+              <div className="mt-2 space-y-2">
+                <div className="flex flex-wrap gap-1">
+                  {tagDraft.map((tag, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-[10px] font-medium text-secondary-foreground">
+                      {tag}
+                      <button onClick={() => setTagDraft(prev => prev.filter((_, j) => j !== i))} className="hover:text-destructive">×</button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-1">
+                  <Input
+                    placeholder="Ny tagg, t.ex. '🎒 Tar med utrustning'"
+                    value={newTagInput}
+                    onChange={e => setNewTagInput(e.target.value)}
+                    className="text-xs h-7 flex-1"
+                    maxLength={40}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && newTagInput.trim()) {
+                        setTagDraft(prev => [...prev, newTagInput.trim()]);
+                        setNewTagInput('');
+                      }
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    disabled={!newTagInput.trim()}
+                    onClick={() => { setTagDraft(prev => [...prev, newTagInput.trim()]); setNewTagInput(''); }}
+                  >
+                    <Plus size={12} />
+                  </Button>
+                </div>
+                <Button
+                  size="sm"
+                  className="w-full text-xs h-7"
+                  onClick={async () => {
+                    const { error } = await supabase.from('clubs').update({ quick_tags: tagDraft } as any).eq('id', club.id);
+                    if (error) { toast.error('Kunde inte spara'); return; }
+                    club.quick_tags = tagDraft;
+                    setEditingTags(false);
+                    toast.success('Snabbval sparade!');
+                  }}
+                >
+                  Spara snabbval
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

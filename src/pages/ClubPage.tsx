@@ -310,7 +310,9 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [newPost, setNewPost] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
-  const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
+  const [editingTags, setEditingTags] = useState(false);
+  const [tagDraft, setTagDraft] = useState<string[]>(club.quick_tags || []);
+  const [newTagInput, setNewTagInput] = useState('');
   const [calendarGroupFilter, setCalendarGroupFilter] = useState<string>('all'); // 'all' | 'mine' | group_id
   const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
   const [myGroupIds, setMyGroupIds] = useState<string[]>([]);

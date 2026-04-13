@@ -374,6 +374,7 @@ export type Database = {
           invite_code: string
           logo_url: string | null
           name: string
+          quick_tags: string[]
           updated_at: string
         }
         Insert: {
@@ -385,6 +386,7 @@ export type Database = {
           invite_code?: string
           logo_url?: string | null
           name: string
+          quick_tags?: string[]
           updated_at?: string
         }
         Update: {
@@ -396,6 +398,7 @@ export type Database = {
           invite_code?: string
           logo_url?: string | null
           name?: string
+          quick_tags?: string[]
           updated_at?: string
         }
         Relationships: []

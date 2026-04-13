@@ -1,6 +1,7 @@
+import React from 'react';
 import { cn } from '@/lib/utils';
 
-interface SkeletonShimmerProps {
+interface SkeletonShimmerProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
@@ -8,14 +9,16 @@ interface SkeletonShimmerProps {
  * Animated shimmer skeleton placeholder.
  * Matches the warm sand palette: #f0ede9 → #e8e4df
  */
-export function SkeletonShimmer({ className }: SkeletonShimmerProps) {
+export function SkeletonShimmer({ className, style, ...props }: SkeletonShimmerProps) {
   return (
     <div
       className={cn('rounded-lg animate-shimmer', className)}
       style={{
         background: 'linear-gradient(90deg, #f0ede9 25%, #e8e4df 50%, #f0ede9 75%)',
         backgroundSize: '200% 100%',
+        ...style,
       }}
+      {...props}
     />
   );
 }

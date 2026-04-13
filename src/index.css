@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Figtree:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,8 +6,8 @@
 
 @layer base {
   :root {
-    --font-display: 'Instrument Serif', serif;
-    --font-body: 'Geist', sans-serif;
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Figtree', sans-serif;
 
     /* Background: #f9f8f6 → hsl(40, 14%, 97%) */
     --background: 40 14% 97%;

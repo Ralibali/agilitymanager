@@ -52,6 +52,8 @@ export function PerformanceTrendChart({ results, dogs }: Props) {
 
   const uniqueDogs = [...new Set(results.map(r => r.dog_id))];
   const showDogFilter = uniqueDogs.length > 1;
+  const uniqueLevels = [...new Set(results.map(r => r.competition_level))].sort();
+  const showLevelFilter = uniqueLevels.length > 1;
 
   return (
     <div className="bg-card rounded-xl border border-border p-4 space-y-3">

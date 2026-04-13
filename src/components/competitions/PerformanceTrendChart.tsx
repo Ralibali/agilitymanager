@@ -15,11 +15,14 @@ interface Props {
 
 export function PerformanceTrendChart({ results, dogs }: Props) {
   const [selectedDog, setSelectedDog] = useState<string | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
-    if (!selectedDog) return results;
-    return results.filter(r => r.dog_id === selectedDog);
-  }, [results, selectedDog]);
+    let list = results;
+    if (selectedDog) list = list.filter(r => r.dog_id === selectedDog);
+    if (selectedLevel) list = list.filter(r => r.competition_level === selectedLevel);
+    return list;
+  }, [results, selectedDog, selectedLevel]);
 
   const data = useMemo(() => {
     if (filtered.length < 2) return [];

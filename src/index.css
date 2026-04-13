@@ -48,6 +48,10 @@
     --ring: 148 62% 26%;
 
     --radius: 1rem;
+    --radius-card: 1rem;
+    --radius-button: 0.75rem;
+    --radius-badge: 0.625rem;
+    --radius-pill: 2.5rem;
 
     --sidebar-background: 40 14% 97%;
     --sidebar-foreground: 0 0% 7%;

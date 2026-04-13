@@ -170,4 +170,21 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  /* Tappable card active state */
+  .tappable {
+    transition: transform 100ms ease, box-shadow 100ms ease;
+  }
+  .tappable:active {
+    transform: scale(0.98);
+    box-shadow: 0 0 2px rgba(0,0,0,0.04);
+  }
+  /* Button active press */
+  .btn-press:active {
+    transform: scale(0.96);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }

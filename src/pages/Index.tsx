@@ -8,6 +8,10 @@ import { MeritBadge, MeritProgress, calculateMerit } from '@/components/MeritTra
 import { store } from '@/lib/store';
 import type { Dog, TrainingSession, CompetitionResult, PlannedCompetition } from '@/types';
 import { ArrowRight, Sparkles, Plus } from 'lucide-react';
+import { CountUp } from '@/components/CountUp';
+import { HomeSkeleton } from '@/components/SkeletonScreens';
+import { PullToRefresh } from '@/components/PullToRefresh';
+import { EmptyState } from '@/components/EmptyState';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { format, differenceInDays } from 'date-fns';
@@ -57,11 +61,7 @@ const Index = () => {
   if (showOnboarding) return <OnboardingWizard onComplete={refresh} />;
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
-        Laddar...
-      </div>
-    );
+    return <HomeSkeleton />;
   }
 
   // Filtered data
@@ -151,6 +151,7 @@ const Index = () => {
   }
 
   return (
+    <PullToRefresh onRefresh={refresh}>
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -189,12 +190,14 @@ const Index = () => {
           Alla hundar
         </button>
         {dogs.map((dog, i) => (
+          /* Haptic hint: light haptic on dog chip switch */
           <button
             key={dog.id}
             onClick={() => setSelectedDogId(selectedDogId === dog.id ? null : dog.id)}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-medium whitespace-nowrap flex-shrink-0 transition-all"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-medium whitespace-nowrap flex-shrink-0"
             style={{
               borderRadius: 40,
+              transition: 'background 150ms, color 150ms, border-color 150ms',
               background: selectedDogId === dog.id ? '#111' : '#fff',
               color: selectedDogId === dog.id ? '#fff' : '#111',
               border: selectedDogId === dog.id ? '1px solid #111' : '1px solid rgba(0,0,0,0.12)',
@@ -211,9 +214,10 @@ const Index = () => {
 
       {/* CTA BUTTONS */}
       <div className="grid grid-cols-2 gap-3 mb-5">
+        {/* Haptic hint: medium haptic on tap */}
         <AddTrainingDialog dogs={dogs} onAdded={refresh} trigger={
           <button
-            className="relative overflow-hidden flex flex-col items-start p-4 text-left w-full text-white"
+            className="relative overflow-hidden flex flex-col items-start p-4 text-left w-full text-white btn-press"
             style={{ background: '#1a6b3c', borderRadius: 16 }}
           >
             <div
@@ -225,9 +229,10 @@ const Index = () => {
             <span className="text-xs opacity-80">Snabblogg</span>
           </button>
         } />
+        {/* Haptic hint: success haptic on tap */}
         <AddCompetitionDialog dogs={dogs} onAdded={refresh} trigger={
           <button
-            className="relative overflow-hidden flex flex-col items-start p-4 text-left w-full text-white"
+            className="relative overflow-hidden flex flex-col items-start p-4 text-left w-full text-white btn-press"
             style={{ background: '#c85d1e', borderRadius: 16 }}
           >
             <div
@@ -244,22 +249,25 @@ const Index = () => {
       {/* STATS ROW */}
       <div className="grid grid-cols-4 gap-2 mb-6">
         {[
-          { emoji: '🔥', value: streak, label: 'Dagar i rad', accent: '#f59e0b' },
-          { emoji: '💪', value: trainingThisWeek, label: 'Denna vecka', accent: '#1a6b3c' },
-          { emoji: '⏱️', value: totalMinutes, label: 'Min i mån', accent: '#4f46e5' },
-          { emoji: '✅', value: `${passedPct}%`, label: 'Godkänd', accent: '#c85d1e' },
+          { emoji: '🔥', value: streak, label: 'Dagar i rad', accent: '#f59e0b', suffix: '' },
+          { emoji: '💪', value: trainingThisWeek, label: 'Denna vecka', accent: '#1a6b3c', suffix: '' },
+          { emoji: '⏱️', value: totalMinutes, label: 'Min i mån', accent: '#4f46e5', suffix: '' },
+          { emoji: '✅', value: passedPct, label: 'Godkänd', accent: '#c85d1e', suffix: '%' },
         ].map((stat, i) => (
           <motion.div
             key={i}
             whileHover={{ scale: 1.03 }}
-            className="relative overflow-hidden bg-white text-center p-2.5"
+            whileTap={{ scale: 0.98 }}
+            className="relative overflow-hidden bg-white text-center p-2.5 tappable"
             style={{
               borderRadius: 10,
               border: '1px solid rgba(0,0,0,0.07)',
             }}
           >
             <div className="text-sm mb-0.5">{stat.emoji}</div>
-            <div className="text-lg font-display font-bold text-foreground">{stat.value}</div>
+            <div className="text-lg font-display font-bold text-foreground">
+              <CountUp end={typeof stat.value === 'number' ? stat.value : 0} duration={0.6} suffix={stat.suffix} />
+            </div>
             <div className="text-muted-foreground" style={{ fontSize: 9 }}>{stat.label}</div>
             <div
               className="absolute bottom-0 left-0 right-0"
@@ -299,8 +307,9 @@ const Index = () => {
                 <motion.div
                   key={dog.id}
                   whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setSelectedDogId(dog.id)}
-                  className="cursor-pointer bg-white p-3.5 flex items-center gap-3"
+                  className="cursor-pointer bg-white p-3.5 flex items-center gap-3 tappable"
                   style={{
                     borderRadius: 16,
                     border: '1px solid rgba(0,0,0,0.07)',
@@ -565,6 +574,7 @@ const Index = () => {
         ))}
       </div>
     </motion.div>
+    </PullToRefresh>
   );
 };
 

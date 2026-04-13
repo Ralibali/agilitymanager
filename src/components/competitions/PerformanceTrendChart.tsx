@@ -15,11 +15,14 @@ interface Props {
 
 export function PerformanceTrendChart({ results, dogs }: Props) {
   const [selectedDog, setSelectedDog] = useState<string | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
-    if (!selectedDog) return results;
-    return results.filter(r => r.dog_id === selectedDog);
-  }, [results, selectedDog]);
+    let list = results;
+    if (selectedDog) list = list.filter(r => r.dog_id === selectedDog);
+    if (selectedLevel) list = list.filter(r => r.competition_level === selectedLevel);
+    return list;
+  }, [results, selectedDog, selectedLevel]);
 
   const data = useMemo(() => {
     if (filtered.length < 2) return [];
@@ -49,6 +52,8 @@ export function PerformanceTrendChart({ results, dogs }: Props) {
 
   const uniqueDogs = [...new Set(results.map(r => r.dog_id))];
   const showDogFilter = uniqueDogs.length > 1;
+  const uniqueLevels = [...new Set(results.map(r => r.competition_level))].sort();
+  const showLevelFilter = uniqueLevels.length > 1;
 
   return (
     <div className="bg-card rounded-xl border border-border p-4 space-y-3">
@@ -82,7 +87,34 @@ export function PerformanceTrendChart({ results, dogs }: Props) {
                 {dog.name}
               </button>
             ))}
+        {showLevelFilter && (
+          <div className="flex gap-1 flex-wrap">
+            <button
+              onClick={() => setSelectedLevel(null)}
+              className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
+                !selectedLevel
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              Alla klasser
+            </button>
+            {uniqueLevels.map(level => (
+              <button
+                key={level}
+                onClick={() => setSelectedLevel(selectedLevel === level ? null : level)}
+                className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
+                  selectedLevel === level
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                }`}
+              >
+                {level}
+              </button>
+            ))}
           </div>
+        )}
+      </div>
         )}
       </div>
 

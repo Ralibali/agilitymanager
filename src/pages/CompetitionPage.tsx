@@ -120,6 +120,14 @@ export default function CompetitionPage() {
 
   useEffect(() => { refresh(); }, []);
 
+  const handleResultAdded = useCallback(async () => {
+    const countBefore = allResults.length;
+    await refresh();
+    if (countBefore >= 0) {
+      setShowCelebration(true);
+    }
+  }, [allResults.length]);
+
   useEffect(() => {
     (async () => {
       const today = new Date().toISOString().slice(0, 10);

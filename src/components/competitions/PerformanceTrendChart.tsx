@@ -87,7 +87,34 @@ export function PerformanceTrendChart({ results, dogs }: Props) {
                 {dog.name}
               </button>
             ))}
+        {showLevelFilter && (
+          <div className="flex gap-1 flex-wrap">
+            <button
+              onClick={() => setSelectedLevel(null)}
+              className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
+                !selectedLevel
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              Alla klasser
+            </button>
+            {uniqueLevels.map(level => (
+              <button
+                key={level}
+                onClick={() => setSelectedLevel(selectedLevel === level ? null : level)}
+                className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
+                  selectedLevel === level
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                }`}
+              >
+                {level}
+              </button>
+            ))}
           </div>
+        )}
+      </div>
         )}
       </div>
 

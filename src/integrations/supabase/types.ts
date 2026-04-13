@@ -1645,7 +1645,72 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      hoopers_competitions_public: {
+        Row: {
+          classes: string[] | null
+          club_name: string | null
+          competition_id: string | null
+          competition_name: string | null
+          county: string | null
+          date: string | null
+          extra_info: string | null
+          fetched_at: string | null
+          id: string | null
+          judge: string | null
+          location: string | null
+          lopp_per_class: Json | null
+          organizer: string | null
+          price_per_lopp: string | null
+          registration_closes: string | null
+          registration_opens: string | null
+          registration_status: string | null
+          source_url: string | null
+          type: string | null
+        }
+        Insert: {
+          classes?: string[] | null
+          club_name?: string | null
+          competition_id?: string | null
+          competition_name?: string | null
+          county?: string | null
+          date?: string | null
+          extra_info?: string | null
+          fetched_at?: string | null
+          id?: string | null
+          judge?: string | null
+          location?: string | null
+          lopp_per_class?: Json | null
+          organizer?: string | null
+          price_per_lopp?: string | null
+          registration_closes?: string | null
+          registration_opens?: string | null
+          registration_status?: string | null
+          source_url?: string | null
+          type?: string | null
+        }
+        Update: {
+          classes?: string[] | null
+          club_name?: string | null
+          competition_id?: string | null
+          competition_name?: string | null
+          county?: string | null
+          date?: string | null
+          extra_info?: string | null
+          fetched_at?: string | null
+          id?: string | null
+          judge?: string | null
+          location?: string | null
+          lopp_per_class?: Json | null
+          organizer?: string | null
+          price_per_lopp?: string | null
+          registration_closes?: string | null
+          registration_opens?: string | null
+          registration_status?: string | null
+          source_url?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {

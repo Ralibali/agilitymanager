@@ -14,8 +14,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['Outfit', 'sans-serif'],
-        body: ['Figtree', 'sans-serif'],
+        display: ["'Instrument Serif'", "serif"],
+        body: ["'Geist'", "sans-serif"],
+      },
+      fontSize: {
+        base: ["14px", "1.5"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -71,9 +74,10 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "var(--radius-card)",
+        md: "var(--radius-button)",
+        sm: "var(--radius-sm)",
+        pill: "var(--radius-pill)",
       },
       keyframes: {
         "accordion-down": {

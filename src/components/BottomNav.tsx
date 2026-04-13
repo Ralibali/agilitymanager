@@ -1,32 +1,28 @@
-import { Home, Dog, Dumbbell, Trophy, Timer, Heart, BarChart3, Settings, PencilRuler, Shield, Users, Building2, GraduationCap, Target } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { forwardRef, useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { MoreHorizontal } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
-import { NotificationBadge } from '@/components/NotificationBadge';
-import { Badge } from '@/components/ui/badge';
 
 const mainTabs = [
-  { path: '/dashboard', icon: Home, label: 'Hem', badgeKey: null as string | null },
-  { path: '/course-planner', icon: PencilRuler, label: 'Banplanerare', badgeKey: null },
-  { path: '/competition', icon: Trophy, label: 'Tävlingar & Resultat', compact: true, badgeKey: null },
-  { path: '/friends', icon: Users, label: 'Kompisar', badgeKey: 'friends' as string },
+  { path: '/dashboard', emoji: '🏠', label: 'Hem', badgeKey: null as string | null },
+  { path: '/course-planner', emoji: '📐', label: 'Banplanerare', badgeKey: null },
+  { path: '/competition', emoji: '🏆', label: 'Tävlingar', badgeKey: null },
+  { path: '/friends', emoji: '👥', label: 'Kompisar', badgeKey: 'friends' as string },
 ];
 
 const moreTabs = [
-  { path: '/dogs', icon: Dog, label: 'Hundar' },
-  { path: '/training', icon: Dumbbell, label: 'Träning' },
-  { path: '/goals', icon: Target, label: 'Mål' },
-  { path: '/courses', icon: GraduationCap, label: 'Kurser' },
-  { path: '/clubs', icon: Building2, label: 'Klubbar' },
-  { path: '/stopwatch', icon: Timer, label: 'Tidtagarur' },
-  { path: '/health', icon: Heart, label: 'Hälsa' },
-  { path: '/stats', icon: BarChart3, label: 'Statistik' },
-  { path: '/settings', icon: Settings, label: 'Inställningar' },
+  { path: '/dogs', emoji: '🐕', label: 'Hundar' },
+  { path: '/training', emoji: '💪', label: 'Träning' },
+  { path: '/goals', emoji: '🎯', label: 'Mål' },
+  { path: '/courses', emoji: '🎓', label: 'Kurser' },
+  { path: '/clubs', emoji: '🏛️', label: 'Klubbar' },
+  { path: '/stopwatch', emoji: '⏱️', label: 'Tidtagarur' },
+  { path: '/health', emoji: '❤️', label: 'Hälsa' },
+  { path: '/stats', emoji: '📊', label: 'Statistik' },
+  { path: '/settings', emoji: '⚙️', label: 'Inställningar' },
 ];
 
 export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref) {
@@ -35,7 +31,6 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
   const [moreOpen, setMoreOpen] = useState(false);
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isClubMember, setIsClubMember] = useState(false);
   const unread = useUnreadCounts();
 
   useEffect(() => {
@@ -43,13 +38,10 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
     supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' }).then(({ data }) => {
       setIsAdmin(!!data);
     });
-    supabase.from('club_members').select('id').eq('user_id', user.id).eq('status', 'accepted').limit(1).then(({ data }) => {
-      setIsClubMember(!!(data && data.length > 0));
-    });
   }, [user?.id]);
 
   const allMoreTabs = isAdmin
-    ? [...moreTabs, { path: '/admin', icon: Shield, label: 'Admin' }]
+    ? [...moreTabs, { path: '/admin', emoji: '🛡️', label: 'Admin' }]
     : moreTabs;
 
   const isMoreActive = allMoreTabs.some(t => t.path === location.pathname);
@@ -59,15 +51,24 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
     return 0;
   };
 
-  // Total badge for "Mer" if notifications exist
   const moreBadge = unread.notifications;
 
   return (
-    <nav ref={ref} aria-label="Huvudnavigering" className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border safe-bottom">
+    <nav
+      ref={ref}
+      aria-label="Huvudnavigering"
+      className="fixed bottom-0 left-0 right-0 z-50"
+      style={{
+        background: 'rgba(255, 255, 255, 0.82)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        borderTop: '1px solid rgba(0,0,0,0.06)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}
+    >
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-1">
         {mainTabs.map((tab) => {
           const isActive = location.pathname === tab.path;
-          const Icon = tab.icon;
           const badge = getBadgeCount(tab.badgeKey);
           return (
             <button
@@ -75,19 +76,29 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
               onClick={() => navigate(tab.path)}
               className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 relative"
             >
+              {/* Active green dot */}
               {isActive && (
                 <motion.div
-                  layoutId="activeTab"
-                  className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full gradient-primary"
+                  layoutId="activeTabDot"
+                  className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
+                  style={{ background: '#1a6b3c' }}
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />
               )}
-              <div className="relative">
-                <Icon size={20} className={isActive ? 'text-primary' : 'text-muted-foreground'} />
-                <NotificationBadge count={badge} />
+              <div className="relative text-lg">
+                {tab.emoji}
+                {badge > 0 && (
+                  <span
+                    className="absolute -top-1 -right-2 w-4 h-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center"
+                    style={{ background: '#dc2626' }}
+                  >
+                    {badge > 9 ? '9+' : badge}
+                  </span>
+                )}
               </div>
               <span
-                className={`${tab.compact ? 'text-[9px] leading-none text-center max-w-[4.75rem]' : 'text-[10px]'} font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
+                className="text-[10px] font-medium"
+                style={{ color: isActive ? '#1a6b3c' : '#999' }}
               >
                 {tab.label}
               </span>
@@ -101,16 +112,27 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
             <button className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 relative">
               {isMoreActive && (
                 <motion.div
-                  layoutId="activeTab"
-                  className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full gradient-primary"
+                  layoutId="activeTabDot"
+                  className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
+                  style={{ background: '#1a6b3c' }}
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />
               )}
-              <div className="relative">
-                <MoreHorizontal size={20} className={isMoreActive ? 'text-primary' : 'text-muted-foreground'} />
-                <NotificationBadge count={moreBadge} />
+              <div className="relative text-lg">
+                ⋯
+                {moreBadge > 0 && (
+                  <span
+                    className="absolute -top-1 -right-2 w-4 h-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center"
+                    style={{ background: '#dc2626' }}
+                  >
+                    {moreBadge > 9 ? '9+' : moreBadge}
+                  </span>
+                )}
               </div>
-              <span className={`text-[10px] font-medium ${isMoreActive ? 'text-primary' : 'text-muted-foreground'}`}>
+              <span
+                className="text-[10px] font-medium"
+                style={{ color: isMoreActive ? '#1a6b3c' : '#999' }}
+              >
                 Mer
               </span>
             </button>
@@ -118,7 +140,6 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
           <SheetContent side="bottom" className="rounded-t-2xl pb-safe">
             <div className="grid grid-cols-3 gap-4 py-4">
               {allMoreTabs.map(tab => {
-                const Icon = tab.icon;
                 const isActive = location.pathname === tab.path;
                 return (
                   <button
@@ -126,15 +147,20 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
                     onClick={() => { navigate(tab.path); setMoreOpen(false); }}
                     className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-secondary transition-colors"
                   >
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center relative ${isActive ? 'bg-primary/10' : 'bg-secondary'}`}>
-                      <Icon size={22} className={isActive ? 'text-primary' : 'text-muted-foreground'} />
-                      {tab.path === '/clubs' && isClubMember && (
-                        <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-[7px] font-bold px-1 py-0.5 rounded-full leading-none">
-                          Klubb
-                        </span>
-                      )}
+                    <div
+                      className="w-12 h-12 rounded-full flex items-center justify-center text-xl"
+                      style={{
+                        background: isActive ? '#e8f4ed' : 'hsl(var(--secondary))',
+                      }}
+                    >
+                      {tab.emoji}
                     </div>
-                    <span className={`text-xs font-medium ${isActive ? 'text-primary' : 'text-foreground'}`}>{tab.label}</span>
+                    <span
+                      className="text-xs font-medium"
+                      style={{ color: isActive ? '#1a6b3c' : 'hsl(var(--foreground))' }}
+                    >
+                      {tab.label}
+                    </span>
                   </button>
                 );
               })}

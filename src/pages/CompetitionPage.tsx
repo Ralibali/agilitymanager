@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { CompetitionSkeleton } from '@/components/SkeletonScreens';
 import { ResultsImporter } from '@/components/competitions/ResultsImporter';
 import { MinaTavlingar } from '@/components/competitions/MinaTavlingar';
 import { useState, useEffect, useMemo } from 'react';

@@ -7,7 +7,7 @@ import { DogAvatar } from '@/components/DogAvatar';
 import { MeritBadge, MeritProgress, calculateMerit } from '@/components/MeritTracker';
 import { store } from '@/lib/store';
 import type { Dog, TrainingSession, CompetitionResult, PlannedCompetition } from '@/types';
-import { ArrowRight, Sparkles, Plus, Zap, Trophy, TrendingUp, Flame, Clock, Target, CheckCircle2, Settings } from 'lucide-react';
+import { ArrowRight, Sparkles, Plus, Zap, Trophy, TrendingUp, Flame, Clock, Target, CheckCircle2, Settings, Timer, Heart, PenTool, Users } from 'lucide-react';
 import { CountUp } from '@/components/CountUp';
 import { HomeSkeleton } from '@/components/SkeletonScreens';
 import { PullToRefresh } from '@/components/PullToRefresh';

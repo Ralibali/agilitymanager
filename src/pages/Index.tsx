@@ -307,8 +307,9 @@ const Index = () => {
                 <motion.div
                   key={dog.id}
                   whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setSelectedDogId(dog.id)}
-                  className="cursor-pointer bg-white p-3.5 flex items-center gap-3"
+                  className="cursor-pointer bg-white p-3.5 flex items-center gap-3 tappable"
                   style={{
                     borderRadius: 16,
                     border: '1px solid rgba(0,0,0,0.07)',

@@ -6,13 +6,15 @@ interface Props {
   show: boolean;
   streak: number;
   onDone: () => void;
+  title?: string;
+  subtitle?: string;
 }
 
 /**
  * Full-screen celebration overlay shown when the user logs their first training session of the day.
  * Shows a streak counter with confetti-like particle burst.
  */
-export default function TrainingCelebration({ show, streak, onDone }: Props) {
+export default function TrainingCelebration({ show, streak, onDone, title, subtitle }: Props) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -101,10 +103,10 @@ export default function TrainingCelebration({ show, streak, onDone }: Props) {
               className="text-center"
             >
               <p className="font-display text-xl text-foreground font-semibold">
-                {streak > 1 ? `${streak} dagar i rad! 🔥` : 'Dagens pass loggat! 💪'}
+                {title ?? (streak > 1 ? `${streak} dagar i rad! 🔥` : 'Dagens pass loggat! 💪')}
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                {streak > 1 ? 'Fantastisk streak – fortsätt så!' : 'Första passet idag – bra jobbat!'}
+                {subtitle ?? (streak > 1 ? 'Fantastisk streak – fortsätt så!' : 'Första passet idag – bra jobbat!')}
               </p>
             </motion.div>
 

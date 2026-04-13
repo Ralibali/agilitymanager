@@ -17,6 +17,9 @@ import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 import TrainingGoals from '@/components/training/TrainingGoals';
 import CoachVideoAnalysis from '@/components/training/CoachVideoAnalysis';
 import { CountUp } from '@/components/CountUp';
+import TrainingCelebration from '@/components/training/TrainingCelebration';
+import { differenceInDays } from 'date-fns';
+import { useCallback } from 'react';
 
 const stagger = {
   hidden: { opacity: 0 },
@@ -39,6 +42,7 @@ export default function TrainingPage() {
   const [shareSession, setShareSession] = useState<TrainingSession | null>(null);
   const [sportFilter, setSportFilter] = useState<'Alla' | 'Agility' | 'Hoopers'>('Alla');
   const [selectedDogId, setSelectedDogId] = useState<string | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const refresh = async () => {
     const [d, t, r] = await Promise.all([store.getDogs(), store.getTraining(), store.getCompetitions()]);
@@ -48,6 +52,30 @@ export default function TrainingPage() {
     setLoading(false);
   };
   useEffect(() => { refresh(); }, []);
+
+  // Called after a new session is added – checks if it's the first today
+  const handleAdded = useCallback(async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const hadTodayBefore = sessions.some(s => s.date === today);
+    await refresh();
+    if (!hadTodayBefore) {
+      setShowCelebration(true);
+    }
+  }, [sessions]);
+
+  // Streak calculation
+  const getStreak = () => {
+    const dates = [...new Set(sessions.map(s => s.date))].sort().reverse();
+    if (!dates.length) return 0;
+    const today = new Date().toISOString().split('T')[0];
+    if (dates[0] !== today && differenceInDays(new Date(today), new Date(dates[0])) > 1) return 0;
+    let streak = 1;
+    for (let i = 1; i < dates.length; i++) {
+      if (differenceInDays(new Date(dates[i - 1]), new Date(dates[i])) === 1) streak++;
+      else break;
+    }
+    return streak;
+  };
 
   const getDog = (id: string) => dogs.find(d => d.id === id);
 
@@ -105,7 +133,7 @@ export default function TrainingPage() {
             </Button>
             </>
           )}
-          {dogs.length > 0 ? <AddTrainingDialog dogs={dogs} onAdded={refresh} /> : null}
+          {dogs.length > 0 ? <AddTrainingDialog dogs={dogs} onAdded={handleAdded} /> : null}
         </div>
       }
     >
@@ -120,7 +148,7 @@ export default function TrainingPage() {
           </div>
           <p className="text-muted-foreground mb-1">Inga träningspass loggade ännu.</p>
           {dogs.length > 0 ? (
-            <AddTrainingDialog dogs={dogs} onAdded={refresh} />
+            <AddTrainingDialog dogs={dogs} onAdded={handleAdded} />
           ) : (
             <p className="text-sm text-muted-foreground">Lägg till en hund först!</p>
           )}
@@ -337,6 +365,12 @@ export default function TrainingPage() {
         }}
       />
     )}
+
+    <TrainingCelebration
+      show={showCelebration}
+      streak={getStreak()}
+      onDone={() => setShowCelebration(false)}
+    />
     </>
   );
 }

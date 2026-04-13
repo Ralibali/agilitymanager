@@ -5,24 +5,29 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
+import {
+  Home, PenTool, Trophy, Users, MoreHorizontal,
+  Dog, Dumbbell, Target, GraduationCap, Building2,
+  Timer, Heart, BarChart3, Settings, ShieldCheck,
+} from 'lucide-react';
 
 const mainTabs = [
-  { path: '/dashboard', emoji: '🏠', label: 'Hem', badgeKey: null as string | null },
-  { path: '/course-planner', emoji: '📐', label: 'Banplanerare', badgeKey: null },
-  { path: '/competition', emoji: '🏆', label: 'Tävlingar', badgeKey: null },
-  { path: '/friends', emoji: '👥', label: 'Kompisar', badgeKey: 'friends' as string },
+  { path: '/dashboard', icon: Home, label: 'Hem', badgeKey: null as string | null },
+  { path: '/course-planner', icon: PenTool, label: 'Banor', badgeKey: null },
+  { path: '/competition', icon: Trophy, label: 'Tävlingar', badgeKey: null },
+  { path: '/friends', icon: Users, label: 'Kompisar', badgeKey: 'friends' as string },
 ];
 
 const moreTabs = [
-  { path: '/dogs', emoji: '🐕', label: 'Hundar' },
-  { path: '/training', emoji: '💪', label: 'Träning' },
-  { path: '/goals', emoji: '🎯', label: 'Mål' },
-  { path: '/courses', emoji: '🎓', label: 'Kurser' },
-  { path: '/clubs', emoji: '🏛️', label: 'Klubbar' },
-  { path: '/stopwatch', emoji: '⏱️', label: 'Tidtagarur' },
-  { path: '/health', emoji: '❤️', label: 'Hälsa' },
-  { path: '/stats', emoji: '📊', label: 'Statistik' },
-  { path: '/settings', emoji: '⚙️', label: 'Inställningar' },
+  { path: '/dogs', icon: Dog, label: 'Hundar' },
+  { path: '/training', icon: Dumbbell, label: 'Träning' },
+  { path: '/goals', icon: Target, label: 'Mål' },
+  { path: '/courses', icon: GraduationCap, label: 'Kurser' },
+  { path: '/clubs', icon: Building2, label: 'Klubbar' },
+  { path: '/stopwatch', icon: Timer, label: 'Tidtagarur' },
+  { path: '/health', icon: Heart, label: 'Hälsa' },
+  { path: '/stats', icon: BarChart3, label: 'Statistik' },
+  { path: '/settings', icon: Settings, label: 'Inställningar' },
 ];
 
 export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref) {
@@ -41,7 +46,7 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
   }, [user?.id]);
 
   const allMoreTabs = isAdmin
-    ? [...moreTabs, { path: '/admin', emoji: '🛡️', label: 'Admin' }]
+    ? [...moreTabs, { path: '/admin', icon: ShieldCheck, label: 'Admin' }]
     : moreTabs;
 
   const isMoreActive = allMoreTabs.some(t => t.path === location.pathname);
@@ -59,49 +64,54 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
       aria-label="Huvudnavigering"
       className="fixed bottom-0 left-0 right-0 z-50"
       style={{
-        background: 'rgba(255, 255, 255, 0.82)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        borderTop: '1px solid rgba(0,0,0,0.06)',
+        background: 'rgba(255, 255, 255, 0.88)',
+        backdropFilter: 'saturate(180%) blur(20px)',
+        WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+        borderTop: '1px solid rgba(0,0,0,0.05)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
-      <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-1">
+      <div className="flex items-center justify-around h-14 max-w-lg mx-auto px-2">
         {mainTabs.map((tab) => {
           const isActive = location.pathname === tab.path;
           const badge = getBadgeCount(tab.badgeKey);
+          const Icon = tab.icon;
           return (
             <button
               key={tab.path}
               onClick={() => navigate(tab.path)}
-              className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 relative"
+              className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 relative transition-colors"
             >
-              {/* Active green dot */}
-              {isActive && (
-                <motion.div
-                  layoutId="activeTabDot"
-                  className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
-                  style={{ background: '#1a6b3c' }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              <div className="relative">
+                <Icon
+                  size={20}
+                  strokeWidth={isActive ? 2.2 : 1.6}
+                  className="transition-colors"
+                  style={{ color: isActive ? 'hsl(148, 62%, 26%)' : 'hsl(var(--muted-foreground))' }}
                 />
-              )}
-              <div className="relative text-lg">
-                {tab.emoji}
                 {badge > 0 && (
                   <span
-                    className="absolute -top-1 -right-2 w-4 h-4 text-white text-[9px] font-bold flex items-center justify-center"
-                    style={{ background: '#dc2626', borderRadius: 'var(--radius-pill)' }}
+                    className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 text-white text-[9px] font-bold flex items-center justify-center px-1"
+                    style={{ background: 'hsl(var(--destructive))', borderRadius: '10px' }}
                   >
                     {badge > 9 ? '9+' : badge}
                   </span>
                 )}
               </div>
               <span
-                className="text-[10px] font-medium"
-                style={{ color: isActive ? '#1a6b3c' : '#999' }}
+                className="text-[10px] font-medium transition-colors"
+                style={{ color: isActive ? 'hsl(148, 62%, 26%)' : 'hsl(var(--muted-foreground))' }}
               >
                 {tab.label}
               </span>
+              {isActive && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute -bottom-0.5 w-5 h-[3px] rounded-full"
+                  style={{ background: 'hsl(148, 62%, 26%)' }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+                />
+              )}
             </button>
           );
         })}
@@ -110,54 +120,67 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
         <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
           <SheetTrigger asChild>
             <button className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 relative">
-              {isMoreActive && (
-                <motion.div
-                  layoutId="activeTabDot"
-                  className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
-                  style={{ background: '#1a6b3c' }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              <div className="relative">
+                <MoreHorizontal
+                  size={20}
+                  strokeWidth={isMoreActive ? 2.2 : 1.6}
+                  className="transition-colors"
+                  style={{ color: isMoreActive ? 'hsl(148, 62%, 26%)' : 'hsl(var(--muted-foreground))' }}
                 />
-              )}
-              <div className="relative text-lg">
-                ⋯
                 {moreBadge > 0 && (
                   <span
-                    className="absolute -top-1 -right-2 w-4 h-4 text-white text-[9px] font-bold flex items-center justify-center"
-                    style={{ background: '#dc2626', borderRadius: 'var(--radius-pill)' }}
+                    className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 text-white text-[9px] font-bold flex items-center justify-center px-1"
+                    style={{ background: 'hsl(var(--destructive))', borderRadius: '10px' }}
                   >
                     {moreBadge > 9 ? '9+' : moreBadge}
                   </span>
                 )}
               </div>
               <span
-                className="text-[10px] font-medium"
-                style={{ color: isMoreActive ? '#1a6b3c' : '#999' }}
+                className="text-[10px] font-medium transition-colors"
+                style={{ color: isMoreActive ? 'hsl(148, 62%, 26%)' : 'hsl(var(--muted-foreground))' }}
               >
                 Mer
               </span>
+              {isMoreActive && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute -bottom-0.5 w-5 h-[3px] rounded-full"
+                  style={{ background: 'hsl(148, 62%, 26%)' }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+                />
+              )}
             </button>
           </SheetTrigger>
           <SheetContent side="bottom" className="rounded-t-2xl pb-safe">
-            <div className="grid grid-cols-3 gap-4 py-4">
+            <div className="grid grid-cols-3 gap-3 py-4">
               {allMoreTabs.map(tab => {
                 const isActive = location.pathname === tab.path;
+                const Icon = tab.icon;
                 return (
                   <button
                     key={tab.path}
                     onClick={() => { navigate(tab.path); setMoreOpen(false); }}
-                    className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-secondary transition-colors"
+                    className="flex flex-col items-center gap-2 p-3 rounded-xl transition-colors"
+                    style={{
+                      background: isActive ? 'hsl(148, 62%, 26% / 0.08)' : 'transparent',
+                    }}
                   >
                     <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center text-xl"
+                      className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors"
                       style={{
-                        background: isActive ? '#e8f4ed' : 'hsl(var(--secondary))',
+                        background: isActive ? 'hsl(148, 62%, 26% / 0.12)' : 'hsl(var(--secondary))',
                       }}
                     >
-                      {tab.emoji}
+                      <Icon
+                        size={20}
+                        strokeWidth={1.6}
+                        style={{ color: isActive ? 'hsl(148, 62%, 26%)' : 'hsl(var(--foreground))' }}
+                      />
                     </div>
                     <span
-                      className="text-xs font-medium"
-                      style={{ color: isActive ? '#1a6b3c' : 'hsl(var(--foreground))' }}
+                      className="text-[11px] font-medium"
+                      style={{ color: isActive ? 'hsl(148, 62%, 26%)' : 'hsl(var(--foreground))' }}
                     >
                       {tab.label}
                     </span>

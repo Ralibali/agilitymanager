@@ -11,19 +11,25 @@ interface PageContainerProps {
 export function PageContainer({ children, title, subtitle, action }: PageContainerProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.25 }}
       id="main-content"
-      className="min-h-screen pb-20 px-4 pt-4 max-w-lg mx-auto"
+      className="min-h-screen pb-20 px-4 pt-5 max-w-lg mx-auto"
     >
       {(title || action) && (
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            {title && <h1 className="text-2xl font-bold font-display text-foreground">{title}</h1>}
-            {subtitle && <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>}
+        <div className="flex items-start justify-between mb-5">
+          <div className="space-y-0.5">
+            {title && (
+              <h1 className="text-xl font-semibold font-display text-foreground tracking-tight">
+                {title}
+              </h1>
+            )}
+            {subtitle && (
+              <p className="text-[13px] text-muted-foreground">{subtitle}</p>
+            )}
           </div>
-          {action}
+          {action && <div className="flex-shrink-0">{action}</div>}
         </div>
       )}
       {children}

@@ -61,11 +61,7 @@ const Index = () => {
   if (showOnboarding) return <OnboardingWizard onComplete={refresh} />;
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
-        Laddar...
-      </div>
-    );
+    return <HomeSkeleton />;
   }
 
   // Filtered data
@@ -215,9 +211,10 @@ const Index = () => {
 
       {/* CTA BUTTONS */}
       <div className="grid grid-cols-2 gap-3 mb-5">
+        {/* Haptic hint: medium haptic on tap */}
         <AddTrainingDialog dogs={dogs} onAdded={refresh} trigger={
           <button
-            className="relative overflow-hidden flex flex-col items-start p-4 text-left w-full text-white"
+            className="relative overflow-hidden flex flex-col items-start p-4 text-left w-full text-white btn-press"
             style={{ background: '#1a6b3c', borderRadius: 16 }}
           >
             <div
@@ -229,9 +226,10 @@ const Index = () => {
             <span className="text-xs opacity-80">Snabblogg</span>
           </button>
         } />
+        {/* Haptic hint: success haptic on tap */}
         <AddCompetitionDialog dogs={dogs} onAdded={refresh} trigger={
           <button
-            className="relative overflow-hidden flex flex-col items-start p-4 text-left w-full text-white"
+            className="relative overflow-hidden flex flex-col items-start p-4 text-left w-full text-white btn-press"
             style={{ background: '#c85d1e', borderRadius: 16 }}
           >
             <div

@@ -26,6 +26,7 @@ interface Club {
   invite_code: string;
   created_by: string;
   created_at: string;
+  quick_tags: string[];
 }
 
 interface ClubMember {

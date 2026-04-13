@@ -28,6 +28,8 @@ import { CompetitionStatsCard } from '@/components/competitions/CompetitionStats
 import { CleanRunTrendChart } from '@/components/competitions/CleanRunTrendChart';
 import { PerformanceTrendChart } from '@/components/competitions/PerformanceTrendChart';
 import { useAuth } from '@/contexts/AuthContext';
+import TrainingCelebration from '@/components/training/TrainingCelebration';
+import { useCallback } from 'react';
 
 /** Strip HTML tags from API strings to prevent XSS / ugly rendering */
 const stripHtml = (str: string | null | undefined): string =>

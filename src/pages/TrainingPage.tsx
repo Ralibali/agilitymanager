@@ -133,7 +133,7 @@ export default function TrainingPage() {
             </Button>
             </>
           )}
-          {dogs.length > 0 ? <AddTrainingDialog dogs={dogs} onAdded={refresh} /> : null}
+          {dogs.length > 0 ? <AddTrainingDialog dogs={dogs} onAdded={handleAdded} /> : null}
         </div>
       }
     >
@@ -148,7 +148,7 @@ export default function TrainingPage() {
           </div>
           <p className="text-muted-foreground mb-1">Inga träningspass loggade ännu.</p>
           {dogs.length > 0 ? (
-            <AddTrainingDialog dogs={dogs} onAdded={refresh} />
+            <AddTrainingDialog dogs={dogs} onAdded={handleAdded} />
           ) : (
             <p className="text-sm text-muted-foreground">Lägg till en hund först!</p>
           )}

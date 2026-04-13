@@ -99,6 +99,7 @@ export default function CompetitionPage() {
   });
   const [newItem, setNewItem] = useState('');
   const [shareResult, setShareResult] = useState<CompetitionResult | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
   const { user } = useAuth();
 
   const uniqueDogs = useMemo(() => {

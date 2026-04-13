@@ -91,7 +91,6 @@ export const BottomNav = forwardRef<HTMLElement>(function BottomNav(_props, ref)
                   <span
                     className="absolute -top-1 -right-2 w-4 h-4 text-white text-[9px] font-bold flex items-center justify-center"
                     style={{ background: '#dc2626', borderRadius: 'var(--radius-pill)' }}
-                    style={{ background: '#dc2626' }}
                   >
                     {badge > 9 ? '9+' : badge}
                   </span>

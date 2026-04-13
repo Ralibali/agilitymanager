@@ -28,6 +28,8 @@ import { CompetitionStatsCard } from '@/components/competitions/CompetitionStats
 import { CleanRunTrendChart } from '@/components/competitions/CleanRunTrendChart';
 import { PerformanceTrendChart } from '@/components/competitions/PerformanceTrendChart';
 import { useAuth } from '@/contexts/AuthContext';
+import TrainingCelebration from '@/components/training/TrainingCelebration';
+import { useCallback } from 'react';
 
 /** Strip HTML tags from API strings to prevent XSS / ugly rendering */
 const stripHtml = (str: string | null | undefined): string =>
@@ -97,6 +99,7 @@ export default function CompetitionPage() {
   });
   const [newItem, setNewItem] = useState('');
   const [shareResult, setShareResult] = useState<CompetitionResult | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
   const { user } = useAuth();
 
   const uniqueDogs = useMemo(() => {
@@ -116,6 +119,14 @@ export default function CompetitionPage() {
   };
 
   useEffect(() => { refresh(); }, []);
+
+  const handleResultAdded = useCallback(async () => {
+    const countBefore = allResults.length;
+    await refresh();
+    if (countBefore >= 0) {
+      setShowCelebration(true);
+    }
+  }, [allResults.length]);
 
   useEffect(() => {
     (async () => {
@@ -315,7 +326,7 @@ export default function CompetitionPage() {
         {/* Add competition button */}
         {dogs.length > 0 && (
           <div className="mb-4 mt-2">
-            <AddCompetitionDialog dogs={dogs} onAdded={refresh} />
+            <AddCompetitionDialog dogs={dogs} onAdded={handleResultAdded} />
           </div>
         )}
 
@@ -603,7 +614,7 @@ export default function CompetitionPage() {
             <CleanRunTrendChart results={filteredResults} />
             <PerformanceTrendChart results={filteredResults} dogs={dogs} />
 
-            <ResultsImporter dogs={dogs} onImported={() => refresh()} autoFetch />
+            <ResultsImporter dogs={dogs} onImported={handleResultAdded} autoFetch />
             {sportFilter !== 'Hoopers' && <ClassPromotionTracker results={results} dogs={dogs} />}
             {sportFilter === 'Hoopers' && <HoopersPointsTracker dogs={dogs} />}
 
@@ -612,7 +623,7 @@ export default function CompetitionPage() {
                 <div className="text-3xl mb-2">🐾</div>
                 <div className="text-sm font-semibold text-foreground mb-1">Inga tävlingsresultat ännu</div>
                 <p className="text-xs text-muted-foreground mb-3">Logga ditt första resultat för att börja spåra framsteg!</p>
-                {dogs.length > 0 ? <AddCompetitionDialog dogs={dogs} onAdded={refresh} /> : <p className="text-sm text-muted-foreground">Lägg till en hund först!</p>}
+                {dogs.length > 0 ? <AddCompetitionDialog dogs={dogs} onAdded={handleResultAdded} /> : <p className="text-sm text-muted-foreground">Lägg till en hund först!</p>}
               </div>
             ) : (
               (() => {
@@ -789,6 +800,13 @@ export default function CompetitionPage() {
           }}
         />
       )}
+      <TrainingCelebration
+        show={showCelebration}
+        streak={allResults.length}
+        onDone={() => setShowCelebration(false)}
+        title="Resultat loggat! 🏆"
+        subtitle="Snyggt jobbat – fortsätt bygga din tävlingshistorik!"
+      />
     </>
   );
 }

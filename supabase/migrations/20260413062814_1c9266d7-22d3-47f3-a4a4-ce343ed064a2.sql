@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Anon can read hoopers competitions" ON public.hoopers_competitions;

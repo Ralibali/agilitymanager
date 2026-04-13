@@ -17,6 +17,9 @@ import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 import TrainingGoals from '@/components/training/TrainingGoals';
 import CoachVideoAnalysis from '@/components/training/CoachVideoAnalysis';
 import { CountUp } from '@/components/CountUp';
+import TrainingCelebration from '@/components/training/TrainingCelebration';
+import { differenceInDays } from 'date-fns';
+import { useCallback } from 'react';
 
 const stagger = {
   hidden: { opacity: 0 },

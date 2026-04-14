@@ -451,15 +451,16 @@ export default function CompetitionPage() {
             {sportFilter !== 'Hoopers' && (
               <motion.div variants={fadeSlide}>
                 <SectionHeader>Kommande tävlingar</SectionHeader>
-                {upcoming.length === 0 && interestedComps.length === 0 ? (
+                {upcoming.length === 0 && interestedComps.length === 0 && upcomingAgility.length === 0 ? (
                   <EmptyCard
-                    text="Inga fler anmälningar"
+                    text="Inga kommande tävlingar hittades"
                     sub="Kolla in Agida för att hitta nästa tävling!"
                     linkText="Sök tävlingar på Agida"
                     linkUrl="https://www.agida.se"
                   />
                 ) : (
                   <div className="space-y-2.5 mt-2.5">
+                    {/* User's planned */}
                     {upcoming.map((p, i) => {
                       const dog = getDog(p.dog_id);
                       const daysLeft = differenceInDays(new Date(p.date), new Date());
@@ -478,6 +479,7 @@ export default function CompetitionPage() {
                         />
                       );
                     })}
+                    {/* User's interested */}
                     {interestedComps.map((ic, i) => {
                       const daysLeft = differenceInDays(new Date(ic.comp.date_start!), new Date());
                       const statusLabel = ic.status === 'registered' ? 'Anmäld' : 'Intresserad';
@@ -496,6 +498,27 @@ export default function CompetitionPage() {
                         />
                       );
                     })}
+                    {/* All upcoming agility from calendar */}
+                    {upcomingAgility
+                      .filter(ac => !upcoming.some(p => stripHtml(p.event_name).toLowerCase().includes(stripHtml(ac.competition_name).toLowerCase().split(' ')[0])))
+                      .filter(ac => !interestedComps.some(ic => ic.competition_id === ac.id))
+                      .map((ac, i) => {
+                        const daysLeft = ac.date_start ? differenceInDays(new Date(ac.date_start), new Date()) : null;
+                        return (
+                          <CompCard
+                            key={ac.id}
+                            index={upcoming.length + interestedComps.length + i}
+                            color="primary"
+                            date={ac.date_start ? format(new Date(ac.date_start), 'd MMMM yyyy', { locale: sv }) : ''}
+                            daysLeft={daysLeft}
+                            name={stripHtml(ac.competition_name) || 'Tävling'}
+                            location={stripHtml(ac.location)}
+                            clubName={stripHtml(ac.club_name)}
+                            status={ac.status ?? undefined}
+                            sourceUrl={ac.source_url ?? undefined}
+                          />
+                        );
+                      })}
                   </div>
                 )}
               </motion.div>

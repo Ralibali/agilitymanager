@@ -303,6 +303,23 @@ export default function CompetitionPage() {
   const disciplineFiltered = disciplineFilter ? sportFilteredResults.filter(r => r.discipline === disciplineFilter) : sportFilteredResults;
   const filteredResults = dogFilter ? disciplineFiltered.filter(r => r.dog_id === dogFilter) : disciplineFiltered;
 
+  // Unique locations from upcoming agility competitions
+  const agilityLocations = useMemo(() => {
+    const locs = upcomingAgility.map(c => stripHtml(c.location)).filter(Boolean);
+    return [...new Set(locs)].sort();
+  }, [upcomingAgility]);
+
+  // Filter upcoming agility by location
+  const filteredUpcomingAgility = useMemo(() => {
+    let comps = upcomingAgility
+      .filter(ac => !upcoming.some(p => stripHtml(p.event_name).toLowerCase().includes(stripHtml(ac.competition_name).toLowerCase().split(' ')[0])))
+      .filter(ac => !interestedComps.some(ic => ic.competition_id === ac.id));
+    if (locationFilter) {
+      comps = comps.filter(ac => stripHtml(ac.location) === locationFilter);
+    }
+    return comps;
+  }, [upcomingAgility, upcoming, interestedComps, locationFilter]);
+
   const activeCompCount = upcoming.length + interestedComps.length;
   const currentYear = new Date().getFullYear();
 

@@ -209,11 +209,12 @@ export default function TrainingPage() {
                 className="px-3.5 py-1.5 text-xs font-medium transition-all"
                 style={{
                   borderRadius: 'var(--radius-pill)',
-                  background: sportFilter === s ? 'hsl(var(--primary))' : 'hsl(var(--secondary))',
-                  color: sportFilter === s ? 'hsl(var(--primary-foreground))' : 'hsl(var(--secondary-foreground))',
+                  background: sportFilter === s ? 'hsl(var(--foreground))' : 'hsl(var(--card))',
+                  color: sportFilter === s ? 'hsl(var(--card))' : 'hsl(var(--foreground))',
+                  border: `1px solid ${sportFilter === s ? 'hsl(var(--foreground))' : 'hsl(var(--border))'}`,
                 }}
               >
-                {s === 'Alla' ? '🏆 Alla' : s === 'Agility' ? '🏃 Agility' : '🐕 Hoopers'}
+                {s === 'Alla' ? 'Alla' : s}
               </button>
             ))}
           </motion.div>

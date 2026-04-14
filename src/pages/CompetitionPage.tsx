@@ -168,15 +168,24 @@ export default function CompetitionPage() {
   }, [allResults.length]);
 
   useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
     (async () => {
-      const today = new Date().toISOString().slice(0, 10);
-      const { data } = await supabase
-        .from('hoopers_competitions')
-        .select('id, competition_name, date, location, club_name, classes, source_url, type')
-        .gte('date', today)
-        .order('date', { ascending: true })
-        .limit(20);
-      if (data) setUpcomingHoopers(data);
+      const [hoopersRes, agilityRes] = await Promise.all([
+        supabase
+          .from('hoopers_competitions')
+          .select('id, competition_name, date, location, club_name, classes, source_url, type')
+          .gte('date', today)
+          .order('date', { ascending: true })
+          .limit(20),
+        supabase
+          .from('competitions')
+          .select('id, competition_name, date_start, location, club_name, status, source_url')
+          .gte('date_start', today)
+          .order('date_start', { ascending: true })
+          .limit(50),
+      ]);
+      if (hoopersRes.data) setUpcomingHoopers(hoopersRes.data);
+      if (agilityRes.data) setUpcomingAgility(agilityRes.data);
     })();
   }, []);
 

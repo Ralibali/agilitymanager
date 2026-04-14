@@ -122,7 +122,8 @@ export default function CompetitionPage() {
   const [activeTab, setActiveTab] = useState<'competitions' | 'results' | 'mine' | 'checklist'>('competitions');
   const [interestedComps, setInterestedComps] = useState<{ id: string; competition_id: string; status: string; dog_name: string | null; comp: { competition_name: string | null; date_start: string | null; location: string | null; source_url: string | null } }[]>([]);
   const [upcomingHoopers, setUpcomingHoopers] = useState<{ id: string; competition_name: string | null; date: string | null; location: string | null; club_name: string | null; classes: string[] | null; source_url: string | null; type: string | null }[]>([]);
-  const [upcomingAgility, setUpcomingAgility] = useState<{ id: string; competition_name: string | null; date_start: string | null; location: string | null; club_name: string | null; status: string | null; source_url: string | null; last_registration_date: string | null }[]>([]);
+  const [upcomingAgility, setUpcomingAgility] = useState<{ id: string; competition_name: string | null; date_start: string | null; location: string | null; club_name: string | null; status: string | null; source_url: string | null }[]>([]);
+  const [locationFilter, setLocationFilter] = useState<string | null>(null);
   const [hoopersResults, setHoopersResults] = useState<CompetitionResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [friendNames, setFriendNames] = useState<string[]>([]);
@@ -178,10 +179,10 @@ export default function CompetitionPage() {
           .limit(20),
         supabase
           .from('competitions')
-          .select('id, competition_name, date_start, location, club_name, status, source_url, last_registration_date')
+          .select('id, competition_name, date_start, location, club_name, status, source_url')
           .gte('date_start', today)
           .order('date_start', { ascending: true })
-          .limit(30),
+          .limit(50),
       ]);
       if (hoopersRes.data) setUpcomingHoopers(hoopersRes.data);
       if (agilityRes.data) setUpcomingAgility(agilityRes.data);
@@ -293,6 +294,24 @@ export default function CompetitionPage() {
     toast.success('Raderad');
     refresh();
   };
+
+  // Unique locations from upcoming agility competitions
+  const agilityLocations = useMemo(() => {
+    const locs = upcomingAgility.map(c => stripHtml(c.location)).filter(Boolean);
+    return [...new Set(locs)].sort();
+  }, [upcomingAgility]);
+
+  // Filter upcoming agility by location (computed before early return)
+  const filteredUpcomingAgility = useMemo(() => {
+    const up = planned.filter(p => new Date(p.date) >= new Date());
+    let comps = upcomingAgility
+      .filter(ac => !up.some(p => stripHtml(p.event_name).toLowerCase().includes(stripHtml(ac.competition_name).toLowerCase().split(' ')[0])))
+      .filter(ac => !interestedComps.some(ic => ic.competition_id === ac.id));
+    if (locationFilter) {
+      comps = comps.filter(ac => stripHtml(ac.location) === locationFilter);
+    }
+    return comps;
+  }, [upcomingAgility, planned, interestedComps, locationFilter]);
 
   if (loading) return <CompetitionSkeleton />;
 
@@ -451,7 +470,22 @@ export default function CompetitionPage() {
             {sportFilter !== 'Hoopers' && (
               <motion.div variants={fadeSlide}>
                 <SectionHeader>Kommande tävlingar</SectionHeader>
-                {upcoming.length === 0 && interestedComps.length === 0 && upcomingAgility.length === 0 ? (
+
+                {/* Location filter */}
+                {agilityLocations.length > 1 && (
+                  <div className="flex gap-1.5 mt-2 mb-3 overflow-x-auto scrollbar-hide pb-1">
+                    <FilterChip active={!locationFilter} onClick={() => setLocationFilter(null)}>
+                      <span className="flex items-center gap-1"><MapPin size={10} /> Alla orter</span>
+                    </FilterChip>
+                    {agilityLocations.map(loc => (
+                      <FilterChip key={loc} active={locationFilter === loc} onClick={() => setLocationFilter(locationFilter === loc ? null : loc)}>
+                        {loc}
+                      </FilterChip>
+                    ))}
+                  </div>
+                )}
+
+                {upcoming.length === 0 && interestedComps.length === 0 && filteredUpcomingAgility.length === 0 ? (
                   <EmptyCard
                     text="Inga kommande tävlingar hittades"
                     sub="Kolla in Agida för att hitta nästa tävling!"
@@ -499,26 +533,23 @@ export default function CompetitionPage() {
                       );
                     })}
                     {/* All upcoming agility from calendar */}
-                    {upcomingAgility
-                      .filter(ac => !upcoming.some(p => stripHtml(p.event_name).toLowerCase().includes(stripHtml(ac.competition_name).toLowerCase().split(' ')[0])))
-                      .filter(ac => !interestedComps.some(ic => ic.competition_id === ac.id))
-                      .map((ac, i) => {
-                        const daysLeft = ac.date_start ? differenceInDays(new Date(ac.date_start), new Date()) : null;
-                        return (
-                          <CompCard
-                            key={ac.id}
-                            index={upcoming.length + interestedComps.length + i}
-                            color="primary"
-                            date={ac.date_start ? format(new Date(ac.date_start), 'd MMMM yyyy', { locale: sv }) : ''}
-                            daysLeft={daysLeft}
-                            name={stripHtml(ac.competition_name) || 'Tävling'}
-                            location={stripHtml(ac.location)}
-                            clubName={stripHtml(ac.club_name)}
-                            status={ac.status ?? undefined}
-                            sourceUrl={ac.source_url ?? undefined}
-                          />
-                        );
-                      })}
+                    {filteredUpcomingAgility.map((ac, i) => {
+                      const daysLeft = ac.date_start ? differenceInDays(new Date(ac.date_start), new Date()) : null;
+                      return (
+                        <CompCard
+                          key={ac.id}
+                          index={upcoming.length + interestedComps.length + i}
+                          color="primary"
+                          date={ac.date_start ? format(new Date(ac.date_start), 'd MMMM yyyy', { locale: sv }) : ''}
+                          daysLeft={daysLeft}
+                          name={stripHtml(ac.competition_name) || 'Tävling'}
+                          location={stripHtml(ac.location)}
+                          clubName={stripHtml(ac.club_name)}
+                          status={ac.status ?? undefined}
+                          sourceUrl={ac.source_url ?? undefined}
+                        />
+                      );
+                    })}
                   </div>
                 )}
               </motion.div>

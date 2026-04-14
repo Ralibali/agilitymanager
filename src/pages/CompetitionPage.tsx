@@ -441,92 +441,13 @@ export default function CompetitionPage() {
               </motion.a>
             )}
 
-            {/* Upcoming agility */}
+            {/* Upcoming agility – full calendar component */}
             {sportFilter !== 'Hoopers' && (
               <motion.div variants={fadeSlide}>
-                <SectionHeader>Kommande tävlingar</SectionHeader>
-
-                {/* Location filter */}
-                {agilityLocations.length > 1 && (
-                  <div className="flex gap-1.5 mt-2 mb-3 overflow-x-auto scrollbar-hide pb-1">
-                    <FilterChip active={!locationFilter} onClick={() => setLocationFilter(null)}>
-                      <span className="flex items-center gap-1"><MapPin size={10} /> Alla orter</span>
-                    </FilterChip>
-                    {agilityLocations.map(loc => (
-                      <FilterChip key={loc} active={locationFilter === loc} onClick={() => setLocationFilter(locationFilter === loc ? null : loc)}>
-                        {loc}
-                      </FilterChip>
-                    ))}
-                  </div>
-                )}
-
-                {upcoming.length === 0 && interestedComps.length === 0 && filteredUpcomingAgility.length === 0 ? (
-                  <EmptyCard
-                    text="Inga kommande tävlingar hittades"
-                    sub="Kolla in Agida för att hitta nästa tävling!"
-                    linkText="Sök tävlingar på Agida"
-                    linkUrl="https://www.agida.se"
-                  />
-                ) : (
-                  <div className="space-y-2.5 mt-2.5">
-                    {/* User's planned */}
-                    {upcoming.map((p, i) => {
-                      const dog = getDog(p.dog_id);
-                      const daysLeft = differenceInDays(new Date(p.date), new Date());
-                      return (
-                        <CompCard
-                          key={p.id}
-                          index={i}
-                          color="primary"
-                          date={format(new Date(p.date), 'd MMMM yyyy', { locale: sv })}
-                          daysLeft={daysLeft}
-                          name={stripHtml(p.event_name)}
-                          location={p.location}
-                          status={p.status}
-                          dogName={dog?.name}
-                          onDelete={() => handleDeletePlanned(p.id)}
-                        />
-                      );
-                    })}
-                    {/* User's interested */}
-                    {interestedComps.map((ic, i) => {
-                      const daysLeft = differenceInDays(new Date(ic.comp.date_start!), new Date());
-                      const statusLabel = ic.status === 'registered' ? 'Anmäld' : 'Intresserad';
-                      return (
-                        <CompCard
-                          key={ic.id}
-                          index={upcoming.length + i}
-                          color={ic.status === 'registered' ? 'primary' : 'accent'}
-                          date={format(new Date(ic.comp.date_start!), 'd MMMM yyyy', { locale: sv })}
-                          daysLeft={daysLeft}
-                          name={stripHtml(ic.comp.competition_name)}
-                          location={stripHtml(ic.comp.location)}
-                          status={statusLabel}
-                          dogName={ic.dog_name ?? undefined}
-                          sourceUrl={ic.comp.source_url ?? undefined}
-                        />
-                      );
-                    })}
-                    {/* All upcoming agility from calendar */}
-                    {filteredUpcomingAgility.map((ac, i) => {
-                      const daysLeft = ac.date_start ? differenceInDays(new Date(ac.date_start), new Date()) : null;
-                      return (
-                        <CompCard
-                          key={ac.id}
-                          index={upcoming.length + interestedComps.length + i}
-                          color="primary"
-                          date={ac.date_start ? format(new Date(ac.date_start), 'd MMMM yyyy', { locale: sv }) : ''}
-                          daysLeft={daysLeft}
-                          name={stripHtml(ac.competition_name) || 'Tävling'}
-                          location={stripHtml(ac.location)}
-                          clubName={stripHtml(ac.club_name)}
-                          status={ac.status ?? undefined}
-                          sourceUrl={ac.source_url ?? undefined}
-                        />
-                      );
-                    })}
-                  </div>
-                )}
+                <DogPicker dogs={dogs.filter(d => d.sport === 'Agility' || d.sport === 'Båda')} selectedDogId={selectedDogId} onSelect={setSelectedDogId} />
+                <div className="mt-3">
+                  <TavlingsKalendar dogs={dogs.filter(d => d.sport === 'Agility' || d.sport === 'Båda')} selectedDogId={selectedDogId} />
+                </div>
               </motion.div>
             )}
 

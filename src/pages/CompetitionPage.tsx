@@ -288,24 +288,6 @@ export default function CompetitionPage() {
     refresh();
   };
 
-  // Unique locations from upcoming agility competitions
-  const agilityLocations = useMemo(() => {
-    const locs = upcomingAgility.map(c => stripHtml(c.location)).filter(Boolean);
-    return [...new Set(locs)].sort();
-  }, [upcomingAgility]);
-
-  // Filter upcoming agility by location (computed before early return)
-  const filteredUpcomingAgility = useMemo(() => {
-    const up = planned.filter(p => new Date(p.date) >= new Date());
-    let comps = upcomingAgility
-      .filter(ac => !up.some(p => stripHtml(p.event_name).toLowerCase().includes(stripHtml(ac.competition_name).toLowerCase().split(' ')[0])))
-      .filter(ac => !interestedComps.some(ic => ic.competition_id === ac.id));
-    if (locationFilter) {
-      comps = comps.filter(ac => stripHtml(ac.location) === locationFilter);
-    }
-    return comps;
-  }, [upcomingAgility, planned, interestedComps, locationFilter]);
-
   if (loading) return <CompetitionSkeleton />;
 
   const upcoming = planned.filter(p => new Date(p.date) >= new Date()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());

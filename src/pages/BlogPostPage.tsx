@@ -1,10 +1,10 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, ArrowRight, Clock, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchPostBySlug, fetchBlogPosts, type BlogPost } from '@/lib/blogData';
+import { SEO, buildArticleSchema, buildBreadcrumbSchema } from '@/components/SEO';
 
 // Parse inline markdown: **bold** and [link](/url)
 function parseInline(text: string): React.ReactNode[] {
@@ -166,23 +166,36 @@ export default function BlogPostPage() {
     );
   }
 
+  const canonicalPath = `/blogg/${post.slug}`;
+  const canonicalUrl = `https://agilitymanager.se${canonicalPath}`;
+
   return (
     <div className="min-h-screen bg-background">
-      <Helmet>
-        <title>{post.title} | AgilityManager</title>
-        <meta name="description" content={post.excerpt} />
-        <link rel="canonical" href={`https://agilitymanager.se/blogg/${post.slug}`} />
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "BlogPosting",
-          "headline": post.title,
-          "description": post.excerpt,
-          "datePublished": post.date,
-          "author": { "@type": "Organization", "name": post.author },
-          "publisher": { "@type": "Organization", "name": "AgilityManager" },
-          "url": `https://agilitymanager.se/blogg/${post.slug}`
-        })}</script>
-      </Helmet>
+      <SEO
+        title={post.title}
+        description={post.excerpt}
+        canonical={canonicalPath}
+        ogType="article"
+        article={{
+          publishedTime: post.date,
+          author: post.author,
+          section: post.category,
+        }}
+        jsonLd={[
+          buildArticleSchema({
+            title: post.title,
+            description: post.excerpt,
+            url: canonicalUrl,
+            publishedTime: post.date,
+            author: post.author,
+          }),
+          buildBreadcrumbSchema([
+            { name: 'Hem', url: '/' },
+            { name: 'Kunskapsbank', url: '/blogg' },
+            { name: post.title, url: canonicalPath },
+          ]),
+        ]}
+      />
 
       <article className="px-4 pt-8 pb-12 max-w-2xl mx-auto">
         <Button variant="ghost" size="sm" onClick={() => navigate('/blogg')} className="mb-6 -ml-2 text-muted-foreground">

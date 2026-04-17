@@ -91,6 +91,39 @@ export type Database = {
         }
         Relationships: []
       }
+      breeds: {
+        Row: {
+          agility_popularity_rank: number | null
+          created_at: string
+          description: string
+          id: string
+          name: string
+          size_class: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          agility_popularity_rank?: number | null
+          created_at?: string
+          description?: string
+          id?: string
+          name: string
+          size_class?: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          agility_popularity_rank?: number | null
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          size_class?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cached_dog_results: {
         Row: {
           breed: string
@@ -375,6 +408,8 @@ export type Database = {
           logo_url: string | null
           name: string
           quick_tags: string[]
+          region: string | null
+          slug: string | null
           updated_at: string
         }
         Insert: {
@@ -387,6 +422,8 @@ export type Database = {
           logo_url?: string | null
           name: string
           quick_tags?: string[]
+          region?: string | null
+          slug?: string | null
           updated_at?: string
         }
         Update: {
@@ -399,6 +436,8 @@ export type Database = {
           logo_url?: string | null
           name?: string
           quick_tags?: string[]
+          region?: string | null
+          slug?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -630,7 +669,9 @@ export type Database = {
           location: string | null
           part_key: string | null
           raw_lopp: string | null
+          region: string | null
           source_url: string | null
+          sport: string | null
           status: string | null
           status_code: string | null
         }
@@ -650,7 +691,9 @@ export type Database = {
           location?: string | null
           part_key?: string | null
           raw_lopp?: string | null
+          region?: string | null
           source_url?: string | null
+          sport?: string | null
           status?: string | null
           status_code?: string | null
         }
@@ -670,7 +713,9 @@ export type Database = {
           location?: string | null
           part_key?: string | null
           raw_lopp?: string | null
+          region?: string | null
           source_url?: string | null
+          sport?: string | null
           status?: string | null
           status_code?: string | null
         }
@@ -1645,6 +1690,18 @@ export type Database = {
       }
     }
     Views: {
+      breed_stats: {
+        Row: {
+          active_competition_count: number | null
+          agility_popularity_rank: number | null
+          dog_count: number | null
+          id: string | null
+          name: string | null
+          size_class: string | null
+          slug: string | null
+        }
+        Relationships: []
+      }
       hoopers_competitions_public: {
         Row: {
           classes: string[] | null
@@ -1732,6 +1789,7 @@ export type Database = {
         Args: { _friend_id: string; _user_id: string }
         Returns: boolean
       }
+      slugify: { Args: { input: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"

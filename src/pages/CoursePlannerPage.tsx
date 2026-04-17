@@ -553,6 +553,11 @@ export default function CoursePlannerPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const goBack = useCallback(() => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/courses');
+  }, [navigate]);
   const [shareOpen, setShareOpen] = useState(false);
   const [loadedCourseId, setLoadedCourseId] = useState<string | null>(null);
   const isLandscape = useIsLandscape();

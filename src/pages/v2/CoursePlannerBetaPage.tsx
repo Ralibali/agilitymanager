@@ -833,6 +833,80 @@ export default function CoursePlannerBetaPage() {
   const [emptyDismissed, setEmptyDismissed] = useState(false);
   const [activeDragKey, setActiveDragKey] = useState<ObstacleIconKey | null>(null);
 
+  // 9C-state
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+
+  const selectedObstacle = useMemo(
+    () => obstacles.find((o) => o.id === selectedId) ?? null,
+    [obstacles, selectedId]
+  );
+
+  /* ─── 9C-handlers: redigering, mallar, kontextmeny ─── */
+  const updateSelectedObstacle = useCallback((patch: Partial<PlacedObstacle>) => {
+    if (!selectedId) return;
+    setObstacles((prev) => prev.map((o) => (o.id === selectedId ? { ...o, ...patch } : o)));
+    setIsDirty(true);
+  }, [selectedId]);
+
+  const duplicateObstacle = useCallback((id?: string) => {
+    const targetId = id ?? selectedId;
+    if (!targetId) return;
+    setObstacles((prev) => {
+      const src = prev.find((o) => o.id === targetId);
+      if (!src) return prev;
+      const copy: PlacedObstacle = {
+        ...src,
+        id: `${src.key}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        xM: Math.min(src.xM + 1.5, DEFAULT_CANVAS_W_M - 1),
+        yM: Math.min(src.yM + 1.5, DEFAULT_CANVAS_H_M - 1),
+        locked: false,
+      };
+      setSelectedId(copy.id);
+      return [...prev, copy];
+    });
+    setIsDirty(true);
+  }, [selectedId]);
+
+  const deleteObstacle = useCallback((id?: string) => {
+    const targetId = id ?? selectedId;
+    if (!targetId) return;
+    setObstacles((prev) => prev.filter((o) => o.id !== targetId));
+    if (targetId === selectedId) setSelectedId(null);
+    setIsDirty(true);
+  }, [selectedId]);
+
+  const deleteSelectedObstacle = useCallback(() => deleteObstacle(), [deleteObstacle]);
+
+  const rotate90Obstacle = useCallback((id: string) => {
+    setObstacles((prev) => prev.map((o) =>
+      o.id === id ? { ...o, rotation: (o.rotation + 90) % 360 } : o
+    ));
+    setIsDirty(true);
+  }, []);
+
+  const toggleLockObstacle = useCallback((id: string) => {
+    setObstacles((prev) => prev.map((o) => (o.id === id ? { ...o, locked: !o.locked } : o)));
+    setIsDirty(true);
+  }, []);
+
+  const applyTemplate = useCallback((tpl: CourseTemplate) => {
+    setObstacles(tpl.obstacles.map((t, idx) => ({
+      id: `${t.key}-${Date.now()}-${idx}`,
+      key: t.key,
+      xM: t.xM,
+      yM: t.yM,
+      rotation: t.rotation,
+      scale: t.sizeM ?? 1,
+      color: t.color ?? DEFAULT_OBSTACLE_COLOR,
+      locked: false,
+    })));
+    setSelectedId(null);
+    setEmptyDismissed(true);
+    setIsDirty(true);
+  }, []);
+
   // dnd-kit sensors – litet aktiveringsavstånd så att klick på toggle inte triggar drag
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } })

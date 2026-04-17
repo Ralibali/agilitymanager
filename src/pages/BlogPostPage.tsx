@@ -238,6 +238,7 @@ export default function BlogPostPage() {
         </header>
 
         <div className="bg-card rounded-xl p-5 sm:p-8 shadow-card">
+          {tocItems.length >= 2 && <BlogTOC items={tocItems} />}
           {renderContent(post.content)}
         </div>
       </article>

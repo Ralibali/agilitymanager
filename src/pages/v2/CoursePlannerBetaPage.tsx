@@ -670,7 +670,7 @@ function ObstaclesLayer({
         pointerEvents: 'none',
       }}
     >
-      {obstacles.map((o) => {
+      {obstacles.map((o, idx) => {
         const def = getObstacleDef(o.key);
         if (!def) return null;
         const Icon = getObstacleIcon(o.key);
@@ -681,6 +681,11 @@ function ObstaclesLayer({
         const cx = o.xM * PX_PER_METER * zoom;
         const cy = o.yM * PX_PER_METER * zoom;
         const isSelected = selectedId === o.id;
+        // Sekvensnummer = index + 1 (placeringsordning). Skalar diskret med zoom
+        // men har golv så det förblir läsbart.
+        const seq = idx + 1;
+        const badgeR = Math.max(8, Math.min(13, sizePx * 0.22));
+        const badgeFont = Math.max(9, Math.min(13, badgeR * 1.05));
         return (
           <g
             key={o.id}
@@ -713,6 +718,31 @@ function ObstaclesLayer({
               <circle cx={sizePx - 3} cy={3} r={3} fill="#737373" />
             )}
             <Icon size={sizePx} style={{ color: o.color }} />
+            {/* Sekvens-badge: motroterad så siffran alltid är upprätt.
+                Placerad i övre-vänstra hörnet, lätt utanför ikonen. */}
+            <g transform={`rotate(${-o.rotation} ${sizePx / 2} ${sizePx / 2})`}>
+              <circle
+                cx={-badgeR * 0.3}
+                cy={-badgeR * 0.3}
+                r={badgeR}
+                fill={isSelected ? '#1a6b3c' : '#ffffff'}
+                stroke={isSelected ? '#ffffff' : '#1a6b3c'}
+                strokeWidth={1.5}
+              />
+              <text
+                x={-badgeR * 0.3}
+                y={-badgeR * 0.3}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={badgeFont}
+                fontWeight={700}
+                fontFamily="ui-sans-serif, system-ui, sans-serif"
+                fill={isSelected ? '#ffffff' : '#1a6b3c'}
+                style={{ userSelect: 'none' }}
+              >
+                {seq}
+              </text>
+            </g>
           </g>
         );
       })}

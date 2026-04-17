@@ -232,9 +232,25 @@ interface PlacedObstacle {
   /** Position i meter från canvas top-left. */
   xM: number;
   yM: number;
-  /** Rotation i grader (0 = standard, default 0). Används i 9C. */
+  /** Rotation i grader (0 = standard). */
   rotation: number;
+  /** Visningsstorlek-multiplikator (1.0 = standard, 0.5–2.0). */
+  scale: number;
+  /** HSL- eller hex-färg för ikonens stroke. Default: planner-grön. */
+  color: string;
+  /** Låst position – kan inte flyttas eller raderas av misstag. */
+  locked: boolean;
 }
+
+const DEFAULT_OBSTACLE_COLOR = '#1a6b3c';
+const OBSTACLE_COLORS = [
+  '#1a6b3c', // planner-grön
+  '#c85d1e', // varm orange
+  '#1e40af', // blå
+  '#7c2d12', // brun
+  '#6b21a8', // lila
+  '#0f0f0f', // svart
+];
 
 /* ─────────────────────────────────────────────────────────────────────
    Properties placeholder (höger, 280px) – fylls i steg 9C

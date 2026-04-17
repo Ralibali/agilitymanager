@@ -302,11 +302,17 @@ interface CanvasProps {
   heightM: number;
   zoom: number;
   onZoomChange: (z: number) => void;
+  obstacles: PlacedObstacle[];
 }
 
-function Canvas({ widthM, heightM, zoom, onZoomChange }: CanvasProps) {
+function Canvas({ widthM, heightM, zoom, onZoomChange, obstacles }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  // Droppable canvas – tar emot drag från ObstaclePalette via @dnd-kit.
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: 'planner-canvas',
+    data: { containerRef, zoom, widthM, heightM },
+  });
 
   const canvasWidth = widthM * PX_PER_METER;
   const canvasHeight = heightM * PX_PER_METER;

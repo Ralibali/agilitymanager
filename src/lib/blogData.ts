@@ -822,7 +822,7 @@ Förenklad bana för [nybörjare](/blogg/borja-med-agility). Färre hinder och l
     `,
   },
   {
-    slug: 'agility-kurs-nybörjare',
+    slug: 'agility-kurs-nyborjare',
     title: 'Agilitykurs för nybörjare – vad du kan förvänta dig',
     excerpt: 'Så fungerar en agilitykurs för nybörjare. Innehåll, kostnad, förberedelser och vad din hund lär sig.',
     category: 'Nybörjare',

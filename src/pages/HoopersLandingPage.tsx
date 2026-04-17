@@ -5,7 +5,6 @@ import {
   ArrowRight, Check, LayoutGrid, Trophy, Activity,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { LandingNavbar } from '@/components/LandingNavbar';
 import { LandingFooter } from '@/components/LandingFooter';
 

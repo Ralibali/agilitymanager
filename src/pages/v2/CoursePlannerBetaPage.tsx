@@ -420,15 +420,26 @@ function Canvas({ widthM, heightM, zoom, onZoomChange, obstacles }: CanvasProps)
     return () => container.removeEventListener('wheel', handleWheel);
   }, [zoom, onZoomChange]);
 
+  const setRefs = (node: HTMLDivElement | null) => {
+    containerRef.current = node;
+    setDropRef(node);
+  };
+
   return (
     <div
-      ref={containerRef}
-      className="absolute inset-0 overflow-auto bg-[#ebeae5]"
+      ref={setRefs}
+      className={[
+        'absolute inset-0 overflow-auto bg-[#ebeae5] transition-colors',
+        isOver ? 'bg-[#e4ecdf]' : '',
+      ].join(' ')}
       style={{ touchAction: 'none' }}
+      data-canvas-w-m={widthM}
+      data-canvas-h-m={heightM}
+      data-canvas-zoom={zoom}
     >
       {/* Centrerad canvas-yta med padding för att kunna pannas */}
       <div
-        className="flex items-center justify-center"
+        className="relative flex items-center justify-center"
         style={{
           width: Math.max((canvasWidth + MARGIN) * zoom + 200, 100),
           height: Math.max((canvasHeight + MARGIN) * zoom + 200, 100),
@@ -436,14 +447,24 @@ function Canvas({ widthM, heightM, zoom, onZoomChange, obstacles }: CanvasProps)
           minHeight: '100%',
         }}
       >
-        <canvas
-          ref={canvasRef}
-          style={{
-            width: (canvasWidth + MARGIN) * zoom,
-            height: (canvasHeight + MARGIN) * zoom,
-            display: 'block',
-          }}
-        />
+        <div className="relative" style={{ width: (canvasWidth + MARGIN) * zoom, height: (canvasHeight + MARGIN) * zoom }}>
+          <canvas
+            ref={canvasRef}
+            style={{
+              width: (canvasWidth + MARGIN) * zoom,
+              height: (canvasHeight + MARGIN) * zoom,
+              display: 'block',
+            }}
+          />
+          {/* SVG-overlay med placerade hinder. Renderas i samma koordinatrymd
+              som canvas-griden (MARGIN-offsetad) för perfekt alignment. */}
+          <ObstaclesLayer
+            obstacles={obstacles}
+            zoom={zoom}
+            canvasWidthPx={canvasWidth}
+            canvasHeightPx={canvasHeight}
+          />
+        </div>
       </div>
 
       {/* ── Skalstock-chip (nedre vänster) – CAD-style ── */}

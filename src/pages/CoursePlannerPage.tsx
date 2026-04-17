@@ -2825,7 +2825,22 @@ export default function CoursePlannerPage() {
       <meta name="description" content="Designa agility- och hoopersbanor med korrekta hinder. Hoops, tunnlar, tunnor och staket enligt SHoK:s regelverk. Spara och dela." />
       <link rel="canonical" href="https://agilitymanager.se/banplanerare" />
     </Helmet>
-    <PageContainer title={isMobile ? undefined : "Banplanerare"} subtitle={isMobile ? undefined : "Rita agility-banor"}>
+    <PageContainer
+      title={
+        <span className="inline-flex items-center gap-2">
+          <button
+            onClick={goBack}
+            className="inline-flex items-center justify-center w-8 h-8 -ml-1 rounded-full hover:bg-secondary transition-colors text-foreground"
+            title="Tillbaka"
+            aria-label="Tillbaka"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          {!isMobile && <span>Banplanerare</span>}
+        </span>
+      }
+      subtitle={isMobile ? undefined : "Rita agility-banor"}
+    >
       <PremiumGate fullPage featureName="Banplaneraren">
 
       {/* ═══ MOBILE-OPTIMIZED TOOLBAR ═══ */}

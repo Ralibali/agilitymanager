@@ -5,34 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-snap-routes.mjs && vite build && react-snap",
+    "build": "vite build && node scripts/generate-static-pages.mjs",
     "build:no-snap": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"
-  },
-  "reactSnap": {
-    "source": "dist",
-    "include": [
-      "/",
-      "/blogg",
-      "/hoopers",
-      "/hoopers-regler",
-      "/om-agility",
-      "/hundforsakring",
-      "/integritetspolicy",
-      "/cookiepolicy"
-    ],
-    "puppeteerArgs": [
-      "--no-sandbox",
-      "--disable-setuid-sandbox"
-    ],
-    "skipThirdPartyRequests": true,
-    "inlineCss": false,
-    "crawl": false,
-    "waitFor": 1500
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

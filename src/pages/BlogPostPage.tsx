@@ -7,6 +7,7 @@ import { fetchPostBySlug, fetchBlogPosts, type BlogPost } from '@/lib/blogData';
 import { SEO, buildArticleSchema, buildBreadcrumbSchema } from '@/components/SEO';
 import { BLOG_FAQS, buildFaqJsonLd } from '@/lib/blogFaqs';
 import { BlogFAQ } from '@/components/BlogFAQ';
+import { BlogTOC, extractTOCItems, slugifyHeading } from '@/components/BlogTOC';
 
 // Parse inline markdown: **bold** and [link](/url)
 function parseInline(text: string): React.ReactNode[] {

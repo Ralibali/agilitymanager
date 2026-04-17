@@ -185,6 +185,7 @@ export default function BlogPostPage() {
   const seoTitle = post.seoTitle?.trim() || post.title;
   const seoDescription = post.seoDescription?.trim() || post.excerpt;
   const faqSection = BLOG_FAQS[post.slug];
+  const tocItems = post.content.length > 2000 ? extractTOCItems(post.content) : [];
 
   const jsonLdSchemas: Record<string, unknown>[] = [
     buildArticleSchema({

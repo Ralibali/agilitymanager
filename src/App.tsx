@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { BottomNav } from "@/components/BottomNav";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { captureUtmParams } from "@/lib/utm";
 
@@ -17,77 +16,43 @@ captureUtmParams();
 import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
 
-// Lazy: everything else
-const Index = React.lazy(() => import("./pages/Index"));
-const DogsPage = React.lazy(() => import("./pages/DogsPage"));
-const TrainingPage = React.lazy(() => import("./pages/TrainingPage"));
-const CompetitionPage = React.lazy(() => import("./pages/CompetitionPage"));
-const StopwatchPage = React.lazy(() => import("./pages/StopwatchPage"));
-const HealthPage = React.lazy(() => import("./pages/HealthPage"));
-const CoursePlannerPage = React.lazy(() => import("./pages/CoursePlannerPage"));
-const StatsPage = React.lazy(() => import("./pages/StatsPage"));
-const SettingsPage = React.lazy(() => import("./pages/SettingsPage"));
+// Lazy: public routes
 const ResetPasswordPage = React.lazy(() => import("./pages/ResetPasswordPage"));
 const InsurancePage = React.lazy(() => import("./pages/InsurancePage"));
 const BlogPage = React.lazy(() => import("./pages/BlogPage"));
 const BlogPostPage = React.lazy(() => import("./pages/BlogPostPage"));
-const AdminPage = React.lazy(() => import("./pages/AdminPage"));
 const AboutAgilityPage = React.lazy(() => import("./pages/AboutAgilityPage"));
 const HoopersLandingPage = React.lazy(() => import("./pages/HoopersLandingPage"));
 const HoopersRulesPage = React.lazy(() => import("./pages/HoopersRulesPage"));
 const PrivacyPolicyPage = React.lazy(() => import("./pages/PrivacyPolicyPage"));
 const CookiePolicyPage = React.lazy(() => import("./pages/CookiePolicyPage"));
 const UnsubscribePage = React.lazy(() => import("./pages/UnsubscribePage"));
-const FriendsPage = React.lazy(() => import("./pages/FriendsPage"));
-const FriendStatsPage = React.lazy(() => import("./pages/FriendStatsPage"));
 const InvitePage = React.lazy(() => import("./pages/InvitePage"));
-const ChatPage = React.lazy(() => import("./pages/ChatPage"));
-const NotFound = React.lazy(() => import("./pages/NotFound"));
-const ClubPage = React.lazy(() => import("./pages/ClubPage"));
 const ClubInvitePage = React.lazy(() => import("./pages/ClubInvitePage"));
-const CoursesPage = React.lazy(() => import("./pages/CoursesPage"));
-const GoalsPage = React.lazy(() => import("./pages/GoalsPage"));
 const DesignDemoPage = React.lazy(() => import("./pages/DesignDemoPage"));
-const PlaceholderPage = React.lazy(() => import("./pages/v2/PlaceholderPage"));
-const V2HomePage = React.lazy(() => import("./pages/v2/HomePage"));
-const V2StatsPage = React.lazy(() => import("./pages/v2/StatsPage"));
-const V2TrainingPage = React.lazy(() => import("./pages/v2/TrainingPage"));
-const V2GoalsPage = React.lazy(() => import("./pages/v2/GoalsPage"));
-const V2StopwatchPage = React.lazy(() => import("./pages/v2/StopwatchPage"));
-const V2CompetitionPage = React.lazy(() => import("./pages/v2/CompetitionPage"));
-const V2FriendsPage = React.lazy(() => import("./pages/v2/FriendsPage"));
-const V2ClubsPage = React.lazy(() => import("./pages/v2/ClubsPage"));
-const V2ChatPage = React.lazy(() => import("./pages/v2/ChatPage"));
-const V2DogsPage = React.lazy(() => import("./pages/v2/DogsPage"));
-const V2HealthPage = React.lazy(() => import("./pages/v2/HealthPage"));
-const V2SettingsPage = React.lazy(() => import("./pages/v2/SettingsPage"));
-const V2AdminPage = React.lazy(() => import("./pages/v2/AdminPage"));
-const V2CoursesPage = React.lazy(() => import("./pages/v2/CoursesPage"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
+const FriendStatsPage = React.lazy(() => import("./pages/FriendStatsPage"));
+
+// Lazy: protected routes (v2 = ny design)
+const HomePage = React.lazy(() => import("./pages/v2/HomePage"));
+const StatsPage = React.lazy(() => import("./pages/v2/StatsPage"));
+const TrainingPage = React.lazy(() => import("./pages/v2/TrainingPage"));
+const GoalsPage = React.lazy(() => import("./pages/v2/GoalsPage"));
+const StopwatchPage = React.lazy(() => import("./pages/v2/StopwatchPage"));
+const CompetitionPage = React.lazy(() => import("./pages/v2/CompetitionPage"));
+const FriendsPage = React.lazy(() => import("./pages/v2/FriendsPage"));
+const ClubsPage = React.lazy(() => import("./pages/v2/ClubsPage"));
+const ChatPage = React.lazy(() => import("./pages/v2/ChatPage"));
+const DogsPage = React.lazy(() => import("./pages/v2/DogsPage"));
+const HealthPage = React.lazy(() => import("./pages/v2/HealthPage"));
+const SettingsPage = React.lazy(() => import("./pages/v2/SettingsPage"));
+const AdminPage = React.lazy(() => import("./pages/v2/AdminPage"));
+const CoursesPage = React.lazy(() => import("./pages/v2/CoursesPage"));
+const CoursePlannerPage = React.lazy(() => import("./pages/CoursePlannerPage"));
 
 const queryClient = new QueryClient();
 
-function ProtectedLayout() {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground font-display">Laddar...</div>
-      </div>
-    );
-  }
-
-  if (!user) return <Navigate to="/auth" replace />;
-
-  return (
-    <>
-      <Outlet />
-      <BottomNav />
-    </>
-  );
-}
-
-function V2ShellGuard() {
+function ShellGuard() {
   const { user, loading } = useAuth();
   if (loading) {
     return (
@@ -133,7 +98,7 @@ const App = () => (
         <BrowserRouter>
           <Suspense fallback={<LazyFallback />}>
             <Routes>
-              {/* Public routes */}
+              {/* Publika rutter */}
               <Route element={<AuthGuard />}>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/auth" element={<AuthPage />} />
@@ -152,46 +117,45 @@ const App = () => (
               <Route path="/club-invite/:code" element={<ClubInvitePage />} />
               <Route path="/design-demo" element={<DesignDemoPage />} />
 
-              {/* Protected routes */}
-              <Route element={<ProtectedLayout />}>
-                <Route path="/dashboard" element={<Index />} />
-                <Route path="/dogs" element={<DogsPage />} />
+              {/* Skyddade rutter – ny design via persistent AppLayout-shell */}
+              <Route element={<ShellGuard />}>
+                <Route path="/dashboard" element={<HomePage />} />
+                <Route path="/stats" element={<StatsPage />} />
                 <Route path="/training" element={<TrainingPage />} />
+                <Route path="/course-planner" element={<CoursePlannerPage />} />
+                <Route path="/stopwatch" element={<StopwatchPage />} />
+                <Route path="/goals" element={<GoalsPage />} />
                 <Route path="/competition" element={<CompetitionPage />} />
                 <Route path="/competition-calendar" element={<Navigate to="/competition" replace />} />
-                <Route path="/stopwatch" element={<StopwatchPage />} />
+                <Route path="/dogs" element={<DogsPage />} />
                 <Route path="/health" element={<HealthPage />} />
-                <Route path="/course-planner" element={<CoursePlannerPage />} />
-                <Route path="/stats" element={<StatsPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/friends" element={<FriendsPage />} />
                 <Route path="/friend-stats/:userId" element={<FriendStatsPage />} />
+                <Route path="/chat" element={<ChatPage />} />
                 <Route path="/chat/:friendId" element={<ChatPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/clubs" element={<ClubPage />} />
+                <Route path="/clubs" element={<ClubsPage />} />
                 <Route path="/courses" element={<CoursesPage />} />
-                <Route path="/goals" element={<GoalsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/admin" element={<AdminPage />} />
                 <Route path="/index" element={<Navigate to="/dashboard" replace />} />
               </Route>
 
-              {/* === Fas 2 v2-shell – persistent AppLayout, tomma placeholders === */}
-              <Route path="/v2" element={<V2ShellGuard />}>
-                <Route index element={<V2HomePage />} />
-                <Route path="stats" element={<V2StatsPage />} />
-                <Route path="training" element={<V2TrainingPage />} />
-                <Route path="course-planner" element={<CoursePlannerPage />} />
-                <Route path="stopwatch" element={<V2StopwatchPage />} />
-                <Route path="goals" element={<V2GoalsPage />} />
-                <Route path="competition" element={<V2CompetitionPage />} />
-                <Route path="dogs" element={<V2DogsPage />} />
-                <Route path="health" element={<V2HealthPage />} />
-                <Route path="friends" element={<V2FriendsPage />} />
-                <Route path="chat" element={<V2ChatPage />} />
-                <Route path="clubs" element={<V2ClubsPage />} />
-                <Route path="courses" element={<V2CoursesPage />} />
-                <Route path="settings" element={<V2SettingsPage />} />
-                <Route path="admin" element={<V2AdminPage />} />
-              </Route>
+              {/* Bakåtkompatibilitet: gamla /v2/*-länkar redirectar till rot */}
+              <Route path="/v2" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/v2/stats" element={<Navigate to="/stats" replace />} />
+              <Route path="/v2/training" element={<Navigate to="/training" replace />} />
+              <Route path="/v2/course-planner" element={<Navigate to="/course-planner" replace />} />
+              <Route path="/v2/stopwatch" element={<Navigate to="/stopwatch" replace />} />
+              <Route path="/v2/goals" element={<Navigate to="/goals" replace />} />
+              <Route path="/v2/competition" element={<Navigate to="/competition" replace />} />
+              <Route path="/v2/dogs" element={<Navigate to="/dogs" replace />} />
+              <Route path="/v2/health" element={<Navigate to="/health" replace />} />
+              <Route path="/v2/friends" element={<Navigate to="/friends" replace />} />
+              <Route path="/v2/chat" element={<Navigate to="/chat" replace />} />
+              <Route path="/v2/clubs" element={<Navigate to="/clubs" replace />} />
+              <Route path="/v2/courses" element={<Navigate to="/courses" replace />} />
+              <Route path="/v2/settings" element={<Navigate to="/settings" replace />} />
+              <Route path="/v2/admin" element={<Navigate to="/admin" replace />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

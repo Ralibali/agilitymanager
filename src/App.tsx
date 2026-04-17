@@ -51,6 +51,9 @@ const DesignDemoPage = React.lazy(() => import("./pages/DesignDemoPage"));
 const PlaceholderPage = React.lazy(() => import("./pages/v2/PlaceholderPage"));
 const V2HomePage = React.lazy(() => import("./pages/v2/HomePage"));
 const V2StatsPage = React.lazy(() => import("./pages/v2/StatsPage"));
+const V2TrainingPage = React.lazy(() => import("./pages/v2/TrainingPage"));
+const V2GoalsPage = React.lazy(() => import("./pages/v2/GoalsPage"));
+const V2StopwatchPage = React.lazy(() => import("./pages/v2/StopwatchPage"));
 
 const queryClient = new QueryClient();
 
@@ -166,10 +169,10 @@ const App = () => (
               <Route path="/v2" element={<V2ShellGuard />}>
                 <Route index element={<V2HomePage />} />
                 <Route path="stats" element={<V2StatsPage />} />
-                <Route path="training" element={<PlaceholderPage />} />
+                <Route path="training" element={<V2TrainingPage />} />
                 <Route path="course-planner" element={<PlaceholderPage />} />
-                <Route path="stopwatch" element={<PlaceholderPage />} />
-                <Route path="goals" element={<PlaceholderPage />} />
+                <Route path="stopwatch" element={<V2StopwatchPage />} />
+                <Route path="goals" element={<V2GoalsPage />} />
                 <Route path="competition" element={<PlaceholderPage />} />
                 <Route path="dogs" element={<PlaceholderPage />} />
                 <Route path="health" element={<PlaceholderPage />} />

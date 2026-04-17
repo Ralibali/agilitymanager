@@ -13,6 +13,9 @@ interface Props<T extends string> {
   className?: string;
 }
 
+// Helper to satisfy onChange typing when used with React.Dispatch<SetStateAction<T>>
+type AnyChange<T extends string> = ((v: T) => void) | React.Dispatch<React.SetStateAction<T>>;
+
 /**
  * Liten pille-segmentkontroll i bg-subtle.
  * Används för filter (period, sport) – matchar tonen i StatsPage.

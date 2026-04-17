@@ -220,7 +220,7 @@ export default function ClubsPage() {
               icon={Building2}
               title="Inga klubbar än"
               description="Sök efter en klubb i din stad eller skapa din egen."
-              actions={
+              action={
                 <DSButton variant="secondary" onClick={() => setTab("discover")}>
                   Hitta klubb
                 </DSButton>

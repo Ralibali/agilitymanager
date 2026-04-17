@@ -209,7 +209,7 @@ export default function FriendsPage() {
               icon={Users}
               title="Du har inga vänner än"
               description="Sök efter andra hundförare under fliken 'Hitta nya'."
-              actions={
+              action={
                 <DSButton variant="secondary" onClick={() => setTab("find")}>
                   Hitta vänner
                 </DSButton>

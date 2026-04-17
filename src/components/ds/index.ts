@@ -12,3 +12,5 @@ export { HeroCard } from "./HeroCard";
 export { SegmentedControl } from "./SegmentedControl";
 export { SessionCard } from "./SessionCard";
 export { GoalCard } from "./GoalCard";
+export { CompetitionCard } from "./CompetitionCard";
+export { ResultRow } from "./ResultRow";

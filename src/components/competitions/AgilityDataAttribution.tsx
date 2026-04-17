@@ -12,8 +12,8 @@ export function AgilityDataAttribution({ sourceUrl }: Props) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    // Set initial state after mount for reliable viewport detection
-    setOpen(window.innerWidth >= MOBILE_BREAKPOINT);
+    // Default = hopfälld. Öppna bara automatiskt på desktop efter mount.
+    if (window.innerWidth >= MOBILE_BREAKPOINT) setOpen(true);
   }, []);
 
   return (

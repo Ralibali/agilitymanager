@@ -645,25 +645,55 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════ FINAL CTA ═══════ */}
-      <section className="py-20 px-4" style={{ background: '#111111' }}>
-        <div className="max-w-lg mx-auto text-center">
-          <motion.h2 {...inViewFadeUp()} className="font-display text-white text-2xl sm:text-3xl mb-3">
-            Redo att börja?
+      {/* ═══════ FINAL CTA (full-width grön) ═══════ */}
+      <section className="py-20 px-4" style={{ background: '#1a6b3c' }}>
+        <div className="max-w-2xl mx-auto text-center">
+          <motion.h2
+            {...inViewFadeUp()}
+            className="font-display text-2xl sm:text-3xl mb-3"
+            style={{ color: '#ffffff' }}
+          >
+            Börja träna smartare idag
           </motion.h2>
-          <motion.p {...inViewFadeUp(0.1)} className="mb-8 font-body" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            Skapa ett gratis konto och börja logga din träning idag.
+          <motion.p
+            {...inViewFadeUp(0.1)}
+            className="mb-8 font-body mx-auto"
+            style={{
+              fontSize: '15px',
+              lineHeight: 1.6,
+              color: 'rgba(255,255,255,0.85)',
+              maxWidth: '480px',
+            }}
+          >
+            Gratis att starta. Ingen kortbindning. Uppgradera när du vill.
           </motion.p>
           <motion.div {...inViewFadeUp(0.2)}>
-            <Button
-              size="lg"
-              className="font-semibold gap-2 text-base px-8 h-12"
-              style={{ background: '#1a6b3c', color: '#fff', borderRadius: 'var(--radius-button)' }}
-              onClick={() => navigate('/auth')}
+            <button
+              onClick={() => navigate('/auth?mode=signup')}
+              className="inline-flex items-center gap-2 font-body transition-transform hover:scale-[1.02]"
+              style={{
+                background: '#ffffff',
+                color: '#0f1411',
+                fontSize: '15px',
+                fontWeight: 500,
+                padding: '14px 28px',
+                borderRadius: 'var(--radius-button)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+              }}
             >
-              Skapa konto <ArrowRight size={18} />
-            </Button>
+              Skapa gratis konto <ArrowRight size={18} />
+            </button>
           </motion.div>
+          <motion.p
+            {...inViewFadeUp(0.3)}
+            className="font-body mt-4"
+            style={{
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.7)',
+            }}
+          >
+            Eller testa Pro 7 dagar utan kostnad
+          </motion.p>
         </div>
       </section>
 

@@ -2,16 +2,17 @@
 /**
  * generate-sitemap.mjs
  *
- * Bygger public/sitemap.xml från:
- *  - Statiska publika rutter (verifierade mot App.tsx — endast icke-skyddade,
- *    icke-token-baserade rutter inkluderas).
- *  - Publicerade blogginlägg från Supabase via anon-nyckel + RLS-policyn
- *    "Anyone can read published blog posts" (drafts + framtida datum filtreras bort).
- *  - Förberedda fetcher-stubs för programmatiska sidor (tävlingar, klubbar,
- *    raser) som fylls på i Fas 2B–2D efter Vercel-flytten.
+ * Bygger ett sitemap-index + per-typ-sitemaps i public/:
  *
- * Skalning: en sitemap-fil räcker upp till 50 000 URL:er. Vid den punkten
- * ska scriptet splittras till sitemap-index + delsitemaps.
+ *   public/sitemap.xml             → index som pekar på övriga
+ *   public/sitemap-pages.xml       → statiska publika sidor
+ *   public/sitemap-blog.xml        → publicerade blogginlägg
+ *   public/sitemap-competitions.xml (Fas 2B, tomt nu)
+ *   public/sitemap-clubs.xml        (Fas 2C, tomt nu)
+ *   public/sitemap-breeds.xml       (Fas 2D, tomt nu)
+ *
+ * Vinst: bättre Search Console-stats (indexering per typ), enklare felsökning,
+ * och vi sitter inte med en monofil när vi närmar oss 50k-gränsen.
  *
  * Körs automatiskt vid `vite build` via vite-plugin (vite.config.ts).
  * Manuellt: `node scripts/generate-sitemap.mjs`
@@ -23,7 +24,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
-const OUTPUT = resolve(ROOT, 'public/sitemap.xml');
+const PUBLIC_DIR = resolve(ROOT, 'public');
 
 const SITE_URL = 'https://agilitymanager.se';
 const SUPABASE_URL = 'https://rcubbmnosawdtaupixnm.supabase.co';
@@ -135,12 +136,42 @@ function urlBlock({ loc, lastmod, changefreq, priority }) {
   </url>`;
 }
 
+function buildUrlset(entries) {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${entries.map(urlBlock).join('\n')}
+</urlset>
+`;
+}
+
+function buildIndex(sitemaps) {
+  const items = sitemaps
+    .map(
+      (s) => `  <sitemap>
+    <loc>${escapeXml(`${SITE_URL}/${s.file}`)}</loc>
+    <lastmod>${s.lastmod}</lastmod>
+  </sitemap>`,
+    )
+    .join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${items}
+</sitemapindex>
+`;
+}
+
+function writeSitemap(file, entries) {
+  const out = resolve(PUBLIC_DIR, file);
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, buildUrlset(entries), 'utf8');
+}
+
 /* ─────────────────────────────────────────────────────────────────────
    Main
    ───────────────────────────────────────────────────────────────────── */
 
 async function main() {
-  console.log('📋 Genererar sitemap.xml...');
+  console.log('📋 Genererar sitemap-index + per-typ-sitemaps...');
 
   const staticEntries = STATIC_ROUTES.map((r) => ({
     loc: `${SITE_URL}${r.path}`,
@@ -169,30 +200,43 @@ async function main() {
     }),
   ]);
 
-  const allEntries = [...staticEntries, ...blog, ...competitions, ...clubs, ...breeds];
+  // Senaste lastmod per typ (för index-filen). Fallback: BUILD_DATE.
+  const latest = (entries) =>
+    entries.reduce((max, e) => (e.lastmod > max ? e.lastmod : max), BUILD_DATE);
 
-  if (allEntries.length > SITEMAP_URL_LIMIT) {
-    console.warn(
-      `⚠️  ${allEntries.length} URL:er överstiger ${SITEMAP_URL_LIMIT} — dags att splitta till sitemap-index.`
-    );
+  const groups = [
+    { file: 'sitemap-pages.xml',         entries: staticEntries, lastmod: BUILD_DATE },
+    { file: 'sitemap-blog.xml',          entries: blog,          lastmod: latest(blog) },
+    { file: 'sitemap-competitions.xml',  entries: competitions,  lastmod: latest(competitions) },
+    { file: 'sitemap-clubs.xml',         entries: clubs,         lastmod: latest(clubs) },
+    { file: 'sitemap-breeds.xml',        entries: breeds,        lastmod: latest(breeds) },
+  ];
+
+  // Skriv varje undersitemap (även tomma så Search Console kan registrera dem
+  // utan 404). Logga storleksvarning per fil.
+  for (const g of groups) {
+    if (g.entries.length > SITEMAP_URL_LIMIT) {
+      console.warn(
+        `⚠️  ${g.file}: ${g.entries.length} URL:er överstiger ${SITEMAP_URL_LIMIT} — dela upp ytterligare.`,
+      );
+    }
+    writeSitemap(g.file, g.entries);
   }
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allEntries.map(urlBlock).join('\n')}
-</urlset>
-`;
+  // Skriv index. Bara grupper med innehåll inkluderas så Google inte slösar
+  // crawl-budget på tomma filer (men de ligger fysiskt kvar för manuell
+  // inspektion och är trivialt billiga att lägga till när data dyker upp).
+  const indexEntries = groups.filter((g) => g.entries.length > 0);
+  const indexXml = buildIndex(indexEntries);
+  writeFileSync(resolve(PUBLIC_DIR, 'sitemap.xml'), indexXml, 'utf8');
 
-  mkdirSync(dirname(OUTPUT), { recursive: true });
-  writeFileSync(OUTPUT, xml, 'utf8');
-
-  console.log(`✓ Skrev ${OUTPUT}`);
-  console.log(`  - ${staticEntries.length} statiska rutter`);
-  console.log(`  - ${blog.length} blogginlägg`);
-  console.log(`  - ${competitions.length} tävlingar (Fas 2B)`);
-  console.log(`  - ${clubs.length} klubbar (Fas 2C)`);
-  console.log(`  - ${breeds.length} raser (Fas 2D)`);
-  console.log(`  - Totalt: ${allEntries.length} URL:er`);
+  const total = groups.reduce((n, g) => n + g.entries.length, 0);
+  console.log(`✓ Skrev sitemap-index med ${indexEntries.length} aktiva delsitemaps`);
+  for (const g of groups) {
+    const tag = g.entries.length === 0 ? '(tom – ingår ej i index)' : '';
+    console.log(`  - ${g.file}: ${g.entries.length} URL:er ${tag}`);
+  }
+  console.log(`  - Totalt: ${total} URL:er`);
 }
 
 main().catch((err) => {

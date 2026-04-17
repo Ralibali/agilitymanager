@@ -215,29 +215,58 @@ async function main() {
     { file: 'sitemap-breeds.xml',        entries: breeds,        lastmod: latest(breeds) },
   ];
 
-  // Skriv varje undersitemap (även tomma så Search Console kan registrera dem
-  // utan 404). Logga storleksvarning per fil.
+  // Splitta varje grupp i chunks om den överstiger CHUNK_SIZE. Mindre grupper
+  // behåller sitt enkla filnamn (sitemap-blog.xml). Större blir
+  // sitemap-blog-1.xml, sitemap-blog-2.xml ...
+  const chunkGroup = (g) => {
+    if (g.entries.length <= CHUNK_SIZE) {
+      return [{ file: g.file, entries: g.entries, lastmod: g.lastmod }];
+    }
+    const base = g.file.replace(/\.xml$/, '');
+    const chunks = [];
+    for (let i = 0; i < g.entries.length; i += CHUNK_SIZE) {
+      const slice = g.entries.slice(i, i + CHUNK_SIZE);
+      const idx = chunks.length + 1;
+      chunks.push({
+        file: `${base}-${idx}.xml`,
+        entries: slice,
+        lastmod: slice.reduce((m, e) => (e.lastmod > m ? e.lastmod : m), BUILD_DATE),
+      });
+    }
+    return chunks;
+  };
+
+  const written = [];
   for (const g of groups) {
     if (g.entries.length > SITEMAP_URL_LIMIT) {
       console.warn(
-        `⚠️  ${g.file}: ${g.entries.length} URL:er överstiger ${SITEMAP_URL_LIMIT} — dela upp ytterligare.`,
+        `⚠️  ${g.file}: ${g.entries.length} URL:er överstiger hårda taket ${SITEMAP_URL_LIMIT}.`,
       );
     }
-    writeSitemap(g.file, g.entries);
+    const chunks = chunkGroup(g);
+    for (const c of chunks) writeSitemap(c.file, c.entries);
+    written.push({ group: g, chunks });
   }
 
-  // Skriv index. Bara grupper med innehåll inkluderas så Google inte slösar
-  // crawl-budget på tomma filer (men de ligger fysiskt kvar för manuell
-  // inspektion och är trivialt billiga att lägga till när data dyker upp).
-  const indexEntries = groups.filter((g) => g.entries.length > 0);
+  // Skriv index. Bara chunkar med innehåll inkluderas så Google inte slösar
+  // crawl-budget på tomma filer (de ligger fysiskt kvar för manuell
+  // inspektion och dyker upp i indexet automatiskt när data finns).
+  const indexEntries = written.flatMap(({ chunks }) =>
+    chunks.filter((c) => c.entries.length > 0),
+  );
   const indexXml = buildIndex(indexEntries);
   writeFileSync(resolve(PUBLIC_DIR, 'sitemap.xml'), indexXml, 'utf8');
 
   const total = groups.reduce((n, g) => n + g.entries.length, 0);
   console.log(`✓ Skrev sitemap-index med ${indexEntries.length} aktiva delsitemaps`);
-  for (const g of groups) {
-    const tag = g.entries.length === 0 ? '(tom – ingår ej i index)' : '';
-    console.log(`  - ${g.file}: ${g.entries.length} URL:er ${tag}`);
+  for (const { group, chunks } of written) {
+    if (chunks.length === 1) {
+      const tag = group.entries.length === 0 ? '(tom – ingår ej i index)' : '';
+      console.log(`  - ${group.file}: ${group.entries.length} URL:er ${tag}`);
+    } else {
+      console.log(`  - ${group.file} → ${chunks.length} chunks (${group.entries.length} URL:er totalt):`);
+      for (const c of chunks) console.log(`      • ${c.file}: ${c.entries.length}`);
+    }
   }
   console.log(`  - Totalt: ${total} URL:er`);
 }

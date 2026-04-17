@@ -123,6 +123,25 @@ export default function V2CoursesPage() {
     enabled: !!user,
   });
 
+  const { data: userDogs = [] } = useQuery({
+    queryKey: ["v2-courses-user-dogs", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("dogs")
+        .select("sport, competition_level, hoopers_level, is_active_competition_dog")
+        .eq("user_id", user.id);
+      if (error) throw error;
+      return data as {
+        sport: "Agility" | "Hoopers" | "Båda";
+        competition_level: "Nollklass" | "K1" | "K2" | "K3";
+        hoopers_level: "Startklass" | "Klass 1" | "Klass 2" | "Klass 3";
+        is_active_competition_dog: boolean;
+      }[];
+    },
+    enabled: !!user,
+  });
+
   const hasPurchased = (id: string) =>
     purchases.some((p) => p.course_id === id);
 
@@ -138,6 +157,59 @@ export default function V2CoursesPage() {
     if (category === "alla") return courses;
     return courses.filter((c) => c.category === category);
   }, [courses, category]);
+
+  /** Rekommenderade kurser baserat på hundarnas sport och nivå. */
+  const recommendations = useMemo(() => {
+    if (!user || userDogs.length === 0 || courses.length === 0) {
+      return { items: [] as Course[], reason: "" };
+    }
+    const sportWeight: Record<string, number> = { Agility: 0, Hoopers: 0 };
+    let beginnerCount = 0;
+    let advancedCount = 0;
+
+    userDogs.forEach((d) => {
+      const w = d.is_active_competition_dog ? 2 : 1;
+      if (d.sport === "Agility" || d.sport === "Båda") sportWeight.Agility += w;
+      if (d.sport === "Hoopers" || d.sport === "Båda") sportWeight.Hoopers += w;
+      if (d.sport === "Hoopers") {
+        if (d.hoopers_level === "Startklass" || d.hoopers_level === "Klass 1") beginnerCount++;
+        else advancedCount++;
+      } else {
+        if (d.competition_level === "Nollklass" || d.competition_level === "K1") beginnerCount++;
+        else advancedCount++;
+      }
+    });
+
+    const preferred =
+      sportWeight.Hoopers > sportWeight.Agility
+        ? "hoopers"
+        : sportWeight.Agility > sportWeight.Hoopers
+          ? "agility"
+          : null;
+    const isBeginnerHeavy = beginnerCount >= advancedCount;
+
+    const scored = courses
+      .filter((c) => !hasPurchased(c.id))
+      .map((c) => {
+        let score = 0;
+        const cat = c.category.toLowerCase();
+        if (preferred && cat === preferred) score += 3;
+        if (cat === "grundträning") score += isBeginnerHeavy ? 2 : 0.5;
+        const text = `${c.title} ${c.description}`.toLowerCase();
+        if (isBeginnerHeavy && /(nyböj|grund|start|introduk|nollklass)/.test(text)) score += 1;
+        if (!isBeginnerHeavy && /(avancer|k2|k3|klass\s*2|klass\s*3|tävling)/.test(text)) score += 1;
+        return { course: c, score };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map((x) => x.course);
+
+    const reasonParts: string[] = [];
+    if (preferred) reasonParts.push(preferred === "hoopers" ? "Hoopers" : "Agility");
+    reasonParts.push(isBeginnerHeavy ? "nybörjarvänligt" : "tävlingsnivå");
+    return { items: scored, reason: reasonParts.join(" · ") };
+  }, [courses, userDogs, purchases, user]);
 
   const handlePurchase = (course: Course) => {
     if (!user) {

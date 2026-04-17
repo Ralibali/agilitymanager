@@ -1095,6 +1095,7 @@ export default function CoursePlannerBetaPage() {
                     armedKey={armedKey}
                     onArm={setArmedKey}
                   />
+                </aside>
 
                 <main className="flex-1 min-w-0 relative overflow-hidden">
                   <Canvas

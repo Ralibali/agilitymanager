@@ -166,9 +166,10 @@ export default function V2AdminPage() {
                             {new Date(u.created_at).toLocaleDateString("sv-SE")}
                           </span>
                           {isPremium && (
-                            <StatusBadge tone="warning">
-                              {isLifetime ? "⭐ Livstid" : `⭐ Premium`}
-                            </StatusBadge>
+                            <StatusBadge
+                              variant="warning"
+                              label={isLifetime ? "⭐ Livstid" : "⭐ Premium"}
+                            />
                           )}
                         </div>
                       </div>

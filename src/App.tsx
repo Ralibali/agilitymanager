@@ -60,6 +60,8 @@ const V2ClubsPage = React.lazy(() => import("./pages/v2/ClubsPage"));
 const V2ChatPage = React.lazy(() => import("./pages/v2/ChatPage"));
 const V2DogsPage = React.lazy(() => import("./pages/v2/DogsPage"));
 const V2HealthPage = React.lazy(() => import("./pages/v2/HealthPage"));
+const V2SettingsPage = React.lazy(() => import("./pages/v2/SettingsPage"));
+const V2AdminPage = React.lazy(() => import("./pages/v2/AdminPage"));
 
 const queryClient = new QueryClient();
 
@@ -186,8 +188,8 @@ const App = () => (
                 <Route path="chat" element={<V2ChatPage />} />
                 <Route path="clubs" element={<V2ClubsPage />} />
                 <Route path="courses" element={<PlaceholderPage />} />
-                <Route path="settings" element={<PlaceholderPage />} />
-                <Route path="admin" element={<PlaceholderPage />} />
+                <Route path="settings" element={<V2SettingsPage />} />
+                <Route path="admin" element={<V2AdminPage />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

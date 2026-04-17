@@ -190,7 +190,7 @@ export default function V2SettingsPage() {
                   </p>
                 </div>
               </div>
-              {isPro && <StatusBadge tone="success">Aktiv</StatusBadge>}
+              {isPro && <StatusBadge variant="success" label="Aktiv" />}
             </div>
 
             {isPro ? (

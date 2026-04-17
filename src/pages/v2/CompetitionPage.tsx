@@ -1,7 +1,22 @@
-import { useEffect, useMemo, useState } from "react";
-import { Trophy, Calendar, Star, ListChecks, Filter, ExternalLink, Plus } from "lucide-react";
-import { startOfYear, format } from "date-fns";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import {
+  Trophy,
+  Calendar,
+  Star,
+  ListChecks,
+  Filter,
+  ExternalLink,
+  Plus,
+  Download,
+  FileText,
+  Send,
+  Trash2,
+  TrendingUp,
+} from "lucide-react";
+import { startOfYear, format, differenceInDays } from "date-fns";
 import { sv } from "date-fns/locale";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
 import {
   PageHeader,
   DSCard,
@@ -14,6 +29,17 @@ import {
   ResultRow,
 } from "@/components/ds";
 import { AgilityDataAttribution } from "@/components/competitions/AgilityDataAttribution";
+import { AddCompetitionDialog } from "@/components/AddCompetitionDialog";
+import { MinaTavlingar } from "@/components/competitions/MinaTavlingar";
+import { HoopersKalendar } from "@/components/competitions/HoopersKalendar";
+import { ResultsImporter } from "@/components/competitions/ResultsImporter";
+import { ImportResultsFromUrl } from "@/components/competitions/ImportResultsFromUrl";
+import { HistoricalResultsStats } from "@/components/competitions/HistoricalResultsStats";
+import { ClassPromotionTracker } from "@/components/competitions/ClassPromotionTracker";
+import { HoopersPointsTracker } from "@/components/competitions/HoopersPointsTracker";
+import { CleanRunTrendChart } from "@/components/competitions/CleanRunTrendChart";
+import { PerformanceTrendChart } from "@/components/competitions/PerformanceTrendChart";
+import ShareToFriendDialog from "@/components/ShareToFriendDialog";
 import {
   Select,
   SelectContent,
@@ -24,15 +50,18 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { store } from "@/lib/store";
+import { downloadCsv } from "@/lib/csv";
+import { downloadPdf } from "@/lib/pdf";
 import type { Dog, CompetitionResult, PlannedCompetition } from "@/types";
 import type { Competition } from "@/types/competitions";
 
-type Tab = "calendar" | "mine" | "results" | "import";
+type Tab = "calendar" | "mine" | "results" | "analysis" | "import";
 
 const TABS: { value: Tab; label: string; icon: typeof Calendar }[] = [
   { value: "calendar", label: "Kalender", icon: Calendar },
   { value: "mine", label: "Mina", icon: Star },
   { value: "results", label: "Resultat", icon: Trophy },
+  { value: "analysis", label: "Analys", icon: TrendingUp },
   { value: "import", label: "Import", icon: ListChecks },
 ];
 
@@ -42,14 +71,16 @@ export default function CompetitionPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [results, setResults] = useState<CompetitionResult[]>([]);
   const [planned, setPlanned] = useState<PlannedCompetition[]>([]);
-  const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [agilityComps, setAgilityComps] = useState<Competition[]>([]);
   const [loading, setLoading] = useState(true);
   const [dogFilter, setDogFilter] = useState<string>("all");
   const [sportFilter, setSportFilter] = useState<"all" | "Agility" | "Hoopers">("all");
+  const [sportTab, setSportTab] = useState<"agility" | "hoopers">("agility");
+  const [shareResult, setShareResult] = useState<CompetitionResult | null>(null);
 
-  useEffect(() => {
+  const refresh = useCallback(async () => {
     if (!user) return;
-    Promise.all([
+    const [d, r, p, comp] = await Promise.all([
       store.getDogs(),
       store.getCompetitions(),
       store.getPlanned(),
@@ -58,23 +89,28 @@ export default function CompetitionPage() {
         .select("*")
         .gte("date_start", new Date().toISOString().slice(0, 10))
         .order("date_start", { ascending: true })
-        .limit(60),
-    ]).then(([d, r, p, comp]) => {
-      setDogs(d);
-      setResults(r);
-      setPlanned(p);
-      setCompetitions((comp.data ?? []) as Competition[]);
-      setLoading(false);
-    });
+        .limit(80),
+    ]);
+    setDogs(d);
+    setResults(r);
+    setPlanned(p);
+    setAgilityComps((comp.data ?? []) as Competition[]);
+    setLoading(false);
   }, [user]);
 
-  const filteredResults = useMemo(() => {
-    return results.filter(
-      (r) =>
-        (dogFilter === "all" || r.dog_id === dogFilter) &&
-        (sportFilter === "all" || r.sport === sportFilter),
-    );
-  }, [results, dogFilter, sportFilter]);
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const filteredResults = useMemo(
+    () =>
+      results.filter(
+        (r) =>
+          (dogFilter === "all" || r.dog_id === dogFilter) &&
+          (sportFilter === "all" || r.sport === sportFilter),
+      ),
+    [results, dogFilter, sportFilter],
+  );
 
   const stats = useMemo(() => {
     const yearStart = startOfYear(new Date());
@@ -92,6 +128,55 @@ export default function CompetitionPage() {
     };
   }, [results, planned]);
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Ta bort detta resultat?")) return;
+    await store.deleteCompetition(id);
+    toast.success("Resultat borttaget");
+    refresh();
+  };
+
+  const handleExportCsv = () => {
+    const rows = filteredResults.map((r) => {
+      const dog = dogs.find((d) => d.id === r.dog_id);
+      return {
+        Datum: r.date,
+        Hund: dog?.name ?? "",
+        Sport: r.sport,
+        Disciplin: r.discipline,
+        Klass: r.competition_level,
+        Tävling: r.event_name,
+        Arrangör: r.organizer ?? "",
+        Fel: r.faults,
+        Tid: r.time_sec,
+        Plats: r.placement ?? "",
+        Godkänd: r.passed ? "Ja" : "Nej",
+        Diskad: r.disqualified ? "Ja" : "Nej",
+      };
+    });
+    downloadCsv("tavlingar.csv", rows);
+  };
+
+  const handleExportPdf = () => {
+    const rows = filteredResults.map((r) => {
+      const dog = dogs.find((d) => d.id === r.dog_id);
+      return [
+        format(new Date(r.date), "yyyy-MM-dd"),
+        dog?.name ?? "",
+        r.event_name,
+        r.competition_level,
+        r.faults.toString(),
+        r.time_sec.toString(),
+        r.placement?.toString() ?? "",
+      ];
+    });
+    downloadPdf({
+      title: "Tävlingsresultat",
+      head: [["Datum", "Hund", "Tävling", "Klass", "Fel", "Tid", "Plats"]],
+      body: rows,
+      filename: "tavlingar.pdf",
+    });
+  };
+
   if (loading) return <PageSkeleton />;
 
   return (
@@ -100,6 +185,17 @@ export default function CompetitionPage() {
         eyebrow="Tävling"
         title="Tävlingar"
         subtitle="Hitta tävlingar, planera ditt år och följ dina resultat över tid."
+        actions={
+          <AddCompetitionDialog
+            dogs={dogs}
+            onAdded={refresh}
+            trigger={
+              <DSButton>
+                <Plus className="w-4 h-4" /> Lägg till resultat
+              </DSButton>
+            }
+          />
+        }
       />
 
       <AgilityDataAttribution />
@@ -109,7 +205,11 @@ export default function CompetitionPage() {
         <MetricCard
           label="Godkända"
           value={stats.passed}
-          hint={stats.yearTotal > 0 ? `${Math.round((stats.passed / stats.yearTotal) * 100)}%` : "—"}
+          hint={
+            stats.yearTotal > 0
+              ? `${Math.round((stats.passed / stats.yearTotal) * 100)}%`
+              : "—"
+          }
         />
         <MetricCard label="Pallplatser" value={stats.podium} hint="topp 3 i år" />
         <MetricCard label="Planerade" value={stats.upcoming} hint="kommande" />
@@ -117,7 +217,7 @@ export default function CompetitionPage() {
 
       {/* Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle/40 pb-3">
-        <div className="inline-flex gap-1">
+        <div className="inline-flex gap-1 flex-wrap">
           {TABS.map((t) => {
             const Icon = t.icon;
             const active = tab === t.value;
@@ -138,8 +238,14 @@ export default function CompetitionPage() {
           })}
         </div>
 
-        {tab === "results" && (
+        {tab === "results" && filteredResults.length > 0 && (
           <div className="flex items-center gap-2">
+            <DSButton variant="secondary" onClick={handleExportCsv} className="h-8">
+              <Download className="w-3.5 h-3.5" /> CSV
+            </DSButton>
+            <DSButton variant="secondary" onClick={handleExportPdf} className="h-8">
+              <FileText className="w-3.5 h-3.5" /> PDF
+            </DSButton>
             <Filter className="w-3.5 h-3.5 text-text-tertiary" />
             <Select value={dogFilter} onValueChange={setDogFilter}>
               <SelectTrigger className="h-8 w-[160px] rounded-ds-md border-border-default text-small bg-surface">
@@ -167,119 +273,116 @@ export default function CompetitionPage() {
         )}
       </div>
 
-      {tab === "calendar" && <CalendarTab competitions={competitions} />}
-      {tab === "mine" && <MineTab planned={planned} dogs={dogs} />}
-      {tab === "results" && <ResultsTab results={filteredResults} dogs={dogs} />}
-      {tab === "import" && <ImportTab />}
+      {tab === "calendar" && (
+        <CalendarTab
+          agilityComps={agilityComps}
+          sportTab={sportTab}
+          setSportTab={setSportTab}
+        />
+      )}
+      {tab === "mine" && <MinaTavlingar />}
+      {tab === "results" && (
+        <ResultsTab
+          results={filteredResults}
+          dogs={dogs}
+          onDelete={handleDelete}
+          onShare={setShareResult}
+        />
+      )}
+      {tab === "analysis" && <AnalysisTab dogs={dogs} results={results} />}
+      {tab === "import" && <ImportTab dogs={dogs} onDone={refresh} />}
+
+      {shareResult && (
+        <ShareToFriendDialog
+          open={!!shareResult}
+          onOpenChange={(o) => !o && setShareResult(null)}
+          shareType="competition"
+          shareId={shareResult.id}
+          shareData={{
+            event_name: shareResult.event_name,
+            date: shareResult.date,
+            faults: shareResult.faults,
+            time_sec: shareResult.time_sec,
+            placement: shareResult.placement,
+          }}
+        />
+      )}
     </div>
   );
 }
 
-/* ============ Tab: Kalender ============ */
-function CalendarTab({ competitions }: { competitions: Competition[] }) {
-  if (competitions.length === 0) {
-    return (
-      <DSCard>
-        <DSEmptyState
-          icon={Calendar}
-          title="Inga kommande tävlingar"
-          description="Vi hittar inga publicerade tävlingar i kalendern just nu. Kom tillbaka snart."
-        />
-      </DSCard>
-    );
-  }
+/* ============ Tab: Kalender (Agility + Hoopers) ============ */
+function CalendarTab({
+  agilityComps,
+  sportTab,
+  setSportTab,
+}: {
+  agilityComps: Competition[];
+  sportTab: "agility" | "hoopers";
+  setSportTab: (s: "agility" | "hoopers") => void;
+}) {
   return (
-    <div className="space-y-2">
-      {competitions.map((c) => {
-        const allClasses = [
-          ...(c.classes_agility ?? []),
-          ...(c.classes_hopp ?? []),
-          ...(c.classes_other ?? []),
-        ];
-        return (
-          <CompetitionCard
-            key={c.id}
-            title={c.competition_name ?? c.club_name ?? "Tävling"}
-            club={c.club_name}
-            location={c.location}
-            dateStart={c.date_start}
-            dateEnd={c.date_end}
-            registrationDeadline={c.last_registration_date}
-            classes={allClasses}
-            sport="Agility"
-            sourceUrl={c.source_url}
-            rightSlot={
-              c.source_url ? (
-                <a
-                  href={c.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-text-tertiary hover:text-text-primary"
-                  aria-label="Öppna källa"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              ) : null
-            }
-          />
-        );
-      })}
-    </div>
-  );
-}
+    <div className="space-y-4">
+      <SegmentedControl<"agility" | "hoopers">
+        value={sportTab}
+        onChange={setSportTab}
+        options={[
+          { value: "agility", label: "Agility" },
+          { value: "hoopers", label: "Hoopers" },
+        ]}
+      />
 
-/* ============ Tab: Mina ============ */
-function MineTab({ planned, dogs }: { planned: PlannedCompetition[]; dogs: Dog[] }) {
-  if (planned.length === 0) {
-    return (
-      <DSCard>
-        <DSEmptyState
-          icon={Star}
-          title="Inga planerade tävlingar"
-          description="Markera tävlingar som intressanta i kalendern – de hamnar här."
-          action={
-            <DSButton variant="secondary" disabled>
-              <Plus className="w-4 h-4" /> Lägg till manuellt (kommer snart)
-            </DSButton>
-          }
-        />
-      </DSCard>
-    );
-  }
-  const byMonth = new Map<string, PlannedCompetition[]>();
-  planned
-    .slice()
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .forEach((p) => {
-      const k = format(new Date(p.date), "yyyy-MM");
-      if (!byMonth.has(k)) byMonth.set(k, []);
-      byMonth.get(k)!.push(p);
-    });
-  return (
-    <div className="space-y-7">
-      {Array.from(byMonth.entries()).map(([month, items]) => (
-        <section key={month}>
-          <h2 className="text-micro text-text-tertiary uppercase tracking-wide mb-3">
-            {format(new Date(`${month}-01`), "MMMM yyyy", { locale: sv })}
-          </h2>
+      {sportTab === "agility" ? (
+        agilityComps.length === 0 ? (
+          <DSCard>
+            <DSEmptyState
+              icon={Calendar}
+              title="Inga kommande tävlingar"
+              description="Vi hittar inga publicerade agility-tävlingar i kalendern just nu."
+            />
+          </DSCard>
+        ) : (
           <div className="space-y-2">
-            {items.map((p) => {
-              const dog = dogs.find((d) => d.id === p.dog_id);
+            {agilityComps.map((c) => {
+              const allClasses = [
+                ...(c.classes_agility ?? []),
+                ...(c.classes_hopp ?? []),
+                ...(c.classes_other ?? []),
+              ];
               return (
                 <CompetitionCard
-                  key={p.id}
-                  title={p.event_name}
-                  club={dog?.name ?? null}
-                  location={p.location}
-                  dateStart={p.date}
-                  sport={dog?.sport === "Hoopers" ? "Hoopers" : "Agility"}
+                  key={c.id}
+                  title={c.competition_name ?? c.club_name ?? "Tävling"}
+                  club={c.club_name}
+                  location={c.location}
+                  dateStart={c.date_start}
+                  dateEnd={c.date_end}
+                  registrationDeadline={c.last_registration_date}
+                  classes={allClasses}
+                  sport="Agility"
+                  sourceUrl={c.source_url}
+                  rightSlot={
+                    c.source_url ? (
+                      <a
+                        href={c.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-text-tertiary hover:text-text-primary"
+                        aria-label="Öppna källa"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    ) : null
+                  }
                 />
               );
             })}
           </div>
-        </section>
-      ))}
+        )
+      ) : (
+        <HoopersKalendar dogs={[]} />
+      )}
     </div>
   );
 }
@@ -288,9 +391,13 @@ function MineTab({ planned, dogs }: { planned: PlannedCompetition[]; dogs: Dog[]
 function ResultsTab({
   results,
   dogs,
+  onDelete,
+  onShare,
 }: {
   results: CompetitionResult[];
   dogs: Dog[];
+  onDelete: (id: string) => void;
+  onShare: (r: CompetitionResult) => void;
 }) {
   if (results.length === 0) {
     return (
@@ -298,7 +405,7 @@ function ResultsTab({
         <DSEmptyState
           icon={Trophy}
           title="Inga resultat"
-          description="Resultat dyker upp här när du loggar dem eller importerar från Agilitydata."
+          description="Resultat dyker upp här när du loggar dem manuellt eller importerar från Agilitydata."
         />
       </DSCard>
     );
@@ -323,11 +430,28 @@ function ResultsTab({
             </h2>
             <div className="space-y-2">
               {items.map((r) => (
-                <ResultRow
-                  key={r.id}
-                  result={r}
-                  dog={dogs.find((d) => d.id === r.dog_id)}
-                />
+                <div key={r.id} className="group relative">
+                  <ResultRow
+                    result={r}
+                    dog={dogs.find((d) => d.id === r.dog_id)}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                    <button
+                      onClick={() => onShare(r)}
+                      className="p-1.5 rounded-md hover:bg-subtle text-text-tertiary hover:text-text-primary"
+                      aria-label="Dela till vän"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => onDelete(r.id)}
+                      className="p-1.5 rounded-md hover:bg-semantic-error/10 text-text-tertiary hover:text-semantic-error"
+                      aria-label="Ta bort resultat"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
           </section>
@@ -336,20 +460,109 @@ function ResultsTab({
   );
 }
 
-/* ============ Tab: Import ============ */
-function ImportTab() {
+/* ============ Tab: Analys ============ */
+function AnalysisTab({
+  dogs,
+  results,
+}: {
+  dogs: Dog[];
+  results: CompetitionResult[];
+}) {
+  const [analysisDog, setAnalysisDog] = useState<string>(dogs[0]?.id ?? "");
+  const dog = dogs.find((d) => d.id === analysisDog);
+  const dogResults = useMemo(
+    () => results.filter((r) => r.dog_id === analysisDog),
+    [results, analysisDog],
+  );
+
+  if (dogs.length === 0) {
+    return (
+      <DSCard>
+        <DSEmptyState
+          icon={TrendingUp}
+          title="Inga hundar"
+          description="Lägg till en hund för att kunna se analyser."
+        />
+      </DSCard>
+    );
+  }
+
   return (
-    <DSCard>
-      <DSEmptyState
-        icon={ListChecks}
-        title="Importera resultat"
-        description="Hämta dina officiella resultat automatiskt från Agilitydata. Den fullständiga import-vyn flyttas hit i nästa fas."
-        action={
-          <DSButton asChild variant="secondary">
-            <a href="/app/competition?tab=import">Gå till klassisk import</a>
-          </DSButton>
-        }
-      />
-    </DSCard>
+    <div className="space-y-5">
+      <div className="flex items-center gap-3">
+        <label className="text-small text-text-secondary">Analysera:</label>
+        <Select value={analysisDog} onValueChange={setAnalysisDog}>
+          <SelectTrigger className="h-9 w-[200px] rounded-ds-md border-border-default bg-surface text-body">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {dogs.map((d) => (
+              <SelectItem key={d.id} value={d.id}>
+                {d.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {dog && dogResults.length === 0 ? (
+        <DSCard>
+          <DSEmptyState
+            icon={TrendingUp}
+            title="Inga resultat för analys"
+            description={`${dog.name} saknar loggade tävlingar. Importera eller logga några för att se trender.`}
+          />
+        </DSCard>
+      ) : dog ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {dog.sport === "Hoopers" || dog.sport === "Båda" ? (
+            <DSCard>
+              <HoopersPointsTracker dog={dog} results={dogResults} />
+            </DSCard>
+          ) : null}
+          {dog.sport === "Agility" || dog.sport === "Båda" ? (
+            <DSCard>
+              <ClassPromotionTracker dog={dog} results={dogResults} />
+            </DSCard>
+          ) : null}
+          <DSCard>
+            <CleanRunTrendChart results={dogResults} />
+          </DSCard>
+          <DSCard>
+            <PerformanceTrendChart results={dogResults} />
+          </DSCard>
+          <DSCard className="lg:col-span-2">
+            <HistoricalResultsStats dogId={dog.id} dogName={dog.name} />
+          </DSCard>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/* ============ Tab: Import ============ */
+function ImportTab({ dogs, onDone }: { dogs: Dog[]; onDone: () => void }) {
+  return (
+    <div className="space-y-4">
+      <DSCard>
+        <header className="mb-4">
+          <h2 className="text-h2 text-text-primary">Importera från URL</h2>
+          <p className="text-small text-text-tertiary mt-1">
+            Klistra in en länk till en specifik tävlings resultatsida på agilitydata.se.
+          </p>
+        </header>
+        <ImportResultsFromUrl dogs={dogs} onImported={onDone} />
+      </DSCard>
+
+      <DSCard>
+        <header className="mb-4">
+          <h2 className="text-h2 text-text-primary">Bulkimport från handlare</h2>
+          <p className="text-small text-text-tertiary mt-1">
+            Hämta alla dina officiella resultat från agilitydata.se på en gång.
+          </p>
+        </header>
+        <ResultsImporter dogs={dogs} onImported={onDone} />
+      </DSCard>
+    </div>
   );
 }

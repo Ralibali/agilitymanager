@@ -102,9 +102,18 @@ function renderContent(content: string) {
       flushTable();
     }
 
-    if (trimmed.startsWith('## ')) {
+    if (trimmed.startsWith('## ') && !trimmed.startsWith('### ')) {
       flushList();
-      elements.push(<h2 key={`h2-${elements.length}`} className="font-display font-bold text-foreground text-lg mt-6 mb-3">{parseInline(trimmed.slice(3))}</h2>);
+      const rawText = trimmed.slice(3);
+      const cleanText = rawText.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').trim();
+      let id = slugifyHeading(cleanText);
+      let suffix = 2;
+      const baseId = id;
+      while (usedH2Ids.has(id)) {
+        id = `${baseId}-${suffix++}`;
+      }
+      usedH2Ids.add(id);
+      elements.push(<h2 id={id} key={`h2-${elements.length}`} className="font-display font-bold text-foreground text-lg mt-6 mb-3 scroll-mt-20">{parseInline(rawText)}</h2>);
     } else if (trimmed.startsWith('### ')) {
       flushList();
       elements.push(<h3 key={`h3-${elements.length}`} className="font-display font-semibold text-foreground mt-4 mb-2">{parseInline(trimmed.slice(4))}</h3>);

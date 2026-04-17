@@ -118,23 +118,23 @@ export default function V2DogsPage() {
                         </p>
                       </div>
                       {dog.is_active_competition_dog && (
-                        <StatusBadge tone="success">Aktiv</StatusBadge>
+                        <StatusBadge variant="success" label="Aktiv" />
                       )}
                     </div>
 
                     <div className="mt-2 flex flex-wrap gap-1.5">
-                      <StatusBadge tone="neutral">{dog.sport}</StatusBadge>
+                      <StatusBadge variant="neutral" label={dog.sport} />
                       {(dog.sport === "Agility" || dog.sport === "Båda") && (
                         <>
-                          <StatusBadge tone="info">Storlek {dog.size_class}</StatusBadge>
-                          <StatusBadge tone="neutral">AG {dog.competition_level}</StatusBadge>
-                          <StatusBadge tone="neutral">Hopp {dog.jumping_level}</StatusBadge>
+                          <StatusBadge variant="info" label={`Storlek ${dog.size_class}`} />
+                          <StatusBadge variant="neutral" label={`AG ${dog.competition_level}`} />
+                          <StatusBadge variant="neutral" label={`Hopp ${dog.jumping_level}`} />
                         </>
                       )}
                       {(dog.sport === "Hoopers" || dog.sport === "Båda") && (
                         <>
-                          <StatusBadge tone="info">{dog.hoopers_size}</StatusBadge>
-                          <StatusBadge tone="neutral">HO {dog.hoopers_level}</StatusBadge>
+                          <StatusBadge variant="info" label={dog.hoopers_size} />
+                          <StatusBadge variant="neutral" label={`HO ${dog.hoopers_level}`} />
                         </>
                       )}
                     </div>

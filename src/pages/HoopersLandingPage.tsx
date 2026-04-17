@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import {
-  ArrowRight, Check, CircleDot, LayoutGrid, Trophy, TrendingUp, Target, BarChart3
+  ArrowRight, Check, LayoutGrid, Trophy, Activity,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';

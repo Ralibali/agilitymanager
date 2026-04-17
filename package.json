@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/generate-static-pages.mjs",
+    "build": "vite build && node scripts/generate-static-pages.mjs && node scripts/generate-sitemap.mjs",
     "build:no-snap": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",

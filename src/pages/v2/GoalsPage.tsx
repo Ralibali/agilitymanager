@@ -96,7 +96,7 @@ export default function GoalsPage() {
       </div>
 
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <SegmentedControl
+        <SegmentedControl<Filter>
           value={filter}
           onChange={setFilter}
           options={(Object.keys(FILTER_LABEL) as Filter[]).map((f) => ({

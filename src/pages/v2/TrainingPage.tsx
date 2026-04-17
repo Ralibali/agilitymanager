@@ -170,7 +170,7 @@ export default function TrainingPage() {
             ))}
           </SelectContent>
         </Select>
-        <SegmentedControl
+        <SegmentedControl<Range>
           value={range}
           onChange={setRange}
           options={(Object.keys(RANGE_LABEL) as Range[]).map((r) => ({

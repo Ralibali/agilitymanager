@@ -25,7 +25,7 @@ import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import {
   Save, Share2, Download, MoreHorizontal, ChevronRight, ChevronLeft,
-  ZoomIn, ZoomOut, Maximize2, Sparkles, ChevronDown,
+  ZoomIn, ZoomOut, Maximize2, Sparkles, ChevronDown, Copy, Trash2, RotateCw, Lock, Unlock,
 } from 'lucide-react';
 import {
   DndContext,
@@ -41,6 +41,8 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PremiumGate } from '@/components/PremiumGate';
 import { ObstaclePalette } from '@/components/course-planner/ObstaclePalette';
+import { TemplatesModal, type CourseTemplate } from '@/components/course-planner/TemplatesModal';
+import { ObstacleContextMenu } from '@/components/course-planner/ObstacleContextMenu';
 import {
   OBSTACLES,
   getObstacleIcon,
@@ -230,9 +232,25 @@ interface PlacedObstacle {
   /** Position i meter från canvas top-left. */
   xM: number;
   yM: number;
-  /** Rotation i grader (0 = standard, default 0). Används i 9C. */
+  /** Rotation i grader (0 = standard). */
   rotation: number;
+  /** Visningsstorlek-multiplikator (1.0 = standard, 0.5–2.0). */
+  scale: number;
+  /** HSL- eller hex-färg för ikonens stroke. Default: planner-grön. */
+  color: string;
+  /** Låst position – kan inte flyttas eller raderas av misstag. */
+  locked: boolean;
 }
+
+const DEFAULT_OBSTACLE_COLOR = '#1a6b3c';
+const OBSTACLE_COLORS = [
+  '#1a6b3c', // planner-grön
+  '#c85d1e', // varm orange
+  '#1e40af', // blå
+  '#7c2d12', // brun
+  '#6b21a8', // lila
+  '#0f0f0f', // svart
+];
 
 /* ─────────────────────────────────────────────────────────────────────
    Properties placeholder (höger, 280px) – fylls i steg 9C
@@ -240,12 +258,138 @@ interface PlacedObstacle {
 
 interface PropertiesPanelProps {
   obstacleCount: number;
+  selected: PlacedObstacle | null;
+  onUpdate: (patch: Partial<PlacedObstacle>) => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
 }
 
-function PropertiesPanel({ obstacleCount }: PropertiesPanelProps) {
+function PropertiesPanel({ obstacleCount, selected, onUpdate, onDuplicate, onDelete }: PropertiesPanelProps) {
+  // Visa per-hinder-redigering om något är valt, annars översikten
+  if (selected) {
+    const def = getObstacleDef(selected.key);
+    return (
+      <div className="p-4 space-y-5">
+        <section>
+          <h3 className="text-[10px] font-medium uppercase tracking-[0.08em] text-neutral-500 mb-2">
+            Valt hinder
+          </h3>
+          <div className="bg-neutral-50 rounded-lg p-3">
+            <div className="text-[13px] font-medium text-neutral-900">{def?.label ?? selected.key}</div>
+            <div className="text-[11px] text-neutral-500 tabular-nums mt-0.5">
+              x: {selected.xM.toFixed(1)} m · y: {selected.yM.toFixed(1)} m
+            </div>
+          </div>
+        </section>
+
+        {/* Rotation */}
+        <section>
+          <div className="flex items-center justify-between mb-1.5">
+            <label htmlFor="rot" className="text-[11px] font-medium text-neutral-700">Rotation</label>
+            <span className="text-[11px] text-neutral-500 tabular-nums">{selected.rotation}°</span>
+          </div>
+          <input
+            id="rot"
+            type="range"
+            min={0}
+            max={359}
+            step={1}
+            value={selected.rotation}
+            onChange={(e) => onUpdate({ rotation: Number(e.target.value) })}
+            disabled={selected.locked}
+            className="w-full accent-[#1a6b3c] disabled:opacity-50"
+          />
+          <div className="flex justify-between mt-1">
+            {[0, 45, 90, 135, 180, 270].map((deg) => (
+              <button
+                key={deg}
+                onClick={() => onUpdate({ rotation: deg })}
+                disabled={selected.locked}
+                className={`text-[10px] px-1.5 py-0.5 rounded tabular-nums transition-colors ${
+                  selected.rotation === deg
+                    ? 'bg-[#1a6b3c] text-white'
+                    : 'text-neutral-500 hover:bg-neutral-100 disabled:opacity-50'
+                }`}
+              >
+                {deg}°
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Storlek */}
+        <section>
+          <div className="flex items-center justify-between mb-1.5">
+            <label htmlFor="size" className="text-[11px] font-medium text-neutral-700">Storlek</label>
+            <span className="text-[11px] text-neutral-500 tabular-nums">{Math.round(selected.scale * 100)}%</span>
+          </div>
+          <input
+            id="size"
+            type="range"
+            min={0.5}
+            max={2}
+            step={0.1}
+            value={selected.scale}
+            onChange={(e) => onUpdate({ scale: Number(e.target.value) })}
+            disabled={selected.locked}
+            className="w-full accent-[#1a6b3c] disabled:opacity-50"
+          />
+        </section>
+
+        {/* Färg */}
+        <section>
+          <label className="text-[11px] font-medium text-neutral-700 mb-1.5 block">Färg</label>
+          <div className="flex gap-1.5">
+            {OBSTACLE_COLORS.map((c) => (
+              <button
+                key={c}
+                onClick={() => onUpdate({ color: c })}
+                disabled={selected.locked}
+                className={`w-6 h-6 rounded-full border-2 transition-all disabled:opacity-50 ${
+                  selected.color === c ? 'border-neutral-900 scale-110' : 'border-white shadow-sm hover:scale-105'
+                }`}
+                style={{ backgroundColor: c }}
+                aria-label={`Välj färg ${c}`}
+              />
+            ))}
+          </div>
+        </section>
+
+        <div className="border-t border-neutral-100" />
+
+        {/* Actions */}
+        <section className="space-y-1.5">
+          <button
+            onClick={() => onUpdate({ locked: !selected.locked })}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[12px] text-neutral-700 hover:bg-neutral-50 rounded-md transition-colors"
+          >
+            {selected.locked ? <Unlock size={13} /> : <Lock size={13} />}
+            {selected.locked ? 'Lås upp' : 'Lås position'}
+          </button>
+          <button
+            onClick={onDuplicate}
+            disabled={selected.locked}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[12px] text-neutral-700 hover:bg-neutral-50 rounded-md transition-colors disabled:opacity-50"
+          >
+            <Copy size={13} />
+            Duplicera
+          </button>
+          <button
+            onClick={onDelete}
+            disabled={selected.locked}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[12px] text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+          >
+            <Trash2 size={13} />
+            Ta bort
+          </button>
+        </section>
+      </div>
+    );
+  }
+
+  // Default-vy: översikt
   return (
     <div className="p-4 space-y-4">
-      {/* Översikt – statistik */}
       <section>
         <h3 className="text-[10px] font-medium uppercase tracking-[0.08em] text-neutral-500 mb-2">
           Översikt
@@ -256,10 +400,6 @@ function PropertiesPanel({ obstacleCount }: PropertiesPanelProps) {
             <dd className="text-neutral-900 font-medium tabular-nums">{obstacleCount}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-neutral-600">Banlängd</dt>
-            <dd className="text-neutral-400 tabular-nums">– m</dd>
-          </div>
-          <div className="flex justify-between">
             <dt className="text-neutral-600">Sport</dt>
             <dd className="text-neutral-900">Agility</dd>
           </div>
@@ -268,25 +408,9 @@ function PropertiesPanel({ obstacleCount }: PropertiesPanelProps) {
 
       <div className="border-t border-neutral-100" />
 
-      {/* Visning */}
       <section>
-        <h3 className="text-[10px] font-medium uppercase tracking-[0.08em] text-neutral-500 mb-2">
-          Visning
-        </h3>
-        <p className="text-[12px] text-neutral-400">
-          Toggle för banflyt, mått och nummerordning kommer i steg 9C.
-        </p>
-      </section>
-
-      <div className="border-t border-neutral-100" />
-
-      {/* Export */}
-      <section>
-        <h3 className="text-[10px] font-medium uppercase tracking-[0.08em] text-neutral-500 mb-2">
-          Export
-        </h3>
-        <p className="text-[12px] text-neutral-400">
-          Inställningar för PDF-export (A4/A3, riktning) kommer i steg 9C.
+        <p className="text-[12px] text-neutral-400 italic leading-snug">
+          Klicka på ett hinder för att redigera rotation, storlek och färg. Höger-klicka för fler val.
         </p>
       </section>
     </div>
@@ -303,9 +427,14 @@ interface CanvasProps {
   zoom: number;
   onZoomChange: (z: number) => void;
   obstacles: PlacedObstacle[];
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
+  onContextMenu: (id: string, x: number, y: number) => void;
 }
 
-function Canvas({ widthM, heightM, zoom, onZoomChange, obstacles }: CanvasProps) {
+function Canvas({
+  widthM, heightM, zoom, onZoomChange, obstacles, selectedId, onSelect, onContextMenu,
+}: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   // Droppable canvas – tar emot drag från ObstaclePalette via @dnd-kit.
@@ -463,6 +592,9 @@ function Canvas({ widthM, heightM, zoom, onZoomChange, obstacles }: CanvasProps)
             zoom={zoom}
             canvasWidthPx={canvasWidth}
             canvasHeightPx={canvasHeight}
+            selectedId={selectedId}
+            onSelect={onSelect}
+            onContextMenu={onContextMenu}
           />
         </div>
       </div>
@@ -487,32 +619,69 @@ interface ObstaclesLayerProps {
   zoom: number;
   canvasWidthPx: number;
   canvasHeightPx: number;
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
+  onContextMenu: (id: string, x: number, y: number) => void;
 }
 
-function ObstaclesLayer({ obstacles, zoom, canvasWidthPx, canvasHeightPx }: ObstaclesLayerProps) {
+function ObstaclesLayer({
+  obstacles, zoom, canvasWidthPx, canvasHeightPx, selectedId, onSelect, onContextMenu,
+}: ObstaclesLayerProps) {
   return (
     <svg
-      className="pointer-events-none absolute"
+      className="absolute"
       style={{
         left: MARGIN * zoom,
         top: 0,
         width: canvasWidthPx * zoom,
         height: canvasHeightPx * zoom,
+        // Tillåt klick i SVG men låt canvas-bakgrunden ta klick mellan ikoner
+        pointerEvents: 'none',
       }}
-      aria-hidden
     >
       {obstacles.map((o) => {
         const def = getObstacleDef(o.key);
         if (!def) return null;
         const Icon = getObstacleIcon(o.key);
-        // Visningsstorlek: ta största sidan i meter och skala upp så ikonen syns,
+        // Visningsstorlek: ta största sidan i meter, skala med per-hinder scale,
         // men minst 18px för läsbarhet på låg zoom.
-        const sizePx = Math.max(18, Math.max(def.sizeM.w, def.sizeM.h) * PX_PER_METER * zoom);
+        const baseSize = Math.max(def.sizeM.w, def.sizeM.h) * PX_PER_METER * zoom * o.scale;
+        const sizePx = Math.max(18, baseSize);
         const cx = o.xM * PX_PER_METER * zoom;
         const cy = o.yM * PX_PER_METER * zoom;
+        const isSelected = selectedId === o.id;
         return (
-          <g key={o.id} transform={`translate(${cx - sizePx / 2}, ${cy - sizePx / 2}) rotate(${o.rotation} ${sizePx / 2} ${sizePx / 2})`}>
-            <Icon size={sizePx} className="text-[#1a6b3c]" />
+          <g
+            key={o.id}
+            transform={`translate(${cx - sizePx / 2}, ${cy - sizePx / 2}) rotate(${o.rotation} ${sizePx / 2} ${sizePx / 2})`}
+            style={{ pointerEvents: 'auto', cursor: o.locked ? 'not-allowed' : 'pointer' }}
+            onClick={(e) => { e.stopPropagation(); onSelect(o.id); }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onSelect(o.id);
+              onContextMenu(o.id, e.clientX, e.clientY);
+            }}
+          >
+            {/* Selektion-ring */}
+            {isSelected && (
+              <rect
+                x={-4}
+                y={-4}
+                width={sizePx + 8}
+                height={sizePx + 8}
+                rx={6}
+                fill="none"
+                stroke="#1a6b3c"
+                strokeWidth={1.5}
+                strokeDasharray="3 3"
+              />
+            )}
+            {/* Lås-indikator */}
+            {o.locked && (
+              <circle cx={sizePx - 3} cy={3} r={3} fill="#737373" />
+            )}
+            <Icon size={sizePx} style={{ color: o.color }} />
           </g>
         );
       })}
@@ -607,7 +776,7 @@ function ZoomChip({ zoom, onZoomChange }: ZoomChipProps) {
    Empty state – visas över canvas innan första hindret placerats
    ───────────────────────────────────────────────────────────────────── */
 
-function EmptyStatePrompt({ visible, onDismiss }: { visible: boolean; onDismiss: () => void }) {
+function EmptyStatePrompt({ visible, onDismiss, onOpenTemplates }: { visible: boolean; onDismiss: () => void; onOpenTemplates: () => void }) {
   if (!visible) return null;
   return (
     <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
@@ -622,9 +791,8 @@ function EmptyStatePrompt({ visible, onDismiss }: { visible: boolean; onDismiss:
           <Button
             size="sm"
             variant="outline"
-            disabled
+            onClick={onOpenTemplates}
             className="h-8 text-[12px] gap-1.5"
-            title="Kommer i steg 9C"
           >
             <Sparkles size={12} />
             Välj mall
@@ -663,6 +831,80 @@ export default function CoursePlannerBetaPage() {
   const [obstacles, setObstacles] = useState<PlacedObstacle[]>([]);
   const [emptyDismissed, setEmptyDismissed] = useState(false);
   const [activeDragKey, setActiveDragKey] = useState<ObstacleIconKey | null>(null);
+
+  // 9C-state
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+
+  const selectedObstacle = useMemo(
+    () => obstacles.find((o) => o.id === selectedId) ?? null,
+    [obstacles, selectedId]
+  );
+
+  /* ─── 9C-handlers: redigering, mallar, kontextmeny ─── */
+  const updateSelectedObstacle = useCallback((patch: Partial<PlacedObstacle>) => {
+    if (!selectedId) return;
+    setObstacles((prev) => prev.map((o) => (o.id === selectedId ? { ...o, ...patch } : o)));
+    setIsDirty(true);
+  }, [selectedId]);
+
+  const duplicateObstacle = useCallback((id?: string) => {
+    const targetId = id ?? selectedId;
+    if (!targetId) return;
+    setObstacles((prev) => {
+      const src = prev.find((o) => o.id === targetId);
+      if (!src) return prev;
+      const copy: PlacedObstacle = {
+        ...src,
+        id: `${src.key}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        xM: Math.min(src.xM + 1.5, DEFAULT_CANVAS_W_M - 1),
+        yM: Math.min(src.yM + 1.5, DEFAULT_CANVAS_H_M - 1),
+        locked: false,
+      };
+      setSelectedId(copy.id);
+      return [...prev, copy];
+    });
+    setIsDirty(true);
+  }, [selectedId]);
+
+  const deleteObstacle = useCallback((id?: string) => {
+    const targetId = id ?? selectedId;
+    if (!targetId) return;
+    setObstacles((prev) => prev.filter((o) => o.id !== targetId));
+    if (targetId === selectedId) setSelectedId(null);
+    setIsDirty(true);
+  }, [selectedId]);
+
+  const deleteSelectedObstacle = useCallback(() => deleteObstacle(), [deleteObstacle]);
+
+  const rotate90Obstacle = useCallback((id: string) => {
+    setObstacles((prev) => prev.map((o) =>
+      o.id === id ? { ...o, rotation: (o.rotation + 90) % 360 } : o
+    ));
+    setIsDirty(true);
+  }, []);
+
+  const toggleLockObstacle = useCallback((id: string) => {
+    setObstacles((prev) => prev.map((o) => (o.id === id ? { ...o, locked: !o.locked } : o)));
+    setIsDirty(true);
+  }, []);
+
+  const applyTemplate = useCallback((tpl: CourseTemplate) => {
+    setObstacles(tpl.obstacles.map((t, idx) => ({
+      id: `${t.key}-${Date.now()}-${idx}`,
+      key: t.key,
+      xM: t.xM,
+      yM: t.yM,
+      rotation: t.rotation,
+      scale: t.sizeM ?? 1,
+      color: t.color ?? DEFAULT_OBSTACLE_COLOR,
+      locked: false,
+    })));
+    setSelectedId(null);
+    setEmptyDismissed(true);
+    setIsDirty(true);
+  }, []);
 
   // dnd-kit sensors – litet aktiveringsavstånd så att klick på toggle inte triggar drag
   const sensors = useSensors(
@@ -743,23 +985,44 @@ export default function CoursePlannerBetaPage() {
         xM,
         yM,
         rotation: 0,
+        scale: 1,
+        color: DEFAULT_OBSTACLE_COLOR,
+        locked: false,
       },
     ]);
     setIsDirty(true);
   };
 
-  // Cmd/Ctrl+S keyboard shortcut
+  // Keyboard shortcuts: Cmd/Ctrl+S, ESC (avmarkera), Delete (ta bort), R (rotera 90°), Cmd/Ctrl+D (duplicera)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault();
         handleSave();
+        return;
+      }
+      // Hoppa över shortcuts om användaren skriver i en input
+      const target = e.target as HTMLElement;
+      if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable) return;
+
+      if (e.key === 'Escape') {
+        setSelectedId(null);
+        setContextMenu(null);
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
+        e.preventDefault();
+        deleteSelectedObstacle();
+      } else if (e.key === 'r' && selectedId) {
+        e.preventDefault();
+        rotate90Obstacle(selectedId);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === 'd' && selectedId) {
+        e.preventDefault();
+        duplicateObstacle();
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedId, deleteSelectedObstacle, rotate90Obstacle, duplicateObstacle]);
 
   return (
     <>
@@ -805,10 +1068,14 @@ export default function CoursePlannerBetaPage() {
                     zoom={zoom}
                     onZoomChange={setZoom}
                     obstacles={obstacles}
+                    selectedId={selectedId}
+                    onSelect={setSelectedId}
+                    onContextMenu={(id, x, y) => setContextMenu({ id, x, y })}
                   />
                   <EmptyStatePrompt
                     visible={obstacles.length === 0 && !emptyDismissed}
                     onDismiss={() => setEmptyDismissed(true)}
+                    onOpenTemplates={() => setTemplatesOpen(true)}
                   />
                 </main>
 
@@ -825,7 +1092,13 @@ export default function CoursePlannerBetaPage() {
                     >
                       <ChevronRight size={16} />
                     </button>
-                    <PropertiesPanel obstacleCount={obstacles.length} />
+                    <PropertiesPanel
+                      obstacleCount={obstacles.length}
+                      selected={selectedObstacle}
+                      onUpdate={updateSelectedObstacle}
+                      onDuplicate={duplicateObstacle}
+                      onDelete={deleteSelectedObstacle}
+                    />
                   </aside>
                 ) : (
                   <button
@@ -853,6 +1126,34 @@ export default function CoursePlannerBetaPage() {
             ) : null}
           </DragOverlay>
         </DndContext>
+
+        {/* Mall-modal */}
+        <TemplatesModal
+          open={templatesOpen}
+          onClose={() => setTemplatesOpen(false)}
+          onApply={applyTemplate}
+          currentObstacles={obstacles.map((o) => ({
+            key: o.key, xM: o.xM, yM: o.yM, rotation: o.rotation, sizeM: o.scale, color: o.color,
+          }))}
+        />
+
+        {/* Höger-klick-meny */}
+        {contextMenu && (() => {
+          const obs = obstacles.find((o) => o.id === contextMenu.id);
+          if (!obs) return null;
+          return (
+            <ObstacleContextMenu
+              x={contextMenu.x}
+              y={contextMenu.y}
+              isLocked={obs.locked}
+              onClose={() => setContextMenu(null)}
+              onDuplicate={() => duplicateObstacle(contextMenu.id)}
+              onRotate90={() => rotate90Obstacle(contextMenu.id)}
+              onToggleLock={() => toggleLockObstacle(contextMenu.id)}
+              onDelete={() => deleteObstacle(contextMenu.id)}
+            />
+          );
+        })()}
       </PremiumGate>
     </>
   );

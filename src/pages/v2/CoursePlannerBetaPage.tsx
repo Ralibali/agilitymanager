@@ -427,9 +427,14 @@ interface CanvasProps {
   zoom: number;
   onZoomChange: (z: number) => void;
   obstacles: PlacedObstacle[];
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
+  onContextMenu: (id: string, x: number, y: number) => void;
 }
 
-function Canvas({ widthM, heightM, zoom, onZoomChange, obstacles }: CanvasProps) {
+function Canvas({
+  widthM, heightM, zoom, onZoomChange, obstacles, selectedId, onSelect, onContextMenu,
+}: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   // Droppable canvas – tar emot drag från ObstaclePalette via @dnd-kit.

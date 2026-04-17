@@ -38,19 +38,28 @@ const usps = [
   { icon: Trophy, title: 'Tävling & resultat', desc: 'Tävlingskalender, resultatlogg, klassuppflyttning och automatisk resultatimport.' },
 ];
 
-const features = [
-  { icon: ClipboardList, title: 'Träningslogg', desc: 'Logga datum, hund, fokusområde, energinivå och notat. Betygsätt dirigering och banflyt.' },
-  { icon: LayoutGrid, title: 'Banplanerare', desc: 'Designa banor med alla SAgiK- och SHoK-godkända hinder. Snap-to-grid, mätverktyg och färgteman.' },
-  { icon: Download, title: 'Exportera banor', desc: 'Exportera dina banor som PNG eller PDF med metadata – datum, banstorlek och antal hinder.' },
-  { icon: Trophy, title: 'Tävlingsresultat', desc: 'Logga tävlingar med klass, tid, fel och pinnar. Hämta resultat automatiskt från agilitydata.se.' },
-  { icon: Calendar, title: 'Tävlingskalender', desc: 'Se alla kommande agility- och hooperstävlingar i Sverige. Filtrera på län och få påminnelser.' },
-  { icon: TrendingUp, title: 'Statistik & progression', desc: 'Diagram över tid, fel, godkänt-andel och utveckling per hund.' },
-  { icon: Target, title: 'Träningsmål', desc: 'Sätt upp mål med delmål och följ din progress. Kategorisera per träningsområde.' },
-  { icon: Brain, title: 'AI-träningsinsikter', desc: 'Få personliga träningsrekommendationer baserade på din loggade data och resultat.' },
-  { icon: Shield, title: 'Hälsologg & vikt', desc: 'Logga veterinärbesök, vaccinationer och vikt med viktdiagram.' },
-  { icon: Users, title: 'Klubbar & grupper', desc: 'Skapa eller gå med i din agilityklubb. Anslagstavla, delade kalendrar och event.' },
-  { icon: MessageCircle, title: 'Vänner & chatt', desc: 'Lägg till vänner, chatta, dela banor och jämför statistik.' },
-  { icon: Timer, title: 'Tidtagning', desc: 'Inbyggd stoppur för träning med felräkning. Spara tider per hund.' },
+const topFeatures = [
+  {
+    icon: Activity,
+    title: 'Logga pass på 10 sekunder',
+    desc: 'Bana, hinder eller hoopers. Hund, fokusområde, betyg. Klart. Appen syncar i realtid till alla dina enheter.',
+  },
+  {
+    icon: LayoutGrid,
+    title: 'Rita banor, dela direkt',
+    desc: 'Alla SAgiK- och SHoK-godkända hinder. Snap-to-grid, mätverktyg, export som PDF. Dela med klubben eller träningskompisen.',
+  },
+  {
+    icon: Trophy,
+    title: 'Tävlingsdata – automatiskt',
+    desc: 'Resultat hämtas från Agidadata.se. Klassresa, pinnar och meriter visualiseras per hund. Aldrig mer manuell inmatning.',
+  },
+];
+
+const coachPills = [
+  'SM-meriterad tävlingsförare',
+  'Utbildad instruktör',
+  'Agility · hoopers · freestyle',
 ];
 
 const testimonials = [

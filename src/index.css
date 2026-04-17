@@ -168,6 +168,19 @@
     --shadow-card: 0 1px 3px rgba(0,0,0,0.2);
     --shadow-elevated: 0 4px 16px rgba(0,0,0,0.3);
     --border-rgba: rgba(255,255,255,0.08);
+
+    /* Fas 1 dark tokens */
+    --bg-page: 150 16% 5%;
+    --bg-surface: 150 14% 9%;
+    --bg-subtle: 150 10% 12%;
+    --bg-inverse: 120 11% 92%;
+    --text-primary: 120 11% 92%;
+    --text-secondary: 140 5% 63%;
+    --text-tertiary: 150 3% 43%;
+    --text-on-inverse: 150 21% 7%;
+    --ds-border-subtle: 120 11% 92%;
+    --ds-border-default: 120 11% 92%;
+    --ds-border-strong: 120 11% 92%;
   }
 }
 

@@ -868,6 +868,31 @@ export default function CoursePlannerBetaPage() {
   const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number } | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
 
+  // Klick-att-placera (alternativ till drag): "armerat" hinder från paletten.
+  const [armedKey, setArmedKey] = useState<ObstacleIconKey | null>(null);
+
+  const placeArmedAt = useCallback((xM: number, yM: number) => {
+    if (!armedKey) return;
+    const id = `${armedKey}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setObstacles((prev) => [
+      ...prev,
+      {
+        id,
+        key: armedKey,
+        xM,
+        yM,
+        rotation: 0,
+        scale: 1,
+        color: DEFAULT_OBSTACLE_COLOR,
+        locked: false,
+      },
+    ]);
+    setSelectedId(id);
+    setIsDirty(true);
+    // Behåll armerat så användaren kan placera flera i rad. ESC eller klick på
+    // samma palette-knapp avväpnar.
+  }, [armedKey]);
+
   const selectedObstacle = useMemo(
     () => obstacles.find((o) => o.id === selectedId) ?? null,
     [obstacles, selectedId]

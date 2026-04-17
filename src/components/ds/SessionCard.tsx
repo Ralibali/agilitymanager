@@ -47,8 +47,8 @@ export function SessionCard({ session, dog, onClick, className }: Props) {
             className={cn(
               "shrink-0 inline-flex items-center gap-1 px-1.5 h-5 rounded-ds-sm text-micro font-medium",
               isHoopers
-                ? "bg-accent-50 text-accent-700"
-                : "bg-brand-50 text-brand-700",
+                ? "bg-amber-50 text-amber-900"
+                : "bg-brand-50 text-brand-900",
             )}
           >
             {isHoopers ? "Hoopers" : "Agility"}

@@ -430,10 +430,17 @@ interface CanvasProps {
   selectedId: string | null;
   onSelect: (id: string | null) => void;
   onContextMenu: (id: string, x: number, y: number) => void;
+  /** Klick-att-placera: hinder armerat från paletten. Null = av. */
+  armedKey: ObstacleIconKey | null;
+  /** Anropas när användaren klickar på canvas-ytan medan ett hinder är armerat. */
+  onPlaceArmed: (xM: number, yM: number) => void;
+  /** Avväpna (t.ex. när användaren klickar bredvid canvas eller ESC). */
+  onDisarm: () => void;
 }
 
 function Canvas({
   widthM, heightM, zoom, onZoomChange, obstacles, selectedId, onSelect, onContextMenu,
+  armedKey, onPlaceArmed, onDisarm,
 }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -554,12 +561,36 @@ function Canvas({
     setDropRef(node);
   };
 
+  /* ─── Klick-att-placera: omvandla viewport-klick till canvas-koordinater i meter ─── */
+  const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!armedKey) {
+      // Inget armerat → klick på bakgrund avmarkerar valt hinder
+      onSelect(null);
+      return;
+    }
+    const container = containerRef.current;
+    if (!container) return;
+    // Hitta inner course-area (MARGIN-offsetad). Vi använder canvas-elementet
+    // som referens för exakt position.
+    const canvasEl = canvasRef.current;
+    if (!canvasEl) return;
+    const rect = canvasEl.getBoundingClientRect();
+    const xPx = (e.clientX - rect.left) / zoom - MARGIN;
+    const yPx = (e.clientY - rect.top) / zoom;
+    const xM = xPx / PX_PER_METER;
+    const yM = yPx / PX_PER_METER;
+    if (xM < 0 || yM < 0 || xM > widthM || yM > heightM) return;
+    onPlaceArmed(xM, yM);
+  };
+
   return (
     <div
       ref={setRefs}
+      onClick={handleCanvasClick}
       className={[
         'absolute inset-0 overflow-auto bg-[#ebeae5] transition-colors',
         isOver ? 'bg-[#e4ecdf]' : '',
+        armedKey ? 'cursor-crosshair' : '',
       ].join(' ')}
       style={{ touchAction: 'none' }}
       data-canvas-w-m={widthM}
@@ -837,6 +868,31 @@ export default function CoursePlannerBetaPage() {
   const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number } | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
 
+  // Klick-att-placera (alternativ till drag): "armerat" hinder från paletten.
+  const [armedKey, setArmedKey] = useState<ObstacleIconKey | null>(null);
+
+  const placeArmedAt = useCallback((xM: number, yM: number) => {
+    if (!armedKey) return;
+    const id = `${armedKey}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setObstacles((prev) => [
+      ...prev,
+      {
+        id,
+        key: armedKey,
+        xM,
+        yM,
+        rotation: 0,
+        scale: 1,
+        color: DEFAULT_OBSTACLE_COLOR,
+        locked: false,
+      },
+    ]);
+    setSelectedId(id);
+    setIsDirty(true);
+    // Behåll armerat så användaren kan placera flera i rad. ESC eller klick på
+    // samma palette-knapp avväpnar.
+  }, [armedKey]);
+
   const selectedObstacle = useMemo(
     () => obstacles.find((o) => o.id === selectedId) ?? null,
     [obstacles, selectedId]
@@ -1008,6 +1064,7 @@ export default function CoursePlannerBetaPage() {
       if (e.key === 'Escape') {
         setSelectedId(null);
         setContextMenu(null);
+        setArmedKey(null);
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
         e.preventDefault();
         deleteSelectedObstacle();
@@ -1058,7 +1115,12 @@ export default function CoursePlannerBetaPage() {
                   className="w-[72px] shrink-0 border-r bg-[#fafaf7] overflow-y-auto"
                   style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
                 >
-                  <ObstaclePalette sport={sport} onSportChange={setSport} />
+                  <ObstaclePalette
+                    sport={sport}
+                    onSportChange={setSport}
+                    armedKey={armedKey}
+                    onArm={setArmedKey}
+                  />
                 </aside>
 
                 <main className="flex-1 min-w-0 relative overflow-hidden">
@@ -1071,6 +1133,9 @@ export default function CoursePlannerBetaPage() {
                     selectedId={selectedId}
                     onSelect={setSelectedId}
                     onContextMenu={(id, x, y) => setContextMenu({ id, x, y })}
+                    armedKey={armedKey}
+                    onPlaceArmed={placeArmedAt}
+                    onDisarm={() => setArmedKey(null)}
                   />
                   <EmptyStatePrompt
                     visible={obstacles.length === 0 && !emptyDismissed}

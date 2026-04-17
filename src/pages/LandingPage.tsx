@@ -2,9 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import {
-  ClipboardList, LayoutGrid, Trophy, TrendingUp, Target, Shield,
-  ChevronDown, ArrowRight, Check, Star, Users, MessageCircle,
-  Timer, Brain, Download, Calendar, Activity, Video,
+  ClipboardList, LayoutGrid, Trophy,
+  ArrowRight, Check, Star, Activity,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LandingNav } from '@/components/landing/LandingNav';

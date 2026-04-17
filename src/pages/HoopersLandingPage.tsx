@@ -22,13 +22,28 @@ const inViewFadeUp = (delay = 0) => ({
   transition: { duration: 0.5, delay, ease: 'easeOut' as const },
 });
 
-const features = [
-  { icon: CircleDot, title: 'Hoopers-träningslogg', desc: 'Logga dirigeringskvalitet, banflyt och DO-zon. Spåra utvecklingen pass för pass.' },
-  { icon: LayoutGrid, title: 'Hoopers-banplanerare', desc: 'Rita banor med hoops, tunnlar, tunnor och staket. Färdiga SHoK-mallar för alla klasser.' },
-  { icon: Trophy, title: 'Poängtracker', desc: 'Spåra SHoK-poäng automatiskt. Se hur nära uppflyttning du är med realtidsberäkning.' },
-  { icon: TrendingUp, title: 'Resultatimport', desc: 'Importera resultat direkt från shoktavling.se. Automatisk poängberäkning med bonusar.' },
-  { icon: Target, title: 'Tävlingskalender', desc: 'Se alla kommande hoopers-tävlingar i Sverige. Filtrera på klass, län och datum.' },
-  { icon: BarChart3, title: 'Statistik & ranking', desc: 'Följ din utveckling med grafer per hund, klass och storlek. Jämför med kompisar.' },
+const topFeatures = [
+  {
+    icon: Activity,
+    title: 'Logga pass på 10 sekunder',
+    desc: 'Hoops, tunnlar eller tunnor. Hund, fokusområde, betyg. Klart. Appen syncar i realtid till alla dina enheter.',
+  },
+  {
+    icon: LayoutGrid,
+    title: 'Rita banor, dela direkt',
+    desc: 'Alla SHoK-godkända hinder och färdiga mallar för Startklass, K1, K2 och K3. Snap-to-grid, mätverktyg, export som PDF.',
+  },
+  {
+    icon: Trophy,
+    title: 'SHoK-poäng – automatiskt',
+    desc: 'Resultat hämtas från shoktavling.se. DO/BO/UL-bonusar räknas av sig själv och uppflyttning visualiseras per hund.',
+  },
+];
+
+const coachPills = [
+  'SM-meriterad tävlingsförare',
+  'Utbildad instruktör',
+  'Hoopers · agility · freestyle',
 ];
 
 const benefits = [

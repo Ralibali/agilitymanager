@@ -7,8 +7,10 @@ import {
   Timer, Brain, Download, Calendar,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { LandingNavbar } from '@/components/LandingNavbar';
-import { LandingFooter } from '@/components/LandingFooter';
+import { LandingNav } from '@/components/landing/LandingNav';
+import { Hero } from '@/components/landing/Hero';
+import { TrustBar } from '@/components/landing/TrustBar';
+import { LandingFooterV2 } from '@/components/landing/LandingFooterV2';
 import { CountUp } from '@/components/CountUp';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
@@ -81,121 +83,12 @@ export default function LandingPage() {
         <link rel="canonical" href="https://agilitymanager.se/" />
       </Helmet>
 
-      <LandingNavbar />
+      <LandingNav />
+      <main id="main-content">
+        <Hero />
+        <TrustBar />
 
-      {/* ═══════ HERO ═══════ */}
-      <section
-        className="relative min-h-screen flex items-center justify-center overflow-hidden"
-        id="main-content"
-        style={{ background: '#111111' }}
-      >
-        {/* Subtle dot pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.06]"
-          style={{
-            backgroundImage: 'radial-gradient(circle, #1a6b3c 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
-          }}
-        />
-
-        {/* Decorative green gradient blob */}
-        <div
-          className="absolute top-1/4 -right-32 w-[500px] h-[500px] rounded-full opacity-[0.08] blur-3xl"
-          style={{ background: 'radial-gradient(circle, #1a6b3c, transparent 70%)' }}
-        />
-        <div
-          className="absolute bottom-1/4 -left-32 w-[400px] h-[400px] rounded-full opacity-[0.05] blur-3xl"
-          style={{ background: 'radial-gradient(circle, #c85d1e, transparent 70%)' }}
-        />
-
-        <div className="relative z-10 max-w-3xl mx-auto text-center px-4 py-24">
-          {/* Small badge */}
-          <motion.div {...fadeUp(0)} className="mb-6">
-            <span
-              className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-medium"
-              style={{
-                background: 'rgba(26, 107, 60, 0.15)',
-                color: '#5cb87a',
-                borderRadius: 'var(--radius-pill)',
-                border: '1px solid rgba(26, 107, 60, 0.25)',
-              }}
-            >
-              🐕 Anpassad för SKK & SHoK
-            </span>
-          </motion.div>
-
-          <motion.h1
-            {...fadeUp(0.1)}
-            className="font-display text-white leading-[1.1] mb-6"
-            style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)' }}
-          >
-            Träningsappen för{' '}
-            <span style={{ color: '#5cb87a' }}>agility</span>
-            {' '}och{' '}
-            <span style={{ color: '#e8a05c' }}>hoopers.</span>
-          </motion.h1>
-
-          <motion.p
-            {...fadeUp(0.25)}
-            className="font-body text-lg sm:text-xl max-w-xl mx-auto mb-10 leading-relaxed"
-            style={{ color: 'rgba(255,255,255,0.55)' }}
-          >
-            Logga pass, analysera framsteg och håll koll på din hunds utveckling. Oavsett om du kör agility, hoopers eller båda.
-          </motion.p>
-
-          <motion.div {...fadeUp(0.4)} className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              size="lg"
-              className="font-semibold gap-2 text-base px-8 h-12"
-              style={{ background: '#1a6b3c', color: '#fff', borderRadius: 'var(--radius-button)' }}
-              onClick={() => navigate('/auth')}
-            >
-              Kom igång gratis <ArrowRight size={18} />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="font-semibold text-base px-8 h-12"
-              style={{
-                border: '1px solid rgba(255,255,255,0.15)',
-                color: '#fff',
-                background: 'rgba(255,255,255,0.06)',
-                borderRadius: 'var(--radius-button)',
-              }}
-              onClick={() => document.querySelector('#features')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Se hur det fungerar
-            </Button>
-          </motion.div>
-        </div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <ChevronDown size={28} style={{ color: 'rgba(255,255,255,0.2)' }} />
-        </motion.div>
-      </section>
-
-      {/* ═══════ USP TRIO ═══════ */}
-      <section className="py-20 px-4" style={{ background: 'hsl(var(--background))' }}>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-          {usps.map((usp, i) => (
-            <motion.div key={usp.title} {...inViewFadeUp(i * 0.1)} className="text-center">
-              <div
-                className="w-14 h-14 flex items-center justify-center mx-auto mb-4"
-                style={{ background: '#e8f4ed', borderRadius: 'var(--radius-card)' }}
-              >
-                <usp.icon size={26} style={{ color: '#1a6b3c' }} />
-              </div>
-              <h3 className="font-display text-foreground text-lg mb-2">{usp.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mx-auto font-body">{usp.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+        {/* Behåller gamla USP-blocket bortom Fas 1 – ersätts i Fas 2 */}
 
       {/* ═══════ FEATURES ═══════ */}
       <section id="features" className="py-20 px-4" style={{ background: 'hsl(var(--secondary))' }}>
@@ -595,7 +488,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <LandingFooter />
+      </main>
+      <LandingFooterV2 />
     </div>
   );
 }

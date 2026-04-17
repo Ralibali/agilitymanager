@@ -210,6 +210,10 @@
   .font-body {
     font-family: var(--font-body);
   }
+  .font-sans-ds {
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv11', 'ss01';
+  }
   .gradient-primary {
     background: linear-gradient(135deg, hsl(148, 62%, 26%), hsl(148, 55%, 35%));
   }

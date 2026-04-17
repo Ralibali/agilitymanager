@@ -224,7 +224,6 @@ function CalendarTab({ competitions }: { competitions: Competition[] }) {
           />
         );
       })}
-      <AgilityDataAttribution />
     </div>
   );
 }

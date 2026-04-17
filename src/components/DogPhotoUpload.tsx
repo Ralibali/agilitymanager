@@ -25,8 +25,12 @@ export function DogPhotoUpload({ dogId, currentUrl, onUploaded, size = 'lg' }: P
 
     setUploading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Inte inloggad');
+
       const ext = file.name.split('.').pop();
-      const path = `${dogId}/${Date.now()}.${ext}`;
+      // Storage RLS kräver att första mappen = användarens UID
+      const path = `${user.id}/${dogId}/${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from('dog-photos').upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
 

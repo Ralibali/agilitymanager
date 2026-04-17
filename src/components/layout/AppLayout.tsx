@@ -33,7 +33,7 @@ export function AppLayout() {
 
       <BottomNavV2 onOpenMore={() => setMoreOpen(true)} />
       <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} />
-      <ScrollRestoration />
+      <ScrollMemory />
     </div>
   );
 }

@@ -21,12 +21,17 @@ import {
   OBSTACLES,
   type ObstacleSport,
   type ObstacleDef,
+  type ObstacleIconKey,
   getObstacleIcon,
 } from './obstacleIcons';
 
 export interface ObstaclePaletteProps {
   sport: ObstacleSport;
   onSportChange: (s: ObstacleSport) => void;
+  /** Hinder som "armerats" för klick-att-placera. Null = inget armerat. */
+  armedKey?: ObstacleIconKey | null;
+  /** Toggla armerat hinder. Skickar null när användaren klickar på samma igen. */
+  onArm?: (key: ObstacleIconKey | null) => void;
 }
 
 /* ─────────────────────────────────────────────────────────────────────
@@ -74,12 +79,26 @@ function SportToggle({
    Draggable obstacle button – 40×40 ikon, drar in på canvas
    ───────────────────────────────────────────────────────────────────── */
 
-function PaletteItem({ def }: { def: ObstacleDef }) {
+function PaletteItem({
+  def, armed, onArm,
+}: {
+  def: ObstacleDef;
+  armed: boolean;
+  onArm: (key: ObstacleIconKey | null) => void;
+}) {
   const Icon = getObstacleIcon(def.key);
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `palette:${def.key}`,
     data: { source: 'palette', obstacleKey: def.key },
   });
+
+  // Vi vill stödja både drag (befintligt) och klick (nytt). @dnd-kit's
+  // PointerSensor med activationConstraint distance:8 i parent gör att korta
+  // klick utan rörelse INTE startar drag → onClick triggas normalt.
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onArm(armed ? null : def.key);
+  };
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -89,14 +108,18 @@ function PaletteItem({ def }: { def: ObstacleDef }) {
             ref={setNodeRef}
             {...listeners}
             {...attributes}
+            onClick={handleClick}
             className={[
-              'mx-auto flex h-10 w-10 items-center justify-center rounded-md border text-neutral-700 transition-all',
-              'border-black/[0.06] bg-white hover:border-black/[0.16] hover:text-[#1a6b3c]',
+              'mx-auto flex h-10 w-10 items-center justify-center rounded-md border transition-all',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a6b3c]/30',
               'cursor-grab active:cursor-grabbing',
+              armed
+                ? 'bg-[#1a6b3c] border-[#1a6b3c] text-white shadow-[0_0_0_2px_rgba(26,107,60,0.2)]'
+                : 'bg-white border-black/[0.06] text-neutral-700 hover:border-black/[0.16] hover:text-[#1a6b3c]',
               isDragging ? 'opacity-30' : '',
             ].join(' ')}
-            aria-label={`${def.label} – tryck och dra till banan`}
+            aria-label={`${def.label} – klicka för att placera, dra för att placera direkt`}
+            aria-pressed={armed}
           >
             <Icon size={22} />
           </button>
@@ -110,6 +133,9 @@ function PaletteItem({ def }: { def: ObstacleDef }) {
           <kbd className="ml-2 inline-flex h-4 min-w-[16px] items-center justify-center rounded bg-white/20 px-1 text-[9px] font-mono">
             {def.shortcut}
           </kbd>
+          {armed && (
+            <div className="text-[9px] text-white/60 mt-0.5">Klicka på banan för att placera</div>
+          )}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -120,7 +146,9 @@ function PaletteItem({ def }: { def: ObstacleDef }) {
    Hela paletten
    ───────────────────────────────────────────────────────────────────── */
 
-export function ObstaclePalette({ sport, onSportChange }: ObstaclePaletteProps) {
+export function ObstaclePalette({
+  sport, onSportChange, armedKey = null, onArm,
+}: ObstaclePaletteProps) {
   // Filtrera per sport, gruppera per kategori, behåll original­ordning från OBSTACLES.
   const grouped = useMemo(() => {
     const filtered = OBSTACLES.filter((o) => o.sport.includes(sport));
@@ -136,6 +164,8 @@ export function ObstaclePalette({ sport, onSportChange }: ObstaclePaletteProps) 
     return order.map((cat) => ({ category: cat, items: groups[cat] }));
   }, [sport]);
 
+  const noop = (_k: ObstacleIconKey | null) => { /* no-op om parent inte skickar onArm */ };
+
   return (
     <div className="flex flex-col">
       <SportToggle sport={sport} onSportChange={onSportChange} />
@@ -148,7 +178,12 @@ export function ObstaclePalette({ sport, onSportChange }: ObstaclePaletteProps) 
             </h3>
             <div className="flex flex-col gap-1">
               {group.items.map((def) => (
-                <PaletteItem key={def.key} def={def} />
+                <PaletteItem
+                  key={def.key}
+                  def={def}
+                  armed={armedKey === def.key}
+                  onArm={onArm ?? noop}
+                />
               ))}
             </div>
           </section>

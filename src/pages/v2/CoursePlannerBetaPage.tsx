@@ -258,12 +258,138 @@ const OBSTACLE_COLORS = [
 
 interface PropertiesPanelProps {
   obstacleCount: number;
+  selected: PlacedObstacle | null;
+  onUpdate: (patch: Partial<PlacedObstacle>) => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
 }
 
-function PropertiesPanel({ obstacleCount }: PropertiesPanelProps) {
+function PropertiesPanel({ obstacleCount, selected, onUpdate, onDuplicate, onDelete }: PropertiesPanelProps) {
+  // Visa per-hinder-redigering om något är valt, annars översikten
+  if (selected) {
+    const def = getObstacleDef(selected.key);
+    return (
+      <div className="p-4 space-y-5">
+        <section>
+          <h3 className="text-[10px] font-medium uppercase tracking-[0.08em] text-neutral-500 mb-2">
+            Valt hinder
+          </h3>
+          <div className="bg-neutral-50 rounded-lg p-3">
+            <div className="text-[13px] font-medium text-neutral-900">{def?.label ?? selected.key}</div>
+            <div className="text-[11px] text-neutral-500 tabular-nums mt-0.5">
+              x: {selected.xM.toFixed(1)} m · y: {selected.yM.toFixed(1)} m
+            </div>
+          </div>
+        </section>
+
+        {/* Rotation */}
+        <section>
+          <div className="flex items-center justify-between mb-1.5">
+            <label htmlFor="rot" className="text-[11px] font-medium text-neutral-700">Rotation</label>
+            <span className="text-[11px] text-neutral-500 tabular-nums">{selected.rotation}°</span>
+          </div>
+          <input
+            id="rot"
+            type="range"
+            min={0}
+            max={359}
+            step={1}
+            value={selected.rotation}
+            onChange={(e) => onUpdate({ rotation: Number(e.target.value) })}
+            disabled={selected.locked}
+            className="w-full accent-[#1a6b3c] disabled:opacity-50"
+          />
+          <div className="flex justify-between mt-1">
+            {[0, 45, 90, 135, 180, 270].map((deg) => (
+              <button
+                key={deg}
+                onClick={() => onUpdate({ rotation: deg })}
+                disabled={selected.locked}
+                className={`text-[10px] px-1.5 py-0.5 rounded tabular-nums transition-colors ${
+                  selected.rotation === deg
+                    ? 'bg-[#1a6b3c] text-white'
+                    : 'text-neutral-500 hover:bg-neutral-100 disabled:opacity-50'
+                }`}
+              >
+                {deg}°
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Storlek */}
+        <section>
+          <div className="flex items-center justify-between mb-1.5">
+            <label htmlFor="size" className="text-[11px] font-medium text-neutral-700">Storlek</label>
+            <span className="text-[11px] text-neutral-500 tabular-nums">{Math.round(selected.scale * 100)}%</span>
+          </div>
+          <input
+            id="size"
+            type="range"
+            min={0.5}
+            max={2}
+            step={0.1}
+            value={selected.scale}
+            onChange={(e) => onUpdate({ scale: Number(e.target.value) })}
+            disabled={selected.locked}
+            className="w-full accent-[#1a6b3c] disabled:opacity-50"
+          />
+        </section>
+
+        {/* Färg */}
+        <section>
+          <label className="text-[11px] font-medium text-neutral-700 mb-1.5 block">Färg</label>
+          <div className="flex gap-1.5">
+            {OBSTACLE_COLORS.map((c) => (
+              <button
+                key={c}
+                onClick={() => onUpdate({ color: c })}
+                disabled={selected.locked}
+                className={`w-6 h-6 rounded-full border-2 transition-all disabled:opacity-50 ${
+                  selected.color === c ? 'border-neutral-900 scale-110' : 'border-white shadow-sm hover:scale-105'
+                }`}
+                style={{ backgroundColor: c }}
+                aria-label={`Välj färg ${c}`}
+              />
+            ))}
+          </div>
+        </section>
+
+        <div className="border-t border-neutral-100" />
+
+        {/* Actions */}
+        <section className="space-y-1.5">
+          <button
+            onClick={() => onUpdate({ locked: !selected.locked })}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[12px] text-neutral-700 hover:bg-neutral-50 rounded-md transition-colors"
+          >
+            {selected.locked ? <Unlock size={13} /> : <Lock size={13} />}
+            {selected.locked ? 'Lås upp' : 'Lås position'}
+          </button>
+          <button
+            onClick={onDuplicate}
+            disabled={selected.locked}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[12px] text-neutral-700 hover:bg-neutral-50 rounded-md transition-colors disabled:opacity-50"
+          >
+            <Copy size={13} />
+            Duplicera
+          </button>
+          <button
+            onClick={onDelete}
+            disabled={selected.locked}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[12px] text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+          >
+            <Trash2 size={13} />
+            Ta bort
+          </button>
+        </section>
+      </div>
+    );
+  }
+
+  // Default-vy: översikt
   return (
     <div className="p-4 space-y-4">
-      {/* Översikt – statistik */}
       <section>
         <h3 className="text-[10px] font-medium uppercase tracking-[0.08em] text-neutral-500 mb-2">
           Översikt
@@ -274,10 +400,6 @@ function PropertiesPanel({ obstacleCount }: PropertiesPanelProps) {
             <dd className="text-neutral-900 font-medium tabular-nums">{obstacleCount}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-neutral-600">Banlängd</dt>
-            <dd className="text-neutral-400 tabular-nums">– m</dd>
-          </div>
-          <div className="flex justify-between">
             <dt className="text-neutral-600">Sport</dt>
             <dd className="text-neutral-900">Agility</dd>
           </div>
@@ -286,25 +408,9 @@ function PropertiesPanel({ obstacleCount }: PropertiesPanelProps) {
 
       <div className="border-t border-neutral-100" />
 
-      {/* Visning */}
       <section>
-        <h3 className="text-[10px] font-medium uppercase tracking-[0.08em] text-neutral-500 mb-2">
-          Visning
-        </h3>
-        <p className="text-[12px] text-neutral-400">
-          Toggle för banflyt, mått och nummerordning kommer i steg 9C.
-        </p>
-      </section>
-
-      <div className="border-t border-neutral-100" />
-
-      {/* Export */}
-      <section>
-        <h3 className="text-[10px] font-medium uppercase tracking-[0.08em] text-neutral-500 mb-2">
-          Export
-        </h3>
-        <p className="text-[12px] text-neutral-400">
-          Inställningar för PDF-export (A4/A3, riktning) kommer i steg 9C.
+        <p className="text-[12px] text-neutral-400 italic leading-snug">
+          Klicka på ett hinder för att redigera rotation, storlek och färg. Höger-klicka för fler val.
         </p>
       </section>
     </div>

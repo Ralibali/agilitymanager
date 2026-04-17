@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { BottomNav } from "@/components/BottomNav";
+import { AppLayout } from "@/components/layout/AppLayout";
 import { captureUtmParams } from "@/lib/utm";
 
 // Capture UTM params on first load
@@ -47,6 +48,7 @@ const ClubInvitePage = React.lazy(() => import("./pages/ClubInvitePage"));
 const CoursesPage = React.lazy(() => import("./pages/CoursesPage"));
 const GoalsPage = React.lazy(() => import("./pages/GoalsPage"));
 const DesignDemoPage = React.lazy(() => import("./pages/DesignDemoPage"));
+const PlaceholderPage = React.lazy(() => import("./pages/v2/PlaceholderPage"));
 
 const queryClient = new QueryClient();
 

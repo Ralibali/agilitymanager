@@ -207,9 +207,9 @@ export default function V2CoursesPage() {
 
       {/* Tabs */}
       <div className="mb-5">
-        <SegmentedControl
+        <SegmentedControl<"katalog" | "minabanor">
           value={tab}
-          onValueChange={(v) => setTab(v as typeof tab)}
+          onChange={(v) => setTab(v)}
           options={[
             { value: "katalog", label: "Kurskatalog" },
             { value: "minabanor", label: `Mina banor (${savedCourses.length})` },
@@ -284,9 +284,8 @@ export default function V2CoursesPage() {
                 return (
                   <DSCard
                     key={course.id}
-                    interactive
                     onClick={() => setSelectedCourse(course)}
-                    className="overflow-hidden p-0"
+                    className="overflow-hidden !p-0 cursor-pointer hover:border-border-strong transition-colors"
                   >
                     {/* Video/bild-yta */}
                     <div className="relative aspect-video bg-inverse overflow-hidden">
@@ -414,7 +413,7 @@ export default function V2CoursesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {savedCourses.map((sc) => (
                 <Link key={sc.id} to={`/v2/course-planner?id=${sc.id}`}>
-                  <DSCard interactive className="p-4">
+                  <DSCard className="cursor-pointer hover:border-border-strong transition-colors">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <h3 className="text-body font-medium text-text-primary truncate">

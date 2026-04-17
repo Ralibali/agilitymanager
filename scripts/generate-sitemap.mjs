@@ -33,6 +33,9 @@ const SUPABASE_ANON_KEY =
 
 const BUILD_DATE = new Date().toISOString().slice(0, 10);
 const SITEMAP_URL_LIMIT = 50_000;
+// Säker chunk-storlek: under 50k-taket med marginal. När en typ överstiger
+// detta delas den automatiskt till sitemap-<typ>-1.xml, sitemap-<typ>-2.xml ...
+const CHUNK_SIZE = 45_000;
 
 /* ─────────────────────────────────────────────────────────────────────
    Statiska publika rutter — verifierade mot src/App.tsx

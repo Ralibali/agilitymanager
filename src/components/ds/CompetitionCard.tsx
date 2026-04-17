@@ -13,6 +13,7 @@ interface Props {
   registrationDeadline?: string | null;
   classes?: string[];
   sport?: "Agility" | "Hoopers";
+  sourceUrl?: string | null;
   rightSlot?: React.ReactNode;
   onClick?: () => void;
   className?: string;

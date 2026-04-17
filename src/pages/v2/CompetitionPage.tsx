@@ -13,6 +13,7 @@ import {
   CompetitionCard,
   ResultRow,
 } from "@/components/ds";
+import { AgilityDataAttribution } from "@/components/competitions/AgilityDataAttribution";
 import {
   Select,
   SelectContent,
@@ -221,6 +222,7 @@ function CalendarTab({ competitions }: { competitions: Competition[] }) {
           />
         );
       })}
+      <AgilityDataAttribution />
     </div>
   );
 }
@@ -328,6 +330,7 @@ function ResultsTab({
             </div>
           </section>
         ))}
+      <AgilityDataAttribution sourceUrl="https://agilitydata.se/resultat/soek-hund/" />
     </div>
   );
 }

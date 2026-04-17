@@ -99,41 +99,211 @@ export default function LandingPage() {
 
         {/* Behåller gamla USP-blocket bortom Fas 1 – ersätts i Fas 2 */}
 
-      {/* ═══════ FEATURES ═══════ */}
+      {/* ═══════ FEATURES (top-3) ═══════ */}
       <section id="features" className="py-20 px-4" style={{ background: 'hsl(var(--secondary))' }}>
         <div className="max-w-5xl mx-auto">
           <motion.div {...inViewFadeUp()} className="text-center mb-14">
+            <p
+              className="mb-3 font-body"
+              style={{
+                fontSize: '11px',
+                fontWeight: 500,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'hsl(var(--muted-foreground))',
+              }}
+            >
+              Så fungerar det
+            </p>
             <h2 className="font-display text-foreground text-2xl sm:text-3xl mb-3">
               Allt du behöver – i en app
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto font-body">
-              Träningslogg, banplanerare, tävlingskalender, klubbar, chatt, AI-insikter och mer.
+              Träningslogg, banplanerare, tävlingsdata, coach. Inga fler spreadsheets.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {features.map((f, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {topFeatures.map((f, i) => (
               <motion.div
                 key={f.title}
-                {...inViewFadeUp(i * 0.06)}
+                {...inViewFadeUp(i * 0.08)}
                 whileHover={{ y: -3 }}
-                className="bg-card border border-border p-6 transition-all duration-200 hover:border-primary/30"
+                onClick={() => navigate('/funktioner')}
+                role="link"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate('/funktioner');
+                  }
+                }}
+                className="bg-card cursor-pointer transition-all duration-200 hover:border-primary/40"
                 style={{
-                  borderRadius: 'var(--radius-card)',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+                  border: '0.5px solid hsl(var(--border))',
+                  borderRadius: '14px',
+                  padding: '28px',
                 }}
               >
                 <div
-                  className="w-10 h-10 flex items-center justify-center mb-4"
-                  style={{ background: '#e8f4ed', borderRadius: 'var(--radius-badge)' }}
+                  className="flex items-center justify-center mb-5"
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    background: '#e8f4ed',
+                    borderRadius: '16px',
+                  }}
                 >
-                  <f.icon size={20} style={{ color: '#1a6b3c' }} />
+                  <f.icon size={28} style={{ color: '#1a6b3c' }} strokeWidth={1.75} />
                 </div>
-                <h3 className="font-display text-foreground mb-2">{f.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed font-body">{f.desc}</p>
+                <h3
+                  className="font-display text-foreground mb-2"
+                  style={{ fontSize: '18px', fontWeight: 500, lineHeight: 1.3 }}
+                >
+                  {f.title}
+                </h3>
+                <p
+                  className="text-muted-foreground font-body"
+                  style={{ fontSize: '14px', lineHeight: 1.6 }}
+                >
+                  {f.desc}
+                </p>
               </motion.div>
             ))}
           </div>
+
+          <div className="text-center mt-10">
+            <button
+              onClick={() => navigate('/funktioner')}
+              className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
+            >
+              Se alla 14 funktioner <ArrowRight size={14} />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════ COACH ═══════ */}
+      <section className="py-20 px-4" style={{ background: '#0f1411' }}>
+        <div className="max-w-3xl mx-auto text-center">
+          <motion.div {...inViewFadeUp()}>
+            <span
+              className="inline-block mb-5 font-body"
+              style={{
+                background: '#1a6b3c',
+                color: '#e8f4ed',
+                fontSize: '11px',
+                fontWeight: 500,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                padding: '4px 12px',
+                borderRadius: '999px',
+              }}
+            >
+              Coach · Pro-funktion
+            </span>
+          </motion.div>
+
+          <motion.h2
+            {...inViewFadeUp(0.05)}
+            className="font-display text-2xl sm:text-3xl mb-4"
+            style={{ color: '#ffffff' }}
+          >
+            Få personlig feedback från en riktig coach
+          </motion.h2>
+
+          <motion.p
+            {...inViewFadeUp(0.1)}
+            className="font-body mx-auto mb-8"
+            style={{
+              fontSize: '16px',
+              lineHeight: 1.6,
+              maxWidth: '560px',
+              color: 'rgba(232,237,232,0.7)',
+            }}
+          >
+            Ladda upp en träningsvideo i appen. Vår coach tittar på dirigering, linjer och hundens tempo – och svarar med konkreta tips inom 48 timmar.
+          </motion.p>
+
+          <motion.div
+            {...inViewFadeUp(0.15)}
+            className="flex flex-wrap justify-center gap-2 mb-10"
+          >
+            {coachPills.map((pill) => (
+              <span
+                key={pill}
+                className="font-body"
+                style={{
+                  padding: '6px 14px',
+                  border: '0.5px solid rgba(255,255,255,0.15)',
+                  borderRadius: '999px',
+                  fontSize: '12px',
+                  color: 'rgba(232,237,232,0.85)',
+                }}
+              >
+                {pill}
+              </span>
+            ))}
+          </motion.div>
+
+          <motion.blockquote
+            {...inViewFadeUp(0.2)}
+            className="font-body italic mx-auto"
+            style={{
+              fontSize: '20px',
+              lineHeight: 1.5,
+              maxWidth: '600px',
+              color: '#ffffff',
+              marginTop: '32px',
+            }}
+          >
+            "Jag tittar på varje video och ger konkreta övningar att träna på. Ofta är det små justeringar i dirigeringen som gör största skillnaden."
+          </motion.blockquote>
+
+          <motion.p
+            {...inViewFadeUp(0.25)}
+            className="font-body"
+            style={{
+              fontSize: '13px',
+              color: 'rgba(232,237,232,0.55)',
+              marginTop: '12px',
+            }}
+          >
+            — Coachen bakom AgilityManager
+          </motion.p>
+
+          <motion.p
+            {...inViewFadeUp(0.3)}
+            className="font-body"
+            style={{
+              fontSize: '13px',
+              color: 'rgba(232,237,232,0.55)',
+              marginTop: '28px',
+            }}
+          >
+            Tillgänglig via Pro · Svarsgaranti 48h · Ingår i abonnemanget
+          </motion.p>
+
+          <motion.div {...inViewFadeUp(0.35)} className="mt-8">
+            <button
+              onClick={() => {
+                const el = document.getElementById('pricing');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="inline-flex items-center gap-2 font-body transition-colors"
+              style={{
+                fontSize: '14px',
+                fontWeight: 500,
+                color: '#ffffff',
+                border: '1px solid rgba(255,255,255,0.25)',
+                background: 'transparent',
+                padding: '10px 20px',
+                borderRadius: 'var(--radius-button)',
+              }}
+            >
+              Läs mer om videoanalys <ArrowRight size={16} />
+            </button>
+          </motion.div>
         </div>
       </section>
 

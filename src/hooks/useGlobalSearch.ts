@@ -130,7 +130,7 @@ export function useGlobalSearch(query: string): State {
           group: "Tävlingar",
           title: c.event_name,
           subtitle: [formatDate(c.date), c.location].filter(Boolean).join(" · "),
-          path: "/competition",
+          path: "/app/competition",
         }),
       );
 
@@ -146,7 +146,7 @@ export function useGlobalSearch(query: string): State {
           ]
             .filter(Boolean)
             .join(" · "),
-          path: "/competition",
+          path: "/app/competition",
         }),
       );
 
@@ -166,7 +166,7 @@ export function useGlobalSearch(query: string): State {
           group: "Klubbar",
           title: c.name,
           subtitle: c.city || undefined,
-          path: "/clubs",
+          path: "/app/clubs",
         }),
       );
 

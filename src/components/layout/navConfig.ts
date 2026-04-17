@@ -37,7 +37,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Tävling",
     items: [
-      { label: "Tävlingar", path: "/competition", icon: Trophy },
+      { label: "Tävlingar", path: "/app/competition", icon: Trophy },
     ],
   },
   {
@@ -52,7 +52,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Kompisar", path: "/friends", icon: Users },
       { label: "Meddelanden", path: "/chat", icon: MessageCircle },
-      { label: "Klubbar", path: "/clubs", icon: Building2 },
+      { label: "Klubbar", path: "/app/clubs", icon: Building2 },
       { label: "Kurser", path: "/courses", icon: GraduationCap, badge: "pro" },
     ],
   },
@@ -69,6 +69,6 @@ export const NAV_GROUPS: NavGroup[] = [
 export const MOBILE_PRIMARY_NAV: NavItem[] = [
   { label: "Hem", path: "/dashboard", icon: Home },
   { label: "Banor", path: "/course-planner", icon: LayoutGrid },
-  { label: "Tävlingar", path: "/competition", icon: Trophy },
+  { label: "Tävlingar", path: "/app/competition", icon: Trophy },
   { label: "Kompisar", path: "/friends", icon: Users },
 ];

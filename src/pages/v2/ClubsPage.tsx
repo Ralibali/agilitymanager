@@ -231,7 +231,7 @@ export default function ClubsPage() {
           <ul className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {myClubs.map((c) => {
               const role = memberships.find((m) => m.club_id === c.id)?.role;
-              return <ClubCard key={c.id} club={c} role={role} onOpen={() => window.location.assign(`/clubs?club=${c.id}`)} />;
+              return <ClubCard key={c.id} club={c} role={role} onOpen={() => window.location.assign(`/app/clubs?club=${c.id}`)} />;
             })}
           </ul>
         )

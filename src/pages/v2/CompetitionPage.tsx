@@ -346,7 +346,7 @@ function ImportTab() {
         description="Hämta dina officiella resultat automatiskt från Agilitydata. Den fullständiga import-vyn flyttas hit i nästa fas."
         action={
           <DSButton asChild variant="secondary">
-            <a href="/competition?tab=import">Gå till klassisk import</a>
+            <a href="/app/competition?tab=import">Gå till klassisk import</a>
           </DSButton>
         }
       />

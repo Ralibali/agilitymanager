@@ -14,7 +14,7 @@ import {
 const mainTabs = [
   { path: '/dashboard', icon: Home, label: 'Hem', badgeKey: null as string | null },
   { path: '/course-planner', icon: PenTool, label: 'Banor', badgeKey: null },
-  { path: '/competition', icon: Trophy, label: 'Tävlingar', badgeKey: null },
+  { path: '/app/competition', icon: Trophy, label: 'Tävlingar', badgeKey: null },
   { path: '/friends', icon: Users, label: 'Kompisar', badgeKey: 'friends' as string },
 ];
 
@@ -23,7 +23,7 @@ const moreTabs = [
   { path: '/training', icon: Dumbbell, label: 'Träning' },
   { path: '/goals', icon: Target, label: 'Mål' },
   { path: '/courses', icon: GraduationCap, label: 'Kurser' },
-  { path: '/clubs', icon: Building2, label: 'Klubbar' },
+  { path: '/app/clubs', icon: Building2, label: 'Klubbar' },
   { path: '/stopwatch', icon: Timer, label: 'Tidtagarur' },
   { path: '/health', icon: Heart, label: 'Hälsa' },
   { path: '/stats', icon: BarChart3, label: 'Statistik' },

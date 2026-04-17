@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 const productLinks = [
   { label: 'Träningslogg', href: '/training' },
   { label: 'Banplanerare', href: '/course-planner' },
-  { label: 'Tävlingsresultat', href: '/competition' },
+  { label: 'Tävlingsresultat', href: '/app/competition' },
   { label: 'Försäkringsjämförelse', href: '/hundforsakring' },
   { label: 'Priser', href: '/#pricing' },
 ];

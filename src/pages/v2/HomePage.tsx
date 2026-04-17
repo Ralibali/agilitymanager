@@ -193,7 +193,7 @@ export default function HomePage() {
         actions={
           <>
             <DSButton variant="secondary" asChild>
-              <Link to="/competition">
+              <Link to="/app/competition">
                 <Plus className="w-4 h-4" /> Logga tävling
               </Link>
             </DSButton>
@@ -338,7 +338,7 @@ export default function HomePage() {
               }
               action={
                 <DSButton variant="secondary" asChild className="bg-white/10 border-white/15 text-text-on-inverse hover:bg-white/15">
-                  <Link to="/competition">
+                  <Link to="/app/competition">
                     Se tävling <ArrowRight className="w-4 h-4" />
                   </Link>
                 </DSButton>
@@ -353,7 +353,7 @@ export default function HomePage() {
               description="Anmäl dig till nästa tävling så syns den här."
               action={
                 <DSButton variant="secondary" asChild>
-                  <Link to="/competition">
+                  <Link to="/app/competition">
                     Hitta tävlingar <ArrowRight className="w-4 h-4" />
                   </Link>
                 </DSButton>

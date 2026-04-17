@@ -46,7 +46,7 @@ export default function ClubInvitePage() {
     });
     if (error?.code === '23505') {
       toast.info('Du är redan med i denna klubb');
-      navigate('/clubs');
+      navigate('/app/clubs');
       return;
     }
     if (error) {
@@ -55,7 +55,7 @@ export default function ClubInvitePage() {
       return;
     }
     toast.success(`Välkommen till ${club.name}!`);
-    navigate('/clubs');
+    navigate('/app/clubs');
   };
 
   if (loading) {

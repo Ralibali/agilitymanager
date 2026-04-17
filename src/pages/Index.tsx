@@ -366,7 +366,7 @@ const Index = () => {
           whileTap={{ scale: 0.985 }}
           className="p-3.5 mb-4 cursor-pointer bg-card border border-border card-hover"
           style={{ borderRadius: 'var(--radius-card)' }}
-          onClick={() => navigate('/competition')}
+          onClick={() => navigate('/app/competition')}
         >
           <div className="flex items-center gap-2 mb-1.5">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'hsl(var(--accent) / 0.1)' }}>
@@ -436,7 +436,7 @@ const Index = () => {
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Senaste resultat</span>
-            <button onClick={() => navigate('/competition')} className="text-xs flex items-center gap-0.5 font-medium text-primary">
+            <button onClick={() => navigate('/app/competition')} className="text-xs flex items-center gap-0.5 font-medium text-primary">
               Alla <ArrowRight size={12} />
             </button>
           </div>

@@ -47,6 +47,7 @@ function renderContent(content: string) {
   let listItems: string[] = [];
   let tableRows: string[][] = [];
   let inTable = false;
+  const usedH2Ids = new Set<string>();
 
   const flushList = () => {
     if (listItems.length > 0) {

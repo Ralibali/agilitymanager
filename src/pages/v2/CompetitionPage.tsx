@@ -102,6 +102,8 @@ export default function CompetitionPage() {
         subtitle="Hitta tävlingar, planera ditt år och följ dina resultat över tid."
       />
 
+      <AgilityDataAttribution />
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard label="Starter i år" value={stats.yearTotal} hint="alla discipliner" />
         <MetricCard

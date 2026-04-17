@@ -238,6 +238,236 @@ export const BLOG_FAQS: Record<string, BlogFaqSection> = {
       },
     ],
   },
+
+  'agility-regler-sverige': {
+    heading: 'Vanliga frågor om agilityregler i Sverige',
+    items: [
+      {
+        question: 'Vem ansvarar för agilityreglerna i Sverige?',
+        answer:
+          'Svenska Agilityklubben (SAgiK) är specialklubb under Svenska Kennelklubben (SKK) och ansvarar för det svenska regelverket. Reglerna uppdateras vanligen vart femte år och bygger på FCI:s internationella regelverk med svenska tillägg.',
+      },
+      {
+        question: 'Vilka storleksklasser finns i svensk agility?',
+        answer:
+          'Det finns fem storleksklasser baserat på mankhöjd: XS (under 28 cm), S (28-35 cm), M (35-43 cm), L (43-50 cm) och XL (över 50 cm). Hunden mäts av auktoriserad mätare innan första officiella tävling.',
+      },
+      {
+        question: 'Hur höga är hopphindren per storleksklass?',
+        answer:
+          'Hopphöjder enligt SAgiK: XS hoppar 20 cm, S hoppar 30 cm, M hoppar 40 cm, L hoppar 55 cm och XL hoppar 60 cm. Vid sjuk eller äldre hund kan dispens för lägre höjd sökas.',
+      },
+      {
+        question: 'Vad räknas som fel och diskvalifikation?',
+        answer:
+          'Fel ger 5 felpoäng: rivning, missad kontaktzon eller vägran. Tre vägringar i samma rond eller passage av hinder i fel ordning innebär diskvalifikation. Tidsöverskridande ger 1 felpoäng per sekund över maxtid.',
+      },
+      {
+        question: 'Vad är skillnaden mellan Agility och Hoppklass?',
+        answer:
+          'Agilityklass innehåller alla hinder inklusive kontakthinder (A-hinder, balansbom, gungbräda) och slalom. Hoppklass har bara hopp, tunnlar och slalom – inga kontakthinder. Båda räknas som separata grenar med egna pinnar.',
+      },
+      {
+        question: 'Hur går uppflyttning mellan klasser till?',
+        answer:
+          'För att flyttas upp från klass 1 till klass 2 krävs tre godkända rundor (pinnar) under tre olika domare. Samma princip gäller mellan klass 2 och klass 3. Pinnar samlas separat i Agility och Hoppklass.',
+      },
+      {
+        question: 'Vilka raser får tävla i officiell agility?',
+        answer:
+          'Alla SKK-registrerade raser får tävla. Blandrashundar med Tävlingslicens för Oregistrerade Hundar (TIK/RAS) får också tävla på officiella tävlingar enligt samma regler som rasrenade hundar.',
+      },
+      {
+        question: 'Måste hunden vara försäkrad för att tävla?',
+        answer:
+          'Ja, hunden måste vara veterinärbesiktigad och ha giltig olycksfallsförsäkring. Föraren måste vara medlem i en SKK-ansluten klubb och hunden registrerad i SKK eller ha tävlingslicens.',
+      },
+    ],
+  },
+
+  'sagik-klasser-forklarat': {
+    heading: 'Vanliga frågor om SAgiK:s klasser',
+    items: [
+      {
+        question: 'Vad är nollklass i agility?',
+        answer:
+          'Nollklass är en inofficiell tävlingsform för helt nya ekipage som vill prova på tävlingsmiljö utan press. Banorna är enklare, det finns inga pinnar att samla och resultaten räknas inte officiellt. Perfekt första steg innan klass 1.',
+      },
+      {
+        question: 'Vad krävs för att tävla i klass 1?',
+        answer:
+          'Hunden måste vara minst 18 månader, mätt av auktoriserad mätare och registrerad i SKK eller ha tävlingslicens. Föraren ska vara medlem i SKK-ansluten klubb. Ingen tidigare merit krävs – klass 1 är startnivån för officiell tävling.',
+      },
+      {
+        question: 'Hur många pinnar behövs för att flyttas upp?',
+        answer:
+          'Tre godkända rundor (pinnar) under tre olika domare krävs för uppflyttning från klass 1 till klass 2, och samma från klass 2 till klass 3. Pinnar samlas separat i Agility och Hoppklass.',
+      },
+      {
+        question: 'Vad räknas som en godkänd runda?',
+        answer:
+          'En godkänd runda är "noll fel inom maxtid" – ingen rivning, ingen missad kontakt, inga vägringar och tiden under domarens uträknade maxtid. Vid placering 1-3 i klass 2 eller 3 ges pinnen automatiskt även med några felpoäng inom vissa gränser.',
+      },
+      {
+        question: 'Vad är skillnaden mellan klass 2 och klass 3?',
+        answer:
+          'Klass 3 har mer tekniska banor med fler vändningar, distansmoment och svårare kombinationer. Tider är kortare och kraven på precision högre. Klass 3-banor är på SM- och VM-nivå svårighetsgrad.',
+      },
+      {
+        question: 'Kan man gå ner i klass igen?',
+        answer:
+          'Nej, uppflyttning är permanent. När hunden flyttats upp till klass 2 kan den inte tävla i klass 1 igen, oavsett resultat. Detta gäller även om hunden tar långt uppehåll och börjar igen efter flera år.',
+      },
+      {
+        question: 'Vad är "Open"-klass?',
+        answer:
+          'Open är en inofficiell klass där alla nivåer kan tävla på samma bana. Används ofta på utbildningstävlingar och prova-på-arrangemang. Inga pinnar delas ut men det är ett bra sätt att testa svårare banor utan tryck.',
+      },
+      {
+        question: 'Hur länge gäller pinnar?',
+        answer:
+          'Pinnar gäller livet ut för hunden. Det finns ingen tidsgräns för att samla ihop de tre pinnar som krävs för uppflyttning. Många ekipage tar flera år på sig att flyttas upp – det är helt okej.',
+      },
+    ],
+  },
+
+  'hoopers-vs-agility': {
+    heading: 'Vanliga frågor om hoopers vs agility',
+    items: [
+      {
+        question: 'Vad är största skillnaden mellan hoopers och agility?',
+        answer:
+          'Hoopers har inga hopphinder och inga skarpa vändningar – hunden springer mjuka linjer genom bågar, runt tunnor och genom tunnlar. I agility hoppar hunden över hinder och tar tighta vändningar. Hoopers är skonsammare för leder och passar fler hundar.',
+      },
+      {
+        question: 'Vilken sport är bäst för min hund?',
+        answer:
+          'För unga friska hundar med jakt på fart och teknik är agility ofta mer stimulerande. För äldre hundar, hundar med ledproblem, blandraser eller om föraren har svårt att springa är hoopers ett bättre val. Många hundar gör båda.',
+      },
+      {
+        question: 'Behöver föraren springa i hoopers?',
+        answer:
+          'Nej. I hoopers står föraren i en utmärkt zon (handler box) eller rör sig minimalt, medan hunden springer banan på distans. Detta gör sporten tillgänglig för förare med rörelseinskränkningar eller som inte vill springa.',
+      },
+      {
+        question: 'Är hoopers lättare än agility?',
+        answer:
+          'Nej, men på ett annat sätt. Hoopers kräver mer distansträning och självständighet hos hunden, eftersom föraren inte kan stötta i banan. Agility kräver mer fysik och snabba förarbeslut. Båda har sin svårighet.',
+      },
+      {
+        question: 'Kan man tävla i båda sporterna?',
+        answer:
+          'Absolut. Många ekipage tränar både agility och hoopers parallellt. Sporterna kompletterar varandra – hoopers bygger distansvana som hjälper i agility, och agility bygger fart och precision.',
+      },
+      {
+        question: 'Vilken sport startar valpen tidigast i?',
+        answer:
+          'Hoopers grundträning kan börjas tidigare (4-6 månader på låg nivå) eftersom inga hopp eller kontakthinder belastar lederna. Agility med full hopphöjd ska vänta till 12-15 månader. Båda sporterna har officiell tävlingsålder från 18 månader.',
+      },
+      {
+        question: 'Vilka klasser finns i respektive sport?',
+        answer:
+          'Agility har Nollklass och klass 1-3, separat för Agility och Hoppklass. Hoopers har Startklass, Klass 1, Klass 2 och Klass 3. Båda sporterna har tydliga uppflyttningsregler baserat på godkända rundor.',
+      },
+      {
+        question: 'Är båda sporterna officiella SKK-sporter?',
+        answer:
+          'Ja. Agility har varit officiellt erkänd länge under SAgiK. Hoopers blev officiell SKK-sport 1 november 2025 under Svenska Hoopersklubben (SHoK). Båda har officiella regelverk och tävlingsstrukturer.',
+      },
+    ],
+  },
+
+  'undvik-skador-agility': {
+    heading: 'Vanliga frågor om skadeförebyggande i agility',
+    items: [
+      {
+        question: 'Vilka är de vanligaste skadorna i agility?',
+        answer:
+          'Vanligaste skadorna är muskelbristningar i bakben och rygg, korsbandsskador, axelproblem och tassskador. Många kommer från upprepad belastning utan tillräcklig vila eller uppvärmning, snarare än enskilda olyckor.',
+      },
+      {
+        question: 'Hur länge ska uppvärmning ta?',
+        answer:
+          'Minst 10-15 minuter aktiv uppvärmning innan träning eller tävling: lugn promenad, trav, lätta sträckningar och några korta sprintar. Hunden ska vara mätbart varm – ökad andning, vetlig rörelse – innan första hindret.',
+      },
+      {
+        question: 'Kan jag förebygga korsbandsskador?',
+        answer:
+          'Delvis. Stärk bakbensmuskler genom backträning, simning och balansövningar. Undvik tvära vändningar på halt underlag. Håll hunden i rätt vikt – övervikt är största riskfaktorn för korsbandsruptur.',
+      },
+      {
+        question: 'Hur ofta ska hunden vila?',
+        answer:
+          'Minst en helt vilodag per vecka, gärna två. Efter intensiv tävling behövs 2-3 dagar lätt aktivitet. Unghundar (under 2 år) och seniorer (över 8) behöver mer vila än hundar i sin bästa ålder.',
+      },
+      {
+        question: 'Vad gör jag om hunden haltar efter träning?',
+        answer:
+          'Avbryt träning omedelbart. Vila i 48-72 timmar med endast lugna promenader. Om haltan kvarstår efter 3 dagar – uppsök veterinär. Aldrig "träna igenom" en halta, det förvärrar skador och kan orsaka kroniska problem.',
+      },
+      {
+        question: 'Är agility skadligt för leder?',
+        answer:
+          'Inte med rätt träning. Studier visar att agilityhundar har samma eller bättre ledhälsa än stillasittande hundar – om träningen är välbalanserad. Risken kommer från överträning, fel underlag eller bristande uppvärmning.',
+      },
+      {
+        question: 'Vilket underlag är säkrast?',
+        answer:
+          'Konstgräs och specialgummiunderlag är skonsammast. Naturgräs är okej när det är torrt men halkigt och farligt vid regn. Sand kräver extra uppvärmning. Undvik betong och hård mark helt – det belastar leder oerhört mycket.',
+      },
+      {
+        question: 'Behöver hunden massage eller fysioterapi?',
+        answer:
+          'För hobby-ekipage räcker bra uppvärmning och vila. För tävlande hundar rekommenderas regelbunden massage eller hundfysioterapi var 4-8:e vecka. Ger snabbare återhämtning, hittar problem tidigt och förlänger karriären.',
+      },
+    ],
+  },
+
+  'uppvarmning-hund-agility': {
+    heading: 'Vanliga frågor om uppvärmning för agilityhund',
+    items: [
+      {
+        question: 'Hur lång tid ska uppvärmningen ta?',
+        answer:
+          'Minst 10-15 minuter aktiv uppvärmning före träning, och 15-20 minuter före tävling. Hunden ska vara märkbart varm – ökad andning, lös rörelse i kroppen – innan första hindret. Kortare uppvärmning ökar skaderisken markant.',
+      },
+      {
+        question: 'Vilka övningar ingår i bra uppvärmning?',
+        answer:
+          'Börja med 5 minuter lugn promenad, övergå till trav i 3-5 minuter, gör några sträckningar (cookie stretches – hunden följer godis i olika riktningar), och avsluta med 3-5 korta accelerationer på 10-20 meter.',
+      },
+      {
+        question: 'Behövs nedvarvning efter träning?',
+        answer:
+          'Ja, lika viktigt som uppvärmning. 5-10 minuters lugn promenad efter sista hindret hjälper kroppen att återhämta sig, minskar mjölksyra och förebygger stelhet. Hoppa aldrig direkt från full träning till bilen.',
+      },
+      {
+        question: 'Vad är cookie stretches?',
+        answer:
+          'Cookie stretches är aktiva sträckningar där hunden följer en godisbit i olika riktningar – böjer huvudet mot heupen (rygg), under bröstet (axlar) och uppåt (mage). 3-5 sekunder per position, 2-3 repetitioner per sida.',
+      },
+      {
+        question: 'Är uppvärmning lika viktigt på hösten och vintern?',
+        answer:
+          'Ännu viktigare. I kallt väder är muskler stelare och senor mindre elastiska. Förläng uppvärmningen med 5 minuter under vintern och håll hunden täckt mellan starter på utomhustävlingar. Sval och blöt mark kräver extra försiktighet.',
+      },
+      {
+        question: 'Kan jag värma upp hunden själv eller behöver jag följa schema?',
+        answer:
+          'För hobby-ekipage räcker en personlig rutin: promenad, trav, sträckningar, accelerationer. På tävlingsnivå rekommenderas ett strukturerat protokoll, gärna utvecklat med hundfysioterapeut. Konsekvens är viktigare än perfektion.',
+      },
+      {
+        question: 'Hur värmer jag upp utan plats för sprintar?',
+        answer:
+          'Gör fram-och-tillbaka-sprintar på 10 meter, slalomgång på koppel, eller motoriska övningar (gå baklänges, sidledes, mellan benen). Trångt utrymme behöver inte stoppa bra uppvärmning – kreativitet räcker långt.',
+      },
+      {
+        question: 'Behöver gamla hundar längre uppvärmning?',
+        answer:
+          'Ja. Seniorer (över 8 år) behöver 5-10 minuter extra uppvärmning, lugnare övergångar mellan tempi och fler upprepningar av sträckningar. Stelhet och lägre elasticitet i vävnader gör äldre hundar mer skadekänsliga utan ordentlig förberedelse.',
+      },
+    ],
+  },
 };
 
 /**

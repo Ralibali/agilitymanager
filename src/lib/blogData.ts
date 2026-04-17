@@ -7,6 +7,10 @@ export interface BlogPost {
   readTime: number;
   date: string;
   author: string;
+  /** SEO-optimerad <title>-tagg (50–60 tecken). Faller tillbaka till `title` om null. */
+  seoTitle?: string | null;
+  /** SEO-optimerad meta description (140–160 tecken). Faller tillbaka till `excerpt` om null. */
+  seoDescription?: string | null;
 }
 
 export const blogPosts: BlogPost[] = [
@@ -1786,7 +1790,7 @@ import { supabase } from '@/integrations/supabase/client';
 export async function fetchBlogPosts(): Promise<BlogPost[]> {
   const { data, error } = await supabase
     .from('blog_posts')
-    .select('slug, title, excerpt, content, category, read_time, date, author')
+    .select('slug, title, excerpt, content, category, read_time, date, author, seo_title, seo_description')
     .eq('published', true)
     .order('date', { ascending: false });
 
@@ -1804,13 +1808,15 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
     readTime: d.read_time,
     date: d.date,
     author: d.author,
+    seoTitle: d.seo_title ?? null,
+    seoDescription: d.seo_description ?? null,
   }));
 }
 
 export async function fetchPostBySlug(slug: string): Promise<BlogPost | undefined> {
   const { data, error } = await supabase
     .from('blog_posts')
-    .select('slug, title, excerpt, content, category, read_time, date, author')
+    .select('slug, title, excerpt, content, category, read_time, date, author, seo_title, seo_description')
     .eq('slug', slug)
     .eq('published', true)
     .maybeSingle();
@@ -1828,5 +1834,7 @@ export async function fetchPostBySlug(slug: string): Promise<BlogPost | undefine
     readTime: (data as any).read_time,
     date: data.date,
     author: data.author,
+    seoTitle: (data as any).seo_title ?? null,
+    seoDescription: (data as any).seo_description ?? null,
   };
 }

@@ -28,6 +28,8 @@ interface BlogPost {
   date: string;
   author: string;
   published: boolean;
+  seo_title: string | null;
+  seo_description: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -42,6 +44,8 @@ const emptyPost: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> = {
   date: new Date().toISOString().split('T')[0],
   author: 'AgilityManager',
   published: true,
+  seo_title: '',
+  seo_description: '',
 };
 
 export default function BlogPostsTab() {
@@ -65,6 +69,9 @@ export default function BlogPostsTab() {
 
   const saveMutation = useMutation({
     mutationFn: async (post: typeof form & { id?: string }) => {
+      // Normalisera tomma SEO-strängar till null så fallback-logiken i SEO-komponenten fungerar.
+      const seoTitle = post.seo_title?.trim() ? post.seo_title.trim() : null;
+      const seoDescription = post.seo_description?.trim() ? post.seo_description.trim() : null;
       if (post.id) {
         const { error } = await supabase.from('blog_posts').update({
           slug: post.slug,
@@ -76,6 +83,8 @@ export default function BlogPostsTab() {
           date: post.date,
           author: post.author,
           published: post.published,
+          seo_title: seoTitle,
+          seo_description: seoDescription,
         }).eq('id', post.id);
         if (error) throw error;
       } else {
@@ -89,6 +98,8 @@ export default function BlogPostsTab() {
           date: post.date,
           author: post.author,
           published: post.published,
+          seo_title: seoTitle,
+          seo_description: seoDescription,
         });
         if (error) throw error;
       }
@@ -132,6 +143,8 @@ export default function BlogPostsTab() {
       date: post.date,
       author: post.author,
       published: post.published,
+      seo_title: post.seo_title ?? '',
+      seo_description: post.seo_description ?? '',
     });
     setEditing(post);
     setCreating(false);
@@ -293,6 +306,43 @@ export default function BlogPostsTab() {
             <div>
               <Label className="text-xs">Innehåll (Markdown)</Label>
               <Textarea value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))} rows={16} className="font-mono text-xs" />
+            </div>
+
+            {/* SEO-sektion: separata fält för Google-titel + meta description */}
+            <div className="space-y-3 rounded-xl border border-border/60 bg-muted/30 p-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">SEO (Google &amp; sociala medier)</Label>
+                <span className="text-[10px] text-muted-foreground">Lämna tom för att använda titel/utdrag</span>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <Label className="text-xs">SEO-titel</Label>
+                  <span className={`text-[10px] tabular-nums ${(form.seo_title?.length ?? 0) > 60 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                    {form.seo_title?.length ?? 0} / 60
+                  </span>
+                </div>
+                <Input
+                  value={form.seo_title ?? ''}
+                  onChange={e => setForm(f => ({ ...f, seo_title: e.target.value }))}
+                  placeholder='T.ex. "Hoopers för hund – allt du behöver veta | AgilityManager"'
+                  className="text-xs"
+                />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <Label className="text-xs">SEO-beskrivning (meta description)</Label>
+                  <span className={`text-[10px] tabular-nums ${(form.seo_description?.length ?? 0) > 160 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                    {form.seo_description?.length ?? 0} / 160
+                  </span>
+                </div>
+                <Textarea
+                  value={form.seo_description ?? ''}
+                  onChange={e => setForm(f => ({ ...f, seo_description: e.target.value }))}
+                  placeholder="140–160 tecken som visas under titeln i Google. Avsluta med call-to-action."
+                  rows={3}
+                  className="text-xs"
+                />
+              </div>
             </div>
 
             <div className="flex items-center gap-2">

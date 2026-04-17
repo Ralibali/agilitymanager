@@ -57,6 +57,8 @@ export type Database = {
           id: string
           published: boolean
           read_time: number
+          seo_description: string | null
+          seo_title: string | null
           slug: string
           title: string
           updated_at: string
@@ -71,6 +73,8 @@ export type Database = {
           id?: string
           published?: boolean
           read_time?: number
+          seo_description?: string | null
+          seo_title?: string | null
           slug: string
           title: string
           updated_at?: string
@@ -85,6 +89,8 @@ export type Database = {
           id?: string
           published?: boolean
           read_time?: number
+          seo_description?: string | null
+          seo_title?: string | null
           slug?: string
           title?: string
           updated_at?: string

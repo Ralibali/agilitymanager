@@ -49,6 +49,7 @@ const SettingsPage = React.lazy(() => import("./pages/v2/SettingsPage"));
 const AdminPage = React.lazy(() => import("./pages/v2/AdminPage"));
 const CoursesPage = React.lazy(() => import("./pages/v2/CoursesPage"));
 const CoursePlannerPage = React.lazy(() => import("./pages/CoursePlannerPage"));
+const CoursePlannerBetaPage = React.lazy(() => import("./pages/v2/CoursePlannerBetaPage"));
 
 const queryClient = new QueryClient();
 
@@ -126,6 +127,8 @@ const App = () => (
                 <Route path="/stats" element={<StatsPage />} />
                 <Route path="/training" element={<TrainingPage />} />
                 <Route path="/course-planner" element={<CoursePlannerPage />} />
+                {/* Fas 9: Ny banplanerare under utveckling – parallellt med /course-planner */}
+                <Route path="/course-planner-beta" element={<CoursePlannerBetaPage />} />
                 <Route path="/stopwatch" element={<StopwatchPage />} />
                 <Route path="/goals" element={<GoalsPage />} />
                 <Route path="/competition" element={<CompetitionPage />} />

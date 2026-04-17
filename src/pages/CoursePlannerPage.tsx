@@ -834,13 +834,13 @@ export default function CoursePlannerPage() {
     ctx.save();
     ctx.translate(MARGIN, 0);
 
-    // Course area – varm beige underlag (Fas 9), signalerar gräs/underlag istället för excel-ark
-    ctx.fillStyle = isDarkCanvas ? 'hsl(0, 0%, 10%)' : '#F4F3EE';
+    // Course area
+    ctx.fillStyle = isDarkCanvas ? 'hsl(0, 0%, 10%)' : 'hsl(0, 0%, 97%)';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    // Minor grid (1m) – mycket subtilt nät
-    ctx.strokeStyle = isDarkCanvas ? 'hsl(0, 0%, 20%)' : 'rgba(15, 23, 18, 0.05)';
-    ctx.lineWidth = 1;
+    // Minor grid (1m)
+    ctx.strokeStyle = isDarkCanvas ? 'hsl(0, 0%, 20%)' : 'hsl(0, 0%, 90%)';
+    ctx.lineWidth = 0.3;
     for (let x = 0; x <= canvasWidth; x += GRID_STEP) {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvasHeight); ctx.stroke();
     }
@@ -848,9 +848,9 @@ export default function CoursePlannerPage() {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvasWidth, y); ctx.stroke();
     }
 
-    // Major grid (5m) – tydligare för avståndsuppskattning
-    ctx.strokeStyle = isDarkCanvas ? 'hsl(0, 0%, 30%)' : 'rgba(15, 23, 18, 0.12)';
-    ctx.lineWidth = 1;
+    // Major grid (5m)
+    ctx.strokeStyle = isDarkCanvas ? 'hsl(0, 0%, 30%)' : 'hsl(0, 0%, 78%)';
+    ctx.lineWidth = 0.8;
     const majorStep = GRID_STEP * 5;
     for (let x = 0; x <= canvasWidth; x += majorStep) {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvasHeight); ctx.stroke();
@@ -1213,8 +1213,14 @@ export default function CoursePlannerPage() {
       }
     });
 
-    // (Fas 9) Borttaget "1 ruta = 1 meter"-label – ersatt av CAD-style skalstock
-    // i nedre vänstra hörnet (renderad ovan) som är standard i kartor och designverktyg.
+    // "1 ruta = 1 meter" label
+    ctx.fillStyle = 'hsla(0, 0%, 100%, 0.85)';
+    ctx.fillRect(4, 4, 80, 14);
+    ctx.fillStyle = 'hsl(0, 0%, 45%)';
+    ctx.font = '8px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('1 ruta = 1 meter', 8, 6);
 
     // Measure tool rendering
     if (measurePoints.length > 0) {

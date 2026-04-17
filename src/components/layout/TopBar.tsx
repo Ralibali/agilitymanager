@@ -3,17 +3,30 @@ import { useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { NAV_GROUPS } from "./navConfig";
+import { GlobalSearchDialog } from "./GlobalSearchDialog";
 
 /**
  * Persistent topbar (desktop ≥1024px).
- * Breadcrumb + sök-stub + notiser + theme toggle.
- * Sök är cmd+k-stub (öppnar inget ännu i Fas 2).
+ * Breadcrumb + global sök (cmd+k) + notiser + theme toggle.
  */
 export function TopBar() {
   const location = useLocation();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  // Cmd/Ctrl+K för att öppna sökningen globalt
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const current = findNavItem(location.pathname);
   const breadcrumb = current
@@ -30,6 +43,7 @@ export function TopBar() {
 
       <button
         type="button"
+        onClick={() => setSearchOpen(true)}
         className="flex items-center gap-2 h-8 px-3 rounded-ds-md bg-subtle text-small text-text-secondary hover:text-text-primary transition-colors min-w-[260px]"
         aria-label="Sök (cmd+k)"
       >
@@ -39,6 +53,8 @@ export function TopBar() {
           ⌘K
         </kbd>
       </button>
+
+      <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
 
       <button
         type="button"

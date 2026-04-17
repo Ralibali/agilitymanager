@@ -561,12 +561,36 @@ function Canvas({
     setDropRef(node);
   };
 
+  /* ─── Klick-att-placera: omvandla viewport-klick till canvas-koordinater i meter ─── */
+  const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!armedKey) {
+      // Inget armerat → klick på bakgrund avmarkerar valt hinder
+      onSelect(null);
+      return;
+    }
+    const container = containerRef.current;
+    if (!container) return;
+    // Hitta inner course-area (MARGIN-offsetad). Vi använder canvas-elementet
+    // som referens för exakt position.
+    const canvasEl = canvasRef.current;
+    if (!canvasEl) return;
+    const rect = canvasEl.getBoundingClientRect();
+    const xPx = (e.clientX - rect.left) / zoom - MARGIN;
+    const yPx = (e.clientY - rect.top) / zoom;
+    const xM = xPx / PX_PER_METER;
+    const yM = yPx / PX_PER_METER;
+    if (xM < 0 || yM < 0 || xM > widthM || yM > heightM) return;
+    onPlaceArmed(xM, yM);
+  };
+
   return (
     <div
       ref={setRefs}
+      onClick={handleCanvasClick}
       className={[
         'absolute inset-0 overflow-auto bg-[#ebeae5] transition-colors',
         isOver ? 'bg-[#e4ecdf]' : '',
+        armedKey ? 'cursor-crosshair' : '',
       ].join(' ')}
       style={{ touchAction: 'none' }}
       data-canvas-w-m={widthM}
@@ -1065,8 +1089,12 @@ export default function CoursePlannerBetaPage() {
                   className="w-[72px] shrink-0 border-r bg-[#fafaf7] overflow-y-auto"
                   style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
                 >
-                  <ObstaclePalette sport={sport} onSportChange={setSport} />
-                </aside>
+                  <ObstaclePalette
+                    sport={sport}
+                    onSportChange={setSport}
+                    armedKey={armedKey}
+                    onArm={setArmedKey}
+                  />
 
                 <main className="flex-1 min-w-0 relative overflow-hidden">
                   <Canvas
@@ -1078,6 +1106,9 @@ export default function CoursePlannerBetaPage() {
                     selectedId={selectedId}
                     onSelect={setSelectedId}
                     onContextMenu={(id, x, y) => setContextMenu({ id, x, y })}
+                    armedKey={armedKey}
+                    onPlaceArmed={placeArmedAt}
+                    onDisarm={() => setArmedKey(null)}
                   />
                   <EmptyStatePrompt
                     visible={obstacles.length === 0 && !emptyDismissed}

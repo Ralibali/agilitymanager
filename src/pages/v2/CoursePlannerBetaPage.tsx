@@ -611,32 +611,69 @@ interface ObstaclesLayerProps {
   zoom: number;
   canvasWidthPx: number;
   canvasHeightPx: number;
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
+  onContextMenu: (id: string, x: number, y: number) => void;
 }
 
-function ObstaclesLayer({ obstacles, zoom, canvasWidthPx, canvasHeightPx }: ObstaclesLayerProps) {
+function ObstaclesLayer({
+  obstacles, zoom, canvasWidthPx, canvasHeightPx, selectedId, onSelect, onContextMenu,
+}: ObstaclesLayerProps) {
   return (
     <svg
-      className="pointer-events-none absolute"
+      className="absolute"
       style={{
         left: MARGIN * zoom,
         top: 0,
         width: canvasWidthPx * zoom,
         height: canvasHeightPx * zoom,
+        // Tillåt klick i SVG men låt canvas-bakgrunden ta klick mellan ikoner
+        pointerEvents: 'none',
       }}
-      aria-hidden
     >
       {obstacles.map((o) => {
         const def = getObstacleDef(o.key);
         if (!def) return null;
         const Icon = getObstacleIcon(o.key);
-        // Visningsstorlek: ta största sidan i meter och skala upp så ikonen syns,
+        // Visningsstorlek: ta största sidan i meter, skala med per-hinder scale,
         // men minst 18px för läsbarhet på låg zoom.
-        const sizePx = Math.max(18, Math.max(def.sizeM.w, def.sizeM.h) * PX_PER_METER * zoom);
+        const baseSize = Math.max(def.sizeM.w, def.sizeM.h) * PX_PER_METER * zoom * o.scale;
+        const sizePx = Math.max(18, baseSize);
         const cx = o.xM * PX_PER_METER * zoom;
         const cy = o.yM * PX_PER_METER * zoom;
+        const isSelected = selectedId === o.id;
         return (
-          <g key={o.id} transform={`translate(${cx - sizePx / 2}, ${cy - sizePx / 2}) rotate(${o.rotation} ${sizePx / 2} ${sizePx / 2})`}>
-            <Icon size={sizePx} className="text-[#1a6b3c]" />
+          <g
+            key={o.id}
+            transform={`translate(${cx - sizePx / 2}, ${cy - sizePx / 2}) rotate(${o.rotation} ${sizePx / 2} ${sizePx / 2})`}
+            style={{ pointerEvents: 'auto', cursor: o.locked ? 'not-allowed' : 'pointer' }}
+            onClick={(e) => { e.stopPropagation(); onSelect(o.id); }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onSelect(o.id);
+              onContextMenu(o.id, e.clientX, e.clientY);
+            }}
+          >
+            {/* Selektion-ring */}
+            {isSelected && (
+              <rect
+                x={-4}
+                y={-4}
+                width={sizePx + 8}
+                height={sizePx + 8}
+                rx={6}
+                fill="none"
+                stroke="#1a6b3c"
+                strokeWidth={1.5}
+                strokeDasharray="3 3"
+              />
+            )}
+            {/* Lås-indikator */}
+            {o.locked && (
+              <circle cx={sizePx - 3} cy={3} r={3} fill="#737373" />
+            )}
+            <Icon size={sizePx} style={{ color: o.color }} />
           </g>
         );
       })}

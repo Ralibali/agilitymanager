@@ -102,7 +102,7 @@ export default function V2AdminPage() {
         title="Admin"
         subtitle="Hantera användare, support och analys."
         actions={
-          <DSButton variant="ghost" onClick={() => navigate("/v2/settings")}>
+          <DSButton variant="ghost" onClick={() => navigate("/settings")}>
             Inställningar
           </DSButton>
         }

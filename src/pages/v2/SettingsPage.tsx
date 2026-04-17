@@ -118,7 +118,7 @@ export default function V2SettingsPage() {
         subtitle="Hantera profil, prenumeration och integritet."
         actions={
           isAdmin ? (
-            <DSButton variant="ghost" onClick={() => navigate("/v2/admin")}>
+            <DSButton variant="ghost" onClick={() => navigate("/admin")}>
               <Shield className="h-4 w-4" /> Admin
             </DSButton>
           ) : undefined

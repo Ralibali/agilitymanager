@@ -167,7 +167,7 @@ export default function V2CoursesPage() {
         title="Kurser & Utbildning"
         subtitle="Lär av erfarna instruktörer och utveckla din ekipage med video, kursmaterial och dina egna sparade banor."
         actions={
-          <Link to="/v2/course-planner">
+          <Link to="/course-planner">
             <DSButton variant="secondary" size="sm">
               <PenTool size={14} className="mr-1.5" />
               Banplanerare
@@ -234,7 +234,7 @@ export default function V2CoursesPage() {
                     Aktivera Pro för 19 kr/mån och börja spara direkt.
                   </p>
                 </div>
-                <Link to="/v2/settings">
+                <Link to="/settings">
                   <DSButton variant="primary" size="sm">
                     Bli Pro
                   </DSButton>
@@ -379,7 +379,7 @@ export default function V2CoursesPage() {
             <p className="text-small text-text-secondary">
               Banor du sparat i banplaneraren. Klicka för att öppna eller redigera.
             </p>
-            <Link to="/v2/course-planner">
+            <Link to="/course-planner">
               <DSButton variant="primary" size="sm">
                 <PenTool size={14} className="mr-1.5" />
                 Skapa ny bana
@@ -402,7 +402,7 @@ export default function V2CoursesPage() {
               title="Inga sparade banor"
               description="Skissa din första bana i banplaneraren och spara den för att hitta den här."
               action={
-                <Link to="/v2/course-planner">
+                <Link to="/course-planner">
                   <DSButton variant="primary" size="sm">
                     Öppna banplaneraren
                   </DSButton>
@@ -412,7 +412,7 @@ export default function V2CoursesPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {savedCourses.map((sc) => (
-                <Link key={sc.id} to={`/v2/course-planner?id=${sc.id}`}>
+                <Link key={sc.id} to={`/course-planner?id=${sc.id}`}>
                   <DSCard className="cursor-pointer hover:border-border-strong transition-colors">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">

@@ -123,6 +123,25 @@ export default function V2CoursesPage() {
     enabled: !!user,
   });
 
+  const { data: userDogs = [] } = useQuery({
+    queryKey: ["v2-courses-user-dogs", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("dogs")
+        .select("sport, competition_level, hoopers_level, is_active_competition_dog")
+        .eq("user_id", user.id);
+      if (error) throw error;
+      return data as {
+        sport: "Agility" | "Hoopers" | "Båda";
+        competition_level: "Nollklass" | "K1" | "K2" | "K3";
+        hoopers_level: "Startklass" | "Klass 1" | "Klass 2" | "Klass 3";
+        is_active_competition_dog: boolean;
+      }[];
+    },
+    enabled: !!user,
+  });
+
   const hasPurchased = (id: string) =>
     purchases.some((p) => p.course_id === id);
 
@@ -138,6 +157,59 @@ export default function V2CoursesPage() {
     if (category === "alla") return courses;
     return courses.filter((c) => c.category === category);
   }, [courses, category]);
+
+  /** Rekommenderade kurser baserat på hundarnas sport och nivå. */
+  const recommendations = useMemo(() => {
+    if (!user || userDogs.length === 0 || courses.length === 0) {
+      return { items: [] as Course[], reason: "" };
+    }
+    const sportWeight: Record<string, number> = { Agility: 0, Hoopers: 0 };
+    let beginnerCount = 0;
+    let advancedCount = 0;
+
+    userDogs.forEach((d) => {
+      const w = d.is_active_competition_dog ? 2 : 1;
+      if (d.sport === "Agility" || d.sport === "Båda") sportWeight.Agility += w;
+      if (d.sport === "Hoopers" || d.sport === "Båda") sportWeight.Hoopers += w;
+      if (d.sport === "Hoopers") {
+        if (d.hoopers_level === "Startklass" || d.hoopers_level === "Klass 1") beginnerCount++;
+        else advancedCount++;
+      } else {
+        if (d.competition_level === "Nollklass" || d.competition_level === "K1") beginnerCount++;
+        else advancedCount++;
+      }
+    });
+
+    const preferred =
+      sportWeight.Hoopers > sportWeight.Agility
+        ? "hoopers"
+        : sportWeight.Agility > sportWeight.Hoopers
+          ? "agility"
+          : null;
+    const isBeginnerHeavy = beginnerCount >= advancedCount;
+
+    const scored = courses
+      .filter((c) => !hasPurchased(c.id))
+      .map((c) => {
+        let score = 0;
+        const cat = c.category.toLowerCase();
+        if (preferred && cat === preferred) score += 3;
+        if (cat === "grundträning") score += isBeginnerHeavy ? 2 : 0.5;
+        const text = `${c.title} ${c.description}`.toLowerCase();
+        if (isBeginnerHeavy && /(nyböj|grund|start|introduk|nollklass)/.test(text)) score += 1;
+        if (!isBeginnerHeavy && /(avancer|k2|k3|klass\s*2|klass\s*3|tävling)/.test(text)) score += 1;
+        return { course: c, score };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map((x) => x.course);
+
+    const reasonParts: string[] = [];
+    if (preferred) reasonParts.push(preferred === "hoopers" ? "Hoopers" : "Agility");
+    reasonParts.push(isBeginnerHeavy ? "nybörjarvänligt" : "tävlingsnivå");
+    return { items: scored, reason: reasonParts.join(" · ") };
+  }, [courses, userDogs, purchases, user]);
 
   const handlePurchase = (course: Course) => {
     if (!user) {
@@ -219,6 +291,72 @@ export default function V2CoursesPage() {
 
       {tab === "katalog" && (
         <>
+          {/* Rekommenderat för dig – baserat på hundarnas sport och nivå */}
+          {recommendations.items.length > 0 && (
+            <section className="mb-6">
+              <div className="flex items-end justify-between mb-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <Sparkles size={14} className="text-brand-700" />
+                    <h2 className="text-h3 text-text-primary">Rekommenderat för dig</h2>
+                  </div>
+                  <p className="text-small text-text-secondary">
+                    Matchat mot dina hundar · {recommendations.reason}
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {recommendations.items.map((course) => {
+                  const price = getPrice(course);
+                  const hasDiscount =
+                    isPremium &&
+                    course.discounted_price_sek &&
+                    course.discounted_price_sek < course.price_sek;
+                  return (
+                    <DSCard
+                      key={course.id}
+                      onClick={() => setSelectedCourse(course)}
+                      className="cursor-pointer hover:border-border-strong transition-colors relative"
+                    >
+                      <div className="absolute -top-2 -right-2">
+                        <StatusBadge variant="pro" label="Tips" />
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-ds-sm bg-brand-50 flex items-center justify-center shrink-0">
+                          <GraduationCap size={18} className="text-brand-700" strokeWidth={1.5} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-body font-medium text-text-primary truncate">
+                            {course.title}
+                          </h3>
+                          <p className="text-small text-text-secondary line-clamp-2 mt-0.5">
+                            {course.description}
+                          </p>
+                          <div className="flex items-center justify-between mt-2">
+                            <StatusBadge
+                              variant="neutral"
+                              label={categoryLabels[course.category] ?? course.category}
+                            />
+                            <div className="flex items-center gap-1.5">
+                              {hasDiscount && (
+                                <span className="text-micro line-through text-text-tertiary">
+                                  {course.price_sek} kr
+                                </span>
+                              )}
+                              <span className="text-small font-medium text-text-primary tabular-nums">
+                                {price} kr
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </DSCard>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
           {/* Pro-banner */}
           {!isPremium && (
             <DSCard className="mb-4 bg-brand-50/60 border-brand-100">

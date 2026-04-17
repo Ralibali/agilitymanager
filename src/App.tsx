@@ -49,6 +49,8 @@ const CoursesPage = React.lazy(() => import("./pages/CoursesPage"));
 const GoalsPage = React.lazy(() => import("./pages/GoalsPage"));
 const DesignDemoPage = React.lazy(() => import("./pages/DesignDemoPage"));
 const PlaceholderPage = React.lazy(() => import("./pages/v2/PlaceholderPage"));
+const V2HomePage = React.lazy(() => import("./pages/v2/HomePage"));
+const V2StatsPage = React.lazy(() => import("./pages/v2/StatsPage"));
 
 const queryClient = new QueryClient();
 
@@ -162,8 +164,8 @@ const App = () => (
 
               {/* === Fas 2 v2-shell – persistent AppLayout, tomma placeholders === */}
               <Route path="/v2" element={<V2ShellGuard />}>
-                <Route index element={<PlaceholderPage />} />
-                <Route path="stats" element={<PlaceholderPage />} />
+                <Route index element={<V2HomePage />} />
+                <Route path="stats" element={<V2StatsPage />} />
                 <Route path="training" element={<PlaceholderPage />} />
                 <Route path="course-planner" element={<PlaceholderPage />} />
                 <Route path="stopwatch" element={<PlaceholderPage />} />

@@ -160,6 +160,24 @@ const App = () => (
                 <Route path="/index" element={<Navigate to="/dashboard" replace />} />
               </Route>
 
+              {/* === Fas 2 v2-shell – persistent AppLayout, tomma placeholders === */}
+              <Route path="/v2" element={<V2ShellGuard />}>
+                <Route index element={<PlaceholderPage />} />
+                <Route path="stats" element={<PlaceholderPage />} />
+                <Route path="training" element={<PlaceholderPage />} />
+                <Route path="course-planner" element={<PlaceholderPage />} />
+                <Route path="stopwatch" element={<PlaceholderPage />} />
+                <Route path="goals" element={<PlaceholderPage />} />
+                <Route path="competition" element={<PlaceholderPage />} />
+                <Route path="dogs" element={<PlaceholderPage />} />
+                <Route path="health" element={<PlaceholderPage />} />
+                <Route path="friends" element={<PlaceholderPage />} />
+                <Route path="clubs" element={<PlaceholderPage />} />
+                <Route path="courses" element={<PlaceholderPage />} />
+                <Route path="settings" element={<PlaceholderPage />} />
+                <Route path="admin" element={<PlaceholderPage />} />
+              </Route>
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

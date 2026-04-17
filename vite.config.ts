@@ -1,7 +1,27 @@
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { execSync } from "node:child_process";
 import { componentTagger } from "lovable-tagger";
+
+/**
+ * Auto-genererar public/sitemap.xml vid `vite build`.
+ * Hämtar publicerade blogginlägg från Supabase + statiska rutter.
+ * Bryter inte byggen om scriptet misslyckas.
+ */
+function sitemapPlugin(): Plugin {
+  return {
+    name: "generate-sitemap",
+    apply: "build",
+    buildStart() {
+      try {
+        execSync("node scripts/generate-sitemap.mjs", { stdio: "inherit" });
+      } catch (err) {
+        console.warn("⚠️  Sitemap-generering misslyckades:", (err as Error).message);
+      }
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -14,7 +34,11 @@ export default defineConfig(({ mode }) => {
         overlay: false,
       },
     },
-    plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+    plugins: [
+      react(),
+      mode === "development" && componentTagger(),
+      sitemapPlugin(),
+    ].filter(Boolean),
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),

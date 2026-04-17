@@ -37,115 +37,25 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.se/blogg/borja-med-agility</loc>
+    <loc>https://agilitymanager.se/integritetspolicy</loc>
     <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.se/blogg/agility-nyborjare-komplett</loc>
+    <loc>https://agilitymanager.se/cookiepolicy</loc>
     <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.se/blogg/agility-kurs-nyborjare</loc>
+    <loc>https://agilitymanager.se/blogg/hoopers-hund</loc>
     <lastmod>2026-04-17</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://agilitymanager.se/blogg/agility-regler-sverige</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/sagik-klasser-forklarat</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/agility-tavling-forsta-gangen</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/mentala-foreberedelser-tavling</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/effektiv-traningsplanering</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/traningslogg-guide</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/uppvarmning-hund-agility</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/hundkondition-agility</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/undvik-skador-agility</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/beloning-agility-guide</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/basta-hundraser-agility</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/agility-hinder-hemma</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/slalom-traning-agility</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/slalom-komplett-guide</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/kontaktzoner-traning</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/kontaktfalt-komplett-guide</loc>
     <lastmod>2026-04-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -157,16 +67,28 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://agilitymanager.se/blogg/uppvarmning-hund-agility</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://agilitymanager.se/blogg/agility-vandringar-handling</loc>
     <lastmod>2026-04-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.se/blogg/hoopers-hund</loc>
+    <loc>https://agilitymanager.se/blogg/slalom-komplett-guide</loc>
     <lastmod>2026-04-17</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/beloning-agility-guide</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://agilitymanager.se/blogg/hoopers-vs-agility</loc>
@@ -181,7 +103,25 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://agilitymanager.se/blogg/agility-nyborjare-komplett</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/kontaktfalt-komplett-guide</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://agilitymanager.se/blogg/distanshandling-hoopers</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/traningslogg-guide</loc>
     <lastmod>2026-04-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -193,15 +133,75 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.se/integritetspolicy</loc>
+    <loc>https://agilitymanager.se/blogg/hundkondition-agility</loc>
     <lastmod>2026-04-17</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.se/cookiepolicy</loc>
+    <loc>https://agilitymanager.se/blogg/agility-tavling-forsta-gangen</loc>
     <lastmod>2026-04-17</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/agility-kurs-nyborjare</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/agility-hinder-hemma</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/basta-hundraser-agility</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/borja-med-agility</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/kontaktzoner-traning</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/mentala-foreberedelser-tavling</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/undvik-skador-agility</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/sagik-klasser-forklarat</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/slalom-traning-agility</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/effektiv-traningsplanering</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>

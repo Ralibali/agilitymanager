@@ -7,6 +7,7 @@ import { fetchPostBySlug, fetchBlogPosts, type BlogPost } from '@/lib/blogData';
 import { SEO, buildArticleSchema, buildBreadcrumbSchema } from '@/components/SEO';
 import { BLOG_FAQS, buildFaqJsonLd } from '@/lib/blogFaqs';
 import { BlogFAQ } from '@/components/BlogFAQ';
+import { BlogTOC, extractTOCItems, slugifyHeading } from '@/components/BlogTOC';
 
 // Parse inline markdown: **bold** and [link](/url)
 function parseInline(text: string): React.ReactNode[] {
@@ -46,6 +47,7 @@ function renderContent(content: string) {
   let listItems: string[] = [];
   let tableRows: string[][] = [];
   let inTable = false;
+  const usedH2Ids = new Set<string>();
 
   const flushList = () => {
     if (listItems.length > 0) {
@@ -100,9 +102,18 @@ function renderContent(content: string) {
       flushTable();
     }
 
-    if (trimmed.startsWith('## ')) {
+    if (trimmed.startsWith('## ') && !trimmed.startsWith('### ')) {
       flushList();
-      elements.push(<h2 key={`h2-${elements.length}`} className="font-display font-bold text-foreground text-lg mt-6 mb-3">{parseInline(trimmed.slice(3))}</h2>);
+      const rawText = trimmed.slice(3);
+      const cleanText = rawText.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').trim();
+      let id = slugifyHeading(cleanText);
+      let suffix = 2;
+      const baseId = id;
+      while (usedH2Ids.has(id)) {
+        id = `${baseId}-${suffix++}`;
+      }
+      usedH2Ids.add(id);
+      elements.push(<h2 id={id} key={`h2-${elements.length}`} className="font-display font-bold text-foreground text-lg mt-6 mb-3 scroll-mt-20">{parseInline(rawText)}</h2>);
     } else if (trimmed.startsWith('### ')) {
       flushList();
       elements.push(<h3 key={`h3-${elements.length}`} className="font-display font-semibold text-foreground mt-4 mb-2">{parseInline(trimmed.slice(4))}</h3>);
@@ -174,6 +185,7 @@ export default function BlogPostPage() {
   const seoTitle = post.seoTitle?.trim() || post.title;
   const seoDescription = post.seoDescription?.trim() || post.excerpt;
   const faqSection = BLOG_FAQS[post.slug];
+  const tocItems = post.content.length > 2000 ? extractTOCItems(post.content) : [];
 
   const jsonLdSchemas: Record<string, unknown>[] = [
     buildArticleSchema({
@@ -226,6 +238,7 @@ export default function BlogPostPage() {
         </header>
 
         <div className="bg-card rounded-xl p-5 sm:p-8 shadow-card">
+          {tocItems.length >= 2 && <BlogTOC items={tocItems} />}
           {renderContent(post.content)}
         </div>
       </article>

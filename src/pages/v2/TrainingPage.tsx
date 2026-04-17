@@ -137,7 +137,10 @@ export default function TrainingPage() {
           value={stats.thisWeek}
           trend={
             stats.trend !== 0
-              ? { value: `${stats.trend > 0 ? "+" : ""}${stats.trend}%`, direction: stats.trend > 0 ? "up" : "down" }
+              ? {
+                  label: `${stats.trend > 0 ? "+" : ""}${stats.trend}% mot förra veckan`,
+                  direction: stats.trend > 0 ? "up" : "down",
+                }
               : undefined
           }
         />

@@ -331,7 +331,6 @@ function ResultsTab({
             </div>
           </section>
         ))}
-      <AgilityDataAttribution sourceUrl="https://agilitydata.se/resultat/soek-hund/" />
     </div>
   );
 }

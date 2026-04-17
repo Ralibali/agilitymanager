@@ -121,6 +121,23 @@ export function CompetitionCard({
             )}
           </div>
         )}
+
+        <p className="text-micro text-text-tertiary mt-2">
+          Källa:{" "}
+          {sourceUrl ? (
+            <a
+              href={sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-0.5 hover:text-text-secondary hover:underline"
+            >
+              agilitydata.se <ExternalLink className="w-2.5 h-2.5" />
+            </a>
+          ) : (
+            <span>agilitydata.se</span>
+          )}
+        </p>
       </div>
 
       {rightSlot && (

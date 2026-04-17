@@ -592,6 +592,9 @@ function Canvas({
             zoom={zoom}
             canvasWidthPx={canvasWidth}
             canvasHeightPx={canvasHeight}
+            selectedId={selectedId}
+            onSelect={onSelect}
+            onContextMenu={onContextMenu}
           />
         </div>
       </div>
@@ -974,6 +977,9 @@ export default function CoursePlannerBetaPage() {
                     zoom={zoom}
                     onZoomChange={setZoom}
                     obstacles={obstacles}
+                    selectedId={selectedId}
+                    onSelect={setSelectedId}
+                    onContextMenu={(id, x, y) => setContextMenu({ id, x, y })}
                   />
                   <EmptyStatePrompt
                     visible={obstacles.length === 0 && !emptyDismissed}
@@ -994,7 +1000,13 @@ export default function CoursePlannerBetaPage() {
                     >
                       <ChevronRight size={16} />
                     </button>
-                    <PropertiesPanel obstacleCount={obstacles.length} />
+                    <PropertiesPanel
+                      obstacleCount={obstacles.length}
+                      selected={selectedObstacle}
+                      onUpdate={updateSelectedObstacle}
+                      onDuplicate={duplicateObstacle}
+                      onDelete={deleteSelectedObstacle}
+                    />
                   </aside>
                 ) : (
                   <button

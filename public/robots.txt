@@ -1,82 +1,42 @@
-User-agent: Googlebot
-Allow: /
-Disallow: /auth
-Disallow: /reset-password
-Disallow: /invite/
-Disallow: /club-invite/
-Disallow: /dashboard
-Disallow: /dogs
-Disallow: /training
-Disallow: /competition
-Disallow: /stopwatch
-Disallow: /health
-Disallow: /course-planner
-Disallow: /course-planner-beta
-Disallow: /stats
-Disallow: /goals
-Disallow: /friends
-Disallow: /chat
-Disallow: /clubs
-Disallow: /courses
-Disallow: /settings
-Disallow: /admin
-Disallow: /design-demo
-Disallow: /api/
-
-User-agent: Bingbot
-Allow: /
-Disallow: /auth
-Disallow: /reset-password
-Disallow: /invite/
-Disallow: /club-invite/
-Disallow: /dashboard
-Disallow: /dogs
-Disallow: /training
-Disallow: /competition
-Disallow: /stopwatch
-Disallow: /health
-Disallow: /course-planner
-Disallow: /course-planner-beta
-Disallow: /stats
-Disallow: /goals
-Disallow: /friends
-Disallow: /chat
-Disallow: /clubs
-Disallow: /courses
-Disallow: /settings
-Disallow: /admin
-Disallow: /design-demo
-Disallow: /api/
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
 Allow: /
+
+# Inloggningsskyddade rutter (nuvarande)
+Disallow: /app/
 Disallow: /auth
-Disallow: /reset-password
-Disallow: /invite/
-Disallow: /club-invite/
+Disallow: /admin
 Disallow: /dashboard
 Disallow: /dogs
 Disallow: /training
-Disallow: /competition
-Disallow: /stopwatch
-Disallow: /health
-Disallow: /course-planner
-Disallow: /course-planner-beta
 Disallow: /stats
 Disallow: /goals
+Disallow: /stopwatch
+Disallow: /health
 Disallow: /friends
+Disallow: /friend-stats/
 Disallow: /chat
-Disallow: /clubs
 Disallow: /courses
 Disallow: /settings
-Disallow: /admin
+Disallow: /course-planner
+Disallow: /course-planner-beta
+Disallow: /clubs
+Disallow: /competition
+Disallow: /competition-calendar
+Disallow: /index
+
+# Preventiva rutter (framtidssäkring)
+Disallow: /profile
+Disallow: /billing
+Disallow: /onboarding
+
+# Engångslänkar och utvecklingssidor
+Disallow: /reset-password
+Disallow: /invite/
+Disallow: /club-invite/
 Disallow: /design-demo
+
+# API och JSON-endpoints
 Disallow: /api/
+Disallow: /*.json$
 
 Sitemap: https://agilitymanager.se/sitemap.xml

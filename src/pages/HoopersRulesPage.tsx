@@ -196,7 +196,7 @@ export default function HoopersRulesPage() {
                 <li><strong>Klass 2 → Klass 3:</strong> 500 poäng</li>
               </ul>
               <p>
-                Poäng ackumuleras per hund och storleksklass. I AgilityManager kan du följa din poängutveckling automatiskt via <a href="/competition" className="text-primary hover:underline">hoopers-poängtrackern</a>.
+                Poäng ackumuleras per hund och storleksklass. I AgilityManager kan du följa din poängutveckling automatiskt via <a href="/app/competition" className="text-primary hover:underline">hoopers-poängtrackern</a>.
               </p>
             </section>
 

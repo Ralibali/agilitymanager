@@ -133,15 +133,17 @@ const App = () => (
                 <Route path="/course-planner-beta" element={<CoursePlannerBetaPage />} />
                 <Route path="/stopwatch" element={<StopwatchPage />} />
                 <Route path="/goals" element={<GoalsPage />} />
-                <Route path="/competition" element={<CompetitionPage />} />
-                <Route path="/competition-calendar" element={<Navigate to="/competition" replace />} />
+                <Route path="/app/competition" element={<CompetitionPage />} />
+                <Route path="/competition" element={<Navigate to="/app/competition" replace />} />
+                <Route path="/competition-calendar" element={<Navigate to="/app/competition" replace />} />
                 <Route path="/dogs" element={<DogsPage />} />
                 <Route path="/health" element={<HealthPage />} />
                 <Route path="/friends" element={<FriendsPage />} />
                 <Route path="/friend-stats/:userId" element={<FriendStatsPage />} />
                 <Route path="/chat" element={<ChatPage />} />
                 <Route path="/chat/:friendId" element={<ChatPage />} />
-                <Route path="/clubs" element={<ClubsPage />} />
+                <Route path="/app/clubs" element={<ClubsPage />} />
+                <Route path="/clubs" element={<Navigate to="/app/clubs" replace />} />
                 <Route path="/courses" element={<CoursesPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/admin" element={<AdminPage />} />
@@ -155,12 +157,12 @@ const App = () => (
               <Route path="/v2/course-planner" element={<Navigate to="/course-planner" replace />} />
               <Route path="/v2/stopwatch" element={<Navigate to="/stopwatch" replace />} />
               <Route path="/v2/goals" element={<Navigate to="/goals" replace />} />
-              <Route path="/v2/competition" element={<Navigate to="/competition" replace />} />
+              <Route path="/v2/competition" element={<Navigate to="/app/competition" replace />} />
               <Route path="/v2/dogs" element={<Navigate to="/dogs" replace />} />
               <Route path="/v2/health" element={<Navigate to="/health" replace />} />
               <Route path="/v2/friends" element={<Navigate to="/friends" replace />} />
               <Route path="/v2/chat" element={<Navigate to="/chat" replace />} />
-              <Route path="/v2/clubs" element={<Navigate to="/clubs" replace />} />
+              <Route path="/v2/clubs" element={<Navigate to="/app/clubs" replace />} />
               <Route path="/v2/courses" element={<Navigate to="/courses" replace />} />
               <Route path="/v2/settings" element={<Navigate to="/settings" replace />} />
               <Route path="/v2/admin" element={<Navigate to="/admin" replace />} />

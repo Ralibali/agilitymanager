@@ -89,7 +89,7 @@ export const UpcomingClubEvents = () => {
           <Users size={16} className="text-primary" />
           <span className="text-xs font-semibold text-foreground">Klubbevent</span>
         </div>
-        <button onClick={() => navigate('/clubs')} className="text-xs text-primary flex items-center gap-0.5">
+        <button onClick={() => navigate('/app/clubs')} className="text-xs text-primary flex items-center gap-0.5">
           Klubbar <ArrowRight size={12} />
         </button>
       </div>

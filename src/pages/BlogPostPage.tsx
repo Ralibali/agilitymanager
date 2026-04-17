@@ -190,7 +190,10 @@ export default function BlogPostPage() {
             description: seoDescription,
             url: canonicalUrl,
             publishedTime: post.date,
+            modifiedTime: (post as { updatedAt?: string }).updatedAt ?? post.date,
             author: post.author,
+            type: "BlogPosting",
+            section: post.category,
           }),
           buildBreadcrumbSchema([
             { name: 'Hem', url: '/' },

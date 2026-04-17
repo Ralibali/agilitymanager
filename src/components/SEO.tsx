@@ -136,7 +136,8 @@ export function SEO({
   );
 }
 
-/** Hjälpare för Article-schema (JSON-LD) */
+/** Hjälpare för Article/BlogPosting-schema (JSON-LD).
+ *  Sätt `type: "BlogPosting"` för blogginlägg — ger rikare sökresultat i Google. */
 export function buildArticleSchema(opts: {
   title: string;
   description: string;
@@ -145,17 +146,25 @@ export function buildArticleSchema(opts: {
   publishedTime: string;
   modifiedTime?: string;
   author?: string;
+  type?: "Article" | "BlogPosting" | "NewsArticle";
+  section?: string;
+  keywords?: string[];
 }): Record<string, unknown> {
-  return {
+  const fullImage = opts.image
+    ? (opts.image.startsWith("http") ? opts.image : `${SITE_URL}${opts.image}`)
+    : DEFAULT_OG;
+  const fullUrl = opts.url.startsWith("http") ? opts.url : `${SITE_URL}${opts.url}`;
+
+  const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
-    "@type": "Article",
-    headline: opts.title,
+    "@type": opts.type ?? "Article",
+    headline: opts.title.slice(0, 110), // Google rekommenderar <110 tecken
     description: opts.description,
-    image: opts.image ?? DEFAULT_OG,
+    image: [fullImage],
     datePublished: opts.publishedTime,
     dateModified: opts.modifiedTime ?? opts.publishedTime,
     author: {
-      "@type": "Organization",
+      "@type": "Person",
       name: opts.author ?? SITE_NAME,
     },
     publisher: {
@@ -168,9 +177,15 @@ export function buildArticleSchema(opts: {
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": opts.url.startsWith("http") ? opts.url : `${SITE_URL}${opts.url}`,
+      "@id": fullUrl,
     },
+    url: fullUrl,
   };
+
+  if (opts.section) schema.articleSection = opts.section;
+  if (opts.keywords?.length) schema.keywords = opts.keywords.join(", ");
+
+  return schema;
 }
 
 /** Hjälpare för BreadcrumbList-schema (JSON-LD) */

@@ -178,7 +178,7 @@ export default function FriendsPage() {
         eyebrow="Gemenskap"
         title="Kompisar"
         subtitle="Träffa andra hundförare, dela banskisser och följ varandras framsteg."
-        action={
+        actions={
           <DSButton variant="secondary" onClick={copyReferral} disabled={!myProfile?.referral_code}>
             <Copy className="w-4 h-4" /> Bjud in
           </DSButton>
@@ -209,7 +209,7 @@ export default function FriendsPage() {
               icon={Users}
               title="Du har inga vänner än"
               description="Sök efter andra hundförare under fliken 'Hitta nya'."
-              action={
+              actions={
                 <DSButton variant="secondary" onClick={() => setTab("find")}>
                   Hitta vänner
                 </DSButton>

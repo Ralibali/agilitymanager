@@ -157,7 +157,7 @@ export default function ClubsPage() {
         eyebrow="Gemenskap"
         title="Klubbar"
         subtitle="Anslut dig till lokala agility- och hoopersklubbar – eller starta en egen."
-        action={
+        actions={
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
               <DSButton variant="primary">
@@ -220,7 +220,7 @@ export default function ClubsPage() {
               icon={Building2}
               title="Inga klubbar än"
               description="Sök efter en klubb i din stad eller skapa din egen."
-              action={
+              actions={
                 <DSButton variant="secondary" onClick={() => setTab("discover")}>
                   Hitta klubb
                 </DSButton>

@@ -25,7 +25,7 @@ import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import {
   Save, Share2, Download, MoreHorizontal, ChevronRight, ChevronLeft,
-  ZoomIn, ZoomOut, Maximize2, Sparkles, ChevronDown,
+  ZoomIn, ZoomOut, Maximize2, Sparkles, ChevronDown, Copy, Trash2, RotateCw, Lock, Unlock,
 } from 'lucide-react';
 import {
   DndContext,
@@ -41,6 +41,8 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PremiumGate } from '@/components/PremiumGate';
 import { ObstaclePalette } from '@/components/course-planner/ObstaclePalette';
+import { TemplatesModal, type CourseTemplate } from '@/components/course-planner/TemplatesModal';
+import { ObstacleContextMenu } from '@/components/course-planner/ObstacleContextMenu';
 import {
   OBSTACLES,
   getObstacleIcon,

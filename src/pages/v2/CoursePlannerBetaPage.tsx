@@ -658,13 +658,24 @@ export default function CoursePlannerBetaPage() {
   const [propertiesOpen, setPropertiesOpen] = useState(true);
   const [, forceTick] = useState(0);
 
+  // 9B-state
+  const [sport, setSport] = useState<ObstacleSport>('agility');
+  const [obstacles, setObstacles] = useState<PlacedObstacle[]>([]);
+  const [emptyDismissed, setEmptyDismissed] = useState(false);
+  const [activeDragKey, setActiveDragKey] = useState<ObstacleIconKey | null>(null);
+
+  // dnd-kit sensors – litet aktiveringsavstånd så att klick på toggle inte triggar drag
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
+  );
+
   // Tickar autosave-status varje 30s så "Sparat för X min sedan" uppdateras
   useEffect(() => {
     const id = setInterval(() => forceTick((t) => t + 1), 30_000);
     return () => clearInterval(id);
   }, []);
 
-  // Markera som dirty när bannamn ändras (placeholder tills hinder finns)
+  // Markera som dirty när bannamn ändras
   const handleNameChange = (name: string) => {
     if (name !== courseName) {
       setCourseName(name);
@@ -672,18 +683,69 @@ export default function CoursePlannerBetaPage() {
     }
   };
 
-  // Stub-actions för 9A – riktiga handlers kommer i 9B/9C/9D
+  // Stub-actions – riktiga handlers kommer i 9C/9D
   const handleSave = () => {
     setSavedAt(new Date());
     setIsDirty(false);
   };
   const handleExportPDF = () => {
-    // Implementeras i 9C
     alert('PDF-export kommer i steg 9C');
   };
   const handleShare = () => {
-    // Implementeras i 9D
     alert('Delning kommer i steg 9D');
+  };
+
+  /* ─── DnD-handlers: palett → canvas ─── */
+  const handleDragStart = (e: DragStartEvent) => {
+    const data = e.active.data.current as { source?: string; obstacleKey?: ObstacleIconKey } | undefined;
+    if (data?.source === 'palette' && data.obstacleKey) {
+      setActiveDragKey(data.obstacleKey);
+    }
+  };
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    setActiveDragKey(null);
+    const data = e.active.data.current as { source?: string; obstacleKey?: ObstacleIconKey } | undefined;
+    if (!data || data.source !== 'palette' || !data.obstacleKey) return;
+    if (e.over?.id !== 'planner-canvas') return;
+
+    // Översätt drop-position (viewport) → canvas-koordinater (meter).
+    const overData = e.over.data.current as
+      | { containerRef?: React.RefObject<HTMLDivElement>; zoom?: number; widthM?: number; heightM?: number }
+      | undefined;
+    const container = overData?.containerRef?.current;
+    const z = overData?.zoom ?? 1;
+    const wM = overData?.widthM ?? DEFAULT_CANVAS_W_M;
+    const hM = overData?.heightM ?? DEFAULT_CANVAS_H_M;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const activator = e.activatorEvent as PointerEvent;
+    const px = (activator?.clientX ?? 0) + e.delta.x - rect.left + container.scrollLeft;
+    const py = (activator?.clientY ?? 0) + e.delta.y - rect.top + container.scrollTop;
+
+    // Subtrahera centrering-padding (100px på vardera sida) och MARGIN
+    const innerW = (wM * PX_PER_METER + MARGIN) * z;
+    const innerH = (hM * PX_PER_METER + MARGIN) * z;
+    const canvasOffsetX = Math.max((container.clientWidth - innerW) / 2, 100);
+    const canvasOffsetY = Math.max((container.clientHeight - innerH) / 2, 100);
+    const xPx = (px - canvasOffsetX - MARGIN * z) / z;
+    const yPx = (py - canvasOffsetY) / z;
+
+    const xM = Math.max(0, Math.min(wM, xPx / PX_PER_METER));
+    const yM = Math.max(0, Math.min(hM, yPx / PX_PER_METER));
+
+    setObstacles((prev) => [
+      ...prev,
+      {
+        id: `${data.obstacleKey}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        key: data.obstacleKey!,
+        xM,
+        yM,
+        rotation: 0,
+      },
+    ]);
+    setIsDirty(true);
   };
 
   // Cmd/Ctrl+S keyboard shortcut

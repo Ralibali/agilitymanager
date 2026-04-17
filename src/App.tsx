@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { BottomNav } from "@/components/BottomNav";
+import { AppLayout } from "@/components/layout/AppLayout";
 import { captureUtmParams } from "@/lib/utm";
 
 // Capture UTM params on first load
@@ -47,6 +48,7 @@ const ClubInvitePage = React.lazy(() => import("./pages/ClubInvitePage"));
 const CoursesPage = React.lazy(() => import("./pages/CoursesPage"));
 const GoalsPage = React.lazy(() => import("./pages/GoalsPage"));
 const DesignDemoPage = React.lazy(() => import("./pages/DesignDemoPage"));
+const PlaceholderPage = React.lazy(() => import("./pages/v2/PlaceholderPage"));
 
 const queryClient = new QueryClient();
 
@@ -69,6 +71,19 @@ function ProtectedLayout() {
       <BottomNav />
     </>
   );
+}
+
+function V2ShellGuard() {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-page">
+        <div className="text-text-secondary font-sans-ds">Laddar…</div>
+      </div>
+    );
+  }
+  if (!user) return <Navigate to="/auth" replace />;
+  return <AppLayout />;
 }
 
 function AuthGuard() {
@@ -143,6 +158,24 @@ const App = () => (
                 <Route path="/courses" element={<CoursesPage />} />
                 <Route path="/goals" element={<GoalsPage />} />
                 <Route path="/index" element={<Navigate to="/dashboard" replace />} />
+              </Route>
+
+              {/* === Fas 2 v2-shell – persistent AppLayout, tomma placeholders === */}
+              <Route path="/v2" element={<V2ShellGuard />}>
+                <Route index element={<PlaceholderPage />} />
+                <Route path="stats" element={<PlaceholderPage />} />
+                <Route path="training" element={<PlaceholderPage />} />
+                <Route path="course-planner" element={<PlaceholderPage />} />
+                <Route path="stopwatch" element={<PlaceholderPage />} />
+                <Route path="goals" element={<PlaceholderPage />} />
+                <Route path="competition" element={<PlaceholderPage />} />
+                <Route path="dogs" element={<PlaceholderPage />} />
+                <Route path="health" element={<PlaceholderPage />} />
+                <Route path="friends" element={<PlaceholderPage />} />
+                <Route path="clubs" element={<PlaceholderPage />} />
+                <Route path="courses" element={<PlaceholderPage />} />
+                <Route path="settings" element={<PlaceholderPage />} />
+                <Route path="admin" element={<PlaceholderPage />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

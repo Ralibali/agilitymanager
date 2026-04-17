@@ -23,6 +23,7 @@ import {
 import { store } from "@/lib/store";
 import type { Dog, TrainingSession } from "@/types";
 import { LogTrainingDialog } from "@/components/v2/LogTrainingDialog";
+import CoachVideoAnalysis from "@/components/training/CoachVideoAnalysis";
 
 type Range = "7d" | "30d" | "3m" | "all";
 

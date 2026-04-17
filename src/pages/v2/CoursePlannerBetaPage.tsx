@@ -761,6 +761,9 @@ export default function CoursePlannerBetaPage() {
         xM,
         yM,
         rotation: 0,
+        scale: 1,
+        color: DEFAULT_OBSTACLE_COLOR,
+        locked: false,
       },
     ]);
     setIsDirty(true);

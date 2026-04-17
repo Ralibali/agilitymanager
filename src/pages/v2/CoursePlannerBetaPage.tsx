@@ -993,18 +993,36 @@ export default function CoursePlannerBetaPage() {
     setIsDirty(true);
   };
 
-  // Cmd/Ctrl+S keyboard shortcut
+  // Keyboard shortcuts: Cmd/Ctrl+S, ESC (avmarkera), Delete (ta bort), R (rotera 90°), Cmd/Ctrl+D (duplicera)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault();
         handleSave();
+        return;
+      }
+      // Hoppa över shortcuts om användaren skriver i en input
+      const target = e.target as HTMLElement;
+      if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable) return;
+
+      if (e.key === 'Escape') {
+        setSelectedId(null);
+        setContextMenu(null);
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
+        e.preventDefault();
+        deleteSelectedObstacle();
+      } else if (e.key === 'r' && selectedId) {
+        e.preventDefault();
+        rotate90Obstacle(selectedId);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === 'd' && selectedId) {
+        e.preventDefault();
+        duplicateObstacle();
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedId, deleteSelectedObstacle, rotate90Obstacle, duplicateObstacle]);
 
   return (
     <>
@@ -1057,6 +1075,7 @@ export default function CoursePlannerBetaPage() {
                   <EmptyStatePrompt
                     visible={obstacles.length === 0 && !emptyDismissed}
                     onDismiss={() => setEmptyDismissed(true)}
+                    onOpenTemplates={() => setTemplatesOpen(true)}
                   />
                 </main>
 
@@ -1107,6 +1126,34 @@ export default function CoursePlannerBetaPage() {
             ) : null}
           </DragOverlay>
         </DndContext>
+
+        {/* Mall-modal */}
+        <TemplatesModal
+          open={templatesOpen}
+          onClose={() => setTemplatesOpen(false)}
+          onApply={applyTemplate}
+          currentObstacles={obstacles.map((o) => ({
+            key: o.key, xM: o.xM, yM: o.yM, rotation: o.rotation, sizeM: o.scale, color: o.color,
+          }))}
+        />
+
+        {/* Höger-klick-meny */}
+        {contextMenu && (() => {
+          const obs = obstacles.find((o) => o.id === contextMenu.id);
+          if (!obs) return null;
+          return (
+            <ObstacleContextMenu
+              x={contextMenu.x}
+              y={contextMenu.y}
+              isLocked={obs.locked}
+              onClose={() => setContextMenu(null)}
+              onDuplicate={() => duplicateObstacle(contextMenu.id)}
+              onRotate90={() => rotate90Obstacle(contextMenu.id)}
+              onToggleLock={() => toggleLockObstacle(contextMenu.id)}
+              onDelete={() => deleteObstacle(contextMenu.id)}
+            />
+          );
+        })()}
       </PremiumGate>
     </>
   );

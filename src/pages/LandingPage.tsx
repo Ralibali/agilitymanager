@@ -2,9 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import {
-  ClipboardList, LayoutGrid, Trophy, TrendingUp, Target, Shield,
-  ChevronDown, ArrowRight, Check, Star, Users, MessageCircle,
-  Timer, Brain, Download, Calendar,
+  ClipboardList, LayoutGrid, Trophy,
+  ArrowRight, Check, Star, Activity,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LandingNav } from '@/components/landing/LandingNav';
@@ -38,19 +37,28 @@ const usps = [
   { icon: Trophy, title: 'Tävling & resultat', desc: 'Tävlingskalender, resultatlogg, klassuppflyttning och automatisk resultatimport.' },
 ];
 
-const features = [
-  { icon: ClipboardList, title: 'Träningslogg', desc: 'Logga datum, hund, fokusområde, energinivå och notat. Betygsätt dirigering och banflyt.' },
-  { icon: LayoutGrid, title: 'Banplanerare', desc: 'Designa banor med alla SAgiK- och SHoK-godkända hinder. Snap-to-grid, mätverktyg och färgteman.' },
-  { icon: Download, title: 'Exportera banor', desc: 'Exportera dina banor som PNG eller PDF med metadata – datum, banstorlek och antal hinder.' },
-  { icon: Trophy, title: 'Tävlingsresultat', desc: 'Logga tävlingar med klass, tid, fel och pinnar. Hämta resultat automatiskt från agilitydata.se.' },
-  { icon: Calendar, title: 'Tävlingskalender', desc: 'Se alla kommande agility- och hooperstävlingar i Sverige. Filtrera på län och få påminnelser.' },
-  { icon: TrendingUp, title: 'Statistik & progression', desc: 'Diagram över tid, fel, godkänt-andel och utveckling per hund.' },
-  { icon: Target, title: 'Träningsmål', desc: 'Sätt upp mål med delmål och följ din progress. Kategorisera per träningsområde.' },
-  { icon: Brain, title: 'AI-träningsinsikter', desc: 'Få personliga träningsrekommendationer baserade på din loggade data och resultat.' },
-  { icon: Shield, title: 'Hälsologg & vikt', desc: 'Logga veterinärbesök, vaccinationer och vikt med viktdiagram.' },
-  { icon: Users, title: 'Klubbar & grupper', desc: 'Skapa eller gå med i din agilityklubb. Anslagstavla, delade kalendrar och event.' },
-  { icon: MessageCircle, title: 'Vänner & chatt', desc: 'Lägg till vänner, chatta, dela banor och jämför statistik.' },
-  { icon: Timer, title: 'Tidtagning', desc: 'Inbyggd stoppur för träning med felräkning. Spara tider per hund.' },
+const topFeatures = [
+  {
+    icon: Activity,
+    title: 'Logga pass på 10 sekunder',
+    desc: 'Bana, hinder eller hoopers. Hund, fokusområde, betyg. Klart. Appen syncar i realtid till alla dina enheter.',
+  },
+  {
+    icon: LayoutGrid,
+    title: 'Rita banor, dela direkt',
+    desc: 'Alla SAgiK- och SHoK-godkända hinder. Snap-to-grid, mätverktyg, export som PDF. Dela med klubben eller träningskompisen.',
+  },
+  {
+    icon: Trophy,
+    title: 'Tävlingsdata – automatiskt',
+    desc: 'Resultat hämtas från Agidadata.se. Klassresa, pinnar och meriter visualiseras per hund. Aldrig mer manuell inmatning.',
+  },
+];
+
+const coachPills = [
+  'SM-meriterad tävlingsförare',
+  'Utbildad instruktör',
+  'Agility · hoopers · freestyle',
 ];
 
 const testimonials = [
@@ -90,41 +98,211 @@ export default function LandingPage() {
 
         {/* Behåller gamla USP-blocket bortom Fas 1 – ersätts i Fas 2 */}
 
-      {/* ═══════ FEATURES ═══════ */}
+      {/* ═══════ FEATURES (top-3) ═══════ */}
       <section id="features" className="py-20 px-4" style={{ background: 'hsl(var(--secondary))' }}>
         <div className="max-w-5xl mx-auto">
           <motion.div {...inViewFadeUp()} className="text-center mb-14">
+            <p
+              className="mb-3 font-body"
+              style={{
+                fontSize: '11px',
+                fontWeight: 500,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'hsl(var(--muted-foreground))',
+              }}
+            >
+              Så fungerar det
+            </p>
             <h2 className="font-display text-foreground text-2xl sm:text-3xl mb-3">
               Allt du behöver – i en app
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto font-body">
-              Träningslogg, banplanerare, tävlingskalender, klubbar, chatt, AI-insikter och mer.
+              Träningslogg, banplanerare, tävlingsdata, coach. Inga fler spreadsheets.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {features.map((f, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {topFeatures.map((f, i) => (
               <motion.div
                 key={f.title}
-                {...inViewFadeUp(i * 0.06)}
+                {...inViewFadeUp(i * 0.08)}
                 whileHover={{ y: -3 }}
-                className="bg-card border border-border p-6 transition-all duration-200 hover:border-primary/30"
+                onClick={() => navigate('/funktioner')}
+                role="link"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate('/funktioner');
+                  }
+                }}
+                className="bg-card cursor-pointer transition-all duration-200 hover:border-primary/40"
                 style={{
-                  borderRadius: 'var(--radius-card)',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+                  border: '0.5px solid hsl(var(--border))',
+                  borderRadius: '14px',
+                  padding: '28px',
                 }}
               >
                 <div
-                  className="w-10 h-10 flex items-center justify-center mb-4"
-                  style={{ background: '#e8f4ed', borderRadius: 'var(--radius-badge)' }}
+                  className="flex items-center justify-center mb-5"
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    background: '#e8f4ed',
+                    borderRadius: '16px',
+                  }}
                 >
-                  <f.icon size={20} style={{ color: '#1a6b3c' }} />
+                  <f.icon size={28} style={{ color: '#1a6b3c' }} strokeWidth={1.75} />
                 </div>
-                <h3 className="font-display text-foreground mb-2">{f.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed font-body">{f.desc}</p>
+                <h3
+                  className="font-display text-foreground mb-2"
+                  style={{ fontSize: '18px', fontWeight: 500, lineHeight: 1.3 }}
+                >
+                  {f.title}
+                </h3>
+                <p
+                  className="text-muted-foreground font-body"
+                  style={{ fontSize: '14px', lineHeight: 1.6 }}
+                >
+                  {f.desc}
+                </p>
               </motion.div>
             ))}
           </div>
+
+          <div className="text-center mt-10">
+            <button
+              onClick={() => navigate('/funktioner')}
+              className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
+            >
+              Se alla 14 funktioner <ArrowRight size={14} />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════ COACH ═══════ */}
+      <section className="py-20 px-4" style={{ background: '#0f1411' }}>
+        <div className="max-w-3xl mx-auto text-center">
+          <motion.div {...inViewFadeUp()}>
+            <span
+              className="inline-block mb-5 font-body"
+              style={{
+                background: '#1a6b3c',
+                color: '#e8f4ed',
+                fontSize: '11px',
+                fontWeight: 500,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                padding: '4px 12px',
+                borderRadius: '999px',
+              }}
+            >
+              Coach · Pro-funktion
+            </span>
+          </motion.div>
+
+          <motion.h2
+            {...inViewFadeUp(0.05)}
+            className="font-display text-2xl sm:text-3xl mb-4"
+            style={{ color: '#ffffff' }}
+          >
+            Få personlig feedback från en riktig coach
+          </motion.h2>
+
+          <motion.p
+            {...inViewFadeUp(0.1)}
+            className="font-body mx-auto mb-8"
+            style={{
+              fontSize: '16px',
+              lineHeight: 1.6,
+              maxWidth: '560px',
+              color: 'rgba(232,237,232,0.7)',
+            }}
+          >
+            Ladda upp en träningsvideo i appen. Vår coach tittar på dirigering, linjer och hundens tempo – och svarar med konkreta tips inom 48 timmar.
+          </motion.p>
+
+          <motion.div
+            {...inViewFadeUp(0.15)}
+            className="flex flex-wrap justify-center gap-2 mb-10"
+          >
+            {coachPills.map((pill) => (
+              <span
+                key={pill}
+                className="font-body"
+                style={{
+                  padding: '6px 14px',
+                  border: '0.5px solid rgba(255,255,255,0.15)',
+                  borderRadius: '999px',
+                  fontSize: '12px',
+                  color: 'rgba(232,237,232,0.85)',
+                }}
+              >
+                {pill}
+              </span>
+            ))}
+          </motion.div>
+
+          <motion.blockquote
+            {...inViewFadeUp(0.2)}
+            className="font-body italic mx-auto"
+            style={{
+              fontSize: '20px',
+              lineHeight: 1.5,
+              maxWidth: '600px',
+              color: '#ffffff',
+              marginTop: '32px',
+            }}
+          >
+            "Jag tittar på varje video och ger konkreta övningar att träna på. Ofta är det små justeringar i dirigeringen som gör största skillnaden."
+          </motion.blockquote>
+
+          <motion.p
+            {...inViewFadeUp(0.25)}
+            className="font-body"
+            style={{
+              fontSize: '13px',
+              color: 'rgba(232,237,232,0.55)',
+              marginTop: '12px',
+            }}
+          >
+            — Coachen bakom AgilityManager
+          </motion.p>
+
+          <motion.p
+            {...inViewFadeUp(0.3)}
+            className="font-body"
+            style={{
+              fontSize: '13px',
+              color: 'rgba(232,237,232,0.55)',
+              marginTop: '28px',
+            }}
+          >
+            Tillgänglig via Pro · Svarsgaranti 48h · Ingår i abonnemanget
+          </motion.p>
+
+          <motion.div {...inViewFadeUp(0.35)} className="mt-8">
+            <button
+              onClick={() => {
+                const el = document.getElementById('pricing');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="inline-flex items-center gap-2 font-body transition-colors"
+              style={{
+                fontSize: '14px',
+                fontWeight: 500,
+                color: '#ffffff',
+                border: '1px solid rgba(255,255,255,0.25)',
+                background: 'transparent',
+                padding: '10px 20px',
+                borderRadius: 'var(--radius-button)',
+              }}
+            >
+              Läs mer om videoanalys <ArrowRight size={16} />
+            </button>
+          </motion.div>
         </div>
       </section>
 
@@ -466,25 +644,55 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════ FINAL CTA ═══════ */}
-      <section className="py-20 px-4" style={{ background: '#111111' }}>
-        <div className="max-w-lg mx-auto text-center">
-          <motion.h2 {...inViewFadeUp()} className="font-display text-white text-2xl sm:text-3xl mb-3">
-            Redo att börja?
+      {/* ═══════ FINAL CTA (full-width grön) ═══════ */}
+      <section className="py-20 px-4" style={{ background: '#1a6b3c' }}>
+        <div className="max-w-2xl mx-auto text-center">
+          <motion.h2
+            {...inViewFadeUp()}
+            className="font-display text-2xl sm:text-3xl mb-3"
+            style={{ color: '#ffffff' }}
+          >
+            Börja träna smartare idag
           </motion.h2>
-          <motion.p {...inViewFadeUp(0.1)} className="mb-8 font-body" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            Skapa ett gratis konto och börja logga din träning idag.
+          <motion.p
+            {...inViewFadeUp(0.1)}
+            className="mb-8 font-body mx-auto"
+            style={{
+              fontSize: '15px',
+              lineHeight: 1.6,
+              color: 'rgba(255,255,255,0.85)',
+              maxWidth: '480px',
+            }}
+          >
+            Gratis att starta. Ingen kortbindning. Uppgradera när du vill.
           </motion.p>
           <motion.div {...inViewFadeUp(0.2)}>
-            <Button
-              size="lg"
-              className="font-semibold gap-2 text-base px-8 h-12"
-              style={{ background: '#1a6b3c', color: '#fff', borderRadius: 'var(--radius-button)' }}
-              onClick={() => navigate('/auth')}
+            <button
+              onClick={() => navigate('/auth?mode=signup')}
+              className="inline-flex items-center gap-2 font-body transition-transform hover:scale-[1.02]"
+              style={{
+                background: '#ffffff',
+                color: '#0f1411',
+                fontSize: '15px',
+                fontWeight: 500,
+                padding: '14px 28px',
+                borderRadius: 'var(--radius-button)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+              }}
             >
-              Skapa konto <ArrowRight size={18} />
-            </Button>
+              Skapa gratis konto <ArrowRight size={18} />
+            </button>
           </motion.div>
+          <motion.p
+            {...inViewFadeUp(0.3)}
+            className="font-body mt-4"
+            style={{
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.7)',
+            }}
+          >
+            Eller testa Pro 7 dagar utan kostnad
+          </motion.p>
         </div>
       </section>
 

@@ -16,9 +16,16 @@ export default {
       fontFamily: {
         display: ["'Outfit'", "sans-serif"],
         body: ["'Figtree'", "sans-serif"],
+        sans: ["'Inter'", "'Figtree'", "sans-serif"],
       },
       fontSize: {
         base: ["14px", "1.5"],
+        display: ["32px", { lineHeight: "1.1", letterSpacing: "-0.02em", fontWeight: "500" }],
+        h1: ["24px", { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "500" }],
+        h2: ["16px", { lineHeight: "1.4", letterSpacing: "-0.01em", fontWeight: "500" }],
+        body: ["14px", { lineHeight: "1.5", fontWeight: "400" }],
+        small: ["12px", { lineHeight: "1.4", fontWeight: "400" }],
+        micro: ["11px", { lineHeight: "1.3", letterSpacing: "0.04em", fontWeight: "500" }],
       },
       colors: {
         border: "hsl(var(--border))",

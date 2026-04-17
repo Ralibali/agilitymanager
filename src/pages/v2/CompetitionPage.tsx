@@ -207,6 +207,7 @@ function CalendarTab({ competitions }: { competitions: Competition[] }) {
             registrationDeadline={c.last_registration_date}
             classes={allClasses}
             sport="Agility"
+            sourceUrl={c.source_url}
             rightSlot={
               c.source_url ? (
                 <a

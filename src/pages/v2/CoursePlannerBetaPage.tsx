@@ -20,16 +20,34 @@
  *  9D – Komplett shortcuts-sheet, utökad ångra (50 steg), delning, prestanda-pass
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import {
   Save, Share2, Download, MoreHorizontal, ChevronRight, ChevronLeft,
   ZoomIn, ZoomOut, Maximize2, Sparkles, ChevronDown,
 } from 'lucide-react';
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  DragOverlay,
+  type DragEndEvent,
+  type DragStartEvent,
+} from '@dnd-kit/core';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PremiumGate } from '@/components/PremiumGate';
+import { ObstaclePalette } from '@/components/course-planner/ObstaclePalette';
+import {
+  OBSTACLES,
+  getObstacleIcon,
+  getObstacleDef,
+  type ObstacleIconKey,
+  type ObstacleSport,
+} from '@/components/course-planner/obstacleIcons';
 
 /* ─────────────────────────────────────────────────────────────────────
    Konstanter (delas med befintlig course-planner-datamodell)
@@ -199,21 +217,21 @@ function Topbar({
 }
 
 /* ─────────────────────────────────────────────────────────────────────
-   Tools placeholder (vänster, 72px) – fylls i steg 9B
+   Tools placeholder borttagen – ObstaclePalette används istället (9B).
    ───────────────────────────────────────────────────────────────────── */
 
-function ToolsPanel() {
-  return (
-    <div className="flex flex-col items-center gap-2 py-3 text-[10px] text-neutral-400 text-center">
-      <div className="w-10 h-10 rounded-lg border border-dashed border-neutral-300 flex items-center justify-center">
-        <Sparkles size={14} className="text-neutral-300" />
-      </div>
-      <p className="px-1 leading-tight">
-        Verktyg<br />
-        <span className="text-neutral-300">(9B)</span>
-      </p>
-    </div>
-  );
+/* ─────────────────────────────────────────────────────────────────────
+   PlacedObstacle – ett hinder som finns på canvas
+   ───────────────────────────────────────────────────────────────────── */
+
+interface PlacedObstacle {
+  id: string;
+  key: ObstacleIconKey;
+  /** Position i meter från canvas top-left. */
+  xM: number;
+  yM: number;
+  /** Rotation i grader (0 = standard, default 0). Används i 9C. */
+  rotation: number;
 }
 
 /* ─────────────────────────────────────────────────────────────────────

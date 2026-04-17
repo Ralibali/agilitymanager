@@ -2540,6 +2540,14 @@ export default function CoursePlannerPage() {
           onTouchEnd={handlePointerUp}
         >
           {canvasElement}
+          {/* Back button (alltid synlig i fullskärm/landskap) */}
+          <button
+            onClick={goBack}
+            className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-background/80 hover:bg-background text-foreground shadow-sm border border-border transition-colors text-xs"
+            title="Tillbaka"
+          >
+            <ArrowLeft size={14} /> Tillbaka
+          </button>
           {/* Close fullscreen button */}
           {isFullscreen && (
             <button

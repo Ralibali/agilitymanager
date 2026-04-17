@@ -20,16 +20,34 @@
  *  9D – Komplett shortcuts-sheet, utökad ångra (50 steg), delning, prestanda-pass
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import {
   Save, Share2, Download, MoreHorizontal, ChevronRight, ChevronLeft,
   ZoomIn, ZoomOut, Maximize2, Sparkles, ChevronDown,
 } from 'lucide-react';
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  DragOverlay,
+  type DragEndEvent,
+  type DragStartEvent,
+} from '@dnd-kit/core';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PremiumGate } from '@/components/PremiumGate';
+import { ObstaclePalette } from '@/components/course-planner/ObstaclePalette';
+import {
+  OBSTACLES,
+  getObstacleIcon,
+  getObstacleDef,
+  type ObstacleIconKey,
+  type ObstacleSport,
+} from '@/components/course-planner/obstacleIcons';
 
 /* ─────────────────────────────────────────────────────────────────────
    Konstanter (delas med befintlig course-planner-datamodell)
@@ -199,21 +217,21 @@ function Topbar({
 }
 
 /* ─────────────────────────────────────────────────────────────────────
-   Tools placeholder (vänster, 72px) – fylls i steg 9B
+   Tools placeholder borttagen – ObstaclePalette används istället (9B).
    ───────────────────────────────────────────────────────────────────── */
 
-function ToolsPanel() {
-  return (
-    <div className="flex flex-col items-center gap-2 py-3 text-[10px] text-neutral-400 text-center">
-      <div className="w-10 h-10 rounded-lg border border-dashed border-neutral-300 flex items-center justify-center">
-        <Sparkles size={14} className="text-neutral-300" />
-      </div>
-      <p className="px-1 leading-tight">
-        Verktyg<br />
-        <span className="text-neutral-300">(9B)</span>
-      </p>
-    </div>
-  );
+/* ─────────────────────────────────────────────────────────────────────
+   PlacedObstacle – ett hinder som finns på canvas
+   ───────────────────────────────────────────────────────────────────── */
+
+interface PlacedObstacle {
+  id: string;
+  key: ObstacleIconKey;
+  /** Position i meter från canvas top-left. */
+  xM: number;
+  yM: number;
+  /** Rotation i grader (0 = standard, default 0). Används i 9C. */
+  rotation: number;
 }
 
 /* ─────────────────────────────────────────────────────────────────────
@@ -284,11 +302,17 @@ interface CanvasProps {
   heightM: number;
   zoom: number;
   onZoomChange: (z: number) => void;
+  obstacles: PlacedObstacle[];
 }
 
-function Canvas({ widthM, heightM, zoom, onZoomChange }: CanvasProps) {
+function Canvas({ widthM, heightM, zoom, onZoomChange, obstacles }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  // Droppable canvas – tar emot drag från ObstaclePalette via @dnd-kit.
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: 'planner-canvas',
+    data: { containerRef, zoom, widthM, heightM },
+  });
 
   const canvasWidth = widthM * PX_PER_METER;
   const canvasHeight = heightM * PX_PER_METER;
@@ -396,15 +420,26 @@ function Canvas({ widthM, heightM, zoom, onZoomChange }: CanvasProps) {
     return () => container.removeEventListener('wheel', handleWheel);
   }, [zoom, onZoomChange]);
 
+  const setRefs = (node: HTMLDivElement | null) => {
+    containerRef.current = node;
+    setDropRef(node);
+  };
+
   return (
     <div
-      ref={containerRef}
-      className="absolute inset-0 overflow-auto bg-[#ebeae5]"
+      ref={setRefs}
+      className={[
+        'absolute inset-0 overflow-auto bg-[#ebeae5] transition-colors',
+        isOver ? 'bg-[#e4ecdf]' : '',
+      ].join(' ')}
       style={{ touchAction: 'none' }}
+      data-canvas-w-m={widthM}
+      data-canvas-h-m={heightM}
+      data-canvas-zoom={zoom}
     >
       {/* Centrerad canvas-yta med padding för att kunna pannas */}
       <div
-        className="flex items-center justify-center"
+        className="relative flex items-center justify-center"
         style={{
           width: Math.max((canvasWidth + MARGIN) * zoom + 200, 100),
           height: Math.max((canvasHeight + MARGIN) * zoom + 200, 100),
@@ -412,14 +447,24 @@ function Canvas({ widthM, heightM, zoom, onZoomChange }: CanvasProps) {
           minHeight: '100%',
         }}
       >
-        <canvas
-          ref={canvasRef}
-          style={{
-            width: (canvasWidth + MARGIN) * zoom,
-            height: (canvasHeight + MARGIN) * zoom,
-            display: 'block',
-          }}
-        />
+        <div className="relative" style={{ width: (canvasWidth + MARGIN) * zoom, height: (canvasHeight + MARGIN) * zoom }}>
+          <canvas
+            ref={canvasRef}
+            style={{
+              width: (canvasWidth + MARGIN) * zoom,
+              height: (canvasHeight + MARGIN) * zoom,
+              display: 'block',
+            }}
+          />
+          {/* SVG-overlay med placerade hinder. Renderas i samma koordinatrymd
+              som canvas-griden (MARGIN-offsetad) för perfekt alignment. */}
+          <ObstaclesLayer
+            obstacles={obstacles}
+            zoom={zoom}
+            canvasWidthPx={canvasWidth}
+            canvasHeightPx={canvasHeight}
+          />
+        </div>
       </div>
 
       {/* ── Skalstock-chip (nedre vänster) – CAD-style ── */}
@@ -428,6 +473,50 @@ function Canvas({ widthM, heightM, zoom, onZoomChange }: CanvasProps) {
       {/* ── Zoom-chip (nedre höger) ── */}
       <ZoomChip zoom={zoom} onZoomChange={onZoomChange} />
     </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   ObstaclesLayer – SVG-overlay som ritar placerade hinder ovanpå <canvas>.
+   Renderas i samma koordinatsystem (MARGIN-offsetad x,y) och skalas med zoom.
+   Ikon-storlek = sizeM × PX_PER_METER × zoom; centrerad på (xM, yM).
+   ───────────────────────────────────────────────────────────────────── */
+
+interface ObstaclesLayerProps {
+  obstacles: PlacedObstacle[];
+  zoom: number;
+  canvasWidthPx: number;
+  canvasHeightPx: number;
+}
+
+function ObstaclesLayer({ obstacles, zoom, canvasWidthPx, canvasHeightPx }: ObstaclesLayerProps) {
+  return (
+    <svg
+      className="pointer-events-none absolute"
+      style={{
+        left: MARGIN * zoom,
+        top: 0,
+        width: canvasWidthPx * zoom,
+        height: canvasHeightPx * zoom,
+      }}
+      aria-hidden
+    >
+      {obstacles.map((o) => {
+        const def = getObstacleDef(o.key);
+        if (!def) return null;
+        const Icon = getObstacleIcon(o.key);
+        // Visningsstorlek: ta största sidan i meter och skala upp så ikonen syns,
+        // men minst 18px för läsbarhet på låg zoom.
+        const sizePx = Math.max(18, Math.max(def.sizeM.w, def.sizeM.h) * PX_PER_METER * zoom);
+        const cx = o.xM * PX_PER_METER * zoom;
+        const cy = o.yM * PX_PER_METER * zoom;
+        return (
+          <g key={o.id} transform={`translate(${cx - sizePx / 2}, ${cy - sizePx / 2}) rotate(${o.rotation} ${sizePx / 2} ${sizePx / 2})`}>
+            <Icon size={sizePx} className="text-[#1a6b3c]" />
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
@@ -518,7 +607,8 @@ function ZoomChip({ zoom, onZoomChange }: ZoomChipProps) {
    Empty state – visas över canvas innan första hindret placerats
    ───────────────────────────────────────────────────────────────────── */
 
-function EmptyStatePrompt() {
+function EmptyStatePrompt({ visible, onDismiss }: { visible: boolean; onDismiss: () => void }) {
+  if (!visible) return null;
   return (
     <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
       <div className="bg-white/85 backdrop-blur-sm border border-black/[0.06] rounded-2xl px-6 py-5 shadow-[0_4px_16px_rgba(0,0,0,0.04)] text-center max-w-[320px] pointer-events-auto">
@@ -526,7 +616,7 @@ function EmptyStatePrompt() {
           Skapa din första bana
         </h2>
         <p className="text-[13px] text-neutral-500 mb-4 leading-snug">
-          Dra hinder från paletten till canvas, eller börja från en mall.
+          Dra hinder från paletten till banan, eller börja från en mall.
         </p>
         <div className="flex items-center justify-center gap-2">
           <Button
@@ -541,15 +631,14 @@ function EmptyStatePrompt() {
           </Button>
           <Button
             size="sm"
-            disabled
+            onClick={onDismiss}
             className="h-8 text-[12px] bg-[#1a6b3c] hover:bg-[#155830] text-white"
-            title="Kommer i steg 9B"
           >
             Starta från tomt
           </Button>
         </div>
         <p className="text-[10px] text-neutral-400 mt-3">
-          Steg 9A levererad. Palett & mallar i 9B/9C.
+          Tips: dra ett hinder från vänster meny för att börja.
         </p>
       </div>
     </div>
@@ -618,81 +707,90 @@ export default function CoursePlannerBetaPage() {
       </Helmet>
 
       <PremiumGate fullPage featureName="Banplaneraren">
-        {/* Break-out ur AppLayouts max-w-[1200px] container.
-            Vi tar full viewport-bredd minus app-sidebar.
-            Höjd: viewport - topbar (~64px). */}
-        <div
-          className="relative -mx-4 lg:-mx-9 -my-5 lg:-my-8"
-          style={{ height: 'calc(100vh - 64px)' }}
-        >
-          <div className="flex h-full flex-col bg-[#f4f3ee]">
-            {/* ── Topbar (52px) ── */}
-            <div
-              className="flex h-[52px] items-center gap-3 border-b bg-white px-4 shrink-0"
-              style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
-            >
-              <Topbar
-                courseName={courseName}
-                onCourseNameChange={handleNameChange}
-                savedAt={savedAt}
-                isDirty={isDirty}
-                onSave={handleSave}
-                onExportPDF={handleExportPDF}
-                onShare={handleShare}
-              />
-            </div>
-
-            {/* ── Tre-kolumns arbetsyta ── */}
-            <div className="flex flex-1 min-h-0">
-              {/* Tools (vänster, 72px) – 9B */}
-              <aside
-                className="w-[72px] shrink-0 border-r bg-[#fafaf7] overflow-y-auto"
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <div
+            className="relative -mx-4 lg:-mx-9 -my-5 lg:-my-8"
+            style={{ height: 'calc(100vh - 64px)' }}
+          >
+            <div className="flex h-full flex-col bg-[#f4f3ee]">
+              <div
+                className="flex h-[52px] items-center gap-3 border-b bg-white px-4 shrink-0"
                 style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
               >
-                <ToolsPanel />
-              </aside>
-
-              {/* Canvas (mitten, flex-grow) */}
-              <main className="flex-1 min-w-0 relative overflow-hidden">
-                <Canvas
-                  widthM={DEFAULT_CANVAS_W_M}
-                  heightM={DEFAULT_CANVAS_H_M}
-                  zoom={zoom}
-                  onZoomChange={setZoom}
+                <Topbar
+                  courseName={courseName}
+                  onCourseNameChange={handleNameChange}
+                  savedAt={savedAt}
+                  isDirty={isDirty}
+                  onSave={handleSave}
+                  onExportPDF={handleExportPDF}
+                  onShare={handleShare}
                 />
-                <EmptyStatePrompt />
-              </main>
+              </div>
 
-              {/* Properties (höger, 280px – kollapsbar) – 9C */}
-              {propertiesOpen ? (
+              <div className="flex flex-1 min-h-0">
                 <aside
-                  className="w-[280px] shrink-0 border-l bg-white overflow-y-auto relative"
+                  className="w-[72px] shrink-0 border-r bg-[#fafaf7] overflow-y-auto"
                   style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
                 >
-                  <button
-                    onClick={() => setPropertiesOpen(false)}
-                    className="absolute top-2 right-2 z-10 w-7 h-7 rounded-md flex items-center justify-center text-neutral-500 hover:bg-neutral-100 transition-colors"
-                    aria-label="Stäng panel"
-                    title="Stäng panel"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                  <PropertiesPanel obstacleCount={0} />
+                  <ObstaclePalette sport={sport} onSportChange={setSport} />
                 </aside>
-              ) : (
-                <button
-                  onClick={() => setPropertiesOpen(true)}
-                  className="w-6 shrink-0 border-l bg-white hover:bg-neutral-50 flex items-center justify-center transition-colors"
-                  style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
-                  aria-label="Öppna panel"
-                  title="Öppna panel"
-                >
-                  <ChevronLeft size={14} className="text-neutral-400" />
-                </button>
-              )}
+
+                <main className="flex-1 min-w-0 relative overflow-hidden">
+                  <Canvas
+                    widthM={DEFAULT_CANVAS_W_M}
+                    heightM={DEFAULT_CANVAS_H_M}
+                    zoom={zoom}
+                    onZoomChange={setZoom}
+                    obstacles={obstacles}
+                  />
+                  <EmptyStatePrompt
+                    visible={obstacles.length === 0 && !emptyDismissed}
+                    onDismiss={() => setEmptyDismissed(true)}
+                  />
+                </main>
+
+                {propertiesOpen ? (
+                  <aside
+                    className="w-[280px] shrink-0 border-l bg-white overflow-y-auto relative"
+                    style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
+                  >
+                    <button
+                      onClick={() => setPropertiesOpen(false)}
+                      className="absolute top-2 right-2 z-10 w-7 h-7 rounded-md flex items-center justify-center text-neutral-500 hover:bg-neutral-100 transition-colors"
+                      aria-label="Stäng panel"
+                      title="Stäng panel"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                    <PropertiesPanel obstacleCount={obstacles.length} />
+                  </aside>
+                ) : (
+                  <button
+                    onClick={() => setPropertiesOpen(true)}
+                    className="w-6 shrink-0 border-l bg-white hover:bg-neutral-50 flex items-center justify-center transition-colors"
+                    style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
+                    aria-label="Öppna panel"
+                    title="Öppna panel"
+                  >
+                    <ChevronLeft size={14} className="text-neutral-400" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+
+          <DragOverlay dropAnimation={null}>
+            {activeDragKey ? (
+              <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white border border-black/[0.16] shadow-[0_8px_24px_rgba(0,0,0,0.12)] text-[#1a6b3c]">
+                {(() => {
+                  const Icon = getObstacleIcon(activeDragKey);
+                  return <Icon size={28} />;
+                })()}
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       </PremiumGate>
     </>
   );

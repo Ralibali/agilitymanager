@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import logo from "@/assets/logo.svg";
 import { NAV_GROUPS } from "./navConfig";
 import { useIsAdmin } from "./useIsAdmin";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,9 +34,7 @@ export function Sidebar() {
     >
       {/* Logo */}
       <div className="px-4 py-4 flex items-center gap-2.5">
-        <div className="h-7 w-7 rounded-ds-sm bg-brand-500 flex items-center justify-center">
-          <span className="text-[13px] font-medium text-white">A</span>
-        </div>
+        <img src={logo} alt="AgilityManager" className="h-7 w-7 shrink-0" />
         <span className="text-[14px] font-medium text-text-on-inverse">AgilityManager</span>
       </div>
 

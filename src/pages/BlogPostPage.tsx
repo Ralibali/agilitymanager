@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchPostBySlug, fetchBlogPosts, type BlogPost } from '@/lib/blogData';
 import { SEO, buildArticleSchema, buildBreadcrumbSchema } from '@/components/SEO';
+import { BLOG_FAQS, buildFaqJsonLd } from '@/lib/blogFaqs';
+import { BlogFAQ } from '@/components/BlogFAQ';
 
 // Parse inline markdown: **bold** and [link](/url)
 function parseInline(text: string): React.ReactNode[] {
@@ -171,6 +173,28 @@ export default function BlogPostPage() {
   // SEO-fält faller tillbaka till UI-fält om de inte är ifyllda i databasen.
   const seoTitle = post.seoTitle?.trim() || post.title;
   const seoDescription = post.seoDescription?.trim() || post.excerpt;
+  const faqSection = BLOG_FAQS[post.slug];
+
+  const jsonLdSchemas: Record<string, unknown>[] = [
+    buildArticleSchema({
+      title: seoTitle,
+      description: seoDescription,
+      url: canonicalUrl,
+      publishedTime: post.date,
+      modifiedTime: (post as { updatedAt?: string }).updatedAt ?? post.date,
+      author: post.author,
+      type: "BlogPosting",
+      section: post.category,
+    }),
+    buildBreadcrumbSchema([
+      { name: 'Hem', url: '/' },
+      { name: 'Kunskapsbank', url: '/blogg' },
+      { name: post.title, url: canonicalPath },
+    ]),
+  ];
+  if (faqSection) {
+    jsonLdSchemas.push(buildFaqJsonLd(faqSection));
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -184,23 +208,7 @@ export default function BlogPostPage() {
           author: post.author,
           section: post.category,
         }}
-        jsonLd={[
-          buildArticleSchema({
-            title: seoTitle,
-            description: seoDescription,
-            url: canonicalUrl,
-            publishedTime: post.date,
-            modifiedTime: (post as { updatedAt?: string }).updatedAt ?? post.date,
-            author: post.author,
-            type: "BlogPosting",
-            section: post.category,
-          }),
-          buildBreadcrumbSchema([
-            { name: 'Hem', url: '/' },
-            { name: 'Kunskapsbank', url: '/blogg' },
-            { name: post.title, url: canonicalPath },
-          ]),
-        ]}
+        jsonLd={jsonLdSchemas}
       />
 
       <article className="px-4 pt-8 pb-12 max-w-2xl mx-auto">
@@ -221,6 +229,9 @@ export default function BlogPostPage() {
           {renderContent(post.content)}
         </div>
       </article>
+
+      {/* FAQ – endast på artiklar med definierad FAQ-data */}
+      {faqSection && <BlogFAQ section={faqSection} />}
 
       {/* Related */}
       <section className="px-4 pb-8 max-w-2xl mx-auto">

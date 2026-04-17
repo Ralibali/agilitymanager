@@ -1064,6 +1064,7 @@ export default function CoursePlannerBetaPage() {
       if (e.key === 'Escape') {
         setSelectedId(null);
         setContextMenu(null);
+        setArmedKey(null);
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
         e.preventDefault();
         deleteSelectedObstacle();

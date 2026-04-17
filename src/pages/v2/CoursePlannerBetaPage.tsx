@@ -706,5 +706,92 @@ export default function CoursePlannerBetaPage() {
         <meta name="description" content="Ny version av banplaneraren med tre-kolumns arbetsyta, ikon-baserad palett och CAD-style canvas." />
       </Helmet>
 
-  // (gammal duplicerad render borttagen – se DndContext-versionen ovan)
+      <PremiumGate fullPage featureName="Banplaneraren">
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <div
+            className="relative -mx-4 lg:-mx-9 -my-5 lg:-my-8"
+            style={{ height: 'calc(100vh - 64px)' }}
+          >
+            <div className="flex h-full flex-col bg-[#f4f3ee]">
+              <div
+                className="flex h-[52px] items-center gap-3 border-b bg-white px-4 shrink-0"
+                style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
+              >
+                <Topbar
+                  courseName={courseName}
+                  onCourseNameChange={handleNameChange}
+                  savedAt={savedAt}
+                  isDirty={isDirty}
+                  onSave={handleSave}
+                  onExportPDF={handleExportPDF}
+                  onShare={handleShare}
+                />
+              </div>
+
+              <div className="flex flex-1 min-h-0">
+                <aside
+                  className="w-[72px] shrink-0 border-r bg-[#fafaf7] overflow-y-auto"
+                  style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
+                >
+                  <ObstaclePalette sport={sport} onSportChange={setSport} />
+                </aside>
+
+                <main className="flex-1 min-w-0 relative overflow-hidden">
+                  <Canvas
+                    widthM={DEFAULT_CANVAS_W_M}
+                    heightM={DEFAULT_CANVAS_H_M}
+                    zoom={zoom}
+                    onZoomChange={setZoom}
+                    obstacles={obstacles}
+                  />
+                  <EmptyStatePrompt
+                    visible={obstacles.length === 0 && !emptyDismissed}
+                    onDismiss={() => setEmptyDismissed(true)}
+                  />
+                </main>
+
+                {propertiesOpen ? (
+                  <aside
+                    className="w-[280px] shrink-0 border-l bg-white overflow-y-auto relative"
+                    style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
+                  >
+                    <button
+                      onClick={() => setPropertiesOpen(false)}
+                      className="absolute top-2 right-2 z-10 w-7 h-7 rounded-md flex items-center justify-center text-neutral-500 hover:bg-neutral-100 transition-colors"
+                      aria-label="Stäng panel"
+                      title="Stäng panel"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                    <PropertiesPanel obstacleCount={obstacles.length} />
+                  </aside>
+                ) : (
+                  <button
+                    onClick={() => setPropertiesOpen(true)}
+                    className="w-6 shrink-0 border-l bg-white hover:bg-neutral-50 flex items-center justify-center transition-colors"
+                    style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
+                    aria-label="Öppna panel"
+                    title="Öppna panel"
+                  >
+                    <ChevronLeft size={14} className="text-neutral-400" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DragOverlay dropAnimation={null}>
+            {activeDragKey ? (
+              <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white border border-black/[0.16] shadow-[0_8px_24px_rgba(0,0,0,0.12)] text-[#1a6b3c]">
+                {(() => {
+                  const Icon = getObstacleIcon(activeDragKey);
+                  return <Icon size={28} />;
+                })()}
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      </PremiumGate>
+    </>
+  );
 }

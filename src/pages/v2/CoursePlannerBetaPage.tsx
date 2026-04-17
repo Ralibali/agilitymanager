@@ -776,7 +776,7 @@ function ZoomChip({ zoom, onZoomChange }: ZoomChipProps) {
    Empty state – visas över canvas innan första hindret placerats
    ───────────────────────────────────────────────────────────────────── */
 
-function EmptyStatePrompt({ visible, onDismiss }: { visible: boolean; onDismiss: () => void }) {
+function EmptyStatePrompt({ visible, onDismiss, onOpenTemplates }: { visible: boolean; onDismiss: () => void; onOpenTemplates: () => void }) {
   if (!visible) return null;
   return (
     <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
@@ -791,9 +791,8 @@ function EmptyStatePrompt({ visible, onDismiss }: { visible: boolean; onDismiss:
           <Button
             size="sm"
             variant="outline"
-            disabled
+            onClick={onOpenTemplates}
             className="h-8 text-[12px] gap-1.5"
-            title="Kommer i steg 9C"
           >
             <Sparkles size={12} />
             Välj mall

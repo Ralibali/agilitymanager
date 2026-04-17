@@ -73,6 +73,19 @@ function ProtectedLayout() {
   );
 }
 
+function V2ShellGuard() {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-page">
+        <div className="text-text-secondary font-sans-ds">Laddar…</div>
+      </div>
+    );
+  }
+  if (!user) return <Navigate to="/auth" replace />;
+  return <AppLayout />;
+}
+
 function AuthGuard() {
   const { user, loading } = useAuth();
   if (loading) {

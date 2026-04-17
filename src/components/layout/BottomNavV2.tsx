@@ -24,7 +24,7 @@ export function BottomNavV2({ onOpenMore }: BottomNavV2Props) {
             <li key={item.path}>
               <NavLink
                 to={item.path}
-                end={item.path === "/v2"}
+                end={item.path === "/dashboard"}
                 className={({ isActive }) =>
                   cn(
                     "h-full flex flex-col items-center justify-center gap-0.5 transition-colors",

@@ -93,7 +93,7 @@ export function MoreSheet({ open, onClose }: MoreSheetProps) {
                     <li key={item.path}>
                       <NavLink
                         to={item.path}
-                        end={item.path === "/v2"}
+                        end={item.path === "/dashboard"}
                         onClick={onClose}
                         className={({ isActive }) =>
                           cn(

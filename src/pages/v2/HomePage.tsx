@@ -193,12 +193,12 @@ export default function HomePage() {
         actions={
           <>
             <DSButton variant="secondary" asChild>
-              <Link to="/v2/competition">
+              <Link to="/competition">
                 <Plus className="w-4 h-4" /> Logga tävling
               </Link>
             </DSButton>
             <DSButton variant="primary" asChild>
-              <Link to="/v2/training">
+              <Link to="/training">
                 <Plus className="w-4 h-4" /> Logga träning
               </Link>
             </DSButton>
@@ -233,7 +233,7 @@ export default function HomePage() {
           action={
             stats.streak === 0 ? (
               <Link
-                to="/v2/training"
+                to="/training"
                 className="text-small text-brand-600 hover:underline whitespace-nowrap"
               >
                 Logga första →
@@ -249,7 +249,7 @@ export default function HomePage() {
           <header className="flex items-center justify-between mb-4">
             <h2 className="text-h2 text-text-primary">Dina hundar</h2>
             <Link
-              to="/v2/dogs"
+              to="/dogs"
               className="text-small text-text-secondary hover:text-text-primary inline-flex items-center gap-1"
             >
               Alla hundar <ArrowRight className="w-3.5 h-3.5" />
@@ -262,7 +262,7 @@ export default function HomePage() {
               description="Lägg till din första hund för att börja logga träning och tävling."
               action={
                 <DSButton asChild>
-                  <Link to="/v2/dogs">Lägg till hund</Link>
+                  <Link to="/dogs">Lägg till hund</Link>
                 </DSButton>
               }
             />
@@ -338,7 +338,7 @@ export default function HomePage() {
               }
               action={
                 <DSButton variant="secondary" asChild className="bg-white/10 border-white/15 text-text-on-inverse hover:bg-white/15">
-                  <Link to="/v2/competition">
+                  <Link to="/competition">
                     Se tävling <ArrowRight className="w-4 h-4" />
                   </Link>
                 </DSButton>
@@ -353,7 +353,7 @@ export default function HomePage() {
               description="Anmäl dig till nästa tävling så syns den här."
               action={
                 <DSButton variant="secondary" asChild>
-                  <Link to="/v2/competition">
+                  <Link to="/competition">
                     Hitta tävlingar <ArrowRight className="w-4 h-4" />
                   </Link>
                 </DSButton>

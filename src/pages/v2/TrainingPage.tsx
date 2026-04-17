@@ -119,7 +119,7 @@ export default function TrainingPage() {
         actions={
           <>
             <DSButton variant="secondary" asChild>
-              <Link to="/v2/stopwatch">
+              <Link to="/stopwatch">
                 <Timer className="w-4 h-4" /> Tidtagarur
               </Link>
             </DSButton>
@@ -194,7 +194,7 @@ export default function TrainingPage() {
             action={
               dogs.length === 0 ? (
                 <DSButton asChild>
-                  <Link to="/v2/dogs">Lägg till hund</Link>
+                  <Link to="/dogs">Lägg till hund</Link>
                 </DSButton>
               ) : (
                 <DSButton onClick={() => setDialogOpen(true)}>

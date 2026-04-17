@@ -90,7 +90,7 @@ function NavGroupBlock({ label, items }: { label: string; items: typeof NAV_GROU
             <li key={item.path}>
               <NavLink
                 to={item.path}
-                end={item.path === "/v2"}
+                end={item.path === "/dashboard"}
                 className={({ isActive }) =>
                   cn(
                     "flex items-center gap-2.5 px-2.5 py-1.5 rounded-[7px] text-[13px] transition-colors",

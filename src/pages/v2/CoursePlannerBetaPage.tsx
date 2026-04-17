@@ -430,10 +430,17 @@ interface CanvasProps {
   selectedId: string | null;
   onSelect: (id: string | null) => void;
   onContextMenu: (id: string, x: number, y: number) => void;
+  /** Klick-att-placera: hinder armerat från paletten. Null = av. */
+  armedKey: ObstacleIconKey | null;
+  /** Anropas när användaren klickar på canvas-ytan medan ett hinder är armerat. */
+  onPlaceArmed: (xM: number, yM: number) => void;
+  /** Avväpna (t.ex. när användaren klickar bredvid canvas eller ESC). */
+  onDisarm: () => void;
 }
 
 function Canvas({
   widthM, heightM, zoom, onZoomChange, obstacles, selectedId, onSelect, onContextMenu,
+  armedKey, onPlaceArmed, onDisarm,
 }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);

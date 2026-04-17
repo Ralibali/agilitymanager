@@ -476,6 +476,50 @@ function Canvas({ widthM, heightM, zoom, onZoomChange, obstacles }: CanvasProps)
   );
 }
 
+/* ─────────────────────────────────────────────────────────────────────
+   ObstaclesLayer – SVG-overlay som ritar placerade hinder ovanpå <canvas>.
+   Renderas i samma koordinatsystem (MARGIN-offsetad x,y) och skalas med zoom.
+   Ikon-storlek = sizeM × PX_PER_METER × zoom; centrerad på (xM, yM).
+   ───────────────────────────────────────────────────────────────────── */
+
+interface ObstaclesLayerProps {
+  obstacles: PlacedObstacle[];
+  zoom: number;
+  canvasWidthPx: number;
+  canvasHeightPx: number;
+}
+
+function ObstaclesLayer({ obstacles, zoom, canvasWidthPx, canvasHeightPx }: ObstaclesLayerProps) {
+  return (
+    <svg
+      className="pointer-events-none absolute"
+      style={{
+        left: MARGIN * zoom,
+        top: 0,
+        width: canvasWidthPx * zoom,
+        height: canvasHeightPx * zoom,
+      }}
+      aria-hidden
+    >
+      {obstacles.map((o) => {
+        const def = getObstacleDef(o.key);
+        if (!def) return null;
+        const Icon = getObstacleIcon(o.key);
+        // Visningsstorlek: ta största sidan i meter och skala upp så ikonen syns,
+        // men minst 18px för läsbarhet på låg zoom.
+        const sizePx = Math.max(18, Math.max(def.sizeM.w, def.sizeM.h) * PX_PER_METER * zoom);
+        const cx = o.xM * PX_PER_METER * zoom;
+        const cy = o.yM * PX_PER_METER * zoom;
+        return (
+          <g key={o.id} transform={`translate(${cx - sizePx / 2}, ${cy - sizePx / 2}) rotate(${o.rotation} ${sizePx / 2} ${sizePx / 2})`}>
+            <Icon size={sizePx} className="text-[#1a6b3c]" />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 /* ─── Skalstock: liten ruta med "├── 5m ──┤" ─── */
 function ScaleChip() {
   return (

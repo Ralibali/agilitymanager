@@ -350,20 +350,55 @@ export default function HoopersLandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 px-4">
+      {/* Final CTA (full-width grön) */}
+      <section className="py-20 px-4" style={{ background: '#1a6b3c' }}>
         <div className="max-w-2xl mx-auto text-center">
-          <motion.div {...inViewFadeUp()}>
-            <h2 className="font-display font-bold text-foreground text-2xl sm:text-3xl mb-4">
-              Redo att spåra din hoopers-resa?
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              Skapa ett gratis konto och börja logga träningspass, spåra poäng och planera banor idag.
-            </p>
-            <Button size="lg" className="bg-primary text-primary-foreground font-semibold text-base px-8" onClick={() => navigate('/auth')}>
-              Kom igång gratis <ArrowRight size={18} className="ml-2" />
-            </Button>
+          <motion.h2
+            {...inViewFadeUp()}
+            className="font-display text-2xl sm:text-3xl mb-3"
+            style={{ color: '#ffffff' }}
+          >
+            Börja träna smartare idag
+          </motion.h2>
+          <motion.p
+            {...inViewFadeUp(0.1)}
+            className="mb-8 mx-auto"
+            style={{
+              fontSize: '15px',
+              lineHeight: 1.6,
+              color: 'rgba(255,255,255,0.85)',
+              maxWidth: '480px',
+            }}
+          >
+            Gratis att starta. Ingen kortbindning. Uppgradera när du vill.
+          </motion.p>
+          <motion.div {...inViewFadeUp(0.2)}>
+            <button
+              onClick={() => navigate('/auth?mode=signup')}
+              className="inline-flex items-center gap-2 transition-transform hover:scale-[1.02]"
+              style={{
+                background: '#ffffff',
+                color: '#0f1411',
+                fontSize: '15px',
+                fontWeight: 500,
+                padding: '14px 28px',
+                borderRadius: 'var(--radius-button)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+              }}
+            >
+              Skapa gratis konto <ArrowRight size={18} />
+            </button>
           </motion.div>
+          <motion.p
+            {...inViewFadeUp(0.3)}
+            className="mt-4"
+            style={{
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.7)',
+            }}
+          >
+            Eller testa Pro 7 dagar utan kostnad
+          </motion.p>
         </div>
       </section>
 

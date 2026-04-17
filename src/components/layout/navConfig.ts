@@ -1,4 +1,4 @@
-import { LucideIcon, Home, BarChart3, Activity, LayoutGrid, Timer, Target, Trophy, Dog, HeartPulse, Users, Building2, GraduationCap, Settings, Shield } from "lucide-react";
+import { LucideIcon, Home, BarChart3, Activity, LayoutGrid, Timer, Target, Trophy, Dog, HeartPulse, Users, Building2, GraduationCap, Settings, Shield, MessageCircle } from "lucide-react";
 
 export interface NavItem {
   label: string;
@@ -51,6 +51,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Gemenskap",
     items: [
       { label: "Kompisar", path: "/v2/friends", icon: Users },
+      { label: "Meddelanden", path: "/v2/chat", icon: MessageCircle },
       { label: "Klubbar", path: "/v2/clubs", icon: Building2 },
       { label: "Kurser", path: "/v2/courses", icon: GraduationCap, badge: "pro" },
     ],

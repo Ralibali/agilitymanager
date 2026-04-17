@@ -20,6 +20,7 @@ import {
   Trophy,
   Users,
   Medal,
+  type LucideIcon,
 } from "lucide-react";
 import { useGlobalSearch, type SearchResultGroup } from "@/hooks/useGlobalSearch";
 
@@ -40,7 +41,7 @@ const GROUP_ORDER: SearchResultGroup[] = [
   "Blogg",
 ];
 
-const GROUP_ICONS: Record<SearchResultGroup, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
+const GROUP_ICONS: Record<SearchResultGroup, LucideIcon> = {
   Sidor: Navigation,
   Hundar: Dog,
   Tävlingar: Trophy,

@@ -13,9 +13,8 @@ import {
   Trash2,
   TrendingUp,
 } from "lucide-react";
-import { startOfYear, format, differenceInDays } from "date-fns";
+import { startOfYear, format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   PageHeader,
@@ -33,10 +32,9 @@ import { AddCompetitionDialog } from "@/components/AddCompetitionDialog";
 import { MinaTavlingar } from "@/components/competitions/MinaTavlingar";
 import { HoopersKalendar } from "@/components/competitions/HoopersKalendar";
 import { ResultsImporter } from "@/components/competitions/ResultsImporter";
-import { ImportResultsFromUrl } from "@/components/competitions/ImportResultsFromUrl";
-import { HistoricalResultsStats } from "@/components/competitions/HistoricalResultsStats";
-import { ClassPromotionTracker } from "@/components/competitions/ClassPromotionTracker";
-import { HoopersPointsTracker } from "@/components/competitions/HoopersPointsTracker";
+import ImportResultsFromUrl from "@/components/competitions/ImportResultsFromUrl";
+import ClassPromotionTracker from "@/components/competitions/ClassPromotionTracker";
+import HoopersPointsTracker from "@/components/competitions/HoopersPointsTracker";
 import { CleanRunTrendChart } from "@/components/competitions/CleanRunTrendChart";
 import { PerformanceTrendChart } from "@/components/competitions/PerformanceTrendChart";
 import ShareToFriendDialog from "@/components/ShareToFriendDialog";
@@ -130,7 +128,14 @@ export default function CompetitionPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Ta bort detta resultat?")) return;
-    await store.deleteCompetition(id);
+    const { error } = await supabase
+      .from("competition_results")
+      .delete()
+      .eq("id", id);
+    if (error) {
+      toast.error("Kunde inte ta bort");
+      return;
+    }
     toast.success("Resultat borttaget");
     refresh();
   };
@@ -153,7 +158,7 @@ export default function CompetitionPage() {
         Diskad: r.disqualified ? "Ja" : "Nej",
       };
     });
-    downloadCsv("tavlingar.csv", rows);
+    downloadCsv(rows, "tavlingar.csv");
   };
 
   const handleExportPdf = () => {
@@ -171,8 +176,8 @@ export default function CompetitionPage() {
     });
     downloadPdf({
       title: "Tävlingsresultat",
-      head: [["Datum", "Hund", "Tävling", "Klass", "Fel", "Tid", "Plats"]],
-      body: rows,
+      headers: ["Datum", "Hund", "Tävling", "Klass", "Fel", "Tid", "Plats"],
+      rows,
       filename: "tavlingar.pdf",
     });
   };
@@ -239,7 +244,7 @@ export default function CompetitionPage() {
         </div>
 
         {tab === "results" && filteredResults.length > 0 && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <DSButton variant="secondary" onClick={handleExportCsv} className="h-8">
               <Download className="w-3.5 h-3.5" /> CSV
             </DSButton>
@@ -276,6 +281,7 @@ export default function CompetitionPage() {
       {tab === "calendar" && (
         <CalendarTab
           agilityComps={agilityComps}
+          dogs={dogs}
           sportTab={sportTab}
           setSportTab={setSportTab}
         />
@@ -290,15 +296,17 @@ export default function CompetitionPage() {
         />
       )}
       {tab === "analysis" && <AnalysisTab dogs={dogs} results={results} />}
-      {tab === "import" && <ImportTab dogs={dogs} onDone={refresh} />}
+      {tab === "import" && (
+        <ImportTab dogs={dogs} userId={user?.id ?? ""} onDone={refresh} />
+      )}
 
       {shareResult && (
         <ShareToFriendDialog
           open={!!shareResult}
           onOpenChange={(o) => !o && setShareResult(null)}
-          shareType="competition"
-          shareId={shareResult.id}
-          shareData={{
+          sharedType="result"
+          sharedId={shareResult.id}
+          sharedData={{
             event_name: shareResult.event_name,
             date: shareResult.date,
             faults: shareResult.faults,
@@ -314,13 +322,20 @@ export default function CompetitionPage() {
 /* ============ Tab: Kalender (Agility + Hoopers) ============ */
 function CalendarTab({
   agilityComps,
+  dogs,
   sportTab,
   setSportTab,
 }: {
   agilityComps: Competition[];
+  dogs: Dog[];
   sportTab: "agility" | "hoopers";
   setSportTab: (s: "agility" | "hoopers") => void;
 }) {
+  const hoopersDogs = useMemo(
+    () => dogs.filter((d) => d.sport === "Hoopers" || d.sport === "Båda"),
+    [dogs],
+  );
+
   return (
     <div className="space-y-4">
       <SegmentedControl<"agility" | "hoopers">
@@ -381,7 +396,7 @@ function CalendarTab({
           </div>
         )
       ) : (
-        <HoopersKalendar dogs={[]} />
+        <HoopersKalendar dogs={hoopersDogs} selectedDogId={hoopersDogs[0]?.id ?? null} />
       )}
     </div>
   );
@@ -445,7 +460,7 @@ function ResultsTab({
                     </button>
                     <button
                       onClick={() => onDelete(r.id)}
-                      className="p-1.5 rounded-md hover:bg-semantic-error/10 text-text-tertiary hover:text-semantic-error"
+                      className="p-1.5 rounded-md hover:bg-semantic-danger/10 text-text-tertiary hover:text-semantic-danger"
                       aria-label="Ta bort resultat"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -474,6 +489,8 @@ function AnalysisTab({
     () => results.filter((r) => r.dog_id === analysisDog),
     [results, analysisDog],
   );
+  const hasHoopers = dog?.sport === "Hoopers" || dog?.sport === "Båda";
+  const hasAgility = dog?.sport === "Agility" || dog?.sport === "Båda";
 
   if (dogs.length === 0) {
     return (
@@ -515,25 +532,16 @@ function AnalysisTab({
         </DSCard>
       ) : dog ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {dog.sport === "Hoopers" || dog.sport === "Båda" ? (
+          {hasAgility && (
+            <ClassPromotionTracker results={dogResults} dogs={[dog]} />
+          )}
+          {hasHoopers && (
             <DSCard>
-              <HoopersPointsTracker dog={dog} results={dogResults} />
+              <HoopersPointsTracker dogs={[dog]} />
             </DSCard>
-          ) : null}
-          {dog.sport === "Agility" || dog.sport === "Båda" ? (
-            <DSCard>
-              <ClassPromotionTracker dog={dog} results={dogResults} />
-            </DSCard>
-          ) : null}
-          <DSCard>
-            <CleanRunTrendChart results={dogResults} />
-          </DSCard>
-          <DSCard>
-            <PerformanceTrendChart results={dogResults} />
-          </DSCard>
-          <DSCard className="lg:col-span-2">
-            <HistoricalResultsStats dogId={dog.id} dogName={dog.name} />
-          </DSCard>
+          )}
+          <CleanRunTrendChart results={dogResults} />
+          <PerformanceTrendChart results={dogResults} dogs={[dog]} />
         </div>
       ) : null}
     </div>
@@ -541,7 +549,15 @@ function AnalysisTab({
 }
 
 /* ============ Tab: Import ============ */
-function ImportTab({ dogs, onDone }: { dogs: Dog[]; onDone: () => void }) {
+function ImportTab({
+  dogs,
+  userId,
+  onDone,
+}: {
+  dogs: Dog[];
+  userId: string;
+  onDone: () => void;
+}) {
   return (
     <div className="space-y-4">
       <DSCard>
@@ -551,7 +567,7 @@ function ImportTab({ dogs, onDone }: { dogs: Dog[]; onDone: () => void }) {
             Klistra in en länk till en specifik tävlings resultatsida på agilitydata.se.
           </p>
         </header>
-        <ImportResultsFromUrl dogs={dogs} onImported={onDone} />
+        <ImportResultsFromUrl dogs={dogs} userId={userId} onImported={onDone} />
       </DSCard>
 
       <DSCard>

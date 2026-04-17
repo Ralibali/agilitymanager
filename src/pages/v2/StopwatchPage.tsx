@@ -289,7 +289,7 @@ export default function StopwatchPage() {
 
               <div className="flex items-center gap-3 mt-4">
                 {totalFaults > 0 ? (
-                  <StatusBadge variant="error" label={`${totalFaults} fel`} />
+                  <StatusBadge variant="danger" label={`${totalFaults} fel`} />
                 ) : (
                   state !== "idle" && <StatusBadge variant="success" label="Rent" />
                 )}

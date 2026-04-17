@@ -1,9 +1,10 @@
 import { Suspense, useState } from "react";
-import { Outlet, ScrollRestoration } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { BottomNavV2 } from "./BottomNavV2";
 import { MoreSheet } from "./MoreSheet";
+import { ScrollMemory } from "./ScrollMemory";
 import { PageSkeleton } from "@/components/ds";
 
 /**

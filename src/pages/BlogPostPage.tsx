@@ -168,12 +168,15 @@ export default function BlogPostPage() {
 
   const canonicalPath = `/blogg/${post.slug}`;
   const canonicalUrl = `https://agilitymanager.se${canonicalPath}`;
+  // SEO-fält faller tillbaka till UI-fält om de inte är ifyllda i databasen.
+  const seoTitle = post.seoTitle?.trim() || post.title;
+  const seoDescription = post.seoDescription?.trim() || post.excerpt;
 
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title={post.title}
-        description={post.excerpt}
+        title={seoTitle}
+        description={seoDescription}
         canonical={canonicalPath}
         ogType="article"
         article={{
@@ -183,8 +186,8 @@ export default function BlogPostPage() {
         }}
         jsonLd={[
           buildArticleSchema({
-            title: post.title,
-            description: post.excerpt,
+            title: seoTitle,
+            description: seoDescription,
             url: canonicalUrl,
             publishedTime: post.date,
             author: post.author,

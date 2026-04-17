@@ -607,7 +607,8 @@ function ZoomChip({ zoom, onZoomChange }: ZoomChipProps) {
    Empty state – visas över canvas innan första hindret placerats
    ───────────────────────────────────────────────────────────────────── */
 
-function EmptyStatePrompt() {
+function EmptyStatePrompt({ visible, onDismiss }: { visible: boolean; onDismiss: () => void }) {
+  if (!visible) return null;
   return (
     <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
       <div className="bg-white/85 backdrop-blur-sm border border-black/[0.06] rounded-2xl px-6 py-5 shadow-[0_4px_16px_rgba(0,0,0,0.04)] text-center max-w-[320px] pointer-events-auto">
@@ -615,7 +616,7 @@ function EmptyStatePrompt() {
           Skapa din första bana
         </h2>
         <p className="text-[13px] text-neutral-500 mb-4 leading-snug">
-          Dra hinder från paletten till canvas, eller börja från en mall.
+          Dra hinder från paletten till banan, eller börja från en mall.
         </p>
         <div className="flex items-center justify-center gap-2">
           <Button
@@ -630,15 +631,14 @@ function EmptyStatePrompt() {
           </Button>
           <Button
             size="sm"
-            disabled
+            onClick={onDismiss}
             className="h-8 text-[12px] bg-[#1a6b3c] hover:bg-[#155830] text-white"
-            title="Kommer i steg 9B"
           >
             Starta från tomt
           </Button>
         </div>
         <p className="text-[10px] text-neutral-400 mt-3">
-          Steg 9A levererad. Palett & mallar i 9B/9C.
+          Tips: dra ett hinder från vänster meny för att börja.
         </p>
       </div>
     </div>

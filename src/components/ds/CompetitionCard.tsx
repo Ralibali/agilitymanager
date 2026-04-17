@@ -1,6 +1,6 @@
 import { format, parseISO, differenceInDays } from "date-fns";
 import { sv } from "date-fns/locale";
-import { MapPin, Calendar, Clock } from "lucide-react";
+import { MapPin, Calendar, Clock, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./StatusBadge";
 

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Figtree:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Figtree:wght@300;400;500;600;700&family=Inter:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -88,6 +88,49 @@
 
     /* Border as rgba */
     --border-rgba: rgba(0,0,0,0.06);
+
+    /* === Fas 1 designsystem (Linear/Vercel-stil) === */
+    --font-sans: 'Inter', 'Figtree', sans-serif;
+
+    /* Surfaces */
+    --bg-page: 48 23% 98%;
+    --bg-surface: 0 0% 100%;
+    --bg-subtle: 45 17% 95%;
+    --bg-inverse: 150 21% 7%;
+
+    /* Text */
+    --text-primary: 150 21% 7%;
+    --text-secondary: 45 4% 37%;
+    --text-tertiary: 48 5% 51%;
+    --text-on-inverse: 120 11% 92%;
+
+    /* Borders (HSL alpha-ready) */
+    --ds-border-subtle: 150 21% 7%;
+    --ds-border-default: 150 21% 7%;
+    --ds-border-strong: 150 21% 7%;
+
+    /* Brand */
+    --brand-50: 158 53% 92%;
+    --brand-100: 158 51% 75%;
+    --brand-500: 158 69% 37%;
+    --brand-600: 163 76% 25%;
+    --brand-900: 168 80% 11%;
+
+    /* Accent (bärnsten) */
+    --accent-50-new: 36 81% 92%;
+    --accent-500-new: 33 79% 41%;
+    --accent-900-new: 30 95% 13%;
+
+    /* Semantic */
+    --semantic-success: 158 69% 37%;
+    --semantic-warning: 33 79% 41%;
+    --semantic-danger: 0 57% 41%;
+    --semantic-info: 212 71% 54%;
+
+    /* Radius (Fas 1) */
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 14px;
   }
 
   .dark {
@@ -125,6 +168,19 @@
     --shadow-card: 0 1px 3px rgba(0,0,0,0.2);
     --shadow-elevated: 0 4px 16px rgba(0,0,0,0.3);
     --border-rgba: rgba(255,255,255,0.08);
+
+    /* Fas 1 dark tokens */
+    --bg-page: 150 16% 5%;
+    --bg-surface: 150 14% 9%;
+    --bg-subtle: 150 10% 12%;
+    --bg-inverse: 120 11% 92%;
+    --text-primary: 120 11% 92%;
+    --text-secondary: 140 5% 63%;
+    --text-tertiary: 150 3% 43%;
+    --text-on-inverse: 150 21% 7%;
+    --ds-border-subtle: 120 11% 92%;
+    --ds-border-default: 120 11% 92%;
+    --ds-border-strong: 120 11% 92%;
   }
 }
 
@@ -153,6 +209,10 @@
   }
   .font-body {
     font-family: var(--font-body);
+  }
+  .font-sans-ds {
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv11', 'ss01';
   }
   .gradient-primary {
     background: linear-gradient(135deg, hsl(148, 62%, 26%), hsl(148, 55%, 35%));

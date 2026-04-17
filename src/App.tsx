@@ -46,6 +46,7 @@ const ClubPage = React.lazy(() => import("./pages/ClubPage"));
 const ClubInvitePage = React.lazy(() => import("./pages/ClubInvitePage"));
 const CoursesPage = React.lazy(() => import("./pages/CoursesPage"));
 const GoalsPage = React.lazy(() => import("./pages/GoalsPage"));
+const DesignDemoPage = React.lazy(() => import("./pages/DesignDemoPage"));
 
 const queryClient = new QueryClient();
 
@@ -120,6 +121,7 @@ const App = () => (
               <Route path="/avregistrera" element={<UnsubscribePage />} />
               <Route path="/invite/:code" element={<InvitePage />} />
               <Route path="/club-invite/:code" element={<ClubInvitePage />} />
+              <Route path="/design-demo" element={<DesignDemoPage />} />
 
               {/* Protected routes */}
               <Route element={<ProtectedLayout />}>

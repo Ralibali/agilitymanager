@@ -153,6 +153,27 @@ export default function TrainingPage() {
         <MetricCard label="Repetitioner" value={stats.totalReps} hint="totalt" />
       </div>
 
+      {/* Coach-videoanalys (Pro) */}
+      <section aria-labelledby="coach-video-heading" className="space-y-3">
+        <div>
+          <p className="text-micro text-text-tertiary uppercase tracking-wide">
+            Pro · Expertgranskning
+          </p>
+          <h2
+            id="coach-video-heading"
+            className="text-h3 text-text-primary tracking-tight"
+          >
+            Skicka in en video – få feedback från coach
+          </h2>
+          <p className="text-small text-text-secondary mt-0.5">
+            Ladda upp ett pass, beskriv vad du vill ha hjälp med och få ett konkret svar inom 48 h.
+          </p>
+        </div>
+        <DSCard className="p-0 overflow-hidden">
+          <CoachVideoAnalysis dogs={dogs} />
+        </DSCard>
+      </section>
+
       {/* Filterrad */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="inline-flex items-center gap-1.5 text-small text-text-tertiary">

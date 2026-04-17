@@ -9,3 +9,6 @@ export { MetricCard } from "./MetricCard";
 export { Timeline, type TimelineEvent } from "./Timeline";
 export { AIInsightCard } from "./AIInsightCard";
 export { HeroCard } from "./HeroCard";
+export { SegmentedControl } from "./SegmentedControl";
+export { SessionCard } from "./SessionCard";
+export { GoalCard } from "./GoalCard";

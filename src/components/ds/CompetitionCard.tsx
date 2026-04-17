@@ -32,6 +32,7 @@ export function CompetitionCard({
   registrationDeadline,
   classes = [],
   sport = "Agility",
+  sourceUrl,
   rightSlot,
   onClick,
   className,

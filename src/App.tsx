@@ -110,9 +110,12 @@ const App = () => (
               <Route path="/hoopers" element={<HoopersLandingPage />} />
               <Route path="/hoopers-regler" element={<HoopersRulesPage />} />
               <Route path="/blogg" element={<BlogPage />} />
-              {/* Redirect: gammal slug med 'ö' → ny slug utan 'ö'. Client-side Navigate (200, inte äkta 301) – uppgraderas till äkta 301 vid Vercel-flytt. */}
+              {/* Redirects: gammal slug med 'ö' → ny slug utan 'ö'. Client-side Navigate (200, inte äkta 301) – uppgraderas till äkta 301 vid Vercel-flytt. */}
               <Route path="/blogg/agility-kurs-nyb%C3%B6rjare" element={<Navigate to="/blogg/agility-kurs-nyborjare" replace />} />
               <Route path="/blogg/agility-kurs-nybörjare" element={<Navigate to="/blogg/agility-kurs-nyborjare" replace />} />
+              <Route path="/agility-kurs-nyb%C3%B6rjare" element={<Navigate to="/agility-kurs-nyborjare" replace />} />
+              <Route path="/agility-kurs-nybörjare" element={<Navigate to="/agility-kurs-nyborjare" replace />} />
+              <Route path="/agility-kurs-nyborjare" element={<Navigate to="/blogg/agility-kurs-nyborjare" replace />} />
               <Route path="/blogg/:slug" element={<BlogPostPage />} />
               <Route path="/integritetspolicy" element={<PrivacyPolicyPage />} />
               <Route path="/cookiepolicy" element={<CookiePolicyPage />} />

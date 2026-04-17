@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import {
   ClipboardList, LayoutGrid, Trophy, TrendingUp, Target, Shield,
   ChevronDown, ArrowRight, Check, Star, Users, MessageCircle,
-  Timer, Brain, Download, Calendar,
+  Timer, Brain, Download, Calendar, Activity, Video,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LandingNav } from '@/components/landing/LandingNav';

@@ -1,6 +1,6 @@
 import { format, parseISO, differenceInDays } from "date-fns";
 import { sv } from "date-fns/locale";
-import { MapPin, Calendar, Clock } from "lucide-react";
+import { MapPin, Calendar, Clock, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./StatusBadge";
 
@@ -13,6 +13,7 @@ interface Props {
   registrationDeadline?: string | null;
   classes?: string[];
   sport?: "Agility" | "Hoopers";
+  sourceUrl?: string | null;
   rightSlot?: React.ReactNode;
   onClick?: () => void;
   className?: string;
@@ -31,6 +32,7 @@ export function CompetitionCard({
   registrationDeadline,
   classes = [],
   sport = "Agility",
+  sourceUrl,
   rightSlot,
   onClick,
   className,
@@ -119,6 +121,23 @@ export function CompetitionCard({
             )}
           </div>
         )}
+
+        <p className="text-micro text-text-tertiary mt-2">
+          Källa:{" "}
+          {sourceUrl ? (
+            <a
+              href={sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-0.5 hover:text-text-secondary hover:underline"
+            >
+              agilitydata.se <ExternalLink className="w-2.5 h-2.5" />
+            </a>
+          ) : (
+            <span>agilitydata.se</span>
+          )}
+        </p>
       </div>
 
       {rightSlot && (

@@ -331,6 +331,11 @@ export default function BlogPostPage() {
         </div>
       </article>
 
+      {/* Dela artikel */}
+      <section className="px-4 pb-6 max-w-2xl mx-auto">
+        <ShareArticleButton title={post.title} url={canonicalUrl} excerpt={post.excerpt} />
+      </section>
+
       {/* FAQ – endast på artiklar med definierad FAQ-data */}
       {faqSection && <BlogFAQ section={faqSection} />}
 

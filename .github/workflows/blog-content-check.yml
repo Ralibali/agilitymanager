@@ -1,0 +1,30 @@
+name: Blog content check
+
+# Kör vid varje push och PR mot main, plus dagligen kl 06:00 UTC för att fånga
+# innehåll som ändrats direkt i databasen utan deploy.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-blog-content:
+    name: Verify blog_posts content matches slug + title
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run blog content match check
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: node scripts/check-blog-content-match.mjs

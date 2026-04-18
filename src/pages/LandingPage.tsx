@@ -565,10 +565,16 @@ export default function LandingPage() {
               </motion.div>
               <h3 className="font-display text-foreground text-xl mb-1">Pro</h3>
               <p className="text-muted-foreground text-sm mb-6 font-body">För den seriösa tävlaren</p>
-              <div className="font-display text-3xl text-foreground mb-6">
-                {annual ? '99 kr' : '19 kr'}
+              <div className="font-display text-3xl text-foreground mb-2">
+                {annual ? '790 kr' : '79 kr'}
                 <span className="text-base font-normal text-muted-foreground font-body">/{annual ? 'år' : 'mån'}</span>
               </div>
+              {annual && (
+                <p className="text-xs font-semibold mb-4 font-body" style={{ color: '#1a6b3c' }}>
+                  💰 Spara 158 kr jämfört med månadsvis
+                </p>
+              )}
+              {!annual && <div className="mb-4" />}
               <ul className="space-y-3 mb-8">
                 {[
                   'Allt i Gratis',

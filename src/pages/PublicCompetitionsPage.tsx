@@ -1,13 +1,51 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
-import { Calendar, MapPin, ExternalLink, ArrowRight, Trophy } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Calendar, MapPin, ExternalLink, ArrowRight, Trophy, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingFooterV2 } from '@/components/landing/LandingFooterV2';
-import { buildAgilityCompetitionPath, buildHoopersCompetitionPath } from '@/lib/competitionSlug';
+import { buildAgilityCompetitionPath, buildHoopersCompetitionPath, slugify } from '@/lib/competitionSlug';
 
 type Sport = 'agility' | 'hoopers';
+type SportFilter = 'all' | Sport;
+
+/**
+ * Region-slug → display-namn för svenska län. Slug används i URL
+ * (?region=stockholm) och matchas case-insensitivt mot competition.region/county.
+ * Vi accepterar både "Stockholm" och "Stockholms län" från databasen.
+ */
+const REGION_LABELS: Record<string, string> = {
+  stockholm: 'Stockholm',
+  uppsala: 'Uppsala',
+  sodermanland: 'Södermanland',
+  ostergotland: 'Östergötland',
+  jonkoping: 'Jönköping',
+  kronoberg: 'Kronoberg',
+  kalmar: 'Kalmar',
+  gotland: 'Gotland',
+  blekinge: 'Blekinge',
+  skane: 'Skåne',
+  halland: 'Halland',
+  'vastra-gotaland': 'Västra Götaland',
+  varmland: 'Värmland',
+  orebro: 'Örebro',
+  vastmanland: 'Västmanland',
+  dalarna: 'Dalarna',
+  gavleborg: 'Gävleborg',
+  vasternorrland: 'Västernorrland',
+  jamtland: 'Jämtland',
+  vasterbotten: 'Västerbotten',
+  norrbotten: 'Norrbotten',
+};
+
+function regionMatches(competitionRegion: string | null, regionSlug: string | null): boolean {
+  if (!regionSlug) return true;
+  if (!competitionRegion) return false;
+  // Normalisera "Stockholms län" → "stockholm"
+  const normalized = slugify(competitionRegion.replace(/s? län$/i, ''));
+  return normalized === regionSlug || normalized.startsWith(regionSlug);
+}
 
 interface UnifiedCompetition {
   id: string;
@@ -65,7 +103,34 @@ function groupByMonth(items: UnifiedCompetition[]): { label: string; items: Unif
 export default function PublicCompetitionsPage() {
   const [competitions, setCompetitions] = useState<UnifiedCompetition[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | Sport>('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URL-synkat filter — single source of truth är querystring.
+  // Detta gör vyer delbara: /tavlingar?region=stockholm&sport=hoopers
+  const sportFilter: SportFilter = (() => {
+    const s = searchParams.get('sport');
+    return s === 'agility' || s === 'hoopers' ? s : 'all';
+  })();
+  const regionFilter: string | null = (() => {
+    const r = searchParams.get('region')?.toLowerCase() ?? null;
+    return r && REGION_LABELS[r] ? r : null;
+  })();
+
+  const updateFilter = useCallback(
+    (next: { sport?: SportFilter; region?: string | null }) => {
+      const params = new URLSearchParams(searchParams);
+      if (next.sport !== undefined) {
+        if (next.sport === 'all') params.delete('sport');
+        else params.set('sport', next.sport);
+      }
+      if (next.region !== undefined) {
+        if (!next.region) params.delete('region');
+        else params.set('region', next.region);
+      }
+      setSearchParams(params, { replace: true });
+    },
+    [searchParams, setSearchParams],
+  );
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -127,46 +192,97 @@ export default function PublicCompetitionsPage() {
   }, []);
 
   const filtered = useMemo(() => {
-    if (filter === 'all') return competitions;
-    return competitions.filter((c) => c.sport === filter);
-  }, [competitions, filter]);
+    return competitions.filter((c) => {
+      if (sportFilter !== 'all' && c.sport !== sportFilter) return false;
+      if (!regionMatches(c.region, regionFilter)) return false;
+      return true;
+    });
+  }, [competitions, sportFilter, regionFilter]);
 
   const grouped = useMemo(() => groupByMonth(filtered), [filtered]);
 
+  // Counts respekterar region men inte sport (annars går sport-knappar i 0)
+  const regionScoped = useMemo(
+    () => competitions.filter((c) => regionMatches(c.region, regionFilter)),
+    [competitions, regionFilter],
+  );
   const counts = useMemo(
     () => ({
-      all: competitions.length,
-      agility: competitions.filter((c) => c.sport === 'agility').length,
-      hoopers: competitions.filter((c) => c.sport === 'hoopers').length,
+      all: regionScoped.length,
+      agility: regionScoped.filter((c) => c.sport === 'agility').length,
+      hoopers: regionScoped.filter((c) => c.sport === 'hoopers').length,
     }),
-    [competitions],
+    [regionScoped],
   );
+
+  // Tillgängliga regioner — endast de som faktiskt har tävlingar.
+  const availableRegions = useMemo(() => {
+    const set = new Set<string>();
+    for (const c of competitions) {
+      if (!c.region) continue;
+      const slug = slugify(c.region.replace(/s? län$/i, ''));
+      if (REGION_LABELS[slug]) set.add(slug);
+    }
+    return Array.from(set).sort((a, b) =>
+      REGION_LABELS[a].localeCompare(REGION_LABELS[b], 'sv'),
+    );
+  }, [competitions]);
+
+  // SEO: dynamisk titel/beskrivning/canonical baserat på filter.
+  // Varje filtrerad vy får egen canonical så Google kan indexera dem separat.
+  const seo = useMemo(() => {
+    const regionLabel = regionFilter ? REGION_LABELS[regionFilter] : null;
+    const sportLabel =
+      sportFilter === 'agility' ? 'Agility' : sportFilter === 'hoopers' ? 'Hoopers' : null;
+
+    const titleBits = [sportLabel ? `${sportLabel}tävlingar` : 'Agility- och hooperstävlingar'];
+    if (regionLabel) titleBits.push(`i ${regionLabel}`);
+    else titleBits.push('i Sverige');
+    const title = `${titleBits.join(' ')} | AgilityManager`;
+
+    const descBits: string[] = [];
+    descBits.push(
+      `Komplett översikt över kommande ${sportLabel ? sportLabel.toLowerCase() + 's' : 'agility- och hoopers'}tävlingar`,
+    );
+    if (regionLabel) descBits.push(`i ${regionLabel} län`);
+    descBits.push('. Datum, klubbar, klasser och anmälningslänkar — uppdateras dagligen.');
+    const description = descBits.join(' ').replace(' .', '.');
+
+    const params = new URLSearchParams();
+    if (regionFilter) params.set('region', regionFilter);
+    if (sportFilter !== 'all') params.set('sport', sportFilter);
+    const qs = params.toString();
+    const canonical = `${SITE_URL}/tavlingar${qs ? `?${qs}` : ''}`;
+
+    const h1 = regionLabel
+      ? `${sportLabel || 'Tävlingar'} i ${regionLabel}`
+      : sportLabel
+        ? `${sportLabel}tävlingar i Sverige`
+        : 'Tävlingar i Sverige';
+
+    return { title, description, canonical, h1 };
+  }, [sportFilter, regionFilter]);
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: 'Tävlingar i Sverige',
-    description:
-      'Komplett översikt över kommande agility- och hooperstävlingar i Sverige. Uppdateras dagligen från Agilitydata.se.',
-    url: `${SITE_URL}/tavlingar`,
+    name: seo.h1,
+    description: seo.description,
+    url: seo.canonical,
     isPartOf: { '@type': 'WebSite', name: 'AgilityManager', url: SITE_URL },
   };
+
+  const hasActiveFilter = sportFilter !== 'all' || regionFilter !== null;
 
   return (
     <div className="min-h-screen bg-page font-sans-ds text-text-primary">
       <Helmet>
-        <title>Agility- och hooperstävlingar i Sverige | AgilityManager</title>
-        <meta
-          name="description"
-          content="Komplett översikt över kommande agility- och hooperstävlingar i Sverige. Uppdateras dagligen från Agilitydata.se."
-        />
-        <link rel="canonical" href={`${SITE_URL}/tavlingar`} />
-        <meta property="og:title" content="Agility- och hooperstävlingar i Sverige" />
-        <meta
-          property="og:description"
-          content="Komplett översikt över kommande agility- och hooperstävlingar i Sverige."
-        />
-        <meta property="og:url" content={`${SITE_URL}/tavlingar`} />
+        <title>{seo.title}</title>
+        <meta name="description" content={seo.description} />
+        <link rel="canonical" href={seo.canonical} />
+        <meta property="og:title" content={seo.title.replace(' | AgilityManager', '')} />
+        <meta property="og:description" content={seo.description} />
+        <meta property="og:url" content={seo.canonical} />
         <meta property="og:type" content="website" />
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
@@ -180,31 +296,47 @@ export default function PublicCompetitionsPage() {
             <Link to="/" className="hover:text-text-primary">
               Startsidan
             </Link>{' '}
-            / Tävlingar
+            /{' '}
+            {hasActiveFilter ? (
+              <>
+                <Link to="/tavlingar" className="hover:text-text-primary">
+                  Tävlingar
+                </Link>
+                {' / '}
+                <span>{seo.h1}</span>
+              </>
+            ) : (
+              'Tävlingar'
+            )}
           </nav>
           <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight">
-            Tävlingar i Sverige
+            {seo.h1}
           </h1>
           <p className="mt-3 max-w-2xl text-lg text-text-secondary">
-            Kommande agility- och hooperstävlingar enligt Agilitydata.se. Uppdateras dagligen.
+            {regionFilter
+              ? `Kommande tävlingar i ${REGION_LABELS[regionFilter]}. Uppdateras dagligen från Agilitydata.se och SHoK.`
+              : 'Kommande agility- och hooperstävlingar enligt Agilitydata.se. Uppdateras dagligen.'}
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-2 text-sm text-text-secondary">
             <Trophy className="h-4 w-4" />
-            <span>{counts.all} kommande tävlingar · {counts.agility} agility · {counts.hoopers} hoopers</span>
+            <span>
+              {filtered.length} kommande tävlingar
+              {regionFilter ? ` i ${REGION_LABELS[regionFilter]}` : ''}
+            </span>
           </div>
         </div>
       </header>
 
       {/* Filter */}
       <div className="sticky top-0 z-10 border-b border-border-subtle bg-page/95 backdrop-blur supports-[backdrop-filter]:bg-page/80">
-        <div className="mx-auto max-w-6xl px-4 py-3">
+        <div className="mx-auto max-w-6xl px-4 py-3 space-y-2">
           <div className="flex flex-wrap gap-2">
             {(['all', 'agility', 'hoopers'] as const).map((opt) => (
               <button
                 key={opt}
-                onClick={() => setFilter(opt)}
+                onClick={() => updateFilter({ sport: opt })}
                 className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                  filter === opt
+                  sportFilter === opt
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-surface text-text-secondary hover:bg-surface-2'
                 }`}
@@ -213,6 +345,32 @@ export default function PublicCompetitionsPage() {
                 <span className="opacity-70">({counts[opt]})</span>
               </button>
             ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <label htmlFor="region-select" className="text-sm text-text-secondary">
+              Län:
+            </label>
+            <select
+              id="region-select"
+              value={regionFilter ?? ''}
+              onChange={(e) => updateFilter({ region: e.target.value || null })}
+              className="rounded-lg border border-border-subtle bg-surface px-3 py-1.5 text-sm text-text-primary focus:border-primary focus:outline-none"
+            >
+              <option value="">Alla län</option>
+              {availableRegions.map((slug) => (
+                <option key={slug} value={slug}>
+                  {REGION_LABELS[slug]}
+                </option>
+              ))}
+            </select>
+            {hasActiveFilter && (
+              <button
+                onClick={() => setSearchParams(new URLSearchParams(), { replace: true })}
+                className="ml-auto inline-flex items-center gap-1 rounded-full bg-surface px-3 py-1 text-xs text-text-secondary hover:bg-surface-2"
+              >
+                <X className="h-3 w-3" /> Rensa filter
+              </button>
+            )}
           </div>
         </div>
       </div>

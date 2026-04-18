@@ -458,26 +458,211 @@ export default function StatsPage() {
           </DSCard>
         </TabsContent>
 
-        <TabsContent value="training" className="mt-6">
-          <DSCard>
-            <p className="text-body text-text-secondary">
-              Detaljerad träningsanalys byggs in i kommande iteration.
-            </p>
-          </DSCard>
+        <TabsContent value="training" className="space-y-6 mt-6">
+          {filtered.training.length === 0 ? (
+            <DSCard>
+              <p className="text-body text-text-secondary">
+                Inga träningspass i vald period. Justera filtret eller logga ett pass.
+              </p>
+            </DSCard>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <DSCard>
+                  <header className="mb-4">
+                    <h2 className="text-h2 text-text-primary">Träningstyper</h2>
+                    <p className="text-small text-text-tertiary mt-0.5">Hur du fördelar din tid</p>
+                  </header>
+                  <div className="h-[240px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={trainingTypeData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={90} paddingAngle={2}>
+                          {trainingTypeData.map((_, i) => (
+                            <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={CHART_TOOLTIP} />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </DSCard>
+
+                <DSCard>
+                  <header className="mb-4">
+                    <h2 className="text-h2 text-text-primary">Energitrend</h2>
+                    <p className="text-small text-text-tertiary mt-0.5">Hund vs förare per vecka (1–5)</p>
+                  </header>
+                  <div className="h-[240px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={energyTrend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--ds-border-subtle) / 0.15)" vertical={false} />
+                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                        <YAxis domain={[0, 5]} tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={CHART_TOOLTIP} />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                        <Line type="monotone" dataKey="hund" stroke="hsl(var(--brand-500))" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="forare" stroke="hsl(var(--semantic-warning))" strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </DSCard>
+              </div>
+
+              {topObstacles.length > 0 && (
+                <DSCard>
+                  <header className="mb-4">
+                    <h2 className="text-h2 text-text-primary">Mest tränade hinder</h2>
+                    <p className="text-small text-text-tertiary mt-0.5">Topp 8 i perioden</p>
+                  </header>
+                  <div className="h-[260px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={topObstacles} layout="vertical" margin={{ top: 4, right: 12, left: 60, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--ds-border-subtle) / 0.15)" horizontal={false} />
+                        <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                        <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} width={80} />
+                        <Tooltip contentStyle={CHART_TOOLTIP} />
+                        <Bar dataKey="count" fill="hsl(var(--brand-500))" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </DSCard>
+              )}
+            </>
+          )}
         </TabsContent>
-        <TabsContent value="competition" className="mt-6">
-          <DSCard>
-            <p className="text-body text-text-secondary">
-              Tävlingsanalys flyttas hit från befintlig statistiksida i nästa iteration.
-            </p>
-          </DSCard>
+
+        <TabsContent value="competition" className="space-y-6 mt-6">
+          {filtered.competitions.length === 0 ? (
+            <DSCard>
+              <p className="text-body text-text-secondary">
+                Inga tävlingar i vald period. Logga ett resultat eller utöka tidsspannet.
+              </p>
+            </DSCard>
+          ) : (
+            <>
+              <DSCard>
+                <header className="mb-4">
+                  <h2 className="text-h2 text-text-primary">Nollrundor över tid</h2>
+                  <p className="text-small text-text-tertiary mt-0.5">Antal nollrundor per månad jämfört med totala starter</p>
+                </header>
+                <div className="h-[240px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={cleanRunsTrend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--ds-border-subtle) / 0.15)" vertical={false} />
+                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={CHART_TOOLTIP} />
+                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Line type="monotone" dataKey="starter" name="Starter" stroke="hsl(var(--text-tertiary))" strokeWidth={1.5} dot={false} />
+                      <Line type="monotone" dataKey="noll" name="Nollrundor" stroke="hsl(var(--semantic-success))" strokeWidth={2.5} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </DSCard>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <DSCard>
+                  <header className="mb-4">
+                    <h2 className="text-h2 text-text-primary">Feldistribution</h2>
+                    <p className="text-small text-text-tertiary mt-0.5">Antal starter per felintervall</p>
+                  </header>
+                  <div className="h-[220px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={faultDistribution} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--ds-border-subtle) / 0.15)" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={CHART_TOOLTIP} />
+                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                          {faultDistribution.map((entry, i) => (
+                            <Cell
+                              key={i}
+                              fill={
+                                entry.name === "0 fel"
+                                  ? "hsl(var(--semantic-success))"
+                                  : entry.name === "Diskad"
+                                    ? "hsl(var(--semantic-danger))"
+                                    : "hsl(var(--brand-500))"
+                              }
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </DSCard>
+
+                <DSCard>
+                  <header className="mb-4">
+                    <h2 className="text-h2 text-text-primary">Placeringar</h2>
+                    <p className="text-small text-text-tertiary mt-0.5">Fördelning av slutplaceringar</p>
+                  </header>
+                  <div className="h-[220px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={placementBreakdown} dataKey="value" nameKey="name" outerRadius={80}>
+                          {placementBreakdown.map((_, i) => (
+                            <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={CHART_TOOLTIP} />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </DSCard>
+              </div>
+
+              {speedTrend.length >= 2 && (
+                <DSCard>
+                  <header className="mb-4">
+                    <h2 className="text-h2 text-text-primary">Hastighetstrend</h2>
+                    <p className="text-small text-text-tertiary mt-0.5">m/s per start (senaste 30)</p>
+                  </header>
+                  <div className="h-[220px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={speedTrend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--ds-border-subtle) / 0.15)" vertical={false} />
+                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={CHART_TOOLTIP} />
+                        <Line type="monotone" dataKey="speed" stroke="hsl(var(--brand-500))" strokeWidth={2} dot={{ r: 2 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </DSCard>
+              )}
+            </>
+          )}
         </TabsContent>
-        <TabsContent value="milestones" className="mt-6">
-          <DSCard>
-            <p className="text-body text-text-secondary">
-              Klassresa & milstolpar visualiseras här i nästa iteration.
-            </p>
-          </DSCard>
+
+        <TabsContent value="milestones" className="space-y-3 mt-6">
+          {milestones.length === 0 ? (
+            <DSCard>
+              <p className="text-body text-text-secondary">
+                Inga milstolpar uppnådda än. Logga pass och tävlingar så ser du dem här.
+              </p>
+            </DSCard>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {milestones.map((m, i) => {
+                const Icon = m.icon;
+                return (
+                  <DSCard key={i} className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-brand-500/10 text-brand-600 flex items-center justify-center shrink-0">
+                      <Icon className="w-5 h-5" strokeWidth={1.75} />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-body font-medium text-text-primary">{m.title}</h3>
+                      <p className="text-small text-text-secondary">{m.subtitle}</p>
+                      <p className="text-micro text-text-tertiary mt-1">{m.date}</p>
+                    </div>
+                  </DSCard>
+                );
+              })}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

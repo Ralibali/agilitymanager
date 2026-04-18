@@ -606,6 +606,61 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ═══════ REFERRAL ═══════ */}
+      <section className="py-16 px-4" style={{ background: 'hsl(var(--background))' }}>
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            {...inViewFadeUp()}
+            className="relative overflow-hidden p-8 sm:p-10 text-center"
+            style={{
+              background: 'linear-gradient(135deg, #1a6b3c 0%, #0f4d2a 100%)',
+              borderRadius: 'var(--radius-card)',
+              boxShadow: '0 8px 32px rgba(26, 107, 60, 0.15)',
+            }}
+          >
+            <div
+              className="inline-flex items-center justify-center mb-4"
+              style={{
+                width: '56px',
+                height: '56px',
+                background: 'rgba(255,255,255,0.12)',
+                borderRadius: '16px',
+              }}
+            >
+              <Gift size={26} style={{ color: '#ffffff' }} strokeWidth={1.75} />
+            </div>
+            <h2 className="font-display text-white text-2xl sm:text-3xl mb-3">
+              Bjud in en vän – ni får båda 30 dagar Pro
+            </h2>
+            <p
+              className="font-body mx-auto mb-6"
+              style={{
+                fontSize: '15px',
+                lineHeight: 1.6,
+                color: 'rgba(255,255,255,0.85)',
+                maxWidth: '480px',
+              }}
+            >
+              Dela din unika inbjudningslänk. När din vän skapar ett konto får ni båda 30 dagars gratis Pro – utan kostnad och utan begränsning på antal vänner.
+            </p>
+            <button
+              onClick={() => navigate('/auth?mode=signup')}
+              className="inline-flex items-center gap-2 font-body transition-transform hover:scale-[1.02]"
+              style={{
+                background: '#ffffff',
+                color: '#0f4d2a',
+                fontSize: '14px',
+                fontWeight: 500,
+                padding: '12px 22px',
+                borderRadius: 'var(--radius-button)',
+              }}
+            >
+              Skapa konto & börja bjuda in <ArrowRight size={16} />
+            </button>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ═══════ TESTIMONIALS ═══════ */}
       <section className="py-20 px-4" style={{ background: 'hsl(var(--secondary))' }}>
         <div className="max-w-5xl mx-auto">

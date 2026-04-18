@@ -9,7 +9,14 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from "recharts";
+import { Trophy, Target, Award, TrendingUp, Calendar as CalIcon } from "lucide-react";
 import { store } from "@/lib/store";
 import type { Dog, TrainingSession, CompetitionResult } from "@/types";
 import {

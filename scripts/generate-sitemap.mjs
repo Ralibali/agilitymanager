@@ -105,10 +105,77 @@ async function fetchBlogPosts() {
     }));
 }
 
-// ─── Programmatiska sidor — stubs för framtida faser ──────────────────
-// Fyller på i Fas 2B när /tavling/:id-sidor byggs (anslag från `competitions`)
+// ─── Programmatiska sidor ──────────────────────────────────────────────
+// Fas 2B: detalj-sidor för agility + hoopers tävlingar.
+// Endast kommande tävlingar (date >= today) — gamla har inte SEO-värde
+// och blir snabbt inaktuella.
+function slugify(s) {
+  if (!s) return '';
+  return String(s)
+    .toLowerCase()
+    .replace(/[åä]/g, 'a').replace(/ö/g, 'o')
+    .replace(/é|è|ê/g, 'e').replace(/ü/g, 'u')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+}
+function buildSlug({ club, name, location, date }) {
+  const parts = [];
+  if (club) parts.push(slugify(club));
+  else if (name) parts.push(slugify(name));
+  if (location) parts.push(slugify(location));
+  if (date) parts.push(date.slice(0, 10));
+  return parts.filter(Boolean).join('-') || 'tavling';
+}
+function stripHtml(s) {
+  return s ? String(s).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : '';
+}
+
 async function fetchCompetitions() {
-  return [];
+  const today = new Date().toISOString().slice(0, 10);
+  const [agility, hoopers] = await Promise.all([
+    supabaseGet('competitions', {
+      select: 'id,competition_name,club_name,location,date_start,fetched_at',
+      date_start: `gte.${today}`,
+      order: 'date_start.asc',
+      limit: '2000',
+    }).catch(() => []),
+    supabaseGet('hoopers_competitions_public', {
+      select: 'competition_id,competition_name,club_name,location,date,fetched_at',
+      date: `gte.${today}`,
+      order: 'date.asc',
+      limit: '500',
+    }).catch(() => []),
+  ]);
+  const a = agility.map((r) => {
+    const slug = buildSlug({
+      club: stripHtml(r.club_name),
+      name: stripHtml(r.competition_name),
+      location: stripHtml(r.location),
+      date: r.date_start,
+    });
+    return {
+      loc: `${SITE_URL}/tavlingar/${encodeURIComponent(r.id)}/${slug}`,
+      lastmod: (r.fetched_at || BUILD_DATE).slice(0, 10),
+      changefreq: 'weekly',
+      priority: '0.7',
+    };
+  });
+  const h = hoopers.map((r) => {
+    const slug = buildSlug({
+      club: stripHtml(r.club_name),
+      name: stripHtml(r.competition_name),
+      location: stripHtml(r.location),
+      date: r.date,
+    });
+    return {
+      loc: `${SITE_URL}/tavlingar/hoopers/${encodeURIComponent(r.competition_id)}/${slug}`,
+      lastmod: (r.fetched_at || BUILD_DATE).slice(0, 10),
+      changefreq: 'weekly',
+      priority: '0.7',
+    };
+  });
+  return [...a, ...h];
 }
 
 // Fyller på i Fas 2C när /klubb/:slug-sidor byggs

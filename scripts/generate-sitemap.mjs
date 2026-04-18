@@ -105,6 +105,22 @@ async function fetchBlogPosts() {
     }));
 }
 
+// ─── Regions-vyer av tävlingskalendern ────────────────────────────────
+// Dessa har egen canonical + meta i PublicCompetitionsPage och bör
+// indexeras separat så att sökningar på "agilitytävlingar stockholm"
+// kan landa direkt på rätt filtrerad vy.
+const REGION_SLUGS = [
+  'stockholm', 'uppsala', 'sodermanland', 'ostergotland', 'jonkoping',
+  'kronoberg', 'kalmar', 'gotland', 'blekinge', 'skane', 'halland',
+  'vastra-gotaland', 'varmland', 'orebro', 'vastmanland', 'dalarna',
+  'gavleborg', 'vasternorrland', 'jamtland', 'vasterbotten', 'norrbotten',
+];
+for (const slug of REGION_SLUGS) {
+  STATIC_ROUTES.push({ path: `/tavlingar?region=${slug}`, changefreq: 'weekly', priority: '0.7' });
+}
+STATIC_ROUTES.push({ path: '/tavlingar?sport=agility', changefreq: 'weekly', priority: '0.7' });
+STATIC_ROUTES.push({ path: '/tavlingar?sport=hoopers', changefreq: 'weekly', priority: '0.7' });
+
 // ─── Programmatiska sidor ──────────────────────────────────────────────
 // Fas 2B: detalj-sidor för agility + hoopers tävlingar.
 // Endast kommande tävlingar (date >= today) — gamla har inte SEO-värde

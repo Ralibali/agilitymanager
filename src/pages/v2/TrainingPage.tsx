@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Activity, Filter, Timer } from "lucide-react";
+import { Plus, Activity, Filter, Timer, Download } from "lucide-react";
 import { startOfWeek, subWeeks, format } from "date-fns";
 import { sv } from "date-fns/locale";
 import {
@@ -23,7 +23,10 @@ import {
 import { store } from "@/lib/store";
 import type { Dog, TrainingSession } from "@/types";
 import { LogTrainingDialog } from "@/components/v2/LogTrainingDialog";
+import { TrainingHeatmap } from "@/components/v2/TrainingHeatmap";
 import CoachVideoAnalysis from "@/components/training/CoachVideoAnalysis";
+import { downloadCsv } from "@/lib/csv";
+import { toast } from "sonner";
 
 type Range = "7d" | "30d" | "3m" | "all";
 
@@ -109,6 +112,28 @@ export default function TrainingPage() {
     return Array.from(map.entries()).sort(([a], [b]) => b.localeCompare(a));
   }, [filtered]);
 
+  const handleExportCsv = () => {
+    if (filtered.length === 0) {
+      toast.info("Inga pass att exportera i vald period");
+      return;
+    }
+    const dogName = (id: string) => dogs.find((d) => d.id === id)?.name || "—";
+    const rows = filtered.map((s) => ({
+      Datum: format(new Date(s.date), "yyyy-MM-dd"),
+      Hund: dogName(s.dog_id),
+      Sport: s.sport,
+      Typ: s.type,
+      "Tid (min)": s.duration_min || 0,
+      Repetitioner: s.reps || 0,
+      "Hund-energi": s.dog_energy || "",
+      "Förar-energi": s.handler_energy || "",
+      "Bra noteringar": (s.notes_good || "").replace(/\n/g, " "),
+      "Att förbättra": (s.notes_improve || "").replace(/\n/g, " "),
+    }));
+    downloadCsv(rows, `traning-${format(new Date(), "yyyy-MM-dd")}.csv`);
+    toast.success(`Exporterade ${rows.length} pass`);
+  };
+
   if (loading) return <PageSkeleton />;
 
   return (
@@ -119,6 +144,9 @@ export default function TrainingPage() {
         subtitle="Logga, följ utveckling och hitta mönster i din träning."
         actions={
           <>
+            <DSButton variant="ghost" onClick={handleExportCsv} disabled={filtered.length === 0}>
+              <Download className="w-4 h-4" /> CSV
+            </DSButton>
             <DSButton variant="secondary" asChild>
               <Link to="/stopwatch">
                 <Timer className="w-4 h-4" /> Tidtagarur
@@ -152,6 +180,8 @@ export default function TrainingPage() {
         />
         <MetricCard label="Repetitioner" value={stats.totalReps} hint="totalt" />
       </div>
+
+      <TrainingHeatmap sessions={sessions} weeks={12} />
 
       {/* Coach-videoanalys (Pro) */}
       <section aria-labelledby="coach-video-heading" className="space-y-3">

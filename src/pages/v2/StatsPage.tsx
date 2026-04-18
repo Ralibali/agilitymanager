@@ -9,7 +9,14 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from "recharts";
+import { Trophy, Target, Award, TrendingUp, Calendar as CalIcon } from "lucide-react";
 import { store } from "@/lib/store";
 import type { Dog, TrainingSession, CompetitionResult } from "@/types";
 import {
@@ -50,6 +57,23 @@ function rangeCutoff(range: Range): Date | null {
       return null;
   }
 }
+
+const CHART_COLORS = [
+  "hsl(var(--brand-500))",
+  "hsl(var(--semantic-success))",
+  "hsl(var(--semantic-warning))",
+  "hsl(var(--semantic-danger))",
+  "hsl(var(--text-tertiary))",
+  "hsl(var(--brand-700))",
+];
+
+const CHART_TOOLTIP = {
+  background: "hsl(var(--bg-surface))",
+  border: "0.5px solid hsl(var(--ds-border-subtle) / 0.15)",
+  borderRadius: "10px",
+  fontSize: 12,
+  color: "hsl(var(--text-primary))",
+} as const;
 
 export default function StatsPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
@@ -140,6 +164,171 @@ export default function StatsPage() {
     }
     return weeks;
   }, [filtered.training]);
+
+  // ---- Träningsflik-data ----
+  const trainingTypeData = useMemo(() => {
+    const map = new Map<string, number>();
+    filtered.training.forEach((t) => {
+      const key = t.type || "Annan";
+      map.set(key, (map.get(key) || 0) + 1);
+    });
+    return Array.from(map.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [filtered.training]);
+
+  const energyTrend = useMemo(() => {
+    const sorted = [...filtered.training].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
+    // Gruppera per vecka för att inte få brus
+    const map = new Map<string, { sumDog: number; sumHandler: number; n: number }>();
+    sorted.forEach((t) => {
+      const wk = format(startOfWeek(new Date(t.date), { weekStartsOn: 1 }), "yyyy-'v'II");
+      const cur = map.get(wk) || { sumDog: 0, sumHandler: 0, n: 0 };
+      cur.sumDog += t.dog_energy || 0;
+      cur.sumHandler += t.handler_energy || 0;
+      cur.n += 1;
+      map.set(wk, cur);
+    });
+    return Array.from(map.entries()).map(([label, v]) => ({
+      label,
+      hund: +(v.sumDog / v.n).toFixed(1),
+      forare: +(v.sumHandler / v.n).toFixed(1),
+    }));
+  }, [filtered.training]);
+
+  const topObstacles = useMemo(() => {
+    const map = new Map<string, number>();
+    filtered.training.forEach((t) => {
+      (t.obstacles_trained || []).forEach((o) => {
+        map.set(o, (map.get(o) || 0) + 1);
+      });
+    });
+    return Array.from(map.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+  }, [filtered.training]);
+
+  // ---- Tävlingsflik-data ----
+  const cleanRunsTrend = useMemo(() => {
+    const sorted = [...filtered.competitions].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
+    const map = new Map<string, { clean: number; total: number }>();
+    sorted.forEach((c) => {
+      const m = format(new Date(c.date), "yyyy-MM");
+      const cur = map.get(m) || { clean: 0, total: 0 };
+      cur.total += 1;
+      if (c.passed && c.faults === 0 && !c.disqualified) cur.clean += 1;
+      map.set(m, cur);
+    });
+    return Array.from(map.entries()).map(([label, v]) => ({
+      label: format(new Date(`${label}-01`), "MMM yy", { locale: sv }),
+      noll: v.clean,
+      starter: v.total,
+    }));
+  }, [filtered.competitions]);
+
+  const faultDistribution = useMemo(() => {
+    const buckets = { "0 fel": 0, "1–5 fel": 0, "6–10 fel": 0, "11+ fel": 0, Diskad: 0 };
+    filtered.competitions.forEach((c) => {
+      if (c.disqualified) buckets["Diskad"]++;
+      else if (c.faults === 0) buckets["0 fel"]++;
+      else if (c.faults <= 5) buckets["1–5 fel"]++;
+      else if (c.faults <= 10) buckets["6–10 fel"]++;
+      else buckets["11+ fel"]++;
+    });
+    return Object.entries(buckets).map(([name, value]) => ({ name, value }));
+  }, [filtered.competitions]);
+
+  const placementBreakdown = useMemo(() => {
+    const buckets = { "1:a": 0, "2:a": 0, "3:a": 0, "4–10": 0, "11+": 0, "Ej placerad": 0 };
+    filtered.competitions.forEach((c) => {
+      if (!c.placement) buckets["Ej placerad"]++;
+      else if (c.placement === 1) buckets["1:a"]++;
+      else if (c.placement === 2) buckets["2:a"]++;
+      else if (c.placement === 3) buckets["3:a"]++;
+      else if (c.placement <= 10) buckets["4–10"]++;
+      else buckets["11+"]++;
+    });
+    return Object.entries(buckets)
+      .filter(([, v]) => v > 0)
+      .map(([name, value]) => ({ name, value }));
+  }, [filtered.competitions]);
+
+  const speedTrend = useMemo(() => {
+    const points = [...filtered.competitions]
+      .filter((c) => c.course_length_m && c.time_sec > 0 && !c.disqualified)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .map((c) => ({
+        label: format(new Date(c.date), "d/M", { locale: sv }),
+        speed: +(Number(c.course_length_m) / c.time_sec).toFixed(2),
+      }));
+    return points.slice(-30);
+  }, [filtered.competitions]);
+
+  // ---- Milstolpar ----
+  const milestones = useMemo(() => {
+    const list: { icon: typeof Trophy; title: string; date: string; subtitle: string }[] = [];
+    const sortedComps = [...competitions].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
+    const firstClean = sortedComps.find((c) => c.passed && c.faults === 0 && !c.disqualified);
+    if (firstClean) {
+      list.push({
+        icon: Award,
+        title: "Första nollrundan",
+        date: format(new Date(firstClean.date), "d MMM yyyy", { locale: sv }),
+        subtitle: `${firstClean.event_name} · ${firstClean.discipline}`,
+      });
+    }
+    const firstWin = sortedComps.find((c) => c.placement === 1);
+    if (firstWin) {
+      list.push({
+        icon: Trophy,
+        title: "Första segern",
+        date: format(new Date(firstWin.date), "d MMM yyyy", { locale: sv }),
+        subtitle: `${firstWin.event_name} · ${firstWin.discipline}`,
+      });
+    }
+    const totalCleanRuns = sortedComps.filter(
+      (c) => c.passed && c.faults === 0 && !c.disqualified,
+    ).length;
+    [10, 25, 50, 100].forEach((threshold) => {
+      if (totalCleanRuns >= threshold) {
+        list.push({
+          icon: Target,
+          title: `${threshold} nollrundor`,
+          date: "Uppnått",
+          subtitle: "Konsekvens lönar sig",
+        });
+      }
+    });
+    [10, 50, 100, 250, 500].forEach((threshold) => {
+      if (training.length >= threshold) {
+        list.push({
+          icon: TrendingUp,
+          title: `${threshold} träningspass`,
+          date: "Uppnått",
+          subtitle: "Disciplin = utveckling",
+        });
+      }
+    });
+    const totalKm = sortedComps
+      .filter((c) => c.course_length_m)
+      .reduce((s, c) => s + Number(c.course_length_m), 0) / 1000;
+    if (totalKm >= 1) {
+      list.push({
+        icon: CalIcon,
+        title: `${totalKm.toFixed(1)} km i tävling`,
+        date: "Total banlängd",
+        subtitle: "Varje meter räknas",
+      });
+    }
+    return list;
+  }, [competitions, training]);
 
   const insightText = useMemo(() => {
     if (metrics.tCount === 0)
@@ -286,26 +475,211 @@ export default function StatsPage() {
           </DSCard>
         </TabsContent>
 
-        <TabsContent value="training" className="mt-6">
-          <DSCard>
-            <p className="text-body text-text-secondary">
-              Detaljerad träningsanalys byggs in i kommande iteration.
-            </p>
-          </DSCard>
+        <TabsContent value="training" className="space-y-6 mt-6">
+          {filtered.training.length === 0 ? (
+            <DSCard>
+              <p className="text-body text-text-secondary">
+                Inga träningspass i vald period. Justera filtret eller logga ett pass.
+              </p>
+            </DSCard>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <DSCard>
+                  <header className="mb-4">
+                    <h2 className="text-h2 text-text-primary">Träningstyper</h2>
+                    <p className="text-small text-text-tertiary mt-0.5">Hur du fördelar din tid</p>
+                  </header>
+                  <div className="h-[240px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={trainingTypeData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={90} paddingAngle={2}>
+                          {trainingTypeData.map((_, i) => (
+                            <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={CHART_TOOLTIP} />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </DSCard>
+
+                <DSCard>
+                  <header className="mb-4">
+                    <h2 className="text-h2 text-text-primary">Energitrend</h2>
+                    <p className="text-small text-text-tertiary mt-0.5">Hund vs förare per vecka (1–5)</p>
+                  </header>
+                  <div className="h-[240px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={energyTrend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--ds-border-subtle) / 0.15)" vertical={false} />
+                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                        <YAxis domain={[0, 5]} tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={CHART_TOOLTIP} />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                        <Line type="monotone" dataKey="hund" stroke="hsl(var(--brand-500))" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="forare" stroke="hsl(var(--semantic-warning))" strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </DSCard>
+              </div>
+
+              {topObstacles.length > 0 && (
+                <DSCard>
+                  <header className="mb-4">
+                    <h2 className="text-h2 text-text-primary">Mest tränade hinder</h2>
+                    <p className="text-small text-text-tertiary mt-0.5">Topp 8 i perioden</p>
+                  </header>
+                  <div className="h-[260px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={topObstacles} layout="vertical" margin={{ top: 4, right: 12, left: 60, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--ds-border-subtle) / 0.15)" horizontal={false} />
+                        <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                        <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} width={80} />
+                        <Tooltip contentStyle={CHART_TOOLTIP} />
+                        <Bar dataKey="count" fill="hsl(var(--brand-500))" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </DSCard>
+              )}
+            </>
+          )}
         </TabsContent>
-        <TabsContent value="competition" className="mt-6">
-          <DSCard>
-            <p className="text-body text-text-secondary">
-              Tävlingsanalys flyttas hit från befintlig statistiksida i nästa iteration.
-            </p>
-          </DSCard>
+
+        <TabsContent value="competition" className="space-y-6 mt-6">
+          {filtered.competitions.length === 0 ? (
+            <DSCard>
+              <p className="text-body text-text-secondary">
+                Inga tävlingar i vald period. Logga ett resultat eller utöka tidsspannet.
+              </p>
+            </DSCard>
+          ) : (
+            <>
+              <DSCard>
+                <header className="mb-4">
+                  <h2 className="text-h2 text-text-primary">Nollrundor över tid</h2>
+                  <p className="text-small text-text-tertiary mt-0.5">Antal nollrundor per månad jämfört med totala starter</p>
+                </header>
+                <div className="h-[240px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={cleanRunsTrend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--ds-border-subtle) / 0.15)" vertical={false} />
+                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={CHART_TOOLTIP} />
+                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Line type="monotone" dataKey="starter" name="Starter" stroke="hsl(var(--text-tertiary))" strokeWidth={1.5} dot={false} />
+                      <Line type="monotone" dataKey="noll" name="Nollrundor" stroke="hsl(var(--semantic-success))" strokeWidth={2.5} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </DSCard>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <DSCard>
+                  <header className="mb-4">
+                    <h2 className="text-h2 text-text-primary">Feldistribution</h2>
+                    <p className="text-small text-text-tertiary mt-0.5">Antal starter per felintervall</p>
+                  </header>
+                  <div className="h-[220px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={faultDistribution} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--ds-border-subtle) / 0.15)" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={CHART_TOOLTIP} />
+                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                          {faultDistribution.map((entry, i) => (
+                            <Cell
+                              key={i}
+                              fill={
+                                entry.name === "0 fel"
+                                  ? "hsl(var(--semantic-success))"
+                                  : entry.name === "Diskad"
+                                    ? "hsl(var(--semantic-danger))"
+                                    : "hsl(var(--brand-500))"
+                              }
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </DSCard>
+
+                <DSCard>
+                  <header className="mb-4">
+                    <h2 className="text-h2 text-text-primary">Placeringar</h2>
+                    <p className="text-small text-text-tertiary mt-0.5">Fördelning av slutplaceringar</p>
+                  </header>
+                  <div className="h-[220px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={placementBreakdown} dataKey="value" nameKey="name" outerRadius={80}>
+                          {placementBreakdown.map((_, i) => (
+                            <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={CHART_TOOLTIP} />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </DSCard>
+              </div>
+
+              {speedTrend.length >= 2 && (
+                <DSCard>
+                  <header className="mb-4">
+                    <h2 className="text-h2 text-text-primary">Hastighetstrend</h2>
+                    <p className="text-small text-text-tertiary mt-0.5">m/s per start (senaste 30)</p>
+                  </header>
+                  <div className="h-[220px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={speedTrend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--ds-border-subtle) / 0.15)" vertical={false} />
+                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 11, fill: "hsl(var(--text-tertiary))" }} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={CHART_TOOLTIP} />
+                        <Line type="monotone" dataKey="speed" stroke="hsl(var(--brand-500))" strokeWidth={2} dot={{ r: 2 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </DSCard>
+              )}
+            </>
+          )}
         </TabsContent>
-        <TabsContent value="milestones" className="mt-6">
-          <DSCard>
-            <p className="text-body text-text-secondary">
-              Klassresa & milstolpar visualiseras här i nästa iteration.
-            </p>
-          </DSCard>
+
+        <TabsContent value="milestones" className="space-y-3 mt-6">
+          {milestones.length === 0 ? (
+            <DSCard>
+              <p className="text-body text-text-secondary">
+                Inga milstolpar uppnådda än. Logga pass och tävlingar så ser du dem här.
+              </p>
+            </DSCard>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {milestones.map((m, i) => {
+                const Icon = m.icon;
+                return (
+                  <DSCard key={i} className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-brand-500/10 text-brand-600 flex items-center justify-center shrink-0">
+                      <Icon className="w-5 h-5" strokeWidth={1.75} />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-body font-medium text-text-primary">{m.title}</h3>
+                      <p className="text-small text-text-secondary">{m.subtitle}</p>
+                      <p className="text-micro text-text-tertiary mt-1">{m.date}</p>
+                    </div>
+                  </DSCard>
+                );
+              })}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

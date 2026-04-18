@@ -436,7 +436,7 @@ export default function LandingPage() {
                 Jagar du pinnar i klass 1–3 eller siktar på SM? Analysera dina resultat och planera strategiskt.
               </p>
               <ul className="space-y-2.5">
-                {['Detaljerad tävlingsstatistik per hund', 'AI-träningsinsikter och klassuppflyttning', 'Tävlingskalender med påminnelser', 'Vänner, chatt och bandelning'].map(t => (
+                {['Detaljerad tävlingsstatistik per hund', 'AI-insikter + coach-videoanalys', 'Tävlingskalender med påminnelser', 'Vänner, klubbar, chatt och bandelning'].map(t => (
                   <li key={t} className="flex items-start gap-2 text-sm text-foreground font-body">
                     <Check size={16} style={{ color: '#1a6b3c' }} className="mt-0.5 flex-shrink-0" />
                     {t}

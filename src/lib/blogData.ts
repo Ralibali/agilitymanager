@@ -1788,18 +1788,20 @@ export function getPostBySlug(slug: string): BlogPost | undefined {
 import { supabase } from '@/integrations/supabase/client';
 
 export async function fetchBlogPosts(): Promise<BlogPost[]> {
+  // Single source of truth: databasen. Ingen fallback till hårdkodat innehåll
+  // – risken är annars att stale content visas vid tillfälliga DB-fel.
   const { data, error } = await supabase
     .from('blog_posts')
     .select('slug, title, excerpt, content, category, read_time, date, author, seo_title, seo_description')
     .eq('published', true)
     .order('date', { ascending: false });
 
-  if (error || !data || data.length === 0) {
-    // Fallback to static data
-    return blogPosts;
+  if (error) {
+    console.error('[blogData] fetchBlogPosts error:', error);
+    return [];
   }
 
-  return data.map((d: any) => ({
+  return (data ?? []).map((d: any) => ({
     slug: d.slug,
     title: d.title,
     excerpt: d.excerpt,
@@ -1814,6 +1816,8 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
 }
 
 export async function fetchPostBySlug(slug: string): Promise<BlogPost | undefined> {
+  // Single source of truth: databasen. Returnerar undefined om posten saknas
+  // istället för att falla tillbaka på (potentiellt felaktigt) hårdkodat innehåll.
   const { data, error } = await supabase
     .from('blog_posts')
     .select('slug, title, excerpt, content, category, read_time, date, author, seo_title, seo_description')
@@ -1821,9 +1825,11 @@ export async function fetchPostBySlug(slug: string): Promise<BlogPost | undefine
     .eq('published', true)
     .maybeSingle();
 
-  if (error || !data) {
-    return getPostBySlug(slug);
+  if (error) {
+    console.error('[blogData] fetchPostBySlug error:', error);
+    return undefined;
   }
+  if (!data) return undefined;
 
   return {
     slug: data.slug,

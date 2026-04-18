@@ -40,8 +40,15 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
   const [question, setQuestion] = useState('');
   const [dogId, setDogId] = useState(dogs[0]?.id || '');
   const [sport, setSport] = useState('Agility');
+  const [pack, setPack] = useState<'1' | '3' | '5'>('1');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const PACK_LABELS: Record<'1' | '3' | '5', { price: string; sub: string }> = {
+    '1': { price: '149 kr', sub: '1 video' },
+    '3': { price: '399 kr', sub: '3-pack · spara 48 kr' },
+    '5': { price: '599 kr', sub: '5-pack · spara 146 kr' },
+  };
 
   const { data: history = [] } = useQuery({
     queryKey: ['coach-feedback', user?.id],
@@ -99,7 +106,9 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
       // Redirect to Stripe payment
       setIsSubmitting(true);
       try {
-        const { data, error } = await supabase.functions.invoke('create-coach-payment');
+        const { data, error } = await supabase.functions.invoke('create-coach-payment', {
+          body: { pack },
+        });
         if (error) throw error;
         if (data?.url) {
           window.location.href = data.url;

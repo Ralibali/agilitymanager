@@ -54,6 +54,7 @@ const STATIC_ROUTES = [
   { path: '/hundforsakring', changefreq: 'monthly', priority: '0.9' },
   { path: '/integritetspolicy', changefreq: 'yearly', priority: '0.3' },
   { path: '/cookiepolicy', changefreq: 'yearly', priority: '0.3' },
+  { path: '/tavlingar', changefreq: 'weekly', priority: '0.8' },
 ];
 
 /* ─────────────────────────────────────────────────────────────────────

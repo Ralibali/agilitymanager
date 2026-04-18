@@ -74,6 +74,12 @@ const STATIC_PAGES = [
     title: 'Cookiepolicy',
     description: 'Information om cookies och spårningstekniker som används på AgilityManager.',
   },
+  {
+    route: '/tavlingar',
+    title: 'Agility- och hooperstävlingar i Sverige',
+    description:
+      'Komplett översikt över kommande agility- och hooperstävlingar i Sverige. Uppdateras dagligen från Agilitydata.se.',
+  },
 ];
 
 // ---------------- Supabase ----------------
@@ -90,6 +96,50 @@ async function fetchPublishedPosts() {
     throw new Error(`Supabase fetch failed: ${res.status} ${res.statusText}`);
   }
   return res.json();
+}
+
+async function fetchUpcomingCompetitions() {
+  const today = new Date().toISOString().split('T')[0];
+  const headers = {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+  };
+  const [agilityRes, hoopersRes] = await Promise.all([
+    fetch(
+      `${SUPABASE_URL}/rest/v1/competitions?select=id,competition_name,club_name,location,region,date_start,date_end,classes_agility,classes_hopp,source_url,status&date_start=gte.${today}&order=date_start.asc&limit=500`,
+      { headers },
+    ),
+    fetch(
+      `${SUPABASE_URL}/rest/v1/hoopers_competitions_public?select=competition_id,competition_name,club_name,location,county,date,classes,source_url,registration_status&date=gte.${today}&order=date.asc&limit=200`,
+      { headers },
+    ),
+  ]);
+  const agility = agilityRes.ok ? await agilityRes.json() : [];
+  const hoopers = hoopersRes.ok ? await hoopersRes.json() : [];
+  const stripHtml = (s) => (s ? String(s).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : '');
+  const a = agility.map((r) => ({
+    name: stripHtml(r.competition_name) || 'Tävling',
+    club: stripHtml(r.club_name),
+    location: stripHtml(r.location),
+    region: r.region,
+    date_start: r.date_start,
+    date_end: r.date_end,
+    sport: 'Agility',
+    classes: [...(r.classes_agility || []), ...(r.classes_hopp || [])],
+    source_url: r.source_url,
+  }));
+  const h = hoopers.map((r) => ({
+    name: stripHtml(r.competition_name) || 'Hooperstävling',
+    club: stripHtml(r.club_name),
+    location: stripHtml(r.location),
+    region: r.county,
+    date_start: r.date,
+    date_end: null,
+    sport: 'Hoopers',
+    classes: r.classes || [],
+    source_url: r.source_url,
+  }));
+  return [...a, ...h].sort((x, y) => x.date_start.localeCompare(y.date_start));
 }
 
 // ---------------- HTML helpers ----------------
@@ -268,18 +318,72 @@ async function main() {
     process.exit(1);
   }
 
-  // 1) Statiska sidor
+  // 1) Hämta tävlingar för pre-rendering av /tavlingar
+  let competitions = [];
+  try {
+    competitions = await fetchUpcomingCompetitions();
+    console.log(`🏆 Hämtade ${competitions.length} kommande tävlingar`);
+  } catch (err) {
+    console.error('⚠️  Kunde inte hämta tävlingar:', err.message);
+  }
+
+  const buildCompetitionsBody = (items) => {
+    if (!items.length) {
+      return `      <article>
+        <h1>Tävlingar i Sverige</h1>
+        <p>Inga kommande tävlingar registrerade just nu.</p>
+      </article>`;
+    }
+    const rows = items
+      .slice(0, 300)
+      .map((c) => {
+        const dateStr = c.date_end && c.date_end !== c.date_start
+          ? `${c.date_start} – ${c.date_end}`
+          : c.date_start;
+        const classes = c.classes.length ? ` (${c.classes.join(', ')})` : '';
+        const loc = [c.location, c.region].filter(Boolean).join(', ');
+        const link = c.source_url
+          ? ` — <a href="${escapeHtml(c.source_url)}" rel="nofollow noopener">Anmäl</a>`
+          : '';
+        return `<li><strong>${escapeHtml(dateStr)}</strong> · ${escapeHtml(c.sport)} · ${escapeHtml(c.name)} — ${escapeHtml(c.club)}, ${escapeHtml(loc)}${escapeHtml(classes)}${link}</li>`;
+      })
+      .join('\n        ');
+    return `      <article>
+        <h1>Tävlingar i Sverige</h1>
+        <p>Komplett översikt över ${items.length} kommande agility- och hooperstävlingar i Sverige enligt Agilitydata.se.</p>
+        <ul>
+        ${rows}
+        </ul>
+      </article>`;
+  };
+
+  // 2) Statiska sidor
   console.log(`📄 Genererar ${STATIC_PAGES.length} statiska sidor…`);
   for (const page of STATIC_PAGES) {
+    const isCompetitions = page.route === '/tavlingar';
+    const extraJsonLd = isCompetitions
+      ? [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Tävlingar i Sverige',
+            description: page.description,
+            url: `${SITE_URL}/tavlingar`,
+            isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: SITE_URL },
+          },
+        ]
+      : [];
     const html = buildPageHtml({
       template,
       title: page.title,
       description: page.description,
       canonical: page.route === '/' ? '/' : page.route,
       ogType: 'website',
+      jsonLdScripts: extraJsonLd,
+      prerenderedBody: isCompetitions ? buildCompetitionsBody(competitions) : '',
     });
     await writeRoute(page.route, html);
-    console.log(`   ✓ ${page.route}`);
+    console.log(`   ✓ ${page.route}${isCompetitions ? ` (${competitions.length} tävlingar)` : ''}`);
   }
 
   // 2) Blogginlägg från Supabase

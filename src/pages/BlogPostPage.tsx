@@ -1,9 +1,9 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Clock, BookOpen } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchPostBySlug, fetchBlogPosts, type BlogPost } from '@/lib/blogData';
+import { fetchPostBySlug, type BlogPost } from '@/lib/blogData';
 import { SEO, buildArticleSchema, buildBreadcrumbSchema } from '@/components/SEO';
 import { BLOG_FAQS, buildFaqJsonLd } from '@/lib/blogFaqs';
 import { BlogFAQ } from '@/components/BlogFAQ';
@@ -145,15 +145,13 @@ export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [post, setPost] = useState<BlogPost | undefined>(undefined);
-  const [otherPosts, setOtherPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
-    Promise.all([fetchPostBySlug(slug), fetchBlogPosts()]).then(([p, all]) => {
+    fetchPostBySlug(slug).then((p) => {
       setPost(p);
-      setOtherPosts(all.filter(a => a.slug !== slug).slice(0, 3));
       setLoading(false);
     });
   }, [slug]);
@@ -245,19 +243,6 @@ export default function BlogPostPage() {
 
       {/* FAQ – endast på artiklar med definierad FAQ-data */}
       {faqSection && <BlogFAQ section={faqSection} />}
-
-      {/* Related */}
-      <section className="px-4 pb-8 max-w-2xl mx-auto">
-        <h2 className="font-display font-semibold text-foreground mb-4">Fler artiklar</h2>
-        <div className="space-y-3">
-          {otherPosts.map(p => (
-            <Link key={p.slug} to={`/blogg/${p.slug}`} className="block bg-card rounded-xl p-4 shadow-card hover:shadow-elevated transition-shadow">
-              <h3 className="font-display font-semibold text-foreground text-sm mb-1">{p.title}</h3>
-              <p className="text-xs text-muted-foreground">{p.excerpt}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
 
       {/* CTA */}
       <section className="px-4 pb-16 max-w-2xl mx-auto">

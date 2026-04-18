@@ -2,22 +2,33 @@ import { createContext, useContext, useEffect, useState, useCallback, ReactNode 
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+// Aktuella priser (v2 — 2026)
+// Gamla priser (price_1T9Aio... 19 kr/mån, price_1T9Aom... 99 kr/år) är fortfarande aktiva
+// i Stripe för befintliga prenumeranter (grandfathering).
 export const PLANS = {
   monthly: {
-    priceId: 'price_1T9AioHzffTezY82OrEqKflT',
-    productId: 'prod_U7PXVAq6hRWosI',
-    label: 'Månadsplan',
-    price: '19 kr/mån',
-    amount: 19,
+    priceId: 'price_1TNX9dHzffTezY82QlVT1FEA',
+    productId: 'prod_UMFe9t1BTWwPYt',
+    label: 'Månadsvis',
+    price: '79 kr/mån',
+    amount: 79,
   },
   yearly: {
-    priceId: 'price_1T9AomHzffTezY82vtiObR7E',
-    productId: 'prod_U7Pe1Hsfd0nyji',
-    label: 'Årsplan',
-    price: '99 kr/år',
-    amount: 99,
+    priceId: 'price_1TNXAAHzffTezY82jUjqyL3f',
+    productId: 'prod_UMFf5nHYTrrun2',
+    label: 'Årsvis',
+    price: '790 kr/år',
+    amount: 790,
+    savingsLabel: 'Spara 158 kr',
+    monthlyEquivalent: '66 kr/mån',
   },
 } as const;
+
+// Legacy price IDs som fortsatt ska räknas som aktiv Pro (grandfathered)
+export const LEGACY_PRO_PRICE_IDS = [
+  'price_1T9AioHzffTezY82OrEqKflT', // 19 kr/mån
+  'price_1T9AomHzffTezY82vtiObR7E', // 99 kr/år
+] as const;
 
 interface SubscriptionState {
   subscribed: boolean;

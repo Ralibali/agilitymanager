@@ -17,12 +17,30 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_ANON_KEY") ?? ""
   );
 
+  // Pack-storlek → Stripe price-id
+  const PACK_PRICES: Record<string, string> = {
+    "1": "price_1TNXAKHzffTezY82hltLm2WX", // 149 kr
+    "3": "price_1TNXAMHzffTezY82kuSOBqpr", // 399 kr
+    "5": "price_1TNXANHzffTezY82iPu6zLSg", // 599 kr
+  };
+
   try {
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
+
+    let pack = "1";
+    try {
+      const body = await req.json();
+      if (body?.pack && PACK_PRICES[String(body.pack)]) {
+        pack = String(body.pack);
+      }
+    } catch {
+      // Ingen body → default 1-pack
+    }
+    const priceId = PACK_PRICES[pack];
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -37,14 +55,10 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price: "price_1TLWSXHzffTezY82eIwK0z9B",
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: priceId, quantity: 1 }],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/training?coach_paid=true`,
+      metadata: { coach_video_credits: pack },
+      success_url: `${req.headers.get("origin")}/training?coach_paid=true&pack=${pack}`,
       cancel_url: `${req.headers.get("origin")}/training`,
     });
 

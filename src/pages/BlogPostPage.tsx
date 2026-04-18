@@ -1,9 +1,9 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Clock, BookOpen } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchPostBySlug, fetchBlogPosts, type BlogPost } from '@/lib/blogData';
+import { fetchPostBySlug, type BlogPost } from '@/lib/blogData';
 import { SEO, buildArticleSchema, buildBreadcrumbSchema } from '@/components/SEO';
 import { BLOG_FAQS, buildFaqJsonLd } from '@/lib/blogFaqs';
 import { BlogFAQ } from '@/components/BlogFAQ';

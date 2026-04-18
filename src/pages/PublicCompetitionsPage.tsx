@@ -1,13 +1,51 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
-import { Calendar, MapPin, ExternalLink, ArrowRight, Trophy } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Calendar, MapPin, ExternalLink, ArrowRight, Trophy, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingFooterV2 } from '@/components/landing/LandingFooterV2';
-import { buildAgilityCompetitionPath, buildHoopersCompetitionPath } from '@/lib/competitionSlug';
+import { buildAgilityCompetitionPath, buildHoopersCompetitionPath, slugify } from '@/lib/competitionSlug';
 
 type Sport = 'agility' | 'hoopers';
+type SportFilter = 'all' | Sport;
+
+/**
+ * Region-slug → display-namn för svenska län. Slug används i URL
+ * (?region=stockholm) och matchas case-insensitivt mot competition.region/county.
+ * Vi accepterar både "Stockholm" och "Stockholms län" från databasen.
+ */
+const REGION_LABELS: Record<string, string> = {
+  stockholm: 'Stockholm',
+  uppsala: 'Uppsala',
+  sodermanland: 'Södermanland',
+  ostergotland: 'Östergötland',
+  jonkoping: 'Jönköping',
+  kronoberg: 'Kronoberg',
+  kalmar: 'Kalmar',
+  gotland: 'Gotland',
+  blekinge: 'Blekinge',
+  skane: 'Skåne',
+  halland: 'Halland',
+  'vastra-gotaland': 'Västra Götaland',
+  varmland: 'Värmland',
+  orebro: 'Örebro',
+  vastmanland: 'Västmanland',
+  dalarna: 'Dalarna',
+  gavleborg: 'Gävleborg',
+  vasternorrland: 'Västernorrland',
+  jamtland: 'Jämtland',
+  vasterbotten: 'Västerbotten',
+  norrbotten: 'Norrbotten',
+};
+
+function regionMatches(competitionRegion: string | null, regionSlug: string | null): boolean {
+  if (!regionSlug) return true;
+  if (!competitionRegion) return false;
+  // Normalisera "Stockholms län" → "stockholm"
+  const normalized = slugify(competitionRegion.replace(/s? län$/i, ''));
+  return normalized === regionSlug || normalized.startsWith(regionSlug);
+}
 
 interface UnifiedCompetition {
   id: string;

@@ -1232,6 +1232,8 @@ export type Database = {
           handler_first_name: string | null
           handler_last_name: string | null
           id: string
+          legacy_price_locked_at: string | null
+          legacy_pricing: boolean
           premium_until: string | null
           referral_code: string | null
           show_competitions_to_friends: boolean
@@ -1251,6 +1253,8 @@ export type Database = {
           handler_first_name?: string | null
           handler_last_name?: string | null
           id?: string
+          legacy_price_locked_at?: string | null
+          legacy_pricing?: boolean
           premium_until?: string | null
           referral_code?: string | null
           show_competitions_to_friends?: boolean
@@ -1270,6 +1274,8 @@ export type Database = {
           handler_first_name?: string | null
           handler_last_name?: string | null
           id?: string
+          legacy_price_locked_at?: string | null
+          legacy_pricing?: boolean
           premium_until?: string | null
           referral_code?: string | null
           show_competitions_to_friends?: boolean

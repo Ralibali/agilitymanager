@@ -459,12 +459,7 @@ async function main() {
   };
 
   let detailCount = 0;
-  for (const c of competitions) {
-    const isHoopers = c.sport === 'Hoopers';
-    const idRaw = c.source_url || c.name; // saknar id i unified-objektet — hämtar separat
-    // Vi behöver id, så hämta från råvärden
-  }
-  // Hämta detalj-data separat för att få id
+  // Hämta detalj-data direkt från råvärden för att få id
   try {
     const today = new Date().toISOString().split('T')[0];
     const headers = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` };

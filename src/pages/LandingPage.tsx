@@ -54,6 +54,21 @@ const topFeatures = [
     title: 'Tävlingsdata – automatiskt',
     desc: 'Resultat hämtas från Agidadata.se. Klassresa, pinnar och meriter visualiseras per hund. Aldrig mer manuell inmatning.',
   },
+  {
+    icon: Users,
+    title: 'Klubbar, kompisar & chatt',
+    desc: 'Gå med i din klubb, dela banor med vänner via QR eller chatt, planera träningspass i grupp.',
+  },
+  {
+    icon: Sparkles,
+    title: 'AI-coach + videoanalys',
+    desc: 'AI-insikter om dina träningstrender + möjlighet att skicka video till en SM-meriterad coach för personlig feedback.',
+  },
+  {
+    icon: Heart,
+    title: 'Hälsa, kurser & försäkring',
+    desc: 'Hälsologg och vikt över tid, kurser via DogsRus och jämförelse av hundförsäkringar – allt i samma app.',
+  },
 ];
 
 const coachPills = [
@@ -71,12 +86,14 @@ const testimonials = [
 const faqs = [
   { q: 'Vad är agility och hur fungerar klassystemet?', a: 'Agility är en hinderbana på tid. I Sverige tävlar man i klass 1–3 under SAgiK/SKK. Man behöver 3 pinnar per klass för att flytta upp.' },
   { q: 'Vad är hoopers?', a: 'Hoopers är en hundsport där hunden springer igenom bågar, tunnlar och runt tunnor – utan hopp. Föraren dirigerar på distans. Det är officiell SKK-sport sedan november 2025.' },
-  { q: 'Kan jag logga både agility och hoopers?', a: 'Ja. Du väljer sport per hund, så kan du ha en agilityträning och en hoopers-hund i samma konto.' },
-  { q: 'Hur fungerar banplaneraren?', a: 'Dra och släpp hinder på en canvas med rutnät. Du kan exportera banan som PNG eller PDF med metadata. Både agility- och hoopers-hinder stöds.' },
-  { q: 'Kan jag dela banor med andra?', a: 'Ja. Du kan dela banor direkt via appen till vänner, eller exportera som bild/PDF och dela via valfri kanal.' },
-  { q: 'Stöder appen SHoK:s regelverk?', a: 'Ja. Klasstruktur, hinderkategorier och storleksindelning följer Svenska Hoopersklubbens officiella regler.' },
-  { q: 'Fungerar appen för nybörjare?', a: 'Ja. Du behöver inga förkunskaper. Fyll i vad du tränat, hur det gick och appen gör resten.' },
-  { q: 'Är AgilityManager gratis?', a: 'Grundversionen är gratis utan tidsbegränsning. Du får 7 dagars gratis Pro när du skapar ett konto – ingen betalning krävs.' },
+  { q: 'Kan jag logga både agility och hoopers?', a: 'Ja. Du väljer sport per hund, så kan du ha en agility-hund och en hoopers-hund i samma konto.' },
+  { q: 'Hur fungerar banplaneraren?', a: 'Dra och släpp hinder på en canvas med rutnät. Du kan exportera banan som PNG eller PDF med metadata. Både agility- och hoopers-hinder stöds. Du kan också dela banor direkt till vänner via appen.' },
+  { q: 'Hur funkar coach-funktionen?', a: 'Du laddar upp en träningsvideo i appen och vår SM-meriterade coach analyserar dirigering, linjer och tempo. Du får konkreta tips inom 48 timmar. Ingår i Pro.' },
+  { q: 'Kan jag bjuda in min klubb?', a: 'Ja. Skapa en klubb eller gå med i en befintlig. Klubbar har anslagstavla, gemensam kalender och undergrupper för olika nivåer.' },
+  { q: 'Vad får jag på Pro?', a: 'Obegränsat antal hundar, full tävlingshistorik, AI-träningsinsikter, automatisk resultatimport från agilitydata.se, coach-videoanalys, kompisar/chatt/bandelning, tävlingskalender med påminnelser och CSV-export.' },
+  { q: 'Vad kostar Pro?', a: '79 kr/mån eller 790 kr/år (du sparar 158 kr per år). Du kan testa Pro gratis i 7 dagar när du skapar konto – ingen betalning krävs.' },
+  { q: 'Får jag rabatt om jag bjuder in en vän?', a: 'Ja! När en vän du bjudit in skapar konto får ni båda 30 dagars Pro gratis. Dela din unika länk från Inställningar → Bjud in vänner.' },
+  { q: 'Är AgilityManager gratis?', a: 'Grundversionen är gratis utan tidsbegränsning. Du får dessutom 7 dagars gratis Pro när du skapar ett konto.' },
 ];
 
 /* ────── component ────── */

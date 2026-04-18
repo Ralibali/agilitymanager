@@ -238,14 +238,38 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
             />
           </div>
 
+          <div>
+            <Label className="text-xs">Paket</Label>
+            <div className="grid grid-cols-3 gap-1.5 mt-1">
+              {(['1', '3', '5'] as const).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPack(p)}
+                  disabled={isSubmitting}
+                  className={`rounded-lg border p-2 text-left transition-all ${
+                    pack === p
+                      ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                      : 'border-border bg-secondary/20 hover:border-border/80'
+                  }`}
+                >
+                  <div className="text-xs font-semibold text-foreground">{PACK_LABELS[p].price}</div>
+                  <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">{PACK_LABELS[p].sub}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <Button onClick={handleSubmit} className="w-full gap-2" disabled={!file || !question.trim() || isSubmitting}>
             {isSubmitting ? (
               <><Loader2 size={14} className="animate-spin" /> Bearbetar...</>
             ) : (
-              <><Upload size={14} /> Betala 99 kr & skicka till coach</>
+              <><Upload size={14} /> Betala {PACK_LABELS[pack].price} & skicka till coach</>
             )}
           </Button>
-          <p className="text-[10px] text-muted-foreground text-center">Engångsbetalning 99 kr per videoanalys via Stripe</p>
+          <p className="text-[10px] text-muted-foreground text-center">
+            Engångsbetalning via Stripe · Svar inom 5 arbetsdagar
+          </p>
         </div>
 
         {/* History */}

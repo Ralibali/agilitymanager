@@ -1,6 +1,6 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Clock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchPostBySlug, type BlogPost } from '@/lib/blogData';
@@ -41,13 +41,19 @@ function parseInline(text: string): React.ReactNode[] {
 }
 
 // Simple markdown-ish renderer for our content
-function renderContent(content: string) {
+// Returns body elements + an optional separate "Läs vidare"-block (rendered as a card)
+function renderContent(content: string): { body: JSX.Element[]; lasVidare: { title: string; items: string[] } | null } {
   const lines = content.trim().split('\n');
   const elements: JSX.Element[] = [];
   let listItems: string[] = [];
   let tableRows: string[][] = [];
   let inTable = false;
   const usedH2Ids = new Set<string>();
+
+  // Detect "Läs vidare"-section and capture it separately
+  let inLasVidare = false;
+  let lasVidareTitle = 'Läs vidare';
+  const lasVidareItems: string[] = [];
 
   const flushList = () => {
     if (listItems.length > 0) {
@@ -90,6 +96,26 @@ function renderContent(content: string) {
 
   for (const line of lines) {
     const trimmed = line.trim();
+
+    // Detect Läs vidare-rubrik (case-insensitive) – allt efter samlas till kortet
+    if (trimmed.startsWith('## ')) {
+      const rawHeading = trimmed.slice(3).trim();
+      if (/^läs\s+vidare/i.test(rawHeading)) {
+        flushList();
+        flushTable();
+        inLasVidare = true;
+        lasVidareTitle = rawHeading;
+        continue;
+      }
+    }
+
+    if (inLasVidare) {
+      // Inom Läs vidare: samla endast list-items, ignorera tomma rader och annat
+      if (trimmed.startsWith('- ')) {
+        lasVidareItems.push(trimmed.slice(2));
+      }
+      continue;
+    }
 
     if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
       flushList();
@@ -138,7 +164,48 @@ function renderContent(content: string) {
 
   flushList();
   flushTable();
-  return elements;
+
+  return {
+    body: elements,
+    lasVidare: lasVidareItems.length > 0 ? { title: lasVidareTitle, items: lasVidareItems } : null,
+  };
+}
+
+// Render Läs vidare-item: stöder "[text](url) — beskrivning" och plain "[text](url)"
+function renderLasVidareItem(raw: string, idx: number): JSX.Element {
+  // Splitta på em-dash eller " - " för att separera länk från beskrivning
+  const dashMatch = raw.match(/^(.+?)\s+[—–-]\s+(.+)$/);
+  const linkPart = dashMatch ? dashMatch[1] : raw;
+  const description = dashMatch ? dashMatch[2] : null;
+
+  const linkMatch = linkPart.match(/^\[([^\]]+)\]\(([^)]+)\)/);
+  if (!linkMatch) {
+    return <li key={idx} className="text-sm text-foreground/90">{parseInline(raw)}</li>;
+  }
+  const [, label, href] = linkMatch;
+  const isExternal = href.startsWith('http');
+
+  const inner = (
+    <div className="flex items-start gap-3 group">
+      <ArrowRight size={16} className="mt-0.5 text-primary shrink-0 transition-transform group-hover:translate-x-0.5" />
+      <div className="flex-1 min-w-0">
+        <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{label}</span>
+        {description && (
+          <span className="block text-xs text-muted-foreground mt-0.5">{description}</span>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <li key={idx}>
+      {isExternal ? (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="block py-2.5 px-3 rounded-lg hover:bg-primary/5 transition-colors">{inner}</a>
+      ) : (
+        <Link to={href} className="block py-2.5 px-3 rounded-lg hover:bg-primary/5 transition-colors">{inner}</Link>
+      )}
+    </li>
+  );
 }
 
 export default function BlogPostPage() {

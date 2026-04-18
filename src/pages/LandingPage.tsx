@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import {
   ClipboardList, LayoutGrid, Trophy,
   ArrowRight, Check, Star, Activity,
+  Users, Heart, Shield, GraduationCap, Sparkles, Gift,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LandingNav } from '@/components/landing/LandingNav';

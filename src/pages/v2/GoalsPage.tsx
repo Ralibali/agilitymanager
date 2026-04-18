@@ -343,7 +343,7 @@ export default function GoalsPage() {
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-amber-700" />
+            <Trophy className="w-5 h-5 text-amber-900" />
             <h2 className="text-h2 text-text-primary">Badges & prestationer</h2>
           </div>
           <span className="text-small text-text-secondary tabular-nums">

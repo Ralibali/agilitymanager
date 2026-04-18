@@ -181,6 +181,8 @@ export default function TrainingPage() {
         <MetricCard label="Repetitioner" value={stats.totalReps} hint="totalt" />
       </div>
 
+      <TrainingHeatmap sessions={sessions} weeks={12} />
+
       {/* Coach-videoanalys (Pro) */}
       <section aria-labelledby="coach-video-heading" className="space-y-3">
         <div>

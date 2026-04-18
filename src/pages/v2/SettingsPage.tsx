@@ -212,19 +212,24 @@ export default function V2SettingsPage() {
                   onChange={(v) => setBillingTab(v as "monthly" | "yearly")}
                   options={[
                     { value: "monthly", label: "Månadsvis" },
-                    { value: "yearly", label: "Årsvis (spara 56%)" },
+                    { value: "yearly", label: `Årsvis · ${PLANS.yearly.savingsLabel}` },
                   ]}
                 />
 
                 <div className="rounded-xl border border-border bg-surface-2/50 p-5">
-                  <div className="flex items-baseline justify-between mb-4">
+                  <div className="flex items-baseline justify-between mb-1">
                     <div>
                       <p className="text-small text-text-tertiary">{currentPlan.label}</p>
                       <p className="text-h2 text-text-primary">{currentPlan.price}</p>
+                      {billingTab === "yearly" && (
+                        <p className="text-small text-text-tertiary mt-0.5">
+                          Motsvarar {PLANS.yearly.monthlyEquivalent}
+                        </p>
+                      )}
                     </div>
                     <Sparkles className="h-5 w-5 text-primary" />
                   </div>
-                  <ul className="space-y-2 mb-5">
+                  <ul className="space-y-2 mb-5 mt-4">
                     {PREMIUM_FEATURES.map((f) => (
                       <li key={f} className="flex items-start gap-2 text-body text-text-secondary">
                         <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
@@ -240,9 +245,12 @@ export default function V2SettingsPage() {
                     {checkoutLoading === currentPlan.priceId ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <>Uppgradera till Premium</>
+                      <>Uppgradera till Pro</>
                     )}
                   </DSButton>
+                  <p className="text-micro text-text-tertiary text-center mt-2">
+                    Avsluta när som helst i kundportalen
+                  </p>
                 </div>
               </div>
             )}

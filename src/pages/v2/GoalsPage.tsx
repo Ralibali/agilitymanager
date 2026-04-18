@@ -423,7 +423,7 @@ export default function GoalsPage() {
             <AlertDialogCancel>Avbryt</AlertDialogCancel>
             <AlertDialogAction
               onClick={deleteGoal}
-              className="bg-semantic-danger text-white hover:bg-semantic-danger/90"
+              className="bg-semantic-danger text-text-on-inverse hover:bg-semantic-danger/90"
             >
               Ta bort
             </AlertDialogAction>

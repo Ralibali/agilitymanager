@@ -99,33 +99,84 @@ export type Database = {
       }
       breeds: {
         Row: {
+          agility_challenges: string
           agility_popularity_rank: number | null
+          agility_strengths: string
+          agility_suitability: number | null
+          breed_group: string | null
           created_at: string
           description: string
+          hoopers_suitability: number | null
           id: string
+          image_attribution: string | null
+          image_url: string | null
+          life_expectancy: string | null
           name: string
+          name_en: string | null
+          origin_country: string | null
+          popular_in_sweden: boolean
+          published: boolean
           size_class: string
           slug: string
+          suitable_class: string | null
+          temperament: string[]
+          training_tips: string
+          typical_height_cm: string | null
+          typical_weight_kg: string | null
           updated_at: string
         }
         Insert: {
+          agility_challenges?: string
           agility_popularity_rank?: number | null
+          agility_strengths?: string
+          agility_suitability?: number | null
+          breed_group?: string | null
           created_at?: string
           description?: string
+          hoopers_suitability?: number | null
           id?: string
+          image_attribution?: string | null
+          image_url?: string | null
+          life_expectancy?: string | null
           name: string
+          name_en?: string | null
+          origin_country?: string | null
+          popular_in_sweden?: boolean
+          published?: boolean
           size_class?: string
           slug: string
+          suitable_class?: string | null
+          temperament?: string[]
+          training_tips?: string
+          typical_height_cm?: string | null
+          typical_weight_kg?: string | null
           updated_at?: string
         }
         Update: {
+          agility_challenges?: string
           agility_popularity_rank?: number | null
+          agility_strengths?: string
+          agility_suitability?: number | null
+          breed_group?: string | null
           created_at?: string
           description?: string
+          hoopers_suitability?: number | null
           id?: string
+          image_attribution?: string | null
+          image_url?: string | null
+          life_expectancy?: string | null
           name?: string
+          name_en?: string | null
+          origin_country?: string | null
+          popular_in_sweden?: boolean
+          published?: boolean
           size_class?: string
           slug?: string
+          suitable_class?: string | null
+          temperament?: string[]
+          training_tips?: string
+          typical_height_cm?: string | null
+          typical_weight_kg?: string | null
           updated_at?: string
         }
         Relationships: []

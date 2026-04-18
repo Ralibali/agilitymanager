@@ -301,8 +301,11 @@ async function main() {
     // Markdown → HTML
     const contentHtml = marked.parse(post.content || '', { gfm: true, breaks: false });
 
+    // OBS: seo-content är CSS-gömt (position:absolute;left:-9999px) så
+    // navigationen "← Kunskapsbank" som tidigare låg här blev både osynlig
+    // för användaren OCH onödig (SPA:n renderar egen header). Vi inkluderar
+    // bara <article> med rubrik/excerpt/content så crawlers kan indexera.
     const prerenderedBody = `      <article>
-        <nav><a href="/blogg">← Kunskapsbank</a></nav>
         <header>
           <p>${escapeHtml(post.category)} · ${escapeHtml(post.read_time ?? '')} min läsning</p>
           <h1>${escapeHtml(post.title)}</h1>

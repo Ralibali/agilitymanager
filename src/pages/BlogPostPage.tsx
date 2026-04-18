@@ -246,19 +246,6 @@ export default function BlogPostPage() {
       {/* FAQ – endast på artiklar med definierad FAQ-data */}
       {faqSection && <BlogFAQ section={faqSection} />}
 
-      {/* Related */}
-      <section className="px-4 pb-8 max-w-2xl mx-auto">
-        <h2 className="font-display font-semibold text-foreground mb-4">Fler artiklar</h2>
-        <div className="space-y-3">
-          {otherPosts.map(p => (
-            <Link key={p.slug} to={`/blogg/${p.slug}`} className="block bg-card rounded-xl p-4 shadow-card hover:shadow-elevated transition-shadow">
-              <h3 className="font-display font-semibold text-foreground text-sm mb-1">{p.title}</h3>
-              <p className="text-xs text-muted-foreground">{p.excerpt}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="px-4 pb-16 max-w-2xl mx-auto">
         <div className="bg-card rounded-2xl p-6 shadow-card text-center">

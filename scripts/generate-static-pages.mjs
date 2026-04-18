@@ -98,6 +98,50 @@ async function fetchPublishedPosts() {
   return res.json();
 }
 
+async function fetchUpcomingCompetitions() {
+  const today = new Date().toISOString().split('T')[0];
+  const headers = {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+  };
+  const [agilityRes, hoopersRes] = await Promise.all([
+    fetch(
+      `${SUPABASE_URL}/rest/v1/competitions?select=id,competition_name,club_name,location,region,date_start,date_end,classes_agility,classes_hopp,source_url,status&date_start=gte.${today}&order=date_start.asc&limit=500`,
+      { headers },
+    ),
+    fetch(
+      `${SUPABASE_URL}/rest/v1/hoopers_competitions_public?select=competition_id,competition_name,club_name,location,county,date,classes,source_url,registration_status&date=gte.${today}&order=date.asc&limit=200`,
+      { headers },
+    ),
+  ]);
+  const agility = agilityRes.ok ? await agilityRes.json() : [];
+  const hoopers = hoopersRes.ok ? await hoopersRes.json() : [];
+  const stripHtml = (s) => (s ? String(s).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : '');
+  const a = agility.map((r) => ({
+    name: stripHtml(r.competition_name) || 'Tävling',
+    club: stripHtml(r.club_name),
+    location: stripHtml(r.location),
+    region: r.region,
+    date_start: r.date_start,
+    date_end: r.date_end,
+    sport: 'Agility',
+    classes: [...(r.classes_agility || []), ...(r.classes_hopp || [])],
+    source_url: r.source_url,
+  }));
+  const h = hoopers.map((r) => ({
+    name: stripHtml(r.competition_name) || 'Hooperstävling',
+    club: stripHtml(r.club_name),
+    location: stripHtml(r.location),
+    region: r.county,
+    date_start: r.date,
+    date_end: null,
+    sport: 'Hoopers',
+    classes: r.classes || [],
+    source_url: r.source_url,
+  }));
+  return [...a, ...h].sort((x, y) => x.date_start.localeCompare(y.date_start));
+}
+
 // ---------------- HTML helpers ----------------
 
 function escapeHtml(s) {

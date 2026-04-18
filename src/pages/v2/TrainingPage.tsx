@@ -144,6 +144,9 @@ export default function TrainingPage() {
         subtitle="Logga, följ utveckling och hitta mönster i din träning."
         actions={
           <>
+            <DSButton variant="ghost" onClick={handleExportCsv} disabled={filtered.length === 0}>
+              <Download className="w-4 h-4" /> CSV
+            </DSButton>
             <DSButton variant="secondary" asChild>
               <Link to="/stopwatch">
                 <Timer className="w-4 h-4" /> Tidtagarur

@@ -5,11 +5,13 @@ import { Calendar, MapPin, ExternalLink, ArrowRight, Trophy } from 'lucide-react
 import { supabase } from '@/integrations/supabase/client';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingFooterV2 } from '@/components/landing/LandingFooterV2';
+import { buildAgilityCompetitionPath, buildHoopersCompetitionPath } from '@/lib/competitionSlug';
 
 type Sport = 'agility' | 'hoopers';
 
 interface UnifiedCompetition {
   id: string;
+  rawId: string; // ursprungligt id utan sport-prefix, för länk till detalj
   name: string;
   club: string;
   location: string;
@@ -86,6 +88,7 @@ export default function PublicCompetitionsPage() {
       if (cancelled) return;
       const agility: UnifiedCompetition[] = (agilityRes.data || []).map((r: any) => ({
         id: `a-${r.id}`,
+        rawId: r.id,
         name: stripHtml(r.competition_name) || 'Tävling',
         club: stripHtml(r.club_name) || '',
         location: stripHtml(r.location) || '',
@@ -99,6 +102,7 @@ export default function PublicCompetitionsPage() {
       }));
       const hoopers: UnifiedCompetition[] = (hoopersRes.data || []).map((r: any) => ({
         id: `h-${r.competition_id}`,
+        rawId: r.competition_id,
         name: stripHtml(r.competition_name) || 'Hooperstävling',
         club: stripHtml(r.club_name) || '',
         location: stripHtml(r.location) || '',
@@ -237,13 +241,17 @@ export default function PublicCompetitionsPage() {
                   {group.label}
                 </h2>
                 <ul className="space-y-3">
-                  {group.items.map((c) => (
+                  {group.items.map((c) => {
+                    const detailPath = c.sport === 'agility'
+                      ? buildAgilityCompetitionPath(c.rawId, { club: c.club, name: c.name, location: c.location, date: c.date_start })
+                      : buildHoopersCompetitionPath(c.rawId, { club: c.club, name: c.name, location: c.location, date: c.date_start });
+                    return (
                     <li
                       key={c.id}
                       className="group rounded-xl border border-border-subtle bg-surface p-4 transition-colors hover:border-primary/40 md:p-5"
                     >
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                        <div className="min-w-0 flex-1">
+                        <Link to={detailPath} className="min-w-0 flex-1">
                           <div className="mb-1 flex flex-wrap items-center gap-2 text-xs">
                             <span
                               className={`rounded-full px-2 py-0.5 font-medium ${
@@ -262,7 +270,7 @@ export default function PublicCompetitionsPage() {
                               <span className="text-text-muted">· {c.status}</span>
                             )}
                           </div>
-                          <h3 className="font-display text-lg font-semibold leading-snug">
+                          <h3 className="font-display text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
                             {c.name}
                           </h3>
                           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-secondary">
@@ -287,7 +295,7 @@ export default function PublicCompetitionsPage() {
                               ))}
                             </div>
                           )}
-                        </div>
+                        </Link>
                         {c.source_url && (
                           <a
                             href={c.source_url}
@@ -300,7 +308,8 @@ export default function PublicCompetitionsPage() {
                         )}
                       </div>
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
               </section>
             ))}

@@ -33,6 +33,8 @@ const DesignDemoPage = React.lazy(() => import("./pages/DesignDemoPage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const FriendStatsPage = React.lazy(() => import("./pages/FriendStatsPage"));
 const PublicCompetitionsPage = React.lazy(() => import("./pages/PublicCompetitionsPage"));
+const CompetitionDetailPage = React.lazy(() => import("./pages/CompetitionDetailPage"));
+const HoopersCompetitionDetailPage = React.lazy(() => import("./pages/HoopersCompetitionDetailPage"));
 
 // Lazy: protected routes (v2 = ny design)
 const HomePage = React.lazy(() => import("./pages/v2/HomePage"));
@@ -112,6 +114,11 @@ const App = () => (
               <Route path="/hoopers-regler" element={<HoopersRulesPage />} />
               <Route path="/blogg" element={<BlogPage />} />
               <Route path="/tavlingar" element={<PublicCompetitionsPage />} />
+              {/* Hoopers detalj måste matcha före agility-detalj (mer specifik). */}
+              <Route path="/tavlingar/hoopers/:id" element={<HoopersCompetitionDetailPage />} />
+              <Route path="/tavlingar/hoopers/:id/:slug" element={<HoopersCompetitionDetailPage />} />
+              <Route path="/tavlingar/:id" element={<CompetitionDetailPage />} />
+              <Route path="/tavlingar/:id/:slug" element={<CompetitionDetailPage />} />
               {/* Redirects: gamla URL:er med 'ö' (URL-encoded eller raw) → ASCII-slug. Client-side Navigate (HTTP 200, inte äkta 301) – uppgraderas till äkta 301 vid Vercel-flytt. */}
               <Route path="/blogg/agility-kurs-nyb%C3%B6rjare" element={<Navigate to="/blogg/agility-kurs-nyborjare" replace />} />
               <Route path="/blogg/agility-kurs-nybörjare" element={<Navigate to="/blogg/agility-kurs-nyborjare" replace />} />

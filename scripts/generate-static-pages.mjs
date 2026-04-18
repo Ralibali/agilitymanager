@@ -441,8 +441,127 @@ async function main() {
   }
   console.log(`   ✓ ${posts.length} blogg-sidor skrivna`);
 
+  // 3) Tävlingsdetalj-sidor (agility + hoopers) — Fas 2B
+  const slugifyComp = (s) => {
+    if (!s) return '';
+    return String(s).toLowerCase()
+      .replace(/[åä]/g, 'a').replace(/ö/g, 'o')
+      .replace(/é|è|ê/g, 'e').replace(/ü/g, 'u')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+  };
+  const buildCompSlug = ({ club, name, location, date }) => {
+    const parts = [];
+    if (club) parts.push(slugifyComp(club));
+    else if (name) parts.push(slugifyComp(name));
+    if (location) parts.push(slugifyComp(location));
+    if (date) parts.push(date.slice(0, 10));
+    return parts.filter(Boolean).join('-') || 'tavling';
+  };
+
+  let detailCount = 0;
+  // Hämta detalj-data direkt från råvärden för att få id
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const headers = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` };
+    const [agRes, hoRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/competitions?select=id,competition_name,club_name,location,region,date_start,date_end,classes_agility,classes_hopp,judges,indoor_outdoor,source_url,fetched_at&date_start=gte.${today}&order=date_start.asc&limit=2000`, { headers }),
+      fetch(`${SUPABASE_URL}/rest/v1/hoopers_competitions_public?select=competition_id,competition_name,club_name,location,county,date,classes,source_url,fetched_at&date=gte.${today}&order=date.asc&limit=500`, { headers }),
+    ]);
+    const ag = agRes.ok ? await agRes.json() : [];
+    const ho = hoRes.ok ? await hoRes.json() : [];
+    const stripHtml = (s) => (s ? String(s).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : '');
+
+    for (const r of ag) {
+      const name = stripHtml(r.competition_name) || 'Agilitytävling';
+      const club = stripHtml(r.club_name);
+      const location = stripHtml(r.location);
+      const date = r.date_start
+        ? new Date(r.date_start).toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', year: 'numeric' })
+        : '';
+      const slug = buildCompSlug({ club, name, location, date: r.date_start });
+      const route = `/tavlingar/${encodeURIComponent(r.id)}/${slug}`;
+      const allClasses = [...(r.classes_agility || []), ...(r.classes_hopp || [])];
+      const title = `${name} – ${club}, ${location} ${date}`.trim();
+      const description = `Agilitytävling arrangerad av ${club || 'en svensk klubb'} i ${location || 'Sverige'}${date ? ` den ${date}` : ''}. ${allClasses.length} klasser.`;
+      const eventSchema = {
+        '@context': 'https://schema.org', '@type': 'SportsEvent',
+        name, description, startDate: r.date_start, endDate: r.date_end || r.date_start,
+        eventStatus: 'https://schema.org/EventScheduled',
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        location: { '@type': 'Place', name: location || club, address: { '@type': 'PostalAddress', addressLocality: location, addressRegion: r.region, addressCountry: 'SE' } },
+        organizer: club ? { '@type': 'Organization', name: club } : undefined,
+        sport: 'Agility', url: `${SITE_URL}${route}`,
+      };
+      const breadcrumb = buildBreadcrumbSchema([
+        { name: 'Hem', url: '/' }, { name: 'Tävlingar', url: '/tavlingar' }, { name, url: route },
+      ]);
+      const judgesHtml = (r.judges || []).map((j) => `<li>${escapeHtml(j)}</li>`).join('');
+      const classesHtml = allClasses.map((c) => `<li>${escapeHtml(c)}</li>`).join('');
+      const prerenderedBody = `      <article>
+        <header>
+          <h1>${escapeHtml(name)}</h1>
+          <p>Arrangör: ${escapeHtml(club)}</p>
+          <p>Datum: ${escapeHtml(date)} · Plats: ${escapeHtml(location)}</p>
+        </header>
+        ${classesHtml ? `<h2>Klasser</h2><ul>${classesHtml}</ul>` : ''}
+        ${judgesHtml ? `<h2>Domare</h2><ul>${judgesHtml}</ul>` : ''}
+        ${r.source_url ? `<p><a href="${escapeHtml(r.source_url)}" rel="nofollow noopener">Anmäl via Agilitydata.se</a></p>` : ''}
+      </article>`;
+      const html = buildPageHtml({
+        template, title, description, canonical: route, ogType: 'article',
+        jsonLdScripts: [eventSchema, breadcrumb], prerenderedBody,
+      });
+      await writeRoute(route, html);
+      detailCount++;
+    }
+
+    for (const r of ho) {
+      const name = stripHtml(r.competition_name) || 'Hooperstävling';
+      const club = stripHtml(r.club_name);
+      const location = stripHtml(r.location);
+      const date = r.date
+        ? new Date(r.date).toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', year: 'numeric' })
+        : '';
+      const slug = buildCompSlug({ club, name, location, date: r.date });
+      const route = `/tavlingar/hoopers/${encodeURIComponent(r.competition_id)}/${slug}`;
+      const title = `${name} – Hooperstävling, ${club}, ${location} ${date}`.trim();
+      const description = `Hooperstävling arrangerad av ${club || 'en svensk klubb'} i ${location || 'Sverige'}${date ? ` den ${date}` : ''}. ${(r.classes || []).length} klasser.`;
+      const eventSchema = {
+        '@context': 'https://schema.org', '@type': 'SportsEvent',
+        name, description, startDate: r.date,
+        eventStatus: 'https://schema.org/EventScheduled',
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        location: { '@type': 'Place', name: location || club, address: { '@type': 'PostalAddress', addressLocality: location, addressRegion: r.county, addressCountry: 'SE' } },
+        organizer: club ? { '@type': 'Organization', name: club } : undefined,
+        sport: 'Hoopers', url: `${SITE_URL}${route}`,
+      };
+      const breadcrumb = buildBreadcrumbSchema([
+        { name: 'Hem', url: '/' }, { name: 'Tävlingar', url: '/tavlingar' }, { name, url: route },
+      ]);
+      const classesHtml = (r.classes || []).map((c) => `<li>${escapeHtml(c)}</li>`).join('');
+      const prerenderedBody = `      <article>
+        <header>
+          <h1>${escapeHtml(name)}</h1>
+          <p>Arrangör: ${escapeHtml(club)}</p>
+          <p>Datum: ${escapeHtml(date)} · Plats: ${escapeHtml(location)}</p>
+        </header>
+        ${classesHtml ? `<h2>Klasser</h2><ul>${classesHtml}</ul>` : ''}
+        ${r.source_url ? `<p><a href="${escapeHtml(r.source_url)}" rel="nofollow noopener">Anmäl via SHoK</a></p>` : ''}
+      </article>`;
+      const html = buildPageHtml({
+        template, title, description, canonical: route, ogType: 'article',
+        jsonLdScripts: [eventSchema, breadcrumb], prerenderedBody,
+      });
+      await writeRoute(route, html);
+      detailCount++;
+    }
+    console.log(`   ✓ ${detailCount} tävlingsdetalj-sidor skrivna`);
+  } catch (err) {
+    console.error('⚠️  Kunde inte prerender tävlingsdetalj-sidor:', err.message);
+  }
+
   console.log('✅ Statisk HTML-generering klar');
-  console.log(`   Totalt: ${STATIC_PAGES.length + posts.length} sidor under dist/`);
+  console.log(`   Totalt: ${STATIC_PAGES.length + posts.length + detailCount} sidor under dist/`);
 }
 
 main().catch((err) => {

@@ -193,20 +193,20 @@ export default function SettingsPage() {
             <button
               onClick={() => handleCheckout(PLANS.monthly.priceId)}
               disabled={!!checkoutLoading}
-              className="flex-1 py-2.5 rounded-xl gradient-accent text-accent-foreground font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
+              className="flex-1 py-2.5 rounded-xl bg-secondary text-secondary-foreground font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
               {checkoutLoading === PLANS.monthly.priceId ? <Loader2 size={14} className="animate-spin" /> : null}
-              19 kr/mån
+              {PLANS.monthly.price}
             </button>
             <button
               onClick={() => handleCheckout(PLANS.yearly.priceId)}
               disabled={!!checkoutLoading}
-              className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-1.5 relative"
+              className="flex-1 py-2.5 rounded-xl gradient-accent text-accent-foreground font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-1.5 relative"
             >
               {checkoutLoading === PLANS.yearly.priceId ? <Loader2 size={14} className="animate-spin" /> : null}
-              99 kr/år
-              <span className="absolute -top-2 -right-1 text-[9px] bg-accent text-accent-foreground px-1.5 py-0.5 rounded-full font-bold">
-                Spara 57%
+              {PLANS.yearly.price}
+              <span className="absolute -top-2 -right-1 text-[9px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full font-bold whitespace-nowrap">
+                {PLANS.yearly.savingsLabel}
               </span>
             </button>
           </div>

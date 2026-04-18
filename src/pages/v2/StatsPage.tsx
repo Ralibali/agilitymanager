@@ -58,6 +58,23 @@ function rangeCutoff(range: Range): Date | null {
   }
 }
 
+const CHART_COLORS = [
+  "hsl(var(--brand-500))",
+  "hsl(var(--semantic-success))",
+  "hsl(var(--semantic-warning))",
+  "hsl(var(--semantic-danger))",
+  "hsl(var(--text-tertiary))",
+  "hsl(var(--brand-700))",
+];
+
+const CHART_TOOLTIP = {
+  background: "hsl(var(--bg-surface))",
+  border: "0.5px solid hsl(var(--ds-border-subtle) / 0.15)",
+  borderRadius: "10px",
+  fontSize: 12,
+  color: "hsl(var(--text-primary))",
+} as const;
+
 export default function StatsPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [training, setTraining] = useState<TrainingSession[]>([]);

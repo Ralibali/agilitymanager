@@ -318,18 +318,72 @@ async function main() {
     process.exit(1);
   }
 
-  // 1) Statiska sidor
+  // 1) Hämta tävlingar för pre-rendering av /tavlingar
+  let competitions = [];
+  try {
+    competitions = await fetchUpcomingCompetitions();
+    console.log(`🏆 Hämtade ${competitions.length} kommande tävlingar`);
+  } catch (err) {
+    console.error('⚠️  Kunde inte hämta tävlingar:', err.message);
+  }
+
+  const buildCompetitionsBody = (items) => {
+    if (!items.length) {
+      return `      <article>
+        <h1>Tävlingar i Sverige</h1>
+        <p>Inga kommande tävlingar registrerade just nu.</p>
+      </article>`;
+    }
+    const rows = items
+      .slice(0, 300)
+      .map((c) => {
+        const dateStr = c.date_end && c.date_end !== c.date_start
+          ? `${c.date_start} – ${c.date_end}`
+          : c.date_start;
+        const classes = c.classes.length ? ` (${c.classes.join(', ')})` : '';
+        const loc = [c.location, c.region].filter(Boolean).join(', ');
+        const link = c.source_url
+          ? ` — <a href="${escapeHtml(c.source_url)}" rel="nofollow noopener">Anmäl</a>`
+          : '';
+        return `<li><strong>${escapeHtml(dateStr)}</strong> · ${escapeHtml(c.sport)} · ${escapeHtml(c.name)} — ${escapeHtml(c.club)}, ${escapeHtml(loc)}${escapeHtml(classes)}${link}</li>`;
+      })
+      .join('\n        ');
+    return `      <article>
+        <h1>Tävlingar i Sverige</h1>
+        <p>Komplett översikt över ${items.length} kommande agility- och hooperstävlingar i Sverige enligt Agilitydata.se.</p>
+        <ul>
+        ${rows}
+        </ul>
+      </article>`;
+  };
+
+  // 2) Statiska sidor
   console.log(`📄 Genererar ${STATIC_PAGES.length} statiska sidor…`);
   for (const page of STATIC_PAGES) {
+    const isCompetitions = page.route === '/tavlingar';
+    const extraJsonLd = isCompetitions
+      ? [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Tävlingar i Sverige',
+            description: page.description,
+            url: `${SITE_URL}/tavlingar`,
+            isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: SITE_URL },
+          },
+        ]
+      : [];
     const html = buildPageHtml({
       template,
       title: page.title,
       description: page.description,
       canonical: page.route === '/' ? '/' : page.route,
       ogType: 'website',
+      jsonLdScripts: extraJsonLd,
+      prerenderedBody: isCompetitions ? buildCompetitionsBody(competitions) : '',
     });
     await writeRoute(page.route, html);
-    console.log(`   ✓ ${page.route}`);
+    console.log(`   ✓ ${page.route}${isCompetitions ? ` (${competitions.length} tävlingar)` : ''}`);
   }
 
   // 2) Blogginlägg från Supabase

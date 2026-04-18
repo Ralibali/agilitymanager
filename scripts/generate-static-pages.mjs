@@ -74,6 +74,12 @@ const STATIC_PAGES = [
     title: 'Cookiepolicy',
     description: 'Information om cookies och spårningstekniker som används på AgilityManager.',
   },
+  {
+    route: '/tavlingar',
+    title: 'Agility- och hooperstävlingar i Sverige',
+    description:
+      'Komplett översikt över kommande agility- och hooperstävlingar i Sverige. Uppdateras dagligen från Agilitydata.se.',
+  },
 ];
 
 // ---------------- Supabase ----------------

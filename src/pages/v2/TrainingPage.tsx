@@ -112,6 +112,28 @@ export default function TrainingPage() {
     return Array.from(map.entries()).sort(([a], [b]) => b.localeCompare(a));
   }, [filtered]);
 
+  const handleExportCsv = () => {
+    if (filtered.length === 0) {
+      toast.info("Inga pass att exportera i vald period");
+      return;
+    }
+    const dogName = (id: string) => dogs.find((d) => d.id === id)?.name || "—";
+    const rows = filtered.map((s) => ({
+      Datum: format(new Date(s.date), "yyyy-MM-dd"),
+      Hund: dogName(s.dog_id),
+      Sport: s.sport,
+      Typ: s.type,
+      "Tid (min)": s.duration_min || 0,
+      Repetitioner: s.reps || 0,
+      "Hund-energi": s.dog_energy || "",
+      "Förar-energi": s.handler_energy || "",
+      "Bra noteringar": (s.notes_good || "").replace(/\n/g, " "),
+      "Att förbättra": (s.notes_improve || "").replace(/\n/g, " "),
+    }));
+    downloadCsv(rows, `traning-${format(new Date(), "yyyy-MM-dd")}.csv`);
+    toast.success(`Exporterade ${rows.length} pass`);
+  };
+
   if (loading) return <PageSkeleton />;
 
   return (

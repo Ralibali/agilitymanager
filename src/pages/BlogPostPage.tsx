@@ -145,15 +145,13 @@ export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [post, setPost] = useState<BlogPost | undefined>(undefined);
-  const [otherPosts, setOtherPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
-    Promise.all([fetchPostBySlug(slug), fetchBlogPosts()]).then(([p, all]) => {
+    fetchPostBySlug(slug).then((p) => {
       setPost(p);
-      setOtherPosts(all.filter(a => a.slug !== slug).slice(0, 3));
       setLoading(false);
     });
   }, [slug]);

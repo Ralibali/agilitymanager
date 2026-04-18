@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Activity, Filter, Timer } from "lucide-react";
+import { Plus, Activity, Filter, Timer, Download } from "lucide-react";
 import { startOfWeek, subWeeks, format } from "date-fns";
 import { sv } from "date-fns/locale";
 import {
@@ -23,7 +23,10 @@ import {
 import { store } from "@/lib/store";
 import type { Dog, TrainingSession } from "@/types";
 import { LogTrainingDialog } from "@/components/v2/LogTrainingDialog";
+import { TrainingHeatmap } from "@/components/v2/TrainingHeatmap";
 import CoachVideoAnalysis from "@/components/training/CoachVideoAnalysis";
+import { downloadCsv } from "@/lib/csv";
+import { toast } from "sonner";
 
 type Range = "7d" | "30d" | "3m" | "all";
 

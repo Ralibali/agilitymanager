@@ -8,6 +8,7 @@ import { SEO, buildArticleSchema, buildBreadcrumbSchema } from '@/components/SEO
 import { BLOG_FAQS, buildFaqJsonLd } from '@/lib/blogFaqs';
 import { BlogFAQ } from '@/components/BlogFAQ';
 import { BlogTOC, extractTOCItems, slugifyHeading } from '@/components/BlogTOC';
+import { ShareArticleButton } from '@/components/ShareArticleButton';
 
 // Parse inline markdown: **bold** and [link](/url)
 function parseInline(text: string): React.ReactNode[] {
@@ -329,6 +330,11 @@ export default function BlogPostPage() {
           })()}
         </div>
       </article>
+
+      {/* Dela artikel */}
+      <section className="px-4 pb-6 max-w-2xl mx-auto">
+        <ShareArticleButton title={post.title} url={canonicalUrl} excerpt={post.excerpt} />
+      </section>
 
       {/* FAQ – endast på artiklar med definierad FAQ-data */}
       {faqSection && <BlogFAQ section={faqSection} />}

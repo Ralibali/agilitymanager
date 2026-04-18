@@ -140,7 +140,7 @@ export default function LandingPage() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {topFeatures.map((f, i) => (
               <motion.div
                 key={f.title}
@@ -194,7 +194,7 @@ export default function LandingPage() {
               onClick={() => navigate('/funktioner')}
               className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
             >
-              Se alla 14 funktioner <ArrowRight size={14} />
+              Se alla funktioner <ArrowRight size={14} />
             </button>
           </div>
         </div>

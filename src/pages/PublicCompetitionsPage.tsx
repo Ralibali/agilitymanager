@@ -5,11 +5,13 @@ import { Calendar, MapPin, ExternalLink, ArrowRight, Trophy } from 'lucide-react
 import { supabase } from '@/integrations/supabase/client';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingFooterV2 } from '@/components/landing/LandingFooterV2';
+import { buildAgilityCompetitionPath, buildHoopersCompetitionPath } from '@/lib/competitionSlug';
 
 type Sport = 'agility' | 'hoopers';
 
 interface UnifiedCompetition {
   id: string;
+  rawId: string; // ursprungligt id utan sport-prefix, för länk till detalj
   name: string;
   club: string;
   location: string;
@@ -86,6 +88,7 @@ export default function PublicCompetitionsPage() {
       if (cancelled) return;
       const agility: UnifiedCompetition[] = (agilityRes.data || []).map((r: any) => ({
         id: `a-${r.id}`,
+        rawId: r.id,
         name: stripHtml(r.competition_name) || 'Tävling',
         club: stripHtml(r.club_name) || '',
         location: stripHtml(r.location) || '',
@@ -99,6 +102,7 @@ export default function PublicCompetitionsPage() {
       }));
       const hoopers: UnifiedCompetition[] = (hoopersRes.data || []).map((r: any) => ({
         id: `h-${r.competition_id}`,
+        rawId: r.competition_id,
         name: stripHtml(r.competition_name) || 'Hooperstävling',
         club: stripHtml(r.club_name) || '',
         location: stripHtml(r.location) || '',

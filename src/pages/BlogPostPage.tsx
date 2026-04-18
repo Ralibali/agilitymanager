@@ -304,7 +304,29 @@ export default function BlogPostPage() {
 
         <div className="bg-card rounded-xl p-5 sm:p-8 shadow-card">
           {tocItems.length >= 2 && <BlogTOC items={tocItems} />}
-          {renderContent(post.content)}
+          {(() => {
+            const { body, lasVidare } = renderContent(post.content);
+            return (
+              <>
+                {body}
+                {lasVidare && (
+                  <aside className="mt-8 pt-6 border-t-2 border-primary/20">
+                    <div className="rounded-2xl bg-gradient-to-br from-primary/5 via-secondary/5 to-transparent border border-primary/10 p-5 sm:p-6">
+                      <div className="flex items-center gap-2.5 mb-4">
+                        <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary">
+                          <BookOpen size={18} />
+                        </div>
+                        <h2 className="font-display font-bold text-foreground text-lg">{lasVidare.title}</h2>
+                      </div>
+                      <ul className="space-y-1">
+                        {lasVidare.items.map((item, i) => renderLasVidareItem(item, i))}
+                      </ul>
+                    </div>
+                  </aside>
+                )}
+              </>
+            );
+          })()}
         </div>
       </article>
 

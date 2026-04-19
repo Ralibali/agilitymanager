@@ -59,6 +59,7 @@ const CoursePlannerBetaPage = React.lazy(() => import("./pages/v2/CoursePlannerB
 const V3HomePage = React.lazy(() => import("./pages/v3/V3HomePage"));
 const V3TrainingPage = React.lazy(() => import("./pages/v3/V3TrainingPage"));
 const V3DogsPage = React.lazy(() => import("./pages/v3/V3DogsPage"));
+const V3CompetitionsPage = React.lazy(() => import("./pages/v3/V3CompetitionsPage"));
 const V3PlaceholderPage = React.lazy(() => import("./pages/v3/V3PlaceholderPage"));
 
 const queryClient = new QueryClient();
@@ -156,7 +157,7 @@ const App = () => (
               <Route path="/v3" element={<V3Guard />}>
                 <Route index element={<V3HomePage />} />
                 <Route path="training" element={<V3TrainingPage />} />
-                <Route path="competition" element={<V3PlaceholderPage />} />
+                <Route path="competition" element={<V3CompetitionsPage />} />
                 <Route path="goals" element={<V3PlaceholderPage />} />
                 <Route path="stats" element={<V3PlaceholderPage />} />
                 <Route path="dogs" element={<V3DogsPage />} />

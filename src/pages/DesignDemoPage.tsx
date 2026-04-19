@@ -1,5 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Check, Plus, Search, Trophy, Flame, Heart, Calendar } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+
+/**
+ * Hämtar visningsnamn från profiles.display_name för inloggad användare.
+ * Faller tillbaka till "där" så att hälsningen alltid känns naturlig.
+ */
+function useGreetingName(): string {
+  const { user } = useAuth();
+  const [name, setName] = useState<string>("där");
+
+  useEffect(() => {
+    if (!user?.id) {
+      setName("där");
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      const raw = data?.display_name?.trim();
+      // display_name kan vara en e-post om profilen aldrig redigerats – ta då bara första delen.
+      const cleaned = raw && raw.includes("@") ? raw.split("@")[0] : raw;
+      setName(cleaned && cleaned.length > 0 ? cleaned : "där");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  return name;
+}
 
 /**
  * AgilityManager – The Addiction Update

@@ -34,6 +34,8 @@ const NotFound = React.lazy(() => import("./pages/NotFound"));
 const PublicCompetitionsPage = React.lazy(() => import("./pages/PublicCompetitionsPage"));
 const CompetitionDetailPage = React.lazy(() => import("./pages/CompetitionDetailPage"));
 const HoopersCompetitionDetailPage = React.lazy(() => import("./pages/HoopersCompetitionDetailPage"));
+const BreedsIndexPage = React.lazy(() => import("./pages/BreedsIndexPage"));
+const BreedDetailPage = React.lazy(() => import("./pages/BreedDetailPage"));
 
 // v2-shellen är pensionerad – alla skyddade rutter går nu via v3.
 
@@ -115,6 +117,8 @@ const App = () => (
               <Route path="/hoopers" element={<HoopersLandingPage />} />
               <Route path="/hoopers-regler" element={<HoopersRulesPage />} />
               <Route path="/blogg" element={<BlogPage />} />
+              <Route path="/raser" element={<BreedsIndexPage />} />
+              <Route path="/raser/:slug" element={<BreedDetailPage />} />
               <Route path="/tavlingar" element={<PublicCompetitionsPage />} />
               {/* Hoopers detalj måste matcha före agility-detalj (mer specifik). */}
               <Route path="/tavlingar/hoopers/:id" element={<HoopersCompetitionDetailPage />} />

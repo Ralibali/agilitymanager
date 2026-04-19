@@ -17,6 +17,10 @@ export default {
         display: ["'Outfit'", "sans-serif"],
         body: ["'Figtree'", "sans-serif"],
         sans: ["'Inter'", "'Figtree'", "sans-serif"],
+        // v3 – The Addiction Update
+        "v3-sans": ["'Inter'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        "v3-display": ["'Instrument Serif'", "Georgia", "serif"],
+        "v3-mono": ["'JetBrains Mono'", "ui-monospace", "monospace"],
       },
       fontSize: {
         base: ["14px", "1.5"],
@@ -26,6 +30,18 @@ export default {
         body: ["14px", { lineHeight: "1.5", fontWeight: "400" }],
         small: ["12px", { lineHeight: "1.4", fontWeight: "400" }],
         micro: ["11px", { lineHeight: "1.3", letterSpacing: "0.04em", fontWeight: "500" }],
+        // v3 typography scale
+        "v3-2xs": ["0.6875rem", { lineHeight: "1.4" }],
+        "v3-xs": ["0.75rem", { lineHeight: "1.4" }],
+        "v3-sm": ["0.875rem", { lineHeight: "1.5" }],
+        "v3-base": ["1rem", { lineHeight: "1.55" }],
+        "v3-lg": ["1.0625rem", { lineHeight: "1.55" }],
+        "v3-xl": ["1.25rem", { lineHeight: "1.4", letterSpacing: "-0.01em" }],
+        "v3-2xl": ["1.5rem", { lineHeight: "1.3", letterSpacing: "-0.015em" }],
+        "v3-3xl": ["1.875rem", { lineHeight: "1.2", letterSpacing: "-0.02em" }],
+        "v3-4xl": ["2.375rem", { lineHeight: "1.15", letterSpacing: "-0.02em" }],
+        "v3-5xl": ["3rem", { lineHeight: "1.1", letterSpacing: "-0.025em" }],
+        "v3-6xl": ["4rem", { lineHeight: "1.05", letterSpacing: "-0.03em" }],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -109,6 +125,43 @@ export default {
           danger: "hsl(var(--semantic-danger))",
           info: "hsl(var(--semantic-info))",
         },
+        // === v3 – The Addiction Update ===
+        v3: {
+          canvas: {
+            DEFAULT: "hsl(var(--v3-canvas))",
+            secondary: "hsl(var(--v3-canvas-secondary))",
+            elevated: "hsl(var(--v3-canvas-elevated))",
+            sunken: "hsl(var(--v3-canvas-sunken))",
+          },
+          brand: {
+            50: "hsl(var(--v3-brand-50))",
+            100: "hsl(var(--v3-brand-100))",
+            200: "hsl(var(--v3-brand-200))",
+            300: "hsl(var(--v3-brand-300))",
+            400: "hsl(var(--v3-brand-400))",
+            500: "hsl(var(--v3-brand-500))",
+            600: "hsl(var(--v3-brand-600))",
+            700: "hsl(var(--v3-brand-700))",
+            800: "hsl(var(--v3-brand-800))",
+            900: "hsl(var(--v3-brand-900))",
+          },
+          text: {
+            primary: "hsl(var(--v3-text-primary))",
+            secondary: "hsl(var(--v3-text-secondary))",
+            tertiary: "hsl(var(--v3-text-tertiary))",
+            inverse: "hsl(var(--v3-text-inverse))",
+          },
+          accent: {
+            tavlings: "hsl(var(--v3-accent-tavlings))",
+            traning: "hsl(var(--v3-accent-traning))",
+            prestation: "hsl(var(--v3-accent-prestation))",
+            halsa: "hsl(var(--v3-accent-halsa))",
+          },
+          success: "hsl(var(--v3-success))",
+          warning: "hsl(var(--v3-warning))",
+          error: "hsl(var(--v3-error))",
+          info: "hsl(var(--v3-info))",
+        },
       },
       borderRadius: {
         lg: "var(--radius-card)",
@@ -118,6 +171,21 @@ export default {
         "ds-sm": "var(--r-sm)",
         "ds-md": "var(--r-md)",
         "ds-lg": "var(--r-lg)",
+        // v3
+        "v3-sm": "0.375rem",
+        "v3-base": "0.625rem",
+        "v3-lg": "0.875rem",
+        "v3-xl": "1.125rem",
+        "v3-2xl": "1.5rem",
+      },
+      boxShadow: {
+        "v3-xs": "0 1px 2px rgba(26, 29, 27, 0.04)",
+        "v3-sm": "0 2px 4px rgba(26, 29, 27, 0.06), 0 1px 2px rgba(26, 29, 27, 0.04)",
+        "v3-base": "0 4px 8px rgba(26, 29, 27, 0.06), 0 2px 4px rgba(26, 29, 27, 0.04)",
+        "v3-lg": "0 8px 16px rgba(26, 29, 27, 0.08), 0 4px 8px rgba(26, 29, 27, 0.04)",
+        "v3-xl": "0 16px 32px rgba(26, 29, 27, 0.1), 0 8px 16px rgba(26, 29, 27, 0.06)",
+        "v3-inner": "inset 0 1px 2px rgba(26, 29, 27, 0.06)",
+        "v3-brand": "0 8px 24px rgba(63, 143, 85, 0.25)",
       },
       keyframes: {
         "accordion-down": {

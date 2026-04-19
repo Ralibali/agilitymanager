@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { fetchBlogPosts, type BlogPost } from '@/lib/blogData';
+import { MagneticButton } from '@/components/motion';
 
 /* ─────────────────────────────────────────────────────────────────────
    Kategorimetadata — färgkodade pills, gradient-placeholders och ikoner.
@@ -425,19 +426,24 @@ export default function BlogPage() {
         )}
 
         {/* CTA */}
-        <section className="mt-16 rounded-2xl border border-border/70 bg-card p-8 text-center">
-          <h2 className="font-display text-xl text-foreground mb-2">
-            Spåra din träning digitalt
-          </h2>
-          <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto">
-            Skapa ett gratis konto och börja logga träning, resultat och hälsa.
-          </p>
-          <Button
-            onClick={() => navigate('/auth')}
-            className="gap-2"
-          >
-            Kom igång gratis <ArrowRight size={16} />
-          </Button>
+        <section className="mt-16 rounded-2xl border border-border/70 bg-card p-8 text-center overflow-hidden relative">
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,hsl(var(--primary)/0.10),transparent_60%)] pointer-events-none"
+          />
+          <div className="relative">
+            <h2 className="font-display text-xl text-foreground mb-2">
+              Spåra din träning digitalt
+            </h2>
+            <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto">
+              Skapa ett gratis konto och börja logga träning, resultat och hälsa.
+            </p>
+            <MagneticButton strength={0.25}>
+              <Button onClick={() => navigate('/auth')} className="gap-2">
+                Kom igång gratis <ArrowRight size={16} />
+              </Button>
+            </MagneticButton>
+          </div>
         </section>
       </main>
     </div>

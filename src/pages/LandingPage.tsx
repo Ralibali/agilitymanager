@@ -18,6 +18,8 @@ import {
 import { useState } from 'react';
 import { motion as motionTokens } from '@/lib/motion';
 import { MagneticButton } from '@/components/motion';
+import { AnimatedNumber } from '@/components/motion/AnimatedNumber';
+import { AnimatePresence } from 'framer-motion';
 
 /* ────── animation helpers (motion-token-baserade) ────── */
 const fadeUp = (delay = 0) => ({
@@ -507,30 +509,36 @@ export default function LandingPage() {
           {/* Toggle */}
           <div className="flex justify-center mb-10">
             <div className="p-1 flex gap-1" style={{ background: 'hsl(var(--secondary))', borderRadius: 'var(--radius-pill)' }}>
-              <button
-                className="px-4 py-1.5 text-sm font-medium transition-all font-body"
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                transition={{ duration: motionTokens.duration.instant, ease: motionTokens.ease.smooth }}
+                className="px-4 py-1.5 text-sm font-medium font-body"
                 style={{
                   borderRadius: 'var(--radius-pill)',
                   background: !annual ? '#fff' : 'transparent',
                   boxShadow: !annual ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
                   color: !annual ? '#111' : '#999',
+                  transition: `background ${motionTokens.duration.fast}s ease, color ${motionTokens.duration.fast}s ease, box-shadow ${motionTokens.duration.fast}s ease`,
                 }}
                 onClick={() => setAnnual(false)}
               >
                 Månadsvis
-              </button>
-              <button
-                className="px-4 py-1.5 text-sm font-medium transition-all font-body"
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                transition={{ duration: motionTokens.duration.instant, ease: motionTokens.ease.smooth }}
+                className="px-4 py-1.5 text-sm font-medium font-body"
                 style={{
                   borderRadius: 'var(--radius-pill)',
                   background: annual ? '#fff' : 'transparent',
                   boxShadow: annual ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
                   color: annual ? '#111' : '#999',
+                  transition: `background ${motionTokens.duration.fast}s ease, color ${motionTokens.duration.fast}s ease, box-shadow ${motionTokens.duration.fast}s ease`,
                 }}
                 onClick={() => setAnnual(true)}
               >
                 Årsvis
-              </button>
+              </motion.button>
             </div>
           </div>
 
@@ -538,23 +546,61 @@ export default function LandingPage() {
             {/* Free */}
             <motion.div
               {...inViewFadeUp(0.1)}
-              className="bg-card border border-border p-8"
+              whileHover={{ y: -4 }}
+              transition={{
+                duration: motionTokens.duration.base,
+                ease: motionTokens.ease.smooth,
+              }}
+              className="bg-card border border-border p-8 group transition-shadow"
               style={{
                 borderRadius: 'var(--radius-card)',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
               }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLDivElement).style.boxShadow =
+                  '0 12px 32px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.06)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLDivElement).style.boxShadow =
+                  '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)';
+              }}
             >
               <h3 className="font-display text-foreground text-xl mb-1">Gratis</h3>
               <p className="text-muted-foreground text-sm mb-6 font-body">Perfekt för att komma igång</p>
-              <div className="font-display text-3xl text-foreground mb-6">0 kr<span className="text-base font-normal text-muted-foreground font-body">/mån</span></div>
-              <ul className="space-y-3 mb-8">
+              <div className="font-display text-3xl text-foreground mb-6">
+                0 kr<span className="text-base font-normal text-muted-foreground font-body">/mån</span>
+              </div>
+              <motion.ul
+                className="space-y-3 mb-8"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2, margin: motionTokens.viewport.margin }}
+                variants={{
+                  hidden: {},
+                  visible: { transition: { staggerChildren: motionTokens.stagger.tight } },
+                }}
+              >
                 {['Träningslogg (obegränsat)', '1 hund', 'Banplanerare (3 sparade banor)', 'Tävlingsresultat (senaste 10)', 'Banexport (PNG & PDF)', 'Hundförsäkringsjämförelse'].map(f => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-foreground font-body">
+                  <motion.li
+                    key={f}
+                    variants={{
+                      hidden: { opacity: 0, y: 4 },
+                      visible: {
+                        opacity: 1,
+                        y: 0,
+                        transition: {
+                          duration: motionTokens.duration.fast,
+                          ease: motionTokens.ease.out,
+                        },
+                      },
+                    }}
+                    className="flex items-start gap-2 text-sm text-foreground font-body"
+                  >
                     <Check size={16} style={{ color: '#1a6b3c' }} className="mt-0.5 flex-shrink-0" />
                     {f}
-                  </li>
+                  </motion.li>
                 ))}
-              </ul>
+              </motion.ul>
               <Button variant="outline" className="w-full font-semibold" onClick={() => navigate('/auth')}>
                 Kom igång gratis
               </Button>
@@ -563,11 +609,24 @@ export default function LandingPage() {
             {/* Pro */}
             <motion.div
               {...inViewFadeUp(0.2)}
-              className="bg-card p-8 relative"
+              whileHover={{ y: -4, scale: 1.005 }}
+              transition={{
+                duration: motionTokens.duration.base,
+                ease: motionTokens.ease.smooth,
+              }}
+              className="bg-card p-8 relative transition-shadow"
               style={{
                 borderRadius: 'var(--radius-card)',
                 border: '2px solid #1a6b3c',
-                boxShadow: '0 4px 16px rgba(26, 107, 60, 0.1)',
+                boxShadow: '0 4px 16px rgba(26, 107, 60, 0.10)',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLDivElement).style.boxShadow =
+                  '0 18px 40px rgba(26,107,60,0.18), 0 6px 14px rgba(26,107,60,0.12)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLDivElement).style.boxShadow =
+                  '0 4px 16px rgba(26, 107, 60, 0.10)';
               }}
             >
               <motion.div
@@ -580,17 +639,59 @@ export default function LandingPage() {
               </motion.div>
               <h3 className="font-display text-foreground text-xl mb-1">Pro</h3>
               <p className="text-muted-foreground text-sm mb-6 font-body">För den seriösa tävlaren</p>
-              <div className="font-display text-3xl text-foreground mb-2">
-                {annual ? '790 kr' : '79 kr'}
-                <span className="text-base font-normal text-muted-foreground font-body">/{annual ? 'år' : 'mån'}</span>
+
+              {/* Animerad prislapp – cross-fade per/period + räknande siffra */}
+              <div className="font-display text-3xl text-foreground mb-2 flex items-baseline gap-1 min-h-[2.5rem]">
+                <AnimatedNumber value={annual ? 790 : 79} />
+                <span> kr</span>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={annual ? 'year' : 'month'}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{
+                      duration: motionTokens.duration.fast,
+                      ease: motionTokens.ease.out,
+                    }}
+                    className="text-base font-normal text-muted-foreground font-body"
+                  >
+                    /{annual ? 'år' : 'mån'}
+                  </motion.span>
+                </AnimatePresence>
               </div>
-              {annual && (
-                <p className="text-xs font-semibold mb-4 font-body" style={{ color: '#1a6b3c' }}>
-                  💰 Spara 158 kr jämfört med månadsvis
-                </p>
-              )}
-              {!annual && <div className="mb-4" />}
-              <ul className="space-y-3 mb-8">
+
+              <div className="min-h-[1.25rem] mb-4">
+                <AnimatePresence mode="wait" initial={false}>
+                  {annual && (
+                    <motion.p
+                      key="save"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{
+                        duration: motionTokens.duration.fast,
+                        ease: motionTokens.ease.out,
+                      }}
+                      className="text-xs font-semibold font-body"
+                      style={{ color: '#1a6b3c' }}
+                    >
+                      💰 Spara 158 kr jämfört med månadsvis
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <motion.ul
+                className="space-y-3 mb-8"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2, margin: motionTokens.viewport.margin }}
+                variants={{
+                  hidden: {},
+                  visible: { transition: { staggerChildren: motionTokens.stagger.tight } },
+                }}
+              >
                 {[
                   'Allt i Gratis',
                   'Obegränsat antal hundar',
@@ -603,12 +704,26 @@ export default function LandingPage() {
                   'Hämta resultat från agilitydata.se',
                   'CSV-export av träningsdata',
                 ].map(f => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-foreground font-body">
+                  <motion.li
+                    key={f}
+                    variants={{
+                      hidden: { opacity: 0, y: 4 },
+                      visible: {
+                        opacity: 1,
+                        y: 0,
+                        transition: {
+                          duration: motionTokens.duration.fast,
+                          ease: motionTokens.ease.out,
+                        },
+                      },
+                    }}
+                    className="flex items-start gap-2 text-sm text-foreground font-body"
+                  >
                     <Check size={16} style={{ color: '#1a6b3c' }} className="mt-0.5 flex-shrink-0" />
                     {f}
-                  </li>
+                  </motion.li>
                 ))}
-              </ul>
+              </motion.ul>
               <Button
                 className="w-full font-semibold"
                 style={{ background: '#1a6b3c', color: '#fff' }}

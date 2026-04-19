@@ -63,6 +63,8 @@ const V3CompetitionsPage = React.lazy(() => import("./pages/v3/V3CompetitionsPag
 const V3GoalsPage = React.lazy(() => import("./pages/v3/V3GoalsPage"));
 const V3StatsPage = React.lazy(() => import("./pages/v3/V3StatsPage"));
 const V3HealthPage = React.lazy(() => import("./pages/v3/V3HealthPage"));
+const V3CoursesPage = React.lazy(() => import("./pages/v3/V3CoursesPage"));
+const V3CoursePlannerPage = React.lazy(() => import("./pages/v3/V3CoursePlannerPage"));
 const V3PlaceholderPage = React.lazy(() => import("./pages/v3/V3PlaceholderPage"));
 
 const queryClient = new QueryClient();
@@ -165,8 +167,8 @@ const App = () => (
                 <Route path="stats" element={<V3StatsPage />} />
                 <Route path="dogs" element={<V3DogsPage />} />
                 <Route path="health" element={<V3HealthPage />} />
-                <Route path="courses" element={<V3PlaceholderPage />} />
-                <Route path="course-planner" element={<V3PlaceholderPage />} />
+                <Route path="courses" element={<V3CoursesPage />} />
+                <Route path="course-planner" element={<V3CoursePlannerPage />} />
                 <Route path="stopwatch" element={<V3PlaceholderPage />} />
                 <Route path="friends" element={<V3PlaceholderPage />} />
                 <Route path="clubs" element={<V3PlaceholderPage />} />

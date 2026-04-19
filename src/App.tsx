@@ -57,6 +57,7 @@ const CoursePlannerBetaPage = React.lazy(() => import("./pages/v2/CoursePlannerB
 
 // Lazy: v3 (parallell shell – Fas 2+)
 const V3HomePage = React.lazy(() => import("./pages/v3/V3HomePage"));
+const V3TrainingPage = React.lazy(() => import("./pages/v3/V3TrainingPage"));
 const V3PlaceholderPage = React.lazy(() => import("./pages/v3/V3PlaceholderPage"));
 
 const queryClient = new QueryClient();
@@ -153,7 +154,7 @@ const App = () => (
               {/* v3 – Addiction Update (Fas 3: skyddad bakom V3Guard som renderar V3Layout) */}
               <Route path="/v3" element={<V3Guard />}>
                 <Route index element={<V3HomePage />} />
-                <Route path="training" element={<V3PlaceholderPage />} />
+                <Route path="training" element={<V3TrainingPage />} />
                 <Route path="competition" element={<V3PlaceholderPage />} />
                 <Route path="goals" element={<V3PlaceholderPage />} />
                 <Route path="stats" element={<V3PlaceholderPage />} />

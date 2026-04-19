@@ -275,7 +275,7 @@ function Badge({
         "text-[10px] font-medium px-2 py-0.5 rounded-full uppercase tracking-[0.04em]",
         tone === "brand" && "bg-v3-brand-500/10 text-v3-brand-700",
         tone === "muted" && "bg-v3-canvas-sunken text-v3-text-secondary",
-        tone === "hoopers" && "bg-v3-accent-hoopers/15 text-v3-accent-hoopers",
+        tone === "hoopers" && "bg-v3-accent-prestation/15 text-v3-accent-prestation",
       )}
     >
       {children}

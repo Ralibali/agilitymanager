@@ -196,13 +196,14 @@ function ColorGrid() {
 /* ────────────────────────────────────────────────────────────────────────── */
 
 function TypographyShowcase() {
+  const name = useGreetingName();
   return (
     <div className="space-y-8 bg-v3-canvas-elevated rounded-v3-xl p-8 md:p-10 shadow-v3-xs">
       <div>
         <p className="text-v3-xs font-medium uppercase tracking-wide text-v3-text-tertiary mb-2">
           Display · Instrument Serif
         </p>
-        <p className="font-v3-display text-v3-6xl">Godmorgon, Christoffer.</p>
+        <p className="font-v3-display text-v3-6xl">Godmorgon, {name}.</p>
         <p className="font-v3-display text-v3-4xl text-v3-text-secondary">
           Luna, 4 år · 18 pass den här månaden
         </p>

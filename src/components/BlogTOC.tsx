@@ -1,4 +1,5 @@
 import { List } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export interface TOCItem {
   id: string;
@@ -58,6 +59,29 @@ interface BlogTOCProps {
 }
 
 export function BlogTOC({ items }: BlogTOCProps) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (items.length < 2) return;
+    const headings = items
+      .map((i) => document.getElementById(i.id))
+      .filter((el): el is HTMLElement => !!el);
+    if (headings.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Pick the topmost heading currently in view
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) setActiveId(visible[0].target.id);
+      },
+      { rootMargin: '-80px 0px -65% 0px', threshold: [0, 1] },
+    );
+    headings.forEach((h) => observer.observe(h));
+    return () => observer.disconnect();
+  }, [items]);
+
   if (items.length < 2) return null;
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
@@ -66,7 +90,7 @@ export function BlogTOC({ items }: BlogTOCProps) {
     if (el) {
       const top = el.getBoundingClientRect().top + window.scrollY - 80;
       window.scrollTo({ top, behavior: 'smooth' });
-      // Update URL hash without jump
+      setActiveId(id);
       history.replaceState(null, '', `#${id}`);
     }
   };
@@ -83,20 +107,37 @@ export function BlogTOC({ items }: BlogTOCProps) {
         </h2>
       </div>
       <ol className="space-y-1.5 text-sm">
-        {items.map((item, i) => (
-          <li key={item.id} className="flex gap-2">
-            <span className="text-primary font-semibold tabular-nums min-w-[1.25rem]">
-              {i + 1}.
-            </span>
-            <a
-              href={`#${item.id}`}
-              onClick={(e) => handleClick(e, item.id)}
-              className="text-foreground/80 hover:text-primary hover:underline transition-colors"
-            >
-              {item.text}
-            </a>
-          </li>
-        ))}
+        {items.map((item, i) => {
+          const isActive = activeId === item.id;
+          return (
+            <li key={item.id} className="flex gap-2">
+              <span
+                className={`tabular-nums min-w-[1.25rem] font-semibold transition-colors duration-200 ${
+                  isActive ? 'text-primary' : 'text-primary/60'
+                }`}
+              >
+                {i + 1}.
+              </span>
+              <a
+                href={`#${item.id}`}
+                onClick={(e) => handleClick(e, item.id)}
+                className={`relative transition-colors duration-200 ${
+                  isActive
+                    ? 'text-primary font-medium'
+                    : 'text-foreground/80 hover:text-primary'
+                }`}
+              >
+                {item.text}
+                {isActive && (
+                  <span
+                    aria-hidden
+                    className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary"
+                  />
+                )}
+              </a>
+            </li>
+          );
+        })}
       </ol>
     </nav>
   );

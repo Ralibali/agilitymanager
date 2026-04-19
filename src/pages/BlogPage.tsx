@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { fetchBlogPosts, type BlogPost } from '@/lib/blogData';
+import { MagneticButton } from '@/components/motion';
 
 /* ─────────────────────────────────────────────────────────────────────
    Kategorimetadata — färgkodade pills, gradient-placeholders och ikoner.
@@ -425,19 +426,27 @@ export default function BlogPage() {
         )}
 
         {/* CTA */}
-        <section className="mt-16 rounded-2xl border border-border/70 bg-card p-8 text-center">
-          <h2 className="font-display text-xl text-foreground mb-2">
-            Spåra din träning digitalt
-          </h2>
-          <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto">
-            Skapa ett gratis konto och börja logga träning, resultat och hälsa.
-          </p>
-          <Button
-            onClick={() => navigate('/auth')}
-            className="gap-2"
-          >
-            Kom igång gratis <ArrowRight size={16} />
-          </Button>
+        <section className="mt-16 rounded-2xl border border-border/70 bg-card p-8 text-center overflow-hidden relative">
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,hsl(var(--primary)/0.10),transparent_60%)] pointer-events-none"
+          />
+          <div className="relative">
+            <h2 className="font-display text-xl text-foreground mb-2">
+              Spåra din träning digitalt
+            </h2>
+            <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto">
+              Skapa ett gratis konto och börja logga träning, resultat och hälsa.
+            </p>
+            <MagneticButton
+              strength={8}
+              radius={120}
+              onClick={() => navigate('/auth')}
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Kom igång gratis <ArrowRight size={16} />
+            </MagneticButton>
+          </div>
         </section>
       </main>
     </div>
@@ -452,18 +461,20 @@ function FeaturedCard({ post }: { post: BlogPost }) {
     <motion.article
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: 'easeOut' }}
+      transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
     >
       <Link
         to={`/blogg/${post.slug}`}
-        className="group block overflow-hidden rounded-2xl border border-border/70 bg-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
+        className="group block overflow-hidden rounded-2xl border border-border/70 bg-card transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-          <CategoryPlaceholder
-            category={post.category}
-            className="aspect-[16/9] md:aspect-auto md:min-h-[320px]"
-            iconSize={88}
-          />
+          <div className="overflow-hidden">
+            <CategoryPlaceholder
+              category={post.category}
+              className="aspect-[16/9] md:aspect-auto md:min-h-[320px] transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+              iconSize={88}
+            />
+          </div>
           <div className="p-7 md:p-10 flex flex-col justify-center">
             <div className="flex items-center gap-3 mb-4">
               <CategoryPill category={post.category} />
@@ -484,7 +495,7 @@ function FeaturedCard({ post }: { post: BlogPost }) {
               Läs artikeln
               <ArrowRight
                 size={16}
-                className="transition-transform group-hover:translate-x-1"
+                className="transition-transform duration-300 group-hover:translate-x-1.5"
               />
             </span>
           </div>
@@ -501,20 +512,26 @@ function ArticleCard({ post, index }: { post: BlogPost; index: number }) {
   return (
     <motion.article
       layout
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 8 }}
-      transition={{ duration: 0.25, delay: Math.min(index * 0.04, 0.3) }}
+      transition={{
+        duration: 0.36,
+        delay: Math.min(index * 0.06, 0.36),
+        ease: [0.16, 1, 0.3, 1],
+      }}
     >
       <Link
         to={`/blogg/${post.slug}`}
-        className="group flex h-full flex-col overflow-hidden rounded-[14px] border border-border/70 bg-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+        className="group flex h-full flex-col overflow-hidden rounded-[14px] border border-border/70 bg-card transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg"
       >
-        <CategoryPlaceholder
-          category={post.category}
-          className="aspect-[16/9] w-full"
-          iconSize={48}
-        />
+        <div className="overflow-hidden">
+          <CategoryPlaceholder
+            category={post.category}
+            className="aspect-[16/9] w-full transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+            iconSize={48}
+          />
+        </div>
         <div className="flex flex-1 flex-col p-5">
           <div className="flex items-center gap-2 mb-2.5">
             <CategoryPill category={post.category} />
@@ -532,7 +549,7 @@ function ArticleCard({ post, index }: { post: BlogPost; index: number }) {
             Läs mer
             <ArrowRight
               size={13}
-              className="transition-transform group-hover:translate-x-0.5"
+              className="transition-transform duration-300 group-hover:translate-x-1"
             />
           </span>
         </div>

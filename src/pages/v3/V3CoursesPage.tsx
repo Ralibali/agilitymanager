@@ -4,6 +4,7 @@ import {
   GraduationCap, PenTool, Sparkles, Play, CheckCircle2, ExternalLink,
   ShoppingCart, Star, Trash2, Pencil, Clock,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useV3Courses, useV3CourseRecommendations, type V3Course } from "@/hooks/v3/useV3Courses";
 import { usePremium } from "@/components/PremiumGate";
 import { V3Skeleton, V3StatTilesSkeleton, V3RowsSkeleton } from "@/components/v3/V3Skeleton";
@@ -168,7 +169,7 @@ function StatTile({
 }: {
   label: string;
   value: string | number;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: LucideIcon;
   hint?: string;
 }) {
   return (

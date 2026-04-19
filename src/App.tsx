@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { V3Layout } from "@/components/v3/V3Layout";
 import { captureUtmParams } from "@/lib/utm";
 
 // Capture UTM params on first load
@@ -53,6 +54,9 @@ const AdminPage = React.lazy(() => import("./pages/v2/AdminPage"));
 const CoursesPage = React.lazy(() => import("./pages/v2/CoursesPage"));
 const CoursePlannerPage = React.lazy(() => import("./pages/CoursePlannerPage"));
 const CoursePlannerBetaPage = React.lazy(() => import("./pages/v2/CoursePlannerBetaPage"));
+
+// Lazy: v3 (parallell shell – Fas 2)
+const V3PlaceholderPage = React.lazy(() => import("./pages/v3/V3PlaceholderPage"));
 
 const queryClient = new QueryClient();
 
@@ -131,6 +135,24 @@ const App = () => (
               <Route path="/invite/:code" element={<InvitePage />} />
               <Route path="/club-invite/:code" element={<ClubInvitePage />} />
               <Route path="/design-demo" element={<DesignDemoPage />} />
+
+              {/* v3 – Addiction Update (Fas 2: parallell shell, publik tills vidare) */}
+              <Route path="/v3" element={<V3Layout />}>
+                <Route index element={<V3PlaceholderPage />} />
+                <Route path="training" element={<V3PlaceholderPage />} />
+                <Route path="competition" element={<V3PlaceholderPage />} />
+                <Route path="goals" element={<V3PlaceholderPage />} />
+                <Route path="stats" element={<V3PlaceholderPage />} />
+                <Route path="dogs" element={<V3PlaceholderPage />} />
+                <Route path="health" element={<V3PlaceholderPage />} />
+                <Route path="courses" element={<V3PlaceholderPage />} />
+                <Route path="course-planner" element={<V3PlaceholderPage />} />
+                <Route path="stopwatch" element={<V3PlaceholderPage />} />
+                <Route path="friends" element={<V3PlaceholderPage />} />
+                <Route path="clubs" element={<V3PlaceholderPage />} />
+                <Route path="settings" element={<V3PlaceholderPage />} />
+                <Route path="admin" element={<V3PlaceholderPage />} />
+              </Route>
 
               {/* Skyddade rutter – ny design via persistent AppLayout-shell */}
               <Route element={<ShellGuard />}>

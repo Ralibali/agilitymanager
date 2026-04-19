@@ -69,6 +69,9 @@ const V3FriendsPage = React.lazy(() => import("./pages/v3/V3FriendsPage"));
 const V3ChatListPage = React.lazy(() => import("./pages/v3/V3ChatListPage"));
 const V3ChatPage = React.lazy(() => import("./pages/v3/V3ChatPage"));
 const V3ClubsPage = React.lazy(() => import("./pages/v3/V3ClubsPage"));
+const V3StopwatchPage = React.lazy(() => import("./pages/v3/V3StopwatchPage"));
+const V3SettingsPage = React.lazy(() => import("./pages/v3/V3SettingsPage"));
+const V3AdminPage = React.lazy(() => import("./pages/v3/V3AdminPage"));
 const V3PlaceholderPage = React.lazy(() => import("./pages/v3/V3PlaceholderPage"));
 
 const queryClient = new QueryClient();
@@ -173,13 +176,13 @@ const App = () => (
                 <Route path="health" element={<V3HealthPage />} />
                 <Route path="courses" element={<V3CoursesPage />} />
                 <Route path="course-planner" element={<V3CoursePlannerPage />} />
-                <Route path="stopwatch" element={<V3PlaceholderPage />} />
+                <Route path="stopwatch" element={<V3StopwatchPage />} />
                 <Route path="friends" element={<V3FriendsPage />} />
                 <Route path="chat" element={<V3ChatListPage />} />
                 <Route path="chat/:friendId" element={<V3ChatPage />} />
                 <Route path="clubs" element={<V3ClubsPage />} />
-                <Route path="settings" element={<V3PlaceholderPage />} />
-                <Route path="admin" element={<V3PlaceholderPage />} />
+                <Route path="settings" element={<V3SettingsPage />} />
+                <Route path="admin" element={<V3AdminPage />} />
               </Route>
 
               {/* Skyddade rutter – ny design via persistent AppLayout-shell */}

@@ -47,7 +47,7 @@ export default function V3TrainingPage() {
   const { sessions, stats, loading } = useV3Training(activeId, filter);
 
   return (
-    <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-8">
+    <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-8 animate-v3-fade-in">
       {/* Header */}
       <header className="flex items-end justify-between gap-4">
         <div className="space-y-2">

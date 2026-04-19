@@ -69,7 +69,7 @@ export default function V3HomePage() {
   const { stats, nextEvent, timeline, loading: dashLoading } = useV3Dashboard(activeId);
 
   return (
-    <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-8 lg:space-y-10">
+    <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-8 lg:space-y-10 animate-v3-fade-in">
       {/* Greeting */}
       <header className="space-y-2">
         <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">

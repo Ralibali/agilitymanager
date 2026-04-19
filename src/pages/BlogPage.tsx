@@ -438,10 +438,13 @@ export default function BlogPage() {
             <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto">
               Skapa ett gratis konto och börja logga träning, resultat och hälsa.
             </p>
-            <MagneticButton strength={0.25}>
-              <Button onClick={() => navigate('/auth')} className="gap-2">
-                Kom igång gratis <ArrowRight size={16} />
-              </Button>
+            <MagneticButton
+              strength={8}
+              radius={120}
+              onClick={() => navigate('/auth')}
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Kom igång gratis <ArrowRight size={16} />
             </MagneticButton>
           </div>
         </section>

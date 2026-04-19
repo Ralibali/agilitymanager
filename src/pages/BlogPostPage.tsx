@@ -9,6 +9,7 @@ import { BLOG_FAQS, buildFaqJsonLd } from '@/lib/blogFaqs';
 import { BlogFAQ } from '@/components/BlogFAQ';
 import { BlogTOC, extractTOCItems, slugifyHeading } from '@/components/BlogTOC';
 import { ShareArticleButton } from '@/components/ShareArticleButton';
+import { FadeIn, ScrollProgress, MagneticButton } from '@/components/motion';
 
 // Parse inline markdown: **bold** and [link](/url)
 function parseInline(text: string): React.ReactNode[] {

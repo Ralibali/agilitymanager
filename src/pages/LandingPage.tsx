@@ -738,9 +738,24 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════ FINAL CTA (full-width grön) ═══════ */}
-      <section className="py-20 px-4" style={{ background: '#1a6b3c' }}>
-        <div className="max-w-2xl mx-auto text-center">
+      {/* ═══════ FINAL CTA (full-width grön + subtil bakgrundspan) ═══════ */}
+      <section
+        className="relative py-20 px-4 overflow-hidden"
+        style={{ background: '#1a6b3c' }}
+      >
+        {/* Långsam bakgrundspanorering – knappt synlig medvetet */}
+        <motion.div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(circle at 30% 50%, rgba(255,255,255,0.08), transparent 50%), radial-gradient(circle at 70% 50%, rgba(232,160,92,0.10), transparent 55%)',
+            backgroundSize: '200% 200%',
+          }}
+          animate={{ backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'] }}
+          transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+        />
+        <div className="relative max-w-2xl mx-auto text-center">
           <motion.h2
             {...inViewFadeUp()}
             className="font-display text-2xl sm:text-3xl mb-3"
@@ -761,9 +776,11 @@ export default function LandingPage() {
             Gratis att starta. Ingen kortbindning. Uppgradera när du vill.
           </motion.p>
           <motion.div {...inViewFadeUp(0.2)}>
-            <button
+            <MagneticButton
               onClick={() => navigate('/auth?mode=signup')}
-              className="inline-flex items-center gap-2 font-body transition-transform hover:scale-[1.02]"
+              strength={6}
+              radius={120}
+              className="inline-flex items-center gap-2 font-body active:scale-[0.98]"
               style={{
                 background: '#ffffff',
                 color: '#0f1411',
@@ -775,7 +792,7 @@ export default function LandingPage() {
               }}
             >
               Skapa gratis konto <ArrowRight size={18} />
-            </button>
+            </MagneticButton>
           </motion.div>
           <motion.p
             {...inViewFadeUp(0.3)}
@@ -795,3 +812,4 @@ export default function LandingPage() {
     </div>
   );
 }
+

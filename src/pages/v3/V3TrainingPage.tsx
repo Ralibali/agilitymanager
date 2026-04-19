@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Dumbbell, Clock, TrendingUp, MapPin } from "lucide-react";
+import { Plus, Dumbbell, Clock, TrendingUp, MapPin, type LucideIcon } from "lucide-react";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Training, type V3TrainingFilter } from "@/hooks/v3/useV3Training";
 import { openV3LogSheet } from "@/hooks/v3/useV3LogSheet";
@@ -227,7 +227,7 @@ function StatTile({
   sub,
   small,
 }: {
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  icon: LucideIcon;
   label: string;
   value: string;
   sub: string;

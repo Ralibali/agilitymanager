@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { AppLayout } from "@/components/layout/AppLayout";
 import { V3Layout } from "@/components/v3/V3Layout";
 import { captureUtmParams } from "@/lib/utm";
 
@@ -60,18 +59,6 @@ const V3PlaceholderPage = React.lazy(() => import("./pages/v3/V3PlaceholderPage"
 
 const queryClient = new QueryClient();
 
-function ShellGuard() {
-  const { user, loading } = useAuth();
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-page">
-        <div className="text-text-secondary font-sans-ds">Laddar…</div>
-      </div>
-    );
-  }
-  if (!user) return <Navigate to="/auth" replace />;
-  return <AppLayout />;
-}
 
 function V3Guard() {
   const { user, loading } = useAuth();

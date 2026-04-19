@@ -102,7 +102,7 @@ export default function V3HealthPage() {
 
       {/* Hund-switcher */}
       {dogsLoading ? (
-        <div className="h-28 rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 animate-pulse" />
+        <div className="v3-skeleton h-28 rounded-v3-2xl" />
       ) : (
         <DogHero
           dogs={dogs}
@@ -350,14 +350,14 @@ function LogsList({
     return (
       <div className="space-y-2">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-20 rounded-v3-lg bg-v3-canvas-elevated animate-pulse" />
+          <div key={i} className="v3-skeleton h-20 rounded-v3-lg" />
         ))}
       </div>
     );
   }
   if (items.length === 0) {
     return (
-      <div className="rounded-v3-xl border border-dashed border-v3-canvas-sunken/60 bg-v3-canvas-elevated/40 p-10 text-center space-y-3">
+      <div className="rounded-v3-xl border border-dashed border-v3-canvas-sunken/60 bg-v3-canvas-elevated/40 p-10 text-center space-y-3 animate-v3-fade-up">
         <div className="text-4xl">🩺</div>
         <h3 className="font-v3-display text-v3-lg text-v3-text-primary">Inga loggar än</h3>
         <p className="text-v3-sm text-v3-text-tertiary max-w-sm mx-auto">
@@ -366,7 +366,7 @@ function LogsList({
         <button
           type="button"
           onClick={onAdd}
-          className="inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors mt-2"
+          className="inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors mt-2 v3-focus-ring"
         >
           <Plus size={16} />
           Ny logg
@@ -375,9 +375,11 @@ function LogsList({
     );
   }
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 v3-stagger">
       {items.map((log) => (
-        <LogRow key={log.id} log={log} onEdit={onEdit} onDelete={onDelete} />
+        <div key={log.id} className="animate-v3-fade-up">
+          <LogRow log={log} onEdit={onEdit} onDelete={onDelete} />
+        </div>
       ))}
     </div>
   );

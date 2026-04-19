@@ -55,7 +55,8 @@ const CoursesPage = React.lazy(() => import("./pages/v2/CoursesPage"));
 const CoursePlannerPage = React.lazy(() => import("./pages/CoursePlannerPage"));
 const CoursePlannerBetaPage = React.lazy(() => import("./pages/v2/CoursePlannerBetaPage"));
 
-// Lazy: v3 (parallell shell – Fas 2)
+// Lazy: v3 (parallell shell – Fas 2+)
+const V3HomePage = React.lazy(() => import("./pages/v3/V3HomePage"));
 const V3PlaceholderPage = React.lazy(() => import("./pages/v3/V3PlaceholderPage"));
 
 const queryClient = new QueryClient();
@@ -71,6 +72,19 @@ function ShellGuard() {
   }
   if (!user) return <Navigate to="/auth" replace />;
   return <AppLayout />;
+}
+
+function V3Guard() {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-v3-canvas">
+        <div className="text-v3-text-tertiary font-v3-sans">Laddar…</div>
+      </div>
+    );
+  }
+  if (!user) return <Navigate to="/auth?redirect=/v3" replace />;
+  return <V3Layout />;
 }
 
 function AuthGuard() {
@@ -136,9 +150,9 @@ const App = () => (
               <Route path="/club-invite/:code" element={<ClubInvitePage />} />
               <Route path="/design-demo" element={<DesignDemoPage />} />
 
-              {/* v3 – Addiction Update (Fas 2: parallell shell, publik tills vidare) */}
-              <Route path="/v3" element={<V3Layout />}>
-                <Route index element={<V3PlaceholderPage />} />
+              {/* v3 – Addiction Update (Fas 3: skyddad bakom V3Guard som renderar V3Layout) */}
+              <Route path="/v3" element={<V3Guard />}>
+                <Route index element={<V3HomePage />} />
                 <Route path="training" element={<V3PlaceholderPage />} />
                 <Route path="competition" element={<V3PlaceholderPage />} />
                 <Route path="goals" element={<V3PlaceholderPage />} />

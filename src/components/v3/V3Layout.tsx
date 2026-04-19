@@ -4,6 +4,8 @@ import { V3Sidebar } from "./V3Sidebar";
 import { V3BottomNav } from "./V3BottomNav";
 import { V3MoreSheet } from "./V3MoreSheet";
 import { V3QuickActionSheet } from "./V3QuickActionSheet";
+import { V3LogTrainingSheet } from "./V3LogTrainingSheet";
+import { useV3LogSheet } from "@/hooks/v3/useV3LogSheet";
 
 /**
  * Persistent v3-shell.
@@ -15,6 +17,7 @@ import { V3QuickActionSheet } from "./V3QuickActionSheet";
 export function V3Layout() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
+  const { open: logOpen, setOpen: setLogOpen, close: closeLog } = useV3LogSheet();
 
   return (
     <div className="min-h-screen bg-v3-canvas text-v3-text-primary font-v3-sans flex">
@@ -33,7 +36,15 @@ export function V3Layout() {
         onOpenMore={() => setMoreOpen(true)}
       />
       <V3MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} />
-      <V3QuickActionSheet open={quickOpen} onClose={() => setQuickOpen(false)} />
+      <V3QuickActionSheet
+        open={quickOpen}
+        onClose={() => setQuickOpen(false)}
+        onLogTraining={() => {
+          setQuickOpen(false);
+          setLogOpen(true);
+        }}
+      />
+      <V3LogTrainingSheet open={logOpen} onClose={closeLog} />
     </div>
   );
 }

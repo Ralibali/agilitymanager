@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Plus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Dashboard } from "@/hooks/v3/useV3Dashboard";
+import { openV3LogSheet } from "@/hooks/v3/useV3LogSheet";
 import { DogHero } from "@/components/v3/DogHero";
 import { StatRow } from "@/components/v3/StatRow";
 import { NextUpCard } from "@/components/v3/NextUpCard";
@@ -82,13 +84,25 @@ export default function V3HomePage() {
       {dogsLoading ? (
         <div className="h-28 rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 animate-pulse" />
       ) : (
-        <DogHero
-          dogs={dogs}
-          active={active}
-          activeId={activeId}
-          onSelect={setActive}
-          onAddDog={() => navigate("/v3/dogs")}
-        />
+        <div className="space-y-4">
+          <DogHero
+            dogs={dogs}
+            active={active}
+            activeId={activeId}
+            onSelect={setActive}
+            onAddDog={() => navigate("/v3/dogs")}
+          />
+          {active && (
+            <button
+              type="button"
+              onClick={openV3LogSheet}
+              className="inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm"
+            >
+              <Plus size={16} strokeWidth={2} />
+              Logga pass
+            </button>
+          )}
+        </div>
       )}
 
       {active && (

@@ -31,7 +31,6 @@ const InvitePage = React.lazy(() => import("./pages/InvitePage"));
 const ClubInvitePage = React.lazy(() => import("./pages/ClubInvitePage"));
 const DesignDemoPage = React.lazy(() => import("./pages/DesignDemoPage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
-const FriendStatsPage = React.lazy(() => import("./pages/FriendStatsPage"));
 const PublicCompetitionsPage = React.lazy(() => import("./pages/PublicCompetitionsPage"));
 const CompetitionDetailPage = React.lazy(() => import("./pages/CompetitionDetailPage"));
 const HoopersCompetitionDetailPage = React.lazy(() => import("./pages/HoopersCompetitionDetailPage"));

@@ -1,15 +1,35 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ArrowRight, Check, Plus, Search, Trophy, Flame, Heart, Calendar } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Hämtar visningsnamn från profiles.display_name för inloggad användare.
- * Faller tillbaka till "där" så att hälsningen alltid känns naturlig.
+ * Tidsanpassad hälsning baserat på lokal klocktid.
+ * 06–11 → "Godmorgon", 11–17 → "Hej", 17–22 → "God kväll", 22–06 → "Sent uppe".
  */
-function useGreetingName(): string {
+function getTimeGreeting(date: Date = new Date()): string {
+  const h = date.getHours();
+  if (h >= 6 && h < 11) return "Godmorgon";
+  if (h >= 11 && h < 17) return "Hej";
+  if (h >= 17 && h < 22) return "God kväll";
+  return "Sent uppe";
+}
+
+/**
+ * Hämtar visningsnamn från profiles.display_name + tidsanpassad hälsning.
+ * Faller tillbaka till "där" så att hälsningen alltid känns naturlig.
+ * Hälsningen uppdateras varje minut så den inte fastnar över ett dygnsskifte.
+ */
+function useGreeting(): { greeting: string; name: string } {
   const { user } = useAuth();
   const [name, setName] = useState<string>("där");
+  const [greeting, setGreeting] = useState<string>(() => getTimeGreeting());
+
+  useEffect(() => {
+    const tick = () => setGreeting(getTimeGreeting());
+    const id = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!user?.id) {
@@ -34,7 +54,7 @@ function useGreetingName(): string {
     };
   }, [user?.id]);
 
-  return name;
+  return { greeting, name };
 }
 
 /**
@@ -97,25 +117,6 @@ export default function DesignDemoPage() {
 
 /* ────────────────────────────────────────────────────────────────────────── */
 
-function Header() {
-  const name = useGreetingName();
-  return (
-    <header className="space-y-6">
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-v3-base bg-v3-brand-50 text-v3-brand-700">
-        <span className="text-v3-xs font-medium tracking-wide uppercase">Fas 1</span>
-      </div>
-      <h1 className="font-v3-display text-v3-5xl md:text-v3-6xl text-v3-text-primary">
-        Godmorgon, {name}.
-      </h1>
-      <p className="text-v3-lg text-v3-text-secondary max-w-[640px] leading-relaxed">
-        Varm, lugn, självsäker. Inter för UI, Instrument Serif för stora siffror
-        och rubriker. Alla färger, radier, skuggor och rörelser bor i en token-fil.
-        Komponenterna nedan är referensen kommande faser bygger på.
-      </p>
-    </header>
-  );
-}
-
 function Section({
   title,
   subtitle,
@@ -127,14 +128,35 @@ function Section({
 }) {
   return (
     <section className="space-y-6">
-      <div className="space-y-1.5">
+      <div className="space-y-1">
         <h2 className="font-v3-display text-v3-3xl text-v3-text-primary">{title}</h2>
         {subtitle && (
-          <p className="text-v3-sm text-v3-text-tertiary max-w-[560px]">{subtitle}</p>
+          <p className="text-v3-base text-v3-text-secondary">{subtitle}</p>
         )}
       </div>
-      <div>{children}</div>
+      {children}
     </section>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function Header() {
+  const { greeting, name } = useGreeting();
+  return (
+    <header className="space-y-6">
+      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-v3-base bg-v3-brand-50 text-v3-brand-700">
+        <span className="text-v3-xs font-medium tracking-wide uppercase">Fas 1</span>
+      </div>
+      <h1 className="font-v3-display text-v3-5xl md:text-v3-6xl text-v3-text-primary">
+        {greeting}, {name}.
+      </h1>
+      <p className="text-v3-lg text-v3-text-secondary max-w-[640px] leading-relaxed">
+        Varm, lugn, självsäker. Inter för UI, Instrument Serif för stora siffror
+        och rubriker. Alla färger, radier, skuggor och rörelser bor i en token-fil.
+        Komponenterna nedan är referensen kommande faser bygger på.
+      </p>
+    </header>
   );
 }
 
@@ -196,14 +218,14 @@ function ColorGrid() {
 /* ────────────────────────────────────────────────────────────────────────── */
 
 function TypographyShowcase() {
-  const name = useGreetingName();
+  const { greeting, name } = useGreeting();
   return (
     <div className="space-y-8 bg-v3-canvas-elevated rounded-v3-xl p-8 md:p-10 shadow-v3-xs">
       <div>
         <p className="text-v3-xs font-medium uppercase tracking-wide text-v3-text-tertiary mb-2">
           Display · Instrument Serif
         </p>
-        <p className="font-v3-display text-v3-6xl">Godmorgon, {name}.</p>
+        <p className="font-v3-display text-v3-6xl">{greeting}, {name}.</p>
         <p className="font-v3-display text-v3-4xl text-v3-text-secondary">
           Luna, 4 år · 18 pass den här månaden
         </p>

@@ -60,7 +60,7 @@ export default function V3StatsPage() {
 
       {/* Hund-switcher */}
       {dogsLoading ? (
-        <div className="h-28 rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 animate-pulse" />
+        <div className="h-28 rounded-v3-2xl" + " v3-skeleton " />
       ) : (
         <DogHero
           dogs={dogs}
@@ -272,7 +272,7 @@ function PatternsTab({
         <section className="space-y-3">
           <SectionHeader title="Hund-jämförelse" subtitle="Aktivitet i samma intervall" />
           {compareLoading ? (
-            <div className="h-32 rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 animate-pulse" />
+            <div className="h-32 rounded-v3-2xl" + " v3-skeleton " />
           ) : (
             <DogCompareTable rows={compareRows} activeId={activeDogId} />
           )}
@@ -577,11 +577,11 @@ function StatsSkeleton() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-28 rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 animate-pulse" />
+          <div key={i} className="h-28 rounded-v3-2xl" + " v3-skeleton " />
         ))}
       </div>
-      <div className="h-48 rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 animate-pulse" />
-      <div className="h-40 rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 animate-pulse" />
+      <div className="h-48 rounded-v3-2xl" + " v3-skeleton " />
+      <div className="h-40 rounded-v3-2xl" + " v3-skeleton " />
     </div>
   );
 }

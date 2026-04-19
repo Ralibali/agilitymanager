@@ -81,7 +81,7 @@ export default function V3CompetitionsPage() {
 
       {/* Hund-switcher */}
       {dogsLoading ? (
-        <div className="h-28 rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 animate-pulse" />
+        <div className="h-28 rounded-v3-2xl" + " v3-skeleton " />
       ) : (
         <DogHero
           dogs={dogs}
@@ -223,7 +223,7 @@ function UpcomingList({
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="h-24 rounded-v3-lg bg-v3-canvas-elevated border border-v3-canvas-sunken/40 animate-pulse"
+            className="h-24 rounded-v3-lg" + " v3-skeleton "
           />
         ))}
       </div>
@@ -340,7 +340,7 @@ function ResultsList({
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="h-24 rounded-v3-lg bg-v3-canvas-elevated border border-v3-canvas-sunken/40 animate-pulse"
+            className="h-24 rounded-v3-lg" + " v3-skeleton "
           />
         ))}
       </div>

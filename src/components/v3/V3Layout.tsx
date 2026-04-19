@@ -25,7 +25,23 @@ export function V3Layout() {
 
       <div className="flex-1 flex flex-col min-w-0">
         <main className="flex-1 pb-24 lg:pb-0">
-          <Suspense fallback={<div className="p-8 text-v3-text-tertiary text-v3-sm">Laddar…</div>}>
+          <Suspense
+            fallback={
+              <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-8">
+                <div className="space-y-2">
+                  <div className="v3-skeleton h-3 w-24 rounded" />
+                  <div className="v3-skeleton h-10 w-2/3 rounded-v3-base" />
+                </div>
+                <div className="v3-skeleton h-28 rounded-v3-2xl" />
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="v3-skeleton h-[92px] rounded-v3-xl" />
+                  <div className="v3-skeleton h-[92px] rounded-v3-xl" />
+                  <div className="v3-skeleton h-[92px] rounded-v3-xl" />
+                  <div className="v3-skeleton h-[92px] rounded-v3-xl" />
+                </div>
+              </div>
+            }
+          >
             <Outlet />
           </Suspense>
         </main>

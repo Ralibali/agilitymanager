@@ -81,7 +81,7 @@ export function V3AddPlannedSheet({ open, onClose, dog, onSaved }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/40 animate-in fade-in" onClick={onClose} />
-      <div className="relative w-full max-w-[640px] bg-v3-canvas rounded-t-v3-2xl lg:rounded-v3-2xl lg:mb-10 max-h-[92vh] flex flex-col shadow-v3-xl animate-in slide-in-from-bottom-4">
+      <div className="relative w-full max-w-[640px] bg-v3-canvas rounded-t-v3-2xl lg:rounded-v3-2xl lg:mb-10 max-h-[92vh] flex flex-col shadow-v3-xl animate-v3-sheet-in-4">
         <header className="flex items-center justify-between px-5 py-4 border-b border-v3-canvas-sunken/40 shrink-0">
           <div>
             <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">

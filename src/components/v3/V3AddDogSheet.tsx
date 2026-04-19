@@ -130,7 +130,7 @@ export function V3AddDogSheet({ open, onClose, onAdded }: Props) {
         className={cn(
           "absolute inset-x-0 bottom-0 bg-v3-canvas-elevated rounded-t-v3-2xl shadow-v3-xl",
           "max-h-[92vh] flex flex-col",
-          "pb-[env(safe-area-inset-bottom,0px)] animate-in slide-in-from-bottom duration-300",
+          "pb-[env(safe-area-inset-bottom,0px)] animate-v3-sheet-in",
         )}
       >
         <div className="flex justify-center pt-2.5 pb-1 shrink-0">

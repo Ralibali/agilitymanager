@@ -108,7 +108,7 @@ export function V3AddHealthSheet({ open, onClose, dog, editing, onSaved }: Props
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[640px] bg-v3-surface text-v3-text-primary rounded-t-3xl shadow-2xl max-h-[92vh] overflow-y-auto animate-in slide-in-from-bottom duration-300"
+        className="w-full max-w-[640px] bg-v3-surface text-v3-text-primary rounded-t-3xl shadow-2xl max-h-[92vh] overflow-y-auto animate-v3-sheet-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

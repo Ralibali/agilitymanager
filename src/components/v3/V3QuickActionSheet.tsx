@@ -51,7 +51,7 @@ export function V3QuickActionSheet({ open, onClose, onLogTraining }: Props) {
       <div
         className={cn(
           "absolute inset-x-0 bottom-0 bg-v3-canvas-elevated rounded-t-v3-2xl shadow-v3-xl",
-          "pb-[env(safe-area-inset-bottom,0px)] animate-in slide-in-from-bottom duration-300",
+          "pb-[env(safe-area-inset-bottom,0px)] animate-v3-sheet-in",
         )}
       >
         <div className="flex justify-center pt-2.5 pb-1">

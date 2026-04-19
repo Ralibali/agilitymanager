@@ -329,3 +329,71 @@
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* ============================================
+   V3 polish utilities (motion + skeleton + focus)
+   ============================================ */
+@layer utilities {
+  /* Stagger-children: tilldelar varje barn en växande delay för en
+     "gardin"-känsla när en lista renderas. Använd tillsammans med
+     animate-v3-fade-up på barnen. */
+  .v3-stagger > * { animation-delay: 0ms; }
+  .v3-stagger > *:nth-child(1) { animation-delay: 40ms; }
+  .v3-stagger > *:nth-child(2) { animation-delay: 80ms; }
+  .v3-stagger > *:nth-child(3) { animation-delay: 120ms; }
+  .v3-stagger > *:nth-child(4) { animation-delay: 160ms; }
+  .v3-stagger > *:nth-child(5) { animation-delay: 200ms; }
+  .v3-stagger > *:nth-child(6) { animation-delay: 240ms; }
+  .v3-stagger > *:nth-child(7) { animation-delay: 280ms; }
+  .v3-stagger > *:nth-child(8) { animation-delay: 320ms; }
+  .v3-stagger > *:nth-child(9) { animation-delay: 360ms; }
+  .v3-stagger > *:nth-child(n + 10) { animation-delay: 400ms; }
+
+  /* Tappable cards i v3 – mjukt scale + skugg-lyft */
+  .v3-tappable {
+    transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 180ms ease,
+                background-color 180ms ease;
+  }
+  .v3-tappable:hover { transform: translateY(-1px); }
+  .v3-tappable:active { transform: scale(0.985); }
+
+  /* Skeleton-shimmer för v3 – mjuk neutral grå-till-vit */
+  .v3-skeleton {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--v3-canvas-elevated)) 0%,
+      hsl(var(--v3-canvas-sunken)) 50%,
+      hsl(var(--v3-canvas-elevated)) 100%
+    );
+    background-size: 200% 100%;
+    animation: v3-shimmer 1.8s ease-in-out infinite;
+    border-radius: 0.75rem;
+  }
+
+  /* Focus-ring konsekvent över v3 */
+  .v3-focus-ring:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px hsl(var(--v3-canvas)),
+      0 0 0 4px hsl(var(--v3-brand-500));
+  }
+
+  /* Reduced-motion respekt */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-v3-fade-up,
+    .animate-v3-fade-in,
+    .animate-v3-sheet-in,
+    .animate-v3-scale-in,
+    .v3-stagger > * {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+}
+
+@keyframes v3-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}

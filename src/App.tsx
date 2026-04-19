@@ -31,7 +31,6 @@ const InvitePage = React.lazy(() => import("./pages/InvitePage"));
 const ClubInvitePage = React.lazy(() => import("./pages/ClubInvitePage"));
 const DesignDemoPage = React.lazy(() => import("./pages/DesignDemoPage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
-const FriendStatsPage = React.lazy(() => import("./pages/FriendStatsPage"));
 const PublicCompetitionsPage = React.lazy(() => import("./pages/PublicCompetitionsPage"));
 const CompetitionDetailPage = React.lazy(() => import("./pages/CompetitionDetailPage"));
 const HoopersCompetitionDetailPage = React.lazy(() => import("./pages/HoopersCompetitionDetailPage"));
@@ -55,7 +54,6 @@ const V3ClubsPage = React.lazy(() => import("./pages/v3/V3ClubsPage"));
 const V3StopwatchPage = React.lazy(() => import("./pages/v3/V3StopwatchPage"));
 const V3SettingsPage = React.lazy(() => import("./pages/v3/V3SettingsPage"));
 const V3AdminPage = React.lazy(() => import("./pages/v3/V3AdminPage"));
-const V3PlaceholderPage = React.lazy(() => import("./pages/v3/V3PlaceholderPage"));
 
 const queryClient = new QueryClient();
 

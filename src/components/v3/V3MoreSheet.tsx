@@ -47,7 +47,7 @@ export function V3MoreSheet({ open, onClose }: Props) {
         className={cn(
           "absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto",
           "bg-v3-canvas-elevated rounded-t-v3-2xl shadow-v3-xl",
-          "pb-[env(safe-area-inset-bottom,16px)] animate-in slide-in-from-bottom duration-300",
+          "pb-[env(safe-area-inset-bottom,16px)] animate-v3-sheet-in",
         )}
       >
         <div className="flex justify-center pt-2.5 pb-1 sticky top-0 bg-v3-canvas-elevated">

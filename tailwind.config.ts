@@ -18,8 +18,8 @@ export default {
         body: ["'Figtree'", "sans-serif"],
         sans: ["'Inter'", "'Figtree'", "sans-serif"],
         // v3 – The Addiction Update
-        "v3-sans": ["'Inter'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
-        "v3-display": ["'Instrument Serif'", "Georgia", "serif"],
+        "v3-sans": ["'Epilogue'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        "v3-display": ["'Urbanist'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
         "v3-mono": ["'JetBrains Mono'", "ui-monospace", "monospace"],
       },
       fontSize: {

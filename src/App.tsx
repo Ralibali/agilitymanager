@@ -150,10 +150,9 @@ const App = () => (
               <Route path="/club-invite/:code" element={<ClubInvitePage />} />
               <Route path="/design-demo" element={<DesignDemoPage />} />
 
-              {/* v3 – Addiction Update (Fas 3: skyddad bakom V3Guard) */}
-              <Route element={<V3Guard />}>
-                <Route path="/v3" element={null}>
-                  <Route index element={<V3HomePage />} />
+              {/* v3 – Addiction Update (Fas 3: skyddad bakom V3Guard som renderar V3Layout) */}
+              <Route path="/v3" element={<V3Guard />}>
+                <Route index element={<V3HomePage />} />
                 <Route path="training" element={<V3PlaceholderPage />} />
                 <Route path="competition" element={<V3PlaceholderPage />} />
                 <Route path="goals" element={<V3PlaceholderPage />} />

@@ -37,23 +37,7 @@ const PublicCompetitionsPage = React.lazy(() => import("./pages/PublicCompetitio
 const CompetitionDetailPage = React.lazy(() => import("./pages/CompetitionDetailPage"));
 const HoopersCompetitionDetailPage = React.lazy(() => import("./pages/HoopersCompetitionDetailPage"));
 
-// Lazy: protected routes (v2 = ny design)
-const HomePage = React.lazy(() => import("./pages/v2/HomePage"));
-const StatsPage = React.lazy(() => import("./pages/v2/StatsPage"));
-const TrainingPage = React.lazy(() => import("./pages/v2/TrainingPage"));
-const GoalsPage = React.lazy(() => import("./pages/v2/GoalsPage"));
-const StopwatchPage = React.lazy(() => import("./pages/v2/StopwatchPage"));
-const CompetitionPage = React.lazy(() => import("./pages/v2/CompetitionPage"));
-const FriendsPage = React.lazy(() => import("./pages/v2/FriendsPage"));
-const ClubsPage = React.lazy(() => import("./pages/v2/ClubsPage"));
-const ChatPage = React.lazy(() => import("./pages/v2/ChatPage"));
-const DogsPage = React.lazy(() => import("./pages/v2/DogsPage"));
-const HealthPage = React.lazy(() => import("./pages/v2/HealthPage"));
-const SettingsPage = React.lazy(() => import("./pages/v2/SettingsPage"));
-const AdminPage = React.lazy(() => import("./pages/v2/AdminPage"));
-const CoursesPage = React.lazy(() => import("./pages/v2/CoursesPage"));
-const CoursePlannerPage = React.lazy(() => import("./pages/CoursePlannerPage"));
-const CoursePlannerBetaPage = React.lazy(() => import("./pages/v2/CoursePlannerBetaPage"));
+// v2-shellen är pensionerad – alla skyddade rutter går nu via v3.
 
 // Lazy: v3 (parallell shell – Fas 2+)
 const V3HomePage = React.lazy(() => import("./pages/v3/V3HomePage"));

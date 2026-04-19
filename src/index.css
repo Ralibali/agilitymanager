@@ -213,6 +213,16 @@
     --ds-border-subtle: 120 11% 92%;
     --ds-border-default: 120 11% 92%;
     --ds-border-strong: 120 11% 92%;
+
+    /* v3 darkmode */
+    --v3-canvas: 132 6% 11%;
+    --v3-canvas-secondary: 140 6% 16%;
+    --v3-canvas-elevated: 132 6% 19%;
+    --v3-canvas-sunken: 140 8% 9%;
+    --v3-text-primary: 60 18% 97%;
+    --v3-text-secondary: 132 3% 67%;
+    --v3-text-tertiary: 132 3% 42%;
+    --v3-text-inverse: 132 6% 11%;
   }
 }
 
@@ -236,6 +246,26 @@
 }
 
 @layer utilities {
+  .font-v3-sans {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  .font-v3-display {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+  .v3-selection ::selection {
+    background-color: hsl(var(--v3-brand-100));
+    color: hsl(var(--v3-text-primary));
+  }
+  .v3-focus-ring:focus-visible {
+    outline: 2px solid hsl(var(--v3-brand-500));
+    outline-offset: 2px;
+  }
   .font-display {
     font-family: var(--font-display);
   }

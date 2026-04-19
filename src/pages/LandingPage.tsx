@@ -191,10 +191,10 @@ export default function LandingPage() {
 
           <div className="text-center mt-10">
             <button
-              onClick={() => navigate('/funktioner')}
+              onClick={() => navigate('/auth?mode=signup')}
               className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
             >
-              Se alla funktioner <ArrowRight size={14} />
+              Kom igång och utforska alla funktioner <ArrowRight size={14} />
             </button>
           </div>
         </div>

@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 interface Props {
   open: boolean;
   onClose: () => void;
+  /** Specialfall: 'log-training' öppnar inline-sheet istället för att navigera. */
+  onLogTraining?: () => void;
 }
 
 const ACCENT_BG: Record<string, string> = {
@@ -20,7 +22,7 @@ const ACCENT_BG: Record<string, string> = {
  * Quick-action bottom-sheet som öppnas från FAB.
  * Stänger på ESC, backdrop-klick, eller efter val.
  */
-export function V3QuickActionSheet({ open, onClose }: Props) {
+export function V3QuickActionSheet({ open, onClose, onLogTraining }: Props) {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,6 +79,10 @@ export function V3QuickActionSheet({ open, onClose }: Props) {
                 key={a.id}
                 type="button"
                 onClick={() => {
+                  if (a.id === "log-training" && onLogTraining) {
+                    onLogTraining();
+                    return;
+                  }
                   onClose();
                   navigate(a.path);
                 }}

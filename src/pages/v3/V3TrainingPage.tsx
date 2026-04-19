@@ -191,7 +191,7 @@ export default function V3TrainingPage() {
               <Suspense
                 fallback={<div className="h-48 v3-skeleton" />}
               >
-                <CoachVideoAnalysis dogs={dogs} />
+                <CoachVideoAnalysis dogs={dogs as unknown as Parameters<typeof CoachVideoAnalysis>[0]["dogs"]} />
               </Suspense>
             </div>
           </section>

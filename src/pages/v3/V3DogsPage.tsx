@@ -138,7 +138,7 @@ export default function V3DogsPage() {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="h-[120px] rounded-v3-2xl" + " v3-skeleton "
+              className="h-[120px] rounded-v3-2xl  v3-skeleton"
             />
           ))}
         </div>

@@ -82,7 +82,7 @@ export default function V3HomePage() {
 
       {/* Dog hero */}
       {dogsLoading ? (
-        <div className="h-28 rounded-v3-2xl" + " v3-skeleton " />
+        <div className="h-28 rounded-v3-2xl  v3-skeleton" />
       ) : (
         <div className="space-y-4">
           <DogHero
@@ -111,7 +111,7 @@ export default function V3HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-5">
             <div className="lg:col-span-3">
               {dashLoading ? (
-                <div className="h-44 rounded-v3-2xl" + " v3-skeleton " />
+                <div className="h-44 rounded-v3-2xl  v3-skeleton" />
               ) : (
                 <NextUpCard next={nextEvent} />
               )}
@@ -119,8 +119,8 @@ export default function V3HomePage() {
             <div className="lg:col-span-2 space-y-3">
               {dashLoading ? (
                 <>
-                  <div className="h-20 rounded-v3-xl" + " v3-skeleton " />
-                  <div className="h-20 rounded-v3-xl" + " v3-skeleton " />
+                  <div className="h-20 rounded-v3-xl  v3-skeleton" />
+                  <div className="h-20 rounded-v3-xl  v3-skeleton" />
                 </>
               ) : (
                 <div className="grid grid-cols-2 gap-3">

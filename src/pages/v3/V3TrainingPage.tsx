@@ -72,7 +72,7 @@ export default function V3TrainingPage() {
 
       {/* Hund-switcher */}
       {dogsLoading ? (
-        <div className="h-28 rounded-v3-2xl" + " v3-skeleton " />
+        <div className="h-28 rounded-v3-2xl  v3-skeleton" />
       ) : (
         <DogHero
           dogs={dogs}
@@ -107,7 +107,7 @@ export default function V3TrainingPage() {
               {[0, 1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-24 rounded-v3-xl" + " v3-skeleton "
+                  className="h-24 rounded-v3-xl  v3-skeleton"
                 />
               ))}
             </div>
@@ -160,7 +160,7 @@ export default function V3TrainingPage() {
                 {[0, 1, 2, 3].map((i) => (
                   <div
                     key={i}
-                    className="h-20 rounded-v3-lg" + " v3-skeleton "
+                    className="h-20 rounded-v3-lg  v3-skeleton"
                   />
                 ))}
               </div>

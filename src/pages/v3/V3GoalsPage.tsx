@@ -137,7 +137,7 @@ export default function V3GoalsPage() {
 
       {/* Hund-switcher */}
       {dogsLoading ? (
-        <div className="h-28 rounded-v3-2xl" + " v3-skeleton " />
+        <div className="h-28 rounded-v3-2xl  v3-skeleton" />
       ) : (
         <DogHero
           dogs={dogs}
@@ -293,7 +293,7 @@ function GoalsList({
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="h-24 rounded-v3-lg" + " v3-skeleton "
+            className="h-24 rounded-v3-lg  v3-skeleton"
           />
         ))}
       </div>

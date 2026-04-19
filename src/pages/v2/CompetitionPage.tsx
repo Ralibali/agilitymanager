@@ -336,6 +336,10 @@ function CalendarTab({
     () => dogs.filter((d) => d.sport === "Hoopers" || d.sport === "Båda"),
     [dogs],
   );
+  const agilityDogs = useMemo(
+    () => dogs.filter((d) => d.sport === "Agility" || d.sport === "Båda"),
+    [dogs],
+  );
 
   return (
     <div className="space-y-4">
@@ -349,53 +353,11 @@ function CalendarTab({
       />
 
       {sportTab === "agility" ? (
-        agilityComps.length === 0 ? (
-          <DSCard>
-            <DSEmptyState
-              icon={Calendar}
-              title="Inga kommande tävlingar"
-              description="Vi hittar inga publicerade agility-tävlingar i kalendern just nu."
-            />
-          </DSCard>
-        ) : (
-          <div className="space-y-2">
-            {agilityComps.map((c) => {
-              const allClasses = [
-                ...(c.classes_agility ?? []),
-                ...(c.classes_hopp ?? []),
-                ...(c.classes_other ?? []),
-              ];
-              return (
-                <CompetitionCard
-                  key={c.id}
-                  title={c.competition_name ?? c.club_name ?? "Tävling"}
-                  club={c.club_name}
-                  location={c.location}
-                  dateStart={c.date_start}
-                  dateEnd={c.date_end}
-                  registrationDeadline={c.last_registration_date}
-                  classes={allClasses}
-                  sport="Agility"
-                  sourceUrl={c.source_url}
-                  rightSlot={
-                    c.source_url ? (
-                      <a
-                        href={c.source_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-text-tertiary hover:text-text-primary"
-                        aria-label="Öppna källa"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    ) : null
-                  }
-                />
-              );
-            })}
-          </div>
-        )
+        <AgilityKalendar
+          competitions={agilityComps}
+          dogs={agilityDogs}
+          selectedDogId={agilityDogs[0]?.id ?? null}
+        />
       ) : (
         <HoopersKalendar dogs={hoopersDogs} selectedDogId={hoopersDogs[0]?.id ?? null} />
       )}

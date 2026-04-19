@@ -54,7 +54,6 @@ const V3ClubsPage = React.lazy(() => import("./pages/v3/V3ClubsPage"));
 const V3StopwatchPage = React.lazy(() => import("./pages/v3/V3StopwatchPage"));
 const V3SettingsPage = React.lazy(() => import("./pages/v3/V3SettingsPage"));
 const V3AdminPage = React.lazy(() => import("./pages/v3/V3AdminPage"));
-const V3PlaceholderPage = React.lazy(() => import("./pages/v3/V3PlaceholderPage"));
 
 const queryClient = new QueryClient();
 

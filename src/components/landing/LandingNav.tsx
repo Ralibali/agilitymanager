@@ -44,15 +44,15 @@ export function LandingNav() {
       )}
     >
       <div className="max-w-[1180px] mx-auto h-full px-5 md:px-12 flex items-center justify-between font-sans-ds">
-        {/* Logo */}
+        {/* Logo + easter-egg wiggle på desktop hover */}
         <Link
           to="/"
-          className="flex items-center gap-2 shrink-0"
+          className="group flex items-center gap-2 shrink-0"
           aria-label="AgilityManager startsida"
         >
           <span
             aria-hidden
-            className="w-7 h-7 rounded-ds-sm bg-inverse flex items-center justify-center"
+            className="w-7 h-7 rounded-ds-sm bg-inverse flex items-center justify-center transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-safe:group-hover:[transform:rotate(-3deg)_scale(1.06)]"
           >
             <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none">
               <path

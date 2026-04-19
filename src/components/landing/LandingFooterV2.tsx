@@ -81,7 +81,7 @@ export function LandingFooterV2() {
                   href="https://www.instagram.com/agilitymanager"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[13px] text-text-on-inverse/85 hover:text-text-on-inverse transition-colors"
+                  className="inline-block text-[13px] text-text-on-inverse/85 hover:text-text-on-inverse transition-all duration-[180ms] hover:scale-[1.08] origin-left"
                 >
                   Instagram
                 </a>
@@ -91,7 +91,7 @@ export function LandingFooterV2() {
                   href="https://www.facebook.com/agilitymanager"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[13px] text-text-on-inverse/85 hover:text-text-on-inverse transition-colors"
+                  className="inline-block text-[13px] text-text-on-inverse/85 hover:text-text-on-inverse transition-all duration-[180ms] hover:scale-[1.08] origin-left"
                 >
                   Facebook
                 </a>
@@ -99,6 +99,7 @@ export function LandingFooterV2() {
             </ul>
           </div>
         </div>
+
 
         <div className="border-t border-text-on-inverse/10 pt-8 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex items-center gap-2">

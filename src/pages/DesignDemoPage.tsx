@@ -98,13 +98,14 @@ export default function DesignDemoPage() {
 /* ────────────────────────────────────────────────────────────────────────── */
 
 function Header() {
+  const name = useGreetingName();
   return (
     <header className="space-y-6">
       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-v3-base bg-v3-brand-50 text-v3-brand-700">
         <span className="text-v3-xs font-medium tracking-wide uppercase">Fas 1</span>
       </div>
       <h1 className="font-v3-display text-v3-5xl md:text-v3-6xl text-v3-text-primary">
-        Designsystemet.
+        Godmorgon, {name}.
       </h1>
       <p className="text-v3-lg text-v3-text-secondary max-w-[640px] leading-relaxed">
         Varm, lugn, självsäker. Inter för UI, Instrument Serif för stora siffror

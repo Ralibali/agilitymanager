@@ -111,7 +111,7 @@ function AuthGuard() {
       </div>
     );
   }
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) return <Navigate to="/v3" replace />;
   return <Outlet />;
 }
 
@@ -185,49 +185,47 @@ const App = () => (
                 <Route path="admin" element={<V3AdminPage />} />
               </Route>
 
-              {/* Skyddade rutter – ny design via persistent AppLayout-shell */}
-              <Route element={<ShellGuard />}>
-                <Route path="/dashboard" element={<HomePage />} />
-                <Route path="/stats" element={<StatsPage />} />
-                <Route path="/training" element={<TrainingPage />} />
-                <Route path="/course-planner" element={<CoursePlannerPage />} />
-                {/* Fas 9: Ny banplanerare under utveckling – parallellt med /course-planner */}
-                <Route path="/course-planner-beta" element={<CoursePlannerBetaPage />} />
-                <Route path="/stopwatch" element={<StopwatchPage />} />
-                <Route path="/goals" element={<GoalsPage />} />
-                <Route path="/app/competition" element={<CompetitionPage />} />
-                <Route path="/competition" element={<Navigate to="/app/competition" replace />} />
-                <Route path="/competition-calendar" element={<Navigate to="/app/competition" replace />} />
-                <Route path="/dogs" element={<DogsPage />} />
-                <Route path="/health" element={<HealthPage />} />
-                <Route path="/friends" element={<FriendsPage />} />
-                <Route path="/friend-stats/:userId" element={<FriendStatsPage />} />
-                <Route path="/chat" element={<ChatPage />} />
-                <Route path="/chat/:friendId" element={<ChatPage />} />
-                <Route path="/app/clubs" element={<ClubsPage />} />
-                <Route path="/clubs" element={<Navigate to="/app/clubs" replace />} />
-                <Route path="/courses" element={<CoursesPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/index" element={<Navigate to="/dashboard" replace />} />
-              </Route>
+              {/* Bakåtkompatibilitet: gamla skyddade rutter pekar nu in i v3-shellen.
+                  v2-shellen är pensionerad men koden behålls bara om vi behöver rulla tillbaka. */}
+              <Route path="/dashboard" element={<Navigate to="/v3" replace />} />
+              <Route path="/stats" element={<Navigate to="/v3/stats" replace />} />
+              <Route path="/training" element={<Navigate to="/v3/training" replace />} />
+              <Route path="/course-planner" element={<Navigate to="/v3/course-planner" replace />} />
+              <Route path="/course-planner-beta" element={<Navigate to="/v3/course-planner" replace />} />
+              <Route path="/stopwatch" element={<Navigate to="/v3/stopwatch" replace />} />
+              <Route path="/goals" element={<Navigate to="/v3/goals" replace />} />
+              <Route path="/app/competition" element={<Navigate to="/v3/competition" replace />} />
+              <Route path="/competition" element={<Navigate to="/v3/competition" replace />} />
+              <Route path="/competition-calendar" element={<Navigate to="/v3/competition" replace />} />
+              <Route path="/dogs" element={<Navigate to="/v3/dogs" replace />} />
+              <Route path="/health" element={<Navigate to="/v3/health" replace />} />
+              <Route path="/friends" element={<Navigate to="/v3/friends" replace />} />
+              <Route path="/friend-stats/:userId" element={<Navigate to="/v3/friends" replace />} />
+              <Route path="/chat" element={<Navigate to="/v3/chat" replace />} />
+              <Route path="/chat/:friendId" element={<Navigate to="/v3/chat" replace />} />
+              <Route path="/app/clubs" element={<Navigate to="/v3/clubs" replace />} />
+              <Route path="/clubs" element={<Navigate to="/v3/clubs" replace />} />
+              <Route path="/courses" element={<Navigate to="/v3/courses" replace />} />
+              <Route path="/settings" element={<Navigate to="/v3/settings" replace />} />
+              <Route path="/admin" element={<Navigate to="/v3/admin" replace />} />
+              <Route path="/index" element={<Navigate to="/v3" replace />} />
 
-              {/* Bakåtkompatibilitet: gamla /v2/*-länkar redirectar till rot */}
-              <Route path="/v2" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/v2/stats" element={<Navigate to="/stats" replace />} />
-              <Route path="/v2/training" element={<Navigate to="/training" replace />} />
-              <Route path="/v2/course-planner" element={<Navigate to="/course-planner" replace />} />
-              <Route path="/v2/stopwatch" element={<Navigate to="/stopwatch" replace />} />
-              <Route path="/v2/goals" element={<Navigate to="/goals" replace />} />
-              <Route path="/v2/competition" element={<Navigate to="/app/competition" replace />} />
-              <Route path="/v2/dogs" element={<Navigate to="/dogs" replace />} />
-              <Route path="/v2/health" element={<Navigate to="/health" replace />} />
-              <Route path="/v2/friends" element={<Navigate to="/friends" replace />} />
-              <Route path="/v2/chat" element={<Navigate to="/chat" replace />} />
-              <Route path="/v2/clubs" element={<Navigate to="/app/clubs" replace />} />
-              <Route path="/v2/courses" element={<Navigate to="/courses" replace />} />
-              <Route path="/v2/settings" element={<Navigate to="/settings" replace />} />
-              <Route path="/v2/admin" element={<Navigate to="/admin" replace />} />
+              {/* Bakåtkompatibilitet: gamla /v2/*-länkar redirectar in i v3 */}
+              <Route path="/v2" element={<Navigate to="/v3" replace />} />
+              <Route path="/v2/stats" element={<Navigate to="/v3/stats" replace />} />
+              <Route path="/v2/training" element={<Navigate to="/v3/training" replace />} />
+              <Route path="/v2/course-planner" element={<Navigate to="/v3/course-planner" replace />} />
+              <Route path="/v2/stopwatch" element={<Navigate to="/v3/stopwatch" replace />} />
+              <Route path="/v2/goals" element={<Navigate to="/v3/goals" replace />} />
+              <Route path="/v2/competition" element={<Navigate to="/v3/competition" replace />} />
+              <Route path="/v2/dogs" element={<Navigate to="/v3/dogs" replace />} />
+              <Route path="/v2/health" element={<Navigate to="/v3/health" replace />} />
+              <Route path="/v2/friends" element={<Navigate to="/v3/friends" replace />} />
+              <Route path="/v2/chat" element={<Navigate to="/v3/chat" replace />} />
+              <Route path="/v2/clubs" element={<Navigate to="/v3/clubs" replace />} />
+              <Route path="/v2/courses" element={<Navigate to="/v3/courses" replace />} />
+              <Route path="/v2/settings" element={<Navigate to="/v3/settings" replace />} />
+              <Route path="/v2/admin" element={<Navigate to="/v3/admin" replace />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

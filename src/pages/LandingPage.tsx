@@ -509,30 +509,36 @@ export default function LandingPage() {
           {/* Toggle */}
           <div className="flex justify-center mb-10">
             <div className="p-1 flex gap-1" style={{ background: 'hsl(var(--secondary))', borderRadius: 'var(--radius-pill)' }}>
-              <button
-                className="px-4 py-1.5 text-sm font-medium transition-all font-body"
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                transition={{ duration: motionTokens.duration.instant, ease: motionTokens.ease.smooth }}
+                className="px-4 py-1.5 text-sm font-medium font-body"
                 style={{
                   borderRadius: 'var(--radius-pill)',
                   background: !annual ? '#fff' : 'transparent',
                   boxShadow: !annual ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
                   color: !annual ? '#111' : '#999',
+                  transition: `background ${motionTokens.duration.fast}s ease, color ${motionTokens.duration.fast}s ease, box-shadow ${motionTokens.duration.fast}s ease`,
                 }}
                 onClick={() => setAnnual(false)}
               >
                 Månadsvis
-              </button>
-              <button
-                className="px-4 py-1.5 text-sm font-medium transition-all font-body"
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                transition={{ duration: motionTokens.duration.instant, ease: motionTokens.ease.smooth }}
+                className="px-4 py-1.5 text-sm font-medium font-body"
                 style={{
                   borderRadius: 'var(--radius-pill)',
                   background: annual ? '#fff' : 'transparent',
                   boxShadow: annual ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
                   color: annual ? '#111' : '#999',
+                  transition: `background ${motionTokens.duration.fast}s ease, color ${motionTokens.duration.fast}s ease, box-shadow ${motionTokens.duration.fast}s ease`,
                 }}
                 onClick={() => setAnnual(true)}
               >
                 Årsvis
-              </button>
+              </motion.button>
             </div>
           </div>
 

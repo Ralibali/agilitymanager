@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Dog as DogIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
@@ -10,6 +10,8 @@ import { DogHero } from "@/components/v3/DogHero";
 import { StatRow } from "@/components/v3/StatRow";
 import { NextUpCard } from "@/components/v3/NextUpCard";
 import { ActivityTimeline } from "@/components/v3/ActivityTimeline";
+import { V3EmptyState } from "@/components/v3/V3EmptyState";
+import { V3OnboardingWizard } from "@/components/v3/V3OnboardingWizard";
 
 /**
  * Tidsanpassad hälsning. Synk med /design-demo.
@@ -64,9 +66,31 @@ function useGreeting(): { greeting: string; name: string } {
  */
 export default function V3HomePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { greeting, name } = useGreeting();
   const { dogs, active, activeId, setActive, loading: dogsLoading } = useV3Dogs();
   const { stats, nextEvent, timeline, loading: dashLoading } = useV3Dashboard(activeId);
+
+  // Onboarding-trigger: visa wizarden för nya användare som saknar hund och inte
+  // tidigare slutfört eller hoppat över guiden.
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  useEffect(() => {
+    if (dogsLoading || !user) return;
+    const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean; onboarding_skipped?: boolean };
+    const done = meta.onboarding_complete || meta.onboarding_skipped;
+    if (!done && dogs.length === 0) setShowOnboarding(true);
+  }, [user, dogs, dogsLoading]);
+
+  if (showOnboarding) {
+    return (
+      <V3OnboardingWizard
+        onComplete={() => {
+          setShowOnboarding(false);
+          window.location.reload();
+        }}
+      />
+    );
+  }
 
   return (
     <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-8 lg:space-y-10 animate-v3-fade-in">
@@ -80,9 +104,20 @@ export default function V3HomePage() {
         </h1>
       </header>
 
-      {/* Dog hero */}
+      {/* Dog hero / empty-state */}
       {dogsLoading ? (
-        <div className="h-28 rounded-v3-2xl  v3-skeleton" />
+        <div className="h-28 rounded-v3-2xl v3-skeleton" />
+      ) : dogs.length === 0 ? (
+        <V3EmptyState
+          icon={DogIcon}
+          accent="brand"
+          title="Lägg till din första hund"
+          description="Allt i AgilityManager kretsar kring dina hundar – träning, tävlingar och mål. Ta 30 sekunder och kom igång."
+          actions={[
+            { label: "Starta guiden", onClick: () => setShowOnboarding(true), icon: Plus },
+            { label: "Lägg till manuellt", onClick: () => navigate("/v3/dogs"), variant: "secondary" },
+          ]}
+        />
       ) : (
         <div className="space-y-4">
           <DogHero

@@ -277,6 +277,7 @@ export default function BlogPostPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <ScrollProgress />
       <SEO
         title={seoTitle}
         description={seoDescription}
@@ -291,45 +292,47 @@ export default function BlogPostPage() {
       />
 
       <article className="px-4 pt-8 pb-12 max-w-2xl mx-auto">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/blogg')} className="mb-6 -ml-2 text-muted-foreground">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/blogg')} className="mb-6 -ml-2 text-muted-foreground transition-transform hover:-translate-x-0.5">
           <ArrowLeft size={16} className="mr-1" /> Kunskapsbank
         </Button>
 
-        <header className="mb-6">
+        <FadeIn as="header" className="mb-6" duration="smooth" distance={10}>
           <div className="flex items-center gap-2 mb-3">
             <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">{post.category}</span>
             <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={12} /> {post.readTime} min läsning</span>
           </div>
           <h1 className="font-display font-bold text-foreground text-2xl leading-tight mb-2">{post.title}</h1>
           <p className="text-muted-foreground text-sm">{post.excerpt}</p>
-        </header>
+        </FadeIn>
 
-        <div className="bg-card rounded-xl p-5 sm:p-8 shadow-card">
-          {tocItems.length >= 2 && <BlogTOC items={tocItems} />}
-          {(() => {
-            const { body, lasVidare } = renderContent(post.content);
-            return (
-              <>
-                {body}
-                {lasVidare && (
-                  <aside className="mt-8 pt-6 border-t-2 border-primary/20">
-                    <div className="rounded-2xl bg-gradient-to-br from-primary/5 via-secondary/5 to-transparent border border-primary/10 p-5 sm:p-6">
-                      <div className="flex items-center gap-2.5 mb-4">
-                        <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary">
-                          <BookOpen size={18} />
+        <FadeIn delay={0.08} duration="smooth" distance={12}>
+          <div className="bg-card rounded-xl p-5 sm:p-8 shadow-card">
+            {tocItems.length >= 2 && <BlogTOC items={tocItems} />}
+            {(() => {
+              const { body, lasVidare } = renderContent(post.content);
+              return (
+                <>
+                  {body}
+                  {lasVidare && (
+                    <aside className="mt-8 pt-6 border-t-2 border-primary/20">
+                      <div className="rounded-2xl bg-gradient-to-br from-primary/5 via-secondary/5 to-transparent border border-primary/10 p-5 sm:p-6">
+                        <div className="flex items-center gap-2.5 mb-4">
+                          <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary">
+                            <BookOpen size={18} />
+                          </div>
+                          <h2 className="font-display font-bold text-foreground text-lg">{lasVidare.title}</h2>
                         </div>
-                        <h2 className="font-display font-bold text-foreground text-lg">{lasVidare.title}</h2>
+                        <ul className="space-y-1">
+                          {lasVidare.items.map((item, i) => renderLasVidareItem(item, i))}
+                        </ul>
                       </div>
-                      <ul className="space-y-1">
-                        {lasVidare.items.map((item, i) => renderLasVidareItem(item, i))}
-                      </ul>
-                    </div>
-                  </aside>
-                )}
-              </>
-            );
-          })()}
-        </div>
+                    </aside>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        </FadeIn>
       </article>
 
       {/* Dela artikel */}
@@ -342,12 +345,23 @@ export default function BlogPostPage() {
 
       {/* CTA */}
       <section className="px-4 pb-16 max-w-2xl mx-auto">
-        <div className="bg-card rounded-2xl p-6 shadow-card text-center">
-          <h2 className="font-display font-bold text-foreground mb-2">Redo att börja träna smartare?</h2>
-          <p className="text-sm text-muted-foreground mb-4">Skapa ett gratis konto och använd alla verktyg i AgilityManager.</p>
-          <Button className="gradient-primary text-primary-foreground font-semibold gap-2" onClick={() => navigate('/auth')}>
-            Kom igång gratis <ArrowRight size={16} />
-          </Button>
+        <div className="bg-card rounded-2xl p-6 shadow-card text-center relative overflow-hidden">
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,hsl(var(--primary)/0.10),transparent_60%)] pointer-events-none"
+          />
+          <div className="relative">
+            <h2 className="font-display font-bold text-foreground mb-2">Redo att börja träna smartare?</h2>
+            <p className="text-sm text-muted-foreground mb-4">Skapa ett gratis konto och använd alla verktyg i AgilityManager.</p>
+            <MagneticButton
+              strength={8}
+              radius={120}
+              onClick={() => navigate('/auth')}
+              className="inline-flex items-center justify-center gap-2 rounded-md gradient-primary text-primary-foreground font-semibold px-4 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Kom igång gratis <ArrowRight size={16} />
+            </MagneticButton>
+          </div>
         </div>
       </section>
     </div>

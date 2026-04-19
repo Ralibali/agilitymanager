@@ -124,12 +124,11 @@ export function AgilityKalendar({ competitions, dogs, selectedDogId }: Props) {
         const hasMatch = allClasses.some(c => matchSet.has(c.toLowerCase()));
         if (!hasMatch) return false;
       }
-      // County filter (matches against region or location)
+      // County filter (matches against location)
       if (countyFilter) {
-        const region = (comp.region || '').toLowerCase();
         const location = (comp.location || '').toLowerCase();
         const target = countyFilter.toLowerCase();
-        if (!region.includes(target) && !location.includes(target)) return false;
+        if (!location.includes(target)) return false;
       }
       return true;
     });

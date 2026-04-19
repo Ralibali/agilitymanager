@@ -1,5 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Check, Plus, Search, Trophy, Flame, Heart, Calendar } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+
+/**
+ * Hämtar visningsnamn från profiles.display_name för inloggad användare.
+ * Faller tillbaka till "där" så att hälsningen alltid känns naturlig.
+ */
+function useGreetingName(): string {
+  const { user } = useAuth();
+  const [name, setName] = useState<string>("där");
+
+  useEffect(() => {
+    if (!user?.id) {
+      setName("där");
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      const raw = data?.display_name?.trim();
+      // display_name kan vara en e-post om profilen aldrig redigerats – ta då bara första delen.
+      const cleaned = raw && raw.includes("@") ? raw.split("@")[0] : raw;
+      setName(cleaned && cleaned.length > 0 ? cleaned : "där");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  return name;
+}
 
 /**
  * AgilityManager – The Addiction Update
@@ -62,13 +98,14 @@ export default function DesignDemoPage() {
 /* ────────────────────────────────────────────────────────────────────────── */
 
 function Header() {
+  const name = useGreetingName();
   return (
     <header className="space-y-6">
       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-v3-base bg-v3-brand-50 text-v3-brand-700">
         <span className="text-v3-xs font-medium tracking-wide uppercase">Fas 1</span>
       </div>
       <h1 className="font-v3-display text-v3-5xl md:text-v3-6xl text-v3-text-primary">
-        Designsystemet.
+        Godmorgon, {name}.
       </h1>
       <p className="text-v3-lg text-v3-text-secondary max-w-[640px] leading-relaxed">
         Varm, lugn, självsäker. Inter för UI, Instrument Serif för stora siffror
@@ -159,13 +196,14 @@ function ColorGrid() {
 /* ────────────────────────────────────────────────────────────────────────── */
 
 function TypographyShowcase() {
+  const name = useGreetingName();
   return (
     <div className="space-y-8 bg-v3-canvas-elevated rounded-v3-xl p-8 md:p-10 shadow-v3-xs">
       <div>
         <p className="text-v3-xs font-medium uppercase tracking-wide text-v3-text-tertiary mb-2">
           Display · Instrument Serif
         </p>
-        <p className="font-v3-display text-v3-6xl">Godmorgon, Christoffer.</p>
+        <p className="font-v3-display text-v3-6xl">Godmorgon, {name}.</p>
         <p className="font-v3-display text-v3-4xl text-v3-text-secondary">
           Luna, 4 år · 18 pass den här månaden
         </p>

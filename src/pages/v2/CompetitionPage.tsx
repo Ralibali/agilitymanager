@@ -31,6 +31,7 @@ import { AgilityDataAttribution } from "@/components/competitions/AgilityDataAtt
 import { AddCompetitionDialog } from "@/components/AddCompetitionDialog";
 import { MinaTavlingar } from "@/components/competitions/MinaTavlingar";
 import { HoopersKalendar } from "@/components/competitions/HoopersKalendar";
+import { AgilityKalendar } from "@/components/competitions/AgilityKalendar";
 import { ResultsImporter } from "@/components/competitions/ResultsImporter";
 import ImportResultsFromUrl from "@/components/competitions/ImportResultsFromUrl";
 import ClassPromotionTracker from "@/components/competitions/ClassPromotionTracker";

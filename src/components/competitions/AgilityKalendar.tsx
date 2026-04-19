@@ -266,10 +266,10 @@ export function AgilityKalendar({ competitions, dogs, selectedDogId }: Props) {
                       </div>
 
                       {/* Location */}
-                      {(comp.location || comp.region) && (
+                      {comp.location && (
                         <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                           <MapPin size={11} />
-                          <span>{comp.location}{comp.region ? `, ${comp.region}` : ''}</span>
+                          <span>{comp.location}</span>
                         </div>
                       )}
 

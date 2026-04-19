@@ -1,30 +1,33 @@
-import { motion as fmMotion, type HTMLMotionProps } from "framer-motion";
+import { motion as fmMotion } from "framer-motion";
 import { motion } from "@/lib/motion";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
-interface StaggerContainerProps extends Omit<HTMLMotionProps<"div">, "initial" | "animate" | "transition" | "variants"> {
+interface StaggerContainerProps {
   children: ReactNode;
   /** Sekunder mellan varje barn. Default motion.stagger.base (60ms) */
   staggerDelay?: number;
   /** Initial delay innan staggern börjar */
   initialDelay?: number;
   /** Triggra på scroll istället för on-mount. Default true */
-  whileInView?: boolean;
+  scroll?: boolean;
   /** Spela bara en gång. Default true */
   once?: boolean;
+  className?: string;
+  style?: CSSProperties;
 }
 
 /**
  * Container som staggrar fade-in av sina barn.
- * Använd tillsammans med <StaggerItem> för att få timad reveal-sekvens.
+ * Använd tillsammans med <StaggerItem>.
  */
 export function StaggerContainer({
   children,
   staggerDelay = motion.stagger.base,
   initialDelay = 0,
-  whileInView = true,
+  scroll = true,
   once = true,
-  ...rest
+  className,
+  style,
 }: StaggerContainerProps) {
   const variants = {
     hidden: {},
@@ -36,38 +39,48 @@ export function StaggerContainer({
     },
   };
 
-  const animProps = whileInView
-    ? {
-        initial: "hidden",
-        whileInView: "visible",
-        viewport: { once, margin: motion.viewport.margin, amount: motion.viewport.amount },
-      }
-    : {
-        initial: "hidden",
-        animate: "visible",
-      };
+  if (scroll) {
+    return (
+      <fmMotion.div
+        variants={variants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once, margin: motion.viewport.margin, amount: motion.viewport.amount }}
+        className={className}
+        style={style}
+      >
+        {children}
+      </fmMotion.div>
+    );
+  }
 
   return (
-    <fmMotion.div variants={variants} {...animProps} {...rest}>
+    <fmMotion.div
+      variants={variants}
+      initial="hidden"
+      animate="visible"
+      className={className}
+      style={style}
+    >
       {children}
     </fmMotion.div>
   );
 }
 
-interface StaggerItemProps extends Omit<HTMLMotionProps<"div">, "variants" | "transition"> {
+interface StaggerItemProps {
   children: ReactNode;
-  /** Pixlar att slida från botten. Default 12 */
   distance?: number;
-  /** Duration-token */
   duration?: keyof typeof motion.duration;
+  className?: string;
+  style?: CSSProperties;
 }
 
 export function StaggerItem({
   children,
   distance = 12,
   duration = "smooth",
+  className,
   style,
-  ...rest
 }: StaggerItemProps) {
   const variants = {
     hidden: { opacity: 0, y: distance },
@@ -81,8 +94,8 @@ export function StaggerItem({
         duration: motion.duration[duration],
         ease: motion.ease.out,
       }}
+      className={className}
       style={{ willChange: "opacity, transform", ...style }}
-      {...rest}
     >
       {children}
     </fmMotion.div>

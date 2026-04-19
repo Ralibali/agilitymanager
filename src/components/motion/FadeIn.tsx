@@ -1,25 +1,22 @@
-import { motion as fmMotion, type HTMLMotionProps } from "framer-motion";
+import { motion as fmMotion } from "framer-motion";
 import { motion } from "@/lib/motion";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 type Direction = "up" | "down" | "left" | "right" | "none";
 
-interface FadeInProps extends Omit<HTMLMotionProps<"div">, "initial" | "animate" | "transition"> {
+interface FadeInProps {
   children: ReactNode;
-  /** Delay i sekunder */
   delay?: number;
-  /** Riktning för slide. Default "up" */
   direction?: Direction;
-  /** Pixlar för slide-distans. Default 8 */
   distance?: number;
-  /** Duration-token. Default "smooth" (360ms) */
   duration?: keyof typeof motion.duration;
-  /** Easing-token. Default "out" */
   ease?: keyof typeof motion.ease;
-  /** Aktivera scroll-trigger istället för on-mount. Default false */
-  whileInView?: boolean;
-  /** Spela bara en gång. Default true */
+  /** Aktivera scroll-trigger istället för on-mount */
+  scroll?: boolean;
   once?: boolean;
+  className?: string;
+  style?: CSSProperties;
+  as?: "div" | "section" | "article" | "header" | "footer" | "li" | "ul";
 }
 
 const offsetFor = (direction: Direction, distance: number) => {
@@ -38,8 +35,7 @@ const offsetFor = (direction: Direction, distance: number) => {
 };
 
 /**
- * Återanvändbar fade+slide-komponent.
- * SSR-säker: Innehåll renderas alltid; bara opacity/transform animeras klient-side.
+ * Återanvändbar fade+slide-komponent. SSR-säker.
  */
 export function FadeIn({
   children,
@@ -48,36 +44,45 @@ export function FadeIn({
   distance = 8,
   duration = "smooth",
   ease = "out",
-  whileInView = false,
+  scroll = false,
   once = true,
+  className,
   style,
-  ...rest
+  as = "div",
 }: FadeInProps) {
   const offset = offsetFor(direction, distance);
+  const Comp = (fmMotion as unknown as Record<string, typeof fmMotion.div>)[as] ?? fmMotion.div;
 
-  const animProps = whileInView
-    ? {
-        initial: { opacity: 0, ...offset },
-        whileInView: { opacity: 1, x: 0, y: 0 },
-        viewport: { once, margin: motion.viewport.margin, amount: motion.viewport.amount },
-      }
-    : {
-        initial: { opacity: 0, ...offset },
-        animate: { opacity: 1, x: 0, y: 0 },
-      };
+  const transition = {
+    duration: motion.duration[duration],
+    delay,
+    ease: motion.ease[ease],
+  };
+
+  if (scroll) {
+    return (
+      <Comp
+        initial={{ opacity: 0, ...offset }}
+        whileInView={{ opacity: 1, x: 0, y: 0 }}
+        viewport={{ once, margin: motion.viewport.margin, amount: motion.viewport.amount }}
+        transition={transition}
+        className={className}
+        style={{ willChange: "opacity, transform", ...style }}
+      >
+        {children}
+      </Comp>
+    );
+  }
 
   return (
-    <fmMotion.div
-      {...animProps}
-      transition={{
-        duration: motion.duration[duration],
-        delay,
-        ease: motion.ease[ease],
-      }}
+    <Comp
+      initial={{ opacity: 0, ...offset }}
+      animate={{ opacity: 1, x: 0, y: 0 }}
+      transition={transition}
+      className={className}
       style={{ willChange: "opacity, transform", ...style }}
-      {...rest}
     >
       {children}
-    </fmMotion.div>
+    </Comp>
   );
 }

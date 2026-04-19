@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ArrowRight, Check, Plus, Search, Trophy, Flame, Heart, Calendar } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -112,6 +112,30 @@ export default function DesignDemoPage() {
         </footer>
       </div>
     </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function Section({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-6">
+      <div className="space-y-1">
+        <h2 className="font-v3-display text-v3-3xl text-v3-text-primary">{title}</h2>
+        {subtitle && (
+          <p className="text-v3-base text-v3-text-secondary">{subtitle}</p>
+        )}
+      </div>
+      {children}
+    </section>
   );
 }
 

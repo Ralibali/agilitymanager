@@ -16,20 +16,35 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
 import { useState } from 'react';
+import { motion as motionTokens } from '@/lib/motion';
+import { MagneticButton } from '@/components/motion';
 
-/* ────── animation helpers ────── */
+/* ────── animation helpers (motion-token-baserade) ────── */
 const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 30 } as const,
+  initial: { opacity: 0, y: 8 } as const,
   animate: { opacity: 1, y: 0 } as const,
-  transition: { duration: 0.6, delay, ease: 'easeOut' as const },
+  transition: {
+    duration: motionTokens.duration.smooth,
+    delay,
+    ease: motionTokens.ease.out,
+  },
 });
 
 const inViewFadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 24 } as const,
+  initial: { opacity: 0, y: 16 } as const,
   whileInView: { opacity: 1, y: 0 } as const,
-  viewport: { once: true, margin: '-60px' as const },
-  transition: { duration: 0.5, delay, ease: 'easeOut' as const },
+  viewport: {
+    once: true,
+    margin: motionTokens.viewport.margin,
+    amount: motionTokens.viewport.amount,
+  } as const,
+  transition: {
+    duration: motionTokens.duration.smooth,
+    delay,
+    ease: motionTokens.ease.out,
+  },
 });
+
 
 /* ────── data ────── */
 const usps = [

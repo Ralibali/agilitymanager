@@ -177,6 +177,24 @@ export default function V3TrainingPage() {
               </ol>
             )}
           </section>
+
+          {/* Coach-feedback (Pro) – skicka in video för granskning */}
+          <section className="space-y-3" id="coach">
+            <div className="flex items-baseline justify-between">
+              <h2 className="font-v3-display text-v3-2xl text-v3-text-primary inline-flex items-center gap-2">
+                <GraduationCap size={18} strokeWidth={1.6} className="text-v3-brand-500" />
+                Coach-feedback
+              </h2>
+              <span className="text-v3-xs text-v3-text-tertiary">Pro · video-granskning</span>
+            </div>
+            <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 overflow-hidden">
+              <Suspense
+                fallback={<div className="h-48 v3-skeleton" />}
+              >
+                <CoachVideoAnalysis dogs={dogs} />
+              </Suspense>
+            </div>
+          </section>
         </>
       )}
     </div>

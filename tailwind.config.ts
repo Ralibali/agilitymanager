@@ -17,6 +17,10 @@ export default {
         display: ["'Outfit'", "sans-serif"],
         body: ["'Figtree'", "sans-serif"],
         sans: ["'Inter'", "'Figtree'", "sans-serif"],
+        // v3 – The Addiction Update
+        "v3-sans": ["'Inter'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        "v3-display": ["'Instrument Serif'", "Georgia", "serif"],
+        "v3-mono": ["'JetBrains Mono'", "ui-monospace", "monospace"],
       },
       fontSize: {
         base: ["14px", "1.5"],
@@ -26,6 +30,18 @@ export default {
         body: ["14px", { lineHeight: "1.5", fontWeight: "400" }],
         small: ["12px", { lineHeight: "1.4", fontWeight: "400" }],
         micro: ["11px", { lineHeight: "1.3", letterSpacing: "0.04em", fontWeight: "500" }],
+        // v3 typography scale
+        "v3-2xs": ["0.6875rem", { lineHeight: "1.4" }],
+        "v3-xs": ["0.75rem", { lineHeight: "1.4" }],
+        "v3-sm": ["0.875rem", { lineHeight: "1.5" }],
+        "v3-base": ["1rem", { lineHeight: "1.55" }],
+        "v3-lg": ["1.0625rem", { lineHeight: "1.55" }],
+        "v3-xl": ["1.25rem", { lineHeight: "1.4", letterSpacing: "-0.01em" }],
+        "v3-2xl": ["1.5rem", { lineHeight: "1.3", letterSpacing: "-0.015em" }],
+        "v3-3xl": ["1.875rem", { lineHeight: "1.2", letterSpacing: "-0.02em" }],
+        "v3-4xl": ["2.375rem", { lineHeight: "1.15", letterSpacing: "-0.02em" }],
+        "v3-5xl": ["3rem", { lineHeight: "1.1", letterSpacing: "-0.025em" }],
+        "v3-6xl": ["4rem", { lineHeight: "1.05", letterSpacing: "-0.03em" }],
       },
       colors: {
         border: "hsl(var(--border))",

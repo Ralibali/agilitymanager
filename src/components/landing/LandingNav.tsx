@@ -10,7 +10,7 @@ const NAV_LINKS = [
   { href: "#coach", label: "Coach" },
   { href: "#hoopers", label: "Hoopers" },
   { href: "#pricing", label: "Priser" },
-  { href: "/blog", label: "Blogg", external: true },
+  { href: "/blogg", label: "Blogg", external: true },
 ];
 
 const trackEvent = (name: string) => {
@@ -97,11 +97,16 @@ export function LandingNav() {
         <nav className="hidden md:flex items-center gap-7" aria-label="Huvudmeny">
           {NAV_LINKS.map((l) =>
             l.external ? (
-              <Link key={l.href} to={l.href} className="contents">
-                <NavLinkSweep href={l.href} onClick={(e) => e.preventDefault()}>
-                  {l.label}
-                </NavLinkSweep>
-              </Link>
+              <NavLinkSweep
+                key={l.href}
+                href={l.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate(l.href);
+                }}
+              >
+                {l.label}
+              </NavLinkSweep>
             ) : (
               <NavLinkSweep key={l.href} href={l.href}>
                 {l.label}

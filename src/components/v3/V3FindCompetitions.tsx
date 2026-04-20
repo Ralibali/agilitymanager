@@ -1079,6 +1079,48 @@ export function V3FindCompetitions({ preferredSport }: Props) {
   );
 }
 
+function DetailItem({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-start gap-2 min-w-0">
+      <Icon size={13} strokeWidth={1.8} className="text-v3-text-tertiary mt-0.5 shrink-0" />
+      <div className="min-w-0">
+        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
+          {label}
+        </div>
+        <div className="text-v3-sm text-v3-text-primary break-words">{value}</div>
+      </div>
+    </div>
+  );
+}
+
+function ClassGroup({ label, items }: { label: string; items: string[] }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-1.5">
+        {label} ({items.length})
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {items.map((c) => (
+          <span
+            key={c}
+            className="inline-flex items-center px-2 h-6 rounded bg-v3-canvas-sunken/70 text-[11px] font-medium text-v3-text-primary"
+          >
+            {c}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function FilterSelect({
   label,
   value,

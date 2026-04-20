@@ -187,7 +187,7 @@ export function LandingNav() {
                     <Link
                       to={l.href}
                       onClick={() => setMobileOpen(false)}
-                      className="block py-2.5 text-[14px] text-text-primary"
+                      className="flex items-center min-h-[48px] py-3 text-[15px] text-text-primary [-webkit-tap-highlight-color:transparent] active:bg-subtle/60 -mx-2 px-2 rounded-md transition-colors"
                     >
                       {l.label}
                     </Link>
@@ -195,7 +195,7 @@ export function LandingNav() {
                     <a
                       href={l.href}
                       onClick={() => setMobileOpen(false)}
-                      className="block py-2.5 text-[14px] text-text-primary"
+                      className="flex items-center min-h-[48px] py-3 text-[15px] text-text-primary [-webkit-tap-highlight-color:transparent] active:bg-subtle/60 -mx-2 px-2 rounded-md transition-colors"
                     >
                       {l.label}
                     </a>
@@ -209,7 +209,7 @@ export function LandingNav() {
                   visible: { opacity: 1, x: 0 },
                 }}
                 onClick={() => goAuth("login", "nav_login_click")}
-                className="text-left py-2.5 text-[14px] text-text-secondary"
+                className="flex items-center text-left min-h-[48px] py-3 text-[15px] text-text-secondary [-webkit-tap-highlight-color:transparent] active:bg-subtle/60 -mx-2 px-2 rounded-md transition-colors"
               >
                 Logga in
               </motion.button>

@@ -55,7 +55,7 @@ export function Hero() {
                 trackEvent("hero_primary_cta_click");
                 navigate("/auth?mode=signup");
               }}
-              className="h-11 px-5 inline-flex items-center justify-center gap-1.5 rounded-ds-md bg-brand-600 text-white text-[14px] font-medium hover:bg-brand-900 transition-colors active:scale-[0.98]"
+              className="h-12 sm:h-11 w-full sm:w-auto px-5 inline-flex items-center justify-center gap-1.5 rounded-ds-md bg-brand-600 text-white text-[15px] sm:text-[14px] font-medium hover:bg-brand-900 transition-colors active:scale-[0.98] [-webkit-tap-highlight-color:transparent]"
               strength={5}
             >
               Kom igång gratis <ArrowRight className="w-4 h-4" />
@@ -63,7 +63,7 @@ export function Hero() {
             <a
               href="#features"
               onClick={() => trackEvent("hero_secondary_cta_click")}
-              className="h-11 px-5 inline-flex items-center justify-center rounded-ds-md border border-border-default text-text-primary text-[14px] font-medium hover:bg-subtle transition-colors active:scale-[0.98]"
+              className="h-12 sm:h-11 w-full sm:w-auto px-5 inline-flex items-center justify-center rounded-ds-md border border-border-default text-text-primary text-[15px] sm:text-[14px] font-medium hover:bg-subtle transition-colors active:scale-[0.98] [-webkit-tap-highlight-color:transparent]"
             >
               Se hur det fungerar
             </a>

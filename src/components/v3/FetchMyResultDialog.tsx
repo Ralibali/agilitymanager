@@ -146,12 +146,31 @@ export function FetchMyResultDialog({ open, onOpenChange, target, dogs }: Props)
     setImporting(true);
     try {
       const rows = Array.from(picked).map((i) => matches[i]);
+      // Bygg ett meningsfullt event_name. Om källans namn saknas eller är ett
+      // generiskt platshållare ("Tävling"), använd datum + sport som fallback
+      // istället för att lagra en tom/dum etikett i loggen.
+      const rawName = (target.competition_name || "").trim();
+      const isPlaceholder =
+        !rawName ||
+        rawName.toLowerCase() === "tävling" ||
+        rawName.toLowerCase() === "tavling";
+      const dateLabel = target.date
+        ? new Date(target.date).toLocaleDateString("sv-SE", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })
+        : "";
+      const baseName = isPlaceholder
+        ? `${target.sport}-tävling${dateLabel ? ` ${dateLabel}` : ""}`
+        : rawName;
+
       const inserts = rows.map((r) => ({
         user_id: user.id,
         dog_id: selectedDog.id,
         date: target.date ?? new Date().toISOString().split("T")[0],
-        event_name: target.competition_name,
-        organizer: "",
+        event_name: baseName,
+        organizer: isPlaceholder ? "" : rawName,
         discipline: DISCIPLINE_FROM_LABEL(r.class_label) as any,
         size_class: (selectedDog.size_class || "L") as any,
         competition_level: SAGIK_LEVEL_FROM_LABEL(r.class_label) as any,

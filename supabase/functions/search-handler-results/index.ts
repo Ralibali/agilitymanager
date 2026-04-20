@@ -90,11 +90,12 @@ Deno.serve(async (req) => {
     const cookies = extractCookies(searchPageRes.headers);
     console.log('Got search page, cookies:', cookies.substring(0, 50));
 
-    // Extract form tokens (RequestVerificationToken, __RequestVerificationToken, etc.)
+    // Extract form tokens (ufprt etc.) — supports both single and double quotes
     const formTokens = extractFormTokens(searchPageHtml);
+    console.log('Hidden token names:', Object.keys(formTokens));
 
-    // Step 2: Submit search form
-    const searchFormData = new URLSearchParams();
+    // Step 2: Submit search form as multipart/form-data (form's enctype is multipart)
+    const searchFormData = new FormData();
     for (const [k, v] of Object.entries(formTokens)) {
       searchFormData.append(k, v);
     }
@@ -107,46 +108,57 @@ Deno.serve(async (req) => {
     const searchRes = await fetch('https://agilitydata.se/resultat/soek-hund/', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
         'Cookie': cookies,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Origin': 'https://agilitydata.se',
         'Referer': 'https://agilitydata.se/resultat/soek-hund/',
       },
-      body: searchFormData.toString(),
+      body: searchFormData,
       redirect: 'manual',
     });
-    const searchResultHtml = await searchRes.text();
-    const searchCookies = mergeCookies(cookies, extractCookies(searchRes.headers));
+    let searchCookies = mergeCookies(cookies, extractCookies(searchRes.headers));
+    console.log('Search POST status:', searchRes.status, 'location:', searchRes.headers.get('location'));
+
+    // Step 2b: Follow PRG-redirect (ASP.NET Post-Redirect-Get pattern)
+    let searchResultHtml: string;
+    if (searchRes.status === 302 || searchRes.status === 301) {
+      const loc = searchRes.headers.get('location') || '/resultat/soek-hund/';
+      const followUrl = loc.startsWith('/') ? 'https://agilitydata.se' + loc : loc;
+      const followRes = await fetch(followUrl, {
+        headers: {
+          'Cookie': searchCookies,
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Referer': 'https://agilitydata.se/resultat/soek-hund/',
+        },
+      });
+      searchResultHtml = await followRes.text();
+      searchCookies = mergeCookies(searchCookies, extractCookies(followRes.headers));
+    } else {
+      searchResultHtml = await searchRes.text();
+    }
     console.log('Search result HTML length:', searchResultHtml.length);
 
-    // Step 3: Find first dog link in results
-    const dogLinkMatch = searchResultHtml.match(/href="([^"]*hund-resultat[^"]*)"/i) ||
-                          searchResultHtml.match(/<a[^>]*href="([^"]*)"[^>]*>\s*Visa\s*<\/a>/i);
-    
-    // Also try finding the dog link from table rows
+    // Step 3: Find first dog link in result table.
+    // Real format: /umbraco/Surface/CompetitionResultSurface/RedirectToDogResultPage?regNo=...
     let dogPageUrl = '';
-    if (dogLinkMatch) {
-      dogPageUrl = dogLinkMatch[1];
+    const redirectLinkMatch = searchResultHtml.match(/href="([^"]*RedirectToDogResultPage[^"]*)"/i);
+    if (redirectLinkMatch) {
+      dogPageUrl = redirectLinkMatch[1].replace(/&amp;/g, '&');
       if (dogPageUrl.startsWith('/')) dogPageUrl = 'https://agilitydata.se' + dogPageUrl;
     } else {
-      // Try AJAX-style grid link
-      const gridLinkMatch = searchResultHtml.match(/data-swhgurl="([^"]*)"/i);
-      if (gridLinkMatch) {
-        dogPageUrl = gridLinkMatch[1];
+      // Fallback: older link patterns
+      const fallback =
+        searchResultHtml.match(/href="([^"]*hund-resultat[^"]*)"/i) ||
+        searchResultHtml.match(/data-swhgurl="([^"]*)"/i);
+      if (fallback) {
+        dogPageUrl = fallback[1].replace(/&amp;/g, '&');
         if (dogPageUrl.startsWith('/')) dogPageUrl = 'https://agilitydata.se' + dogPageUrl;
       }
     }
 
     if (!dogPageUrl) {
-      // Try to find any link that looks like a dog result
-      const anyLink = searchResultHtml.match(/<td[^>]*>\s*<a[^>]*href="([^"]*)"[^>]*>/gi);
-      console.log('No dog link found. Table links:', anyLink?.length || 0);
-      console.log('Search HTML snippet (grid area):', searchResultHtml.substring(
-        Math.max(0, searchResultHtml.indexOf('SearchDogsAdminGridContent') - 100),
-        searchResultHtml.indexOf('SearchDogsAdminGridContent') + 2000
-      ));
-      
+      const noResults = searchResultHtml.includes('Inga uppgifter hittade');
+      console.log(noResults ? 'Site says: Inga uppgifter hittade' : 'No dog link found in HTML');
       return new Response(
         JSON.stringify({ success: true, data: { dog_name: dogName || '', reg_name: '', reg_nr: '', breed: '', handler: `${firstName} ${lastName}`, results: [], search_only: true, found_dogs: 0 } }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

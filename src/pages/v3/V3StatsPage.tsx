@@ -5,6 +5,7 @@ import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Stats, useV3DogCompare, type RangeKey, type WeeklyBucket, type V3Stats } from "@/hooks/v3/useV3Stats";
 import { useV3Milestones } from "@/hooks/v3/useV3Milestones";
 import { DogHero } from "@/components/v3/DogHero";
+import { NextMilestoneCard } from "@/components/v3/NextMilestoneCard";
 import { cn } from "@/lib/utils";
 
 type Tab = "overview" | "trends" | "patterns" | "milestones";
@@ -594,19 +595,24 @@ function StatsSkeleton() {
  * Milestones tab – speglar V2:s "Milstolpar" med all-time bedrifter
  * ============================================================ */
 function MilestonesTab({ dogId }: { dogId: string | null }) {
-  const { milestones, loading } = useV3Milestones(dogId);
+  const { milestones, nextMilestones, loading } = useV3Milestones(dogId);
 
   if (loading) {
     return (
-      <div className="grid gap-3 sm:grid-cols-2">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-24 rounded-v3-2xl v3-skeleton" />
-        ))}
+      <div className="space-y-4">
+        <div className="h-40 rounded-v3-2xl v3-skeleton" />
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="h-24 rounded-v3-2xl v3-skeleton" />
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (milestones.length === 0) {
+  const hasNext = nextMilestones.length > 0;
+
+  if (milestones.length === 0 && !hasNext) {
     return (
       <div className="rounded-v3-2xl border border-dashed border-v3-canvas-sunken/60 p-10 text-center">
         <div className="mx-auto h-12 w-12 rounded-full bg-v3-brand-500/10 grid place-items-center mb-4">
@@ -629,30 +635,41 @@ function MilestonesTab({ dogId }: { dogId: string | null }) {
   };
 
   return (
-    <section className="space-y-3">
-      <SectionHeader
-        title={`${milestones.length} ${milestones.length === 1 ? "bedrift" : "bedrifter"}`}
-        subtitle="Allt du och din hund uppnått"
-      />
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {milestones.map((m) => (
-          <li
-            key={m.id}
-            className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 flex items-start gap-4"
-          >
-            <span className="text-[28px] leading-none shrink-0" aria-hidden>
-              {m.emoji}
-            </span>
-            <div className="min-w-0 flex-1">
-              <h3 className="font-v3-display text-v3-lg text-v3-text-primary leading-tight">
-                {m.title}
-              </h3>
-              <p className="text-v3-sm text-v3-text-secondary mt-1 line-clamp-2">{m.meta}</p>
-              <p className="text-v3-xs text-v3-text-tertiary mt-2 tabular-nums">{fmt(m.date)}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <div className="space-y-6">
+      {hasNext && (
+        <NextMilestoneCard
+          primary={nextMilestones[0]}
+          others={nextMilestones.slice(1)}
+        />
+      )}
+
+      {milestones.length > 0 && (
+        <section className="space-y-3">
+          <SectionHeader
+            title={`${milestones.length} ${milestones.length === 1 ? "bedrift" : "bedrifter"}`}
+            subtitle="Allt du och din hund uppnått"
+          />
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {milestones.map((m) => (
+              <li
+                key={m.id}
+                className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 flex items-start gap-4"
+              >
+                <span className="text-[28px] leading-none shrink-0" aria-hidden>
+                  {m.emoji}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-v3-display text-v3-lg text-v3-text-primary leading-tight">
+                    {m.title}
+                  </h3>
+                  <p className="text-v3-sm text-v3-text-secondary mt-1 line-clamp-2">{m.meta}</p>
+                  <p className="text-v3-xs text-v3-text-tertiary mt-2 tabular-nums">{fmt(m.date)}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
   );
 }

@@ -140,10 +140,20 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { url, dog_name, handler_name } = body as {
+    const {
+      url,
+      dog_name,
+      handler_name,
+      first_name,
+      last_name,
+      competition_date,
+    } = body as {
       url?: string;
       dog_name?: string;
       handler_name?: string;
+      first_name?: string;
+      last_name?: string;
+      competition_date?: string | null;
     };
 
     if (!url || !dog_name || !handler_name) {
@@ -173,6 +183,10 @@ Deno.serve(async (req) => {
 
     console.log(`[fetch-my-result] user=${userData.user.id} url=${url}`);
 
+    let usedMethod: "direct-page" | "search-fallback" = "direct-page";
+    let matches: MatchedResult[] = [];
+
+    // ---------- STEG 1: Direkt-scrape av tävlingens publika resultatsida ----------
     const fcResp = await fetch("https://api.firecrawl.dev/v1/scrape", {
       method: "POST",
       headers: {
@@ -187,93 +201,150 @@ Deno.serve(async (req) => {
       }),
     });
 
-    const fcData = await fcResp.json();
-    if (!fcResp.ok) {
-      console.error("[fetch-my-result] firecrawl error", fcData);
-      return new Response(
-        JSON.stringify({ success: false, error: "Kunde inte läsa resultatlistan just nu" }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+    let markdown = "";
+    if (fcResp.ok) {
+      const fcData = await fcResp.json();
+      markdown = fcData?.data?.markdown || fcData?.markdown || "";
+    } else {
+      // Konsumera body för att undvika resource leak — fortsätt ändå med fallback
+      try { await fcResp.text(); } catch { /* ignore */ }
+      console.warn("[fetch-my-result] firecrawl direct page status", fcResp.status);
     }
 
-    const markdown: string = fcData?.data?.markdown || fcData?.markdown || "";
-    if (!markdown) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Inga resultat publicerade ännu" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
+    if (markdown) {
+      const sections = parseTables(markdown);
+      for (const section of sections) {
+        const handlerIdx = findColIdx(section.headers, ["förare", "handler", "ekipage"]);
+        const dogIdx = findColIdx(section.headers, ["hund", "dog"]);
+        const combinedIdx = findColIdx(section.headers, ["hund / förare", "ekipage", "deltagare"]);
+        const placeIdx = findColIdx(section.headers, ["plac", "pl.", "rank"]);
+        const timeIdx = findColIdx(section.headers, ["tid", "time"]);
+        const faultIdx = findColIdx(section.headers, ["fel", "fault"]);
+        const sizeIdx = findColIdx(section.headers, ["storl", "size", "klass"]);
+        const statusIdx = findColIdx(section.headers, ["status", "godk", "diskvalif"]);
 
-    const sections = parseTables(markdown);
-    const matches: MatchedResult[] = [];
-
-    for (const section of sections) {
-      const handlerIdx = findColIdx(section.headers, ["förare", "handler", "ekipage"]);
-      const dogIdx = findColIdx(section.headers, ["hund", "dog"]);
-      // Om kolumnerna inte finns, försök hitta dog+handler i samma cell (vanligt på agilitydata.se "Hund / Förare")
-      const combinedIdx = findColIdx(section.headers, ["hund / förare", "ekipage", "deltagare"]);
-      const placeIdx = findColIdx(section.headers, ["plac", "pl.", "rank"]);
-      const timeIdx = findColIdx(section.headers, ["tid", "time"]);
-      const faultIdx = findColIdx(section.headers, ["fel", "fault"]);
-      const sizeIdx = findColIdx(section.headers, ["storl", "size", "klass"]);
-      const statusIdx = findColIdx(section.headers, ["status", "godk", "diskvalif"]);
-
-      for (const row of section.rows) {
-        let dogCell = "";
-        let handlerCell = "";
-        if (dogIdx >= 0) dogCell = row.cells[dogIdx] || "";
-        if (handlerIdx >= 0) handlerCell = row.cells[handlerIdx] || "";
-        if (combinedIdx >= 0 && (!dogCell || !handlerCell)) {
-          // Försök separera "Fido / Anna Svensson" eller "Anna Svensson - Fido"
-          const combined = row.cells[combinedIdx] || "";
-          const parts = combined.split(/[\/–-]/).map((p) => p.trim()).filter(Boolean);
-          if (parts.length === 2) {
-            // gissa: kortare namnet är hunden
-            if (parts[0].split(" ").length === 1 && parts[1].split(" ").length >= 2) {
-              dogCell = parts[0];
-              handlerCell = parts[1];
-            } else if (parts[1].split(" ").length === 1 && parts[0].split(" ").length >= 2) {
-              dogCell = parts[1];
-              handlerCell = parts[0];
-            } else {
-              dogCell = parts[1];
-              handlerCell = parts[0];
+        for (const row of section.rows) {
+          let dogCell = "";
+          let handlerCell = "";
+          if (dogIdx >= 0) dogCell = row.cells[dogIdx] || "";
+          if (handlerIdx >= 0) handlerCell = row.cells[handlerIdx] || "";
+          if (combinedIdx >= 0 && (!dogCell || !handlerCell)) {
+            const combined = row.cells[combinedIdx] || "";
+            const parts = combined.split(/[\/–-]/).map((p) => p.trim()).filter(Boolean);
+            if (parts.length === 2) {
+              if (parts[0].split(" ").length === 1 && parts[1].split(" ").length >= 2) {
+                dogCell = parts[0];
+                handlerCell = parts[1];
+              } else if (parts[1].split(" ").length === 1 && parts[0].split(" ").length >= 2) {
+                dogCell = parts[1];
+                handlerCell = parts[0];
+              } else {
+                dogCell = parts[1];
+                handlerCell = parts[0];
+              }
             }
           }
+
+          if (!nameMatches(dog_name, dogCell)) continue;
+          if (!nameMatches(handler_name, handlerCell)) continue;
+
+          const placeStr = placeIdx >= 0 ? row.cells[placeIdx] : "";
+          const timeStr = timeIdx >= 0 ? row.cells[timeIdx] : "";
+          const faultStr = faultIdx >= 0 ? row.cells[faultIdx] : "";
+          const sizeStr = sizeIdx >= 0 ? row.cells[sizeIdx] : "";
+          const statusStr = (statusIdx >= 0 ? row.cells[statusIdx] : "").toLowerCase();
+
+          const placement = parseNumber(placeStr);
+          const time_sec = parseNumber(timeStr);
+          const faults = parseNumber(faultStr);
+
+          const disqualified = /disk|dsq|dq/.test(statusStr);
+          const passed =
+            !disqualified &&
+            ((statusStr.includes("godk") && !statusStr.includes("ej")) ||
+              (faults !== null && faults === 0 && time_sec !== null));
+
+          matches.push({
+            placement: placement !== null ? Math.round(placement) : null,
+            handler_name: handlerCell,
+            dog_name: dogCell,
+            time_sec,
+            faults: faults !== null ? Math.round(faults) : null,
+            size_class: sizeStr || "-",
+            class_label: section.classLabel || "Okänd klass",
+            passed,
+            disqualified,
+            raw_row: row.raw.slice(0, 300),
+          });
         }
+      }
+      console.log(`[fetch-my-result] direct page matches: ${matches.length}`);
+    }
 
-        // BÅDA måste matcha
-        if (!nameMatches(dog_name, dogCell)) continue;
-        if (!nameMatches(handler_name, handlerCell)) continue;
+    // ---------- STEG 2: Fallback — sök hund via agilitydata.se/resultat/soek-hund/ ----------
+    // Om direktsidan inte gav träffar, använd den interna sök-funktionen för att
+    // hitta hundens hela resultatlista och filtrera fram raderna nära tävlingsdatumet.
+    if (matches.length === 0 && parsed.hostname.includes("agilitydata.se")) {
+      const fName = (first_name || handler_name?.split(/\s+/)[0] || "").trim();
+      const lName = (last_name || handler_name?.split(/\s+/).slice(1).join(" ") || "").trim();
 
-        const placeStr = placeIdx >= 0 ? row.cells[placeIdx] : "";
-        const timeStr = timeIdx >= 0 ? row.cells[timeIdx] : "";
-        const faultStr = faultIdx >= 0 ? row.cells[faultIdx] : "";
-        const sizeStr = sizeIdx >= 0 ? row.cells[sizeIdx] : "";
-        const statusStr = (statusIdx >= 0 ? row.cells[statusIdx] : "").toLowerCase();
+      if (fName || lName || dog_name) {
+        console.log(`[fetch-my-result] fallback search: ${fName} ${lName} / ${dog_name} @ ${competition_date}`);
+        try {
+          const supabaseUrlEnv = Deno.env.get("SUPABASE_URL")!;
+          const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+          const searchRes = await fetch(
+            `${supabaseUrlEnv}/functions/v1/search-handler-results`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${anonKey}`,
+                "apikey": anonKey,
+              },
+              body: JSON.stringify({
+                firstName: fName,
+                lastName: lName,
+                dogName: dog_name,
+              }),
+            },
+          );
+          const searchJson = await searchRes.json();
+          const allResults: any[] = searchJson?.data?.results ?? [];
+          console.log(`[fetch-my-result] search returned ${allResults.length} total rows`);
 
-        const placement = parseNumber(placeStr);
-        const time_sec = parseNumber(timeStr);
-        const faults = parseNumber(faultStr);
+          // Filtrera rader nära tävlingsdatumet (±2 dagar för flerdagstävlingar).
+          // Om vi inte har ett datum returnerar vi bara de 20 senaste — bättre än
+          // att krascha eller dumpa hela hundens livshistorik på användaren.
+          const targetDate = competition_date ? new Date(competition_date) : null;
+          const filtered = targetDate && !isNaN(targetDate.getTime())
+            ? allResults.filter((r) => {
+                if (!r?.date) return false;
+                const rd = new Date(r.date);
+                if (isNaN(rd.getTime())) return false;
+                const diffDays =
+                  Math.abs(rd.getTime() - targetDate.getTime()) / (1000 * 60 * 60 * 24);
+                return diffDays <= 2;
+              })
+            : allResults.slice(0, 20);
 
-        const disqualified = /disk|dsq|dq/.test(statusStr);
-        const passed =
-          !disqualified &&
-          ((statusStr.includes("godk") && !statusStr.includes("ej")) ||
-            (faults !== null && faults === 0 && time_sec !== null));
-
-        matches.push({
-          placement: placement !== null ? Math.round(placement) : null,
-          handler_name: handlerCell,
-          dog_name: dogCell,
-          time_sec,
-          faults: faults !== null ? Math.round(faults) : null,
-          size_class: sizeStr || "-",
-          class_label: section.classLabel || "Okänd klass",
-          passed,
-          disqualified,
-          raw_row: row.raw.slice(0, 300),
-        });
+          matches = filtered.map((r): MatchedResult => ({
+            placement: r.placement ?? null,
+            handler_name: `${fName} ${lName}`.trim(),
+            dog_name: dog_name,
+            time_sec: r.time_sec ?? null,
+            faults: r.faults ?? null,
+            size_class: r.size || "-",
+            class_label: [r.discipline, r.class].filter(Boolean).join(" ") || "Okänd klass",
+            passed: r.passed === true,
+            disqualified: r.disqualified === true,
+            raw_row: `${r.date} | ${r.competition} | ${r.discipline} ${r.class}`.slice(0, 300),
+          }));
+          if (matches.length > 0) usedMethod = "search-fallback";
+          console.log(`[fetch-my-result] fallback matches after date filter: ${matches.length}`);
+        } catch (e) {
+          console.error("[fetch-my-result] fallback search failed", e);
+        }
       }
     }
 
@@ -282,6 +353,7 @@ Deno.serve(async (req) => {
         success: true,
         matches,
         match_count: matches.length,
+        method: usedMethod,
         source_url: url,
         fetched_at: new Date().toISOString(),
       }),

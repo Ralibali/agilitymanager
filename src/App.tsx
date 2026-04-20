@@ -151,6 +151,7 @@ const App = () => (
                 <Route path="dogs" element={<V3DogsPage />} />
                 <Route path="health" element={<V3HealthPage />} />
                 <Route path="courses" element={<V3CoursesPage />} />
+                <Route path="coach" element={<V3CoachPage />} />
                 <Route path="course-planner" element={<V3CoursePlannerPage />} />
                 <Route path="stopwatch" element={<V3StopwatchPage />} />
                 <Route path="friends" element={<V3FriendsPage />} />

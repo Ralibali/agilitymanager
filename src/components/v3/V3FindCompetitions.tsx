@@ -903,6 +903,44 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                       Hämta mina resultat
                     </button>
                   )}
+                  {(() => {
+                    const hasDetails =
+                      !!r.indoor_outdoor ||
+                      !!r.status ||
+                      !!r.organizer ||
+                      !!r.type ||
+                      !!r.price_per_lopp ||
+                      !!r.extra_info ||
+                      !!r.registration_opens ||
+                      !!r.date_end ||
+                      (r.judges && r.judges.length > 0) ||
+                      (r.classes_agility && r.classes_agility.length > 0) ||
+                      (r.classes_hopp && r.classes_hopp.length > 0) ||
+                      (r.classes_other && r.classes_other.length > 0);
+                    if (!hasDetails) return null;
+                    const isOpen = !!expanded[`${r.sport}-${r.id}`];
+                    return (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpanded((prev) => ({
+                            ...prev,
+                            [`${r.sport}-${r.id}`]: !isOpen,
+                          }))
+                        }
+                        className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-v3-base text-v3-xs font-medium bg-v3-canvas-sunken/40 text-v3-text-secondary hover:bg-v3-canvas-sunken hover:text-v3-text-primary transition-colors"
+                        aria-expanded={isOpen}
+                      >
+                        <Info size={12} strokeWidth={1.8} />
+                        {isOpen ? "Dölj detaljer" : "Visa detaljer"}
+                        <ChevronDown
+                          size={12}
+                          strokeWidth={1.8}
+                          className={cn("transition-transform", isOpen && "rotate-180")}
+                        />
+                      </button>
+                    );
+                  })()}
                   {r.source_url && (
                     <a
                       href={r.source_url}
@@ -915,6 +953,99 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                     </a>
                   )}
                 </div>
+
+                {/* Expanderbar detalj-panel: all scrapad info från agilitydata.se / SHoK */}
+                {expanded[`${r.sport}-${r.id}`] && (
+                  <div className="mt-3 pt-3 border-t border-v3-canvas-sunken/40 space-y-3 text-v3-sm">
+                    {/* Meta-grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                      {r.date_end && r.date_end !== r.date && (
+                        <DetailItem icon={Calendar} label="Slutdatum" value={formatDate(r.date_end)} />
+                      )}
+                      {r.indoor_outdoor && (
+                        <DetailItem
+                          icon={r.indoor_outdoor.toLowerCase().includes("inne") ? Home : Trees}
+                          label="Plats-typ"
+                          value={r.indoor_outdoor}
+                        />
+                      )}
+                      {r.status && <DetailItem icon={Info} label="Status" value={r.status} />}
+                      {r.type && <DetailItem icon={Info} label="Typ" value={r.type} />}
+                      {r.organizer && (
+                        <DetailItem icon={Building2} label="Arrangör" value={r.organizer} />
+                      )}
+                      {r.price_per_lopp && (
+                        <DetailItem icon={Info} label="Pris per lopp" value={r.price_per_lopp} />
+                      )}
+                      {r.registration_opens && (
+                        <DetailItem
+                          icon={Clock}
+                          label="Anmälan öppnar"
+                          value={formatDate(r.registration_opens)}
+                        />
+                      )}
+                      {r.registration_status && (
+                        <DetailItem
+                          icon={Info}
+                          label="Anmälningsstatus"
+                          value={r.registration_status}
+                        />
+                      )}
+                    </div>
+
+                    {/* Klasser per disciplin (agilitydata-uppdelning) */}
+                    {(r.classes_agility?.length || r.classes_hopp?.length || r.classes_other?.length) ? (
+                      <div className="space-y-2">
+                        {r.classes_agility && r.classes_agility.length > 0 && (
+                          <ClassGroup label="Agility" items={r.classes_agility} />
+                        )}
+                        {r.classes_hopp && r.classes_hopp.length > 0 && (
+                          <ClassGroup label="Hopp" items={r.classes_hopp} />
+                        )}
+                        {r.classes_other && r.classes_other.length > 0 && (
+                          <ClassGroup label="Övrigt" items={r.classes_other} />
+                        )}
+                      </div>
+                    ) : null}
+
+                    {/* Domare */}
+                    {r.judges && r.judges.length > 0 && (
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-1.5 inline-flex items-center gap-1.5">
+                          <Gavel size={11} strokeWidth={1.8} /> Domare
+                        </div>
+                        <ul className="text-v3-sm text-v3-text-primary space-y-0.5">
+                          {r.judges.map((j) => (
+                            <li key={j}>· {j}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Extra info / kontakt */}
+                    {r.extra_info && (
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-1">
+                          Extra info
+                        </div>
+                        <p className="text-v3-sm text-v3-text-secondary whitespace-pre-line">
+                          {r.extra_info}
+                        </p>
+                      </div>
+                    )}
+                    {r.contact_email && (
+                      <div className="inline-flex items-center gap-1.5 text-v3-sm">
+                        <Mail size={12} strokeWidth={1.8} className="text-v3-text-tertiary" />
+                        <a
+                          href={`mailto:${r.contact_email}`}
+                          className="text-v3-brand-600 hover:underline"
+                        >
+                          {r.contact_email}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
               </li>
             );
           })}

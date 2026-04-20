@@ -18,8 +18,9 @@ const COLS = [
     title: "Support",
     links: [
       { label: "Kontakt", href: "mailto:info@auroramedia.se", external: true },
-      { label: "Integritetspolicy", href: "/privacy" },
-      { label: "Cookiepolicy", href: "/cookies" },
+      { label: "Integritetspolicy", href: "/integritetspolicy" },
+      { label: "Cookiepolicy", href: "/cookiepolicy" },
+      { label: "Ansvarsfriskrivning", href: "/ansvarsfriskrivning" },
     ],
   },
   {

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { fetchWeatherForDate, describeWeather, type WeatherDay } from "@/lib/weatherForecast";
 import { buildHoopersCompetitionPath, buildCompetitionSlug } from "@/lib/competitionSlug";
+import { Disclaimer } from "@/components/Disclaimer";
 
 const SITE_URL = "https://agilitymanager.se";
 
@@ -408,6 +409,11 @@ export default function HoopersCompetitionDetailPage() {
             {comp.fetched_at && new Date(comp.fetched_at).toLocaleDateString("sv-SE")}
           </p>
         </div>
+
+        {/* Ansvarsfriskrivning för crawlat hoopers-tävlingsdata */}
+        <section className="max-w-3xl mx-auto px-5 md:px-12 pb-12">
+          <Disclaimer variant="competition" />
+        </section>
       </main>
 
       <LandingFooterV2 />

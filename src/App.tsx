@@ -27,6 +27,7 @@ const HoopersLandingPage = React.lazy(() => import("./pages/HoopersLandingPage")
 const HoopersRulesPage = React.lazy(() => import("./pages/HoopersRulesPage"));
 const PrivacyPolicyPage = React.lazy(() => import("./pages/PrivacyPolicyPage"));
 const CookiePolicyPage = React.lazy(() => import("./pages/CookiePolicyPage"));
+const DisclaimerPage = React.lazy(() => import("./pages/DisclaimerPage"));
 const UnsubscribePage = React.lazy(() => import("./pages/UnsubscribePage"));
 const InvitePage = React.lazy(() => import("./pages/InvitePage"));
 const ClubInvitePage = React.lazy(() => import("./pages/ClubInvitePage"));
@@ -136,6 +137,7 @@ const App = () => (
               <Route path="/blogg/:slug" element={<BlogPostPage />} />
               <Route path="/integritetspolicy" element={<PrivacyPolicyPage />} />
               <Route path="/cookiepolicy" element={<CookiePolicyPage />} />
+              <Route path="/ansvarsfriskrivning" element={<DisclaimerPage />} />
               <Route path="/avregistrera" element={<UnsubscribePage />} />
               <Route path="/invite/:code" element={<InvitePage />} />
               <Route path="/club-invite/:code" element={<ClubInvitePage />} />

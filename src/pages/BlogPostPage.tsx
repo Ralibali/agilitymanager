@@ -9,6 +9,7 @@ import { BLOG_FAQS, buildFaqJsonLd } from '@/lib/blogFaqs';
 import { BlogFAQ } from '@/components/BlogFAQ';
 import { BlogTOC, extractTOCItems, slugifyHeading } from '@/components/BlogTOC';
 import { ShareArticleButton } from '@/components/ShareArticleButton';
+import { Disclaimer } from '@/components/Disclaimer';
 import { FadeIn, ScrollProgress, MagneticButton } from '@/components/motion';
 
 // Parse inline markdown: **bold** and [link](/url)
@@ -342,6 +343,11 @@ export default function BlogPostPage() {
 
       {/* FAQ – endast på artiklar med definierad FAQ-data */}
       {faqSection && <BlogFAQ section={faqSection} />}
+
+      {/* Ansvarsfriskrivning för redaktionellt innehåll */}
+      <section className="px-4 max-w-2xl mx-auto pb-8">
+        <Disclaimer variant="editorial" />
+      </section>
 
       {/* CTA */}
       <section className="px-4 pb-16 max-w-2xl mx-auto">

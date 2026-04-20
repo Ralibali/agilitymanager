@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { Search, ExternalLink, Calendar, MapPin, Filter, X, Star, Check, Send, Trash2, Trophy, Inbox, User } from "lucide-react";
+import { Search, ExternalLink, Calendar, MapPin, Filter, X, Star, Check, Send, Trash2, Trophy, Inbox, User, ChevronDown, Home, Trees, Gavel, Mail, Building2, Info, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn, stripHtml } from "@/lib/utils";

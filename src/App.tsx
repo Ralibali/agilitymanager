@@ -49,6 +49,7 @@ const V3GoalsPage = React.lazy(() => import("./pages/v3/V3GoalsPage"));
 const V3StatsPage = React.lazy(() => import("./pages/v3/V3StatsPage"));
 const V3HealthPage = React.lazy(() => import("./pages/v3/V3HealthPage"));
 const V3CoursesPage = React.lazy(() => import("./pages/v3/V3CoursesPage"));
+const V3CoachPage = React.lazy(() => import("./pages/v3/V3CoachPage"));
 const V3CoursePlannerPage = React.lazy(() => import("./pages/v3/V3CoursePlannerPage"));
 const V3FriendsPage = React.lazy(() => import("./pages/v3/V3FriendsPage"));
 const V3ChatListPage = React.lazy(() => import("./pages/v3/V3ChatListPage"));

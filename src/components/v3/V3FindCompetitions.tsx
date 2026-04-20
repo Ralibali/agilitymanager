@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { Search, ExternalLink, Calendar, MapPin, Filter, X, Star, Check, Send, Trash2, Trophy, Inbox, User } from "lucide-react";
+import { Search, ExternalLink, Calendar, MapPin, Filter, X, Star, Check, Send, Trash2, Trophy, Inbox, User, ChevronDown, Home, Trees, Gavel, Mail, Building2, Info, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn, stripHtml } from "@/lib/utils";
@@ -20,11 +20,27 @@ interface CompRow {
   location: string | null;
   region: string | null;
   date: string | null;
+  date_end?: string | null;
   registration_deadline: string | null;
+  registration_opens?: string | null;
+  registration_status?: string | null;
   classes: string[];
+  classes_agility?: string[];
+  classes_hopp?: string[];
+  classes_other?: string[];
   source_url: string | null;
   source_label: string;
   sport: Sport;
+  // Extra scrapad info
+  indoor_outdoor?: string | null;
+  status?: string | null;
+  judges?: string[];
+  organizer?: string | null;
+  contact_person?: string | null;
+  contact_email?: string | null;
+  price_per_lopp?: string | null;
+  extra_info?: string | null;
+  type?: string | null;
   /** Sätts när raden är delad till mig av en vän */
   sharedBy?: { name: string | null; avatar: string | null; message: string; at: string };
 }
@@ -103,6 +119,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
   const [shareTarget, setShareTarget] = useState<CompRow | null>(null);
   const [resultTarget, setResultTarget] = useState<FetchMyResultTarget | null>(null);
   const [dogs, setDogs] = useState<Dog[]>([]);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   // Hämta hundar (för Hämta resultat-dialogen)
   useEffect(() => {
@@ -121,7 +138,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         let q = supabase
           .from("competitions")
           .select(
-            "id, competition_name, club_name, location, region, date_start, last_registration_date, classes_agility, classes_hopp, classes_other, source_url",
+            "id, competition_name, club_name, location, region, date_start, date_end, last_registration_date, classes_agility, classes_hopp, classes_other, source_url, indoor_outdoor, status, judges",
           )
           .order("date_start", { ascending: !includePast })
           .limit(180);
@@ -136,22 +153,29 @@ export function V3FindCompetitions({ preferredSport }: Props) {
             location: r.location,
             region: r.region,
             date: r.date_start,
+            date_end: r.date_end,
             registration_deadline: r.last_registration_date,
             classes: [
               ...(r.classes_agility ?? []),
               ...(r.classes_hopp ?? []),
               ...(r.classes_other ?? []),
             ],
+            classes_agility: r.classes_agility ?? [],
+            classes_hopp: r.classes_hopp ?? [],
+            classes_other: r.classes_other ?? [],
             source_url: r.source_url ?? "https://agilitydata.se/taevlingar/",
             source_label: "agilitydata.se",
             sport: "Agility" as const,
+            indoor_outdoor: r.indoor_outdoor,
+            status: r.status,
+            judges: r.judges ?? [],
           })),
         );
       } else {
         let q = supabase
           .from("hoopers_competitions_public")
           .select(
-            "id, competition_id, competition_name, club_name, location, county, date, registration_closes, classes, source_url",
+            "id, competition_id, competition_name, club_name, location, county, date, registration_closes, registration_opens, registration_status, classes, source_url, judge, organizer, type, price_per_lopp, extra_info",
           )
           .order("date", { ascending: !includePast })
           .limit(180);
@@ -168,10 +192,17 @@ export function V3FindCompetitions({ preferredSport }: Props) {
             region: r.county,
             date: r.date,
             registration_deadline: r.registration_closes,
+            registration_opens: r.registration_opens,
+            registration_status: r.registration_status,
             classes: r.classes ?? [],
             source_url: r.source_url,
             source_label: "shok.se",
             sport: "Hoopers" as const,
+            judges: r.judge ? [r.judge] : [],
+            organizer: r.organizer,
+            type: r.type,
+            price_per_lopp: r.price_per_lopp,
+            extra_info: r.extra_info,
           })),
         );
       }
@@ -213,13 +244,13 @@ export function V3FindCompetitions({ preferredSport }: Props) {
       supabase
         .from("competitions")
         .select(
-          "id, competition_name, club_name, location, region, date_start, last_registration_date, classes_agility, classes_hopp, classes_other, source_url",
+          "id, competition_name, club_name, location, region, date_start, date_end, last_registration_date, classes_agility, classes_hopp, classes_other, source_url, indoor_outdoor, status, judges",
         )
         .in("id", ids),
       supabase
         .from("hoopers_competitions_public")
         .select(
-          "id, competition_id, competition_name, club_name, location, county, date, registration_closes, classes, source_url",
+          "id, competition_id, competition_name, club_name, location, county, date, registration_closes, registration_opens, registration_status, classes, source_url, judge, organizer, type, price_per_lopp, extra_info",
         )
         .in("competition_id", ids),
     ]);
@@ -232,15 +263,22 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         location: r.location,
         region: r.region,
         date: r.date_start,
+        date_end: r.date_end,
         registration_deadline: r.last_registration_date,
         classes: [
           ...(r.classes_agility ?? []),
           ...(r.classes_hopp ?? []),
           ...(r.classes_other ?? []),
         ],
+        classes_agility: r.classes_agility ?? [],
+        classes_hopp: r.classes_hopp ?? [],
+        classes_other: r.classes_other ?? [],
         source_url: r.source_url ?? "https://agilitydata.se/taevlingar/",
         source_label: "agilitydata.se",
         sport: "Agility" as Sport,
+        indoor_outdoor: r.indoor_outdoor,
+        status: r.status,
+        judges: r.judges ?? [],
       })),
       ...((hoo.data ?? []) as any[]).map((r) => ({
         id: r.id ?? r.competition_id,
@@ -251,10 +289,17 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         region: r.county,
         date: r.date,
         registration_deadline: r.registration_closes,
+        registration_opens: r.registration_opens,
+        registration_status: r.registration_status,
         classes: r.classes ?? [],
         source_url: r.source_url,
         source_label: "shok.se",
         sport: "Hoopers" as Sport,
+        judges: r.judge ? [r.judge] : [],
+        organizer: r.organizer,
+        type: r.type,
+        price_per_lopp: r.price_per_lopp,
+        extra_info: r.extra_info,
       })),
     ];
     setMarkedRows(merged);
@@ -858,6 +903,44 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                       Hämta mina resultat
                     </button>
                   )}
+                  {(() => {
+                    const hasDetails =
+                      !!r.indoor_outdoor ||
+                      !!r.status ||
+                      !!r.organizer ||
+                      !!r.type ||
+                      !!r.price_per_lopp ||
+                      !!r.extra_info ||
+                      !!r.registration_opens ||
+                      !!r.date_end ||
+                      (r.judges && r.judges.length > 0) ||
+                      (r.classes_agility && r.classes_agility.length > 0) ||
+                      (r.classes_hopp && r.classes_hopp.length > 0) ||
+                      (r.classes_other && r.classes_other.length > 0);
+                    if (!hasDetails) return null;
+                    const isOpen = !!expanded[`${r.sport}-${r.id}`];
+                    return (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpanded((prev) => ({
+                            ...prev,
+                            [`${r.sport}-${r.id}`]: !isOpen,
+                          }))
+                        }
+                        className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-v3-base text-v3-xs font-medium bg-v3-canvas-sunken/40 text-v3-text-secondary hover:bg-v3-canvas-sunken hover:text-v3-text-primary transition-colors"
+                        aria-expanded={isOpen}
+                      >
+                        <Info size={12} strokeWidth={1.8} />
+                        {isOpen ? "Dölj detaljer" : "Visa detaljer"}
+                        <ChevronDown
+                          size={12}
+                          strokeWidth={1.8}
+                          className={cn("transition-transform", isOpen && "rotate-180")}
+                        />
+                      </button>
+                    );
+                  })()}
                   {r.source_url && (
                     <a
                       href={r.source_url}
@@ -870,6 +953,99 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                     </a>
                   )}
                 </div>
+
+                {/* Expanderbar detalj-panel: all scrapad info från agilitydata.se / SHoK */}
+                {expanded[`${r.sport}-${r.id}`] && (
+                  <div className="mt-3 pt-3 border-t border-v3-canvas-sunken/40 space-y-3 text-v3-sm">
+                    {/* Meta-grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                      {r.date_end && r.date_end !== r.date && (
+                        <DetailItem icon={Calendar} label="Slutdatum" value={formatDate(r.date_end)} />
+                      )}
+                      {r.indoor_outdoor && (
+                        <DetailItem
+                          icon={r.indoor_outdoor.toLowerCase().includes("inne") ? Home : Trees}
+                          label="Plats-typ"
+                          value={r.indoor_outdoor}
+                        />
+                      )}
+                      {r.status && <DetailItem icon={Info} label="Status" value={r.status} />}
+                      {r.type && <DetailItem icon={Info} label="Typ" value={r.type} />}
+                      {r.organizer && (
+                        <DetailItem icon={Building2} label="Arrangör" value={r.organizer} />
+                      )}
+                      {r.price_per_lopp && (
+                        <DetailItem icon={Info} label="Pris per lopp" value={r.price_per_lopp} />
+                      )}
+                      {r.registration_opens && (
+                        <DetailItem
+                          icon={Clock}
+                          label="Anmälan öppnar"
+                          value={formatDate(r.registration_opens)}
+                        />
+                      )}
+                      {r.registration_status && (
+                        <DetailItem
+                          icon={Info}
+                          label="Anmälningsstatus"
+                          value={r.registration_status}
+                        />
+                      )}
+                    </div>
+
+                    {/* Klasser per disciplin (agilitydata-uppdelning) */}
+                    {(r.classes_agility?.length || r.classes_hopp?.length || r.classes_other?.length) ? (
+                      <div className="space-y-2">
+                        {r.classes_agility && r.classes_agility.length > 0 && (
+                          <ClassGroup label="Agility" items={r.classes_agility} />
+                        )}
+                        {r.classes_hopp && r.classes_hopp.length > 0 && (
+                          <ClassGroup label="Hopp" items={r.classes_hopp} />
+                        )}
+                        {r.classes_other && r.classes_other.length > 0 && (
+                          <ClassGroup label="Övrigt" items={r.classes_other} />
+                        )}
+                      </div>
+                    ) : null}
+
+                    {/* Domare */}
+                    {r.judges && r.judges.length > 0 && (
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-1.5 inline-flex items-center gap-1.5">
+                          <Gavel size={11} strokeWidth={1.8} /> Domare
+                        </div>
+                        <ul className="text-v3-sm text-v3-text-primary space-y-0.5">
+                          {r.judges.map((j) => (
+                            <li key={j}>· {j}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Extra info / kontakt */}
+                    {r.extra_info && (
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-1">
+                          Extra info
+                        </div>
+                        <p className="text-v3-sm text-v3-text-secondary whitespace-pre-line">
+                          {r.extra_info}
+                        </p>
+                      </div>
+                    )}
+                    {r.contact_email && (
+                      <div className="inline-flex items-center gap-1.5 text-v3-sm">
+                        <Mail size={12} strokeWidth={1.8} className="text-v3-text-tertiary" />
+                        <a
+                          href={`mailto:${r.contact_email}`}
+                          className="text-v3-brand-600 hover:underline"
+                        >
+                          {r.contact_email}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
               </li>
             );
           })}
@@ -899,6 +1075,48 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         target={resultTarget}
         dogs={dogs}
       />
+    </div>
+  );
+}
+
+function DetailItem({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-start gap-2 min-w-0">
+      <Icon size={13} strokeWidth={1.8} className="text-v3-text-tertiary mt-0.5 shrink-0" />
+      <div className="min-w-0">
+        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
+          {label}
+        </div>
+        <div className="text-v3-sm text-v3-text-primary break-words">{value}</div>
+      </div>
+    </div>
+  );
+}
+
+function ClassGroup({ label, items }: { label: string; items: string[] }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-1.5">
+        {label} ({items.length})
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {items.map((c) => (
+          <span
+            key={c}
+            className="inline-flex items-center px-2 h-6 rounded bg-v3-canvas-sunken/70 text-[11px] font-medium text-v3-text-primary"
+          >
+            {c}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

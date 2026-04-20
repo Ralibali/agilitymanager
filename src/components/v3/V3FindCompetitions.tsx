@@ -25,6 +25,8 @@ interface CompRow {
   source_url: string | null;
   source_label: string;
   sport: Sport;
+  /** Sätts när raden är delad till mig av en vän */
+  sharedBy?: { name: string | null; avatar: string | null; message: string; at: string };
 }
 
 const MONTH = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];

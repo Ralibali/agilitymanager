@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -10,12 +10,18 @@ import {
   BarChart3,
   Copy,
   Sparkles,
+  QrCode,
+  FolderOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Friendship, FriendProfile } from "@/types/friends";
 import { UserAvatar } from "@/components/v2/UserAvatar";
+import SharedCoursesInbox from "@/components/friends/SharedCoursesInbox";
+
+// Lazy: html5-qrcode är tungt och behövs bara när skannern öppnas
+const QrScannerDialog = lazy(() => import("@/components/friends/QrScannerDialog"));
 
 type Tab = "friends" | "requests" | "find";
 type FriendEntry = Friendship & { profile: FriendProfile };
@@ -31,6 +37,22 @@ export default function V3FriendsPage() {
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<FriendProfile[]>([]);
   const [searching, setSearching] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
+
+  const handleQrScan = useCallback(
+    (decoded: string) => {
+      setQrOpen(false);
+      // Stöd både full URL (https://.../invite/CODE) och bara koden
+      const match = decoded.match(/\/invite\/([A-Za-z0-9_-]+)/);
+      const code = match?.[1] ?? decoded.trim();
+      if (!code) {
+        toast.error("Ogiltig QR-kod");
+        return;
+      }
+      navigate(`/invite/${code}`);
+    },
+    [navigate],
+  );
 
   const load = useCallback(async () => {
     if (!user?.id) return;
@@ -185,14 +207,24 @@ export default function V3FriendsPage() {
             Anslut med andra hundförare, dela banskisser och följ varandras framsteg.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={copyReferral}
-          disabled={!myProfile?.referral_code}
-          className="v3-tappable inline-flex items-center gap-2 px-4 h-11 rounded-v3-base border border-v3-border bg-v3-surface text-v3-text-primary text-v3-body font-medium disabled:opacity-50"
-        >
-          <Copy className="w-4 h-4" /> Bjud in vän
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setQrOpen(true)}
+            className="v3-tappable inline-flex items-center gap-2 px-4 h-11 rounded-v3-base border border-v3-border bg-v3-surface text-v3-text-primary text-v3-body font-medium"
+            aria-label="Skanna QR-kod"
+          >
+            <QrCode className="w-4 h-4" /> Skanna QR
+          </button>
+          <button
+            type="button"
+            onClick={copyReferral}
+            disabled={!myProfile?.referral_code}
+            className="v3-tappable inline-flex items-center gap-2 px-4 h-11 rounded-v3-base border border-v3-border bg-v3-surface text-v3-text-primary text-v3-body font-medium disabled:opacity-50"
+          >
+            <Copy className="w-4 h-4" /> Bjud in vän
+          </button>
+        </div>
       </header>
 
       {/* Stats */}
@@ -398,6 +430,26 @@ export default function V3FriendsPage() {
             </ul>
           )}
         </div>
+      )}
+
+      {/* Delade banor – inkorg */}
+      <section className="space-y-3 pt-4 border-t border-v3-border">
+        <header className="flex items-center gap-2">
+          <FolderOpen className="w-4 h-4 text-v3-text-tertiary" />
+          <h2 className="text-v3-h3 font-v3-display text-v3-text-primary">
+            Delade banor
+          </h2>
+        </header>
+        <p className="text-v3-small text-v3-text-secondary">
+          Banskisser som vänner har delat med dig.
+        </p>
+        <SharedCoursesInbox />
+      </section>
+
+      {qrOpen && (
+        <Suspense fallback={null}>
+          <QrScannerDialog open={qrOpen} onOpenChange={setQrOpen} onScan={handleQrScan} />
+        </Suspense>
       )}
     </div>
   );

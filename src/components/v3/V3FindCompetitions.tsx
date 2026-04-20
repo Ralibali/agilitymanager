@@ -243,13 +243,13 @@ export function V3FindCompetitions({ preferredSport }: Props) {
       supabase
         .from("competitions")
         .select(
-          "id, competition_name, club_name, location, region, date_start, last_registration_date, classes_agility, classes_hopp, classes_other, source_url",
+          "id, competition_name, club_name, location, region, date_start, date_end, last_registration_date, classes_agility, classes_hopp, classes_other, source_url, indoor_outdoor, status, judges",
         )
         .in("id", ids),
       supabase
         .from("hoopers_competitions_public")
         .select(
-          "id, competition_id, competition_name, club_name, location, county, date, registration_closes, classes, source_url",
+          "id, competition_id, competition_name, club_name, location, county, date, registration_closes, registration_opens, registration_status, classes, source_url, judge, organizer, type, price_per_lopp, extra_info",
         )
         .in("competition_id", ids),
     ]);
@@ -262,15 +262,22 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         location: r.location,
         region: r.region,
         date: r.date_start,
+        date_end: r.date_end,
         registration_deadline: r.last_registration_date,
         classes: [
           ...(r.classes_agility ?? []),
           ...(r.classes_hopp ?? []),
           ...(r.classes_other ?? []),
         ],
+        classes_agility: r.classes_agility ?? [],
+        classes_hopp: r.classes_hopp ?? [],
+        classes_other: r.classes_other ?? [],
         source_url: r.source_url ?? "https://agilitydata.se/taevlingar/",
         source_label: "agilitydata.se",
         sport: "Agility" as Sport,
+        indoor_outdoor: r.indoor_outdoor,
+        status: r.status,
+        judges: r.judges ?? [],
       })),
       ...((hoo.data ?? []) as any[]).map((r) => ({
         id: r.id ?? r.competition_id,
@@ -281,10 +288,17 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         region: r.county,
         date: r.date,
         registration_deadline: r.registration_closes,
+        registration_opens: r.registration_opens,
+        registration_status: r.registration_status,
         classes: r.classes ?? [],
         source_url: r.source_url,
         source_label: "shok.se",
         sport: "Hoopers" as Sport,
+        judges: r.judge ? [r.judge] : [],
+        organizer: r.organizer,
+        type: r.type,
+        price_per_lopp: r.price_per_lopp,
+        extra_info: r.extra_info,
       })),
     ];
     setMarkedRows(merged);

@@ -140,10 +140,20 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { url, dog_name, handler_name } = body as {
+    const {
+      url,
+      dog_name,
+      handler_name,
+      first_name,
+      last_name,
+      competition_date,
+    } = body as {
       url?: string;
       dog_name?: string;
       handler_name?: string;
+      first_name?: string;
+      last_name?: string;
+      competition_date?: string | null;
     };
 
     if (!url || !dog_name || !handler_name) {
@@ -173,6 +183,10 @@ Deno.serve(async (req) => {
 
     console.log(`[fetch-my-result] user=${userData.user.id} url=${url}`);
 
+    let usedMethod: "direct-page" | "search-fallback" = "direct-page";
+    let matches: MatchedResult[] = [];
+
+    // ---------- STEG 1: Direkt-scrape av tävlingens publika resultatsida ----------
     const fcResp = await fetch("https://api.firecrawl.dev/v1/scrape", {
       method: "POST",
       headers: {

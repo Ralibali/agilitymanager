@@ -11,6 +11,7 @@ import {
   Copy,
   Sparkles,
   QrCode,
+  FolderOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";

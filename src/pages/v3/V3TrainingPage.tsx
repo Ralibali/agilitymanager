@@ -1,11 +1,13 @@
 import { useState, lazy, Suspense } from "react";
-import { Plus, Dumbbell, Clock, TrendingUp, MapPin, GraduationCap, type LucideIcon } from "lucide-react";
+import { Plus, Dumbbell, Clock, TrendingUp, MapPin, GraduationCap, Download, type LucideIcon } from "lucide-react";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Training, type V3TrainingFilter } from "@/hooks/v3/useV3Training";
 import { openV3LogSheet } from "@/hooks/v3/useV3LogSheet";
 import { DogHero } from "@/components/v3/DogHero";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { downloadCsv } from "@/lib/csv";
+import { toast } from "sonner";
 
 // Coach-feedback (Pro): lazy så den inte påverkar initial paint
 const CoachVideoAnalysis = lazy(() => import("@/components/training/CoachVideoAnalysis"));

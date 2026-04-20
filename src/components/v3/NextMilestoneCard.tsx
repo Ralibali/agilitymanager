@@ -139,16 +139,35 @@ export function NextMilestoneCard({ primary, others = [] }: NextMilestoneCardPro
                     />
                   </div>
                 </div>
-                <ChevronRight
-                  size={14}
-                  className="text-v3-text-tertiary shrink-0"
-                  aria-hidden
-                />
+                <button
+                  type="button"
+                  onClick={() => handleShare(m)}
+                  aria-label={`Dela milstolpe: ${m.title}`}
+                  className="shrink-0 h-8 w-8 -mr-1 rounded-full grid place-items-center text-v3-text-tertiary hover:text-v3-brand-500 hover:bg-v3-brand-500/10 transition-colors"
+                >
+                  <Share2 size={14} />
+                </button>
               </li>
             );
           })}
         </ul>
       )}
+
+      <ShareToFriendDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        sharedType="training"
+        sharedId={shareTarget.id}
+        sharedData={{
+          name: shareTarget.title,
+          hint: shareTarget.hint,
+          current: shareTarget.current,
+          target: shareTarget.target,
+          category: shareTarget.category,
+          emoji: shareTarget.emoji,
+          kind: "milestone",
+        }}
+      />
     </section>
   );
 }

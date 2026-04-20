@@ -131,11 +131,11 @@ export function LandingNav() {
           </motion.button>
         </div>
 
-        {/* Mobile toggle */}
+        {/* Mobile toggle – ≥44px target */}
         <motion.button
           whileTap={{ scale: 0.9 }}
           transition={{ duration: M.duration.fast }}
-          className="md:hidden p-2 -mr-2 text-text-primary"
+          className="md:hidden flex items-center justify-center h-11 w-11 -mr-2 text-text-primary [-webkit-tap-highlight-color:transparent] rounded-md focus-visible:outline-none focus-visible:bg-subtle"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label={mobileOpen ? "Stäng meny" : "Öppna meny"}
           aria-expanded={mobileOpen}
@@ -187,7 +187,7 @@ export function LandingNav() {
                     <Link
                       to={l.href}
                       onClick={() => setMobileOpen(false)}
-                      className="block py-2.5 text-[14px] text-text-primary"
+                      className="flex items-center min-h-[48px] py-3 text-[15px] text-text-primary [-webkit-tap-highlight-color:transparent] active:bg-subtle/60 -mx-2 px-2 rounded-md transition-colors"
                     >
                       {l.label}
                     </Link>
@@ -195,7 +195,7 @@ export function LandingNav() {
                     <a
                       href={l.href}
                       onClick={() => setMobileOpen(false)}
-                      className="block py-2.5 text-[14px] text-text-primary"
+                      className="flex items-center min-h-[48px] py-3 text-[15px] text-text-primary [-webkit-tap-highlight-color:transparent] active:bg-subtle/60 -mx-2 px-2 rounded-md transition-colors"
                     >
                       {l.label}
                     </a>
@@ -209,7 +209,7 @@ export function LandingNav() {
                   visible: { opacity: 1, x: 0 },
                 }}
                 onClick={() => goAuth("login", "nav_login_click")}
-                className="text-left py-2.5 text-[14px] text-text-secondary"
+                className="flex items-center text-left min-h-[48px] py-3 text-[15px] text-text-secondary [-webkit-tap-highlight-color:transparent] active:bg-subtle/60 -mx-2 px-2 rounded-md transition-colors"
               >
                 Logga in
               </motion.button>
@@ -220,7 +220,7 @@ export function LandingNav() {
                 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => goAuth("signup", "nav_cta_click")}
-                className="mt-1 h-11 rounded-ds-md bg-brand-600 text-white text-[14px]"
+                className="mt-2 h-12 rounded-ds-md bg-brand-600 text-white text-[15px] font-medium [-webkit-tap-highlight-color:transparent] active:bg-brand-900 transition-colors"
               >
                 Kom igång gratis
               </motion.button>

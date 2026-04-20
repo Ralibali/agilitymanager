@@ -109,11 +109,20 @@ export function FetchMyResultDialog({ open, onOpenChange, target, dogs }: Props)
     setError(null);
     setPhase("loading");
     try {
+      // Dela upp förarnamnet i för- och efternamn för fallback-sökningen
+      const parts = handlerName.trim().split(/\s+/);
+      const firstName = parts[0] ?? "";
+      const lastName = parts.slice(1).join(" ");
+
       const { data, error: fnError } = await supabase.functions.invoke("fetch-my-competition-result", {
         body: {
           url: target.source_url,
           dog_name: selectedDog.name,
           handler_name: handlerName.trim(),
+          // Skickas vidare till sök-fallback om direktsidan saknar publicerade resultat
+          first_name: firstName,
+          last_name: lastName,
+          competition_date: target.date,
         },
       });
       if (fnError) throw fnError;

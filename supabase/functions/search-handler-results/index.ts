@@ -352,17 +352,11 @@ function parseDogInfo(html: string): Omit<DogSearchResult, 'results'> {
 
 function parseResultsTable(html: string, discipline: string): DogResult[] {
   const results: DogResult[] = [];
-  
-  // Find result table - try multiple IDs
+
+  // Endast den explicita resultattabellen. Tidigare matchade vi alla tabeller
+  // med "result" eller "grid" i id:t — det fångade in MeasurementGridContent
+  // (hundens officiella mätningar) och returnerade dem som tävlingsresultat.
   const tableIds = ['gridContentResultDogResultsTable'];
-  const tableIdRegex = /<table[^>]*id="([^"]*)"[^>]*/gi;
-  let idMatch;
-  while ((idMatch = tableIdRegex.exec(html)) !== null) {
-    const id = idMatch[1];
-    if (!tableIds.includes(id) && (id.toLowerCase().includes('result') || id.toLowerCase().includes('grid'))) {
-      tableIds.push(id);
-    }
-  }
 
   for (const tableId of tableIds) {
     const tableRegex = new RegExp(`<table[^>]*id="${tableId}"[^>]*>([\\s\\S]*?)<\\/table>`, 'i');
@@ -383,6 +377,14 @@ function parseResultsTable(html: string, discipline: string): DogResult[] {
       }
     }
     console.log(`Headers: ${headers.join(', ')}`);
+
+    // Skydd: om tabellen ser ut som en mätningstabell (innehåller "mätning",
+    // "domare" eller "kategori") så är det inte en resultattabell — hoppa över.
+    const isMeasurement = headers.some((h) => /m\s*ä\s*tning|domare|kategori|notering/.test(h));
+    if (isMeasurement) {
+      console.log(`Skipping ${tableId} — looks like a measurement table.`);
+      continue;
+    }
 
     // Extract body rows
     const bodyMatch = tableHtml.match(/<tbody>([\s\S]*?)<\/tbody>/i);
@@ -413,18 +415,27 @@ function parseResultsTable(html: string, discipline: string): DogResult[] {
       };
 
       const dateStr = getCol(['datum', 'date']);
-      const comp = getCol(['arrangör', 'tävling', 'competition', 'arrangemang']);
+      // På agilitydata.se finns både "ekipage" (förare+hund) och "arrangör".
+      // Tävlingsnamnet finns sällan i tabellen — vi använder arrangör som
+      // bästa tillgängliga etikett, men sätter bara om strängen är meningsfull.
+      const organizer = getCol(['arrangör', 'arrangemang']);
+      const eventName = getCol(['tävling', 'competition', 'event']);
       const cls = getCol(['klass', 'class']);
       const discCol = getCol(['gren', 'discipline', 'lopp']);
       const placStr = getCol(['plac']);
       const faultStr = getCol(['tot. fel', 'tot fel']);
       const meritStr = getCol(['merit']);
-      const speedStr = getCol(['m/s']);
+      // Riktig tid (sek) finns oftast i kolumn "tid". m/s är hastighet — får
+      // INTE sparas som time_sec. Vi läser dem separat och skickar bara tid.
+      const timeStr = getCol(['tid ', 'tid(', 'tid:', 'tid']);
       const refusalStr = getCol(['vägran']);
       const timeFaultStr = getCol(['tidsfel']);
       const rawFaultStr = getCol(['fel']);
 
       if (!dateStr || !/\d{4}/.test(dateStr)) continue;
+      // Extra skydd: en resultatrad MÅSTE ha minst en av klass/merit/plac/fel.
+      // Mätningsrader saknar alla dessa.
+      if (!cls && !meritStr && !placStr && !faultStr && !rawFaultStr) continue;
 
       let totalFaults: number | null = null;
       if (faultStr && faultStr.trim() !== '') {
@@ -445,14 +456,17 @@ function parseResultsTable(html: string, discipline: string): DogResult[] {
         else if (d.includes('agility')) rowDiscipline = 'Agility';
       }
 
+      // Försök parsea tid endast om vi faktiskt har en tid-kolumn.
+      const parsedTime = timeStr ? parseFloat(timeStr.replace(',', '.')) : NaN;
+
       results.push({
         date: dateStr,
-        competition: comp,
+        competition: eventName || organizer || '',
         discipline: rowDiscipline === 'Both' ? 'Agility' : rowDiscipline,
         class: cls,
         size: '',
         placement: placStr ? parseInt(placStr) || null : null,
-        time_sec: speedStr ? parseFloat(speedStr.replace(',', '.')) || null : null,
+        time_sec: Number.isFinite(parsedTime) && parsedTime > 0 ? parsedTime : null,
         faults: totalFaults,
         passed,
         disqualified,

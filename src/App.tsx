@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { V3Layout } from "@/components/v3/V3Layout";
+import { ScrollToTop } from "@/components/motion/ScrollToTop";
 import { captureUtmParams } from "@/lib/utm";
 
 // Capture UTM params on first load
@@ -104,6 +105,7 @@ const App = () => (
         <Sonner />
         <AuthProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Suspense fallback={<LazyFallback />}>
             <Routes>
               {/* Publika rutter */}

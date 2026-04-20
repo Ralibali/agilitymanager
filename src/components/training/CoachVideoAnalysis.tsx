@@ -9,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { DogAvatar } from '@/components/DogAvatar';
-import { Video, Upload, Loader2, MessageSquare, Trash2, ChevronDown, ChevronUp, GraduationCap, Clock, CheckCircle2 } from 'lucide-react';
-import { PremiumGate, PremiumBadge } from '@/components/PremiumGate';
+import { Video, Upload, Loader2, MessageSquare, Trash2, ChevronDown, ChevronUp, GraduationCap, Clock, CheckCircle2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -34,7 +33,8 @@ interface CoachVideoAnalysisProps {
 }
 
 export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
-  const { user } = useAuth();
+  const { user, subscription } = useAuth();
+  const isPro = subscription.subscribed;
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [question, setQuestion] = useState('');
@@ -44,11 +44,13 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const PACK_LABELS: Record<'1' | '3' | '5', { price: string; sub: string }> = {
-    '1': { price: '149 kr', sub: '1 video' },
-    '3': { price: '399 kr', sub: '3-pack · spara 48 kr' },
-    '5': { price: '599 kr', sub: '5-pack · spara 146 kr' },
+  // Standardpriser och Pro-priser (~50% rabatt). Faktiskt pris valideras server-side.
+  const PACK_LABELS: Record<'1' | '3' | '5', { standard: string; pro: string; sub: string }> = {
+    '1': { standard: '149 kr', pro: '79 kr', sub: '1 video' },
+    '3': { standard: '399 kr', pro: '199 kr', sub: '3-pack' },
+    '5': { standard: '599 kr', pro: '299 kr', sub: '5-pack' },
   };
+  const currentPrice = (p: '1' | '3' | '5') => isPro ? PACK_LABELS[p].pro : PACK_LABELS[p].standard;
 
   const { data: history = [] } = useQuery({
     queryKey: ['coach-feedback', user?.id],
@@ -165,16 +167,20 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
   return (
     <Card className="mb-4 border-border/50">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base font-display flex items-center gap-2">
+        <CardTitle className="text-base font-display flex items-center gap-2 flex-wrap">
           <GraduationCap size={18} className="text-primary" />
           Coach – Videoanalys
-          <PremiumBadge />
+          {isPro && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-accent/15 text-accent px-1.5 py-0.5 rounded-full">
+              <Sparkles size={9} /> 50% Pro-rabatt
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="pb-3 space-y-3">
-        <PremiumGate fullPage featureName="Coach – Videoanalys">
         <p className="text-xs text-muted-foreground">
           Ladda upp en träningsvideo och ställ en fråga – vår coach granskar och ger personlig feedback.
+          {!isPro && <> <span className="text-foreground font-medium">Pro-medlemmar får 50% rabatt.</span></>}
         </p>
 
         {/* Upload form */}
@@ -253,7 +259,12 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
                       : 'border-border bg-secondary/20 hover:border-border/80'
                   }`}
                 >
-                  <div className="text-xs font-semibold text-foreground">{PACK_LABELS[p].price}</div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xs font-semibold text-foreground">{currentPrice(p)}</span>
+                    {isPro && (
+                      <span className="text-[10px] text-muted-foreground line-through">{PACK_LABELS[p].standard}</span>
+                    )}
+                  </div>
                   <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">{PACK_LABELS[p].sub}</div>
                 </button>
               ))}
@@ -264,11 +275,12 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
             {isSubmitting ? (
               <><Loader2 size={14} className="animate-spin" /> Bearbetar...</>
             ) : (
-              <><Upload size={14} /> Betala {PACK_LABELS[pack].price} & skicka till coach</>
+              <><Upload size={14} /> Betala {currentPrice(pack)} & skicka till coach</>
             )}
           </Button>
           <p className="text-[10px] text-muted-foreground text-center">
             Engångsbetalning via Stripe · Svar inom 5 arbetsdagar
+            {isPro && <> · <span className="text-accent font-medium">Pro-rabatt aktiverad</span></>}
           </p>
         </div>
 
@@ -360,7 +372,6 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
             </div>
           </div>
         )}
-        </PremiumGate>
       </CardContent>
     </Card>
   );

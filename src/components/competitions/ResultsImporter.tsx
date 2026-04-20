@@ -28,7 +28,7 @@ interface ImportStatus {
   dogId: string;
   dogName: string;
   sport: string;
-  status: 'pending' | 'fetching' | 'done' | 'error' | 'cached';
+  status: 'pending' | 'fetching' | 'done' | 'error' | 'cached' | 'not_found';
   count: number;
   error?: string;
 }

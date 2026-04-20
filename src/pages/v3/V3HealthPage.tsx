@@ -101,6 +101,9 @@ export default function V3HealthPage() {
         )}
       </header>
 
+      {/* Hälso-disclaimer */}
+      <Disclaimer variant="health" />
+
       {/* Hund-switcher */}
       {dogsLoading ? (
         <div className="v3-skeleton h-28 rounded-v3-2xl" />

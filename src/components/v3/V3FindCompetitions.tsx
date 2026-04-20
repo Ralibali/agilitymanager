@@ -119,6 +119,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
   const [shareTarget, setShareTarget] = useState<CompRow | null>(null);
   const [resultTarget, setResultTarget] = useState<FetchMyResultTarget | null>(null);
   const [dogs, setDogs] = useState<Dog[]>([]);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   // Hämta hundar (för Hämta resultat-dialogen)
   useEffect(() => {

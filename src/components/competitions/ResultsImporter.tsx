@@ -28,7 +28,7 @@ interface ImportStatus {
   dogId: string;
   dogName: string;
   sport: string;
-  status: 'pending' | 'fetching' | 'done' | 'error' | 'cached';
+  status: 'pending' | 'fetching' | 'done' | 'error' | 'cached' | 'not_found';
   count: number;
   error?: string;
 }
@@ -103,6 +103,7 @@ export function ResultsImporter({ dogs, onImported, autoFetch = false, compact =
         }
 
         let importedCount = 0;
+        let dogNotFoundOnAgilitydata = false;
 
         // Import agility results
         if (!isHoopers || isBoth) {
@@ -113,6 +114,12 @@ export function ResultsImporter({ dogs, onImported, autoFetch = false, compact =
 
             if (!error && data?.success && data.data?.results) {
               const results = data.data.results as any[];
+              // Edge function returnerar search_only=true när sökningen inte
+              // hittade någon hund alls på agilitydata.se — då är det inte ett
+              // "0 nya"-fall utan ett "finns inte registrerad där"-fall.
+              if (data.data.search_only && results.length === 0) {
+                dogNotFoundOnAgilitydata = true;
+              }
               // Save to competition_results
               for (const r of results) {
                 const existing = await supabase
@@ -219,7 +226,11 @@ export function ResultsImporter({ dogs, onImported, autoFetch = false, compact =
         }
 
         setStatuses(prev => prev.map(s => s.dogId === dog.id
-          ? { ...s, status: 'done', count: importedCount }
+          ? {
+              ...s,
+              status: dogNotFoundOnAgilitydata && importedCount === 0 ? 'not_found' : 'done',
+              count: importedCount,
+            }
           : s
         ));
       } catch (e: any) {
@@ -234,8 +245,11 @@ export function ResultsImporter({ dogs, onImported, autoFetch = false, compact =
     if (allNewResults.length > 0) {
       toast.success(`Importerade ${allNewResults.length} nya resultat`);
       onImported?.(allNewResults);
-    } else if (!forceRefresh) {
-      // Results already cached
+    } else if (forceRefresh) {
+      // Användaren tryckte aktivt på knappen — säg vad som hände.
+      toast.info(
+        'Inga nya resultat hittades. Kontrollera att hundens namn och ditt förare-namn matchar exakt det som står på agilitydata.se.',
+      );
     }
   }, [user, handlerName, importableDogs, onImported]);
 
@@ -356,6 +370,11 @@ export function ResultsImporter({ dogs, onImported, autoFetch = false, compact =
               {s.status === 'cached' && (
                 <span className="text-muted-foreground flex items-center gap-1">
                   <CheckCircle2 size={12} /> Cachad ({s.count} res)
+                </span>
+              )}
+              {s.status === 'not_found' && (
+                <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1" title="Hund eller förare hittades inte i agilitydata.se:s register med exakt det namnet.">
+                  <AlertTriangle size={12} /> Hund hittades inte på agilitydata.se
                 </span>
               )}
               {s.status === 'error' && (

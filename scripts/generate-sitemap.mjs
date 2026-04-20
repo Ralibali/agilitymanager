@@ -199,10 +199,26 @@ async function fetchClubs() {
   return [];
 }
 
-// Fyller på i Fas 2D när /ras/:slug-sidor byggs (från `breeds`)
+// Fas 2D: per-ras-sidor (/raser/:slug). Endast publicerade raser indexeras.
 async function fetchBreeds() {
-  return [];
+  const rows = await supabaseGet('breeds', {
+    select: 'slug,updated_at',
+    published: 'eq.true',
+    order: 'updated_at.desc',
+    limit: '500',
+  }).catch(() => []);
+  return rows
+    .filter((r) => r.slug)
+    .map((r) => ({
+      loc: `${SITE_URL}/raser/${r.slug}`,
+      lastmod: (r.updated_at || BUILD_DATE).slice(0, 10),
+      changefreq: 'monthly',
+      priority: '0.7',
+    }));
 }
+
+// Lägg också till /raser-index i statiska routes
+STATIC_ROUTES.push({ path: '/raser', changefreq: 'weekly', priority: '0.8' });
 
 /* ─────────────────────────────────────────────────────────────────────
    XML-byggare

@@ -17,7 +17,7 @@ export default function V3CoachPage() {
     <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-8 animate-v3-fade-in">
       <header className="space-y-2">
         <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
-          Pro · video-granskning
+          Personlig coach · 50% rabatt för Pro
         </div>
         <h1 className="font-v3-display text-[32px] lg:text-[44px] leading-[1.05] tracking-[-0.02em] text-v3-text-primary inline-flex items-center gap-3">
           <GraduationCap size={32} strokeWidth={1.6} className="text-v3-brand-500" />

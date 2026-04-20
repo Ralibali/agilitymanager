@@ -211,8 +211,8 @@ export default function BreedDetailPage() {
             }}
             className="max-w-5xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3"
           >
-            <FactCard label="Agility-lämplighet" value={agility} suffix=" / 5" />
-            <FactCard label="Hoopers-lämplighet" value={hoopers} suffix=" / 5" />
+            <FactCard label="Agility-lämplighet" value={agility} suffix=" / 10" />
+            <FactCard label="Hoopers-lämplighet" value={hoopers} suffix=" / 10" />
             <FactCardText label="Storleksklass" value={breed.size_class} />
             <FactCardText
               label="Livslängd"

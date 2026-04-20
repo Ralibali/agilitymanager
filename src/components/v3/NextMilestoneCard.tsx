@@ -24,6 +24,36 @@ function buildShareText(m: NextMilestone): string {
  */
 export function NextMilestoneCard({ primary, others = [] }: NextMilestoneCardProps) {
   const pct = Math.round(primary.progress * 100);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareTarget, setShareTarget] = useState<NextMilestone>(primary);
+
+  const handleShare = async (m: NextMilestone) => {
+    const text = buildShareText(m);
+    const shareData: ShareData = {
+      title: "Mitt nästa mål",
+      text,
+      url: typeof window !== "undefined" ? window.location.href : undefined,
+    };
+    // Web Share API om tillgängligt (mobil), annars intern dialog
+    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err) {
+        if ((err as DOMException)?.name === "AbortError") return;
+      }
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast.success("Kopierat – välj en kompis att skicka till");
+      } catch {
+        // ignorera
+      }
+    }
+    setShareTarget(m);
+    setShareOpen(true);
+  };
 
   return (
     <section
@@ -46,6 +76,14 @@ export function NextMilestoneCard({ primary, others = [] }: NextMilestoneCardPro
             {primary.hint}
           </h3>
         </div>
+        <button
+          type="button"
+          onClick={() => handleShare(primary)}
+          aria-label={`Dela milstolpe: ${primary.title}`}
+          className="shrink-0 h-9 w-9 rounded-full grid place-items-center text-v3-text-secondary hover:text-v3-brand-500 hover:bg-v3-brand-500/10 transition-colors"
+        >
+          <Share2 size={16} />
+        </button>
       </header>
 
       {/* Progress-bar */}

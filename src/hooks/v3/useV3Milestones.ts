@@ -34,11 +34,13 @@ export type NextMilestone = {
  */
 export function useV3Milestones(dogId: string | null) {
   const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [nextMilestones, setNextMilestones] = useState<NextMilestone[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!dogId) {
       setMilestones([]);
+      setNextMilestones([]);
       setLoading(false);
       return;
     }

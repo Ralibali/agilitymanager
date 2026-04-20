@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -10,12 +10,17 @@ import {
   BarChart3,
   Copy,
   Sparkles,
+  QrCode,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Friendship, FriendProfile } from "@/types/friends";
 import { UserAvatar } from "@/components/v2/UserAvatar";
+import SharedCoursesInbox from "@/components/friends/SharedCoursesInbox";
+
+// Lazy: html5-qrcode är tungt och behövs bara när skannern öppnas
+const QrScannerDialog = lazy(() => import("@/components/friends/QrScannerDialog"));
 
 type Tab = "friends" | "requests" | "find";
 type FriendEntry = Friendship & { profile: FriendProfile };

@@ -9,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { DogAvatar } from '@/components/DogAvatar';
-import { Video, Upload, Loader2, MessageSquare, Trash2, ChevronDown, ChevronUp, GraduationCap, Clock, CheckCircle2 } from 'lucide-react';
-import { PremiumGate, PremiumBadge } from '@/components/PremiumGate';
+import { Video, Upload, Loader2, MessageSquare, Trash2, ChevronDown, ChevronUp, GraduationCap, Clock, CheckCircle2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -34,7 +33,8 @@ interface CoachVideoAnalysisProps {
 }
 
 export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
-  const { user } = useAuth();
+  const { user, subscription } = useAuth();
+  const isPro = subscription.subscribed;
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [question, setQuestion] = useState('');
@@ -44,11 +44,13 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const PACK_LABELS: Record<'1' | '3' | '5', { price: string; sub: string }> = {
-    '1': { price: '149 kr', sub: '1 video' },
-    '3': { price: '399 kr', sub: '3-pack · spara 48 kr' },
-    '5': { price: '599 kr', sub: '5-pack · spara 146 kr' },
+  // Standardpriser och Pro-priser (~50% rabatt). Faktiskt pris valideras server-side.
+  const PACK_LABELS: Record<'1' | '3' | '5', { standard: string; pro: string; sub: string }> = {
+    '1': { standard: '149 kr', pro: '79 kr', sub: '1 video' },
+    '3': { standard: '399 kr', pro: '199 kr', sub: '3-pack' },
+    '5': { standard: '599 kr', pro: '299 kr', sub: '5-pack' },
   };
+  const currentPrice = (p: '1' | '3' | '5') => isPro ? PACK_LABELS[p].pro : PACK_LABELS[p].standard;
 
   const { data: history = [] } = useQuery({
     queryKey: ['coach-feedback', user?.id],

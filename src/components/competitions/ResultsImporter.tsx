@@ -372,6 +372,11 @@ export function ResultsImporter({ dogs, onImported, autoFetch = false, compact =
                   <CheckCircle2 size={12} /> Cachad ({s.count} res)
                 </span>
               )}
+              {s.status === 'not_found' && (
+                <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1" title="Hund eller förare hittades inte i agilitydata.se:s register med exakt det namnet.">
+                  <AlertTriangle size={12} /> Hund hittades inte på agilitydata.se
+                </span>
+              )}
               {s.status === 'error' && (
                 <span className="text-destructive flex items-center gap-1">
                   <AlertTriangle size={12} /> {s.error || 'Fel'}

@@ -112,9 +112,9 @@ export default function V3DogsPage() {
   const activeCount = useMemo(() => dogs.filter((d) => d.is_active_competition_dog).length, [dogs]);
 
   return (
-    <div className="font-v3-sans">
+    <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 font-v3-sans animate-v3-fade-in">
       {/* Header */}
-      <header className="flex items-end justify-between gap-4 mb-6">
+      <header className="flex flex-wrap items-end justify-between gap-4 mb-6 lg:mb-8">
         <div>
           <h1 className="font-v3-display text-[40px] lg:text-[56px] leading-[1.05] tracking-[-0.02em] text-v3-text-primary">
             Mina hundar

@@ -67,6 +67,7 @@ export function FetchMyResultDialog({ open, onOpenChange, target, dogs }: Props)
   const [matches, setMatches] = useState<MatchedRow[]>([]);
   const [picked, setPicked] = useState<Set<number>>(new Set());
   const [importing, setImporting] = useState(false);
+  const [howOpen, setHowOpen] = useState(false);
 
   useEffect(() => {
     if (!open) {

@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { Search, ExternalLink, Calendar, MapPin, Filter, X, Star, Check, Send, Trash2, Trophy } from "lucide-react";
+import { Search, ExternalLink, Calendar, MapPin, Filter, X, Star, Check, Send, Trash2, Trophy, Inbox, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn, stripHtml } from "@/lib/utils";
@@ -25,6 +25,8 @@ interface CompRow {
   source_url: string | null;
   source_label: string;
   sport: Sport;
+  /** Sätts när raden är delad till mig av en vän */
+  sharedBy?: { name: string | null; avatar: string | null; message: string; at: string };
 }
 
 const MONTH = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
@@ -65,12 +67,23 @@ interface Props {
   preferredSport: Sport;
 }
 
-type ViewMode = "all" | "mine";
+type ViewMode = "all" | "interested" | "registered" | "shared";
+
+interface SharedCompMeta {
+  message_id: string;
+  shared_id: string;
+  sender_id: string;
+  sender_name: string | null;
+  sender_avatar: string | null;
+  message: string;
+  shared_at: string;
+  data: Record<string, any>;
+}
 
 /**
  * Sök, filtrera och bläddra bland tävlingar (Agility + Hoopers).
  * - Markera intresserad / anmäld (sparas i competition_interests)
- * - Dela med vän
+ * - Dela med vän (delade tävlingar visas i fliken "Delade")
  * - Hämta egna resultat (efter tävling) via GDPR-säker edge function
  */
 export function V3FindCompetitions({ preferredSport }: Props) {
@@ -85,6 +98,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
   const [rows, setRows] = useState<CompRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [interests, setInterests] = useState<Record<string, InterestStatus>>({});
+  const [sharedComps, setSharedComps] = useState<SharedCompMeta[]>([]);
   const [shareTarget, setShareTarget] = useState<CompRow | null>(null);
   const [resultTarget, setResultTarget] = useState<FetchMyResultTarget | null>(null);
   const [dogs, setDogs] = useState<Dog[]>([]);
@@ -101,7 +115,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     setLoading(true);
     (async () => {
       const today = new Date().toISOString().split("T")[0];
-      const includePast = view === "mine"; // i Mina markerade vill vi se passerade också
+      const includePast = view !== "all"; // i mina/intresserade/anmälda/delade vill vi se passerade också
       if (sport === "Agility") {
         let q = supabase
           .from("competitions")
@@ -190,6 +204,54 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     reloadInterests();
   }, [reloadInterests]);
 
+  // Hämta tävlingar som vänner delat med mig (messages.shared_type='competition')
+  const reloadShared = useCallback(async () => {
+    if (!user) {
+      setSharedComps([]);
+      return;
+    }
+    const { data } = await supabase
+      .from("messages")
+      .select("id, sender_id, shared_id, shared_data, content, created_at")
+      .eq("receiver_id", user.id)
+      .eq("shared_type", "competition")
+      .not("shared_id", "is", null)
+      .order("created_at", { ascending: false });
+    if (!data?.length) {
+      setSharedComps([]);
+      return;
+    }
+    const senderIds = [...new Set(data.map((m) => m.sender_id))];
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("user_id, display_name, avatar_url")
+      .in("user_id", senderIds);
+    const profMap = new Map((profs ?? []).map((p) => [p.user_id, p]));
+    // Behåll endast senaste posten per shared_id
+    const seen = new Set<string>();
+    const uniq: SharedCompMeta[] = [];
+    for (const m of data) {
+      if (!m.shared_id || seen.has(m.shared_id)) continue;
+      seen.add(m.shared_id);
+      const p = profMap.get(m.sender_id);
+      uniq.push({
+        message_id: m.id,
+        shared_id: m.shared_id,
+        sender_id: m.sender_id,
+        sender_name: p?.display_name ?? null,
+        sender_avatar: p?.avatar_url ?? null,
+        message: m.content ?? "",
+        shared_at: m.created_at,
+        data: (m.shared_data as Record<string, any>) ?? {},
+      });
+    }
+    setSharedComps(uniq);
+  }, [user]);
+
+  useEffect(() => {
+    reloadShared();
+  }, [reloadShared]);
+
   const toggleInterest = async (comp: CompRow, target: InterestStatus) => {
     if (!user) {
       toast.error("Logga in för att markera tävlingar");
@@ -254,11 +316,51 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     return Array.from(set).sort();
   }, [rows]);
 
+  // (sharedKeySet borttagen — vi visar shared via syntetiserade rader nedan)
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return rows.filter((r) => {
+
+    // I Delade-fliken bygger vi listan från sharedComps (gärna anrikad med data ur rows om den finns)
+    let base: CompRow[];
+    if (view === "shared") {
+      const rowsByKey = new Map(rows.map((r) => [r.competition_id ?? r.id, r] as const));
+      base = sharedComps.map((s) => {
+        const existing = rowsByKey.get(s.shared_id);
+        const d = s.data ?? {};
+        const merged: CompRow = existing
+          ? { ...existing }
+          : {
+              id: s.shared_id,
+              competition_id: s.shared_id,
+              competition_name: (d.competition_name as string) ?? null,
+              club_name: (d.club_name as string) ?? null,
+              location: (d.location as string) ?? null,
+              region: (d.region as string) ?? null,
+              date: (d.date as string) ?? null,
+              registration_deadline: (d.registration_deadline as string) ?? null,
+              classes: Array.isArray(d.classes) ? (d.classes as string[]) : [],
+              source_url: (d.source_url as string) ?? null,
+              source_label: (d.source_label as string) ?? "extern",
+              sport: ((d.sport as Sport) ?? sport) as Sport,
+            };
+        merged.sharedBy = {
+          name: s.sender_name,
+          avatar: s.sender_avatar,
+          message: s.message,
+          at: s.shared_at,
+        };
+        return merged;
+      });
+    } else {
+      base = rows;
+    }
+
+    return base.filter((r) => {
       const compKey = r.competition_id ?? r.id;
-      if (view === "mine" && !interests[compKey]) return false;
+      // Vy-specifik filtrering (shared filtreras redan)
+      if (view === "interested" && interests[compKey] !== "interested") return false;
+      if (view === "registered" && interests[compKey] !== "registered") return false;
       if (region !== "all" && r.region !== region) return false;
       if (month !== "all" && monthKey(r.date) !== month) return false;
       if (classFilter !== "all" && !r.classes.includes(classFilter)) return false;
@@ -269,45 +371,49 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         (r.location ?? "").toLowerCase().includes(q)
       );
     });
-  }, [rows, query, region, month, classFilter, view, interests]);
+  }, [rows, query, region, month, classFilter, view, interests, sharedComps, sport]);
 
-  const myCount = Object.keys(interests).length;
+  const interestedCount = Object.values(interests).filter((s) => s === "interested").length;
+  const registeredCount = Object.values(interests).filter((s) => s === "registered").length;
+  const sharedCount = sharedComps.length;
   const hasActiveFilters = region !== "all" || month !== "all" || classFilter !== "all";
 
   return (
     <div className="space-y-4">
-      {/* View-toggle */}
-      <div className="flex items-center gap-1.5 p-1 rounded-v3-base bg-v3-canvas-sunken/40 w-fit">
-        <button
-          type="button"
-          onClick={() => setView("all")}
-          className={cn(
-            "h-9 px-4 rounded-[calc(theme(borderRadius.v3-base)-2px)] text-v3-sm font-medium transition-colors",
-            view === "all"
-              ? "bg-v3-canvas-elevated text-v3-text-primary shadow-v3-xs"
-              : "text-v3-text-secondary hover:text-v3-text-primary",
-          )}
-        >
-          Alla
-        </button>
-        <button
-          type="button"
-          onClick={() => setView("mine")}
-          className={cn(
-            "h-9 px-4 rounded-[calc(theme(borderRadius.v3-base)-2px)] text-v3-sm font-medium transition-colors inline-flex items-center gap-1.5",
-            view === "mine"
-              ? "bg-v3-canvas-elevated text-v3-text-primary shadow-v3-xs"
-              : "text-v3-text-secondary hover:text-v3-text-primary",
-          )}
-        >
-          <Star size={12} strokeWidth={1.8} />
-          Mina markerade
-          {myCount > 0 && (
-            <span className="h-4 min-w-4 px-1 rounded-full bg-v3-brand-500 text-white text-[10px] font-medium grid place-items-center tabular-nums">
-              {myCount}
-            </span>
-          )}
-        </button>
+      {/* View-toggle: 4 flikar */}
+      <div className="flex items-center gap-1.5 p-1 rounded-v3-base bg-v3-canvas-sunken/40 w-fit flex-wrap">
+        {(
+          [
+            { id: "all", label: "Alla", icon: null, count: 0 },
+            { id: "interested", label: "Intresserad", icon: Star, count: interestedCount },
+            { id: "registered", label: "Anmäld", icon: Check, count: registeredCount },
+            { id: "shared", label: "Delade", icon: Inbox, count: sharedCount },
+          ] as const
+        ).map((tab) => {
+          const Icon = tab.icon;
+          const active = view === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setView(tab.id as ViewMode)}
+              className={cn(
+                "h-9 px-3 sm:px-4 rounded-[calc(theme(borderRadius.v3-base)-2px)] text-v3-sm font-medium transition-colors inline-flex items-center gap-1.5",
+                active
+                  ? "bg-v3-canvas-elevated text-v3-text-primary shadow-v3-xs"
+                  : "text-v3-text-secondary hover:text-v3-text-primary",
+              )}
+            >
+              {Icon && <Icon size={12} strokeWidth={1.8} />}
+              {tab.label}
+              {tab.count > 0 && (
+                <span className="h-4 min-w-4 px-1 rounded-full bg-v3-brand-500 text-white text-[10px] font-medium grid place-items-center tabular-nums">
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Sport-toggle + sök + filter */}
@@ -407,7 +513,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
       {!loading && (
         <div className="text-v3-xs text-v3-text-tertiary tabular-nums">
           {filtered.length} {filtered.length === 1 ? "tävling" : "tävlingar"}{" "}
-          {view === "mine" ? "markerade" : "hittade"}
+          {view === "all" ? "hittade" : view === "shared" ? "delade med dig" : "markerade"}
         </div>
       )}
 
@@ -423,14 +529,14 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-8 text-center">
-          {view === "mine" ? (
+          {view === "interested" ? (
             <>
-              <div className="mx-auto h-12 w-12 rounded-full bg-v3-brand-500/10 grid place-items-center mb-4">
-                <Star size={20} strokeWidth={1.6} className="text-v3-brand-500" />
+              <div className="mx-auto h-12 w-12 rounded-full bg-amber-500/10 grid place-items-center mb-4">
+                <Star size={20} strokeWidth={1.6} className="text-amber-600" />
               </div>
-              <p className="text-v3-base text-v3-text-secondary">Du har inte markerat några tävlingar än.</p>
+              <p className="text-v3-base text-v3-text-secondary">Du har inte markerat några tävlingar som intressanta än.</p>
               <p className="text-v3-sm text-v3-text-tertiary mt-1">
-                Bläddra i listan och klicka på ⭐ Intresserad eller ✓ Anmäld.
+                Klicka på ⭐ Intresse på en tävling i fliken Alla.
               </p>
               <button
                 type="button"
@@ -439,6 +545,33 @@ export function V3FindCompetitions({ preferredSport }: Props) {
               >
                 Visa alla tävlingar
               </button>
+            </>
+          ) : view === "registered" ? (
+            <>
+              <div className="mx-auto h-12 w-12 rounded-full bg-green-500/10 grid place-items-center mb-4">
+                <Check size={20} strokeWidth={1.6} className="text-green-600" />
+              </div>
+              <p className="text-v3-base text-v3-text-secondary">Du har inte markerat dig som anmäld på någon tävling än.</p>
+              <p className="text-v3-sm text-v3-text-tertiary mt-1">
+                Klicka på ✓ Anmäld på en tävling i fliken Alla.
+              </p>
+              <button
+                type="button"
+                onClick={() => setView("all")}
+                className="mt-4 inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-text-primary text-v3-text-inverse text-v3-sm font-medium hover:opacity-90 transition-opacity"
+              >
+                Visa alla tävlingar
+              </button>
+            </>
+          ) : view === "shared" ? (
+            <>
+              <div className="mx-auto h-12 w-12 rounded-full bg-v3-brand-500/10 grid place-items-center mb-4">
+                <Inbox size={20} strokeWidth={1.6} className="text-v3-brand-500" />
+              </div>
+              <p className="text-v3-base text-v3-text-secondary">Inga vänner har delat tävlingar med dig än.</p>
+              <p className="text-v3-sm text-v3-text-tertiary mt-1">
+                Tävlingar som dina vänner skickar via Dela-knappen dyker upp här.
+              </p>
             </>
           ) : (
             <>
@@ -472,6 +605,27 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                     : "bg-v3-canvas-elevated border-v3-canvas-sunken/40 hover:border-v3-canvas-sunken",
                 )}
               >
+                {r.sharedBy && (
+                  <div className="mb-3 -mt-1 flex items-center gap-2 text-v3-xs text-v3-text-secondary">
+                    {r.sharedBy.avatar ? (
+                      <img
+                        src={r.sharedBy.avatar}
+                        alt=""
+                        className="h-6 w-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-6 w-6 rounded-full bg-v3-canvas-sunken grid place-items-center">
+                        <User size={12} strokeWidth={1.8} className="text-v3-text-tertiary" />
+                      </div>
+                    )}
+                    <span>
+                      Delad av <span className="font-medium text-v3-text-primary">{r.sharedBy.name ?? "en vän"}</span>
+                      {r.sharedBy.message && (
+                        <span className="text-v3-text-tertiary">: "{r.sharedBy.message}"</span>
+                      )}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start gap-2 flex-wrap">

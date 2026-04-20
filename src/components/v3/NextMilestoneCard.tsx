@@ -1,11 +1,19 @@
-import { ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { ChevronRight, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import type { NextMilestone } from "@/hooks/v3/useV3Milestones";
+import ShareToFriendDialog from "@/components/ShareToFriendDialog";
 
 interface NextMilestoneCardProps {
   /** Den närmst uppnåbara olåsta milstolpen */
   primary: NextMilestone;
   /** Övriga olåsta mål – visas som kompakta progress-rader under */
   others?: NextMilestone[];
+}
+
+function buildShareText(m: NextMilestone): string {
+  const pct = Math.round(m.progress * 100);
+  return `${m.emoji} Mitt nästa mål i AgilityManager: ${m.title} – ${m.current}/${m.target} (${pct}%). ${m.hint}!`;
 }
 
 /**

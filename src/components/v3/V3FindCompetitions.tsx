@@ -20,11 +20,27 @@ interface CompRow {
   location: string | null;
   region: string | null;
   date: string | null;
+  date_end?: string | null;
   registration_deadline: string | null;
+  registration_opens?: string | null;
+  registration_status?: string | null;
   classes: string[];
+  classes_agility?: string[];
+  classes_hopp?: string[];
+  classes_other?: string[];
   source_url: string | null;
   source_label: string;
   sport: Sport;
+  // Extra scrapad info
+  indoor_outdoor?: string | null;
+  status?: string | null;
+  judges?: string[];
+  organizer?: string | null;
+  contact_person?: string | null;
+  contact_email?: string | null;
+  price_per_lopp?: string | null;
+  extra_info?: string | null;
+  type?: string | null;
   /** Sätts när raden är delad till mig av en vän */
   sharedBy?: { name: string | null; avatar: string | null; message: string; at: string };
 }

@@ -226,7 +226,11 @@ export function ResultsImporter({ dogs, onImported, autoFetch = false, compact =
         }
 
         setStatuses(prev => prev.map(s => s.dogId === dog.id
-          ? { ...s, status: 'done', count: importedCount }
+          ? {
+              ...s,
+              status: dogNotFoundOnAgilitydata && importedCount === 0 ? 'not_found' : 'done',
+              count: importedCount,
+            }
           : s
         ));
       } catch (e: any) {
@@ -241,8 +245,11 @@ export function ResultsImporter({ dogs, onImported, autoFetch = false, compact =
     if (allNewResults.length > 0) {
       toast.success(`Importerade ${allNewResults.length} nya resultat`);
       onImported?.(allNewResults);
-    } else if (!forceRefresh) {
-      // Results already cached
+    } else if (forceRefresh) {
+      // Användaren tryckte aktivt på knappen — säg vad som hände.
+      toast.info(
+        'Inga nya resultat hittades. Kontrollera att hundens namn och ditt förare-namn matchar exakt det som står på agilitydata.se.',
+      );
     }
   }, [user, handlerName, importableDogs, onImported]);
 

@@ -326,36 +326,22 @@ function PlaceholderGradient() {
 }
 
 function StarsRow({ score }: { score: number }) {
-  // 0-5 (kan komma som 0-100)
-  const normalized = score > 5 ? Math.round(score / 20) : Math.round(score);
-  const stars = Math.max(0, Math.min(5, normalized));
+  // DB-skala är 0-10. Visa som "X / 10 ★" för exakthet.
+  const value = Math.max(0, Math.min(10, Math.round(score)));
   return (
-    <div className="flex items-center gap-0.5 group/stars" aria-label={`Lämplighet ${stars} av 5`}>
-      {[0, 1, 2, 3, 4].map((i) => {
-        const filled = i < stars;
-        return (
-          <motion.span
-            key={i}
-            initial={{ opacity: 0.7 }}
-            whileHover={{ scale: 1.18, opacity: 1 }}
-            transition={{
-              delay: i * 0.05,
-              duration: motionTokens.duration.fast,
-              ease: motionTokens.ease.smooth,
-            }}
-            className="inline-flex"
-          >
-            <Star
-              size={13}
-              strokeWidth={1.5}
-              style={{
-                color: filled ? "#c85d1e" : "hsl(var(--border))",
-                fill: filled ? "#c85d1e" : "transparent",
-              }}
-            />
-          </motion.span>
-        );
-      })}
+    <div
+      className="inline-flex items-center gap-1 font-body"
+      aria-label={`Lämplighet ${value} av 10`}
+    >
+      <Star
+        size={13}
+        strokeWidth={1.5}
+        style={{ color: "#c85d1e", fill: "#c85d1e" }}
+      />
+      <span className="text-xs font-medium text-foreground">
+        {value}
+        <span className="text-muted-foreground"> / 10</span>
+      </span>
     </div>
   );
 }

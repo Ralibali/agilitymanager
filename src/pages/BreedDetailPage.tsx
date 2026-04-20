@@ -42,7 +42,8 @@ type RelatedBreed = {
 
 function normalizeScore(s: number | null): number {
   if (s == null) return 0;
-  return s > 5 ? Math.round(s / 20) : Math.round(s);
+  // DB-skala är 0-10. Klampa för säkerhets skull.
+  return Math.max(0, Math.min(10, Math.round(s)));
 }
 
 export default function BreedDetailPage() {
@@ -210,8 +211,8 @@ export default function BreedDetailPage() {
             }}
             className="max-w-5xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3"
           >
-            <FactCard label="Agility-lämplighet" value={agility} suffix=" / 5" />
-            <FactCard label="Hoopers-lämplighet" value={hoopers} suffix=" / 5" />
+            <FactCard label="Agility-lämplighet" value={agility} suffix=" / 10" />
+            <FactCard label="Hoopers-lämplighet" value={hoopers} suffix=" / 10" />
             <FactCardText label="Storleksklass" value={breed.size_class} />
             <FactCardText
               label="Livslängd"

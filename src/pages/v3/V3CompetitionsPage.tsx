@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Plus, Trophy, Calendar, Compass, MapPin, ExternalLink, CheckCircle2, AlertCircle, Trash2, type LucideIcon } from "lucide-react";
+import { Plus, Trophy, Calendar, Compass, MapPin, ExternalLink, CheckCircle2, AlertCircle, Trash2, Download, FileText, type LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Competitions, computeStats } from "@/hooks/v3/useV3Competitions";
@@ -10,6 +10,8 @@ import { V3FindCompetitions } from "@/components/v3/V3FindCompetitions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { downloadCsv } from "@/lib/csv";
+import { downloadPdf } from "@/lib/pdf";
 import type { CompetitionResult, PlannedCompetition } from "@/types";
 
 type Tab = "upcoming" | "results" | "find";
@@ -55,10 +57,54 @@ export default function V3CompetitionsPage() {
   const ctaLabel = tab === "results" ? "Logga resultat" : "Planera tävling";
   const onCta = () => (tab === "results" ? setResultSheet(true) : setPlanSheet(true));
 
+  const exportRows = () => {
+    return results.map((r) => ({
+      Datum: r.date,
+      Tävling: r.event_name,
+      Arrangör: r.organizer ?? "",
+      Disciplin: r.discipline,
+      Klass: r.competition_level,
+      Tid: r.time_sec ?? "",
+      Fel: r.faults ?? 0,
+      Placering: r.placement ?? "",
+      Godkänd: r.disqualified ? "Disk" : r.passed ? "Ja" : "Nej",
+    }));
+  };
+
+  const handleExportCsv = () => {
+    if (results.length === 0) {
+      toast.info("Inga resultat att exportera");
+      return;
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    downloadCsv(exportRows(), `tavlingar-${active?.name ?? "alla"}-${today}.csv`);
+    toast.success(`Exporterade ${results.length} resultat`);
+  };
+
+  const handleExportPdf = () => {
+    if (results.length === 0) {
+      toast.info("Inga resultat att exportera");
+      return;
+    }
+    const rows = exportRows();
+    const headers = Object.keys(rows[0]);
+    const body = rows.map((r) => headers.map((h) => String(r[h as keyof typeof r] ?? "")));
+    const today = new Date().toISOString().slice(0, 10);
+    downloadPdf({
+      title: `Tävlingsresultat – ${active?.name ?? "Alla hundar"}`,
+      subtitle: `Genererad ${new Date().toLocaleDateString("sv-SE")} · ${results.length} resultat`,
+      headers,
+      rows: body,
+      filename: `tavlingar-${active?.name ?? "alla"}-${today}.pdf`,
+      landscape: true,
+    });
+    toast.success("PDF skapad");
+  };
+
   return (
     <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-8 animate-v3-fade-in">
       {/* Header */}
-      <header className="flex items-end justify-between gap-4">
+      <header className="flex items-end justify-between gap-4 flex-wrap">
         <div className="space-y-2">
           <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
             Tävlingar
@@ -67,15 +113,43 @@ export default function V3CompetitionsPage() {
             Mina starter.
           </h1>
         </div>
-        {active && tab !== "find" && (
-          <button
-            type="button"
-            onClick={onCta}
-            className="inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm shrink-0"
-          >
-            <Plus size={16} strokeWidth={2} />
-            {ctaLabel}
-          </button>
+        {active && (
+          <div className="flex items-center gap-2 shrink-0">
+            {tab === "results" && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleExportCsv}
+                  disabled={results.length === 0}
+                  className="inline-flex items-center gap-1.5 h-11 px-3 rounded-v3-base border border-v3-canvas-sunken/60 bg-v3-canvas-elevated text-v3-text-secondary text-v3-sm font-medium hover:bg-v3-canvas-sunken disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title="Exportera till CSV"
+                >
+                  <Download size={14} strokeWidth={1.8} />
+                  CSV
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportPdf}
+                  disabled={results.length === 0}
+                  className="inline-flex items-center gap-1.5 h-11 px-3 rounded-v3-base border border-v3-canvas-sunken/60 bg-v3-canvas-elevated text-v3-text-secondary text-v3-sm font-medium hover:bg-v3-canvas-sunken disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title="Exportera till PDF"
+                >
+                  <FileText size={14} strokeWidth={1.8} />
+                  PDF
+                </button>
+              </>
+            )}
+            {tab !== "find" && (
+              <button
+                type="button"
+                onClick={onCta}
+                className="inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm"
+              >
+                <Plus size={16} strokeWidth={2} />
+                {ctaLabel}
+              </button>
+            )}
+          </div>
         )}
       </header>
 

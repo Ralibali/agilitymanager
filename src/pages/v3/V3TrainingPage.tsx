@@ -1,11 +1,13 @@
 import { useState, lazy, Suspense } from "react";
-import { Plus, Dumbbell, Clock, TrendingUp, MapPin, GraduationCap, type LucideIcon } from "lucide-react";
+import { Plus, Dumbbell, Clock, TrendingUp, MapPin, GraduationCap, Download, type LucideIcon } from "lucide-react";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Training, type V3TrainingFilter } from "@/hooks/v3/useV3Training";
 import { openV3LogSheet } from "@/hooks/v3/useV3LogSheet";
 import { DogHero } from "@/components/v3/DogHero";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { downloadCsv } from "@/lib/csv";
+import { toast } from "sonner";
 
 // Coach-feedback (Pro): lazy så den inte påverkar initial paint
 const CoachVideoAnalysis = lazy(() => import("@/components/training/CoachVideoAnalysis"));
@@ -62,14 +64,43 @@ export default function V3TrainingPage() {
           </h1>
         </div>
         {active && (
-          <button
-            type="button"
-            onClick={openV3LogSheet}
-            className="inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm shrink-0"
-          >
-            <Plus size={16} strokeWidth={2} />
-            Logga pass
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                if (sessions.length === 0) {
+                  toast.info("Inga pass att exportera i vald period");
+                  return;
+                }
+                const rows = sessions.map((s) => ({
+                  Datum: s.date,
+                  Sport: s.sport,
+                  Typ: s.type,
+                  "Tid (min)": s.duration_min ?? 0,
+                  Plats: s.location ?? "",
+                  Taggar: (s.tags ?? []).join("; "),
+                  "Bra noteringar": (s.notes_good ?? "").replace(/\n/g, " "),
+                }));
+                const today = new Date().toISOString().slice(0, 10);
+                downloadCsv(rows, `traning-${active.name}-${today}.csv`);
+                toast.success(`Exporterade ${rows.length} pass`);
+              }}
+              disabled={sessions.length === 0}
+              className="inline-flex items-center gap-1.5 h-11 px-4 rounded-v3-base border border-v3-canvas-sunken/60 bg-v3-canvas-elevated text-v3-text-secondary text-v3-sm font-medium hover:bg-v3-canvas-sunken disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Exportera till CSV"
+            >
+              <Download size={14} strokeWidth={1.8} />
+              CSV
+            </button>
+            <button
+              type="button"
+              onClick={openV3LogSheet}
+              className="inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm"
+            >
+              <Plus size={16} strokeWidth={2} />
+              Logga pass
+            </button>
+          </div>
         )}
       </header>
 

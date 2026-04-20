@@ -412,6 +412,15 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         };
         return merged;
       });
+    } else if (view === "interested" || view === "registered") {
+      // Slå samman listans rader med extra rader vi laddat per markering
+      // (markedRows kan innehålla tävlingar som inte finns i `rows` p.g.a. tidsfönster eller annan sport)
+      const map = new Map<string, CompRow>();
+      [...rows, ...markedRows].forEach((r) => {
+        const k = `${r.sport}-${r.competition_id ?? r.id}`;
+        if (!map.has(k)) map.set(k, r);
+      });
+      base = Array.from(map.values());
     } else {
       base = rows;
     }
@@ -421,6 +430,10 @@ export function V3FindCompetitions({ preferredSport }: Props) {
       // Vy-specifik filtrering (shared filtreras redan)
       if (view === "interested" && interests[compKey] !== "interested") return false;
       if (view === "registered" && interests[compKey] !== "registered") return false;
+      // Sport-toggle ska inte dölja markerade tävlingar – användaren förväntar sig att se ALLA sina markeringar
+      if (view !== "interested" && view !== "registered" && view !== "shared") {
+        // (sport-filtrering sker redan vid laddning av rows)
+      }
       if (region !== "all" && r.region !== region) return false;
       if (month !== "all" && monthKey(r.date) !== month) return false;
       if (classFilter !== "all" && !r.classes.includes(classFilter)) return false;
@@ -431,7 +444,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         (r.location ?? "").toLowerCase().includes(q)
       );
     });
-  }, [rows, query, region, month, classFilter, view, interests, sharedComps, sport]);
+  }, [rows, query, region, month, classFilter, view, interests, sharedComps, sport, markedRows]);
 
   const interestedCount = Object.values(interests).filter((s) => s === "interested").length;
   const registeredCount = Object.values(interests).filter((s) => s === "registered").length;

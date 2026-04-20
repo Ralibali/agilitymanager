@@ -103,6 +103,7 @@ export function ResultsImporter({ dogs, onImported, autoFetch = false, compact =
         }
 
         let importedCount = 0;
+        let dogNotFoundOnAgilitydata = false;
 
         // Import agility results
         if (!isHoopers || isBoth) {
@@ -113,6 +114,12 @@ export function ResultsImporter({ dogs, onImported, autoFetch = false, compact =
 
             if (!error && data?.success && data.data?.results) {
               const results = data.data.results as any[];
+              // Edge function returnerar search_only=true när sökningen inte
+              // hittade någon hund alls på agilitydata.se — då är det inte ett
+              // "0 nya"-fall utan ett "finns inte registrerad där"-fall.
+              if (data.data.search_only && results.length === 0) {
+                dogNotFoundOnAgilitydata = true;
+              }
               // Save to competition_results
               for (const r of results) {
                 const existing = await supabase

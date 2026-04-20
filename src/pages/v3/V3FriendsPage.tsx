@@ -206,14 +206,24 @@ export default function V3FriendsPage() {
             Anslut med andra hundförare, dela banskisser och följ varandras framsteg.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={copyReferral}
-          disabled={!myProfile?.referral_code}
-          className="v3-tappable inline-flex items-center gap-2 px-4 h-11 rounded-v3-base border border-v3-border bg-v3-surface text-v3-text-primary text-v3-body font-medium disabled:opacity-50"
-        >
-          <Copy className="w-4 h-4" /> Bjud in vän
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setQrOpen(true)}
+            className="v3-tappable inline-flex items-center gap-2 px-4 h-11 rounded-v3-base border border-v3-border bg-v3-surface text-v3-text-primary text-v3-body font-medium"
+            aria-label="Skanna QR-kod"
+          >
+            <QrCode className="w-4 h-4" /> Skanna QR
+          </button>
+          <button
+            type="button"
+            onClick={copyReferral}
+            disabled={!myProfile?.referral_code}
+            className="v3-tappable inline-flex items-center gap-2 px-4 h-11 rounded-v3-base border border-v3-border bg-v3-surface text-v3-text-primary text-v3-body font-medium disabled:opacity-50"
+          >
+            <Copy className="w-4 h-4" /> Bjud in vän
+          </button>
+        </div>
       </header>
 
       {/* Stats */}

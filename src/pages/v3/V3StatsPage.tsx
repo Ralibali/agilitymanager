@@ -5,6 +5,7 @@ import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Stats, useV3DogCompare, type RangeKey, type WeeklyBucket, type V3Stats } from "@/hooks/v3/useV3Stats";
 import { useV3Milestones } from "@/hooks/v3/useV3Milestones";
 import { DogHero } from "@/components/v3/DogHero";
+import { NextMilestoneCard } from "@/components/v3/NextMilestoneCard";
 import { cn } from "@/lib/utils";
 
 type Tab = "overview" | "trends" | "patterns" | "milestones";

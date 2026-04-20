@@ -39,6 +39,7 @@ export const V3_NAV_GROUPS: V3NavGroup[] = [
     items: [
       { path: "/v3/dogs", label: "Hundar", icon: Dog },
       { path: "/v3/health", label: "Hälsa", icon: Heart },
+      { path: "/v3/coach", label: "Coach", icon: GraduationCap, badge: "pro" },
       { path: "/v3/courses", label: "Kurser", icon: GraduationCap },
     ],
   },

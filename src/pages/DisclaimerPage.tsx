@@ -99,18 +99,25 @@ export default function DisclaimerPage() {
 
             <section>
               <h2 className="text-xl font-display font-semibold text-foreground">
-                4. AI-genererat innehåll
+                4. AI-genererat innehåll och coach-feedback
               </h2>
               <p className="text-muted-foreground">
                 Tjänsten använder artificiell intelligens (bl.a. via Lovable AI Gateway)
-                för att generera träningsinsikter, coachning och analys av video och
-                statistik. AI-modeller kan{' '}
+                för att generera träningsinsikter och statistiska analyser. AI-modeller kan{' '}
                 <strong className="text-foreground">
                   generera felaktig, vilseledande eller ofullständig information
                 </strong>{' '}
                 (s.k. ”hallucinationer”). Allt AI-genererat innehåll ska behandlas som
                 förslag, inte som fakta eller råd. Du ansvarar själv för att kritiskt
                 utvärdera och verifiera AI-utdata innan du agerar på den.
+              </p>
+              <p className="text-muted-foreground">
+                Video-feedback inom funktionen <strong className="text-foreground">Coach</strong>{' '}
+                granskas och besvaras manuellt av certifierad coach{' '}
+                <strong className="text-foreground">Malin Öster</strong> – inte av AI.
+                Feedbacken är personlig rådgivning baserad på det inskickade materialet
+                och utgör inte en garanti för resultat. Du ansvarar själv för att tillämpa
+                råden på ett sätt som är säkert för dig och din hund.
               </p>
             </section>
 

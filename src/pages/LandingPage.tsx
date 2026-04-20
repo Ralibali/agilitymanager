@@ -218,7 +218,7 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════ COACH ═══════ */}
-      <section className="py-20 px-4" style={{ background: '#0f1411' }}>
+      <section id="coach" className="py-20 px-4" style={{ background: '#0f1411' }}>
         <div className="max-w-3xl mx-auto text-center">
           <motion.div {...inViewFadeUp()}>
             <span
@@ -342,7 +342,7 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════ HOOPERS ═══════ */}
-      <section className="py-20 px-4" style={{ background: 'hsl(var(--background))' }}>
+      <section id="hoopers" className="py-20 px-4" style={{ background: 'hsl(var(--background))' }}>
         <div className="max-w-5xl mx-auto">
           <motion.div {...inViewFadeUp()} className="text-center mb-10">
             <span

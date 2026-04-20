@@ -126,8 +126,10 @@ export default function V3StatsPage() {
             <OverviewTab stats={stats} />
           ) : tab === "trends" ? (
             <TrendsTab stats={stats} />
-          ) : (
+          ) : tab === "patterns" ? (
             <PatternsTab stats={stats} compareRows={compareRows} compareLoading={compareLoading} activeDogId={activeId} />
+          ) : (
+            <MilestonesTab dogId={activeId} />
           )}
         </>
       )}

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { fetchWeatherForDate, describeWeather, type WeatherDay } from "@/lib/weatherForecast";
 import { buildAgilityCompetitionPath, buildCompetitionSlug } from "@/lib/competitionSlug";
 import { CITY_TO_COUNTY } from "@/lib/swedishCityCounty";
+import { Disclaimer } from "@/components/Disclaimer";
 import type { Competition } from "@/types/competitions";
 
 const SITE_URL = "https://agilitymanager.se";
@@ -413,6 +414,11 @@ export default function CompetitionDetailPage() {
             {comp.fetched_at && new Date(comp.fetched_at).toLocaleDateString("sv-SE")}
           </p>
         </div>
+
+        {/* Ansvarsfriskrivning för crawlat tävlingsdata */}
+        <section className="max-w-3xl mx-auto px-5 md:px-12 pb-12">
+          <Disclaimer variant="competition" />
+        </section>
       </main>
 
       <LandingFooterV2 />

@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingFooterV2 } from '@/components/landing/LandingFooterV2';
 import { buildAgilityCompetitionPath, buildHoopersCompetitionPath, slugify } from '@/lib/competitionSlug';
+import { Disclaimer } from '@/components/Disclaimer';
 
 type Sport = 'agility' | 'hoopers';
 type SportFilter = 'all' | Sport;
@@ -490,6 +491,11 @@ export default function PublicCompetitionsPage() {
             Kom igång gratis <ArrowRight className="h-4 w-4" />
           </Link>
           <p className="mt-3 text-xs text-text-muted">Källa: Agilitydata.se</p>
+        </section>
+
+        {/* Ansvarsfriskrivning för crawlat tävlingsdata */}
+        <section className="max-w-3xl mx-auto px-5 md:px-12 pb-12">
+          <Disclaimer variant="competition" />
         </section>
       </main>
 

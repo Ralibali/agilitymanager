@@ -9,6 +9,7 @@ import { LandingFooterV2 } from "@/components/landing/LandingFooterV2";
 import { motion as motionTokens } from "@/lib/motion";
 import { CountUp } from "@/components/CountUp";
 import { ScrollProgress } from "@/components/motion";
+import { Disclaimer } from "@/components/Disclaimer";
 
 type BreedFull = {
   id: string;
@@ -408,6 +409,11 @@ export default function BreedDetailPage() {
             </div>
           </section>
         )}
+
+        {/* Ansvarsfriskrivning för rasprofiler */}
+        <section className="max-w-3xl mx-auto px-5 md:px-12 pb-12">
+          <Disclaimer variant="breed" />
+        </section>
       </main>
 
       <LandingFooterV2 />

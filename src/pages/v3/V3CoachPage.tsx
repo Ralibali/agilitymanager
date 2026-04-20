@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { GraduationCap } from "lucide-react";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
+import { Disclaimer } from "@/components/Disclaimer";
 import type { Dog } from "@/types";
 
 // Coach-feedback: lazy så bundle inte blåses upp
@@ -36,6 +37,8 @@ export default function V3CoachPage() {
           <CoachVideoAnalysis dogs={dogs as unknown as Dog[]} />
         </Suspense>
       )}
+
+      <Disclaimer variant="ai" />
     </div>
   );
 }

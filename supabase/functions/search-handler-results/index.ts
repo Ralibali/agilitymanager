@@ -310,11 +310,13 @@ function mergeCookies(existing: string, newCookies: string): string {
 
 function extractFormTokens(html: string): Record<string, string> {
   const tokens: Record<string, string> = {};
-  const inputRegex = /<input[^>]*type="hidden"[^>]*>/gi;
+  const inputRegex = /<input\b[^>]*?>/gi;
   let match;
   while ((match = inputRegex.exec(html)) !== null) {
-    const nameMatch = match[0].match(/name="([^"]*)"/);
-    const valueMatch = match[0].match(/value="([^"]*)"/);
+    const tag = match[0];
+    if (!/type\s*=\s*['"]?hidden['"]?/i.test(tag)) continue;
+    const nameMatch = tag.match(/name\s*=\s*['"]([^'"]+)['"]/i);
+    const valueMatch = tag.match(/value\s*=\s*['"]([^'"]*)['"]/i);
     if (nameMatch && valueMatch) {
       tokens[nameMatch[1]] = valueMatch[1];
     }

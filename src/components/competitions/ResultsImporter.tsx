@@ -6,10 +6,19 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Download, RefreshCw, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Dog, CompetitionResult } from '@/types';
+import type { CompetitionResult } from '@/types';
+
+type ImportableDog = {
+  id: string;
+  name: string;
+  sport: string;
+  is_active_competition_dog: boolean;
+  breed: string;
+  size_class: string;
+};
 
 interface Props {
-  dogs: Dog[];
+  dogs: ImportableDog[];
   onImported?: (results: CompetitionResult[]) => void;
   autoFetch?: boolean;
   compact?: boolean;

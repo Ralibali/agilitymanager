@@ -12,4 +12,8 @@
     <loc>https://agilitymanager.se/sitemap-competitions.xml</loc>
     <lastmod>2026-04-20</lastmod>
   </sitemap>
+  <sitemap>
+    <loc>https://agilitymanager.se/sitemap-breeds.xml</loc>
+    <lastmod>2026-04-20</lastmod>
+  </sitemap>
 </sitemapindex>

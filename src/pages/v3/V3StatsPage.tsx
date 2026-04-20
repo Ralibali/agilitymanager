@@ -1,17 +1,19 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, TrendingDown, Minus, Sparkles, Activity, Trophy, Clock, Target } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Sparkles, Activity, Trophy, Clock, Target, Award } from "lucide-react";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Stats, useV3DogCompare, type RangeKey, type WeeklyBucket, type V3Stats } from "@/hooks/v3/useV3Stats";
+import { useV3Milestones, type Milestone } from "@/hooks/v3/useV3Milestones";
 import { DogHero } from "@/components/v3/DogHero";
 import { cn } from "@/lib/utils";
 
-type Tab = "overview" | "trends" | "patterns";
+type Tab = "overview" | "trends" | "patterns" | "milestones";
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "overview", label: "Översikt" },
   { value: "trends", label: "Trender" },
   { value: "patterns", label: "Mönster" },
+  { value: "milestones", label: "Milstolpar" },
 ];
 
 const RANGES: { value: RangeKey; label: string }[] = [

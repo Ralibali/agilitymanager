@@ -430,6 +430,26 @@ export default function V3FriendsPage() {
           )}
         </div>
       )}
+
+      {/* Delade banor – inkorg */}
+      <section className="space-y-3 pt-4 border-t border-v3-border">
+        <header className="flex items-center gap-2">
+          <FolderOpen className="w-4 h-4 text-v3-text-tertiary" />
+          <h2 className="text-v3-h3 font-v3-display text-v3-text-primary">
+            Delade banor
+          </h2>
+        </header>
+        <p className="text-v3-small text-v3-text-secondary">
+          Banskisser som vänner har delat med dig.
+        </p>
+        <SharedCoursesInbox />
+      </section>
+
+      {qrOpen && (
+        <Suspense fallback={null}>
+          <QrScannerDialog open={qrOpen} onOpenChange={setQrOpen} onScan={handleQrScan} />
+        </Suspense>
+      )}
     </div>
   );
 }

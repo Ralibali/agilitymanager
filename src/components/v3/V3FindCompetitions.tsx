@@ -266,11 +266,17 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     return Array.from(set).sort();
   }, [rows]);
 
+  // Set över delade competition_id för snabb uppslagning
+  const sharedKeySet = useMemo(() => new Set(sharedComps.map((s) => s.shared_id)), [sharedComps]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return rows.filter((r) => {
       const compKey = r.competition_id ?? r.id;
-      if (view === "mine" && !interests[compKey]) return false;
+      // Vy-specifik filtrering
+      if (view === "interested" && interests[compKey] !== "interested") return false;
+      if (view === "registered" && interests[compKey] !== "registered") return false;
+      if (view === "shared" && !sharedKeySet.has(compKey)) return false;
       if (region !== "all" && r.region !== region) return false;
       if (month !== "all" && monthKey(r.date) !== month) return false;
       if (classFilter !== "all" && !r.classes.includes(classFilter)) return false;
@@ -281,9 +287,11 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         (r.location ?? "").toLowerCase().includes(q)
       );
     });
-  }, [rows, query, region, month, classFilter, view, interests]);
+  }, [rows, query, region, month, classFilter, view, interests, sharedKeySet]);
 
-  const myCount = Object.keys(interests).length;
+  const interestedCount = Object.values(interests).filter((s) => s === "interested").length;
+  const registeredCount = Object.values(interests).filter((s) => s === "registered").length;
+  const sharedCount = sharedComps.length;
   const hasActiveFilters = region !== "all" || month !== "all" || classFilter !== "all";
 
   return (

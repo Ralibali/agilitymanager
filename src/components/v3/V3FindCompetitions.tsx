@@ -98,6 +98,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
   const [rows, setRows] = useState<CompRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [interests, setInterests] = useState<Record<string, InterestStatus>>({});
+  const [markedRows, setMarkedRows] = useState<CompRow[]>([]);
   const [sharedComps, setSharedComps] = useState<SharedCompMeta[]>([]);
   const [shareTarget, setShareTarget] = useState<CompRow | null>(null);
   const [resultTarget, setResultTarget] = useState<FetchMyResultTarget | null>(null);

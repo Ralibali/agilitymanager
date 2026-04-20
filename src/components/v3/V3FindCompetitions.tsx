@@ -321,12 +321,47 @@ export function V3FindCompetitions({ preferredSport }: Props) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return rows.filter((r) => {
+
+    // I Delade-fliken bygger vi listan från sharedComps (gärna anrikad med data ur rows om den finns)
+    let base: CompRow[];
+    if (view === "shared") {
+      const rowsByKey = new Map(rows.map((r) => [r.competition_id ?? r.id, r] as const));
+      base = sharedComps.map((s) => {
+        const existing = rowsByKey.get(s.shared_id);
+        const d = s.data ?? {};
+        const merged: CompRow = existing
+          ? { ...existing }
+          : {
+              id: s.shared_id,
+              competition_id: s.shared_id,
+              competition_name: (d.competition_name as string) ?? null,
+              club_name: (d.club_name as string) ?? null,
+              location: (d.location as string) ?? null,
+              region: (d.region as string) ?? null,
+              date: (d.date as string) ?? null,
+              registration_deadline: (d.registration_deadline as string) ?? null,
+              classes: Array.isArray(d.classes) ? (d.classes as string[]) : [],
+              source_url: (d.source_url as string) ?? null,
+              source_label: (d.source_label as string) ?? "extern",
+              sport: ((d.sport as Sport) ?? sport) as Sport,
+            };
+        merged.sharedBy = {
+          name: s.sender_name,
+          avatar: s.sender_avatar,
+          message: s.message,
+          at: s.shared_at,
+        };
+        return merged;
+      });
+    } else {
+      base = rows;
+    }
+
+    return base.filter((r) => {
       const compKey = r.competition_id ?? r.id;
-      // Vy-specifik filtrering
+      // Vy-specifik filtrering (shared filtreras redan)
       if (view === "interested" && interests[compKey] !== "interested") return false;
       if (view === "registered" && interests[compKey] !== "registered") return false;
-      if (view === "shared" && !sharedKeySet.has(compKey)) return false;
       if (region !== "all" && r.region !== region) return false;
       if (month !== "all" && monthKey(r.date) !== month) return false;
       if (classFilter !== "all" && !r.classes.includes(classFilter)) return false;
@@ -337,7 +372,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         (r.location ?? "").toLowerCase().includes(q)
       );
     });
-  }, [rows, query, region, month, classFilter, view, interests, sharedKeySet]);
+  }, [rows, query, region, month, classFilter, view, interests, sharedComps, sport]);
 
   const interestedCount = Object.values(interests).filter((s) => s === "interested").length;
   const registeredCount = Object.values(interests).filter((s) => s === "registered").length;

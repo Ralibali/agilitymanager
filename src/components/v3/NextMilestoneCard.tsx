@@ -1,11 +1,19 @@
-import { ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { Share2 } from "lucide-react";
+import { toast } from "sonner";
 import type { NextMilestone } from "@/hooks/v3/useV3Milestones";
+import ShareToFriendDialog from "@/components/ShareToFriendDialog";
 
 interface NextMilestoneCardProps {
   /** Den närmst uppnåbara olåsta milstolpen */
   primary: NextMilestone;
   /** Övriga olåsta mål – visas som kompakta progress-rader under */
   others?: NextMilestone[];
+}
+
+function buildShareText(m: NextMilestone): string {
+  const pct = Math.round(m.progress * 100);
+  return `${m.emoji} Mitt nästa mål i AgilityManager: ${m.title} – ${m.current}/${m.target} (${pct}%). ${m.hint}!`;
 }
 
 /**
@@ -16,6 +24,36 @@ interface NextMilestoneCardProps {
  */
 export function NextMilestoneCard({ primary, others = [] }: NextMilestoneCardProps) {
   const pct = Math.round(primary.progress * 100);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareTarget, setShareTarget] = useState<NextMilestone>(primary);
+
+  const handleShare = async (m: NextMilestone) => {
+    const text = buildShareText(m);
+    const shareData: ShareData = {
+      title: "Mitt nästa mål",
+      text,
+      url: typeof window !== "undefined" ? window.location.href : undefined,
+    };
+    // Web Share API om tillgängligt (mobil), annars intern dialog
+    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err) {
+        if ((err as DOMException)?.name === "AbortError") return;
+      }
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast.success("Kopierat – välj en kompis att skicka till");
+      } catch {
+        // ignorera
+      }
+    }
+    setShareTarget(m);
+    setShareOpen(true);
+  };
 
   return (
     <section
@@ -38,6 +76,14 @@ export function NextMilestoneCard({ primary, others = [] }: NextMilestoneCardPro
             {primary.hint}
           </h3>
         </div>
+        <button
+          type="button"
+          onClick={() => handleShare(primary)}
+          aria-label={`Dela milstolpe: ${primary.title}`}
+          className="shrink-0 h-9 w-9 rounded-full grid place-items-center text-v3-text-secondary hover:text-v3-brand-500 hover:bg-v3-brand-500/10 transition-colors"
+        >
+          <Share2 size={16} />
+        </button>
       </header>
 
       {/* Progress-bar */}
@@ -93,16 +139,35 @@ export function NextMilestoneCard({ primary, others = [] }: NextMilestoneCardPro
                     />
                   </div>
                 </div>
-                <ChevronRight
-                  size={14}
-                  className="text-v3-text-tertiary shrink-0"
-                  aria-hidden
-                />
+                <button
+                  type="button"
+                  onClick={() => handleShare(m)}
+                  aria-label={`Dela milstolpe: ${m.title}`}
+                  className="shrink-0 h-8 w-8 -mr-1 rounded-full grid place-items-center text-v3-text-tertiary hover:text-v3-brand-500 hover:bg-v3-brand-500/10 transition-colors"
+                >
+                  <Share2 size={14} />
+                </button>
               </li>
             );
           })}
         </ul>
       )}
+
+      <ShareToFriendDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        sharedType="training"
+        sharedId={shareTarget.id}
+        sharedData={{
+          name: shareTarget.title,
+          hint: shareTarget.hint,
+          current: shareTarget.current,
+          target: shareTarget.target,
+          category: shareTarget.category,
+          emoji: shareTarget.emoji,
+          kind: "milestone",
+        }}
+      />
     </section>
   );
 }

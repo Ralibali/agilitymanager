@@ -113,7 +113,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     setLoading(true);
     (async () => {
       const today = new Date().toISOString().split("T")[0];
-      const includePast = view === "mine"; // i Mina markerade vill vi se passerade också
+      const includePast = view !== "all"; // i mina/intresserade/anmälda/delade vill vi se passerade också
       if (sport === "Agility") {
         let q = supabase
           .from("competitions")

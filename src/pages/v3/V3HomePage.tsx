@@ -26,7 +26,7 @@ function getTimeGreeting(date: Date = new Date()): string {
 
 function useGreeting(): { greeting: string; name: string } {
   const { user } = useAuth();
-  const [name, setName] = useState<string>("där");
+  const [name, setName] = useState<string>("vovvägare");
   const [greeting, setGreeting] = useState<string>(() => getTimeGreeting());
 
   useEffect(() => {
@@ -36,7 +36,7 @@ function useGreeting(): { greeting: string; name: string } {
 
   useEffect(() => {
     if (!user?.id) {
-      setName("där");
+      setName("vovvägare");
       return;
     }
     let cancelled = false;
@@ -49,7 +49,7 @@ function useGreeting(): { greeting: string; name: string } {
       if (cancelled) return;
       const raw = data?.display_name?.trim();
       const cleaned = raw && raw.includes("@") ? raw.split("@")[0] : raw;
-      setName(cleaned && cleaned.length > 0 ? cleaned : "där");
+      setName(cleaned && cleaned.length > 0 ? cleaned : "vovvägare");
     })();
     return () => {
       cancelled = true;

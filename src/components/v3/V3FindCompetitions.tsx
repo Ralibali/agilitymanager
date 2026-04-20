@@ -605,6 +605,27 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                     : "bg-v3-canvas-elevated border-v3-canvas-sunken/40 hover:border-v3-canvas-sunken",
                 )}
               >
+                {r.sharedBy && (
+                  <div className="mb-3 -mt-1 flex items-center gap-2 text-v3-xs text-v3-text-secondary">
+                    {r.sharedBy.avatar ? (
+                      <img
+                        src={r.sharedBy.avatar}
+                        alt=""
+                        className="h-6 w-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-6 w-6 rounded-full bg-v3-canvas-sunken grid place-items-center">
+                        <User size={12} strokeWidth={1.8} className="text-v3-text-tertiary" />
+                      </div>
+                    )}
+                    <span>
+                      Delad av <span className="font-medium text-v3-text-primary">{r.sharedBy.name ?? "en vän"}</span>
+                      {r.sharedBy.message && (
+                        <span className="text-v3-text-tertiary">: "{r.sharedBy.message}"</span>
+                      )}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start gap-2 flex-wrap">

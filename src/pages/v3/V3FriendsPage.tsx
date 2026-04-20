@@ -36,6 +36,22 @@ export default function V3FriendsPage() {
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<FriendProfile[]>([]);
   const [searching, setSearching] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
+
+  const handleQrScan = useCallback(
+    (decoded: string) => {
+      setQrOpen(false);
+      // Stöd både full URL (https://.../invite/CODE) och bara koden
+      const match = decoded.match(/\/invite\/([A-Za-z0-9_-]+)/);
+      const code = match?.[1] ?? decoded.trim();
+      if (!code) {
+        toast.error("Ogiltig QR-kod");
+        return;
+      }
+      navigate(`/invite/${code}`);
+    },
+    [navigate],
+  );
 
   const load = useCallback(async () => {
     if (!user?.id) return;

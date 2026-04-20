@@ -296,38 +296,40 @@ export function V3FindCompetitions({ preferredSport }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* View-toggle */}
-      <div className="flex items-center gap-1.5 p-1 rounded-v3-base bg-v3-canvas-sunken/40 w-fit">
-        <button
-          type="button"
-          onClick={() => setView("all")}
-          className={cn(
-            "h-9 px-4 rounded-[calc(theme(borderRadius.v3-base)-2px)] text-v3-sm font-medium transition-colors",
-            view === "all"
-              ? "bg-v3-canvas-elevated text-v3-text-primary shadow-v3-xs"
-              : "text-v3-text-secondary hover:text-v3-text-primary",
-          )}
-        >
-          Alla
-        </button>
-        <button
-          type="button"
-          onClick={() => setView("mine")}
-          className={cn(
-            "h-9 px-4 rounded-[calc(theme(borderRadius.v3-base)-2px)] text-v3-sm font-medium transition-colors inline-flex items-center gap-1.5",
-            view === "mine"
-              ? "bg-v3-canvas-elevated text-v3-text-primary shadow-v3-xs"
-              : "text-v3-text-secondary hover:text-v3-text-primary",
-          )}
-        >
-          <Star size={12} strokeWidth={1.8} />
-          Mina markerade
-          {myCount > 0 && (
-            <span className="h-4 min-w-4 px-1 rounded-full bg-v3-brand-500 text-white text-[10px] font-medium grid place-items-center tabular-nums">
-              {myCount}
-            </span>
-          )}
-        </button>
+      {/* View-toggle: 4 flikar */}
+      <div className="flex items-center gap-1.5 p-1 rounded-v3-base bg-v3-canvas-sunken/40 w-fit flex-wrap">
+        {(
+          [
+            { id: "all", label: "Alla", icon: null, count: 0 },
+            { id: "interested", label: "Intresserad", icon: Star, count: interestedCount },
+            { id: "registered", label: "Anmäld", icon: Check, count: registeredCount },
+            { id: "shared", label: "Delade", icon: Inbox, count: sharedCount },
+          ] as const
+        ).map((tab) => {
+          const Icon = tab.icon;
+          const active = view === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setView(tab.id as ViewMode)}
+              className={cn(
+                "h-9 px-3 sm:px-4 rounded-[calc(theme(borderRadius.v3-base)-2px)] text-v3-sm font-medium transition-colors inline-flex items-center gap-1.5",
+                active
+                  ? "bg-v3-canvas-elevated text-v3-text-primary shadow-v3-xs"
+                  : "text-v3-text-secondary hover:text-v3-text-primary",
+              )}
+            >
+              {Icon && <Icon size={12} strokeWidth={1.8} />}
+              {tab.label}
+              {tab.count > 0 && (
+                <span className="h-4 min-w-4 px-1 rounded-full bg-v3-brand-500 text-white text-[10px] font-medium grid place-items-center tabular-nums">
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Sport-toggle + sök + filter */}

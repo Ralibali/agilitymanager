@@ -202,6 +202,54 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     reloadInterests();
   }, [reloadInterests]);
 
+  // Hämta tävlingar som vänner delat med mig (messages.shared_type='competition')
+  const reloadShared = useCallback(async () => {
+    if (!user) {
+      setSharedComps([]);
+      return;
+    }
+    const { data } = await supabase
+      .from("messages")
+      .select("id, sender_id, shared_id, shared_data, content, created_at")
+      .eq("receiver_id", user.id)
+      .eq("shared_type", "competition")
+      .not("shared_id", "is", null)
+      .order("created_at", { ascending: false });
+    if (!data?.length) {
+      setSharedComps([]);
+      return;
+    }
+    const senderIds = [...new Set(data.map((m) => m.sender_id))];
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("user_id, display_name, avatar_url")
+      .in("user_id", senderIds);
+    const profMap = new Map((profs ?? []).map((p) => [p.user_id, p]));
+    // Behåll endast senaste posten per shared_id
+    const seen = new Set<string>();
+    const uniq: SharedCompMeta[] = [];
+    for (const m of data) {
+      if (!m.shared_id || seen.has(m.shared_id)) continue;
+      seen.add(m.shared_id);
+      const p = profMap.get(m.sender_id);
+      uniq.push({
+        message_id: m.id,
+        shared_id: m.shared_id,
+        sender_id: m.sender_id,
+        sender_name: p?.display_name ?? null,
+        sender_avatar: p?.avatar_url ?? null,
+        message: m.content ?? "",
+        shared_at: m.created_at,
+        data: (m.shared_data as Record<string, any>) ?? {},
+      });
+    }
+    setSharedComps(uniq);
+  }, [user]);
+
+  useEffect(() => {
+    reloadShared();
+  }, [reloadShared]);
+
   const toggleInterest = async (comp: CompRow, target: InterestStatus) => {
     if (!user) {
       toast.error("Logga in för att markera tävlingar");

@@ -10,6 +10,24 @@ export type Milestone = {
   achieved: boolean;
 };
 
+/** Nästa olåsta milstolpe inom en kategori med progress mot målet. */
+export type NextMilestone = {
+  id: string;
+  emoji: string;
+  /** T.ex. "100 träningspass" */
+  title: string;
+  /** T.ex. "Träningspass" */
+  category: string;
+  current: number;
+  target: number;
+  /** target - current */
+  remaining: number;
+  /** 0–1 */
+  progress: number;
+  /** Förmänsklig text: "3 pass kvar till 100 träningspass" */
+  hint: string;
+};
+
 /**
  * v3 Milstolpar – hämtar all-time data per hund och beräknar bedrifter.
  * Speglar V2:s "Milstolpar"-tab i Stats.

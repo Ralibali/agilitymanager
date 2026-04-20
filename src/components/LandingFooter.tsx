@@ -13,6 +13,7 @@ const supportLinks = [
   { label: 'Kontakt', href: 'mailto:info@auroramedia.se' },
   { label: 'Integritetspolicy', href: '/integritetspolicy' },
   { label: 'Cookiepolicy', href: '/cookiepolicy' },
+  { label: 'Ansvarsfriskrivning', href: '/ansvarsfriskrivning' },
 ];
 
 const sportLinks = [

@@ -1,5 +1,18 @@
 import { useMemo, useState } from "react";
-import { Plus, Trophy, Calendar, Compass, MapPin, ExternalLink, CheckCircle2, AlertCircle, Trash2, Download, FileText, type LucideIcon } from "lucide-react";
+import {
+  Plus,
+  Trophy,
+  Calendar,
+  Compass,
+  MapPin,
+  ExternalLink,
+  CheckCircle2,
+  AlertCircle,
+  Trash2,
+  Download,
+  FileText,
+  type LucideIcon,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Competitions, computeStats } from "@/hooks/v3/useV3Competitions";
@@ -7,6 +20,7 @@ import { DogHero } from "@/components/v3/DogHero";
 import { V3AddPlannedSheet } from "@/components/v3/V3AddPlannedSheet";
 import { V3AddResultSheet } from "@/components/v3/V3AddResultSheet";
 import { V3FindCompetitions } from "@/components/v3/V3FindCompetitions";
+import { ResultsImporter } from "@/components/competitions/ResultsImporter";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -57,6 +71,11 @@ export default function V3CompetitionsPage() {
   const ctaLabel = tab === "results" ? "Logga resultat" : "Planera tävling";
   const onCta = () => (tab === "results" ? setResultSheet(true) : setPlanSheet(true));
 
+  const scrollToImporter = () => {
+    if (typeof document === "undefined") return;
+    document.getElementById("sbk-import")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const exportRows = () => {
     return results.map((r) => ({
       Datum: r.date,
@@ -103,7 +122,6 @@ export default function V3CompetitionsPage() {
 
   return (
     <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-8 animate-v3-fade-in">
-      {/* Header */}
       <header className="flex items-end justify-between gap-4 flex-wrap">
         <div className="space-y-2">
           <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
@@ -153,9 +171,8 @@ export default function V3CompetitionsPage() {
         )}
       </header>
 
-      {/* Hund-switcher */}
       {dogsLoading ? (
-        <div className="h-28 rounded-v3-2xl  v3-skeleton" />
+        <div className="h-28 rounded-v3-2xl v3-skeleton" />
       ) : (
         <DogHero
           dogs={dogs}
@@ -168,14 +185,9 @@ export default function V3CompetitionsPage() {
 
       {active && (
         <>
-          {/* Stat-tiles (light) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <StatTile label="Starter" value={String(stats.total)} sub="totalt" />
-            <StatTile
-              label="Godkänt"
-              value={`${Math.round(stats.passedRate * 100)}%`}
-              sub="av starter"
-            />
+            <StatTile label="Godkänt" value={`${Math.round(stats.passedRate * 100)}%`} sub="av starter" />
             <StatTile
               label="Snittplac."
               value={stats.avgPlacement ? stats.avgPlacement.toFixed(1) : "—"}
@@ -194,7 +206,6 @@ export default function V3CompetitionsPage() {
             />
           </div>
 
-          {/* Tabs */}
           <div className="flex gap-1.5 border-b border-v3-canvas-sunken/40">
             {TABS.map(({ value, label, icon: Icon }) => {
               const isActive = tab === value;
@@ -217,41 +228,34 @@ export default function V3CompetitionsPage() {
             })}
           </div>
 
-          {/* Tab content */}
           {tab === "upcoming" && (
-            <UpcomingList
-              loading={loading}
-              items={upcoming}
-              onAdd={() => setPlanSheet(true)}
-              onReload={reload}
-            />
+            <UpcomingList loading={loading} items={upcoming} onAdd={() => setPlanSheet(true)} onReload={reload} />
           )}
+
           {tab === "results" && (
-            <ResultsList
-              loading={loading}
-              items={results}
-              onAdd={() => setResultSheet(true)}
-              onReload={reload}
-              isHoopers={active.sport === "Hoopers"}
-            />
+            <div className="space-y-5">
+              <div id="sbk-import" className="scroll-mt-24">
+                <ResultsImporter dogs={dogs} onImported={() => void reload()} compact={results.length > 0} />
+              </div>
+              <ResultsList
+                loading={loading}
+                items={results}
+                onAdd={() => setResultSheet(true)}
+                onReload={reload}
+                isHoopers={active.sport === "Hoopers"}
+                onImport={scrollToImporter}
+              />
+            </div>
           )}
-          {tab === "find" && <V3FindCompetitions preferredSport={active.sport === "Hoopers" ? "Hoopers" : "Agility"} />}
+
+          {tab === "find" && (
+            <V3FindCompetitions preferredSport={active.sport === "Hoopers" ? "Hoopers" : "Agility"} />
+          )}
         </>
       )}
 
-      {/* Sheets */}
-      <V3AddPlannedSheet
-        open={planSheet}
-        onClose={() => setPlanSheet(false)}
-        dog={active}
-        onSaved={reload}
-      />
-      <V3AddResultSheet
-        open={resultSheet}
-        onClose={() => setResultSheet(false)}
-        dog={active}
-        onSaved={reload}
-      />
+      <V3AddPlannedSheet open={planSheet} onClose={() => setPlanSheet(false)} dog={active} onSaved={reload} />
+      <V3AddResultSheet open={resultSheet} onClose={() => setResultSheet(false)} dog={active} onSaved={reload} />
     </div>
   );
 }
@@ -259,12 +263,8 @@ export default function V3CompetitionsPage() {
 function StatTile({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4">
-      <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
-        {label}
-      </div>
-      <div className="font-v3-display text-[28px] leading-none mt-2 text-v3-text-primary tabular-nums truncate">
-        {value}
-      </div>
+      <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">{label}</div>
+      <div className="font-v3-display text-[28px] leading-none mt-2 text-v3-text-primary tabular-nums truncate">{value}</div>
       <div className="text-v3-xs text-v3-text-tertiary mt-1">{sub}</div>
     </div>
   );
@@ -295,10 +295,7 @@ function UpcomingList({
     return (
       <div className="space-y-2">
         {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="h-24 rounded-v3-lg  v3-skeleton"
-          />
+          <div key={i} className="h-24 rounded-v3-lg v3-skeleton" />
         ))}
       </div>
     );
@@ -391,12 +388,14 @@ function ResultsList({
   onAdd,
   onReload,
   isHoopers,
+  onImport,
 }: {
   loading: boolean;
   items: CompetitionResult[];
   onAdd: () => void;
   onReload: () => Promise<void>;
   isHoopers: boolean;
+  onImport: () => void;
 }) {
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from("competition_results").delete().eq("id", id);
@@ -412,10 +411,7 @@ function ResultsList({
     return (
       <div className="space-y-2">
         {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="h-24 rounded-v3-lg  v3-skeleton"
-          />
+          <div key={i} className="h-24 rounded-v3-lg v3-skeleton" />
         ))}
       </div>
     );
@@ -429,8 +425,7 @@ function ResultsList({
         </div>
         <h3 className="font-v3-display text-v3-2xl text-v3-text-primary">Inga resultat än</h3>
         <p className="text-v3-base text-v3-text-secondary mt-2 max-w-sm mx-auto">
-          Logga ditt första tävlingsresultat manuellt eller importera din historik från SBK på sidan
-          för Tävlingar i v2.
+          Logga ditt första tävlingsresultat manuellt eller importera din historik från SBK direkt här ovanför.
         </p>
         <div className="mt-5 flex items-center justify-center gap-2">
           <button
@@ -441,12 +436,13 @@ function ResultsList({
             <Plus size={16} strokeWidth={2} />
             Logga resultat
           </button>
-          <a
-            href="/app/competition"
+          <button
+            type="button"
+            onClick={onImport}
             className="inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-canvas-elevated border border-v3-canvas-sunken/60 text-v3-text-secondary text-v3-sm font-medium hover:bg-v3-canvas-sunken transition-colors"
           >
             Importera från SBK
-          </a>
+          </button>
         </div>
       </div>
     );
@@ -479,9 +475,7 @@ function ResultsList({
                     </span>
                   )}
                 </div>
-                {r.organizer && (
-                  <div className="text-v3-sm text-v3-text-secondary truncate mt-0.5">{r.organizer}</div>
-                )}
+                {r.organizer && <div className="text-v3-sm text-v3-text-secondary truncate mt-0.5">{r.organizer}</div>}
                 <div className="flex flex-wrap items-center gap-3 mt-2 text-v3-xs text-v3-text-tertiary tabular-nums">
                   <span>{formatDate(r.date)}</span>
                   <span>·</span>

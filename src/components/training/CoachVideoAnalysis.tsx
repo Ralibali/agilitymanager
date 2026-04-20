@@ -167,16 +167,20 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
   return (
     <Card className="mb-4 border-border/50">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base font-display flex items-center gap-2">
+        <CardTitle className="text-base font-display flex items-center gap-2 flex-wrap">
           <GraduationCap size={18} className="text-primary" />
           Coach – Videoanalys
-          <PremiumBadge />
+          {isPro && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-accent/15 text-accent px-1.5 py-0.5 rounded-full">
+              <Sparkles size={9} /> 50% Pro-rabatt
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="pb-3 space-y-3">
-        <PremiumGate fullPage featureName="Coach – Videoanalys">
         <p className="text-xs text-muted-foreground">
           Ladda upp en träningsvideo och ställ en fråga – vår coach granskar och ger personlig feedback.
+          {!isPro && <> <span className="text-foreground font-medium">Pro-medlemmar får 50% rabatt.</span></>}
         </p>
 
         {/* Upload form */}
@@ -255,7 +259,12 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
                       : 'border-border bg-secondary/20 hover:border-border/80'
                   }`}
                 >
-                  <div className="text-xs font-semibold text-foreground">{PACK_LABELS[p].price}</div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xs font-semibold text-foreground">{currentPrice(p)}</span>
+                    {isPro && (
+                      <span className="text-[10px] text-muted-foreground line-through">{PACK_LABELS[p].standard}</span>
+                    )}
+                  </div>
                   <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">{PACK_LABELS[p].sub}</div>
                 </button>
               ))}
@@ -266,11 +275,12 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
             {isSubmitting ? (
               <><Loader2 size={14} className="animate-spin" /> Bearbetar...</>
             ) : (
-              <><Upload size={14} /> Betala {PACK_LABELS[pack].price} & skicka till coach</>
+              <><Upload size={14} /> Betala {currentPrice(pack)} & skicka till coach</>
             )}
           </Button>
           <p className="text-[10px] text-muted-foreground text-center">
             Engångsbetalning via Stripe · Svar inom 5 arbetsdagar
+            {isPro && <> · <span className="text-accent font-medium">Pro-rabatt aktiverad</span></>}
           </p>
         </div>
 
@@ -362,7 +372,6 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
             </div>
           </div>
         )}
-        </PremiumGate>
       </CardContent>
     </Card>
   );

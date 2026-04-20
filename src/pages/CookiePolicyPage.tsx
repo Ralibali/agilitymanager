@@ -155,6 +155,7 @@ export default function CookiePolicyPage() {
 
         </div>
       </div>
+      </PageTransition>
       <LandingFooter />
     </div>
   );

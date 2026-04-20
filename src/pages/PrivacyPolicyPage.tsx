@@ -349,6 +349,7 @@ export default function PrivacyPolicyPage() {
 
         </div>
       </div>
+      </PageTransition>
       <LandingFooter />
     </div>
   );

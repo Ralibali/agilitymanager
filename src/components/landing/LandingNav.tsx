@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { motion as M } from "@/lib/motion";
 
 const NAV_LINKS = [
   { href: "#features", label: "Funktioner" },
@@ -15,6 +17,27 @@ const trackEvent = (name: string) => {
   // @ts-ignore
   if (typeof window !== "undefined" && window.flock) window.flock(name);
 };
+
+/** Underline-sweep länk – hover-animation från vänster→höger */
+function NavLinkSweep({
+  children,
+  ...props
+}: React.AnchorHTMLAttributes<HTMLAnchorElement> & { children: React.ReactNode }) {
+  return (
+    <a
+      {...props}
+      className={cn(
+        "relative text-[13px] text-text-secondary hover:text-text-primary transition-colors",
+        "after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-full",
+        "after:bg-text-primary after:origin-left after:scale-x-0 hover:after:scale-x-100",
+        "after:transition-transform after:duration-[240ms] after:ease-[cubic-bezier(0.4,0,0.2,1)]",
+        props.className,
+      )}
+    >
+      {children}
+    </a>
+  );
+}
 
 export function LandingNav() {
   const navigate = useNavigate();
@@ -44,7 +67,7 @@ export function LandingNav() {
       )}
     >
       <div className="max-w-[1180px] mx-auto h-full px-5 md:px-12 flex items-center justify-between font-sans-ds">
-        {/* Logo + easter-egg wiggle på desktop hover */}
+        {/* Logo + easter-egg wiggle */}
         <Link
           to="/"
           className="group flex items-center gap-2 shrink-0"
@@ -65,102 +88,146 @@ export function LandingNav() {
               <circle cx="20" cy="17" r="1.6" fill="hsl(var(--brand-500))" />
             </svg>
           </span>
-          <span className="text-[15px] tracking-tight text-text-primary">
+          <span className="text-[15px] tracking-tight text-text-primary transition-colors group-hover:text-brand-600">
             agilitymanager
           </span>
         </Link>
 
-        {/* Desktop nav */}
+        {/* Desktop nav – sweep underline */}
         <nav className="hidden md:flex items-center gap-7" aria-label="Huvudmeny">
           {NAV_LINKS.map((l) =>
             l.external ? (
-              <Link
-                key={l.href}
-                to={l.href}
-                className="text-[13px] text-text-secondary hover:text-text-primary transition-colors"
-              >
-                {l.label}
+              <Link key={l.href} to={l.href} className="contents">
+                <NavLinkSweep href={l.href} onClick={(e) => e.preventDefault()}>
+                  {l.label}
+                </NavLinkSweep>
               </Link>
             ) : (
-              <a
-                key={l.href}
-                href={l.href}
-                className="text-[13px] text-text-secondary hover:text-text-primary transition-colors"
-              >
+              <NavLinkSweep key={l.href} href={l.href}>
                 {l.label}
-              </a>
+              </NavLinkSweep>
             ),
           )}
         </nav>
 
-        {/* Desktop CTAs */}
+        {/* Desktop CTAs – tap-scale + sub-hover lift */}
         <div className="hidden md:flex items-center gap-2">
-          <button
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            transition={{ duration: M.duration.fast, ease: M.ease.smooth }}
             onClick={() => goAuth("login", "nav_login_click")}
             className="h-9 px-3 text-[13px] text-text-secondary hover:text-text-primary transition-colors"
           >
             Logga in
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ duration: M.duration.fast, ease: M.ease.smooth }}
             onClick={() => goAuth("signup", "nav_cta_click")}
-            className="h-9 px-4 text-[13px] rounded-ds-md bg-brand-600 text-white hover:bg-brand-900 transition-colors"
+            className="h-9 px-4 text-[13px] rounded-ds-md bg-brand-600 text-white hover:bg-brand-900 transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_-2px_rgba(26,107,60,0.35)]"
           >
             Kom igång gratis
-          </button>
+          </motion.button>
         </div>
 
         {/* Mobile toggle */}
-        <button
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          transition={{ duration: M.duration.fast }}
           className="md:hidden p-2 -mr-2 text-text-primary"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label={mobileOpen ? "Stäng meny" : "Öppna meny"}
           aria-expanded={mobileOpen}
         >
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={mobileOpen ? "x" : "menu"}
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
+              transition={{ duration: M.duration.fast, ease: M.ease.smooth }}
+              className="block"
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </motion.span>
+          </AnimatePresence>
+        </motion.button>
       </div>
 
-      {/* Mobile dropdown */}
-      {mobileOpen && (
-        <div className="md:hidden absolute top-16 inset-x-0 bg-page border-b border-border-subtle font-sans-ds">
-          <nav className="px-5 py-4 flex flex-col gap-1" aria-label="Mobilmeny">
-            {NAV_LINKS.map((l) =>
-              l.external ? (
-                <Link
-                  key={l.href}
-                  to={l.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="py-2.5 text-[14px] text-text-primary"
-                >
-                  {l.label}
-                </Link>
-              ) : (
-                <a
-                  key={l.href}
-                  href={l.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="py-2.5 text-[14px] text-text-primary"
-                >
-                  {l.label}
-                </a>
-              ),
-            )}
-            <div className="h-px bg-border-subtle my-2" />
-            <button
-              onClick={() => goAuth("login", "nav_login_click")}
-              className="text-left py-2.5 text-[14px] text-text-secondary"
+      {/* Mobile dropdown – slide-in + stagger */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: M.duration.base, ease: M.ease.smooth }}
+            className="md:hidden absolute top-16 inset-x-0 bg-page border-b border-border-subtle font-sans-ds overflow-hidden"
+          >
+            <motion.nav
+              initial="hidden"
+              animate="visible"
+              variants={{
+                visible: { transition: { staggerChildren: M.stagger.tight } },
+              }}
+              className="px-5 py-4 flex flex-col gap-1"
+              aria-label="Mobilmeny"
             >
-              Logga in
-            </button>
-            <button
-              onClick={() => goAuth("signup", "nav_cta_click")}
-              className="mt-1 h-11 rounded-ds-md bg-brand-600 text-white text-[14px]"
-            >
-              Kom igång gratis
-            </button>
-          </nav>
-        </div>
-      )}
+              {NAV_LINKS.map((l) => (
+                <motion.div
+                  key={l.href}
+                  variants={{
+                    hidden: { opacity: 0, x: -8 },
+                    visible: { opacity: 1, x: 0 },
+                  }}
+                  transition={{ duration: M.duration.base, ease: M.ease.out }}
+                >
+                  {l.external ? (
+                    <Link
+                      to={l.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="block py-2.5 text-[14px] text-text-primary"
+                    >
+                      {l.label}
+                    </Link>
+                  ) : (
+                    <a
+                      href={l.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="block py-2.5 text-[14px] text-text-primary"
+                    >
+                      {l.label}
+                    </a>
+                  )}
+                </motion.div>
+              ))}
+              <div className="h-px bg-border-subtle my-2" />
+              <motion.button
+                variants={{
+                  hidden: { opacity: 0, x: -8 },
+                  visible: { opacity: 1, x: 0 },
+                }}
+                onClick={() => goAuth("login", "nav_login_click")}
+                className="text-left py-2.5 text-[14px] text-text-secondary"
+              >
+                Logga in
+              </motion.button>
+              <motion.button
+                variants={{
+                  hidden: { opacity: 0, y: 4 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => goAuth("signup", "nav_cta_click")}
+                className="mt-1 h-11 rounded-ds-md bg-brand-600 text-white text-[14px]"
+              >
+                Kom igång gratis
+              </motion.button>
+            </motion.nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

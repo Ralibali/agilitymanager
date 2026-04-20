@@ -1,6 +1,7 @@
 import { LandingNavbar } from '@/components/LandingNavbar';
 import { LandingFooter } from '@/components/LandingFooter';
 import { Helmet } from 'react-helmet-async';
+import { PageTransition } from '@/components/motion/PageTransition';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -11,6 +12,7 @@ export default function PrivacyPolicyPage() {
         <link rel="canonical" href="https://agilitymanager.se/integritetspolicy" />
       </Helmet>
       <LandingNavbar />
+      <PageTransition>
       <div className="max-w-3xl mx-auto px-4 py-20">
         <h1 className="text-3xl font-display font-bold text-foreground mb-4">Integritetspolicy</h1>
         <p className="text-sm text-muted-foreground mb-8">Senast uppdaterad: 11 april 2026</p>
@@ -347,6 +349,7 @@ export default function PrivacyPolicyPage() {
 
         </div>
       </div>
+      </PageTransition>
       <LandingFooter />
     </div>
   );

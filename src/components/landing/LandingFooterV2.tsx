@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { motion as M } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 
 const COLS = [
   {
@@ -33,13 +36,36 @@ const COLS = [
   },
 ];
 
+/** Sweep-underline länkstil för footer (vit/transparent) */
+const footerLinkClass = cn(
+  "relative inline-block text-[13px] text-text-on-inverse/85 hover:text-text-on-inverse transition-colors",
+  "after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-px after:w-full",
+  "after:bg-text-on-inverse after:origin-left after:scale-x-0 hover:after:scale-x-100",
+  "after:transition-transform after:duration-[240ms] after:ease-[cubic-bezier(0.4,0,0.2,1)]",
+);
+
+const colVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0 },
+};
+
 export function LandingFooterV2() {
   return (
     <footer className="bg-inverse text-text-on-inverse font-sans-ds">
       <div className="max-w-[1180px] mx-auto px-5 md:px-12 py-14">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-12">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-15% 0px" }}
+          variants={{ visible: { transition: { staggerChildren: M.stagger.base } } }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-12"
+        >
           {COLS.map((col) => (
-            <div key={col.title}>
+            <motion.div
+              key={col.title}
+              variants={colVariants}
+              transition={{ duration: M.duration.smooth, ease: M.ease.out }}
+            >
               <h3 className="text-[11px] uppercase tracking-[0.08em] text-text-on-inverse/60 mb-4">
                 {col.title}
               </h3>
@@ -51,27 +77,27 @@ export function LandingFooterV2() {
                         href={l.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[13px] text-text-on-inverse/85 hover:text-text-on-inverse transition-colors"
+                        className={footerLinkClass}
                       >
                         {l.label}
                       </a>
                     </li>
                   ) : (
                     <li key={l.label}>
-                      <Link
-                        to={l.href}
-                        className="text-[13px] text-text-on-inverse/85 hover:text-text-on-inverse transition-colors"
-                      >
+                      <Link to={l.href} className={footerLinkClass}>
                         {l.label}
                       </Link>
                     </li>
                   ),
                 )}
               </ul>
-            </div>
+            </motion.div>
           ))}
 
-          <div>
+          <motion.div
+            variants={colVariants}
+            transition={{ duration: M.duration.smooth, ease: M.ease.out }}
+          >
             <h3 className="text-[11px] uppercase tracking-[0.08em] text-text-on-inverse/60 mb-4">
               Följ
             </h3>
@@ -81,7 +107,7 @@ export function LandingFooterV2() {
                   href="https://www.instagram.com/agilitymanager"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block text-[13px] text-text-on-inverse/85 hover:text-text-on-inverse transition-all duration-[180ms] hover:scale-[1.08] origin-left"
+                  className={footerLinkClass}
                 >
                   Instagram
                 </a>
@@ -91,21 +117,20 @@ export function LandingFooterV2() {
                   href="https://www.facebook.com/agilitymanager"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block text-[13px] text-text-on-inverse/85 hover:text-text-on-inverse transition-all duration-[180ms] hover:scale-[1.08] origin-left"
+                  className={footerLinkClass}
                 >
                   Facebook
                 </a>
               </li>
             </ul>
-          </div>
-        </div>
-
+          </motion.div>
+        </motion.div>
 
         <div className="border-t border-text-on-inverse/10 pt-8 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 group">
             <span
               aria-hidden
-              className="w-6 h-6 rounded-ds-sm bg-text-on-inverse/10 flex items-center justify-center"
+              className="w-6 h-6 rounded-ds-sm bg-text-on-inverse/10 flex items-center justify-center transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-safe:group-hover:[transform:rotate(-3deg)_scale(1.06)]"
             >
               <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none">
                 <path

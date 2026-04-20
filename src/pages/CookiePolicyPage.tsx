@@ -1,6 +1,7 @@
 import { LandingNavbar } from '@/components/LandingNavbar';
 import { LandingFooter } from '@/components/LandingFooter';
 import { Helmet } from 'react-helmet-async';
+import { PageTransition } from '@/components/motion/PageTransition';
 
 export default function CookiePolicyPage() {
   return (
@@ -11,6 +12,7 @@ export default function CookiePolicyPage() {
         <link rel="canonical" href="https://agilitymanager.se/cookiepolicy" />
       </Helmet>
       <LandingNavbar />
+      <PageTransition>
       <div className="max-w-3xl mx-auto px-4 py-20">
         <h1 className="text-3xl font-display font-bold text-foreground mb-4">Cookiepolicy</h1>
         <p className="text-sm text-muted-foreground mb-8">Senast uppdaterad: 11 april 2026</p>
@@ -153,6 +155,7 @@ export default function CookiePolicyPage() {
 
         </div>
       </div>
+      </PageTransition>
       <LandingFooter />
     </div>
   );

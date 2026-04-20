@@ -1,10 +1,13 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { Search, ExternalLink, Calendar, MapPin, Filter, X, Star, Check, Send, Trash2 } from "lucide-react";
+import { Search, ExternalLink, Calendar, MapPin, Filter, X, Star, Check, Send, Trash2, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn, stripHtml } from "@/lib/utils";
 import { toast } from "sonner";
 import ShareToFriendDialog from "@/components/ShareToFriendDialog";
+import { FetchMyResultDialog, type FetchMyResultTarget } from "@/components/v3/FetchMyResultDialog";
+import { store } from "@/lib/store";
+import type { Dog } from "@/types";
 
 type Sport = "Agility" | "Hoopers";
 type InterestStatus = "interested" | "registered";
@@ -40,6 +43,13 @@ function daysUntil(iso: string | null | undefined): number | null {
   return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+function isPast(iso: string | null | undefined): boolean {
+  if (!iso) return false;
+  const t = new Date(iso);
+  t.setHours(23, 59, 59, 0);
+  return t.getTime() < Date.now();
+}
+
 function monthKey(iso: string | null | undefined): string | null {
   if (!iso) return null;
   const d = new Date(iso);
@@ -58,9 +68,10 @@ interface Props {
 type ViewMode = "all" | "mine";
 
 /**
- * Sök, filtrera och bläddra bland kommande tävlingar (Agility + Hoopers).
- * Stöd för: markera intresserad/anmäld (sparas i competition_interests),
- * dela med vänner och öppna originalkällan.
+ * Sök, filtrera och bläddra bland tävlingar (Agility + Hoopers).
+ * - Markera intresserad / anmäld (sparas i competition_interests)
+ * - Dela med vän
+ * - Hämta egna resultat (efter tävling) via GDPR-säker edge function
  */
 export function V3FindCompetitions({ preferredSport }: Props) {
   const { user } = useAuth();
@@ -75,22 +86,32 @@ export function V3FindCompetitions({ preferredSport }: Props) {
   const [loading, setLoading] = useState(true);
   const [interests, setInterests] = useState<Record<string, InterestStatus>>({});
   const [shareTarget, setShareTarget] = useState<CompRow | null>(null);
+  const [resultTarget, setResultTarget] = useState<FetchMyResultTarget | null>(null);
+  const [dogs, setDogs] = useState<Dog[]>([]);
 
-  // Hämta tävlingar för aktuell sport
+  // Hämta hundar (för Hämta resultat-dialogen)
+  useEffect(() => {
+    if (!user) return;
+    store.getDogs().then(setDogs).catch(() => setDogs([]));
+  }, [user]);
+
+  // Hämta tävlingar för aktuell sport (kommande för "Alla", alla för "Mina")
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     (async () => {
       const today = new Date().toISOString().split("T")[0];
+      const includePast = view === "mine"; // i Mina markerade vill vi se passerade också
       if (sport === "Agility") {
-        const { data } = await supabase
+        let q = supabase
           .from("competitions")
           .select(
             "id, competition_name, club_name, location, region, date_start, last_registration_date, classes_agility, classes_hopp, classes_other, source_url",
           )
-          .gte("date_start", today)
-          .order("date_start", { ascending: true })
-          .limit(120);
+          .order("date_start", { ascending: !includePast })
+          .limit(180);
+        if (!includePast) q = q.gte("date_start", today);
+        const { data } = await q;
         if (cancelled) return;
         setRows(
           (data ?? []).map((r: any) => ({
@@ -112,14 +133,15 @@ export function V3FindCompetitions({ preferredSport }: Props) {
           })),
         );
       } else {
-        const { data } = await supabase
+        let q = supabase
           .from("hoopers_competitions_public")
           .select(
             "id, competition_id, competition_name, club_name, location, county, date, registration_closes, classes, source_url",
           )
-          .gte("date", today)
-          .order("date", { ascending: true })
-          .limit(120);
+          .order("date", { ascending: !includePast })
+          .limit(180);
+        if (!includePast) q = q.gte("date", today);
+        const { data } = await q;
         if (cancelled) return;
         setRows(
           (data ?? []).map((r: any) => ({
@@ -143,9 +165,9 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [sport]);
+  }, [sport, view]);
 
-  // Hämta användarens intressen (sport-oberoende)
+  // Hämta användarens intressen
   const reloadInterests = useCallback(async () => {
     if (!user) {
       setInterests({});
@@ -175,15 +197,12 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     }
     const compKey = comp.competition_id ?? comp.id;
     const current = interests[compKey];
-
-    // Optimistisk uppdatering
     setInterests((prev) => {
       const next = { ...prev };
       if (current === target) delete next[compKey];
       else next[compKey] = target;
       return next;
     });
-
     try {
       if (current === target) {
         await supabase
@@ -214,7 +233,6 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     }
   };
 
-  // Härled filter-alternativ från data
   const regions = useMemo(() => {
     const set = new Set<string>();
     rows.forEach((r) => r.region && set.add(r.region));
@@ -258,7 +276,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* View-toggle: Alla / Mina markerade */}
+      {/* View-toggle */}
       <div className="flex items-center gap-1.5 p-1 rounded-v3-base bg-v3-canvas-sunken/40 w-fit">
         <button
           type="button"
@@ -292,7 +310,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         </button>
       </div>
 
-      {/* Sport-toggle + sök + filter-knapp */}
+      {/* Sport-toggle + sök + filter */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex gap-1.5">
           {(["Agility", "Hoopers"] as Sport[]).map((s) => (
@@ -386,10 +404,10 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         </div>
       )}
 
-      {/* Resultatantal */}
       {!loading && (
         <div className="text-v3-xs text-v3-text-tertiary tabular-nums">
-          {filtered.length} {filtered.length === 1 ? "tävling" : "tävlingar"} {view === "mine" ? "markerade" : "hittade"}
+          {filtered.length} {filtered.length === 1 ? "tävling" : "tävlingar"}{" "}
+          {view === "mine" ? "markerade" : "hittade"}
         </div>
       )}
 
@@ -427,7 +445,9 @@ export function V3FindCompetitions({ preferredSport }: Props) {
               <p className="text-v3-base text-v3-text-secondary">
                 Inga kommande {sport.toLowerCase()}-tävlingar matchar.
               </p>
-              <p className="text-v3-sm text-v3-text-tertiary mt-1">Prova att rensa sökrutan eller ändra filter.</p>
+              <p className="text-v3-sm text-v3-text-tertiary mt-1">
+                Prova att rensa sökrutan eller ändra filter.
+              </p>
             </>
           )}
         </div>
@@ -439,6 +459,8 @@ export function V3FindCompetitions({ preferredSport }: Props) {
             const deadlineDays = daysUntil(r.registration_deadline);
             const deadlineClosed = deadlineDays !== null && deadlineDays < 0;
             const deadlineSoon = deadlineDays !== null && deadlineDays >= 0 && deadlineDays <= 7;
+            const past = isPast(r.date);
+            const canFetchResults = past && !!status && r.source_url;
 
             return (
               <li
@@ -450,7 +472,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                     : "bg-v3-canvas-elevated border-v3-canvas-sunken/40 hover:border-v3-canvas-sunken",
                 )}
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start gap-2 flex-wrap">
                       <span className="text-v3-base text-v3-text-primary truncate">
@@ -476,12 +498,17 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                           <Check size={9} /> Anmäld
                         </span>
                       )}
-                      {deadlineClosed && (
+                      {past && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium bg-v3-canvas-sunken text-v3-text-tertiary shrink-0">
+                          Genomförd
+                        </span>
+                      )}
+                      {!past && deadlineClosed && (
                         <span className="px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium bg-v3-canvas-sunken text-v3-text-tertiary shrink-0">
                           Stängd
                         </span>
                       )}
-                      {deadlineSoon && !status && (
+                      {!past && deadlineSoon && !status && (
                         <span className="px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium bg-amber-500/15 text-amber-700 shrink-0">
                           {deadlineDays === 0 ? "Sista dagen" : `${deadlineDays} d kvar`}
                         </span>
@@ -502,8 +529,10 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                           {r.region && <span className="text-v3-text-tertiary/70">· {r.region}</span>}
                         </span>
                       )}
-                      {r.registration_deadline && !deadlineClosed && !deadlineSoon && (
-                        <span className="tabular-nums">Anmälan t.o.m. {formatDate(r.registration_deadline)}</span>
+                      {r.registration_deadline && !past && !deadlineClosed && !deadlineSoon && (
+                        <span className="tabular-nums">
+                          Anmälan t.o.m. {formatDate(r.registration_deadline)}
+                        </span>
                       )}
                     </div>
                     {r.classes.length > 0 && (
@@ -528,38 +557,42 @@ export function V3FindCompetitions({ preferredSport }: Props) {
 
                 {/* Action-rad */}
                 <div className="mt-3 pt-3 border-t border-v3-canvas-sunken/40 flex flex-wrap items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => toggleInterest(r, "interested")}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 h-8 px-2.5 rounded-v3-base text-v3-xs font-medium transition-colors",
-                      status === "interested"
-                        ? "bg-amber-500/15 text-amber-700 border border-amber-500/30"
-                        : "bg-v3-canvas-sunken/40 text-v3-text-secondary hover:bg-v3-canvas-sunken hover:text-v3-text-primary",
-                    )}
-                    aria-pressed={status === "interested"}
-                  >
-                    <Star
-                      size={12}
-                      strokeWidth={1.8}
-                      className={status === "interested" ? "fill-amber-500 text-amber-500" : ""}
-                    />
-                    {status === "interested" ? "Intresserad" : "Intresse"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleInterest(r, "registered")}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 h-8 px-2.5 rounded-v3-base text-v3-xs font-medium transition-colors",
-                      status === "registered"
-                        ? "bg-green-500/15 text-green-700 border border-green-500/30"
-                        : "bg-v3-canvas-sunken/40 text-v3-text-secondary hover:bg-v3-canvas-sunken hover:text-v3-text-primary",
-                    )}
-                    aria-pressed={status === "registered"}
-                  >
-                    <Check size={12} strokeWidth={1.8} />
-                    {status === "registered" ? "Anmäld" : "Anmäld"}
-                  </button>
+                  {!past && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => toggleInterest(r, "interested")}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 h-8 px-2.5 rounded-v3-base text-v3-xs font-medium transition-colors",
+                          status === "interested"
+                            ? "bg-amber-500/15 text-amber-700 border border-amber-500/30"
+                            : "bg-v3-canvas-sunken/40 text-v3-text-secondary hover:bg-v3-canvas-sunken hover:text-v3-text-primary",
+                        )}
+                        aria-pressed={status === "interested"}
+                      >
+                        <Star
+                          size={12}
+                          strokeWidth={1.8}
+                          className={status === "interested" ? "fill-amber-500 text-amber-500" : ""}
+                        />
+                        {status === "interested" ? "Intresserad" : "Intresse"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleInterest(r, "registered")}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 h-8 px-2.5 rounded-v3-base text-v3-xs font-medium transition-colors",
+                          status === "registered"
+                            ? "bg-green-500/15 text-green-700 border border-green-500/30"
+                            : "bg-v3-canvas-sunken/40 text-v3-text-secondary hover:bg-v3-canvas-sunken hover:text-v3-text-primary",
+                        )}
+                        aria-pressed={status === "registered"}
+                      >
+                        <Check size={12} strokeWidth={1.8} />
+                        Anmäld
+                      </button>
+                    </>
+                  )}
                   <button
                     type="button"
                     onClick={() => setShareTarget(r)}
@@ -569,7 +602,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                     <Send size={12} strokeWidth={1.8} />
                     Dela
                   </button>
-                  {status && (
+                  {status && !past && (
                     <button
                       type="button"
                       onClick={() => toggleInterest(r, status)}
@@ -579,6 +612,25 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                       <Trash2 size={12} strokeWidth={1.8} />
                     </button>
                   )}
+                  {canFetchResults && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setResultTarget({
+                          source_url: r.source_url!,
+                          source_label: r.source_label,
+                          competition_name: r.competition_name || r.club_name || "Tävling",
+                          date: r.date,
+                          sport: r.sport,
+                          competition_id: compKey,
+                        })
+                      }
+                      className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-v3-base text-v3-xs font-medium bg-v3-brand-500 text-white hover:bg-v3-brand-600 transition-colors"
+                    >
+                      <Trophy size={12} strokeWidth={1.8} />
+                      Hämta mina resultat
+                    </button>
+                  )}
                   {r.source_url && (
                     <a
                       href={r.source_url}
@@ -586,7 +638,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                       rel="noopener noreferrer"
                       className="ml-auto inline-flex items-center gap-1.5 h-8 px-2.5 rounded-v3-base text-v3-xs font-medium bg-v3-text-primary text-v3-text-inverse hover:opacity-90 transition-opacity"
                     >
-                      Anmäl på {r.source_label}
+                      {past ? "Källa" : "Anmäl"} på {r.source_label}
                       <ExternalLink size={11} strokeWidth={1.8} />
                     </a>
                   )}
@@ -613,6 +665,13 @@ export function V3FindCompetitions({ preferredSport }: Props) {
           }}
         />
       )}
+
+      <FetchMyResultDialog
+        open={!!resultTarget}
+        onOpenChange={(o) => !o && setResultTarget(null)}
+        target={resultTarget}
+        dogs={dogs}
+      />
     </div>
   );
 }

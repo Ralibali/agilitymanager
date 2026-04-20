@@ -429,7 +429,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
       {!loading && (
         <div className="text-v3-xs text-v3-text-tertiary tabular-nums">
           {filtered.length} {filtered.length === 1 ? "tävling" : "tävlingar"}{" "}
-          {view === "mine" ? "markerade" : "hittade"}
+          {view === "all" ? "hittade" : view === "shared" ? "delade med dig" : "markerade"}
         </div>
       )}
 
@@ -445,14 +445,14 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-8 text-center">
-          {view === "mine" ? (
+          {view === "interested" ? (
             <>
-              <div className="mx-auto h-12 w-12 rounded-full bg-v3-brand-500/10 grid place-items-center mb-4">
-                <Star size={20} strokeWidth={1.6} className="text-v3-brand-500" />
+              <div className="mx-auto h-12 w-12 rounded-full bg-amber-500/10 grid place-items-center mb-4">
+                <Star size={20} strokeWidth={1.6} className="text-amber-600" />
               </div>
-              <p className="text-v3-base text-v3-text-secondary">Du har inte markerat några tävlingar än.</p>
+              <p className="text-v3-base text-v3-text-secondary">Du har inte markerat några tävlingar som intressanta än.</p>
               <p className="text-v3-sm text-v3-text-tertiary mt-1">
-                Bläddra i listan och klicka på ⭐ Intresserad eller ✓ Anmäld.
+                Klicka på ⭐ Intresse på en tävling i fliken Alla.
               </p>
               <button
                 type="button"
@@ -461,6 +461,33 @@ export function V3FindCompetitions({ preferredSport }: Props) {
               >
                 Visa alla tävlingar
               </button>
+            </>
+          ) : view === "registered" ? (
+            <>
+              <div className="mx-auto h-12 w-12 rounded-full bg-green-500/10 grid place-items-center mb-4">
+                <Check size={20} strokeWidth={1.6} className="text-green-600" />
+              </div>
+              <p className="text-v3-base text-v3-text-secondary">Du har inte markerat dig som anmäld på någon tävling än.</p>
+              <p className="text-v3-sm text-v3-text-tertiary mt-1">
+                Klicka på ✓ Anmäld på en tävling i fliken Alla.
+              </p>
+              <button
+                type="button"
+                onClick={() => setView("all")}
+                className="mt-4 inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-text-primary text-v3-text-inverse text-v3-sm font-medium hover:opacity-90 transition-opacity"
+              >
+                Visa alla tävlingar
+              </button>
+            </>
+          ) : view === "shared" ? (
+            <>
+              <div className="mx-auto h-12 w-12 rounded-full bg-v3-brand-500/10 grid place-items-center mb-4">
+                <Inbox size={20} strokeWidth={1.6} className="text-v3-brand-500" />
+              </div>
+              <p className="text-v3-base text-v3-text-secondary">Inga vänner har delat tävlingar med dig än.</p>
+              <p className="text-v3-sm text-v3-text-tertiary mt-1">
+                Tävlingar som dina vänner skickar via Dela-knappen dyker upp här.
+              </p>
             </>
           ) : (
             <>

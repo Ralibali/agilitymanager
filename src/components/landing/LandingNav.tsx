@@ -131,11 +131,11 @@ export function LandingNav() {
           </motion.button>
         </div>
 
-        {/* Mobile toggle */}
+        {/* Mobile toggle – ≥44px target */}
         <motion.button
           whileTap={{ scale: 0.9 }}
           transition={{ duration: M.duration.fast }}
-          className="md:hidden p-2 -mr-2 text-text-primary"
+          className="md:hidden flex items-center justify-center h-11 w-11 -mr-2 text-text-primary [-webkit-tap-highlight-color:transparent] rounded-md focus-visible:outline-none focus-visible:bg-subtle"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label={mobileOpen ? "Stäng meny" : "Öppna meny"}
           aria-expanded={mobileOpen}

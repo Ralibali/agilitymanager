@@ -220,7 +220,7 @@ export function LandingNav() {
                 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => goAuth("signup", "nav_cta_click")}
-                className="mt-1 h-11 rounded-ds-md bg-brand-600 text-white text-[14px]"
+                className="mt-2 h-12 rounded-ds-md bg-brand-600 text-white text-[15px] font-medium [-webkit-tap-highlight-color:transparent] active:bg-brand-900 transition-colors"
               >
                 Kom igång gratis
               </motion.button>

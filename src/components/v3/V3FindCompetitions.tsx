@@ -65,12 +65,23 @@ interface Props {
   preferredSport: Sport;
 }
 
-type ViewMode = "all" | "mine";
+type ViewMode = "all" | "interested" | "registered" | "shared";
+
+interface SharedCompMeta {
+  message_id: string;
+  shared_id: string;
+  sender_id: string;
+  sender_name: string | null;
+  sender_avatar: string | null;
+  message: string;
+  shared_at: string;
+  data: Record<string, any>;
+}
 
 /**
  * Sök, filtrera och bläddra bland tävlingar (Agility + Hoopers).
  * - Markera intresserad / anmäld (sparas i competition_interests)
- * - Dela med vän
+ * - Dela med vän (delade tävlingar visas i fliken "Delade")
  * - Hämta egna resultat (efter tävling) via GDPR-säker edge function
  */
 export function V3FindCompetitions({ preferredSport }: Props) {
@@ -85,6 +96,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
   const [rows, setRows] = useState<CompRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [interests, setInterests] = useState<Record<string, InterestStatus>>({});
+  const [sharedComps, setSharedComps] = useState<SharedCompMeta[]>([]);
   const [shareTarget, setShareTarget] = useState<CompRow | null>(null);
   const [resultTarget, setResultTarget] = useState<FetchMyResultTarget | null>(null);
   const [dogs, setDogs] = useState<Dog[]>([]);

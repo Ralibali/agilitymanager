@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { X, Loader2, AlertCircle, CheckCircle2, ExternalLink, Trophy } from "lucide-react";
+import { X, Loader2, AlertCircle, CheckCircle2, ExternalLink, Trophy, ChevronDown, Shield, Search, Filter, Database } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -67,6 +67,7 @@ export function FetchMyResultDialog({ open, onOpenChange, target, dogs }: Props)
   const [matches, setMatches] = useState<MatchedRow[]>([]);
   const [picked, setPicked] = useState<Set<number>>(new Set());
   const [importing, setImporting] = useState(false);
+  const [howOpen, setHowOpen] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -236,11 +237,73 @@ export function FetchMyResultDialog({ open, onOpenChange, target, dogs }: Props)
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          {/* GDPR-banner */}
-          <div className="rounded-v3-base bg-v3-brand-500/5 border border-v3-brand-500/20 p-3 text-v3-xs text-v3-text-secondary leading-relaxed">
-            <strong className="text-v3-text-primary">GDPR:</strong> Vi hämtar den publika resultatlistan
-            från {target.source_label} och filtrerar fram <strong>bara dina egna</strong> rader baserat på
-            hund- och förarnamn. Andras data lagras eller delas aldrig av appen.
+          {/* Hur funkar det? — transparent förklaring av flödet */}
+          <div className="rounded-v3-base bg-v3-brand-500/5 border border-v3-brand-500/20 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setHowOpen((v) => !v)}
+              className="w-full px-3 py-2.5 flex items-center justify-between gap-2 text-left hover:bg-v3-brand-500/5 transition-colors"
+              aria-expanded={howOpen}
+            >
+              <span className="inline-flex items-center gap-2 text-v3-xs text-v3-text-secondary">
+                <Shield size={13} strokeWidth={1.8} className="text-v3-brand-600 shrink-0" />
+                <span>
+                  <strong className="text-v3-text-primary">Så funkar det</strong> — vi hämtar publika resultat
+                  från {target.source_label} och visar bara dina rader.
+                </span>
+              </span>
+              <ChevronDown
+                size={14}
+                strokeWidth={1.8}
+                className={cn(
+                  "text-v3-text-tertiary shrink-0 transition-transform",
+                  howOpen && "rotate-180",
+                )}
+              />
+            </button>
+            {howOpen && (
+              <div className="px-3 pb-3 pt-1 space-y-2.5 border-t border-v3-brand-500/15">
+                <div className="flex gap-2.5 text-v3-xs text-v3-text-secondary leading-relaxed">
+                  <Search size={13} strokeWidth={1.8} className="text-v3-brand-600 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-v3-text-primary">1. Vi söker.</strong> Först läser vi tävlingens
+                    publika resultatsida på {target.source_label}. Hittar vi inget där söker vi automatiskt på
+                    din hund via{" "}
+                    <a
+                      href="https://agilitydata.se/resultat/soek-hund/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline text-v3-brand-700"
+                    >
+                      agilitydata.se/sök-hund
+                    </a>
+                    .
+                  </div>
+                </div>
+                <div className="flex gap-2.5 text-v3-xs text-v3-text-secondary leading-relaxed">
+                  <Filter size={13} strokeWidth={1.8} className="text-v3-brand-600 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-v3-text-primary">2. Vi filtrerar.</strong> Server-sidan matchar
+                    rader mot din hund <em>och</em> ditt förarnamn (samt tävlingsdatum vid sök-fallback).
+                    Inga andras rader skickas tillbaka till appen.
+                  </div>
+                </div>
+                <div className="flex gap-2.5 text-v3-xs text-v3-text-secondary leading-relaxed">
+                  <CheckCircle2 size={13} strokeWidth={1.8} className="text-v3-brand-600 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-v3-text-primary">3. Du väljer.</strong> Du ser träffarna och
+                    bockar i vilka rader som ska sparas till din egen resultatlogg.
+                  </div>
+                </div>
+                <div className="flex gap-2.5 text-v3-xs text-v3-text-secondary leading-relaxed">
+                  <Database size={13} strokeWidth={1.8} className="text-v3-brand-600 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-v3-text-primary">4. Vi sparar.</strong> Bara dina valda rader
+                    lagras — kopplade till ditt konto och din hund. Andras data finns aldrig kvar i appen.
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* SETUP */}

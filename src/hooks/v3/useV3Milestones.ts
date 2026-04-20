@@ -162,7 +162,51 @@ export function useV3Milestones(dogId: string | null) {
         }
       });
 
+      // Beräkna nästa olåsta tröskel per kategori
+      const cleanCount = cleanRuns.length;
+      const trainCount = s.length;
+      const startsCount = c.length;
+
+      const nextOf = (
+        category: string,
+        emoji: string,
+        unit: string,
+        thresholds: number[],
+        current: number,
+      ): NextMilestone | null => {
+        const target = thresholds.find((t) => t > current);
+        if (target == null) return null;
+        const remaining = target - current;
+        const prev = [...thresholds].reverse().find((t) => t <= current) ?? 0;
+        // Progress räknas från senaste uppnådda tröskel mot nästa – ger känsla av rörelse
+        const span = target - prev || target;
+        const progress = Math.min(1, Math.max(0, (current - prev) / span));
+        return {
+          id: `next-${category}-${target}`,
+          emoji,
+          title: `${target} ${unit}`,
+          category,
+          current,
+          target,
+          remaining,
+          progress,
+          hint: `${remaining} ${remaining === 1 ? unit.replace(/or$/, "a").replace(/pass$/, "pass") : unit} kvar till ${target} ${unit}`,
+        };
+      };
+
+      const nexts: NextMilestone[] = [];
+      const nTrain = nextOf("Träning", "💪", "träningspass", [10, 50, 100, 250, 500], trainCount);
+      if (nTrain) nexts.push(nTrain);
+      const nClean = nextOf("Nollrundor", "✨", "nollrundor", [1, 10, 25, 50, 100], cleanCount);
+      if (nClean) nexts.push(nClean);
+      const nStarts = nextOf("Starter", "⭐", "starter", [1, 10, 25, 50, 100], startsCount);
+      if (nStarts) nexts.push(nStarts);
+
+      // Sortera: minst kvar först (= närmast att uppnås)
+      nexts.sort((a, b) => a.remaining - b.remaining);
+
       setMilestones(list);
+      setNextMilestones(nexts);
       setLoading(false);
     })();
 
@@ -171,5 +215,5 @@ export function useV3Milestones(dogId: string | null) {
     };
   }, [dogId]);
 
-  return { milestones, loading };
+  return { milestones, nextMilestones, loading };
 }

@@ -316,8 +316,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     return Array.from(set).sort();
   }, [rows]);
 
-  // Set över delade competition_id för snabb uppslagning
-  const sharedKeySet = useMemo(() => new Set(sharedComps.map((s) => s.shared_id)), [sharedComps]);
+  // (sharedKeySet borttagen — vi visar shared via syntetiserade rader nedan)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

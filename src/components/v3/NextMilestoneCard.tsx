@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronRight, Share2 } from "lucide-react";
+import { Share2 } from "lucide-react";
 import { toast } from "sonner";
 import type { NextMilestone } from "@/hooks/v3/useV3Milestones";
 import ShareToFriendDialog from "@/components/ShareToFriendDialog";

@@ -302,6 +302,14 @@ export function FetchMyResultDialog({ open, onOpenChange, target, dogs }: Props)
                     lagras — kopplade till ditt konto och din hund. Andras data finns aldrig kvar i appen.
                   </div>
                 </div>
+                <a
+                  href="/hjalp/resultathamtning"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-v3-xs text-v3-brand-700 hover:underline pt-1"
+                >
+                  Läs hela förklaringen <ExternalLink size={11} />
+                </a>
               </div>
             )}
           </div>

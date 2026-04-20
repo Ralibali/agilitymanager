@@ -101,6 +101,7 @@ export type Database = {
         Row: {
           agility_challenges: string
           agility_popularity_rank: number | null
+          agility_profile: string
           agility_strengths: string
           agility_suitability: number | null
           breed_group: string | null
@@ -111,11 +112,15 @@ export type Database = {
           image_attribution: string | null
           image_url: string | null
           life_expectancy: string | null
+          long_description: string
           name: string
           name_en: string | null
           origin_country: string | null
           popular_in_sweden: boolean
           published: boolean
+          seo_description: string | null
+          seo_title: string | null
+          short_description: string
           size_class: string
           slug: string
           suitable_class: string | null
@@ -128,6 +133,7 @@ export type Database = {
         Insert: {
           agility_challenges?: string
           agility_popularity_rank?: number | null
+          agility_profile?: string
           agility_strengths?: string
           agility_suitability?: number | null
           breed_group?: string | null
@@ -138,11 +144,15 @@ export type Database = {
           image_attribution?: string | null
           image_url?: string | null
           life_expectancy?: string | null
+          long_description?: string
           name: string
           name_en?: string | null
           origin_country?: string | null
           popular_in_sweden?: boolean
           published?: boolean
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string
           size_class?: string
           slug: string
           suitable_class?: string | null
@@ -155,6 +165,7 @@ export type Database = {
         Update: {
           agility_challenges?: string
           agility_popularity_rank?: number | null
+          agility_profile?: string
           agility_strengths?: string
           agility_suitability?: number | null
           breed_group?: string | null
@@ -165,11 +176,15 @@ export type Database = {
           image_attribution?: string | null
           image_url?: string | null
           life_expectancy?: string | null
+          long_description?: string
           name?: string
           name_en?: string | null
           origin_country?: string | null
           popular_in_sweden?: boolean
           published?: boolean
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string
           size_class?: string
           slug?: string
           suitable_class?: string | null

@@ -3,7 +3,7 @@ import { GraduationCap } from "lucide-react";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import type { Dog } from "@/types";
 
-// Coach-feedback (Pro): lazy så bundle inte blåses upp
+// Coach-feedback: lazy så bundle inte blåses upp
 const CoachVideoAnalysis = lazy(() => import("@/components/training/CoachVideoAnalysis"));
 
 /**

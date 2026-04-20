@@ -182,10 +182,11 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     };
   }, [sport, view]);
 
-  // Hämta användarens intressen
+  // Hämta användarens intressen + de faktiska tävlingsraderna (oberoende av aktiv sport / tidsfönster)
   const reloadInterests = useCallback(async () => {
     if (!user) {
       setInterests({});
+      setMarkedRows([]);
       return;
     }
     const { data } = await supabase
@@ -193,12 +194,70 @@ export function V3FindCompetitions({ preferredSport }: Props) {
       .select("competition_id, status")
       .eq("user_id", user.id);
     const map: Record<string, InterestStatus> = {};
+    const ids: string[] = [];
     (data ?? []).forEach((r) => {
       if (r.status === "interested" || r.status === "registered") {
         map[r.competition_id] = r.status as InterestStatus;
+        ids.push(r.competition_id);
       }
     });
     setInterests(map);
+
+    if (ids.length === 0) {
+      setMarkedRows([]);
+      return;
+    }
+
+    // Slå upp de markerade tävlingarna i båda tabellerna parallellt
+    const [agi, hoo] = await Promise.all([
+      supabase
+        .from("competitions")
+        .select(
+          "id, competition_name, club_name, location, region, date_start, last_registration_date, classes_agility, classes_hopp, classes_other, source_url",
+        )
+        .in("id", ids),
+      supabase
+        .from("hoopers_competitions_public")
+        .select(
+          "id, competition_id, competition_name, club_name, location, county, date, registration_closes, classes, source_url",
+        )
+        .in("competition_id", ids),
+    ]);
+
+    const merged: CompRow[] = [
+      ...((agi.data ?? []) as any[]).map((r) => ({
+        id: r.id,
+        competition_name: stripHtml(r.competition_name ?? ""),
+        club_name: stripHtml(r.club_name ?? ""),
+        location: r.location,
+        region: r.region,
+        date: r.date_start,
+        registration_deadline: r.last_registration_date,
+        classes: [
+          ...(r.classes_agility ?? []),
+          ...(r.classes_hopp ?? []),
+          ...(r.classes_other ?? []),
+        ],
+        source_url: r.source_url ?? "https://agilitydata.se/taevlingar/",
+        source_label: "agilitydata.se",
+        sport: "Agility" as Sport,
+      })),
+      ...((hoo.data ?? []) as any[]).map((r) => ({
+        id: r.id ?? r.competition_id,
+        competition_id: r.competition_id,
+        competition_name: r.competition_name,
+        club_name: r.club_name,
+        location: r.location,
+        region: r.county,
+        date: r.date,
+        registration_deadline: r.registration_closes,
+        classes: r.classes ?? [],
+        source_url: r.source_url,
+        source_label: "shok.se",
+        sport: "Hoopers" as Sport,
+      })),
+    ];
+    setMarkedRows(merged);
   }, [user]);
 
   useEffect(() => {

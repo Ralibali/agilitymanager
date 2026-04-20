@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Plus, Trophy, Calendar, Compass, MapPin, ExternalLink, CheckCircle2, AlertCircle, Trash2, type LucideIcon } from "lucide-react";
+import { Plus, Trophy, Calendar, Compass, MapPin, ExternalLink, CheckCircle2, AlertCircle, Trash2, Download, FileText, type LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Competitions, computeStats } from "@/hooks/v3/useV3Competitions";
@@ -10,6 +10,8 @@ import { V3FindCompetitions } from "@/components/v3/V3FindCompetitions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { downloadCsv } from "@/lib/csv";
+import { downloadPdf } from "@/lib/pdf";
 import type { CompetitionResult, PlannedCompetition } from "@/types";
 
 type Tab = "upcoming" | "results" | "find";

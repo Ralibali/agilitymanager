@@ -1084,7 +1084,7 @@ function DetailItem({
   label,
   value,
 }: {
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  icon: React.ElementType;
   label: string;
   value: string;
 }) {

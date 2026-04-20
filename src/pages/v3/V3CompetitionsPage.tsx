@@ -458,9 +458,17 @@ function ResultsList({
             className="rounded-v3-lg bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-canvas-sunken transition-colors group"
           >
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-v3-base text-v3-text-primary truncate">{r.event_name}</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-v3-base font-medium text-v3-text-primary truncate">
+                    {(() => {
+                      const n = (r.event_name || "").trim();
+                      if (!n || n.toLowerCase() === "tävling") {
+                        return `${r.sport}-tävling${r.date ? ` · ${formatDate(r.date)}` : ""}`;
+                      }
+                      return n;
+                    })()}
+                  </span>
                   {r.disqualified ? (
                     <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400">
                       <AlertCircle size={10} /> Diskad
@@ -475,15 +483,17 @@ function ResultsList({
                     </span>
                   )}
                 </div>
-                {r.organizer && <div className="text-v3-sm text-v3-text-secondary truncate mt-0.5">{r.organizer}</div>}
-                <div className="flex flex-wrap items-center gap-3 mt-2 text-v3-xs text-v3-text-tertiary tabular-nums">
+                {r.organizer && (
+                  <div className="text-v3-sm text-v3-text-secondary truncate mt-0.5">{r.organizer}</div>
+                )}
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-2 text-v3-xs text-v3-text-tertiary tabular-nums">
                   <span>{formatDate(r.date)}</span>
-                  <span>·</span>
+                  <span aria-hidden>·</span>
                   <span>{isHoopers ? r.sport : `${r.discipline} · ${r.competition_level}`}</span>
-                  {r.placement && <span>· #{r.placement}</span>}
-                  {r.faults > 0 && <span>· {r.faults} fel</span>}
-                  {r.time_sec > 0 && <span>· {r.time_sec.toFixed(2)} s</span>}
-                  {r.hoopers_points ? <span>· {r.hoopers_points} p</span> : null}
+                  {r.placement && (<><span aria-hidden>·</span><span>#{r.placement}</span></>)}
+                  {r.faults > 0 && (<><span aria-hidden>·</span><span>{r.faults} fel</span></>)}
+                  {r.time_sec > 0 && (<><span aria-hidden>·</span><span>{r.time_sec.toFixed(2)} s</span></>)}
+                  {r.hoopers_points ? (<><span aria-hidden>·</span><span>{r.hoopers_points} p</span></>) : null}
                 </div>
               </div>
               <button

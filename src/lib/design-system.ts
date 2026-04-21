@@ -1,10 +1,29 @@
 /**
  * AgilityManager – The Addiction Update
- * Fas 1: Designsystem-tokens (single source of truth).
+ * Designsystem-tokens (single source of truth).
  *
- * Filosofi: Varm, lugn, självsäker. Inter + Instrument Serif.
+ * Filosofi: Varm, lugn, självsäker. Epilogue för UI, Urbanist för display.
  * Aldrig weight 700+. Aldrig hårdkodade färger i komponenter.
  * Tokens speglas i Tailwind (tailwind.config.ts) och CSS-variabler (index.css).
+ *
+ * Domänidentiteter
+ * ─────────────────
+ * Varje huvudsektion äger en accentfärg som sätter tonen för hela vyn:
+ *
+ *   Träning    → v3-accent-traning    (cyan  #0891B2)
+ *   Tävling    → v3-accent-tavlings   (lila  #7C3AED)
+ *   Milstolpar → v3-accent-prestation (amber #D97706)
+ *   Hälsa      → v3-accent-halsa      (röd   #DC2626)
+ *
+ * Mönster för domänfärgad yta:
+ *   bg          bg-v3-accent-{domän}/10   (Tailwind opacity-modifier)
+ *   border      border-v3-accent-{domän}/20
+ *   ikon/text   text-v3-accent-{domän}
+ *   text på bg  text-v3-accent-{domän}-text  ← mörkare, läsbar variant
+ *
+ * accentText-varianterna är mörkare nyanser av respektive accentfärg,
+ * avsedda för text mot den tintade bakgrunden (ersätter hårdkodade
+ * `text-amber-700`, `text-emerald-700` etc. i komponenter).
  */
 
 export const tokens = {
@@ -43,18 +62,28 @@ export const tokens = {
       error: "#DC2626",
       info: "#0891B2",
     },
-    // Accent per domän
+    // Accent per domän – mellanstarka värden, bra som ikonfärg och border
     accent: {
-      tavlings: "#7C3AED", // tävlingar
-      traning: "#0891B2", // träning
-      prestation: "#D97706", // milestones
-      halsa: "#DC2626", // hälsa/skador
+      tavlings: "#7C3AED", // tävlingar – lila
+      traning: "#0891B2",  // träning   – cyan
+      prestation: "#D97706", // milestones – amber
+      halsa: "#DC2626",    // hälsa/skador – röd
+    },
+    // Mörkare textvarianter för läsbarhet mot tintad bakgrund (accent/10)
+    // Används som text-v3-accent-{domän}-text i Tailwind
+    accentText: {
+      tavlings: "#3B1A8A",   // lila  262° 83% 30%
+      traning:  "#0B5E73",   // cyan  188° 91% 25%
+      prestation: "#7A3A04", // amber  28° 92% 28%
+      halsa:    "#8B1414",   // röd     0° 73% 30%
     },
   },
   typography: {
     fontFamily: {
-      sans: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-      display: "'Instrument Serif', Georgia, serif",
+      // Epilogue: UI-text, labels, brödtext (font-v3-sans i Tailwind)
+      sans: "'Epilogue', -apple-system, BlinkMacSystemFont, sans-serif",
+      // Urbanist: rubriker, stora siffror (font-v3-display i Tailwind)
+      display: "'Urbanist', -apple-system, BlinkMacSystemFont, sans-serif",
       mono: "'JetBrains Mono', ui-monospace, monospace",
     },
     scale: {

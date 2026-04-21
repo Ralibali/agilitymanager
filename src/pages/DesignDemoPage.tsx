@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ArrowRight, Check, Plus, Search, Trophy, Flame, Heart, Calendar } from "lucide-react";
+import { ArrowRight, Check, Plus, Search, Trophy, Flame, Heart, Calendar, Dumbbell, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -59,11 +59,10 @@ function useGreeting(): { greeting: string; name: string } {
 
 /**
  * AgilityManager – The Addiction Update
- * Fas 1: Designsystem-referens.
+ * Designsystem-referens.
  *
- * Denna sida är ENDA källan för v3-primitives (Inter + Instrument Serif,
- * varm sand-palette, brand-grön #3F8F55). Inget på inloggade sidor påverkas
- * – v3 byggs parallellt och rullas ut i kommande faser.
+ * Denna sida är källan för v3-primitives (Epilogue + Urbanist,
+ * varm sand-palette, brand-grön #3F8F55, domänaccenter).
  *
  * Route: /design-demo
  */
@@ -104,9 +103,16 @@ export default function DesignDemoPage() {
           <EmptyStateShowcase />
         </Section>
 
+        <Section
+          title="Domänidentiteter"
+          subtitle="Fyra domäner, en produktkaraktär. Varje sektion äger sin accentfärg."
+        >
+          <DomainIdentityShowcase />
+        </Section>
+
         <footer className="pt-16 border-t border-v3-canvas-sunken">
           <p className="text-v3-sm text-v3-text-tertiary">
-            Fas 1 av The Addiction Update · Tokens i{" "}
+            The Addiction Update · Tokens i{" "}
             <code className="font-v3-mono text-v3-xs">src/lib/design-system.ts</code>
           </p>
         </footer>
@@ -223,7 +229,7 @@ function TypographyShowcase() {
     <div className="space-y-8 bg-v3-canvas-elevated rounded-v3-xl p-8 md:p-10 shadow-v3-xs">
       <div>
         <p className="text-v3-xs font-medium uppercase tracking-wide text-v3-text-tertiary mb-2">
-          Display · Instrument Serif
+          Display · Urbanist
         </p>
         <p className="font-v3-display text-v3-6xl">{greeting}, {name}.</p>
         <p className="font-v3-display text-v3-4xl text-v3-text-secondary">
@@ -233,7 +239,7 @@ function TypographyShowcase() {
 
       <div className="border-t border-v3-canvas-sunken pt-6">
         <p className="text-v3-xs font-medium uppercase tracking-wide text-v3-text-tertiary mb-2">
-          UI · Inter
+          UI · Epilogue
         </p>
         <p className="text-v3-2xl text-v3-text-primary mb-1">
           Stora rubriker använder weight 500.
@@ -522,6 +528,238 @@ function EmptyStateShowcase() {
         <p className="text-v3-sm text-v3-text-secondary max-w-[280px] mx-auto">
           Du har inga utestående uppgifter. Bra jobbat.
         </p>
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+
+type DomainKey = "traning" | "tavlings" | "prestation" | "halsa";
+
+interface DomainConfig {
+  key: DomainKey;
+  label: string;
+  heading: string;
+  icon: LucideIcon;
+  stat: string;
+  statLabel: string;
+  statSub: string;
+  badge: string;
+  cta: string;
+  /** Tailwind-klasser för bakgrund och border på kortet */
+  cardBg: string;
+  cardBorder: string;
+  /** Tailwind-klasser för accent-ikon och eyebrow */
+  accentText: string;
+  /** Tailwind-klass för mörkare text mot tintad yta */
+  darkText: string;
+  /** Tailwind-klass för badge-bakgrund */
+  badgeBg: string;
+}
+
+const DOMAINS: DomainConfig[] = [
+  {
+    key: "traning",
+    label: "Träning",
+    heading: "Loggade pass.",
+    icon: Dumbbell,
+    stat: "18",
+    statLabel: "pass",
+    statSub: "den här månaden",
+    badge: "Agility · Hoopers",
+    cta: "Logga pass",
+    cardBg: "bg-v3-accent-traning/10",
+    cardBorder: "border-v3-accent-traning/20",
+    accentText: "text-v3-accent-traning",
+    darkText: "text-v3-accent-traning-text",
+    badgeBg: "bg-v3-accent-traning/15",
+  },
+  {
+    key: "tavlings",
+    label: "Tävling",
+    heading: "Dina resultat.",
+    icon: Trophy,
+    stat: "3/5",
+    statLabel: "godkända",
+    statSub: "senaste tävlingen",
+    badge: "Klass 2 · SHoK",
+    cta: "Se resultat",
+    cardBg: "bg-v3-accent-tavlings/10",
+    cardBorder: "border-v3-accent-tavlings/20",
+    accentText: "text-v3-accent-tavlings",
+    darkText: "text-v3-accent-tavlings-text",
+    badgeBg: "bg-v3-accent-tavlings/15",
+  },
+  {
+    key: "prestation",
+    label: "Milstolpar",
+    heading: "Din streak.",
+    icon: Flame,
+    stat: "7",
+    statLabel: "dagar",
+    statSub: "personbästa just nu",
+    badge: "3 d till nästa",
+    cta: "Se mål",
+    cardBg: "bg-v3-accent-prestation/10",
+    cardBorder: "border-v3-accent-prestation/20",
+    accentText: "text-v3-accent-prestation",
+    darkText: "text-v3-accent-prestation-text",
+    badgeBg: "bg-v3-accent-prestation/15",
+  },
+  {
+    key: "halsa",
+    label: "Hälsa",
+    heading: "Nästa veterinär.",
+    icon: Heart,
+    stat: "14d",
+    statLabel: "kvar",
+    statSub: "vaccin · 15 maj",
+    badge: "Påminnelse aktiv",
+    cta: "Hälsologg",
+    cardBg: "bg-v3-accent-halsa/10",
+    cardBorder: "border-v3-accent-halsa/20",
+    accentText: "text-v3-accent-halsa",
+    darkText: "text-v3-accent-halsa-text",
+    badgeBg: "bg-v3-accent-halsa/15",
+  },
+];
+
+function DomainCard({ d }: { d: DomainConfig }) {
+  const Icon = d.icon;
+  return (
+    <div
+      className={`rounded-v3-2xl border p-6 flex flex-col gap-5 ${d.cardBg} ${d.cardBorder}`}
+    >
+      {/* Eyebrow + ikon */}
+      <div className="flex items-center justify-between">
+        <span
+          className={`text-[10px] font-medium uppercase tracking-[0.08em] ${d.darkText}`}
+        >
+          {d.label}
+        </span>
+        <span
+          className={`w-9 h-9 rounded-v3-base flex items-center justify-center ${d.badgeBg}`}
+        >
+          <Icon size={16} strokeWidth={1.75} className={d.accentText} />
+        </span>
+      </div>
+
+      {/* Rubrik */}
+      <h3 className="font-v3-display text-v3-2xl text-v3-text-primary leading-tight">
+        {d.heading}
+      </h3>
+
+      {/* Stor siffra */}
+      <div>
+        <div className={`font-v3-display text-[40px] leading-none tabular-nums ${d.accentText}`}>
+          {d.stat}
+        </div>
+        <div className="text-v3-sm text-v3-text-secondary mt-1">
+          <span className="font-medium">{d.statLabel}</span>
+          {" · "}
+          <span className="text-v3-text-tertiary">{d.statSub}</span>
+        </div>
+      </div>
+
+      {/* Badge */}
+      <div>
+        <span
+          className={`inline-flex items-center h-6 px-2.5 rounded-full text-v3-xs font-medium ${d.badgeBg} ${d.darkText}`}
+        >
+          {d.badge}
+        </span>
+      </div>
+
+      {/* CTA */}
+      <button
+        type="button"
+        className={`mt-auto self-start inline-flex items-center gap-2 h-9 px-4 rounded-v3-base text-v3-xs font-medium transition-colors ${d.badgeBg} ${d.darkText} hover:opacity-80`}
+      >
+        {d.cta}
+        <ArrowRight size={13} strokeWidth={2} />
+      </button>
+    </div>
+  );
+}
+
+function DomainIdentityShowcase() {
+  return (
+    <div className="space-y-10">
+      {/* Fyra kort sida vid sida */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {DOMAINS.map((d) => (
+          <DomainCard key={d.key} d={d} />
+        ))}
+      </div>
+
+      {/* Tokenreferens */}
+      <div className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 overflow-hidden">
+        <div className="px-6 py-4 border-b border-v3-canvas-sunken/40">
+          <h3 className="font-v3-display text-v3-xl text-v3-text-primary">Mönsterguide</h3>
+          <p className="text-v3-sm text-v3-text-secondary mt-1">
+            Klass-kombinationerna som skapar varje element ovan. Copy-paste-klara.
+          </p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-v3-sm">
+            <thead>
+              <tr className="border-b border-v3-canvas-sunken/40">
+                <th className="text-left px-6 py-3 text-v3-xs font-medium uppercase tracking-wide text-v3-text-tertiary">
+                  Element
+                </th>
+                <th className="text-left px-6 py-3 text-v3-xs font-medium uppercase tracking-wide text-v3-text-tertiary">
+                  Tailwind-klasser (exempel: träning)
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-v3-canvas-sunken/30">
+              {[
+                {
+                  el: "Kortbakgrund",
+                  cls: "bg-v3-accent-traning/10 border border-v3-accent-traning/20",
+                },
+                {
+                  el: "Ikon-badge",
+                  cls: "bg-v3-accent-traning/15  text-v3-accent-traning",
+                },
+                {
+                  el: "Eyebrow / mörktext",
+                  cls: "text-v3-accent-traning-text",
+                },
+                {
+                  el: "Stor accentfärg",
+                  cls: "text-v3-accent-traning  (ikon, siffra)",
+                },
+                {
+                  el: "Badge pill",
+                  cls: "bg-v3-accent-traning/15  text-v3-accent-traning-text",
+                },
+                {
+                  el: "CTA-knapp",
+                  cls: "bg-v3-accent-traning/15  text-v3-accent-traning-text  hover:opacity-80",
+                },
+              ].map(({ el, cls }) => (
+                <tr key={el}>
+                  <td className="px-6 py-3 text-v3-text-secondary font-medium whitespace-nowrap">
+                    {el}
+                  </td>
+                  <td className="px-6 py-3 font-v3-mono text-v3-xs text-v3-text-tertiary">
+                    {cls}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="px-6 py-4 border-t border-v3-canvas-sunken/40 bg-v3-canvas-secondary">
+          <p className="text-v3-xs text-v3-text-tertiary">
+            Byt ut <code className="font-v3-mono">traning</code> mot{" "}
+            <code className="font-v3-mono">tavlings</code>,{" "}
+            <code className="font-v3-mono">prestation</code> eller{" "}
+            <code className="font-v3-mono">halsa</code> för respektive domän.
+          </p>
+        </div>
       </div>
     </div>
   );

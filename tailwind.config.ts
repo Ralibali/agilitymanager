@@ -156,6 +156,11 @@ export default {
             traning: "hsl(var(--v3-accent-traning))",
             prestation: "hsl(var(--v3-accent-prestation))",
             halsa: "hsl(var(--v3-accent-halsa))",
+            // Mörkare textvarianter för läsbarhet mot accent/10-bakgrund
+            "tavlings-text":    "hsl(var(--v3-accent-tavlings-text))",
+            "traning-text":     "hsl(var(--v3-accent-traning-text))",
+            "prestation-text":  "hsl(var(--v3-accent-prestation-text))",
+            "halsa-text":       "hsl(var(--v3-accent-halsa-text))",
           },
           success: "hsl(var(--v3-success))",
           warning: "hsl(var(--v3-warning))",

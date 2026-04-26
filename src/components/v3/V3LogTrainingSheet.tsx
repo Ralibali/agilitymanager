@@ -67,6 +67,36 @@ function localIsoDate(date: Date = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
+function getSmartSuccessCopy(data: { dogName?: string; type: string; minutes: number; mood: number; tags: string[]; obstacles: string[] }) {
+  const dogName = data.dogName ?? "hunden";
+  if (data.mood >= 5) {
+    return {
+      description: `${data.minutes} min ${data.type.toLowerCase()} · stark känsla`,
+      actionLabel: "Se statistik",
+      actionUrl: "/v3/stats",
+    };
+  }
+  if (data.mood <= 2) {
+    return {
+      description: `${data.minutes} min sparat. Sätt gärna ett lugnt mål för nästa pass.`,
+      actionLabel: "Skapa mål",
+      actionUrl: "/v3/goals?action=new",
+    };
+  }
+  if (data.obstacles.length > 0 || data.tags.length > 0) {
+    return {
+      description: `${dogName}: ${data.minutes} min · ${data.tags[0] ?? data.obstacles[0]} sparat`,
+      actionLabel: "Se pass",
+      actionUrl: "/v3/training",
+    };
+  }
+  return {
+    description: `${data.minutes} min ${data.type.toLowerCase()} sparat`,
+    actionLabel: "Se träning",
+    actionUrl: "/v3/training",
+  };
+}
+
 /**
  * Bottom-sheet för v3 Logga pass.
  * – Allt på en vy (snabbt, Linear-känsla)
@@ -173,8 +203,22 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
       toast.error("Kunde inte spara passet", { description: error.message });
       return;
     }
+    const smartCopy = getSmartSuccessCopy({
+      dogName: selectedDog?.name,
+      type: parsed.data.type,
+      minutes: parsed.data.duration_min,
+      mood: parsed.data.overall_mood,
+      tags: parsed.data.tags,
+      obstacles: parsed.data.obstacles,
+    });
     toast.success("Pass loggat", {
-      description: `${parsed.data.duration_min} min ${parsed.data.type.toLowerCase()}`,
+      description: smartCopy.description,
+      action: {
+        label: smartCopy.actionLabel,
+        onClick: () => {
+          window.location.href = smartCopy.actionUrl;
+        },
+      },
     });
     window.dispatchEvent(new CustomEvent("v3:training-logged", { detail: { dogId: parsed.data.dog_id, date: today } }));
     onLogged?.();

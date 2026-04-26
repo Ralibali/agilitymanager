@@ -1,0 +1,49 @@
+name: CI
+
+# Kör vid varje push och PR mot main. Kör install, lint, typecheck, test
+# och build så att vi fångar regressioner innan de når produktion.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true # Lint-regler skärps stegvis (steg 15) — bryt inte CI än.
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+        continue-on-error: true # Typecheck skärps stegvis. Vi vill se rapporten utan att stoppa CI initialt.
+
+      - name: Test
+        env:
+          # Tester använder mockad Supabase-klient men Vite kräver att envs definieras.
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: test-anon-key
+          VITE_SUPABASE_PROJECT_ID: test-project
+        run: npm test
+
+      - name: Build (no static prerender)
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+        run: npm run build:no-snap

@@ -1,4 +1,1 @@
 project_id = "rcubbmnosawdtaupixnm"
-
-[functions.admin-seed-breeds]
-verify_jwt = false

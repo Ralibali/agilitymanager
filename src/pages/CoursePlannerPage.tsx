@@ -568,7 +568,12 @@ export default function CoursePlannerPage() {
   const [loadedCourseId, setLoadedCourseId] = useState<string | null>(null);
   const isLandscape = useIsLandscape();
   const isDesktop = !isMobile;
-  const showLandscapeLayout = (isMobile && isLandscape) || isDesktop;
+  // Den moderna editor-layouten (toppbar/canvas/paneler/statusrad) används nu på
+  // både desktop och mobil. På mobil-portrait blir vänster/höger paneler bottom
+  // sheets i stället för fasta sidopaneler. Den gamla mobil-portrait-renderingen
+  // (Drawer-baserad) ligger kvar längre ner i filen men nås inte längre under
+  // normalt flöde — den fungerar som säkerhetsnät om vi behöver rulla tillbaka.
+  const showLandscapeLayout = true;
 
   // In landscape layout (desktop always, mobile when rotated), swap so the longer side is horizontal
   const rawW = canvasSize.width;

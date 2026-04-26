@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Switch } from "@/components/ui/switch";
 import SupportForm from "@/components/SupportForm";
 import { useIsAdmin } from "@/components/layout/useIsAdmin";
+import { V3ProValueCard } from "@/components/v3/V3ProValueCard";
 import { cn } from "@/lib/utils";
 
 const PREMIUM_FEATURES = [
@@ -119,33 +120,30 @@ export default function V3SettingsPage() {
     <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-8 animate-v3-fade-in">
       <Helmet><title>Inställningar – v3 – AgilityManager</title></Helmet>
 
-      {/* Header */}
       <header className="flex items-end justify-between gap-4 flex-wrap">
         <div className="space-y-2">
-          <p className="text-v3-xs uppercase tracking-[0.18em] text-v3-text-tertiary font-v3-sans">
-            System
-          </p>
-          <h1 className="font-v3-display text-v3-4xl lg:text-v3-5xl text-v3-text-primary">
-            Inställningar
-          </h1>
-          <p className="text-v3-base text-v3-text-secondary max-w-xl">
-            Hantera profil, prenumeration och integritet.
-          </p>
+          <p className="text-v3-xs uppercase tracking-[0.18em] text-v3-text-tertiary font-v3-sans">System</p>
+          <h1 className="font-v3-display text-v3-4xl lg:text-v3-5xl text-v3-text-primary">Inställningar</h1>
+          <p className="text-v3-base text-v3-text-secondary max-w-xl">Hantera profil, prenumeration och integritet.</p>
         </div>
         {isAdmin && (
-          <button
-            onClick={() => navigate("/v3/admin")}
-            className="inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-canvas-secondary border border-v3-canvas-sunken text-v3-sm text-v3-text-primary v3-tappable v3-focus-ring"
-          >
+          <button onClick={() => navigate("/v3/admin")} className="inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-canvas-secondary border border-v3-canvas-sunken text-v3-sm text-v3-text-primary v3-tappable v3-focus-ring">
             <Shield className="h-4 w-4" /> Admin
           </button>
         )}
       </header>
 
+      {!isPro && (
+        <V3ProValueCard
+          title="Gör AgilityManager till ditt träningssystem"
+          description="När du börjar använda logg, statistik och banplanering tillsammans blir Pro-värdet tydligt: export, djupare analys och bättre överblick inför träning och tävling."
+          ctaLabel={checkoutLoading === currentPlan.priceId ? "Startar…" : "Uppgradera"}
+          onClick={() => handleCheckout(currentPlan.priceId)}
+        />
+      )}
+
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        {/* MAIN COLUMN */}
         <div className="space-y-6 v3-stagger">
-          {/* Profile */}
           <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-6 animate-v3-fade-up">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-10 h-10 rounded-v3-base bg-v3-canvas-secondary flex items-center justify-center">
@@ -162,45 +160,26 @@ export default function V3SettingsPage() {
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-v3-sm text-v3-text-secondary mb-1.5 block">Visningsnamn</label>
-                    <input
-                      value={profile.display_name}
-                      onChange={(e) => setProfile({ ...profile, display_name: e.target.value })}
-                      className="w-full h-10 rounded-v3-base border border-v3-canvas-sunken bg-v3-canvas px-3 text-v3-sm text-v3-text-primary v3-focus-ring"
-                    />
+                    <input value={profile.display_name} onChange={(e) => setProfile({ ...profile, display_name: e.target.value })} className="w-full h-10 rounded-v3-base border border-v3-canvas-sunken bg-v3-canvas px-3 text-v3-sm text-v3-text-primary v3-focus-ring" />
                   </div>
                   <div>
                     <label className="text-v3-sm text-v3-text-secondary mb-1.5 block">Förnamn</label>
-                    <input
-                      value={profile.handler_first_name}
-                      onChange={(e) => setProfile({ ...profile, handler_first_name: e.target.value })}
-                      className="w-full h-10 rounded-v3-base border border-v3-canvas-sunken bg-v3-canvas px-3 text-v3-sm text-v3-text-primary v3-focus-ring"
-                    />
+                    <input value={profile.handler_first_name} onChange={(e) => setProfile({ ...profile, handler_first_name: e.target.value })} className="w-full h-10 rounded-v3-base border border-v3-canvas-sunken bg-v3-canvas px-3 text-v3-sm text-v3-text-primary v3-focus-ring" />
                   </div>
                   <div className="sm:col-span-2">
                     <label className="text-v3-sm text-v3-text-secondary mb-1.5 block">Efternamn</label>
-                    <input
-                      value={profile.handler_last_name}
-                      onChange={(e) => setProfile({ ...profile, handler_last_name: e.target.value })}
-                      className="w-full h-10 rounded-v3-base border border-v3-canvas-sunken bg-v3-canvas px-3 text-v3-sm text-v3-text-primary v3-focus-ring"
-                    />
+                    <input value={profile.handler_last_name} onChange={(e) => setProfile({ ...profile, handler_last_name: e.target.value })} className="w-full h-10 rounded-v3-base border border-v3-canvas-sunken bg-v3-canvas px-3 text-v3-sm text-v3-text-primary v3-focus-ring" />
                   </div>
                 </div>
-                <button
-                  onClick={saveProfile}
-                  disabled={savingProfile}
-                  className="inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium v3-tappable v3-focus-ring disabled:opacity-50"
-                >
+                <button onClick={saveProfile} disabled={savingProfile} className="inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium v3-tappable v3-focus-ring disabled:opacity-50">
                   {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : "Spara profil"}
                 </button>
               </div>
             ) : (
-              <div className="flex justify-center py-6">
-                <Loader2 className="h-5 w-5 animate-spin text-v3-text-tertiary" />
-              </div>
+              <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-v3-text-tertiary" /></div>
             )}
           </section>
 
-          {/* Subscription */}
           <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-6 animate-v3-fade-up">
             <div className="flex items-start justify-between gap-3 mb-5">
               <div className="flex items-center gap-3">
@@ -209,49 +188,25 @@ export default function V3SettingsPage() {
                 </div>
                 <div>
                   <h2 className="font-v3-display text-v3-xl text-v3-text-primary">Prenumeration</h2>
-                  <p className="text-v3-sm text-v3-text-tertiary">
-                    {isPro ? "Du har Premium aktiverat" : "Lås upp alla funktioner"}
-                  </p>
+                  <p className="text-v3-sm text-v3-text-tertiary">{isPro ? "Du har Premium aktiverat" : "Lås upp alla funktioner"}</p>
                 </div>
               </div>
-              {isPro && (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-v3-2xs font-medium bg-v3-success/10 text-v3-success">
-                  Aktiv
-                </span>
-              )}
+              {isPro && <span className="inline-flex items-center px-2.5 py-1 rounded-full text-v3-2xs font-medium bg-v3-success/10 text-v3-success">Aktiv</span>}
             </div>
 
             {isPro ? (
               <div className="space-y-4">
-                {subscription.subscriptionEnd && (
-                  <p className="text-v3-base text-v3-text-secondary">
-                    Förnyas {new Date(subscription.subscriptionEnd).toLocaleDateString("sv-SE")}
-                  </p>
-                )}
-                <button
-                  onClick={handlePortal}
-                  disabled={portalLoading}
-                  className="inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-canvas-secondary border border-v3-canvas-sunken text-v3-sm text-v3-text-primary v3-tappable v3-focus-ring"
-                >
+                {subscription.subscriptionEnd && <p className="text-v3-base text-v3-text-secondary">Förnyas {new Date(subscription.subscriptionEnd).toLocaleDateString("sv-SE")}</p>}
+                <button onClick={handlePortal} disabled={portalLoading} className="inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-canvas-secondary border border-v3-canvas-sunken text-v3-sm text-v3-text-primary v3-tappable v3-focus-ring">
                   {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
                   Hantera prenumeration
                 </button>
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Segmented */}
                 <div className="inline-flex rounded-v3-base bg-v3-canvas-secondary p-1">
                   {(["monthly", "yearly"] as const).map((v) => (
-                    <button
-                      key={v}
-                      onClick={() => setBillingTab(v)}
-                      className={cn(
-                        "px-4 h-9 rounded-[calc(theme(borderRadius.v3-base)-2px)] text-v3-sm font-medium transition-all",
-                        billingTab === v
-                          ? "bg-v3-canvas-elevated text-v3-text-primary shadow-v3-xs"
-                          : "text-v3-text-tertiary hover:text-v3-text-secondary",
-                      )}
-                    >
+                    <button key={v} onClick={() => setBillingTab(v)} className={cn("px-4 h-9 rounded-[calc(theme(borderRadius.v3-base)-2px)] text-v3-sm font-medium transition-all", billingTab === v ? "bg-v3-canvas-elevated text-v3-text-primary shadow-v3-xs" : "text-v3-text-tertiary hover:text-v3-text-secondary")}>
                       {v === "monthly" ? "Månadsvis" : `Årsvis · ${PLANS.yearly.savingsLabel}`}
                     </button>
                   ))}
@@ -261,136 +216,63 @@ export default function V3SettingsPage() {
                   <div className="flex items-baseline justify-between mb-3">
                     <div>
                       <p className="text-v3-sm text-v3-text-tertiary">{currentPlan.label}</p>
-                      <p className="font-v3-display text-v3-3xl text-v3-text-primary mt-1">
-                        {currentPlan.price}
-                      </p>
-                      {billingTab === "yearly" && (
-                        <p className="text-v3-sm text-v3-text-tertiary mt-0.5">
-                          Motsvarar {PLANS.yearly.monthlyEquivalent}
-                        </p>
-                      )}
+                      <p className="font-v3-display text-v3-3xl text-v3-text-primary mt-1">{currentPlan.price}</p>
+                      {billingTab === "yearly" && <p className="text-v3-sm text-v3-text-tertiary mt-0.5">Motsvarar {PLANS.yearly.monthlyEquivalent}</p>}
                     </div>
                     <Sparkles className="h-5 w-5 text-v3-brand-500" />
                   </div>
                   <ul className="space-y-2 mb-5">
                     {PREMIUM_FEATURES.map((f) => (
-                      <li key={f} className="flex items-start gap-2 text-v3-sm text-v3-text-secondary">
-                        <Check className="h-4 w-4 text-v3-brand-500 shrink-0 mt-0.5" />
-                        {f}
-                      </li>
+                      <li key={f} className="flex items-start gap-2 text-v3-sm text-v3-text-secondary"><Check className="h-4 w-4 text-v3-brand-500 shrink-0 mt-0.5" />{f}</li>
                     ))}
                   </ul>
-                  <button
-                    onClick={() => handleCheckout(currentPlan.priceId)}
-                    disabled={checkoutLoading === currentPlan.priceId}
-                    className="w-full h-11 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-semibold v3-tappable v3-focus-ring inline-flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {checkoutLoading === currentPlan.priceId ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : "Uppgradera till Pro"}
+                  <button onClick={() => handleCheckout(currentPlan.priceId)} disabled={checkoutLoading === currentPlan.priceId} className="w-full h-11 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-semibold v3-tappable v3-focus-ring inline-flex items-center justify-center gap-2 disabled:opacity-50">
+                    {checkoutLoading === currentPlan.priceId ? <Loader2 className="h-4 w-4 animate-spin" /> : "Uppgradera till Pro"}
                   </button>
-                  <p className="text-v3-2xs text-v3-text-tertiary text-center mt-2">
-                    Avsluta när som helst i kundportalen
-                  </p>
+                  <p className="text-v3-2xs text-v3-text-tertiary text-center mt-2">Avsluta när som helst i kundportalen</p>
                 </div>
               </div>
             )}
           </section>
 
-          {/* Support */}
           <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-6 animate-v3-fade-up">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-v3-base bg-v3-canvas-secondary flex items-center justify-center">
-                <MessageCircle className="h-4 w-4 text-v3-text-secondary" />
-              </div>
-              <div>
-                <h2 className="font-v3-display text-v3-xl text-v3-text-primary">Kontakta support</h2>
-                <p className="text-v3-sm text-v3-text-tertiary">Vi svarar inom ett dygn</p>
-              </div>
+              <div className="w-10 h-10 rounded-v3-base bg-v3-canvas-secondary flex items-center justify-center"><MessageCircle className="h-4 w-4 text-v3-text-secondary" /></div>
+              <div><h2 className="font-v3-display text-v3-xl text-v3-text-primary">Kontakta support</h2><p className="text-v3-sm text-v3-text-tertiary">Vi svarar inom ett dygn</p></div>
             </div>
             <SupportForm />
           </section>
         </div>
 
-        {/* SIDE COLUMN */}
         <aside className="space-y-6 v3-stagger">
-          {/* Privacy */}
           <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-6 animate-v3-fade-up">
             <h3 className="font-v3-display text-v3-xl text-v3-text-primary mb-4">Integritet</h3>
             <div className="space-y-4">
               <label className="flex items-start justify-between gap-3 cursor-pointer">
-                <div className="flex-1">
-                  <div className="flex items-center gap-1.5 text-v3-sm text-v3-text-primary">
-                    <Eye className="h-3.5 w-3.5" /> Visa resultat för vänner
-                  </div>
-                  <p className="text-v3-xs text-v3-text-tertiary mt-0.5">
-                    Vänner kan se dina tävlingsresultat
-                  </p>
-                </div>
-                <Switch
-                  checked={profile?.show_results_to_friends ?? true}
-                  onCheckedChange={(v) => profile && setProfile({ ...profile, show_results_to_friends: v })}
-                />
+                <div className="flex-1"><div className="flex items-center gap-1.5 text-v3-sm text-v3-text-primary"><Eye className="h-3.5 w-3.5" /> Visa resultat för vänner</div><p className="text-v3-xs text-v3-text-tertiary mt-0.5">Vänner kan se dina tävlingsresultat</p></div>
+                <Switch checked={profile?.show_results_to_friends ?? true} onCheckedChange={(v) => profile && setProfile({ ...profile, show_results_to_friends: v })} />
               </label>
-
               <label className="flex items-start justify-between gap-3 cursor-pointer">
-                <div className="flex-1">
-                  <div className="flex items-center gap-1.5 text-v3-sm text-v3-text-primary">
-                    <EyeOff className="h-3.5 w-3.5" /> Visa tävlingar för vänner
-                  </div>
-                  <p className="text-v3-xs text-v3-text-tertiary mt-0.5">
-                    Vänner kan se dina planerade tävlingar
-                  </p>
-                </div>
-                <Switch
-                  checked={profile?.show_competitions_to_friends ?? true}
-                  onCheckedChange={(v) => profile && setProfile({ ...profile, show_competitions_to_friends: v })}
-                />
+                <div className="flex-1"><div className="flex items-center gap-1.5 text-v3-sm text-v3-text-primary"><EyeOff className="h-3.5 w-3.5" /> Visa tävlingar för vänner</div><p className="text-v3-xs text-v3-text-tertiary mt-0.5">Vänner kan se dina planerade tävlingar</p></div>
+                <Switch checked={profile?.show_competitions_to_friends ?? true} onCheckedChange={(v) => profile && setProfile({ ...profile, show_competitions_to_friends: v })} />
               </label>
-
-              {profile && (
-                <button
-                  onClick={saveProfile}
-                  disabled={savingProfile}
-                  className="text-v3-sm text-v3-text-secondary hover:text-v3-text-primary underline underline-offset-4"
-                >
-                  Spara integritet
-                </button>
-              )}
+              {profile && <button onClick={saveProfile} disabled={savingProfile} className="text-v3-sm text-v3-text-secondary hover:text-v3-text-primary underline underline-offset-4">Spara integritet</button>}
             </div>
           </section>
 
-          {/* Theme */}
           <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-6 animate-v3-fade-up">
             <h3 className="font-v3-display text-v3-xl text-v3-text-primary mb-4">Utseende</h3>
             <div className="inline-flex rounded-v3-base bg-v3-canvas-secondary p-1 w-full">
               {(["light", "dark"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setTheme(mode)}
-                  className={cn(
-                    "flex-1 h-9 rounded-[calc(theme(borderRadius.v3-base)-2px)] text-v3-sm font-medium transition-all",
-                    (theme === mode || (mode === "light" && theme !== "dark"))
-                      ? "bg-v3-canvas-elevated text-v3-text-primary shadow-v3-xs"
-                      : "text-v3-text-tertiary",
-                  )}
-                >
-                  {mode === "light" ? "Ljust" : "Mörkt"}
-                </button>
+                <button key={mode} onClick={() => setTheme(mode)} className={cn("flex-1 h-9 rounded-[calc(theme(borderRadius.v3-base)-2px)] text-v3-sm font-medium transition-all", (theme === mode || (mode === "light" && theme !== "dark")) ? "bg-v3-canvas-elevated text-v3-text-primary shadow-v3-xs" : "text-v3-text-tertiary")}>{mode === "light" ? "Ljust" : "Mörkt"}</button>
               ))}
             </div>
           </section>
 
-          {/* Sign out */}
           <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-6 animate-v3-fade-up">
             <h3 className="font-v3-display text-v3-xl text-v3-text-primary mb-2">Konto</h3>
-            <p className="text-v3-sm text-v3-text-tertiary mb-4">
-              Logga ut från denna enhet
-            </p>
-            <button
-              onClick={signOut}
-              className="w-full h-10 rounded-v3-base bg-v3-canvas-secondary border border-v3-canvas-sunken text-v3-sm text-v3-text-primary inline-flex items-center justify-center gap-2 v3-tappable v3-focus-ring"
-            >
+            <p className="text-v3-sm text-v3-text-tertiary mb-4">Logga ut från denna enhet</p>
+            <button onClick={signOut} className="w-full h-10 rounded-v3-base bg-v3-canvas-secondary border border-v3-canvas-sunken text-v3-sm text-v3-text-primary inline-flex items-center justify-center gap-2 v3-tappable v3-focus-ring">
               <LogOut className="h-4 w-4" /> Logga ut
             </button>
           </section>

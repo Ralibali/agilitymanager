@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Plus,
   Trophy,
@@ -13,7 +13,7 @@ import {
   FileText,
   type LucideIcon,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Competitions, computeStats } from "@/hooks/v3/useV3Competitions";
 import { DogHero } from "@/components/v3/DogHero";
@@ -55,11 +55,30 @@ function daysUntil(iso: string | null): number | null {
 
 export default function V3CompetitionsPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { dogs, active, activeId, setActive, loading: dogsLoading } = useV3Dogs();
   const { results, planned, loading, reload } = useV3Competitions(activeId);
   const [tab, setTab] = useState<Tab>("upcoming");
   const [planSheet, setPlanSheet] = useState(false);
   const [resultSheet, setResultSheet] = useState(false);
+
+  useEffect(() => {
+    const action = searchParams.get("action");
+    if (!action) return;
+
+    if (action === "new" || action === "planned" || action === "plan") {
+      setTab("upcoming");
+      setPlanSheet(true);
+      setSearchParams({}, { replace: true });
+      return;
+    }
+
+    if (action === "result" || action === "results") {
+      setTab("results");
+      setResultSheet(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const upcoming = useMemo(() => {
     const today = new Date();
@@ -145,7 +164,7 @@ export default function V3CompetitionsPage() {
       {dogsLoading ? (
         <div className="h-28 rounded-v3-2xl v3-skeleton" />
       ) : (
-        <DogHero dogs={dogs} active={active} activeId={activeId} onSelect={setActive} onAddDog={() => navigate("/v3/dogs")} />
+        <DogHero dogs={dogs} active={active} activeId={activeId} onSelect={setActive} onAddDog={() => navigate("/v3/dogs")}/>
       )}
 
       {active && (
@@ -154,46 +173,18 @@ export default function V3CompetitionsPage() {
             <V3MetricCard label="Starter" value={String(stats.total)} sub="totalt" icon={Trophy} />
             <V3MetricCard label="Godkänt" value={`${Math.round(stats.passedRate * 100)}%`} sub="av starter" icon={CheckCircle2} />
             <V3MetricCard label="Snittplac." value={stats.avgPlacement ? stats.avgPlacement.toFixed(1) : "—"} sub="lägre = bättre" icon={Compass} tone="neutral" />
-            <V3MetricCard
-              label={active.sport === "Hoopers" ? "Hoopers-poäng" : "Bästa plac."}
-              value={active.sport === "Hoopers" ? String(stats.hoopersPoints) : stats.bestPlacement ? `#${stats.bestPlacement}` : "—"}
-              sub="hittills"
-              icon={Trophy}
-              tone="warm"
-            />
+            <V3MetricCard label={active.sport === "Hoopers" ? "Hoopers-poäng" : "Bästa plac."} value={active.sport === "Hoopers" ? String(stats.hoopersPoints) : stats.bestPlacement ? `#${stats.bestPlacement}` : "—"} sub="hittills" icon={Trophy} tone="warm" />
           </div>
 
           <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-1.5 flex gap-1.5 overflow-x-auto shadow-v3-xs">
             {TABS.map(({ value, label, icon: Icon }) => {
               const isActive = tab === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setTab(value)}
-                  className={cn(
-                    "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-v3-base text-v3-sm font-medium transition-colors whitespace-nowrap",
-                    isActive ? "bg-v3-text-primary text-v3-text-inverse" : "text-v3-text-secondary hover:bg-v3-canvas-sunken/60",
-                  )}
-                >
-                  <Icon size={14} strokeWidth={1.8} />
-                  {label}
-                </button>
-              );
+              return <button key={value} type="button" onClick={() => setTab(value)} className={cn("inline-flex items-center justify-center gap-2 h-10 px-4 rounded-v3-base text-v3-sm font-medium transition-colors whitespace-nowrap", isActive ? "bg-v3-text-primary text-v3-text-inverse" : "text-v3-text-secondary hover:bg-v3-canvas-sunken/60")}><Icon size={14} strokeWidth={1.8} />{label}</button>;
             })}
           </div>
 
           {tab === "upcoming" && <UpcomingList loading={loading} items={upcoming} onAdd={() => setPlanSheet(true)} onReload={reload} />}
-
-          {tab === "results" && (
-            <div className="space-y-5">
-              <div id="sbk-import" className="scroll-mt-24">
-                <ResultsImporter dogs={dogs} onImported={() => void reload()} compact={results.length > 0} />
-              </div>
-              <ResultsList loading={loading} items={results} onAdd={() => setResultSheet(true)} onReload={reload} isHoopers={active.sport === "Hoopers"} onImport={scrollToImporter} />
-            </div>
-          )}
-
+          {tab === "results" && <div className="space-y-5"><div id="sbk-import" className="scroll-mt-24"><ResultsImporter dogs={dogs} onImported={() => void reload()} compact={results.length > 0} /></div><ResultsList loading={loading} items={results} onAdd={() => setResultSheet(true)} onReload={reload} isHoopers={active.sport === "Hoopers"} onImport={scrollToImporter} /></div>}
           {tab === "find" && <V3FindCompetitions preferredSport={active.sport === "Hoopers" ? "Hoopers" : "Agility"} />}
         </>
       )}
@@ -207,111 +198,23 @@ export default function V3CompetitionsPage() {
 function UpcomingList({ loading, items, onAdd, onReload }: { loading: boolean; items: PlannedCompetition[]; onAdd: () => void; onReload: () => Promise<void> }) {
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from("planned_competitions").delete().eq("id", id);
-    if (error) {
-      toast.error("Kunde inte ta bort");
-      return;
-    }
+    if (error) { toast.error("Kunde inte ta bort"); return; }
     toast.success("Borttagen");
     await onReload();
   };
-
   if (loading) return <div className="space-y-2">{[0, 1, 2].map((i) => <div key={i} className="h-24 rounded-v3-lg v3-skeleton" />)}</div>;
-
-  if (items.length === 0) {
-    return (
-      <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-8 text-center shadow-v3-xs">
-        <div className="mx-auto h-12 w-12 rounded-full bg-v3-brand-500/10 grid place-items-center mb-4">
-          <Calendar size={20} strokeWidth={1.6} className="text-v3-brand-500" />
-        </div>
-        <h3 className="font-v3-display text-v3-2xl text-v3-text-primary">Inga planerade tävlingar</h3>
-        <p className="text-v3-base text-v3-text-secondary mt-2 max-w-sm mx-auto">Lägg till din nästa start så får du påminnelser inför anmälan och tävlingsdagen.</p>
-        <button type="button" onClick={onAdd} className="mt-5 inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm">
-          <Plus size={16} strokeWidth={2} /> Planera tävling
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <ol className="space-y-2">
-      {items.map((p) => {
-        const days = daysUntil(p.date);
-        return (
-          <li key={p.id} className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/25 hover:shadow-v3-xs transition-all group">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-v3-base text-v3-text-primary truncate">{p.event_name}</div>
-                <div className="flex flex-wrap items-center gap-3 mt-2 text-v3-xs text-v3-text-tertiary">
-                  <span className="inline-flex items-center gap-1 tabular-nums"><Calendar size={11} strokeWidth={1.8} />{formatDate(p.date)}</span>
-                  {p.location && <span className="inline-flex items-center gap-1 truncate"><MapPin size={11} strokeWidth={1.8} />{p.location}</span>}
-                  {days !== null && days >= 0 && <span className="text-v3-brand-700 font-medium tabular-nums">{days === 0 ? "Idag" : days === 1 ? "Imorgon" : `om ${days} d`}</span>}
-                </div>
-              </div>
-              <div className="flex items-center gap-1 shrink-0">
-                {p.signup_url && <a href={p.signup_url} target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-full grid place-items-center text-v3-text-tertiary hover:text-v3-text-primary hover:bg-v3-canvas-sunken transition-colors" aria-label="Öppna anmälan"><ExternalLink size={13} strokeWidth={1.8} /></a>}
-                <button type="button" onClick={() => handleDelete(p.id)} className="h-9 w-9 rounded-full grid place-items-center text-v3-text-tertiary hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100" aria-label="Ta bort"><Trash2 size={13} strokeWidth={1.8} /></button>
-              </div>
-            </div>
-          </li>
-        );
-      })}
-    </ol>
-  );
+  if (items.length === 0) return <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-8 text-center shadow-v3-xs"><div className="mx-auto h-12 w-12 rounded-full bg-v3-brand-500/10 grid place-items-center mb-4"><Calendar size={20} strokeWidth={1.6} className="text-v3-brand-500" /></div><h3 className="font-v3-display text-v3-2xl text-v3-text-primary">Inga planerade tävlingar</h3><p className="text-v3-base text-v3-text-secondary mt-2 max-w-sm mx-auto">Lägg till din nästa start så får du påminnelser inför anmälan och tävlingsdagen.</p><button type="button" onClick={onAdd} className="mt-5 inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm"><Plus size={16} strokeWidth={2} /> Planera tävling</button></div>;
+  return <ol className="space-y-2">{items.map((p) => { const days = daysUntil(p.date); return <li key={p.id} className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/25 hover:shadow-v3-xs transition-all group"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-v3-base text-v3-text-primary truncate">{p.event_name}</div><div className="flex flex-wrap items-center gap-3 mt-2 text-v3-xs text-v3-text-tertiary"><span className="inline-flex items-center gap-1 tabular-nums"><Calendar size={11} strokeWidth={1.8} />{formatDate(p.date)}</span>{p.location && <span className="inline-flex items-center gap-1 truncate"><MapPin size={11} strokeWidth={1.8} />{p.location}</span>}{days !== null && days >= 0 && <span className="text-v3-brand-700 font-medium tabular-nums">{days === 0 ? "Idag" : days === 1 ? "Imorgon" : `om ${days} d`}</span>}</div></div><div className="flex items-center gap-1 shrink-0">{p.signup_url && <a href={p.signup_url} target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-full grid place-items-center text-v3-text-tertiary hover:text-v3-text-primary hover:bg-v3-canvas-sunken transition-colors" aria-label="Öppna anmälan"><ExternalLink size={13} strokeWidth={1.8} /></a>}<button type="button" onClick={() => handleDelete(p.id)} className="h-9 w-9 rounded-full grid place-items-center text-v3-text-tertiary hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100" aria-label="Ta bort"><Trash2 size={13} strokeWidth={1.8} /></button></div></div></li>; })}</ol>;
 }
 
 function ResultsList({ loading, items, onAdd, onReload, isHoopers, onImport }: { loading: boolean; items: CompetitionResult[]; onAdd: () => void; onReload: () => Promise<void>; isHoopers: boolean; onImport: () => void }) {
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from("competition_results").delete().eq("id", id);
-    if (error) {
-      toast.error("Kunde inte ta bort");
-      return;
-    }
+    if (error) { toast.error("Kunde inte ta bort"); return; }
     toast.success("Borttaget");
     await onReload();
   };
-
   if (loading) return <div className="space-y-2">{[0, 1, 2].map((i) => <div key={i} className="h-24 rounded-v3-lg v3-skeleton" />)}</div>;
-
-  if (items.length === 0) {
-    return (
-      <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-8 text-center shadow-v3-xs">
-        <div className="mx-auto h-12 w-12 rounded-full bg-v3-brand-500/10 grid place-items-center mb-4"><Trophy size={20} strokeWidth={1.6} className="text-v3-brand-500" /></div>
-        <h3 className="font-v3-display text-v3-2xl text-v3-text-primary">Inga resultat än</h3>
-        <p className="text-v3-base text-v3-text-secondary mt-2 max-w-sm mx-auto">Logga ditt första tävlingsresultat manuellt eller importera din historik från SBK direkt här ovanför.</p>
-        <div className="mt-5 flex items-center justify-center gap-2">
-          <button type="button" onClick={onAdd} className="inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm"><Plus size={16} strokeWidth={2} />Logga resultat</button>
-          <button type="button" onClick={onImport} className="inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-canvas-elevated border border-v3-canvas-sunken/60 text-v3-text-secondary text-v3-sm font-medium hover:bg-v3-canvas-sunken transition-colors">Importera från SBK</button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <ol className="space-y-2">
-      {items.map((r) => {
-        const isPassed = r.passed && !r.disqualified;
-        return (
-          <li key={r.id} className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/25 hover:shadow-v3-xs transition-all group">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-v3-base font-medium text-v3-text-primary truncate">{(() => { const n = (r.event_name || "").trim(); return !n || n.toLowerCase() === "tävling" ? `${r.sport}-tävling${r.date ? ` · ${formatDate(r.date)}` : ""}` : n; })()}</span>
-                  {r.disqualified ? <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-red-100 text-red-700"><AlertCircle size={10} /> Diskad</span> : isPassed ? <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700"><CheckCircle2 size={10} /> Godkänd</span> : <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-v3-canvas-sunken text-v3-text-secondary">Ej godkänd</span>}
-                </div>
-                {r.organizer && <div className="text-v3-sm text-v3-text-secondary truncate mt-0.5">{r.organizer}</div>}
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-2 text-v3-xs text-v3-text-tertiary tabular-nums">
-                  <span>{formatDate(r.date)}</span><span aria-hidden>·</span><span>{isHoopers ? r.sport : `${r.discipline} · ${r.competition_level}`}</span>
-                  {r.placement && (<><span aria-hidden>·</span><span>#{r.placement}</span></>)}
-                  {r.faults > 0 && (<><span aria-hidden>·</span><span>{r.faults} fel</span></>)}
-                  {r.time_sec > 0 && (<><span aria-hidden>·</span><span>{r.time_sec.toFixed(2)} s</span></>)}
-                  {r.hoopers_points ? (<><span aria-hidden>·</span><span>{r.hoopers_points} p</span></>) : null}
-                </div>
-              </div>
-              <button type="button" onClick={() => handleDelete(r.id)} className="h-9 w-9 rounded-full grid place-items-center text-v3-text-tertiary hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100 shrink-0" aria-label="Ta bort"><Trash2 size={13} strokeWidth={1.8} /></button>
-            </div>
-          </li>
-        );
-      })}
-    </ol>
-  );
+  if (items.length === 0) return <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-8 text-center shadow-v3-xs"><div className="mx-auto h-12 w-12 rounded-full bg-v3-brand-500/10 grid place-items-center mb-4"><Trophy size={20} strokeWidth={1.6} className="text-v3-brand-500" /></div><h3 className="font-v3-display text-v3-2xl text-v3-text-primary">Inga resultat än</h3><p className="text-v3-base text-v3-text-secondary mt-2 max-w-sm mx-auto">Logga ditt första tävlingsresultat manuellt eller importera din historik från SBK direkt här ovanför.</p><div className="mt-5 flex items-center justify-center gap-2"><button type="button" onClick={onAdd} className="inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm"><Plus size={16} strokeWidth={2} />Logga resultat</button><button type="button" onClick={onImport} className="inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-canvas-elevated border border-v3-canvas-sunken/60 text-v3-text-secondary text-v3-sm font-medium hover:bg-v3-canvas-sunken transition-colors">Importera från SBK</button></div></div>;
+  return <ol className="space-y-2">{items.map((r) => { const isPassed = r.passed && !r.disqualified; return <li key={r.id} className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/25 hover:shadow-v3-xs transition-all group"><div className="flex items-start justify-between gap-3"><div className="min-w-0 flex-1"><div className="flex items-center gap-2 flex-wrap"><span className="text-v3-base font-medium text-v3-text-primary truncate">{(() => { const n = (r.event_name || "").trim(); return !n || n.toLowerCase() === "tävling" ? `${r.sport}-tävling${r.date ? ` · ${formatDate(r.date)}` : ""}` : n; })()}</span>{r.disqualified ? <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-red-100 text-red-700"><AlertCircle size={10} /> Diskad</span> : isPassed ? <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700"><CheckCircle2 size={10} /> Godkänd</span> : <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-v3-canvas-sunken text-v3-text-secondary">Ej godkänd</span>}</div>{r.organizer && <div className="text-v3-sm text-v3-text-secondary truncate mt-0.5">{r.organizer}</div>}<div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-2 text-v3-xs text-v3-text-tertiary tabular-nums"><span>{formatDate(r.date)}</span><span aria-hidden>·</span><span>{isHoopers ? r.sport : `${r.discipline} · ${r.competition_level}`}</span>{r.placement && <><span aria-hidden>·</span><span>#{r.placement}</span></>}{r.faults > 0 && <><span aria-hidden>·</span><span>{r.faults} fel</span></>}{r.time_sec > 0 && <><span aria-hidden>·</span><span>{r.time_sec.toFixed(2)} s</span></>}{r.hoopers_points ? <><span aria-hidden>·</span><span>{r.hoopers_points} p</span></> : null}</div></div><button type="button" onClick={() => handleDelete(r.id)} className="h-9 w-9 rounded-full grid place-items-center text-v3-text-tertiary hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100 shrink-0" aria-label="Ta bort"><Trash2 size={13} strokeWidth={1.8} /></button></div></li>; })}</ol>;
 }

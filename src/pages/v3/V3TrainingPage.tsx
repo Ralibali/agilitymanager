@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense } from "react";
-import { Plus, Dumbbell, Clock, TrendingUp, MapPin, GraduationCap, Download, Heart, type LucideIcon } from "lucide-react";
+import { Plus, Dumbbell, Clock, TrendingUp, MapPin, Download, Heart, ArrowRight, type LucideIcon } from "lucide-react";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Training, type V3TrainingFilter } from "@/hooks/v3/useV3Training";
 import { openV3LogSheet } from "@/hooks/v3/useV3LogSheet";
@@ -39,6 +39,14 @@ function formatDay(iso: string): string {
   if (days === 1) return "Igår";
   if (days < 7) return `${WEEKDAY[d.getDay()]} ${d.getDate()} ${MONTH[d.getMonth()]}`;
   return `${d.getDate()} ${MONTH[d.getMonth()]}`;
+}
+
+function periodLabel(period: V3TrainingFilter["period"]): string {
+  return PERIOD_LABELS.find((p) => p.value === period)?.label ?? "vald period";
+}
+
+function sportLabel(sport: V3TrainingFilter["sport"]): string {
+  return SPORT_LABELS.find((s) => s.value === sport)?.label ?? "alla sporter";
 }
 
 export default function V3TrainingPage() {
@@ -86,17 +94,21 @@ export default function V3TrainingPage() {
       {dogsLoading ? (
         <div className="h-28 rounded-v3-2xl v3-skeleton" />
       ) : (
-        <DogHero
-          dogs={dogs}
-          active={active}
-          activeId={activeId}
-          onSelect={setActive}
-          onAddDog={() => navigate("/v3/dogs")}
-        />
+        <DogHero dogs={dogs} active={active} activeId={activeId} onSelect={setActive} onAddDog={() => navigate("/v3/dogs")} />
       )}
 
       {active && (
         <>
+          <TrainingContextCard
+            dogName={active.name}
+            period={filter.period}
+            sport={filter.sport}
+            count={sessions.length}
+            loading={loading}
+            onLog={openV3LogSheet}
+            onStats={() => navigate("/v3/stats")}
+          />
+
           <V3Card className="p-4 space-y-3">
             <FilterRow label="Period" options={PERIOD_LABELS} value={filter.period} onChange={(v) => setFilter((f) => ({ ...f, period: v }))} />
             <FilterRow label="Sport" options={SPORT_LABELS} value={filter.sport} onChange={(v) => setFilter((f) => ({ ...f, sport: v }))} />
@@ -118,28 +130,19 @@ export default function V3TrainingPage() {
           {!loading && stats.byWeek.length > 1 && (
             <V3Card className="p-5">
               <V3SectionTitle title="Veckotrend" description="Pass per vecka i vald period" />
-              <div className="mt-4">
-                <WeekBars data={stats.byWeek} />
-              </div>
+              <div className="mt-4"><WeekBars data={stats.byWeek} /></div>
             </V3Card>
           )}
 
           <section className="space-y-3">
-            <V3SectionTitle
-              title="Alla pass"
-              description={!loading ? `${sessions.length} ${sessions.length === 1 ? "pass" : "pass"} i vald vy` : undefined}
-            />
+            <V3SectionTitle title="Alla pass" description={!loading ? `${sessions.length} ${sessions.length === 1 ? "pass" : "pass"} i vald vy` : undefined} />
 
             {loading ? (
-              <div className="space-y-2">
-                {[0, 1, 2, 3].map((i) => <div key={i} className="h-20 rounded-v3-lg v3-skeleton" />)}
-              </div>
+              <div className="space-y-2">{[0, 1, 2, 3].map((i) => <div key={i} className="h-20 rounded-v3-lg v3-skeleton" />)}</div>
             ) : sessions.length === 0 ? (
-              <EmptyTraining onLog={openV3LogSheet} />
+              <EmptyTraining dogName={active.name} period={filter.period} sport={filter.sport} onLog={openV3LogSheet} onClearFilters={() => setFilter({ period: "all", sport: "all" })} />
             ) : (
-              <ol className="space-y-2">
-                {sessions.map((s) => <SessionRow key={s.id} session={s} />)}
-              </ol>
+              <ol className="space-y-2">{sessions.map((s) => <SessionRow key={s.id} session={s} />)}</ol>
             )}
           </section>
 
@@ -157,82 +160,45 @@ export default function V3TrainingPage() {
   );
 }
 
-function FilterRow<T extends string>({ label, options, value, onChange }: { label: string; options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+function TrainingContextCard({ dogName, period, sport, count, loading, onLog, onStats }: { dogName: string; period: V3TrainingFilter["period"]; sport: V3TrainingFilter["sport"]; count: number; loading: boolean; onLog: () => void; onStats: () => void }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary w-14 shrink-0">{label}</span>
-      <div className="flex flex-wrap gap-1.5">
-        {options.map((opt) => {
-          const active = opt.value === value;
-          return (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => onChange(opt.value)}
-              className={cn(
-                "h-8 px-3 rounded-v3-base text-v3-xs font-medium transition-colors",
-                active ? "bg-v3-text-primary text-v3-text-inverse" : "bg-v3-canvas-elevated text-v3-text-secondary border border-v3-canvas-sunken/60 hover:bg-v3-canvas-sunken",
-              )}
-            >
-              {opt.label}
-            </button>
-          );
-        })}
+    <V3Card className="p-4 lg:p-5">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">Aktiv träningsvy</div>
+          <h2 className="font-v3-display text-v3-2xl text-v3-text-primary mt-1">{dogName} · {periodLabel(period)} · {sportLabel(sport)}</h2>
+          <p className="text-v3-sm text-v3-text-secondary mt-1">{loading ? "Hämtar pass…" : count > 0 ? `${count} pass matchar aktuell vy.` : "Inga pass matchar aktuell vy ännu."}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={onLog} className="inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors">Logga pass <Plus size={14} /></button>
+          <button type="button" onClick={onStats} className="inline-flex items-center gap-2 h-10 px-4 rounded-v3-base border border-v3-canvas-sunken/60 text-v3-sm font-medium text-v3-text-secondary hover:bg-v3-canvas-sunken transition-colors">Se statistik <ArrowRight size={14} /></button>
+        </div>
       </div>
-    </div>
+    </V3Card>
   );
+}
+
+function FilterRow<T extends string>({ label, options, value, onChange }: { label: string; options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+  return <div className="flex items-center gap-3"><span className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary w-14 shrink-0">{label}</span><div className="flex flex-wrap gap-1.5">{options.map((opt) => { const active = opt.value === value; return <button key={opt.value} type="button" onClick={() => onChange(opt.value)} className={cn("h-8 px-3 rounded-v3-base text-v3-xs font-medium transition-colors", active ? "bg-v3-text-primary text-v3-text-inverse" : "bg-v3-canvas-elevated text-v3-text-secondary border border-v3-canvas-sunken/60 hover:bg-v3-canvas-sunken")}>{opt.label}</button>; })}</div></div>;
 }
 
 function WeekBars({ data }: { data: { week: string; count: number; minutes: number }[] }) {
   const max = Math.max(...data.map((d) => d.count), 1);
-  return (
-    <div className="flex items-end gap-2 h-32">
-      {data.map((d) => {
-        const h = Math.max(6, Math.round((d.count / max) * 100));
-        const date = new Date(d.week);
-        const label = `${date.getDate()}/${date.getMonth() + 1}`;
-        return (
-          <div key={d.week} className="flex-1 flex flex-col items-center gap-1.5 min-w-0">
-            <div className="text-v3-xs text-v3-text-secondary tabular-nums">{d.count}</div>
-            <div className="w-full bg-v3-brand-500/80 rounded-t-sm transition-all" style={{ height: `${h}%` }} aria-label={`Vecka ${label}: ${d.count} pass, ${d.minutes} min`} />
-            <div className="text-[10px] text-v3-text-tertiary tabular-nums">{label}</div>
-          </div>
-        );
-      })}
-    </div>
-  );
+  return <div className="flex items-end gap-2 h-32">{data.map((d) => { const h = Math.max(6, Math.round((d.count / max) * 100)); const date = new Date(d.week); const label = `${date.getDate()}/${date.getMonth() + 1}`; return <div key={d.week} className="flex-1 flex flex-col items-center gap-1.5 min-w-0"><div className="text-v3-xs text-v3-text-secondary tabular-nums">{d.count}</div><div className="w-full bg-v3-brand-500/80 rounded-t-sm transition-all" style={{ height: `${h}%` }} aria-label={`Vecka ${label}: ${d.count} pass, ${d.minutes} min`} /><div className="text-[10px] text-v3-text-tertiary tabular-nums">{label}</div></div>; })}</div>;
 }
 
 function SessionRow({ session }: { session: { id: string; date: string; type: string; sport: string; duration_min: number | null; location: string | null; notes_good: string | null; tags: string[] | null } }) {
-  return (
-    <li className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/25 hover:shadow-v3-xs transition-all">
-      <div className="flex items-baseline justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-v3-base text-v3-text-primary truncate">
-            {session.type} <span className="text-v3-text-tertiary">·</span> <span className="text-v3-text-secondary">{session.sport}</span>
-          </p>
-          {session.notes_good && <p className="text-v3-sm text-v3-text-secondary mt-1 line-clamp-1">{session.notes_good}</p>}
-          <div className="flex items-center gap-3 mt-2 text-v3-xs text-v3-text-tertiary">
-            <span className="inline-flex items-center gap-1 tabular-nums"><Clock size={11} strokeWidth={1.8} />{session.duration_min ?? 0} min</span>
-            {session.location && <span className="inline-flex items-center gap-1 truncate"><MapPin size={11} strokeWidth={1.8} />{session.location}</span>}
-            {session.tags && session.tags.length > 0 && <span className="truncate">#{session.tags.slice(0, 2).join(" #")}</span>}
-          </div>
-        </div>
-        <span className="text-v3-xs text-v3-text-tertiary shrink-0 tabular-nums">{formatDay(session.date)}</span>
-      </div>
-    </li>
-  );
+  return <li className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/25 hover:shadow-v3-xs transition-all"><div className="flex items-baseline justify-between gap-3"><div className="min-w-0"><p className="text-v3-base text-v3-text-primary truncate">{session.type} <span className="text-v3-text-tertiary">·</span> <span className="text-v3-text-secondary">{session.sport}</span></p>{session.notes_good && <p className="text-v3-sm text-v3-text-secondary mt-1 line-clamp-1">{session.notes_good}</p>}<div className="flex items-center gap-3 mt-2 text-v3-xs text-v3-text-tertiary"><span className="inline-flex items-center gap-1 tabular-nums"><Clock size={11} strokeWidth={1.8} />{session.duration_min ?? 0} min</span>{session.location && <span className="inline-flex items-center gap-1 truncate"><MapPin size={11} strokeWidth={1.8} />{session.location}</span>}{session.tags && session.tags.length > 0 && <span className="truncate">#{session.tags.slice(0, 2).join(" #")}</span>}</div></div><span className="text-v3-xs text-v3-text-tertiary shrink-0 tabular-nums">{formatDay(session.date)}</span></div></li>;
 }
 
-function EmptyTraining({ onLog }: { onLog: () => void }) {
+function EmptyTraining({ dogName, period, sport, onLog, onClearFilters }: { dogName: string; period: V3TrainingFilter["period"]; sport: V3TrainingFilter["sport"]; onLog: () => void; onClearFilters: () => void }) {
+  const filtered = period !== "all" || sport !== "all";
   return (
     <V3Card className="p-8 text-center">
-      <div className="mx-auto h-12 w-12 rounded-full bg-v3-brand-500/10 grid place-items-center mb-4">
-        <Dumbbell size={20} strokeWidth={1.6} className="text-v3-brand-500" />
-      </div>
-      <h3 className="font-v3-display text-v3-2xl text-v3-text-primary">Inga pass än</h3>
-      <p className="text-v3-base text-v3-text-secondary mt-2 max-w-sm mx-auto">Logga ditt första pass så börjar vi bygga din historik. Filtret ovan visar inget för perioden.</p>
-      <div className="mt-5"><V3PrimaryButton onClick={onLog} icon={Plus}>Logga pass</V3PrimaryButton></div>
+      <div className="mx-auto h-12 w-12 rounded-full bg-v3-brand-500/10 grid place-items-center mb-4"><Dumbbell size={20} strokeWidth={1.6} className="text-v3-brand-500" /></div>
+      <h3 className="font-v3-display text-v3-2xl text-v3-text-primary">Inga pass i den här vyn</h3>
+      <p className="text-v3-base text-v3-text-secondary mt-2 max-w-md mx-auto">{filtered ? `${dogName} kan ha pass utanför filtret. Visa allt eller logga ett nytt pass.` : `Logga första passet för ${dogName} så börjar historiken byggas här.`}</p>
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-2"><V3PrimaryButton onClick={onLog} icon={Plus}>Logga pass</V3PrimaryButton>{filtered && <button type="button" onClick={onClearFilters} className="inline-flex items-center justify-center h-11 px-5 rounded-v3-base border border-v3-canvas-sunken/60 text-v3-sm font-medium text-v3-text-secondary hover:bg-v3-canvas-sunken transition-colors">Visa allt</button>}</div>
     </V3Card>
   );
 }

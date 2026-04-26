@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { HelmetProvider } from "react-helmet-async";
 import { MemoryRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Suspense } from "react";
 
@@ -66,11 +67,13 @@ describe("routing smoke", () => {
   it("Suspense boundary works with lazy components", async () => {
     const Lazy = (await import("@/pages/NotFound")).default;
     render(
-      <MemoryRouter>
-        <Suspense fallback={<div>loading…</div>}>
-          <Lazy />
-        </Suspense>
-      </MemoryRouter>
+      <HelmetProvider>
+        <MemoryRouter>
+          <Suspense fallback={<div>loading…</div>}>
+            <Lazy />
+          </Suspense>
+        </MemoryRouter>
+      </HelmetProvider>
     );
     // Det räcker att rendreringen inte kastar.
     expect(document.body).toBeTruthy();

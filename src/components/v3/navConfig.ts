@@ -21,7 +21,8 @@ export type V3NavGroup = {
 
 /**
  * Sidebar-navigation (desktop, ≥1024px).
- * Grupperad: Dagligt, Min hund, Socialt, System.
+ * Grupperad efter användarens vanligaste jobb: först dagliga flöden,
+ * sedan hunden, verktyg, socialt och system.
  */
 export const V3_NAV_GROUPS: V3NavGroup[] = [
   {
@@ -30,14 +31,14 @@ export const V3_NAV_GROUPS: V3NavGroup[] = [
       { path: "/v3", label: "Hem", icon: Home },
       { path: "/v3/training", label: "Träning", icon: Dumbbell },
       { path: "/v3/competition", label: "Tävlingar", icon: Trophy },
-      { path: "/v3/goals", label: "Mål", icon: Target },
+      { path: "/v3/dogs", label: "Hundar", icon: Dog },
       { path: "/v3/stats", label: "Statistik", icon: BarChart3 },
+      { path: "/v3/goals", label: "Mål", icon: Target },
     ],
   },
   {
     label: "Min hund",
     items: [
-      { path: "/v3/dogs", label: "Hundar", icon: Dog },
       { path: "/v3/health", label: "Hälsa", icon: Heart },
       { path: "/v3/coach", label: "Coach", icon: GraduationCap },
       { path: "/v3/courses", label: "Kurser", icon: GraduationCap },
@@ -81,6 +82,7 @@ export const V3_BOTTOM_SECONDARY: V3NavItem[] = [
 
 /**
  * Snabb-actions som öppnas från center-FAB.
+ * Hålls action-first: de saker användaren oftast vill göra direkt.
  */
 export type V3QuickAction = {
   id: string;
@@ -94,8 +96,8 @@ export type V3QuickAction = {
 export const V3_QUICK_ACTIONS: V3QuickAction[] = [
   {
     id: "log-training",
-    label: "Logga träning",
-    description: "Snabbt pass med hund + känsla",
+    label: "Logga träningspass",
+    description: "Spara pass, känsla och vad som gick bra",
     icon: Dumbbell,
     path: "/v3/training?action=new",
     accent: "traning",
@@ -103,18 +105,34 @@ export const V3_QUICK_ACTIONS: V3QuickAction[] = [
   {
     id: "log-competition",
     label: "Lägg till tävling",
-    description: "Resultat eller planerad start",
+    description: "Planerad start eller resultat",
     icon: Trophy,
     path: "/v3/competition?action=new",
     accent: "tavlings",
   },
   {
     id: "new-goal",
-    label: "Nytt mål",
-    description: "Sätt ett mål för veckan",
+    label: "Sätt nytt mål",
+    description: "Skapa fokus för veckan eller säsongen",
     icon: Target,
     path: "/v3/goals?action=new",
     accent: "prestation",
+  },
+  {
+    id: "health-note",
+    label: "Hälsanteckning",
+    description: "Följ vila, skada, rehab eller mående",
+    icon: Heart,
+    path: "/v3/health?action=new",
+    accent: "halsa",
+  },
+  {
+    id: "add-dog",
+    label: "Lägg till hund",
+    description: "Bygg profilen för en ny hund",
+    icon: Dog,
+    path: "/v3/dogs?action=new",
+    accent: "halsa",
   },
   {
     id: "stopwatch",
@@ -122,7 +140,7 @@ export const V3_QUICK_ACTIONS: V3QuickAction[] = [
     description: "Mät tid på pass eller bana",
     icon: Timer,
     path: "/v3/stopwatch",
-    accent: "halsa",
+    accent: "traning",
   },
 ];
 

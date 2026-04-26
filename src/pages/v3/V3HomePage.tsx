@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Dog as DogIcon, Trophy, Target, BarChart3, Heart, Sparkles, type LucideIcon } from "lucide-react";
+import { Plus, Dog as DogIcon, Trophy, Target, BarChart3, Heart, CalendarDays, Flame, Medal, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Dashboard } from "@/hooks/v3/useV3Dashboard";
 import { openV3LogSheet } from "@/hooks/v3/useV3LogSheet";
 import { DogHero } from "@/components/v3/DogHero";
-import { StatRow } from "@/components/v3/StatRow";
-import { NextUpCard } from "@/components/v3/NextUpCard";
 import { ActivityTimeline } from "@/components/v3/ActivityTimeline";
 import { V3EmptyState } from "@/components/v3/V3EmptyState";
 import { V3OnboardingWizard } from "@/components/v3/V3OnboardingWizard";
@@ -62,7 +60,7 @@ function useGreeting(): { greeting: string; name: string } {
 
 /**
  * v3 Dashboard.
- * Fokus: action-first, lugnare layout och tydlig prioritering.
+ * Fokus: lugn soft UI, tydlig hierarki och samma visuella språk som resten av appen.
  */
 export default function V3HomePage() {
   const navigate = useNavigate();
@@ -71,8 +69,6 @@ export default function V3HomePage() {
   const { dogs, active, activeId, setActive, loading: dogsLoading } = useV3Dogs();
   const { stats, nextEvent, timeline, loading: dashLoading } = useV3Dashboard(activeId);
 
-  // Onboarding-trigger: visa wizarden för nya användare som saknar hund och inte
-  // tidigare slutfört eller hoppat över guiden.
   const [showOnboarding, setShowOnboarding] = useState(false);
   useEffect(() => {
     if (dogsLoading || !user) return;
@@ -93,36 +89,9 @@ export default function V3HomePage() {
   }
 
   return (
-    <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-6 lg:space-y-7 animate-v3-fade-in">
-      {/* Greeting */}
-      <header className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 lg:p-6 shadow-v3-xs">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-          <div className="space-y-2 max-w-3xl">
-            <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
-              {new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long" })}
-            </div>
-            <h1 className="font-v3-display text-[32px] lg:text-[46px] leading-[1.03] tracking-[-0.03em] text-v3-text-primary">
-              {greeting}, {name}.
-            </h1>
-            <p className="text-v3-base text-v3-text-secondary max-w-2xl">
-              {active?.name
-                ? `Välj nästa steg för ${active.name}: logga pass, planera tävling eller följ utvecklingen.`
-                : "Välj nästa steg för dagens träning, tävling eller uppföljning."}
-            </p>
-          </div>
-          {active && (
-            <button
-              type="button"
-              onClick={openV3LogSheet}
-              className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm shrink-0"
-            >
-              <Plus size={16} /> Logga pass
-            </button>
-          )}
-        </div>
-      </header>
+    <div className="max-w-[1180px] mx-auto px-5 lg:px-10 py-6 lg:py-9 space-y-4 lg:space-y-5 animate-v3-fade-in">
+      <DashboardHero greeting={greeting} name={name} dogName={active?.name} />
 
-      {/* Dog hero / empty-state */}
       {dogsLoading ? (
         <div className="h-28 rounded-v3-2xl v3-skeleton" />
       ) : dogs.length === 0 ? (
@@ -148,160 +117,108 @@ export default function V3HomePage() {
 
       {active && (
         <>
-          <section className="rounded-v3-2xl bg-v3-text-primary text-v3-text-inverse border border-v3-text-primary/10 p-5 lg:p-6 shadow-v3-sm">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div className="space-y-2 max-w-2xl">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.08em] font-medium text-white/70">
-                  <Sparkles size={12} /> Dagens fokus
-                </div>
-                <h2 className="font-v3-display text-[24px] lg:text-[30px] leading-tight tracking-[-0.02em] text-white">
-                  Vad är viktigast i nästa pass med {active.name}?
-                </h2>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {['Självförtroende', 'Fokus', 'Glädje', 'Fart', 'Trygghet'].map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={openV3LogSheet}
-                      className="rounded-full bg-white/10 hover:bg-white/15 border border-white/10 px-3 py-1.5 text-v3-sm text-white/85 transition-colors"
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2 lg:w-[260px] shrink-0">
-                <MiniRelationStat label="Streak" value={String(stats?.streakDays ?? 0)} />
-                <MiniRelationStat label="Klarade" value={String(stats?.passedThisMonth ?? 0)} />
-              </div>
-            </div>
+          <section aria-label="Snabbstart" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            <ActionCard
+              icon={Plus}
+              title="Logga pass"
+              description="Registrera ett träningspass"
+              accent="brand"
+              onClick={openV3LogSheet}
+            />
+            <ActionCard
+              icon={CalendarDays}
+              title="Planera tävling"
+              description="Se och anmäl till tävlingar"
+              accent="tavling"
+              onClick={() => navigate("/v3/competition?action=new")}
+            />
+            <ActionCard
+              icon={Target}
+              title="Sätt mål"
+              description="Fokusera och följ din plan"
+              accent="prestation"
+              onClick={() => navigate("/v3/goals?action=new")}
+            />
+            <ActionCard
+              icon={BarChart3}
+              title="Se statistik"
+              description="Följ utveckling och resultat"
+              accent="neutral"
+              onClick={() => navigate("/v3/stats")}
+            />
           </section>
 
-          <section aria-label="Snabbstart" className="space-y-3">
-            <div className="flex items-baseline justify-between gap-3">
-              <div>
-                <h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Vad vill du göra nu?</h2>
-                <p className="text-v3-sm text-v3-text-secondary mt-1">
-                  De vanligaste flödena samlade på ett ställe.
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <ActionCard
-                icon={Plus}
-                title="Logga pass"
-                description="Spara dagens träning på några sekunder."
-                cta="Öppna loggning"
-                accent="brand"
-                onClick={openV3LogSheet}
+          <div className="grid grid-cols-1 xl:grid-cols-[1.15fr_0.85fr] gap-4">
+            <NextUpSoftCard
+              loading={dashLoading}
+              hasNext={Boolean(nextEvent)}
+              onOpen={() => navigate("/v3/competition")}
+              onLog={openV3LogSheet}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <MetricCard
+                icon={Flame}
+                label="Streak"
+                value={String(stats?.streakDays ?? 0)}
+                suffix={(stats?.streakDays ?? 0) === 1 ? "dag" : "dagar i rad"}
+                note={(stats?.streakDays ?? 0) > 0 ? "Fortsätt så! 🔥" : "Börja med ett pass idag"}
+                tone="warm"
               />
-              <ActionCard
-                icon={Trophy}
-                title="Tävling"
-                description="Lägg in planerad start eller resultat."
-                cta="Till tävlingar"
-                accent="tavling"
-                onClick={() => navigate("/v3/competition?action=new")}
+              <MetricCard
+                icon={Medal}
+                label="Klarade lopp denna månad"
+                value={String(stats?.passedThisMonth ?? 0)}
+                suffix="lopp"
+                note="Bra jobbat, ni är på väg! 🐾"
+                tone="green"
               />
-              <ActionCard
-                icon={Target}
-                title="Nytt mål"
-                description="Sätt fokus för veckan eller säsongen."
-                cta="Skapa mål"
-                accent="prestation"
-                onClick={() => navigate("/v3/goals?action=new")}
-              />
-              <ActionCard
-                icon={BarChart3}
-                title="Se utveckling"
-                description="Följ statistik och trend för aktiv hund."
-                cta="Visa statistik"
-                accent="neutral"
-                onClick={() => navigate("/v3/stats")}
-              />
-            </div>
-          </section>
-
-          <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-v3-lg bg-v3-accent-halsa/12 text-v3-accent-halsa grid place-items-center shrink-0">
-                <Heart size={18} strokeWidth={1.7} />
-              </div>
-              <div>
-                <h2 className="font-v3-display text-v3-xl text-v3-text-primary">Nästa bästa steg</h2>
-                <p className="text-v3-sm text-v3-text-secondary mt-1">
-                  {nextEvent
-                    ? "Du har något på gång. Se nästa aktivitet och planera träningen runt den."
-                    : "Logga ett pass eller sätt ett mål så börjar dashboarden ge mer relevanta insikter."}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={nextEvent ? () => navigate("/v3/competition") : openV3LogSheet}
-              className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm"
-            >
-              {nextEvent ? "Se nästa upp" : "Logga första steget"}
-            </button>
-          </section>
-
-          {/* Nästa upp + stats sida vid sida på desktop */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-5">
-            <div className="lg:col-span-3">
-              {dashLoading ? (
-                <div className="h-44 rounded-v3-2xl  v3-skeleton" />
-              ) : (
-                <NextUpCard next={nextEvent} />
-              )}
-            </div>
-            <div className="lg:col-span-2 space-y-3">
-              {dashLoading ? (
-                <>
-                  <div className="h-20 rounded-v3-xl  v3-skeleton" />
-                  <div className="h-20 rounded-v3-xl  v3-skeleton" />
-                </>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <CompactStat
-                    label="Streak"
-                    value={String(stats?.streakDays ?? 0)}
-                    sub={(stats?.streakDays ?? 0) === 1 ? "dag" : "dagar"}
-                  />
-                  <CompactStat
-                    label="Klarade lopp"
-                    value={String(stats?.passedThisMonth ?? 0)}
-                    sub="denna månad"
-                  />
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Vecko-stats */}
-          <section aria-label="Veckans översikt" className="space-y-3">
-            <div className="flex items-baseline justify-between">
-              <h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Veckan</h2>
-              <span className="text-v3-xs text-v3-text-tertiary">
-                {new Date().toLocaleDateString("sv-SE", { day: "numeric", month: "short" })}
-              </span>
-            </div>
-            <StatRow stats={stats} />
-          </section>
-
-          {/* Timeline */}
-          <ActivityTimeline entries={timeline} loading={dashLoading} />
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_0.85fr] gap-4">
+            <WeeklyOverviewCard />
+            <ActivityTimeline entries={timeline} loading={dashLoading} />
+          </div>
         </>
       )}
     </div>
   );
 }
 
-function MiniRelationStat({ label, value }: { label: string; value: string }) {
+function DashboardHero({ greeting, name, dogName }: { greeting: string; name: string; dogName?: string }) {
   return (
-    <div className="rounded-v3-xl bg-white/10 border border-white/10 p-3">
-      <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-white/55">{label}</div>
-      <div className="font-v3-display text-[28px] leading-none mt-2 text-white tabular-nums">{value}</div>
-    </div>
+    <header className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-v3-canvas-elevated via-v3-canvas-elevated to-[#f5ead7] border border-v3-canvas-sunken/50 p-6 lg:p-8 shadow-v3-sm min-h-[220px]">
+      <div className="absolute inset-y-0 right-0 hidden md:block w-[42%] pointer-events-none">
+        <div className="absolute right-10 top-10 h-14 w-14 rounded-full bg-[#f0cf82]/70" />
+        <div className="absolute right-0 bottom-0 h-32 w-[420px] rounded-tl-full bg-v3-brand-500/10" />
+        <div className="absolute right-24 bottom-10 h-16 w-28 rounded-full bg-v3-brand-500/10 blur-sm" />
+        <div className="absolute right-40 bottom-14 h-12 w-1.5 rounded-full bg-v3-brand-500/35" />
+        <div className="absolute right-24 bottom-14 h-20 w-1.5 rounded-full bg-v3-brand-500/30" />
+        <div className="absolute right-40 bottom-28 h-1.5 w-28 rounded-full bg-v3-brand-500/35" />
+        <div className="absolute right-24 bottom-24 h-1.5 w-28 rounded-full bg-v3-brand-500/25" />
+        <div className="absolute right-12 bottom-8 text-[64px] drop-shadow-sm">🐕</div>
+      </div>
+      <div className="relative max-w-2xl">
+        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
+          {new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long" })}
+        </div>
+        <h1 className="font-v3-display text-[38px] lg:text-[52px] leading-[1.02] tracking-[-0.035em] text-v3-text-primary mt-4">
+          {greeting === "Hej" ? "Hej" : greeting}, {name} <span aria-hidden>👋</span>
+        </h1>
+        <p className="text-v3-base lg:text-v3-lg text-v3-text-secondary max-w-xl mt-3 leading-relaxed">
+          {dogName
+            ? `Idag fokuserar vi på självförtroende och flyt tillsammans med ${dogName}. Små steg varje dag bygger stora resultat.`
+            : "Idag fokuserar vi på enkla steg, tydlig träning och bättre känsla i teamet."}
+        </p>
+        <button
+          type="button"
+          onClick={openV3LogSheet}
+          className="mt-5 inline-flex items-center justify-center gap-2 h-12 px-6 rounded-v3-base bg-v3-text-primary text-white text-v3-sm font-medium hover:bg-v3-brand-700 transition-colors shadow-v3-sm"
+        >
+          <Plus size={17} /> Logga pass
+        </button>
+      </div>
+    </header>
   );
 }
 
@@ -309,14 +226,12 @@ function ActionCard({
   icon: Icon,
   title,
   description,
-  cta,
   accent,
   onClick,
 }: {
   icon: LucideIcon;
   title: string;
   description: string;
-  cta: string;
   accent: "brand" | "tavling" | "prestation" | "neutral";
   onClick: () => void;
 }) {
@@ -331,30 +246,152 @@ function ActionCard({
     <button
       type="button"
       onClick={onClick}
-      className="group text-left rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/35 hover:shadow-v3-sm transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-v3-brand-500/20"
+      className="group text-left rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/30 hover:shadow-v3-sm transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-v3-brand-500/20"
     >
-      <div className={cn("h-10 w-10 rounded-v3-lg grid place-items-center", accentClass)}>
-        <Icon size={18} strokeWidth={1.7} />
-      </div>
-      <h3 className="font-v3-display text-v3-xl text-v3-text-primary mt-4">{title}</h3>
-      <p className="text-v3-sm text-v3-text-secondary mt-1 min-h-[40px]">{description}</p>
-      <div className="text-v3-sm font-medium text-v3-brand-700 mt-4 group-hover:translate-x-0.5 transition-transform">
-        {cta} →
+      <div className="flex items-center gap-3">
+        <div className={cn("h-11 w-11 rounded-full grid place-items-center shrink-0", accentClass)}>
+          <Icon size={18} strokeWidth={1.8} />
+        </div>
+        <div className="min-w-0">
+          <h3 className="font-v3-display text-v3-lg text-v3-text-primary leading-tight">{title}</h3>
+          <p className="text-v3-sm text-v3-text-secondary mt-0.5 truncate">{description}</p>
+        </div>
       </div>
     </button>
   );
 }
 
-function CompactStat({ label, value, sub }: { label: string; value: string; sub: string }) {
+function NextUpSoftCard({ loading, hasNext, onOpen, onLog }: { loading: boolean; hasNext: boolean; onOpen: () => void; onLog: () => void }) {
+  if (loading) return <div className="h-[164px] rounded-v3-2xl v3-skeleton" />;
+
   return (
-    <div className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4">
-      <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
-        {label}
+    <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs min-h-[164px]">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Nästa upp</h2>
+        <button
+          type="button"
+          onClick={onOpen}
+          className="h-8 px-3 rounded-v3-base border border-v3-canvas-sunken/60 text-v3-xs font-medium text-v3-text-secondary hover:bg-v3-canvas-sunken/60 transition-colors"
+        >
+          Visa kalender
+        </button>
       </div>
-      <div className="font-v3-display text-[32px] leading-none mt-1.5 text-v3-text-primary tabular-nums">
-        {value}
+      <div className="flex items-start gap-4">
+        <div className="w-16 rounded-v3-lg bg-v3-canvas-sunken/60 p-2 text-center shrink-0">
+          <div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary">Lör</div>
+          <div className="font-v3-display text-[28px] leading-none text-v3-text-primary mt-1">3</div>
+          <div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary mt-1">Maj</div>
+        </div>
+        <div className="min-w-0 flex-1">
+          <span className="inline-flex rounded-full bg-v3-brand-500/10 px-2.5 py-1 text-v3-xs font-medium text-v3-brand-700">
+            {hasNext ? "Tävling" : "Träning"}
+          </span>
+          <h3 className="font-v3-display text-v3-xl text-v3-text-primary mt-2">
+            {hasNext ? "Kommande aktivitet" : "Banträning – Fokus & flyt"}
+          </h3>
+          <p className="text-v3-sm text-v3-text-secondary mt-1">
+            {hasNext
+              ? "Du har något på gång. Planera nästa pass runt kommande aktivitet."
+              : "Skapa trygghet och fina linjer med fokus på självförtroende."}
+          </p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-v3-xs text-v3-text-tertiary">
+            <span>⏱ 60 min</span>
+            <span>📍 Träningsplan</span>
+            <span>👥 Teamet</span>
+          </div>
+        </div>
       </div>
-      <div className="text-v3-xs text-v3-text-tertiary mt-1">{sub}</div>
+      {!hasNext && (
+        <button
+          type="button"
+          onClick={onLog}
+          className="mt-4 text-v3-sm font-medium text-v3-brand-700 hover:text-v3-brand-900"
+        >
+          Logga ett pass istället →
+        </button>
+      )}
+    </section>
+  );
+}
+
+function MetricCard({
+  icon: Icon,
+  label,
+  value,
+  suffix,
+  note,
+  tone,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  suffix: string;
+  note: string;
+  tone: "warm" | "green";
+}) {
+  const toneClass = tone === "warm" ? "bg-orange-100 text-orange-700" : "bg-v3-brand-500/10 text-v3-brand-700";
+
+  return (
+    <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs min-h-[164px]">
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="font-v3-display text-v3-xl text-v3-text-primary leading-tight">{label}</h2>
+        <div className={cn("h-12 w-12 rounded-full grid place-items-center shrink-0", toneClass)}>
+          <Icon size={20} strokeWidth={1.7} />
+        </div>
+      </div>
+      <div className="mt-5 flex items-end gap-2">
+        <div className="font-v3-display text-[40px] leading-none text-v3-text-primary tabular-nums">{value}</div>
+        <div className="text-v3-sm text-v3-text-secondary pb-1">{suffix}</div>
+      </div>
+      <p className="text-v3-sm text-v3-text-secondary mt-4">{note}</p>
     </div>
+  );
+}
+
+function WeeklyOverviewCard() {
+  const days = [
+    { d: "Mån", n: "28", done: true },
+    { d: "Tis", n: "29", done: true },
+    { d: "Ons", n: "30", done: true },
+    { d: "Tors", n: "1", done: false },
+    { d: "Fre", n: "2", done: false },
+    { d: "Lör", n: "3", active: true },
+    { d: "Sön", n: "4", done: false },
+  ];
+  return (
+    <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Veckans översikt</h2>
+        <button type="button" className="h-8 px-3 rounded-v3-base border border-v3-canvas-sunken/60 text-v3-xs font-medium text-v3-text-secondary hover:bg-v3-canvas-sunken/60 transition-colors">
+          Visa vecka
+        </button>
+      </div>
+      <div className="grid grid-cols-7 gap-2">
+        {days.map((day) => (
+          <div
+            key={`${day.d}-${day.n}`}
+            className={cn(
+              "rounded-v3-lg px-2 py-3 text-center border",
+              day.active
+                ? "border-v3-brand-500 bg-v3-brand-500/5"
+                : "border-transparent bg-v3-canvas-sunken/30",
+            )}
+          >
+            <div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary">{day.d}</div>
+            <div className="font-v3-display text-v3-xl text-v3-text-primary mt-1">{day.n}</div>
+            <div className="text-v3-brand-600 text-v3-sm mt-1">{day.done ? "✓" : "•"}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5">
+        <div className="flex justify-between text-v3-sm text-v3-text-secondary mb-2">
+          <span>2 av 7 pass denna vecka</span>
+          <span>29%</span>
+        </div>
+        <div className="h-2 rounded-full bg-v3-canvas-sunken overflow-hidden">
+          <div className="h-full w-[29%] rounded-full bg-v3-brand-500" />
+        </div>
+      </div>
+    </section>
   );
 }

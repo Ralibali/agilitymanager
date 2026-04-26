@@ -2960,9 +2960,9 @@ export default function CoursePlannerPage() {
             )}
           </div>
 
-          {/* ── RIGHT: properties / info panel ── */}
+          {/* ── RIGHT: properties / info panel (desktop/tablet only — mobile uses bottom sheet) ── */}
           {!sidebarCollapsed ? (
-            <div className="w-64 shrink-0 bg-[hsl(221,28%,10%)] border-l border-[hsl(221,20%,18%)] flex flex-col">
+            <div className="hidden md:flex w-64 shrink-0 bg-[hsl(221,28%,10%)] border-l border-[hsl(221,20%,18%)] flex-col">
               <div className="h-9 shrink-0 px-3 flex items-center justify-between border-b border-[hsl(221,20%,18%)]">
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-[hsl(210,15%,55%)]">
                   {selectedObs ? 'Egenskaper' : 'Information'}

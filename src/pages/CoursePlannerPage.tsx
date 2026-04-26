@@ -473,6 +473,9 @@ export default function CoursePlannerPage() {
   const [editingCourseName, setEditingCourseName] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  // Mobile bottom-sheet state (used when the modern editor renders on small screens)
+  const [mobileLeftSheetOpen, setMobileLeftSheetOpen] = useState(false);
+  const [mobileRightSheetOpen, setMobileRightSheetOpen] = useState(false);
   const SNAP_STEP = 0.5 * PX_PER_METER; // 0.5m
   const MAGNETIC_DIST = 0.8 * PX_PER_METER; // snap within 0.8m of another obstacle
 
@@ -568,7 +571,12 @@ export default function CoursePlannerPage() {
   const [loadedCourseId, setLoadedCourseId] = useState<string | null>(null);
   const isLandscape = useIsLandscape();
   const isDesktop = !isMobile;
-  const showLandscapeLayout = (isMobile && isLandscape) || isDesktop;
+  // Den moderna editor-layouten (toppbar/canvas/paneler/statusrad) används nu på
+  // både desktop och mobil. På mobil-portrait blir vänster/höger paneler bottom
+  // sheets i stället för fasta sidopaneler. Den gamla mobil-portrait-renderingen
+  // (Drawer-baserad) ligger kvar längre ner i filen men nås inte längre under
+  // normalt flöde — den fungerar som säkerhetsnät om vi behöver rulla tillbaka.
+  const showLandscapeLayout = true;
 
   // In landscape layout (desktop always, mobile when rotated), swap so the longer side is horizontal
   const rawW = canvasSize.width;
@@ -630,6 +638,14 @@ export default function CoursePlannerPage() {
     return () => ro.disconnect();
   }, [fitToScreen]);
   const selectedObs = obstacles.find(o => o.id === selected);
+
+  // På mobil: öppna höger bottom-sheet automatiskt när användaren markerar ett
+  // hinder, och stäng när markeringen rensas. Påverkar inte desktop.
+  useEffect(() => {
+    if (!isMobile) return;
+    if (selected) setMobileRightSheetOpen(true);
+    else setMobileRightSheetOpen(false);
+  }, [selected, isMobile]);
 
   const distBetween = (a: Obstacle, b: Obstacle) => {
     const dx = a.x - b.x;
@@ -2564,21 +2580,87 @@ export default function CoursePlannerPage() {
       ? `Sparad ${lastSavedAt.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`
       : 'Inte sparad';
 
+    /* ── Återanvändbart panel-innehåll ──
+       Samma JSX används både i fasta sidopaneler (desktop/tablet) och i
+       bottom sheets (mobil). Inget logikflöde ändras. */
+    const leftPanelInner = (
+      <>
+        <div className="flex-1 overflow-y-auto p-2 space-y-3">
+          {obstacleGroups.map(group => (
+            <div key={group.label}>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)] px-1 mb-1">{group.label}</div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {group.types.map(t => {
+                  const o = currentObstacleTypes.find(ct => ct.type === t);
+                  if (!o) return null;
+                  const info = OBSTACLE_INFO[o.type];
+                  return (
+                    <Tooltip key={o.type}>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => {
+                            addObstacle(o.type);
+                            if (isMobile) setMobileLeftSheetOpen(false);
+                          }}
+                          className="group flex flex-col items-center justify-center gap-1 rounded-lg p-2 bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary hover:bg-[hsl(221,25%,16%)] active:scale-95 transition-all min-h-[64px]"
+                        >
+                          <span className="text-xl leading-none text-[hsl(210,20%,85%)] group-hover:text-primary transition-colors">{o.symbol}</span>
+                          <span className="text-[10px] text-[hsl(210,15%,65%)] leading-tight text-center truncate w-full">{o.label}</span>
+                        </button>
+                      </TooltipTrigger>
+                      {info && (
+                        <TooltipContent side="right" className="max-w-[220px]">
+                          <p className="font-semibold text-xs">{o.label}</p>
+                          <p className="text-[10px] text-muted-foreground">{info.dimensions}</p>
+                          <p className="text-[10px] text-muted-foreground">{info.classes}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="shrink-0 p-2 border-t border-[hsl(221,20%,18%)]">
+          <TutorialButton onClick={() => setShowTutorial(true)} />
+        </div>
+      </>
+    );
     return (
       <TooltipProvider delayDuration={300}>
       <div ref={fullscreenContainerRef} className="fixed inset-0 z-50 bg-[hsl(221,28%,8%)] text-[hsl(210,15%,85%)] flex flex-col">
-        {/* ═══ TOP BAR ═══ */}
-        <div className="h-12 shrink-0 flex items-center gap-2 px-3 bg-[hsl(221,28%,10%)] border-b border-[hsl(221,20%,18%)]">
+        {/* ═══ TOP BAR ═══
+            På mobil scrollar topbaren horisontellt så alla verktyg fortfarande
+            är åtkomliga utan att tränga ihop dem. Två mobile-only knappar
+            (Hinder/Verktyg) öppnar bottom sheets som ersätter sidopanelerna. */}
+        <div className="h-12 shrink-0 flex items-center gap-2 px-2 md:px-3 bg-[hsl(221,28%,10%)] border-b border-[hsl(221,20%,18%)] overflow-x-auto whitespace-nowrap scrollbar-hide">
           {/* Left: back + title */}
           <button
             onClick={goBack}
-            className="w-8 h-8 inline-flex items-center justify-center rounded-md hover:bg-[hsl(221,20%,18%)] transition-colors"
+            className="w-8 h-8 shrink-0 inline-flex items-center justify-center rounded-md hover:bg-[hsl(221,20%,18%)] transition-colors"
             title="Tillbaka"
             aria-label="Tillbaka"
           >
             <ArrowLeft size={16} />
           </button>
-          <div className="flex items-center gap-2 min-w-0">
+
+          {/* Mobile-only: open obstacle library / right panel as bottom sheets */}
+          <button
+            onClick={() => setMobileLeftSheetOpen(true)}
+            className="md:hidden h-8 px-2 shrink-0 inline-flex items-center gap-1 rounded-md bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:bg-[hsl(221,20%,18%)] text-[11px] font-semibold"
+            title="Lägg till hinder"
+          >
+            <Plus size={13} /> Hinder
+          </button>
+          <button
+            onClick={() => setMobileRightSheetOpen(true)}
+            className="md:hidden h-8 px-2 shrink-0 inline-flex items-center gap-1 rounded-md bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:bg-[hsl(221,20%,18%)] text-[11px] font-semibold"
+            title={selectedObs ? 'Egenskaper' : 'Verktyg & info'}
+          >
+            <Settings2 size={13} /> {selectedObs ? 'Egenskaper' : 'Verktyg'}
+          </button>
+          <div className="hidden sm:flex items-center gap-2 min-w-0 shrink-0">
             {editingCourseName ? (
               <input
                 autoFocus
@@ -2788,57 +2870,21 @@ export default function CoursePlannerPage() {
 
         {/* ═══ MAIN AREA: left panel + canvas + right panel ═══ */}
         <div className="flex-1 min-h-0 flex">
-          {/* ── LEFT: obstacle library ── */}
+          {/* ── LEFT: obstacle library (desktop/tablet only) ── */}
           {!leftPanelCollapsed ? (
-            <div className="w-56 shrink-0 bg-[hsl(221,28%,10%)] border-r border-[hsl(221,20%,18%)] flex flex-col">
+            <div className="hidden md:flex w-56 shrink-0 bg-[hsl(221,28%,10%)] border-r border-[hsl(221,20%,18%)] flex-col">
               <div className="h-9 shrink-0 px-3 flex items-center justify-between border-b border-[hsl(221,20%,18%)]">
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-[hsl(210,15%,55%)]">Hinder</span>
                 <button onClick={() => setLeftPanelCollapsed(true)} className="text-[hsl(210,15%,55%)] hover:text-[hsl(210,15%,80%)]" title="Dölj panel">
                   <ChevronDown size={14} className="rotate-90" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-2 space-y-3">
-                {obstacleGroups.map(group => (
-                  <div key={group.label}>
-                    <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)] px-1 mb-1">{group.label}</div>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {group.types.map(t => {
-                        const o = currentObstacleTypes.find(ct => ct.type === t);
-                        if (!o) return null;
-                        const info = OBSTACLE_INFO[o.type];
-                        return (
-                          <Tooltip key={o.type}>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={() => addObstacle(o.type)}
-                                className="group flex flex-col items-center justify-center gap-1 rounded-lg p-2 bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary hover:bg-[hsl(221,25%,16%)] active:scale-95 transition-all"
-                              >
-                                <span className="text-xl leading-none text-[hsl(210,20%,85%)] group-hover:text-primary transition-colors">{o.symbol}</span>
-                                <span className="text-[10px] text-[hsl(210,15%,65%)] leading-tight text-center truncate w-full">{o.label}</span>
-                              </button>
-                            </TooltipTrigger>
-                            {info && (
-                              <TooltipContent side="right" className="max-w-[220px]">
-                                <p className="font-semibold text-xs">{o.label}</p>
-                                <p className="text-[10px] text-muted-foreground">{info.dimensions}</p>
-                                <p className="text-[10px] text-muted-foreground">{info.classes}</p>
-                              </TooltipContent>
-                            )}
-                          </Tooltip>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="shrink-0 p-2 border-t border-[hsl(221,20%,18%)]">
-                <TutorialButton onClick={() => setShowTutorial(true)} />
-              </div>
+              {leftPanelInner}
             </div>
           ) : (
             <button
               onClick={() => setLeftPanelCollapsed(false)}
-              className="w-6 shrink-0 bg-[hsl(221,28%,10%)] border-r border-[hsl(221,20%,18%)] flex items-center justify-center text-[hsl(210,15%,55%)] hover:text-[hsl(210,15%,80%)]"
+              className="hidden md:flex w-6 shrink-0 bg-[hsl(221,28%,10%)] border-r border-[hsl(221,20%,18%)] items-center justify-center text-[hsl(210,15%,55%)] hover:text-[hsl(210,15%,80%)]"
               title="Visa hinderpanel"
             >
               <ChevronDown size={14} className="-rotate-90" />
@@ -2933,9 +2979,9 @@ export default function CoursePlannerPage() {
             )}
           </div>
 
-          {/* ── RIGHT: properties / info panel ── */}
+          {/* ── RIGHT: properties / info panel (desktop/tablet only — mobile uses bottom sheet) ── */}
           {!sidebarCollapsed ? (
-            <div className="w-64 shrink-0 bg-[hsl(221,28%,10%)] border-l border-[hsl(221,20%,18%)] flex flex-col">
+            <div className="hidden md:flex w-64 shrink-0 bg-[hsl(221,28%,10%)] border-l border-[hsl(221,20%,18%)] flex-col">
               <div className="h-9 shrink-0 px-3 flex items-center justify-between border-b border-[hsl(221,20%,18%)]">
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-[hsl(210,15%,55%)]">
                   {selectedObs ? 'Egenskaper' : 'Information'}
@@ -3187,7 +3233,7 @@ export default function CoursePlannerPage() {
           ) : (
             <button
               onClick={() => setSidebarCollapsed(false)}
-              className="w-6 shrink-0 bg-[hsl(221,28%,10%)] border-l border-[hsl(221,20%,18%)] flex items-center justify-center text-[hsl(210,15%,55%)] hover:text-[hsl(210,15%,80%)]"
+              className="hidden md:flex w-6 shrink-0 bg-[hsl(221,28%,10%)] border-l border-[hsl(221,20%,18%)] items-center justify-center text-[hsl(210,15%,55%)] hover:text-[hsl(210,15%,80%)]"
               title="Visa egenskapspanel"
             >
               <ChevronDown size={14} className="rotate-90" />
@@ -3196,7 +3242,7 @@ export default function CoursePlannerPage() {
         </div>
 
         {/* ═══ STATUS BAR ═══ */}
-        <div className="h-7 shrink-0 flex items-center gap-3 px-3 bg-[hsl(221,28%,10%)] border-t border-[hsl(221,20%,18%)] text-[10px] text-[hsl(210,15%,55%)]">
+        <div className="h-7 shrink-0 flex items-center gap-3 px-3 bg-[hsl(221,28%,10%)] border-t border-[hsl(221,20%,18%)] text-[10px] text-[hsl(210,15%,55%)] overflow-x-auto whitespace-nowrap scrollbar-hide">
           <span className="font-mono">{Math.round(canvasWidth / PX_PER_METER)} × {Math.round(canvasHeight / PX_PER_METER)} m</span>
           <span className="text-[hsl(221,20%,22%)]">|</span>
           <span>{obstacles.length} hinder</span>
@@ -3208,6 +3254,243 @@ export default function CoursePlannerPage() {
           <span className="text-[hsl(221,20%,22%)]">|</span>
           <span className="font-mono">{Math.round(zoom * 100)}%</span>
         </div>
+
+        {/* ═══ MOBILE: bottom sheets för Hinder och Egenskaper/Verktyg ═══
+            Endast aktiva på små skärmar. Använder samma JSX-innehåll som
+            sidopanelerna ovan för 1:1-paritet. */}
+        <Drawer open={mobileLeftSheetOpen} onOpenChange={setMobileLeftSheetOpen}>
+          <DrawerContent className="max-h-[75vh] bg-[hsl(221,28%,10%)] border-t border-[hsl(221,20%,18%)]">
+            <DrawerHeader className="border-b border-[hsl(221,20%,18%)] py-2">
+              <DrawerTitle className="text-[hsl(210,20%,90%)] text-sm font-semibold">Hinder</DrawerTitle>
+            </DrawerHeader>
+            <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              {leftPanelInner}
+            </div>
+          </DrawerContent>
+        </Drawer>
+
+        <Drawer open={mobileRightSheetOpen} onOpenChange={setMobileRightSheetOpen}>
+          <DrawerContent className="max-h-[75vh] bg-[hsl(221,28%,10%)] border-t border-[hsl(221,20%,18%)]">
+            <DrawerHeader className="border-b border-[hsl(221,20%,18%)] py-2">
+              <DrawerTitle className="text-[hsl(210,20%,90%)] text-sm font-semibold">
+                {selectedObs ? 'Egenskaper' : 'Verktyg & info'}
+              </DrawerTitle>
+            </DrawerHeader>
+            <div className="flex-1 overflow-y-auto">
+              {selectedObs ? (
+                /* Kompakt egenskaps-panel för mobil */
+                <div className="p-3 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-md bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] flex items-center justify-center text-lg">
+                      {ALL_OBSTACLE_TYPES.find(t => t.type === selectedObs.type)?.symbol}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-[hsl(210,20%,90%)] truncate">{selectedObs.label}</div>
+                      <div className="text-[10px] text-[hsl(210,15%,55%)]">#{selectedObs.id.slice(-6)}</div>
+                    </div>
+                    {isLocked && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-medium">Låst</span>}
+                  </div>
+
+                  {/* Position */}
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Position</div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <div className="bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] rounded px-2 py-1.5">
+                        <div className="text-[9px] text-[hsl(210,15%,50%)]">X</div>
+                        <div className="text-xs font-mono text-[hsl(210,20%,85%)]">{(selectedObs.x / PX_PER_METER).toFixed(1)}m</div>
+                      </div>
+                      <div className="bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] rounded px-2 py-1.5">
+                        <div className="text-[9px] text-[hsl(210,15%,50%)]">Y</div>
+                        <div className="text-xs font-mono text-[hsl(210,20%,85%)]">{(selectedObs.y / PX_PER_METER).toFixed(1)}m</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rotation */}
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Rotation</div>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        value={Math.round(selectedObs.rotation)}
+                        onChange={e => !isLocked && setRotationManual(parseInt(e.target.value) || 0)}
+                        disabled={isLocked}
+                        className="flex-1 h-9 text-sm text-center bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] rounded outline-none focus:border-primary disabled:opacity-50"
+                      />
+                      <span className="text-xs text-[hsl(210,15%,55%)]">°</span>
+                      <button
+                        onClick={() => !isLocked && rotateSelected()}
+                        disabled={isLocked}
+                        className="w-9 h-9 inline-flex items-center justify-center rounded bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary disabled:opacity-50"
+                        title="Rotera 15°"
+                      >
+                        <RotateCcw size={14} />
+                      </button>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={360}
+                      step={5}
+                      value={Math.round(selectedObs.rotation)}
+                      onChange={e => !isLocked && setRotationManual(Number(e.target.value))}
+                      disabled={isLocked}
+                      className="w-full h-2 accent-primary"
+                    />
+                  </div>
+
+                  {/* Tunnel-specific */}
+                  {selectedObs.type === 'tunnel' && (
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Tunnel</div>
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={toggleTunnelLength} className="flex-1 h-9 rounded bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary text-xs font-medium">
+                          {selectedObs.tunnelLength || 4}m
+                        </button>
+                        <button onClick={() => updateTunnelBend(-15)} className="w-9 h-9 inline-flex items-center justify-center rounded bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary">
+                          <Minus size={14} />
+                        </button>
+                        <span className="text-xs font-medium w-10 text-center text-[hsl(210,20%,85%)]">{selectedObs.bendAngle || 0}°</span>
+                        <button onClick={() => updateTunnelBend(15)} className="w-9 h-9 inline-flex items-center justify-center rounded bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary">
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Number badges */}
+                  {(selectedObs.numbers && selectedObs.numbers.length > 0) && (
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Nummer</div>
+                      <div className="flex gap-1 flex-wrap">
+                        {(selectedObs.colorNumbers || []).map((cn, idx) => (
+                          <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ backgroundColor: cn.color + '30', color: cn.color }}>
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cn.color }} />
+                            {cn.num}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="space-y-1.5 pt-2 border-t border-[hsl(221,20%,18%)]">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Åtgärder</div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => { copySelected(); }}
+                        disabled={isLocked}
+                        className="h-10 inline-flex items-center justify-center gap-1 rounded bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary text-xs font-medium disabled:opacity-50"
+                      >
+                        <Copy size={13} /> Duplicera
+                      </button>
+                      <button
+                        onClick={toggleLock}
+                        className={`h-10 inline-flex items-center justify-center gap-1 rounded border text-xs font-medium transition-colors ${
+                          isLocked
+                            ? 'bg-amber-500/15 border-amber-500/40 text-amber-400'
+                            : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)] hover:border-amber-500/40'
+                        }`}
+                      >
+                        {isLocked ? 'Lås upp' : 'Lås'}
+                      </button>
+                      <button
+                        onClick={() => { if (!isLocked) { deleteSelected(); setMobileRightSheetOpen(false); } }}
+                        disabled={isLocked}
+                        className="col-span-2 h-10 inline-flex items-center justify-center gap-1 rounded bg-destructive/10 border border-destructive/30 text-destructive hover:bg-destructive/20 text-xs font-semibold disabled:opacity-50"
+                      >
+                        <Trash2 size={13} /> Radera hinder
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Verktyg & info för mobil när inget är markerat */
+                <div className="p-3 space-y-3">
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Verktyg</div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <button
+                        onClick={() => { setDrawingMode(!drawingMode); setNumberingMode(false); setMeasureMode(false); setMobileRightSheetOpen(false); }}
+                        className={`h-14 flex flex-col items-center justify-center gap-0.5 rounded border transition-colors ${
+                          drawingMode ? 'bg-orange-500/15 border-orange-500/40 text-orange-400' : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)]'
+                        }`}
+                      >
+                        <Pencil size={16} />
+                        <span className="text-[10px]">Rita</span>
+                      </button>
+                      <button
+                        onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); setMeasureMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } setMobileRightSheetOpen(false); }}
+                        className={`h-14 flex flex-col items-center justify-center gap-0.5 rounded border transition-colors ${
+                          numberingMode ? 'bg-blue-500/15 border-blue-500/40 text-blue-400' : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)]'
+                        }`}
+                      >
+                        <Hash size={16} />
+                        <span className="text-[10px]">Numrera</span>
+                      </button>
+                      <button
+                        onClick={() => { setMeasureMode(!measureMode); setDrawingMode(false); setNumberingMode(false); setMeasurePoints([]); setMobileRightSheetOpen(false); }}
+                        className={`h-14 flex flex-col items-center justify-center gap-0.5 rounded border transition-colors ${
+                          measureMode ? 'bg-yellow-500/15 border-yellow-500/40 text-yellow-400' : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)]'
+                        }`}
+                      >
+                        <Ruler size={16} />
+                        <span className="text-[10px]">Mät</span>
+                      </button>
+                    </div>
+                    {handlerPath.length > 0 && (
+                      <button
+                        onClick={() => setHandlerPath([])}
+                        className="w-full h-9 mt-1 inline-flex items-center justify-center gap-1 rounded bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-destructive/40 text-destructive text-[11px] font-medium"
+                      >
+                        <Eraser size={12} /> Rensa förarlinje
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Banstorlek */}
+                  <div className="space-y-1 pt-2 border-t border-[hsl(221,20%,18%)]">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Banstorlek</div>
+                    <Select
+                      value={`${canvasSize.width}x${canvasSize.height}`}
+                      onValueChange={(v) => {
+                        const [w, h] = v.split('x').map(Number);
+                        const match = CANVAS_SIZES.find(s => s.width === w && s.height === h);
+                        if (match) setCanvasSize(match);
+                      }}
+                    >
+                      <SelectTrigger className="h-9 text-xs bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CANVAS_SIZES.map(s => (
+                          <SelectItem key={s.label} value={`${s.width}x${s.height}`} className="text-xs">{s.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Stats */}
+                  {obstacles.length > 0 && (
+                    <div className="space-y-1 pt-2 border-t border-[hsl(221,20%,18%)]">
+                      <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Statistik</div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <div className="bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] rounded px-2 py-2">
+                          <div className="text-[9px] text-[hsl(210,15%,50%)]">Hinder</div>
+                          <div className="text-base font-semibold text-[hsl(210,20%,90%)]">{courseStats.total}</div>
+                        </div>
+                        <div className="bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] rounded px-2 py-2">
+                          <div className="text-[9px] text-[hsl(210,15%,50%)]">Längd</div>
+                          <div className="text-base font-semibold text-[hsl(210,20%,90%)]">~{Math.round(courseStats.length)}m</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </DrawerContent>
+        </Drawer>
 
         <CoursePlannerTutorial forceOpen={showTutorial} onClose={() => setShowTutorial(false)} />
       </div>

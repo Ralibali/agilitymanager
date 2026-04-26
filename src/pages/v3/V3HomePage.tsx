@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Dog as DogIcon, Target, BarChart3, CalendarDays, Flame, Medal, Lightbulb, ArrowRight, type LucideIcon } from "lucide-react";
+import { Plus, Dog as DogIcon, Target, BarChart3, CalendarDays, Flame, Medal, Lightbulb, ArrowRight, CheckCircle2, Circle, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
@@ -43,12 +43,7 @@ function getCurrentWeekDays(): { d: string; n: string; active: boolean; iso: str
     const date = new Date(monday);
     date.setDate(monday.getDate() + index);
     const isToday = date.getTime() === today.getTime();
-    return {
-      d,
-      n: String(date.getDate()),
-      active: isToday,
-      iso: date.toISOString().slice(0, 10),
-    };
+    return { d, n: String(date.getDate()), active: isToday, iso: date.toISOString().slice(0, 10) };
   });
 }
 
@@ -120,10 +115,7 @@ function useGreeting(): { greeting: string; name: string } {
   }, []);
 
   useEffect(() => {
-    if (!user?.id) {
-      setName("vovvägare");
-      return;
-    }
+    if (!user?.id) { setName("vovvägare"); return; }
     let cancelled = false;
     (async () => {
       const { data } = await supabase.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle();
@@ -132,9 +124,7 @@ function useGreeting(): { greeting: string; name: string } {
       const cleaned = raw && raw.includes("@") ? raw.split("@")[0] : raw;
       setName(cleaned && cleaned.length > 0 ? cleaned : "vovvägare");
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [user?.id]);
 
   return { greeting, name };
@@ -162,6 +152,7 @@ export default function V3HomePage() {
   }, [active?.id, active?.name, hasTimeline, passedThisMonth, streakDays]);
 
   const smartTips = useMemo(() => buildSmartTips({ dogName: active?.name, hasTimeline, streakDays, passedThisMonth, nextEvent }), [active?.name, hasTimeline, nextEvent, passedThisMonth, streakDays]);
+  const activationSteps = useMemo(() => buildActivationSteps({ hasDog: dogs.length > 0, hasTimeline, hasNextEvent: Boolean(nextEvent), hasResult: passedThisMonth > 0 }), [dogs.length, hasTimeline, nextEvent, passedThisMonth]);
 
   const [showOnboarding, setShowOnboarding] = useState(false);
   useEffect(() => {
@@ -172,14 +163,7 @@ export default function V3HomePage() {
   }, [user, dogs, dogsLoading]);
 
   if (showOnboarding) {
-    return (
-      <V3OnboardingWizard
-        onComplete={() => {
-          setShowOnboarding(false);
-          window.location.reload();
-        }}
-      />
-    );
+    return <V3OnboardingWizard onComplete={() => { setShowOnboarding(false); window.location.reload(); }} />;
   }
 
   return (
@@ -194,10 +178,7 @@ export default function V3HomePage() {
           accent="brand"
           title="Lägg till din första hund"
           description="Allt i AgilityManager kretsar kring dina hundar – träning, tävlingar och mål. Ta 30 sekunder och kom igång."
-          actions={[
-            { label: "Starta guiden", onClick: () => setShowOnboarding(true), icon: Plus },
-            { label: "Lägg till manuellt", onClick: () => navigate("/v3/dogs"), variant: "secondary" },
-          ]}
+          actions={[{ label: "Starta guiden", onClick: () => setShowOnboarding(true), icon: Plus }, { label: "Lägg till manuellt", onClick: () => navigate("/v3/dogs"), variant: "secondary" }]}
         />
       ) : (
         <DogHero dogs={dogs} active={active} activeId={activeId} onSelect={setActive} onAddDog={() => navigate("/v3/dogs")} />
@@ -213,6 +194,7 @@ export default function V3HomePage() {
           </section>
 
           <SmartTipsPanel tips={smartTips} onLog={openV3LogSheet} onNavigate={navigate} />
+          <ActivationChecklist steps={activationSteps} onLog={openV3LogSheet} onNavigate={navigate} />
 
           <div className="grid grid-cols-1 xl:grid-cols-[1.15fr_0.85fr] gap-4">
             <NextUpSoftCard loading={dashLoading} hasNext={Boolean(nextEvent)} nextCopy={copy.next} onOpen={() => navigate("/v3/competition")} onLog={openV3LogSheet} />
@@ -232,43 +214,33 @@ export default function V3HomePage() {
   );
 }
 
-type SmartTip = {
-  title: string;
-  body: string;
-  actionLabel: string;
-  action: "log" | "goals" | "competition" | "stats" | "training";
-  tone: "brand" | "warm" | "neutral";
-};
+type SmartTip = { title: string; body: string; actionLabel: string; action: "log" | "goals" | "competition" | "stats" | "training"; tone: "brand" | "warm" | "neutral"; };
+type ActivationStep = { title: string; body: string; done: boolean; actionLabel: string; action: "log" | "dog" | "competition" | "stats"; };
+
+function buildActivationSteps({ hasDog, hasTimeline, hasNextEvent, hasResult }: { hasDog: boolean; hasTimeline: boolean; hasNextEvent: boolean; hasResult: boolean }): ActivationStep[] {
+  return [
+    { title: "Lägg till hund", body: "Bygg allt runt rätt hund och sport.", done: hasDog, actionLabel: "Hundar", action: "dog" },
+    { title: "Logga första passet", body: "Det gör statistiken och dashboarden levande.", done: hasTimeline, actionLabel: "Logga pass", action: "log" },
+    { title: "Planera nästa start", body: "Ge träningen en tydlig riktning.", done: hasNextEvent, actionLabel: "Planera", action: "competition" },
+    { title: "Följ utvecklingen", body: "Se vad som fungerar och vad som behöver justeras.", done: hasTimeline || hasResult, actionLabel: "Statistik", action: "stats" },
+  ];
+}
 
 function buildSmartTips({ dogName, hasTimeline, streakDays, passedThisMonth, nextEvent }: { dogName?: string; hasTimeline: boolean; streakDays: number; passedThisMonth: number; nextEvent: NextEvent }): SmartTip[] {
   const name = dogName ?? "din hund";
   const tips: SmartTip[] = [];
-
   if (!hasTimeline) {
     tips.push({ title: "Börja med första passet", body: `Logga ett enkelt pass med ${name}. Det räcker med typ, tid och känsla för att börja bygga historik.`, actionLabel: "Logga pass", action: "log", tone: "brand" });
     tips.push({ title: "Sätt ett första fokus", body: "Ett mål gör nästa träningspass lättare att välja och följa upp.", actionLabel: "Skapa mål", action: "goals", tone: "neutral" });
   } else {
     tips.push({ title: "Följ upp senaste passet", body: "Skriv ner vad som fungerade innan känslan försvinner. Små noteringar ger bättre mönster över tid.", actionLabel: "Logga pass", action: "log", tone: "brand" });
   }
-
-  if (streakDays === 0 && hasTimeline) {
-    tips.push({ title: "Starta om rutinen", body: "Ett kort pass idag räcker för att börja bygga kontinuitet igen.", actionLabel: "Logga pass", action: "log", tone: "warm" });
-  } else if (streakDays > 0) {
-    tips.push({ title: "Skydda träningsrytmen", body: `${streakDays} ${streakDays === 1 ? "dag" : "dagar"} i rad. Planera nästa enkla pass medan rutinen sitter.`, actionLabel: "Se träning", action: "training", tone: "warm" });
-  }
-
-  if (!nextEvent) {
-    tips.push({ title: "Planera nästa start", body: "Lägg in en tävling eller träningsaktivitet så får dashboarden mer riktning.", actionLabel: "Planera tävling", action: "competition", tone: "neutral" });
-  } else {
-    tips.push({ title: "Förbered nästa aktivitet", body: "Du har något på gång. Använd de senaste passen för att välja rätt fokus inför starten.", actionLabel: "Se tävlingar", action: "competition", tone: "neutral" });
-  }
-
-  if (passedThisMonth === 0 && hasTimeline) {
-    tips.push({ title: "Spara tävlingsresultat", body: "När du loggar resultat kan appen visa pass-rate och utveckling över tid.", actionLabel: "Logga resultat", action: "competition", tone: "neutral" });
-  } else if (passedThisMonth > 0) {
-    tips.push({ title: "Analysera vad som fungerade", body: "Du har godkända lopp den här månaden. Se om träningen visar ett mönster.", actionLabel: "Se statistik", action: "stats", tone: "brand" });
-  }
-
+  if (streakDays === 0 && hasTimeline) tips.push({ title: "Starta om rutinen", body: "Ett kort pass idag räcker för att börja bygga kontinuitet igen.", actionLabel: "Logga pass", action: "log", tone: "warm" });
+  else if (streakDays > 0) tips.push({ title: "Skydda träningsrytmen", body: `${streakDays} ${streakDays === 1 ? "dag" : "dagar"} i rad. Planera nästa enkla pass medan rutinen sitter.`, actionLabel: "Se träning", action: "training", tone: "warm" });
+  if (!nextEvent) tips.push({ title: "Planera nästa start", body: "Lägg in en tävling eller träningsaktivitet så får dashboarden mer riktning.", actionLabel: "Planera tävling", action: "competition", tone: "neutral" });
+  else tips.push({ title: "Förbered nästa aktivitet", body: "Du har något på gång. Använd de senaste passen för att välja rätt fokus inför starten.", actionLabel: "Se tävlingar", action: "competition", tone: "neutral" });
+  if (passedThisMonth === 0 && hasTimeline) tips.push({ title: "Spara tävlingsresultat", body: "När du loggar resultat kan appen visa pass-rate och utveckling över tid.", actionLabel: "Logga resultat", action: "competition", tone: "neutral" });
+  else if (passedThisMonth > 0) tips.push({ title: "Analysera vad som fungerade", body: "Du har godkända lopp den här månaden. Se om träningen visar ett mönster.", actionLabel: "Se statistik", action: "stats", tone: "brand" });
   return tips.slice(0, 3);
 }
 
@@ -280,27 +252,48 @@ function SmartTipsPanel({ tips, onLog, onNavigate }: { tips: SmartTip[]; onLog: 
     if (action === "training") return onNavigate("/v3/training");
     return onNavigate("/v3/stats");
   };
-
   return (
     <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs">
       <div className="flex items-start justify-between gap-4 mb-4">
-        <div>
-          <div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
-            <Lightbulb size={13} strokeWidth={1.8} /> Smarta förslag
-          </div>
-          <h2 className="font-v3-display text-v3-2xl text-v3-text-primary mt-1">Nästa bästa steg</h2>
-        </div>
+        <div><div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary"><Lightbulb size={13} strokeWidth={1.8} /> Smarta förslag</div><h2 className="font-v3-display text-v3-2xl text-v3-text-primary mt-1">Nästa bästa steg</h2></div>
         <span className="hidden sm:inline-flex rounded-full bg-v3-brand-500/10 px-3 py-1 text-v3-xs font-medium text-v3-brand-700">Anpassas efter din data</span>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {tips.map((tip) => (
           <button key={tip.title} type="button" onClick={() => handleAction(tip.action)} className="group text-left rounded-v3-xl border border-v3-canvas-sunken/40 bg-v3-canvas/45 p-4 hover:border-v3-brand-500/30 hover:bg-v3-canvas-elevated transition-all">
-            <div className={cn("h-9 w-9 rounded-full grid place-items-center mb-3", tip.tone === "brand" && "bg-v3-brand-500/10 text-v3-brand-700", tip.tone === "warm" && "bg-orange-100 text-orange-700", tip.tone === "neutral" && "bg-v3-canvas-sunken text-v3-text-secondary")}>
-              <ArrowRight size={15} strokeWidth={1.8} className="group-hover:translate-x-0.5 transition-transform" />
+            <div className={cn("h-9 w-9 rounded-full grid place-items-center mb-3", tip.tone === "brand" && "bg-v3-brand-500/10 text-v3-brand-700", tip.tone === "warm" && "bg-orange-100 text-orange-700", tip.tone === "neutral" && "bg-v3-canvas-sunken text-v3-text-secondary")}><ArrowRight size={15} strokeWidth={1.8} className="group-hover:translate-x-0.5 transition-transform" /></div>
+            <h3 className="font-v3-display text-v3-lg text-v3-text-primary leading-tight">{tip.title}</h3><p className="text-v3-sm text-v3-text-secondary mt-1.5 line-clamp-3">{tip.body}</p><div className="text-v3-sm font-medium text-v3-brand-700 mt-4">{tip.actionLabel} →</div>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ActivationChecklist({ steps, onLog, onNavigate }: { steps: ActivationStep[]; onLog: () => void; onNavigate: (path: string) => void }) {
+  const completed = steps.filter((step) => step.done).length;
+  const progress = Math.round((completed / steps.length) * 100);
+  const handle = (action: ActivationStep["action"]) => {
+    if (action === "log") return onLog();
+    if (action === "dog") return onNavigate("/v3/dogs?action=new");
+    if (action === "competition") return onNavigate("/v3/competition?action=new");
+    return onNavigate("/v3/stats");
+  };
+  return (
+    <section className="rounded-v3-2xl bg-v3-text-primary text-white p-5 shadow-v3-sm overflow-hidden relative">
+      <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-v3-brand-500/20 blur-2xl" />
+      <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
+        <div><div className="text-[10px] uppercase tracking-[0.08em] font-medium text-white/55">Kom igång</div><h2 className="font-v3-display text-v3-2xl mt-1">Din aktiveringsresa</h2><p className="text-v3-sm text-white/65 mt-1">Ju fler steg användaren gör, desto tydligare blir värdet i appen.</p></div>
+        <div className="lg:text-right"><div className="font-v3-display text-[34px] leading-none tabular-nums">{progress}%</div><div className="text-v3-xs text-white/55 mt-1">{completed}/{steps.length} steg klara</div></div>
+      </div>
+      <div className="relative h-2 rounded-full bg-white/10 overflow-hidden mb-4"><div className="h-full bg-v3-brand-500 rounded-full transition-all" style={{ width: `${progress}%` }} /></div>
+      <div className="relative grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
+        {steps.map((step) => (
+          <button key={step.title} type="button" onClick={() => !step.done && handle(step.action)} className={cn("text-left rounded-v3-xl border p-3 transition-all", step.done ? "bg-white/8 border-white/10 cursor-default" : "bg-white/[0.03] border-white/10 hover:bg-white/10 hover:border-white/20")}> 
+            <div className="flex items-start gap-2">
+              {step.done ? <CheckCircle2 size={18} className="text-v3-brand-400 shrink-0 mt-0.5" /> : <Circle size={18} className="text-white/35 shrink-0 mt-0.5" />}
+              <div className="min-w-0"><h3 className="text-v3-sm font-medium text-white">{step.title}</h3><p className="text-v3-xs text-white/55 mt-1 leading-relaxed">{step.body}</p>{!step.done && <div className="text-v3-xs font-medium text-v3-brand-300 mt-2">{step.actionLabel} →</div>}</div>
             </div>
-            <h3 className="font-v3-display text-v3-lg text-v3-text-primary leading-tight">{tip.title}</h3>
-            <p className="text-v3-sm text-v3-text-secondary mt-1.5 line-clamp-3">{tip.body}</p>
-            <div className="text-v3-sm font-medium text-v3-brand-700 mt-4">{tip.actionLabel} →</div>
           </button>
         ))}
       </div>
@@ -311,117 +304,28 @@ function SmartTipsPanel({ tips, onLog, onNavigate }: { tips: SmartTip[]; onLog: 
 function DashboardHero({ greeting, name, heroCopy }: { greeting: string; name: string; heroCopy: string }) {
   return (
     <header className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-v3-canvas-elevated via-v3-canvas-elevated to-[#f5ead7] border border-v3-canvas-sunken/50 p-6 lg:p-8 shadow-v3-sm min-h-[220px]">
-      <div className="absolute inset-y-0 right-0 hidden md:block w-[42%] pointer-events-none" aria-hidden="true">
-        <div className="absolute right-10 top-10 h-14 w-14 rounded-full bg-[#f0cf82]/70" />
-        <div className="absolute right-0 bottom-0 h-32 w-[420px] rounded-tl-full bg-v3-brand-500/10" />
-        <div className="absolute right-28 bottom-10 h-16 w-32 rounded-full bg-v3-brand-500/10 blur-sm" />
-        <div className="absolute right-44 bottom-16 h-16 w-1.5 rounded-full bg-v3-brand-500/35" />
-        <div className="absolute right-24 bottom-16 h-20 w-1.5 rounded-full bg-v3-brand-500/30" />
-        <div className="absolute right-44 bottom-[118px] h-1.5 w-32 rounded-full bg-v3-brand-500/35" />
-        <div className="absolute right-24 bottom-[102px] h-1.5 w-32 rounded-full bg-v3-brand-500/25" />
-        <div className="absolute right-8 bottom-8 h-20 w-20 rounded-[28px] bg-white/70 border border-white/80 shadow-v3-sm grid place-items-center">
-          <DogIcon size={34} strokeWidth={1.5} className="text-v3-brand-700" />
-        </div>
-      </div>
-      <div className="relative max-w-2xl">
-        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
-          {new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long" })}
-        </div>
-        <h1 className="font-v3-display text-[38px] lg:text-[52px] leading-[1.02] tracking-[-0.035em] text-v3-text-primary mt-4">
-          {greeting === "Hej" ? "Hej" : greeting}, {name}
-        </h1>
-        <p className="text-v3-base lg:text-v3-lg text-v3-text-secondary max-w-xl mt-3 leading-relaxed">
-          {heroCopy}
-        </p>
-        <button type="button" onClick={openV3LogSheet} className="mt-5 inline-flex items-center justify-center gap-2 h-12 px-6 rounded-v3-base bg-v3-text-primary text-white text-v3-sm font-medium hover:bg-v3-brand-700 transition-colors shadow-v3-sm">
-          <Plus size={17} /> Logga pass
-        </button>
-      </div>
+      <div className="absolute inset-y-0 right-0 hidden md:block w-[42%] pointer-events-none" aria-hidden="true"><div className="absolute right-10 top-10 h-14 w-14 rounded-full bg-[#f0cf82]/70" /><div className="absolute right-0 bottom-0 h-32 w-[420px] rounded-tl-full bg-v3-brand-500/10" /><div className="absolute right-28 bottom-10 h-16 w-32 rounded-full bg-v3-brand-500/10 blur-sm" /><div className="absolute right-44 bottom-16 h-16 w-1.5 rounded-full bg-v3-brand-500/35" /><div className="absolute right-24 bottom-16 h-20 w-1.5 rounded-full bg-v3-brand-500/30" /><div className="absolute right-44 bottom-[118px] h-1.5 w-32 rounded-full bg-v3-brand-500/35" /><div className="absolute right-24 bottom-[102px] h-1.5 w-32 rounded-full bg-v3-brand-500/25" /><div className="absolute right-8 bottom-8 h-20 w-20 rounded-[28px] bg-white/70 border border-white/80 shadow-v3-sm grid place-items-center"><DogIcon size={34} strokeWidth={1.5} className="text-v3-brand-700" /></div></div>
+      <div className="relative max-w-2xl"><div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">{new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long" })}</div><h1 className="font-v3-display text-[38px] lg:text-[52px] leading-[1.02] tracking-[-0.035em] text-v3-text-primary mt-4">{greeting === "Hej" ? "Hej" : greeting}, {name}</h1><p className="text-v3-base lg:text-v3-lg text-v3-text-secondary max-w-xl mt-3 leading-relaxed">{heroCopy}</p><button type="button" onClick={openV3LogSheet} className="mt-5 inline-flex items-center justify-center gap-2 h-12 px-6 rounded-v3-base bg-v3-text-primary text-white text-v3-sm font-medium hover:bg-v3-brand-700 transition-colors shadow-v3-sm"><Plus size={17} /> Logga pass</button></div>
     </header>
   );
 }
 
 function ActionCard({ icon: Icon, title, description, accent, onClick }: { icon: LucideIcon; title: string; description: string; accent: "brand" | "tavling" | "prestation" | "neutral"; onClick: () => void }) {
-  const accentClass = {
-    brand: "bg-v3-brand-500/10 text-v3-brand-700",
-    tavling: "bg-v3-accent-tavlings/12 text-v3-accent-tavlings",
-    prestation: "bg-v3-accent-prestation/12 text-v3-accent-prestation",
-    neutral: "bg-v3-canvas-sunken/70 text-v3-text-secondary",
-  }[accent];
-  return (
-    <button type="button" onClick={onClick} className="group text-left rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/30 hover:shadow-v3-sm transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-v3-brand-500/20">
-      <div className="flex items-center gap-3">
-        <div className={cn("h-11 w-11 rounded-full grid place-items-center shrink-0", accentClass)}><Icon size={18} strokeWidth={1.8} /></div>
-        <div className="min-w-0">
-          <h3 className="font-v3-display text-v3-lg text-v3-text-primary leading-tight">{title}</h3>
-          <p className="text-v3-sm text-v3-text-secondary mt-0.5 truncate">{description}</p>
-        </div>
-      </div>
-    </button>
-  );
+  const accentClass = { brand: "bg-v3-brand-500/10 text-v3-brand-700", tavling: "bg-v3-accent-tavlings/12 text-v3-accent-tavlings", prestation: "bg-v3-accent-prestation/12 text-v3-accent-prestation", neutral: "bg-v3-canvas-sunken/70 text-v3-text-secondary" }[accent];
+  return <button type="button" onClick={onClick} className="group text-left rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/30 hover:shadow-v3-sm transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-v3-brand-500/20"><div className="flex items-center gap-3"><div className={cn("h-11 w-11 rounded-full grid place-items-center shrink-0", accentClass)}><Icon size={18} strokeWidth={1.8} /></div><div className="min-w-0"><h3 className="font-v3-display text-v3-lg text-v3-text-primary leading-tight">{title}</h3><p className="text-v3-sm text-v3-text-secondary mt-0.5 truncate">{description}</p></div></div></button>;
 }
 
 function NextUpSoftCard({ loading, hasNext, nextCopy, onOpen, onLog }: { loading: boolean; hasNext: boolean; nextCopy: { title: string; body: string }; onOpen: () => void; onLog: () => void }) {
   if (loading) return <div className="h-[164px] rounded-v3-2xl v3-skeleton" />;
-  return (
-    <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs min-h-[164px]">
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Nästa upp</h2>
-        <button type="button" onClick={onOpen} className="h-8 px-3 rounded-v3-base border border-v3-canvas-sunken/60 text-v3-xs font-medium text-v3-text-secondary hover:bg-v3-canvas-sunken/60 transition-colors">Tävlingar</button>
-      </div>
-      <div className="flex items-start gap-4">
-        <div className="w-16 rounded-v3-lg bg-v3-canvas-sunken/60 p-2 text-center shrink-0">
-          <div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary">Nästa</div>
-          <div className="font-v3-display text-[28px] leading-none text-v3-text-primary mt-1">+</div>
-          <div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary mt-1">Steg</div>
-        </div>
-        <div className="min-w-0 flex-1">
-          <span className="inline-flex rounded-full bg-v3-brand-500/10 px-2.5 py-1 text-v3-xs font-medium text-v3-brand-700">{hasNext ? "Tävling" : "Fokus"}</span>
-          <h3 className="font-v3-display text-v3-xl text-v3-text-primary mt-2">{hasNext ? "Kommande aktivitet" : nextCopy.title}</h3>
-          <p className="text-v3-sm text-v3-text-secondary mt-1">{hasNext ? "Du har något på gång. Planera nästa pass runt kommande aktivitet." : nextCopy.body}</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-v3-xs text-v3-text-tertiary"><span>Träning</span><span>Mål</span><span>Tävling</span></div>
-        </div>
-      </div>
-      {!hasNext && <button type="button" onClick={onLog} className="mt-4 text-v3-sm font-medium text-v3-brand-700 hover:text-v3-brand-900">Logga ett pass →</button>}
-    </section>
-  );
+  return <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs min-h-[164px]"><div className="flex items-center justify-between gap-3 mb-4"><h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Nästa upp</h2><button type="button" onClick={onOpen} className="h-8 px-3 rounded-v3-base border border-v3-canvas-sunken/60 text-v3-xs font-medium text-v3-text-secondary hover:bg-v3-canvas-sunken/60 transition-colors">Tävlingar</button></div><div className="flex items-start gap-4"><div className="w-16 rounded-v3-lg bg-v3-canvas-sunken/60 p-2 text-center shrink-0"><div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary">Nästa</div><div className="font-v3-display text-[28px] leading-none text-v3-text-primary mt-1">+</div><div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary mt-1">Steg</div></div><div className="min-w-0 flex-1"><span className="inline-flex rounded-full bg-v3-brand-500/10 px-2.5 py-1 text-v3-xs font-medium text-v3-brand-700">{hasNext ? "Tävling" : "Fokus"}</span><h3 className="font-v3-display text-v3-xl text-v3-text-primary mt-2">{hasNext ? "Kommande aktivitet" : nextCopy.title}</h3><p className="text-v3-sm text-v3-text-secondary mt-1">{hasNext ? "Du har något på gång. Planera nästa pass runt kommande aktivitet." : nextCopy.body}</p><div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-v3-xs text-v3-text-tertiary"><span>Träning</span><span>Mål</span><span>Tävling</span></div></div></div>{!hasNext && <button type="button" onClick={onLog} className="mt-4 text-v3-sm font-medium text-v3-brand-700 hover:text-v3-brand-900">Logga ett pass →</button>}</section>;
 }
 
 function MetricCard({ icon: Icon, label, value, suffix, note, tone }: { icon: LucideIcon; label: string; value: string; suffix: string; note: string; tone: "warm" | "green" }) {
   const toneClass = tone === "warm" ? "bg-orange-100 text-orange-700" : "bg-v3-brand-500/10 text-v3-brand-700";
-  return (
-    <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs min-h-[164px]">
-      <div className="flex items-start justify-between gap-3"><h2 className="font-v3-display text-v3-xl text-v3-text-primary leading-tight">{label}</h2><div className={cn("h-12 w-12 rounded-full grid place-items-center shrink-0", toneClass)}><Icon size={20} strokeWidth={1.7} /></div></div>
-      <div className="mt-5 flex items-end gap-2"><div className="font-v3-display text-[40px] leading-none text-v3-text-primary tabular-nums">{value}</div><div className="text-v3-sm text-v3-text-secondary pb-1">{suffix}</div></div>
-      <p className="text-v3-sm text-v3-text-secondary mt-4">{note}</p>
-    </div>
-  );
+  return <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs min-h-[164px]"><div className="flex items-start justify-between gap-3"><h2 className="font-v3-display text-v3-xl text-v3-text-primary leading-tight">{label}</h2><div className={cn("h-12 w-12 rounded-full grid place-items-center shrink-0", toneClass)}><Icon size={20} strokeWidth={1.7} /></div></div><div className="mt-5 flex items-end gap-2"><div className="font-v3-display text-[40px] leading-none text-v3-text-primary tabular-nums">{value}</div><div className="text-v3-sm text-v3-text-secondary pb-1">{suffix}</div></div><p className="text-v3-sm text-v3-text-secondary mt-4">{note}</p></div>;
 }
 
 function WeeklyOverviewCard({ hasActivity }: { hasActivity: boolean }) {
   const days = getCurrentWeekDays();
-  return (
-    <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs">
-      <div className="flex items-center justify-between gap-3 mb-5">
-        <h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Veckans översikt</h2>
-        <span className="text-v3-xs text-v3-text-tertiary">Automatisk översikt</span>
-      </div>
-      <div className="grid grid-cols-7 gap-2">
-        {days.map((day) => (
-          <div key={day.iso} className={cn("rounded-v3-lg px-2 py-3 text-center border", day.active ? "border-v3-brand-500 bg-v3-brand-500/5" : "border-transparent bg-v3-canvas-sunken/30")}>
-            <div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary">{day.d}</div>
-            <div className="font-v3-display text-v3-xl text-v3-text-primary mt-1">{day.n}</div>
-            <div className="text-v3-brand-600 text-v3-sm mt-1">•</div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-5">
-        <div className="flex justify-between text-v3-sm text-v3-text-secondary mb-2">
-          <span>{hasActivity ? "Följ veckans pass här" : "Inga pass loggade denna vecka"}</span>
-          <span>{hasActivity ? "—" : "0%"}</span>
-        </div>
-        <div className="h-2 rounded-full bg-v3-canvas-sunken overflow-hidden"><div className={cn("h-full rounded-full bg-v3-brand-500", hasActivity ? "w-[20%]" : "w-0")} /></div>
-      </div>
-    </section>
-  );
+  return <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs"><div className="flex items-center justify-between gap-3 mb-5"><h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Veckans översikt</h2><span className="text-v3-xs text-v3-text-tertiary">Automatisk översikt</span></div><div className="grid grid-cols-7 gap-2">{days.map((day) => <div key={day.iso} className={cn("rounded-v3-lg px-2 py-3 text-center border", day.active ? "border-v3-brand-500 bg-v3-brand-500/5" : "border-transparent bg-v3-canvas-sunken/30")}><div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary">{day.d}</div><div className="font-v3-display text-v3-xl text-v3-text-primary mt-1">{day.n}</div><div className="text-v3-brand-600 text-v3-sm mt-1">•</div></div>)}</div><div className="mt-5"><div className="flex justify-between text-v3-sm text-v3-text-secondary mb-2"><span>{hasActivity ? "Följ veckans pass här" : "Inga pass loggade denna vecka"}</span><span>{hasActivity ? "—" : "0%"}</span></div><div className="h-2 rounded-full bg-v3-canvas-sunken overflow-hidden"><div className={cn("h-full rounded-full bg-v3-brand-500", hasActivity ? "w-[20%]" : "w-0")} /></div></div></section>;
 }

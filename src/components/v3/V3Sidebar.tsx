@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { ChevronsLeft, ChevronsRight } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { ChevronsLeft, ChevronsRight, Heart, Plus } from "lucide-react";
 import { V3_NAV_GROUPS, type V3NavItem } from "./navConfig";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/components/layout/useIsAdmin";
@@ -14,6 +14,7 @@ const STORAGE_KEY = "v3-sidebar-collapsed";
  * Färg: varm sand-canvas, mjuka borders, ingen brutal kontrast.
  */
 export function V3Sidebar() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { isAdmin } = useIsAdmin();
   const [collapsed, setCollapsed] = useState<boolean>(() => {
@@ -41,6 +42,7 @@ export function V3Sidebar() {
   const systemGroup = systemIndex >= 0 ? groups[systemIndex] : null;
 
   const initials = (user?.email ?? "?").slice(0, 1).toUpperCase();
+  const displayName = (user?.email ?? "Förare").split("@")[0] || "Förare";
 
   return (
     <aside
@@ -48,7 +50,7 @@ export function V3Sidebar() {
         "hidden lg:flex flex-col h-screen sticky top-0 shrink-0 font-v3-sans",
         "bg-v3-canvas border-r border-v3-canvas-sunken/60",
         "transition-[width] duration-[240ms] ease-[cubic-bezier(0.4,0,0.2,1)]",
-        collapsed ? "w-[64px]" : "w-[240px]",
+        collapsed ? "w-[64px]" : "w-[252px]",
       )}
       aria-label="Huvudnavigation"
       data-collapsed={collapsed}
@@ -57,7 +59,7 @@ export function V3Sidebar() {
       <div className={cn("flex items-center h-14 px-3", collapsed ? "justify-center" : "justify-between")}>
         {!collapsed && (
           <div className="flex items-center gap-2 min-w-0">
-            <div className="h-8 w-8 rounded-v3-base bg-v3-brand-500 grid place-items-center shrink-0">
+            <div className="h-8 w-8 rounded-v3-base bg-v3-brand-500 grid place-items-center shrink-0 shadow-v3-sm">
               <span className="font-v3-display text-[17px] leading-none text-white">A</span>
             </div>
             <span className="font-v3-display text-[17px] text-v3-text-primary truncate">
@@ -78,6 +80,27 @@ export function V3Sidebar() {
         </button>
       </div>
 
+      {!collapsed && (
+        <div className="px-3 pb-3">
+          <div className="relative overflow-hidden rounded-v3-2xl bg-v3-text-primary text-v3-text-inverse p-4 shadow-v3-sm">
+            <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-v3-brand-500/25 blur-2xl" />
+            <div className="relative flex items-center gap-2 text-[10px] uppercase tracking-[0.08em] text-white/55">
+              <Heart size={12} /> Teamkänsla
+            </div>
+            <div className="relative font-v3-display text-v3-xl mt-2 leading-tight text-white">
+              Fånga passet när känslan är färsk.
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate("/v3/training?action=new")}
+              className="relative mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-v3-base bg-white text-v3-text-primary text-v3-sm font-medium hover:bg-white/90 transition-colors"
+            >
+              <Plus size={14} /> Logga pass
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Topp-grupper */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-2 space-y-5">
         {topGroups.map((g) => (
@@ -96,7 +119,8 @@ export function V3Sidebar() {
       <div className="px-2 pb-3 pt-2 border-t border-v3-canvas-sunken/60">
         <button
           type="button"
-          aria-label="Användarmeny"
+          onClick={() => navigate("/v3/settings")}
+          aria-label="Inställningar"
           className={cn(
             "w-full flex items-center gap-2.5 rounded-v3-base px-2 py-2",
             "hover:bg-v3-canvas-sunken/60 transition-colors",
@@ -108,10 +132,10 @@ export function V3Sidebar() {
           </div>
           {!collapsed && (
             <div className="min-w-0 flex-1 text-left">
-              <div className="text-v3-sm font-medium text-v3-text-primary truncate">
-                {user?.email ?? "Inte inloggad"}
+              <div className="text-v3-sm font-medium text-v3-text-primary truncate capitalize">
+                {displayName}
               </div>
-              <div className="text-v3-xs text-v3-text-tertiary">Gratis</div>
+              <div className="text-v3-xs text-v3-text-tertiary">Gratis · uppgradera när du vill</div>
             </div>
           )}
         </button>
@@ -151,7 +175,7 @@ function V3NavGroupBlock({
                     "h-9 px-2.5",
                     collapsed && "justify-center px-0",
                     isActive
-                      ? "bg-v3-brand-500/10 text-v3-brand-700"
+                      ? "bg-v3-brand-500/10 text-v3-brand-700 shadow-v3-xs"
                       : "text-v3-text-secondary hover:bg-v3-canvas-sunken/60 hover:text-v3-text-primary",
                   )
                 }

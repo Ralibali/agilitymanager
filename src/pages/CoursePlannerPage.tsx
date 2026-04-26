@@ -3242,7 +3242,7 @@ export default function CoursePlannerPage() {
         </div>
 
         {/* ═══ STATUS BAR ═══ */}
-        <div className="h-7 shrink-0 flex items-center gap-3 px-3 bg-[hsl(221,28%,10%)] border-t border-[hsl(221,20%,18%)] text-[10px] text-[hsl(210,15%,55%)]">
+        <div className="h-7 shrink-0 flex items-center gap-3 px-3 bg-[hsl(221,28%,10%)] border-t border-[hsl(221,20%,18%)] text-[10px] text-[hsl(210,15%,55%)] overflow-x-auto whitespace-nowrap scrollbar-hide">
           <span className="font-mono">{Math.round(canvasWidth / PX_PER_METER)} × {Math.round(canvasHeight / PX_PER_METER)} m</span>
           <span className="text-[hsl(221,20%,22%)]">|</span>
           <span>{obstacles.length} hinder</span>
@@ -3254,6 +3254,243 @@ export default function CoursePlannerPage() {
           <span className="text-[hsl(221,20%,22%)]">|</span>
           <span className="font-mono">{Math.round(zoom * 100)}%</span>
         </div>
+
+        {/* ═══ MOBILE: bottom sheets för Hinder och Egenskaper/Verktyg ═══
+            Endast aktiva på små skärmar. Använder samma JSX-innehåll som
+            sidopanelerna ovan för 1:1-paritet. */}
+        <Drawer open={mobileLeftSheetOpen} onOpenChange={setMobileLeftSheetOpen}>
+          <DrawerContent className="max-h-[75vh] bg-[hsl(221,28%,10%)] border-t border-[hsl(221,20%,18%)]">
+            <DrawerHeader className="border-b border-[hsl(221,20%,18%)] py-2">
+              <DrawerTitle className="text-[hsl(210,20%,90%)] text-sm font-semibold">Hinder</DrawerTitle>
+            </DrawerHeader>
+            <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              {leftPanelInner}
+            </div>
+          </DrawerContent>
+        </Drawer>
+
+        <Drawer open={mobileRightSheetOpen} onOpenChange={setMobileRightSheetOpen}>
+          <DrawerContent className="max-h-[75vh] bg-[hsl(221,28%,10%)] border-t border-[hsl(221,20%,18%)]">
+            <DrawerHeader className="border-b border-[hsl(221,20%,18%)] py-2">
+              <DrawerTitle className="text-[hsl(210,20%,90%)] text-sm font-semibold">
+                {selectedObs ? 'Egenskaper' : 'Verktyg & info'}
+              </DrawerTitle>
+            </DrawerHeader>
+            <div className="flex-1 overflow-y-auto">
+              {selectedObs ? (
+                /* Kompakt egenskaps-panel för mobil */
+                <div className="p-3 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-md bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] flex items-center justify-center text-lg">
+                      {ALL_OBSTACLE_TYPES.find(t => t.type === selectedObs.type)?.symbol}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-[hsl(210,20%,90%)] truncate">{selectedObs.label}</div>
+                      <div className="text-[10px] text-[hsl(210,15%,55%)]">#{selectedObs.id.slice(-6)}</div>
+                    </div>
+                    {isLocked && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-medium">Låst</span>}
+                  </div>
+
+                  {/* Position */}
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Position</div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <div className="bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] rounded px-2 py-1.5">
+                        <div className="text-[9px] text-[hsl(210,15%,50%)]">X</div>
+                        <div className="text-xs font-mono text-[hsl(210,20%,85%)]">{(selectedObs.x / PX_PER_METER).toFixed(1)}m</div>
+                      </div>
+                      <div className="bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] rounded px-2 py-1.5">
+                        <div className="text-[9px] text-[hsl(210,15%,50%)]">Y</div>
+                        <div className="text-xs font-mono text-[hsl(210,20%,85%)]">{(selectedObs.y / PX_PER_METER).toFixed(1)}m</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rotation */}
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Rotation</div>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        value={Math.round(selectedObs.rotation)}
+                        onChange={e => !isLocked && setRotationManual(parseInt(e.target.value) || 0)}
+                        disabled={isLocked}
+                        className="flex-1 h-9 text-sm text-center bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] rounded outline-none focus:border-primary disabled:opacity-50"
+                      />
+                      <span className="text-xs text-[hsl(210,15%,55%)]">°</span>
+                      <button
+                        onClick={() => !isLocked && rotateSelected()}
+                        disabled={isLocked}
+                        className="w-9 h-9 inline-flex items-center justify-center rounded bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary disabled:opacity-50"
+                        title="Rotera 15°"
+                      >
+                        <RotateCcw size={14} />
+                      </button>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={360}
+                      step={5}
+                      value={Math.round(selectedObs.rotation)}
+                      onChange={e => !isLocked && setRotationManual(Number(e.target.value))}
+                      disabled={isLocked}
+                      className="w-full h-2 accent-primary"
+                    />
+                  </div>
+
+                  {/* Tunnel-specific */}
+                  {selectedObs.type === 'tunnel' && (
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Tunnel</div>
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={toggleTunnelLength} className="flex-1 h-9 rounded bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary text-xs font-medium">
+                          {selectedObs.tunnelLength || 4}m
+                        </button>
+                        <button onClick={() => updateTunnelBend(-15)} className="w-9 h-9 inline-flex items-center justify-center rounded bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary">
+                          <Minus size={14} />
+                        </button>
+                        <span className="text-xs font-medium w-10 text-center text-[hsl(210,20%,85%)]">{selectedObs.bendAngle || 0}°</span>
+                        <button onClick={() => updateTunnelBend(15)} className="w-9 h-9 inline-flex items-center justify-center rounded bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary">
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Number badges */}
+                  {(selectedObs.numbers && selectedObs.numbers.length > 0) && (
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Nummer</div>
+                      <div className="flex gap-1 flex-wrap">
+                        {(selectedObs.colorNumbers || []).map((cn, idx) => (
+                          <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ backgroundColor: cn.color + '30', color: cn.color }}>
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cn.color }} />
+                            {cn.num}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="space-y-1.5 pt-2 border-t border-[hsl(221,20%,18%)]">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Åtgärder</div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => { copySelected(); }}
+                        disabled={isLocked}
+                        className="h-10 inline-flex items-center justify-center gap-1 rounded bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary text-xs font-medium disabled:opacity-50"
+                      >
+                        <Copy size={13} /> Duplicera
+                      </button>
+                      <button
+                        onClick={toggleLock}
+                        className={`h-10 inline-flex items-center justify-center gap-1 rounded border text-xs font-medium transition-colors ${
+                          isLocked
+                            ? 'bg-amber-500/15 border-amber-500/40 text-amber-400'
+                            : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)] hover:border-amber-500/40'
+                        }`}
+                      >
+                        {isLocked ? 'Lås upp' : 'Lås'}
+                      </button>
+                      <button
+                        onClick={() => { if (!isLocked) { deleteSelected(); setMobileRightSheetOpen(false); } }}
+                        disabled={isLocked}
+                        className="col-span-2 h-10 inline-flex items-center justify-center gap-1 rounded bg-destructive/10 border border-destructive/30 text-destructive hover:bg-destructive/20 text-xs font-semibold disabled:opacity-50"
+                      >
+                        <Trash2 size={13} /> Radera hinder
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Verktyg & info för mobil när inget är markerat */
+                <div className="p-3 space-y-3">
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Verktyg</div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <button
+                        onClick={() => { setDrawingMode(!drawingMode); setNumberingMode(false); setMeasureMode(false); setMobileRightSheetOpen(false); }}
+                        className={`h-14 flex flex-col items-center justify-center gap-0.5 rounded border transition-colors ${
+                          drawingMode ? 'bg-orange-500/15 border-orange-500/40 text-orange-400' : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)]'
+                        }`}
+                      >
+                        <Pencil size={16} />
+                        <span className="text-[10px]">Rita</span>
+                      </button>
+                      <button
+                        onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); setMeasureMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } setMobileRightSheetOpen(false); }}
+                        className={`h-14 flex flex-col items-center justify-center gap-0.5 rounded border transition-colors ${
+                          numberingMode ? 'bg-blue-500/15 border-blue-500/40 text-blue-400' : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)]'
+                        }`}
+                      >
+                        <Hash size={16} />
+                        <span className="text-[10px]">Numrera</span>
+                      </button>
+                      <button
+                        onClick={() => { setMeasureMode(!measureMode); setDrawingMode(false); setNumberingMode(false); setMeasurePoints([]); setMobileRightSheetOpen(false); }}
+                        className={`h-14 flex flex-col items-center justify-center gap-0.5 rounded border transition-colors ${
+                          measureMode ? 'bg-yellow-500/15 border-yellow-500/40 text-yellow-400' : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)]'
+                        }`}
+                      >
+                        <Ruler size={16} />
+                        <span className="text-[10px]">Mät</span>
+                      </button>
+                    </div>
+                    {handlerPath.length > 0 && (
+                      <button
+                        onClick={() => setHandlerPath([])}
+                        className="w-full h-9 mt-1 inline-flex items-center justify-center gap-1 rounded bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-destructive/40 text-destructive text-[11px] font-medium"
+                      >
+                        <Eraser size={12} /> Rensa förarlinje
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Banstorlek */}
+                  <div className="space-y-1 pt-2 border-t border-[hsl(221,20%,18%)]">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Banstorlek</div>
+                    <Select
+                      value={`${canvasSize.width}x${canvasSize.height}`}
+                      onValueChange={(v) => {
+                        const [w, h] = v.split('x').map(Number);
+                        const match = CANVAS_SIZES.find(s => s.width === w && s.height === h);
+                        if (match) setCanvasSize(match);
+                      }}
+                    >
+                      <SelectTrigger className="h-9 text-xs bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CANVAS_SIZES.map(s => (
+                          <SelectItem key={s.label} value={`${s.width}x${s.height}`} className="text-xs">{s.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Stats */}
+                  {obstacles.length > 0 && (
+                    <div className="space-y-1 pt-2 border-t border-[hsl(221,20%,18%)]">
+                      <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)]">Statistik</div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <div className="bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] rounded px-2 py-2">
+                          <div className="text-[9px] text-[hsl(210,15%,50%)]">Hinder</div>
+                          <div className="text-base font-semibold text-[hsl(210,20%,90%)]">{courseStats.total}</div>
+                        </div>
+                        <div className="bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] rounded px-2 py-2">
+                          <div className="text-[9px] text-[hsl(210,15%,50%)]">Längd</div>
+                          <div className="text-base font-semibold text-[hsl(210,20%,90%)]">~{Math.round(courseStats.length)}m</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </DrawerContent>
+        </Drawer>
 
         <CoursePlannerTutorial forceOpen={showTutorial} onClose={() => setShowTutorial(false)} />
       </div>

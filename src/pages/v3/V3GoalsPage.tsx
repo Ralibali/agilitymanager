@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Target, Trophy, Calendar, CheckCircle2, Lock, MoreVertical, Pencil, Trash2, RotateCcw, type LucideIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Goals, computeGoalStats, type V3Goal } from "@/hooks/v3/useV3Goals";
 import { DogHero } from "@/components/v3/DogHero";
@@ -57,12 +57,20 @@ const BADGE_DEFS: BadgeDef[] = [
 
 export default function V3GoalsPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { dogs, active, activeId, setActive, loading: dogsLoading } = useV3Dogs();
   const { goals, unlockedBadges, loading, reload } = useV3Goals(activeId);
 
   const [filter, setFilter] = useState<Filter>("active");
   const [sheet, setSheet] = useState(false);
   const [editing, setEditing] = useState<V3Goal | null>(null);
+
+  useEffect(() => {
+    if (searchParams.get("action") !== "new") return;
+    setEditing(null);
+    setSheet(true);
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const stats = useMemo(() => computeGoalStats(goals), [goals]);
 

@@ -639,6 +639,14 @@ export default function CoursePlannerPage() {
   }, [fitToScreen]);
   const selectedObs = obstacles.find(o => o.id === selected);
 
+  // På mobil: öppna höger bottom-sheet automatiskt när användaren markerar ett
+  // hinder, och stäng när markeringen rensas. Påverkar inte desktop.
+  useEffect(() => {
+    if (!isMobile) return;
+    if (selected) setMobileRightSheetOpen(true);
+    else setMobileRightSheetOpen(false);
+  }, [selected, isMobile]);
+
   const distBetween = (a: Obstacle, b: Obstacle) => {
     const dx = a.x - b.x;
     const dy = a.y - b.y;

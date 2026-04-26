@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Dog as DogIcon } from "lucide-react";
+import { Plus, Dog as DogIcon, Trophy, Target, BarChart3, Heart, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
@@ -12,6 +12,7 @@ import { NextUpCard } from "@/components/v3/NextUpCard";
 import { ActivityTimeline } from "@/components/v3/ActivityTimeline";
 import { V3EmptyState } from "@/components/v3/V3EmptyState";
 import { V3OnboardingWizard } from "@/components/v3/V3OnboardingWizard";
+import { cn } from "@/lib/utils";
 
 /**
  * Tidsanpassad hälsning. Synk med /design-demo.
@@ -60,9 +61,9 @@ function useGreeting(): { greeting: string; name: string } {
 }
 
 /**
- * v3 Dashboard – Fas 3.
- * Greeting + dog-hero (med switcher) + Nästa upp + Stats + Timeline.
- * All data hämtas från Supabase per aktiv hund.
+ * v3 Dashboard.
+ * Fokus: action-first. Användaren ska snabbt förstå vad nästa steg är:
+ * logga pass, lägga till tävling, sätta mål eller se utveckling.
  */
 export default function V3HomePage() {
   const navigate = useNavigate();
@@ -102,6 +103,9 @@ export default function V3HomePage() {
         <h1 className="font-v3-display text-[32px] lg:text-[44px] leading-[1.05] tracking-[-0.02em] text-v3-text-primary">
           {greeting}, {name}.
         </h1>
+        <p className="text-v3-base text-v3-text-secondary max-w-2xl">
+          Välj nästa steg för dagens träning, tävling eller uppföljning.
+        </p>
       </header>
 
       {/* Dog hero / empty-state */}
@@ -127,21 +131,79 @@ export default function V3HomePage() {
             onSelect={setActive}
             onAddDog={() => navigate("/v3/dogs")}
           />
-          {active && (
-            <button
-              type="button"
-              onClick={openV3LogSheet}
-              className="inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm"
-            >
-              <Plus size={16} strokeWidth={2} />
-              Logga pass
-            </button>
-          )}
         </div>
       )}
 
       {active && (
         <>
+          <section aria-label="Snabbstart" className="space-y-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <div>
+                <h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Vad vill du göra nu?</h2>
+                <p className="text-v3-sm text-v3-text-secondary mt-1">
+                  De vanligaste flödena samlade på ett ställe.
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <ActionCard
+                icon={Plus}
+                title="Logga pass"
+                description="Spara dagens träning på några sekunder."
+                cta="Öppna loggning"
+                accent="brand"
+                onClick={openV3LogSheet}
+              />
+              <ActionCard
+                icon={Trophy}
+                title="Tävling"
+                description="Lägg in planerad start eller resultat."
+                cta="Till tävlingar"
+                accent="tavling"
+                onClick={() => navigate("/v3/competition?action=new")}
+              />
+              <ActionCard
+                icon={Target}
+                title="Nytt mål"
+                description="Sätt fokus för veckan eller säsongen."
+                cta="Skapa mål"
+                accent="prestation"
+                onClick={() => navigate("/v3/goals?action=new")}
+              />
+              <ActionCard
+                icon={BarChart3}
+                title="Se utveckling"
+                description="Följ statistik och trend för aktiv hund."
+                cta="Visa statistik"
+                accent="neutral"
+                onClick={() => navigate("/v3/stats")}
+              />
+            </div>
+          </section>
+
+          <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-v3-lg bg-v3-accent-halsa/12 text-v3-accent-halsa grid place-items-center shrink-0">
+                <Heart size={18} strokeWidth={1.7} />
+              </div>
+              <div>
+                <h2 className="font-v3-display text-v3-xl text-v3-text-primary">Nästa bästa steg</h2>
+                <p className="text-v3-sm text-v3-text-secondary mt-1">
+                  {nextEvent
+                    ? "Du har något på gång. Se nästa aktivitet och planera träningen runt den."
+                    : "Logga ett pass eller sätt ett mål så börjar dashboarden ge mer relevanta insikter."}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={nextEvent ? () => navigate("/v3/competition") : openV3LogSheet}
+              className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm"
+            >
+              {nextEvent ? "Se nästa upp" : "Logga första steget"}
+            </button>
+          </section>
+
           {/* Nästa upp + stats sida vid sida på desktop */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-5">
             <div className="lg:col-span-3">
@@ -190,6 +252,46 @@ export default function V3HomePage() {
         </>
       )}
     </div>
+  );
+}
+
+function ActionCard({
+  icon: Icon,
+  title,
+  description,
+  cta,
+  accent,
+  onClick,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  cta: string;
+  accent: "brand" | "tavling" | "prestation" | "neutral";
+  onClick: () => void;
+}) {
+  const accentClass = {
+    brand: "bg-v3-brand-500/10 text-v3-brand-700",
+    tavling: "bg-v3-accent-tavlings/12 text-v3-accent-tavlings",
+    prestation: "bg-v3-accent-prestation/12 text-v3-accent-prestation",
+    neutral: "bg-v3-canvas-sunken/70 text-v3-text-secondary",
+  }[accent];
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group text-left rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/35 hover:shadow-v3-sm transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-v3-brand-500/20"
+    >
+      <div className={cn("h-10 w-10 rounded-v3-lg grid place-items-center", accentClass)}>
+        <Icon size={18} strokeWidth={1.7} />
+      </div>
+      <h3 className="font-v3-display text-v3-xl text-v3-text-primary mt-4">{title}</h3>
+      <p className="text-v3-sm text-v3-text-secondary mt-1 min-h-[40px]">{description}</p>
+      <div className="text-v3-sm font-medium text-v3-brand-700 mt-4 group-hover:translate-x-0.5 transition-transform">
+        {cta} →
+      </div>
+    </button>
   );
 }
 

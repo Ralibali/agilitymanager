@@ -3214,7 +3214,7 @@ export default function CoursePlannerPage() {
           ) : (
             <button
               onClick={() => setSidebarCollapsed(false)}
-              className="w-6 shrink-0 bg-[hsl(221,28%,10%)] border-l border-[hsl(221,20%,18%)] flex items-center justify-center text-[hsl(210,15%,55%)] hover:text-[hsl(210,15%,80%)]"
+              className="hidden md:flex w-6 shrink-0 bg-[hsl(221,28%,10%)] border-l border-[hsl(221,20%,18%)] items-center justify-center text-[hsl(210,15%,55%)] hover:text-[hsl(210,15%,80%)]"
               title="Visa egenskapspanel"
             >
               <ChevronDown size={14} className="rotate-90" />

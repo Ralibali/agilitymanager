@@ -2154,6 +2154,7 @@ export default function CoursePlannerPage() {
       toast.success('Bana sparad!');
       setSaveOpen(false); setCourseName('');
       setIsDirty(false);
+      setLastSavedAt(new Date());
       const { data } = await supabase.from('saved_courses').select('*').order('created_at', { ascending: false });
       if (data) setSavedCourses(data as unknown as SavedCourse[]);
     }

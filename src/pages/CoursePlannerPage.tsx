@@ -2644,6 +2644,22 @@ export default function CoursePlannerPage() {
           >
             <ArrowLeft size={16} />
           </button>
+
+          {/* Mobile-only: open obstacle library / right panel as bottom sheets */}
+          <button
+            onClick={() => setMobileLeftSheetOpen(true)}
+            className="md:hidden h-8 px-2 shrink-0 inline-flex items-center gap-1 rounded-md bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:bg-[hsl(221,20%,18%)] text-[11px] font-semibold"
+            title="Lägg till hinder"
+          >
+            <Plus size={13} /> Hinder
+          </button>
+          <button
+            onClick={() => setMobileRightSheetOpen(true)}
+            className="md:hidden h-8 px-2 shrink-0 inline-flex items-center gap-1 rounded-md bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:bg-[hsl(221,20%,18%)] text-[11px] font-semibold"
+            title={selectedObs ? 'Egenskaper' : 'Verktyg & info'}
+          >
+            <Settings2 size={13} /> {selectedObs ? 'Egenskaper' : 'Verktyg'}
+          </button>
           <div className="flex items-center gap-2 min-w-0">
             {editingCourseName ? (
               <input

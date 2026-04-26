@@ -118,60 +118,17 @@ export default function V3HomePage() {
       {active && (
         <>
           <section aria-label="Snabbstart" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-            <ActionCard
-              icon={Plus}
-              title="Logga pass"
-              description="Registrera ett träningspass"
-              accent="brand"
-              onClick={openV3LogSheet}
-            />
-            <ActionCard
-              icon={CalendarDays}
-              title="Planera tävling"
-              description="Se och anmäl till tävlingar"
-              accent="tavling"
-              onClick={() => navigate("/v3/competition?action=new")}
-            />
-            <ActionCard
-              icon={Target}
-              title="Sätt mål"
-              description="Fokusera och följ din plan"
-              accent="prestation"
-              onClick={() => navigate("/v3/goals?action=new")}
-            />
-            <ActionCard
-              icon={BarChart3}
-              title="Se statistik"
-              description="Följ utveckling och resultat"
-              accent="neutral"
-              onClick={() => navigate("/v3/stats")}
-            />
+            <ActionCard icon={Plus} title="Logga pass" description="Registrera ett träningspass" accent="brand" onClick={openV3LogSheet} />
+            <ActionCard icon={CalendarDays} title="Planera tävling" description="Se och anmäl till tävlingar" accent="tavling" onClick={() => navigate("/v3/competition?action=new")} />
+            <ActionCard icon={Target} title="Sätt mål" description="Fokusera och följ din plan" accent="prestation" onClick={() => navigate("/v3/goals?action=new")} />
+            <ActionCard icon={BarChart3} title="Se statistik" description="Följ utveckling och resultat" accent="neutral" onClick={() => navigate("/v3/stats")} />
           </section>
 
           <div className="grid grid-cols-1 xl:grid-cols-[1.15fr_0.85fr] gap-4">
-            <NextUpSoftCard
-              loading={dashLoading}
-              hasNext={Boolean(nextEvent)}
-              onOpen={() => navigate("/v3/competition")}
-              onLog={openV3LogSheet}
-            />
+            <NextUpSoftCard loading={dashLoading} hasNext={Boolean(nextEvent)} onOpen={() => navigate("/v3/competition")} onLog={openV3LogSheet} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <MetricCard
-                icon={Flame}
-                label="Streak"
-                value={String(stats?.streakDays ?? 0)}
-                suffix={(stats?.streakDays ?? 0) === 1 ? "dag" : "dagar i rad"}
-                note={(stats?.streakDays ?? 0) > 0 ? "Fortsätt så! 🔥" : "Börja med ett pass idag"}
-                tone="warm"
-              />
-              <MetricCard
-                icon={Medal}
-                label="Klarade lopp denna månad"
-                value={String(stats?.passedThisMonth ?? 0)}
-                suffix="lopp"
-                note="Bra jobbat, ni är på väg! 🐾"
-                tone="green"
-              />
+              <MetricCard icon={Flame} label="Streak" value={String(stats?.streakDays ?? 0)} suffix={(stats?.streakDays ?? 0) === 1 ? "dag" : "dagar i rad"} note={(stats?.streakDays ?? 0) > 0 ? "Fortsätt så!" : "Börja med ett pass idag"} tone="warm" />
+              <MetricCard icon={Medal} label="Klarade lopp denna månad" value={String(stats?.passedThisMonth ?? 0)} suffix="lopp" note="Bra jobbat, ni är på väg!" tone="green" />
             </div>
           </div>
 
@@ -188,33 +145,31 @@ export default function V3HomePage() {
 function DashboardHero({ greeting, name, dogName }: { greeting: string; name: string; dogName?: string }) {
   return (
     <header className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-v3-canvas-elevated via-v3-canvas-elevated to-[#f5ead7] border border-v3-canvas-sunken/50 p-6 lg:p-8 shadow-v3-sm min-h-[220px]">
-      <div className="absolute inset-y-0 right-0 hidden md:block w-[42%] pointer-events-none">
+      <div className="absolute inset-y-0 right-0 hidden md:block w-[42%] pointer-events-none" aria-hidden="true">
         <div className="absolute right-10 top-10 h-14 w-14 rounded-full bg-[#f0cf82]/70" />
         <div className="absolute right-0 bottom-0 h-32 w-[420px] rounded-tl-full bg-v3-brand-500/10" />
-        <div className="absolute right-24 bottom-10 h-16 w-28 rounded-full bg-v3-brand-500/10 blur-sm" />
-        <div className="absolute right-40 bottom-14 h-12 w-1.5 rounded-full bg-v3-brand-500/35" />
-        <div className="absolute right-24 bottom-14 h-20 w-1.5 rounded-full bg-v3-brand-500/30" />
-        <div className="absolute right-40 bottom-28 h-1.5 w-28 rounded-full bg-v3-brand-500/35" />
-        <div className="absolute right-24 bottom-24 h-1.5 w-28 rounded-full bg-v3-brand-500/25" />
-        <div className="absolute right-12 bottom-8 text-[64px] drop-shadow-sm">🐕</div>
+        <div className="absolute right-28 bottom-10 h-16 w-32 rounded-full bg-v3-brand-500/10 blur-sm" />
+        <div className="absolute right-44 bottom-16 h-16 w-1.5 rounded-full bg-v3-brand-500/35" />
+        <div className="absolute right-24 bottom-16 h-22 w-1.5 rounded-full bg-v3-brand-500/30" />
+        <div className="absolute right-44 bottom-30 h-1.5 w-32 rounded-full bg-v3-brand-500/35" />
+        <div className="absolute right-24 bottom-26 h-1.5 w-32 rounded-full bg-v3-brand-500/25" />
+        <div className="absolute right-8 bottom-8 h-20 w-20 rounded-[28px] bg-white/70 border border-white/80 shadow-v3-sm grid place-items-center">
+          <DogIcon size={34} strokeWidth={1.5} className="text-v3-brand-700" />
+        </div>
       </div>
       <div className="relative max-w-2xl">
         <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
           {new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long" })}
         </div>
         <h1 className="font-v3-display text-[38px] lg:text-[52px] leading-[1.02] tracking-[-0.035em] text-v3-text-primary mt-4">
-          {greeting === "Hej" ? "Hej" : greeting}, {name} <span aria-hidden>👋</span>
+          {greeting === "Hej" ? "Hej" : greeting}, {name}
         </h1>
         <p className="text-v3-base lg:text-v3-lg text-v3-text-secondary max-w-xl mt-3 leading-relaxed">
           {dogName
             ? `Idag fokuserar vi på självförtroende och flyt tillsammans med ${dogName}. Små steg varje dag bygger stora resultat.`
             : "Idag fokuserar vi på enkla steg, tydlig träning och bättre känsla i teamet."}
         </p>
-        <button
-          type="button"
-          onClick={openV3LogSheet}
-          className="mt-5 inline-flex items-center justify-center gap-2 h-12 px-6 rounded-v3-base bg-v3-text-primary text-white text-v3-sm font-medium hover:bg-v3-brand-700 transition-colors shadow-v3-sm"
-        >
+        <button type="button" onClick={openV3LogSheet} className="mt-5 inline-flex items-center justify-center gap-2 h-12 px-6 rounded-v3-base bg-v3-text-primary text-white text-v3-sm font-medium hover:bg-v3-brand-700 transition-colors shadow-v3-sm">
           <Plus size={17} /> Logga pass
         </button>
       </div>
@@ -222,19 +177,7 @@ function DashboardHero({ greeting, name, dogName }: { greeting: string; name: st
   );
 }
 
-function ActionCard({
-  icon: Icon,
-  title,
-  description,
-  accent,
-  onClick,
-}: {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  accent: "brand" | "tavling" | "prestation" | "neutral";
-  onClick: () => void;
-}) {
+function ActionCard({ icon: Icon, title, description, accent, onClick }: { icon: LucideIcon; title: string; description: string; accent: "brand" | "tavling" | "prestation" | "neutral"; onClick: () => void }) {
   const accentClass = {
     brand: "bg-v3-brand-500/10 text-v3-brand-700",
     tavling: "bg-v3-accent-tavlings/12 text-v3-accent-tavlings",
@@ -243,11 +186,7 @@ function ActionCard({
   }[accent];
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group text-left rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/30 hover:shadow-v3-sm transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-v3-brand-500/20"
-    >
+    <button type="button" onClick={onClick} className="group text-left rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/30 hover:shadow-v3-sm transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-v3-brand-500/20">
       <div className="flex items-center gap-3">
         <div className={cn("h-11 w-11 rounded-full grid place-items-center shrink-0", accentClass)}>
           <Icon size={18} strokeWidth={1.8} />
@@ -268,13 +207,7 @@ function NextUpSoftCard({ loading, hasNext, onOpen, onLog }: { loading: boolean;
     <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs min-h-[164px]">
       <div className="flex items-center justify-between gap-3 mb-4">
         <h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Nästa upp</h2>
-        <button
-          type="button"
-          onClick={onOpen}
-          className="h-8 px-3 rounded-v3-base border border-v3-canvas-sunken/60 text-v3-xs font-medium text-v3-text-secondary hover:bg-v3-canvas-sunken/60 transition-colors"
-        >
-          Visa kalender
-        </button>
+        <button type="button" onClick={onOpen} className="h-8 px-3 rounded-v3-base border border-v3-canvas-sunken/60 text-v3-xs font-medium text-v3-text-secondary hover:bg-v3-canvas-sunken/60 transition-colors">Visa kalender</button>
       </div>
       <div className="flex items-start gap-4">
         <div className="w-16 rounded-v3-lg bg-v3-canvas-sunken/60 p-2 text-center shrink-0">
@@ -283,115 +216,40 @@ function NextUpSoftCard({ loading, hasNext, onOpen, onLog }: { loading: boolean;
           <div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary mt-1">Maj</div>
         </div>
         <div className="min-w-0 flex-1">
-          <span className="inline-flex rounded-full bg-v3-brand-500/10 px-2.5 py-1 text-v3-xs font-medium text-v3-brand-700">
-            {hasNext ? "Tävling" : "Träning"}
-          </span>
-          <h3 className="font-v3-display text-v3-xl text-v3-text-primary mt-2">
-            {hasNext ? "Kommande aktivitet" : "Banträning – Fokus & flyt"}
-          </h3>
-          <p className="text-v3-sm text-v3-text-secondary mt-1">
-            {hasNext
-              ? "Du har något på gång. Planera nästa pass runt kommande aktivitet."
-              : "Skapa trygghet och fina linjer med fokus på självförtroende."}
-          </p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-v3-xs text-v3-text-tertiary">
-            <span>⏱ 60 min</span>
-            <span>📍 Träningsplan</span>
-            <span>👥 Teamet</span>
-          </div>
+          <span className="inline-flex rounded-full bg-v3-brand-500/10 px-2.5 py-1 text-v3-xs font-medium text-v3-brand-700">{hasNext ? "Tävling" : "Träning"}</span>
+          <h3 className="font-v3-display text-v3-xl text-v3-text-primary mt-2">{hasNext ? "Kommande aktivitet" : "Banträning – Fokus & flyt"}</h3>
+          <p className="text-v3-sm text-v3-text-secondary mt-1">{hasNext ? "Du har något på gång. Planera nästa pass runt kommande aktivitet." : "Skapa trygghet och fina linjer med fokus på självförtroende."}</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-v3-xs text-v3-text-tertiary"><span>60 min</span><span>Träningsplan</span><span>Teamet</span></div>
         </div>
       </div>
-      {!hasNext && (
-        <button
-          type="button"
-          onClick={onLog}
-          className="mt-4 text-v3-sm font-medium text-v3-brand-700 hover:text-v3-brand-900"
-        >
-          Logga ett pass istället →
-        </button>
-      )}
+      {!hasNext && <button type="button" onClick={onLog} className="mt-4 text-v3-sm font-medium text-v3-brand-700 hover:text-v3-brand-900">Logga ett pass istället →</button>}
     </section>
   );
 }
 
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-  suffix,
-  note,
-  tone,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-  suffix: string;
-  note: string;
-  tone: "warm" | "green";
-}) {
+function MetricCard({ icon: Icon, label, value, suffix, note, tone }: { icon: LucideIcon; label: string; value: string; suffix: string; note: string; tone: "warm" | "green" }) {
   const toneClass = tone === "warm" ? "bg-orange-100 text-orange-700" : "bg-v3-brand-500/10 text-v3-brand-700";
-
   return (
     <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs min-h-[164px]">
       <div className="flex items-start justify-between gap-3">
         <h2 className="font-v3-display text-v3-xl text-v3-text-primary leading-tight">{label}</h2>
-        <div className={cn("h-12 w-12 rounded-full grid place-items-center shrink-0", toneClass)}>
-          <Icon size={20} strokeWidth={1.7} />
-        </div>
+        <div className={cn("h-12 w-12 rounded-full grid place-items-center shrink-0", toneClass)}><Icon size={20} strokeWidth={1.7} /></div>
       </div>
-      <div className="mt-5 flex items-end gap-2">
-        <div className="font-v3-display text-[40px] leading-none text-v3-text-primary tabular-nums">{value}</div>
-        <div className="text-v3-sm text-v3-text-secondary pb-1">{suffix}</div>
-      </div>
+      <div className="mt-5 flex items-end gap-2"><div className="font-v3-display text-[40px] leading-none text-v3-text-primary tabular-nums">{value}</div><div className="text-v3-sm text-v3-text-secondary pb-1">{suffix}</div></div>
       <p className="text-v3-sm text-v3-text-secondary mt-4">{note}</p>
     </div>
   );
 }
 
 function WeeklyOverviewCard() {
-  const days = [
-    { d: "Mån", n: "28", done: true },
-    { d: "Tis", n: "29", done: true },
-    { d: "Ons", n: "30", done: true },
-    { d: "Tors", n: "1", done: false },
-    { d: "Fre", n: "2", done: false },
-    { d: "Lör", n: "3", active: true },
-    { d: "Sön", n: "4", done: false },
-  ];
+  const days = [{ d: "Mån", n: "28", done: true }, { d: "Tis", n: "29", done: true }, { d: "Ons", n: "30", done: true }, { d: "Tors", n: "1", done: false }, { d: "Fre", n: "2", done: false }, { d: "Lör", n: "3", active: true }, { d: "Sön", n: "4", done: false }];
   return (
     <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs">
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Veckans översikt</h2>
-        <button type="button" className="h-8 px-3 rounded-v3-base border border-v3-canvas-sunken/60 text-v3-xs font-medium text-v3-text-secondary hover:bg-v3-canvas-sunken/60 transition-colors">
-          Visa vecka
-        </button>
-      </div>
+      <div className="flex items-center justify-between mb-5"><h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Veckans översikt</h2><button type="button" className="h-8 px-3 rounded-v3-base border border-v3-canvas-sunken/60 text-v3-xs font-medium text-v3-text-secondary hover:bg-v3-canvas-sunken/60 transition-colors">Visa vecka</button></div>
       <div className="grid grid-cols-7 gap-2">
-        {days.map((day) => (
-          <div
-            key={`${day.d}-${day.n}`}
-            className={cn(
-              "rounded-v3-lg px-2 py-3 text-center border",
-              day.active
-                ? "border-v3-brand-500 bg-v3-brand-500/5"
-                : "border-transparent bg-v3-canvas-sunken/30",
-            )}
-          >
-            <div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary">{day.d}</div>
-            <div className="font-v3-display text-v3-xl text-v3-text-primary mt-1">{day.n}</div>
-            <div className="text-v3-brand-600 text-v3-sm mt-1">{day.done ? "✓" : "•"}</div>
-          </div>
-        ))}
+        {days.map((day) => <div key={`${day.d}-${day.n}`} className={cn("rounded-v3-lg px-2 py-3 text-center border", day.active ? "border-v3-brand-500 bg-v3-brand-500/5" : "border-transparent bg-v3-canvas-sunken/30")}><div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary">{day.d}</div><div className="font-v3-display text-v3-xl text-v3-text-primary mt-1">{day.n}</div><div className="text-v3-brand-600 text-v3-sm mt-1">{day.done ? "✓" : "•"}</div></div>)}
       </div>
-      <div className="mt-5">
-        <div className="flex justify-between text-v3-sm text-v3-text-secondary mb-2">
-          <span>2 av 7 pass denna vecka</span>
-          <span>29%</span>
-        </div>
-        <div className="h-2 rounded-full bg-v3-canvas-sunken overflow-hidden">
-          <div className="h-full w-[29%] rounded-full bg-v3-brand-500" />
-        </div>
-      </div>
+      <div className="mt-5"><div className="flex justify-between text-v3-sm text-v3-text-secondary mb-2"><span>2 av 7 pass denna vecka</span><span>29%</span></div><div className="h-2 rounded-full bg-v3-canvas-sunken overflow-hidden"><div className="h-full w-[29%] rounded-full bg-v3-brand-500" /></div></div>
     </section>
   );
 }

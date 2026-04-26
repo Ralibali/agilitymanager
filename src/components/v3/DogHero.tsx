@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Plus } from "lucide-react";
+import { ChevronRight, Heart, Plus, Star } from "lucide-react";
 import type { V3Dog } from "@/hooks/v3/useV3Dogs";
 import { cn } from "@/lib/utils";
 
@@ -33,8 +33,8 @@ function initialsOf(name: string): string {
 }
 
 /**
- * Hund-hero med stor namn-typografi i Instrument Serif + liten avatar-switcher.
- * Visar bara switcher om användaren har > 1 hund.
+ * Kompakt aktiv-hund-kort.
+ * Tanken är att hunden ska kännas central utan att layouten blir tung.
  */
 export function DogHero({ dogs, active, activeId, onSelect, onAddDog }: Props) {
   const subtitle = useMemo(() => {
@@ -49,7 +49,7 @@ export function DogHero({ dogs, active, activeId, onSelect, onAddDog }: Props) {
 
   if (!active) {
     return (
-      <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-6 lg:p-8">
+      <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-6 lg:p-8 shadow-v3-xs">
         <p className="text-v3-base text-v3-text-secondary mb-3">
           Lägg till din första hund för att börja logga pass och resultat.
         </p>
@@ -66,37 +66,48 @@ export function DogHero({ dogs, active, activeId, onSelect, onAddDog }: Props) {
   }
 
   return (
-    <section aria-label="Aktiv hund" className="space-y-4">
-      <div className="flex items-end gap-4 lg:gap-6">
-        {/* Stor avatar */}
-        <div
-          className={cn(
-            "h-20 w-20 lg:h-24 lg:w-24 rounded-v3-xl shrink-0 overflow-hidden",
-            "bg-v3-brand-100 grid place-items-center",
-          )}
-        >
-          {active.photo_url ? (
-            <img
-              src={active.photo_url}
-              alt={active.name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <span className="font-v3-display text-[36px] lg:text-[42px] text-v3-brand-700 leading-none">
-              {initialsOf(active.name)}
-            </span>
-          )}
-        </div>
+    <section aria-label="Aktiv hund" className="space-y-3">
+      <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 lg:p-5 shadow-v3-xs">
+        <div className="flex items-center gap-4">
+          <div
+            className={cn(
+              "h-16 w-16 lg:h-18 lg:w-18 rounded-v3-xl shrink-0 overflow-hidden",
+              "bg-gradient-to-br from-v3-brand-100 to-v3-canvas-sunken grid place-items-center shadow-v3-xs",
+            )}
+          >
+            {active.photo_url ? (
+              <img
+                src={active.photo_url}
+                alt={active.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="font-v3-display text-[30px] text-v3-brand-700 leading-none">
+                {initialsOf(active.name)}
+              </span>
+            )}
+          </div>
 
-        <div className="min-w-0 flex-1 pb-1">
-          <h2 className="font-v3-display text-[40px] lg:text-[56px] leading-[1.05] tracking-[-0.02em] text-v3-text-primary truncate">
-            {active.name}
-          </h2>
-          {subtitle && (
-            <p className="text-v3-sm lg:text-v3-base text-v3-text-secondary mt-1 truncate">
-              {subtitle}
-            </p>
-          )}
+          <div className="min-w-0 flex-1">
+            <h2 className="font-v3-display text-[28px] lg:text-[34px] leading-[1.05] tracking-[-0.02em] text-v3-text-primary truncate">
+              {active.name}
+            </h2>
+            {subtitle && (
+              <p className="text-v3-sm text-v3-text-secondary mt-1 truncate">
+                {subtitle}
+              </p>
+            )}
+            <div className="flex flex-wrap gap-2 mt-3">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-v3-brand-500/10 border border-v3-brand-500/10 px-3 py-1 text-v3-xs font-medium text-v3-brand-700">
+                <Heart size={12} /> Team {active.name}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-v3-accent-prestation/12 border border-v3-accent-prestation/10 px-3 py-1 text-v3-xs font-medium text-v3-accent-prestation">
+                <Star size={12} /> Varje pass räknas
+              </span>
+            </div>
+          </div>
+
+          <ChevronRight className="hidden sm:block text-v3-text-tertiary" size={18} strokeWidth={1.6} />
         </div>
       </div>
 

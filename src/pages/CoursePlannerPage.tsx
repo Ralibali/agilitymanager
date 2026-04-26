@@ -467,6 +467,12 @@ export default function CoursePlannerPage() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+  // Modern editor layout state (desktop only, UI-only — does not touch data model)
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
+  const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
+  const [editingCourseName, setEditingCourseName] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const SNAP_STEP = 0.5 * PX_PER_METER; // 0.5m
   const MAGNETIC_DIST = 0.8 * PX_PER_METER; // snap within 0.8m of another obstacle
 

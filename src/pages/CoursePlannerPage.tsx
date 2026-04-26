@@ -2178,7 +2178,7 @@ export default function CoursePlannerPage() {
     historyIndexRef.current = 0;
     setHistoryVersion(v => v + 1);
     setIsDirty(false);
-    // Restore color theme if saved
+    setLastSavedAt(new Date());
     if (data.themeId) {
       setActiveThemeId(data.themeId);
       saveActiveThemeId(data.themeId);

@@ -7,6 +7,7 @@ import { motion as M } from "@/lib/motion";
 
 const NAV_LINKS = [
   { href: "#features", label: "Funktioner" },
+  { href: "/banplanerare", label: "Gratis banplanerare", external: true },
   { href: "#coach", label: "Coach" },
   { href: "#hoopers", label: "Hoopers" },
   { href: "#pricing", label: "Priser" },

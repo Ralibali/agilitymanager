@@ -32,6 +32,7 @@ const UnsubscribePage = React.lazy(() => import("./pages/UnsubscribePage"));
 const InvitePage = React.lazy(() => import("./pages/InvitePage"));
 const ClubInvitePage = React.lazy(() => import("./pages/ClubInvitePage"));
 const DesignDemoPage = React.lazy(() => import("./pages/DesignDemoPage"));
+const FreeCoursePlannerPage = React.lazy(() => import("./pages/FreeCoursePlannerPage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const PublicCompetitionsPage = React.lazy(() => import("./pages/PublicCompetitionsPage"));
 const CompetitionDetailPage = React.lazy(() => import("./pages/CompetitionDetailPage"));
@@ -122,6 +123,9 @@ const App = () => (
               <Route path="/hoopers" element={<HoopersLandingPage />} />
               <Route path="/hoopers-regler" element={<HoopersRulesPage />} />
               <Route path="/blogg" element={<BlogPage />} />
+              <Route path="/banplanerare" element={<FreeCoursePlannerPage />} />
+              <Route path="/gratis-banplanerare-agility" element={<Navigate to="/banplanerare" replace />} />
+              <Route path="/agility-bana-ritverktyg" element={<Navigate to="/banplanerare" replace />} />
               <Route path="/raser" element={<BreedsIndexPage />} />
               <Route path="/raser/:slug" element={<BreedDetailPage />} />
               <Route path="/tavlingar" element={<PublicCompetitionsPage />} />

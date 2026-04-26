@@ -2851,57 +2851,21 @@ export default function CoursePlannerPage() {
 
         {/* ═══ MAIN AREA: left panel + canvas + right panel ═══ */}
         <div className="flex-1 min-h-0 flex">
-          {/* ── LEFT: obstacle library ── */}
+          {/* ── LEFT: obstacle library (desktop/tablet only) ── */}
           {!leftPanelCollapsed ? (
-            <div className="w-56 shrink-0 bg-[hsl(221,28%,10%)] border-r border-[hsl(221,20%,18%)] flex flex-col">
+            <div className="hidden md:flex w-56 shrink-0 bg-[hsl(221,28%,10%)] border-r border-[hsl(221,20%,18%)] flex-col">
               <div className="h-9 shrink-0 px-3 flex items-center justify-between border-b border-[hsl(221,20%,18%)]">
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-[hsl(210,15%,55%)]">Hinder</span>
                 <button onClick={() => setLeftPanelCollapsed(true)} className="text-[hsl(210,15%,55%)] hover:text-[hsl(210,15%,80%)]" title="Dölj panel">
                   <ChevronDown size={14} className="rotate-90" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-2 space-y-3">
-                {obstacleGroups.map(group => (
-                  <div key={group.label}>
-                    <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)] px-1 mb-1">{group.label}</div>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {group.types.map(t => {
-                        const o = currentObstacleTypes.find(ct => ct.type === t);
-                        if (!o) return null;
-                        const info = OBSTACLE_INFO[o.type];
-                        return (
-                          <Tooltip key={o.type}>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={() => addObstacle(o.type)}
-                                className="group flex flex-col items-center justify-center gap-1 rounded-lg p-2 bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary hover:bg-[hsl(221,25%,16%)] active:scale-95 transition-all"
-                              >
-                                <span className="text-xl leading-none text-[hsl(210,20%,85%)] group-hover:text-primary transition-colors">{o.symbol}</span>
-                                <span className="text-[10px] text-[hsl(210,15%,65%)] leading-tight text-center truncate w-full">{o.label}</span>
-                              </button>
-                            </TooltipTrigger>
-                            {info && (
-                              <TooltipContent side="right" className="max-w-[220px]">
-                                <p className="font-semibold text-xs">{o.label}</p>
-                                <p className="text-[10px] text-muted-foreground">{info.dimensions}</p>
-                                <p className="text-[10px] text-muted-foreground">{info.classes}</p>
-                              </TooltipContent>
-                            )}
-                          </Tooltip>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="shrink-0 p-2 border-t border-[hsl(221,20%,18%)]">
-                <TutorialButton onClick={() => setShowTutorial(true)} />
-              </div>
+              {leftPanelInner}
             </div>
           ) : (
             <button
               onClick={() => setLeftPanelCollapsed(false)}
-              className="w-6 shrink-0 bg-[hsl(221,28%,10%)] border-r border-[hsl(221,20%,18%)] flex items-center justify-center text-[hsl(210,15%,55%)] hover:text-[hsl(210,15%,80%)]"
+              className="hidden md:flex w-6 shrink-0 bg-[hsl(221,28%,10%)] border-r border-[hsl(221,20%,18%)] items-center justify-center text-[hsl(210,15%,55%)] hover:text-[hsl(210,15%,80%)]"
               title="Visa hinderpanel"
             >
               <ChevronDown size={14} className="-rotate-90" />

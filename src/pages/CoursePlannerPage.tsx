@@ -2630,12 +2630,15 @@ export default function CoursePlannerPage() {
     return (
       <TooltipProvider delayDuration={300}>
       <div ref={fullscreenContainerRef} className="fixed inset-0 z-50 bg-[hsl(221,28%,8%)] text-[hsl(210,15%,85%)] flex flex-col">
-        {/* ═══ TOP BAR ═══ */}
-        <div className="h-12 shrink-0 flex items-center gap-2 px-3 bg-[hsl(221,28%,10%)] border-b border-[hsl(221,20%,18%)]">
+        {/* ═══ TOP BAR ═══
+            På mobil scrollar topbaren horisontellt så alla verktyg fortfarande
+            är åtkomliga utan att tränga ihop dem. Två mobile-only knappar
+            (Hinder/Verktyg) öppnar bottom sheets som ersätter sidopanelerna. */}
+        <div className="h-12 shrink-0 flex items-center gap-2 px-2 md:px-3 bg-[hsl(221,28%,10%)] border-b border-[hsl(221,20%,18%)] overflow-x-auto whitespace-nowrap scrollbar-hide">
           {/* Left: back + title */}
           <button
             onClick={goBack}
-            className="w-8 h-8 inline-flex items-center justify-center rounded-md hover:bg-[hsl(221,20%,18%)] transition-colors"
+            className="w-8 h-8 shrink-0 inline-flex items-center justify-center rounded-md hover:bg-[hsl(221,20%,18%)] transition-colors"
             title="Tillbaka"
             aria-label="Tillbaka"
           >

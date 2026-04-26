@@ -2580,6 +2580,53 @@ export default function CoursePlannerPage() {
       ? `Sparad ${lastSavedAt.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`
       : 'Inte sparad';
 
+    /* ── Återanvändbart panel-innehåll ──
+       Samma JSX används både i fasta sidopaneler (desktop/tablet) och i
+       bottom sheets (mobil). Inget logikflöde ändras. */
+    const leftPanelInner = (
+      <>
+        <div className="flex-1 overflow-y-auto p-2 space-y-3">
+          {obstacleGroups.map(group => (
+            <div key={group.label}>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-[hsl(210,15%,45%)] px-1 mb-1">{group.label}</div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {group.types.map(t => {
+                  const o = currentObstacleTypes.find(ct => ct.type === t);
+                  if (!o) return null;
+                  const info = OBSTACLE_INFO[o.type];
+                  return (
+                    <Tooltip key={o.type}>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => {
+                            addObstacle(o.type);
+                            if (isMobile) setMobileLeftSheetOpen(false);
+                          }}
+                          className="group flex flex-col items-center justify-center gap-1 rounded-lg p-2 bg-[hsl(221,25%,14%)] border border-[hsl(221,20%,22%)] hover:border-primary hover:bg-[hsl(221,25%,16%)] active:scale-95 transition-all min-h-[64px]"
+                        >
+                          <span className="text-xl leading-none text-[hsl(210,20%,85%)] group-hover:text-primary transition-colors">{o.symbol}</span>
+                          <span className="text-[10px] text-[hsl(210,15%,65%)] leading-tight text-center truncate w-full">{o.label}</span>
+                        </button>
+                      </TooltipTrigger>
+                      {info && (
+                        <TooltipContent side="right" className="max-w-[220px]">
+                          <p className="font-semibold text-xs">{o.label}</p>
+                          <p className="text-[10px] text-muted-foreground">{info.dimensions}</p>
+                          <p className="text-[10px] text-muted-foreground">{info.classes}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="shrink-0 p-2 border-t border-[hsl(221,20%,18%)]">
+          <TutorialButton onClick={() => setShowTutorial(true)} />
+        </div>
+      </>
+    );
     return (
       <TooltipProvider delayDuration={300}>
       <div ref={fullscreenContainerRef} className="fixed inset-0 z-50 bg-[hsl(221,28%,8%)] text-[hsl(210,15%,85%)] flex flex-col">

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { X } from "lucide-react";
+import { Heart, X } from "lucide-react";
 import { V3_QUICK_ACTIONS } from "./navConfig";
 import { cn } from "@/lib/utils";
 
@@ -50,28 +50,36 @@ export function V3QuickActionSheet({ open, onClose, onLogTraining }: Props) {
       />
       <div
         className={cn(
-          "absolute inset-x-0 bottom-0 bg-v3-canvas-elevated rounded-t-v3-2xl shadow-v3-xl",
+          "absolute inset-x-0 bottom-0 bg-v3-canvas-elevated rounded-t-v3-2xl shadow-v3-xl overflow-hidden",
           "pb-[env(safe-area-inset-bottom,0px)] animate-v3-sheet-in",
         )}
       >
-        <div className="flex justify-center pt-2.5 pb-1">
-          <span className="h-1 w-9 rounded-full bg-v3-canvas-sunken" />
+        <div className="relative bg-v3-text-primary text-v3-text-inverse px-5 pt-4 pb-5">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-v3-brand-500/20" />
+          <div className="relative flex justify-center pb-3">
+            <span className="h-1 w-9 rounded-full bg-white/25" />
+          </div>
+          <div className="relative flex items-start justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.08em] text-white/70 mb-3">
+                <Heart size={12} /> Teamets nästa steg
+              </div>
+              <h2 className="font-v3-display text-[26px] leading-tight text-white">Vad vill du fånga nu?</h2>
+              <p className="text-v3-sm text-white/68 mt-1 max-w-sm">
+                Logga medan känslan är färsk — passet, målet, tävlingen eller hälsan.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Stäng"
+              className="h-8 w-8 grid place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white transition-colors shrink-0"
+            >
+              <X size={16} strokeWidth={1.6} />
+            </button>
+          </div>
         </div>
-        <div className="flex items-center justify-between px-5 pt-2 pb-1">
-          <h2 className="font-v3-display text-[22px] text-v3-text-primary">Vad vill du logga?</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Stäng"
-            className="h-8 w-8 grid place-items-center rounded-full text-v3-text-tertiary hover:bg-v3-canvas-sunken/60 hover:text-v3-text-primary transition-colors"
-          >
-            <X size={16} strokeWidth={1.6} />
-          </button>
-        </div>
-        <p className="px-5 pb-4 text-v3-sm text-v3-text-secondary">
-          Snabbgenväg till det du gör oftast.
-        </p>
-        <div className="px-3 pb-5 space-y-1.5">
+        <div className="px-3 py-4 space-y-1.5">
           {V3_QUICK_ACTIONS.map((a) => {
             const Icon = a.icon;
             return (
@@ -87,22 +95,23 @@ export function V3QuickActionSheet({ open, onClose, onLogTraining }: Props) {
                   navigate(a.path);
                 }}
                 className={cn(
-                  "w-full flex items-center gap-3 rounded-v3-lg px-3 py-3 text-left",
-                  "hover:bg-v3-canvas-secondary transition-colors",
+                  "w-full flex items-center gap-3 rounded-v3-xl px-3 py-3 text-left",
+                  "hover:bg-v3-canvas-secondary active:bg-v3-canvas-sunken/60 transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-v3-brand-500/40",
                 )}
               >
-                <div className={cn("h-11 w-11 rounded-v3-lg grid place-items-center shrink-0", ACCENT_BG[a.accent])}>
-                  <Icon size={20} strokeWidth={1.6} />
+                <div className={cn("h-12 w-12 rounded-v3-xl grid place-items-center shrink-0", ACCENT_BG[a.accent])}>
+                  <Icon size={21} strokeWidth={1.6} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-v3-base font-medium text-v3-text-primary leading-tight">
                     {a.label}
                   </div>
-                  <div className="text-v3-xs text-v3-text-tertiary mt-0.5">
+                  <div className="text-v3-xs text-v3-text-tertiary mt-0.5 leading-relaxed">
                     {a.description}
                   </div>
                 </div>
+                <span className="text-v3-text-tertiary text-v3-lg" aria-hidden>›</span>
               </button>
             );
           })}

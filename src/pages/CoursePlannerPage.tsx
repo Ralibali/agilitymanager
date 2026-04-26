@@ -844,25 +844,27 @@ export default function CoursePlannerPage() {
     ctx.fillStyle = isDarkCanvas ? 'hsl(0, 0%, 10%)' : 'hsl(0, 0%, 97%)';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    // Minor grid (1m)
-    ctx.strokeStyle = isDarkCanvas ? 'hsl(0, 0%, 20%)' : 'hsl(0, 0%, 90%)';
-    ctx.lineWidth = 0.3;
-    for (let x = 0; x <= canvasWidth; x += GRID_STEP) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvasHeight); ctx.stroke();
-    }
-    for (let y = 0; y <= canvasHeight; y += GRID_STEP) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvasWidth, y); ctx.stroke();
-    }
+    if (showGrid) {
+      // Minor grid (1m)
+      ctx.strokeStyle = isDarkCanvas ? 'hsl(0, 0%, 20%)' : 'hsl(0, 0%, 90%)';
+      ctx.lineWidth = 0.3;
+      for (let x = 0; x <= canvasWidth; x += GRID_STEP) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvasHeight); ctx.stroke();
+      }
+      for (let y = 0; y <= canvasHeight; y += GRID_STEP) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvasWidth, y); ctx.stroke();
+      }
 
-    // Major grid (5m)
-    ctx.strokeStyle = isDarkCanvas ? 'hsl(0, 0%, 30%)' : 'hsl(0, 0%, 78%)';
-    ctx.lineWidth = 0.8;
-    const majorStep = GRID_STEP * 5;
-    for (let x = 0; x <= canvasWidth; x += majorStep) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvasHeight); ctx.stroke();
-    }
-    for (let y = 0; y <= canvasHeight; y += majorStep) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvasWidth, y); ctx.stroke();
+      // Major grid (5m)
+      ctx.strokeStyle = isDarkCanvas ? 'hsl(0, 0%, 30%)' : 'hsl(0, 0%, 78%)';
+      ctx.lineWidth = 0.8;
+      const majorStep = GRID_STEP * 5;
+      for (let x = 0; x <= canvasWidth; x += majorStep) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvasHeight); ctx.stroke();
+      }
+      for (let y = 0; y <= canvasHeight; y += majorStep) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvasWidth, y); ctx.stroke();
+      }
     }
 
     // Coordinate labels

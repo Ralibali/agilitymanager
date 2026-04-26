@@ -10,6 +10,14 @@ interface Props {
   onClose: () => void;
 }
 
+const GROUP_HELP: Record<string, string> = {
+  Dagligt: "Det du använder oftast under veckan.",
+  "Min hund": "Följ hundens hälsa, utveckling och lärande.",
+  Verktyg: "Praktiska hjälpmedel inför pass och bana.",
+  Socialt: "Träna och följ utveckling tillsammans med andra.",
+  System: "Profil, konto och administrativa val.",
+};
+
 /**
  * Bottom-sheet "Mer" – visar alla nav-items grupperade.
  * Mobil-only. Trigger från V3BottomNav.
@@ -50,25 +58,37 @@ export function V3MoreSheet({ open, onClose }: Props) {
           "pb-[env(safe-area-inset-bottom,16px)] animate-v3-sheet-in",
         )}
       >
-        <div className="flex justify-center pt-2.5 pb-1 sticky top-0 bg-v3-canvas-elevated">
+        <div className="flex justify-center pt-2.5 pb-1 sticky top-0 bg-v3-canvas-elevated z-10">
           <span className="h-1 w-9 rounded-full bg-v3-canvas-sunken" />
         </div>
-        <div className="flex items-center justify-between px-5 pt-1 pb-3">
-          <h2 className="font-v3-display text-[22px] text-v3-text-primary">Mer</h2>
+        <div className="flex items-start justify-between px-5 pt-1 pb-4">
+          <div>
+            <h2 className="font-v3-display text-[24px] text-v3-text-primary">Mer</h2>
+            <p className="text-v3-sm text-v3-text-secondary mt-1">
+              Hitta fler funktioner utan att tappa fokus från dagens träning.
+            </p>
+          </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Stäng"
-            className="h-8 w-8 grid place-items-center rounded-full text-v3-text-tertiary hover:bg-v3-canvas-sunken/60 hover:text-v3-text-primary transition-colors"
+            className="h-8 w-8 grid place-items-center rounded-full text-v3-text-tertiary hover:bg-v3-canvas-sunken/60 hover:text-v3-text-primary transition-colors shrink-0"
           >
             <X size={16} strokeWidth={1.6} />
           </button>
         </div>
-        <div className="px-3 pb-3 space-y-4">
+        <div className="px-3 pb-3 space-y-5">
           {groups.map((g) => (
-            <div key={g.label}>
-              <div className="px-2 pb-1.5 text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary/80">
-                {g.label}
+            <section key={g.label} aria-label={g.label}>
+              <div className="px-2 pb-2">
+                <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary/80">
+                  {g.label}
+                </div>
+                {GROUP_HELP[g.label] && (
+                  <p className="text-v3-xs text-v3-text-tertiary mt-0.5">
+                    {GROUP_HELP[g.label]}
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-3 gap-1.5">
                 {g.items.map((item) => {
@@ -81,10 +101,10 @@ export function V3MoreSheet({ open, onClose }: Props) {
                       onClick={onClose}
                       className={({ isActive }) =>
                         cn(
-                          "flex flex-col items-center gap-2 p-3 rounded-v3-lg transition-colors",
+                          "flex flex-col items-center gap-2 p-3 rounded-v3-lg transition-colors min-h-[92px]",
                           isActive
                             ? "bg-v3-brand-500/10"
-                            : "hover:bg-v3-canvas-secondary",
+                            : "hover:bg-v3-canvas-secondary active:bg-v3-canvas-sunken/50",
                         )
                       }
                     >
@@ -108,13 +128,18 @@ export function V3MoreSheet({ open, onClose }: Props) {
                           >
                             {item.label}
                           </span>
+                          {item.badge && (
+                            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-v3-brand-100 text-v3-brand-700">
+                              {item.badge === "intern" ? "Intern" : "Pro"}
+                            </span>
+                          )}
                         </>
                       )}
                     </NavLink>
                   );
                 })}
               </div>
-            </div>
+            </section>
           ))}
         </div>
       </div>

@@ -3,8 +3,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 export type WeeklyBucket = {
-  weekStart: string; // ISO date (Monday)
-  label: string; // "v.13"
+  weekStart: string;
+  label: string;
   sessions: number;
   minutes: number;
   passed: number;
@@ -30,7 +30,7 @@ export type DogCompare = {
   themeColor: string;
   totalSessions: number;
   totalMinutes: number;
-  passRate: number; // 0-1
+  passRate: number;
   starts: number;
   avgPlacement: number | null;
 };
@@ -105,13 +105,11 @@ function defaultWeeksForRange(range: RangeKey): number {
 }
 
 function weekLabel(d: Date): string {
-  // ISO-week (måndag-baserad)
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   const dayNum = (date.getUTCDay() + 6) % 7;
   date.setUTCDate(date.getUTCDate() - dayNum + 3);
   const firstThursday = new Date(Date.UTC(date.getUTCFullYear(), 0, 4));
-  const weekNum =
-    1 + Math.round(((date.getTime() - firstThursday.getTime()) / MS_DAY - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
+  const weekNum = 1 + Math.round(((date.getTime() - firstThursday.getTime()) / MS_DAY - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
   return `v.${weekNum}`;
 }
 
@@ -121,10 +119,7 @@ type SessionRow = {
   duration_min: number | null;
   type: string;
   sport: string;
-  banflyt_score: number | null;
-  dirigering_score: number | null;
   overall_mood: number | null;
-  best_time_sec: number | null;
   tags: string[] | null;
   dog_id: string;
 };
@@ -156,7 +151,6 @@ function buildWeekly(sessions: SessionRow[], results: ResultRow[], range: RangeK
   const currentWeek = startOfWeek(today);
   const defaultWeeks = defaultWeeksForRange(range);
 
-  // Skapa alltid en sammanhängande serie veckor så grafen inte ser trasig ut vid lite data.
   for (let i = defaultWeeks - 1; i >= 0; i--) {
     const week = addDays(currentWeek, -i * 7);
     const bucket = makeEmptyBucket(week);
@@ -190,36 +184,27 @@ function buildTypeDist(sessions: SessionRow[]): TypeDistribution[] {
   const counts = new Map<string, number>();
   sessions.forEach((s) => counts.set(s.type, (counts.get(s.type) ?? 0) + 1));
   const total = sessions.length || 1;
-  return Array.from(counts.entries())
-    .map(([type, count]) => ({ type, count, percent: count / total }))
-    .sort((a, b) => b.count - a.count);
+  return Array.from(counts.entries()).map(([type, count]) => ({ type, count, percent: count / total })).sort((a, b) => b.count - a.count);
 }
 
 function buildScoreTrend(sessions: SessionRow[]): ScoreTrend[] {
-  const map = new Map<string, { b: number[]; d: number[]; m: number[] }>();
+  const map = new Map<string, { m: number[] }>();
   sessions.forEach((s) => {
     const key = localIsoDate(startOfWeek(parseLocalDate(s.date)));
-    if (!map.has(key)) map.set(key, { b: [], d: [], m: [] });
+    if (!map.has(key)) map.set(key, { m: [] });
     const bucket = map.get(key)!;
-    if (s.banflyt_score != null) bucket.b.push(s.banflyt_score);
-    if (s.dirigering_score != null) bucket.d.push(s.dirigering_score);
     if (s.overall_mood != null) bucket.m.push(s.overall_mood);
   });
   const avg = (arr: number[]) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null);
   return Array.from(map.entries())
-    .map(([date, v]) => ({ date, banflyt: avg(v.b), dirigering: avg(v.d), mood: avg(v.m) }))
+    .map(([date, v]) => ({ date, banflyt: null, dirigering: null, mood: avg(v.m) }))
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 function buildTopTags(sessions: SessionRow[]): { tag: string; count: number }[] {
   const counts = new Map<string, number>();
-  sessions.forEach((s) => {
-    (s.tags ?? []).forEach((t) => counts.set(t, (counts.get(t) ?? 0) + 1));
-  });
-  return Array.from(counts.entries())
-    .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 6);
+  sessions.forEach((s) => (s.tags ?? []).forEach((t) => counts.set(t, (counts.get(t) ?? 0) + 1)));
+  return Array.from(counts.entries()).map(([tag, count]) => ({ tag, count })).sort((a, b) => b.count - a.count).slice(0, 6);
 }
 
 function buildInsights(weekly: WeeklyBucket[], typeDist: TypeDistribution[], scoreTrend: ScoreTrend[], totals: V3Stats["totals"]): Insight[] {
@@ -233,14 +218,16 @@ function buildInsights(weekly: WeeklyBucket[], typeDist: TypeDistribution[], sco
       else if (delta <= -25) out.push({ id: "vol-down", tone: "warning", title: "Volymen har sjunkit", body: `Du har tränat ${last4} pass senaste 4 veckorna mot ${prev4} förra. Planera in ett par korta pass nästa vecka.` });
     }
   }
-  const validScores = scoreTrend.filter((s) => s.banflyt != null);
-  if (validScores.length >= 4) {
-    const last2 = validScores.slice(-2);
-    const first2 = validScores.slice(0, 2);
-    const lastAvg = last2.reduce((s, w) => s + (w.banflyt ?? 0), 0) / last2.length;
-    const firstAvg = first2.reduce((s, w) => s + (w.banflyt ?? 0), 0) / first2.length;
-    if (lastAvg - firstAvg >= 0.5) out.push({ id: "score-up", tone: "positive", title: "Banflyt har förbättrats", body: `Snittet har gått från ${firstAvg.toFixed(1)} till ${lastAvg.toFixed(1)} – ditt arbete syns i siffrorna.` });
+
+  const validMood = scoreTrend.filter((s) => s.mood != null);
+  if (validMood.length >= 4) {
+    const last2 = validMood.slice(-2);
+    const first2 = validMood.slice(0, 2);
+    const lastAvg = last2.reduce((s, w) => s + (w.mood ?? 0), 0) / last2.length;
+    const firstAvg = first2.reduce((s, w) => s + (w.mood ?? 0), 0) / first2.length;
+    if (lastAvg - firstAvg >= 0.5) out.push({ id: "mood-up", tone: "positive", title: "Känslan går åt rätt håll", body: `Snittkänslan har gått från ${firstAvg.toFixed(1)} till ${lastAvg.toFixed(1)}. Fortsätt fånga vad som fungerar.` });
   }
+
   if (typeDist.length > 0 && typeDist[0].percent >= 0.6) out.push({ id: "mix", tone: "neutral", title: "Ensidig träningsmix", body: `${Math.round(typeDist[0].percent * 100)}% av passen är "${typeDist[0].type}". Variera med en annan typ för balanserad utveckling.` });
   if (totals.starts >= 5) {
     if (totals.passRate >= 0.7) out.push({ id: "pass-rate-good", tone: "positive", title: `${Math.round(totals.passRate * 100)}% godkända lopp`, body: `Av ${totals.starts} starter har ${totals.passed} gått igenom – stabilt resultat.` });
@@ -277,10 +264,22 @@ export function useV3Stats(dogId: string | null, range: RangeKey) {
     setLoading(true);
     (async () => {
       const since = rangeStart(range);
-      const sessionsQuery = supabase.from("training_sessions").select("id, date, duration_min, type, sport, banflyt_score, dirigering_score, overall_mood, best_time_sec, tags, dog_id").eq("user_id", user.id).eq("dog_id", dogId).order("date", { ascending: true });
-      const resultsQuery = supabase.from("competition_results").select("id, date, passed, placement, time_sec, dog_id").eq("user_id", user.id).eq("dog_id", dogId).order("date", { ascending: true });
+      const sessionsQuery = supabase
+        .from("training_sessions")
+        .select("id, date, duration_min, type, sport, overall_mood, tags, dog_id")
+        .eq("user_id", user.id)
+        .eq("dog_id", dogId)
+        .order("date", { ascending: true });
+      const resultsQuery = supabase
+        .from("competition_results")
+        .select("id, date, passed, placement, time_sec, dog_id")
+        .eq("user_id", user.id)
+        .eq("dog_id", dogId)
+        .order("date", { ascending: true });
       const [sRes, rRes] = await Promise.all([since ? sessionsQuery.gte("date", since) : sessionsQuery, since ? resultsQuery.gte("date", since) : resultsQuery]);
       if (cancelled) return;
+      if (sRes.error) console.error("useV3Stats training_sessions error", sRes.error);
+      if (rRes.error) console.error("useV3Stats competition_results error", rRes.error);
       setSessions((sRes.data ?? []) as SessionRow[]);
       setResults((rRes.data ?? []) as ResultRow[]);
       setLoading(false);

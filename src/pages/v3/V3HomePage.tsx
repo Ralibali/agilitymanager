@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Dog as DogIcon, Target, BarChart3, CalendarDays, Flame, Medal, type LucideIcon } from "lucide-react";
+import { Plus, Dog as DogIcon, Target, BarChart3, CalendarDays, Flame, Medal, Lightbulb, ArrowRight, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
-import { useV3Dashboard } from "@/hooks/v3/useV3Dashboard";
+import { useV3Dashboard, type NextEvent } from "@/hooks/v3/useV3Dashboard";
 import { openV3LogSheet } from "@/hooks/v3/useV3LogSheet";
 import { DogHero } from "@/components/v3/DogHero";
 import { ActivityTimeline } from "@/components/v3/ActivityTimeline";
@@ -161,6 +161,8 @@ export default function V3HomePage() {
     };
   }, [active?.id, active?.name, hasTimeline, passedThisMonth, streakDays]);
 
+  const smartTips = useMemo(() => buildSmartTips({ dogName: active?.name, hasTimeline, streakDays, passedThisMonth, nextEvent }), [active?.name, hasTimeline, nextEvent, passedThisMonth, streakDays]);
+
   const [showOnboarding, setShowOnboarding] = useState(false);
   useEffect(() => {
     if (dogsLoading || !user) return;
@@ -210,6 +212,8 @@ export default function V3HomePage() {
             <ActionCard icon={BarChart3} title="Se statistik" description="Följ utveckling och resultat" accent="neutral" onClick={() => navigate("/v3/stats")} />
           </section>
 
+          <SmartTipsPanel tips={smartTips} onLog={openV3LogSheet} onNavigate={navigate} />
+
           <div className="grid grid-cols-1 xl:grid-cols-[1.15fr_0.85fr] gap-4">
             <NextUpSoftCard loading={dashLoading} hasNext={Boolean(nextEvent)} nextCopy={copy.next} onOpen={() => navigate("/v3/competition")} onLog={openV3LogSheet} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -225,6 +229,82 @@ export default function V3HomePage() {
         </>
       )}
     </div>
+  );
+}
+
+type SmartTip = {
+  title: string;
+  body: string;
+  actionLabel: string;
+  action: "log" | "goals" | "competition" | "stats" | "training";
+  tone: "brand" | "warm" | "neutral";
+};
+
+function buildSmartTips({ dogName, hasTimeline, streakDays, passedThisMonth, nextEvent }: { dogName?: string; hasTimeline: boolean; streakDays: number; passedThisMonth: number; nextEvent: NextEvent }): SmartTip[] {
+  const name = dogName ?? "din hund";
+  const tips: SmartTip[] = [];
+
+  if (!hasTimeline) {
+    tips.push({ title: "Börja med första passet", body: `Logga ett enkelt pass med ${name}. Det räcker med typ, tid och känsla för att börja bygga historik.`, actionLabel: "Logga pass", action: "log", tone: "brand" });
+    tips.push({ title: "Sätt ett första fokus", body: "Ett mål gör nästa träningspass lättare att välja och följa upp.", actionLabel: "Skapa mål", action: "goals", tone: "neutral" });
+  } else {
+    tips.push({ title: "Följ upp senaste passet", body: "Skriv ner vad som fungerade innan känslan försvinner. Små noteringar ger bättre mönster över tid.", actionLabel: "Logga pass", action: "log", tone: "brand" });
+  }
+
+  if (streakDays === 0 && hasTimeline) {
+    tips.push({ title: "Starta om rutinen", body: "Ett kort pass idag räcker för att börja bygga kontinuitet igen.", actionLabel: "Logga pass", action: "log", tone: "warm" });
+  } else if (streakDays > 0) {
+    tips.push({ title: "Skydda träningsrytmen", body: `${streakDays} ${streakDays === 1 ? "dag" : "dagar"} i rad. Planera nästa enkla pass medan rutinen sitter.`, actionLabel: "Se träning", action: "training", tone: "warm" });
+  }
+
+  if (!nextEvent) {
+    tips.push({ title: "Planera nästa start", body: "Lägg in en tävling eller träningsaktivitet så får dashboarden mer riktning.", actionLabel: "Planera tävling", action: "competition", tone: "neutral" });
+  } else {
+    tips.push({ title: "Förbered nästa aktivitet", body: "Du har något på gång. Använd de senaste passen för att välja rätt fokus inför starten.", actionLabel: "Se tävlingar", action: "competition", tone: "neutral" });
+  }
+
+  if (passedThisMonth === 0 && hasTimeline) {
+    tips.push({ title: "Spara tävlingsresultat", body: "När du loggar resultat kan appen visa pass-rate och utveckling över tid.", actionLabel: "Logga resultat", action: "competition", tone: "neutral" });
+  } else if (passedThisMonth > 0) {
+    tips.push({ title: "Analysera vad som fungerade", body: "Du har godkända lopp den här månaden. Se om träningen visar ett mönster.", actionLabel: "Se statistik", action: "stats", tone: "brand" });
+  }
+
+  return tips.slice(0, 3);
+}
+
+function SmartTipsPanel({ tips, onLog, onNavigate }: { tips: SmartTip[]; onLog: () => void; onNavigate: (path: string) => void }) {
+  const handleAction = (action: SmartTip["action"]) => {
+    if (action === "log") return onLog();
+    if (action === "goals") return onNavigate("/v3/goals?action=new");
+    if (action === "competition") return onNavigate("/v3/competition?action=new");
+    if (action === "training") return onNavigate("/v3/training");
+    return onNavigate("/v3/stats");
+  };
+
+  return (
+    <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs">
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
+            <Lightbulb size={13} strokeWidth={1.8} /> Smarta förslag
+          </div>
+          <h2 className="font-v3-display text-v3-2xl text-v3-text-primary mt-1">Nästa bästa steg</h2>
+        </div>
+        <span className="hidden sm:inline-flex rounded-full bg-v3-brand-500/10 px-3 py-1 text-v3-xs font-medium text-v3-brand-700">Anpassas efter din data</span>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        {tips.map((tip) => (
+          <button key={tip.title} type="button" onClick={() => handleAction(tip.action)} className="group text-left rounded-v3-xl border border-v3-canvas-sunken/40 bg-v3-canvas/45 p-4 hover:border-v3-brand-500/30 hover:bg-v3-canvas-elevated transition-all">
+            <div className={cn("h-9 w-9 rounded-full grid place-items-center mb-3", tip.tone === "brand" && "bg-v3-brand-500/10 text-v3-brand-700", tip.tone === "warm" && "bg-orange-100 text-orange-700", tip.tone === "neutral" && "bg-v3-canvas-sunken text-v3-text-secondary")}>
+              <ArrowRight size={15} strokeWidth={1.8} className="group-hover:translate-x-0.5 transition-transform" />
+            </div>
+            <h3 className="font-v3-display text-v3-lg text-v3-text-primary leading-tight">{tip.title}</h3>
+            <p className="text-v3-sm text-v3-text-secondary mt-1.5 line-clamp-3">{tip.body}</p>
+            <div className="text-v3-sm font-medium text-v3-brand-700 mt-4">{tip.actionLabel} →</div>
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -328,13 +408,7 @@ function WeeklyOverviewCard({ hasActivity }: { hasActivity: boolean }) {
       </div>
       <div className="grid grid-cols-7 gap-2">
         {days.map((day) => (
-          <div
-            key={day.iso}
-            className={cn(
-              "rounded-v3-lg px-2 py-3 text-center border",
-              day.active ? "border-v3-brand-500 bg-v3-brand-500/5" : "border-transparent bg-v3-canvas-sunken/30",
-            )}
-          >
+          <div key={day.iso} className={cn("rounded-v3-lg px-2 py-3 text-center border", day.active ? "border-v3-brand-500 bg-v3-brand-500/5" : "border-transparent bg-v3-canvas-sunken/30")}>
             <div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary">{day.d}</div>
             <div className="font-v3-display text-v3-xl text-v3-text-primary mt-1">{day.n}</div>
             <div className="text-v3-brand-600 text-v3-sm mt-1">•</div>
@@ -346,9 +420,7 @@ function WeeklyOverviewCard({ hasActivity }: { hasActivity: boolean }) {
           <span>{hasActivity ? "Följ veckans pass här" : "Inga pass loggade denna vecka"}</span>
           <span>{hasActivity ? "—" : "0%"}</span>
         </div>
-        <div className="h-2 rounded-full bg-v3-canvas-sunken overflow-hidden">
-          <div className={cn("h-full rounded-full bg-v3-brand-500", hasActivity ? "w-[20%]" : "w-0")} />
-        </div>
+        <div className="h-2 rounded-full bg-v3-canvas-sunken overflow-hidden"><div className={cn("h-full rounded-full bg-v3-brand-500", hasActivity ? "w-[20%]" : "w-0")} /></div>
       </div>
     </section>
   );

@@ -62,8 +62,7 @@ function useGreeting(): { greeting: string; name: string } {
 
 /**
  * v3 Dashboard.
- * Fokus: action-first + relation. Användaren ska snabbt förstå vad nästa steg är
- * och känna att appen följer teamets resa över tid.
+ * Fokus: action-first, lugnare layout och tydlig prioritering.
  */
 export default function V3HomePage() {
   const navigate = useNavigate();
@@ -94,30 +93,31 @@ export default function V3HomePage() {
   }
 
   return (
-    <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-8 lg:space-y-10 animate-v3-fade-in">
+    <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-6 lg:space-y-7 animate-v3-fade-in">
       {/* Greeting */}
-      <header className="relative overflow-hidden rounded-v3-2xl bg-gradient-to-br from-v3-canvas-elevated via-v3-canvas-elevated to-v3-brand-500/10 border border-v3-canvas-sunken/40 p-6 lg:p-8 shadow-v3-sm">
-        <div className="absolute right-[-48px] top-[-48px] h-40 w-40 rounded-full bg-v3-brand-500/10 blur-2xl" />
-        <div className="absolute left-[-60px] bottom-[-70px] h-44 w-44 rounded-full bg-v3-accent-prestation/10 blur-2xl" />
-        <div className="relative space-y-3 max-w-3xl">
-          <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
-            {new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long" })}
-          </div>
-          <h1 className="font-v3-display text-[34px] lg:text-[50px] leading-[1.02] tracking-[-0.035em] text-v3-text-primary">
-            {greeting}, {name}.
-          </h1>
-          <p className="text-v3-base lg:text-v3-lg text-v3-text-secondary max-w-2xl">
-            Idag handlar det inte bara om pass och resultat. Det handlar om att förstå {active?.name ? active.name : "din hund"}, bygga självförtroende och ta nästa lilla steg tillsammans.
-          </p>
-          {active && (
-            <div className="flex flex-wrap gap-2 pt-1">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/60 border border-v3-canvas-sunken/50 px-3 py-1.5 text-v3-xs font-medium text-v3-text-secondary">
-                <Heart size={13} className="text-v3-brand-600" /> Team {active.name}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/60 border border-v3-canvas-sunken/50 px-3 py-1.5 text-v3-xs font-medium text-v3-text-secondary">
-                <Sparkles size={13} className="text-v3-accent-prestation" /> Varje pass räknas
-              </span>
+      <header className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 lg:p-6 shadow-v3-xs">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+          <div className="space-y-2 max-w-3xl">
+            <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
+              {new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long" })}
             </div>
+            <h1 className="font-v3-display text-[32px] lg:text-[46px] leading-[1.03] tracking-[-0.03em] text-v3-text-primary">
+              {greeting}, {name}.
+            </h1>
+            <p className="text-v3-base text-v3-text-secondary max-w-2xl">
+              {active?.name
+                ? `Välj nästa steg för ${active.name}: logga pass, planera tävling eller följ utvecklingen.`
+                : "Välj nästa steg för dagens träning, tävling eller uppföljning."}
+            </p>
+          </div>
+          {active && (
+            <button
+              type="button"
+              onClick={openV3LogSheet}
+              className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm shrink-0"
+            >
+              <Plus size={16} /> Logga pass
+            </button>
           )}
         </div>
       </header>
@@ -137,32 +137,27 @@ export default function V3HomePage() {
           ]}
         />
       ) : (
-        <div className="space-y-4">
-          <DogHero
-            dogs={dogs}
-            active={active}
-            activeId={activeId}
-            onSelect={setActive}
-            onAddDog={() => navigate("/v3/dogs")}
-          />
-        </div>
+        <DogHero
+          dogs={dogs}
+          active={active}
+          activeId={activeId}
+          onSelect={setActive}
+          onAddDog={() => navigate("/v3/dogs")}
+        />
       )}
 
       {active && (
         <>
-          <section className="rounded-v3-2xl bg-v3-text-primary text-v3-text-inverse overflow-hidden shadow-v3-xl">
-            <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-0">
-              <div className="p-6 lg:p-7 space-y-4">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.08em] font-medium text-white/75">
-                  <Sparkles size={13} /> Dagens teamkänsla
+          <section className="rounded-v3-2xl bg-v3-text-primary text-v3-text-inverse border border-v3-text-primary/10 p-5 lg:p-6 shadow-v3-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="space-y-2 max-w-2xl">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.08em] font-medium text-white/70">
+                  <Sparkles size={12} /> Dagens fokus
                 </div>
-                <h2 className="font-v3-display text-[28px] lg:text-[36px] leading-tight tracking-[-0.02em]">
-                  Vad vill du att {active.name} ska känna efter dagens pass?
+                <h2 className="font-v3-display text-[24px] lg:text-[30px] leading-tight tracking-[-0.02em] text-white">
+                  Vad är viktigast i nästa pass med {active.name}?
                 </h2>
-                <p className="text-v3-base text-white/70 max-w-xl">
-                  Välj ett mjukt fokus innan du loggar. Appen ska inte bara mäta prestation – den ska hjälpa dig skapa trygghet, riktning och bättre träning över tid.
-                </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 pt-1">
                   {['Självförtroende', 'Fokus', 'Glädje', 'Fart', 'Trygghet'].map((item) => (
                     <button
                       key={item}
@@ -175,18 +170,9 @@ export default function V3HomePage() {
                   ))}
                 </div>
               </div>
-              <div className="bg-white/[0.06] p-6 lg:p-7 flex flex-col justify-between gap-5 border-t lg:border-t-0 lg:border-l border-white/10">
-                <div className="space-y-3">
-                  <MiniRelationStat label="Pass i streak" value={String(stats?.streakDays ?? 0)} />
-                  <MiniRelationStat label="Klarade lopp denna månad" value={String(stats?.passedThisMonth ?? 0)} />
-                </div>
-                <button
-                  type="button"
-                  onClick={openV3LogSheet}
-                  className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-v3-base bg-white text-v3-text-primary text-v3-sm font-medium hover:bg-white/90 transition-colors"
-                >
-                  <Plus size={16} /> Logga med känsla
-                </button>
+              <div className="grid grid-cols-2 gap-2 lg:w-[260px] shrink-0">
+                <MiniRelationStat label="Streak" value={String(stats?.streakDays ?? 0)} />
+                <MiniRelationStat label="Klarade" value={String(stats?.passedThisMonth ?? 0)} />
               </div>
             </div>
           </section>
@@ -312,9 +298,9 @@ export default function V3HomePage() {
 
 function MiniRelationStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-v3-xl bg-white/10 border border-white/10 p-4">
+    <div className="rounded-v3-xl bg-white/10 border border-white/10 p-3">
       <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-white/55">{label}</div>
-      <div className="font-v3-display text-[34px] leading-none mt-2 text-white tabular-nums">{value}</div>
+      <div className="font-v3-display text-[28px] leading-none mt-2 text-white tabular-nums">{value}</div>
     </div>
   );
 }

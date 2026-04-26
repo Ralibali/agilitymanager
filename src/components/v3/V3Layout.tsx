@@ -46,6 +46,12 @@ export function V3Layout() {
     if (handledActionRef.current === key) return;
     handledActionRef.current = key;
 
+    if (location.pathname === "/v3/training") {
+      setLogOpen(true);
+      navigate(location.pathname, { replace: true });
+      return;
+    }
+
     const actionLabelsByPath: { path: string; labels: string[] }[] = [
       { path: "/v3/competition", labels: ["Planera tävling", "Logga resultat"] },
       { path: "/v3/goals", labels: ["Nytt mål", "Skapa mål"] },
@@ -66,7 +72,7 @@ export function V3Layout() {
     );
 
     return () => timers.forEach(window.clearTimeout);
-  }, [location.pathname, location.search, navigate]);
+  }, [location.pathname, location.search, navigate, setLogOpen]);
 
   return (
     <div className="min-h-screen bg-v3-canvas text-v3-text-primary font-v3-sans flex">

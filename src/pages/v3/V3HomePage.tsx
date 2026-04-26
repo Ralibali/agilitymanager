@@ -1,21 +1,28 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Dog as DogIcon, Trophy, Target, BarChart3, Heart, Sparkles, type LucideIcon } from "lucide-react";
+import {
+  Plus,
+  Dog as DogIcon,
+  Trophy,
+  Target,
+  BarChart3,
+  type LucideIcon,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Dashboard } from "@/hooks/v3/useV3Dashboard";
 import { openV3LogSheet } from "@/hooks/v3/useV3LogSheet";
-import { DogHero } from "@/components/v3/DogHero";
-import { StatRow } from "@/components/v3/StatRow";
+import { V3DogStrip } from "@/components/v3/V3DogStrip";
 import { NextUpCard } from "@/components/v3/NextUpCard";
 import { ActivityTimeline } from "@/components/v3/ActivityTimeline";
 import { V3EmptyState } from "@/components/v3/V3EmptyState";
 import { V3OnboardingWizard } from "@/components/v3/V3OnboardingWizard";
+import { HeroPawIllustration } from "@/components/v3/HeroPawIllustration";
 import { cn } from "@/lib/utils";
 
 /**
- * Tidsanpassad hälsning. Synk med /design-demo.
+ * Tidsanpassad hälsning.
  */
 function getTimeGreeting(date: Date = new Date()): string {
   const h = date.getHours();
@@ -61,8 +68,13 @@ function useGreeting(): { greeting: string; name: string } {
 }
 
 /**
- * v3 Dashboard.
- * Fokus: action-first, lugnare layout och tydlig prioritering.
+ * v3 Dashboard – Soft UI, lugn premium-känsla.
+ * Layout enligt spec:
+ *   1. Hero (datum, hälsning, kort beskrivning, primär CTA, illustration)
+ *   2. Kompakt hundkort
+ *   3. 4 quick-action cards i en rad
+ *   4. Nästa upp (vänster) + 2 KPI-kort (höger)
+ *   5. Veckans översikt + Senaste aktiviteter
  */
 export default function V3HomePage() {
   const navigate = useNavigate();
@@ -71,12 +83,13 @@ export default function V3HomePage() {
   const { dogs, active, activeId, setActive, loading: dogsLoading } = useV3Dogs();
   const { stats, nextEvent, timeline, loading: dashLoading } = useV3Dashboard(activeId);
 
-  // Onboarding-trigger: visa wizarden för nya användare som saknar hund och inte
-  // tidigare slutfört eller hoppat över guiden.
   const [showOnboarding, setShowOnboarding] = useState(false);
   useEffect(() => {
     if (dogsLoading || !user) return;
-    const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean; onboarding_skipped?: boolean };
+    const meta = (user.user_metadata ?? {}) as {
+      onboarding_complete?: boolean;
+      onboarding_skipped?: boolean;
+    };
     const done = meta.onboarding_complete || meta.onboarding_skipped;
     if (!done && dogs.length === 0) setShowOnboarding(true);
   }, [user, dogs, dogsLoading]);
@@ -92,39 +105,51 @@ export default function V3HomePage() {
     );
   }
 
+  const today = new Date().toLocaleDateString("sv-SE", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
   return (
-    <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-6 lg:space-y-7 animate-v3-fade-in">
-      {/* Greeting */}
-      <header className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 lg:p-6 shadow-v3-xs">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-          <div className="space-y-2 max-w-3xl">
-            <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
-              {new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long" })}
+    <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-8 lg:space-y-10 animate-v3-fade-in">
+      {/* 1. HERO */}
+      <header className="relative overflow-hidden rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/50 shadow-v3-xs">
+        <div className="relative grid grid-cols-1 md:grid-cols-[1fr_auto] items-center gap-6 p-6 lg:p-9">
+          <div className="space-y-3 max-w-2xl">
+            <div className="text-[10px] uppercase tracking-[0.1em] font-medium text-v3-text-tertiary">
+              {today}
             </div>
-            <h1 className="font-v3-display text-[32px] lg:text-[46px] leading-[1.03] tracking-[-0.03em] text-v3-text-primary">
-              {greeting}, {name}.
+            <h1 className="font-v3-display text-[30px] lg:text-[42px] leading-[1.05] tracking-[-0.02em] text-v3-text-primary">
+              {greeting}, {name} <span aria-hidden>👋</span>
             </h1>
-            <p className="text-v3-base text-v3-text-secondary max-w-2xl">
+            <p className="text-v3-base text-v3-text-secondary max-w-xl leading-relaxed">
               {active?.name
-                ? `Välj nästa steg för ${active.name}: logga pass, planera tävling eller följ utvecklingen.`
-                : "Välj nästa steg för dagens träning, tävling eller uppföljning."}
+                ? `Liten dag, stort steg. Logga dagens pass med ${active.name} eller planera nästa tävling.`
+                : "Liten dag, stort steg. Lägg till din första hund så börjar resan här."}
             </p>
+            {active && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={openV3LogSheet}
+                  className="inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm"
+                >
+                  <Plus size={16} strokeWidth={1.8} />
+                  Logga pass
+                </button>
+              </div>
+            )}
           </div>
-          {active && (
-            <button
-              type="button"
-              onClick={openV3LogSheet}
-              className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm shrink-0"
-            >
-              <Plus size={16} /> Logga pass
-            </button>
-          )}
+          <div className="hidden md:block w-[220px] h-[180px] shrink-0">
+            <HeroPawIllustration className="w-full h-full" />
+          </div>
         </div>
       </header>
 
-      {/* Dog hero / empty-state */}
+      {/* 2. KOMPAKT HUNDKORT */}
       {dogsLoading ? (
-        <div className="h-28 rounded-v3-2xl v3-skeleton" />
+        <div className="h-24 rounded-v3-2xl v3-skeleton" />
       ) : dogs.length === 0 ? (
         <V3EmptyState
           icon={DogIcon}
@@ -133,174 +158,133 @@ export default function V3HomePage() {
           description="Allt i AgilityManager kretsar kring dina hundar – träning, tävlingar och mål. Ta 30 sekunder och kom igång."
           actions={[
             { label: "Starta guiden", onClick: () => setShowOnboarding(true), icon: Plus },
-            { label: "Lägg till manuellt", onClick: () => navigate("/v3/dogs"), variant: "secondary" },
+            {
+              label: "Lägg till manuellt",
+              onClick: () => navigate("/v3/dogs"),
+              variant: "secondary",
+            },
           ]}
         />
-      ) : (
-        <DogHero
+      ) : active ? (
+        <V3DogStrip
+          dog={active}
           dogs={dogs}
-          active={active}
           activeId={activeId}
           onSelect={setActive}
-          onAddDog={() => navigate("/v3/dogs")}
         />
-      )}
+      ) : null}
 
       {active && (
         <>
-          <section className="rounded-v3-2xl bg-v3-text-primary text-v3-text-inverse border border-v3-text-primary/10 p-5 lg:p-6 shadow-v3-sm">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div className="space-y-2 max-w-2xl">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.08em] font-medium text-white/70">
-                  <Sparkles size={12} /> Dagens fokus
-                </div>
-                <h2 className="font-v3-display text-[24px] lg:text-[30px] leading-tight tracking-[-0.02em] text-white">
-                  Vad är viktigast i nästa pass med {active.name}?
-                </h2>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {['Självförtroende', 'Fokus', 'Glädje', 'Fart', 'Trygghet'].map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={openV3LogSheet}
-                      className="rounded-full bg-white/10 hover:bg-white/15 border border-white/10 px-3 py-1.5 text-v3-sm text-white/85 transition-colors"
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2 lg:w-[260px] shrink-0">
-                <MiniRelationStat label="Streak" value={String(stats?.streakDays ?? 0)} />
-                <MiniRelationStat label="Klarade" value={String(stats?.passedThisMonth ?? 0)} />
-              </div>
-            </div>
-          </section>
-
-          <section aria-label="Snabbstart" className="space-y-3">
-            <div className="flex items-baseline justify-between gap-3">
-              <div>
-                <h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Vad vill du göra nu?</h2>
-                <p className="text-v3-sm text-v3-text-secondary mt-1">
-                  De vanligaste flödena samlade på ett ställe.
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* 3. QUICK ACTIONS – 4 jämna kort */}
+          <section aria-label="Snabbåtgärder">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
               <ActionCard
                 icon={Plus}
                 title="Logga pass"
-                description="Spara dagens träning på några sekunder."
-                cta="Öppna loggning"
                 accent="brand"
                 onClick={openV3LogSheet}
               />
               <ActionCard
                 icon={Trophy}
-                title="Tävling"
-                description="Lägg in planerad start eller resultat."
-                cta="Till tävlingar"
+                title="Planera tävling"
                 accent="tavling"
                 onClick={() => navigate("/v3/competition?action=new")}
               />
               <ActionCard
                 icon={Target}
-                title="Nytt mål"
-                description="Sätt fokus för veckan eller säsongen."
-                cta="Skapa mål"
+                title="Sätt mål"
                 accent="prestation"
                 onClick={() => navigate("/v3/goals?action=new")}
               />
               <ActionCard
                 icon={BarChart3}
-                title="Se utveckling"
-                description="Följ statistik och trend för aktiv hund."
-                cta="Visa statistik"
+                title="Se statistik"
                 accent="neutral"
                 onClick={() => navigate("/v3/stats")}
               />
             </div>
           </section>
 
-          <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-v3-lg bg-v3-accent-halsa/12 text-v3-accent-halsa grid place-items-center shrink-0">
-                <Heart size={18} strokeWidth={1.7} />
-              </div>
-              <div>
-                <h2 className="font-v3-display text-v3-xl text-v3-text-primary">Nästa bästa steg</h2>
-                <p className="text-v3-sm text-v3-text-secondary mt-1">
-                  {nextEvent
-                    ? "Du har något på gång. Se nästa aktivitet och planera träningen runt den."
-                    : "Logga ett pass eller sätt ett mål så börjar dashboarden ge mer relevanta insikter."}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={nextEvent ? () => navigate("/v3/competition") : openV3LogSheet}
-              className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm"
-            >
-              {nextEvent ? "Se nästa upp" : "Logga första steget"}
-            </button>
-          </section>
-
-          {/* Nästa upp + stats sida vid sida på desktop */}
+          {/* 4. NÄSTA UPP + 2 KPI:er */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-5">
             <div className="lg:col-span-3">
               {dashLoading ? (
-                <div className="h-44 rounded-v3-2xl  v3-skeleton" />
+                <div className="h-44 rounded-v3-2xl v3-skeleton" />
               ) : (
                 <NextUpCard next={nextEvent} />
               )}
             </div>
-            <div className="lg:col-span-2 space-y-3">
+            <div className="lg:col-span-2 grid grid-cols-2 gap-3 lg:gap-4">
               {dashLoading ? (
                 <>
-                  <div className="h-20 rounded-v3-xl  v3-skeleton" />
-                  <div className="h-20 rounded-v3-xl  v3-skeleton" />
+                  <div className="rounded-v3-2xl v3-skeleton" />
+                  <div className="rounded-v3-2xl v3-skeleton" />
                 </>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <CompactStat
+                <>
+                  <KpiCard
                     label="Streak"
                     value={String(stats?.streakDays ?? 0)}
                     sub={(stats?.streakDays ?? 0) === 1 ? "dag" : "dagar"}
                   />
-                  <CompactStat
+                  <KpiCard
                     label="Klarade lopp"
                     value={String(stats?.passedThisMonth ?? 0)}
                     sub="denna månad"
                   />
-                </div>
+                </>
               )}
             </div>
           </div>
 
-          {/* Vecko-stats */}
-          <section aria-label="Veckans översikt" className="space-y-3">
-            <div className="flex items-baseline justify-between">
-              <h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Veckan</h2>
-              <span className="text-v3-xs text-v3-text-tertiary">
-                {new Date().toLocaleDateString("sv-SE", { day: "numeric", month: "short" })}
-              </span>
-            </div>
-            <StatRow stats={stats} />
-          </section>
+          {/* 5. VECKANS ÖVERSIKT + SENASTE AKTIVITETER */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-5">
+            <section
+              aria-label="Veckans översikt"
+              className="lg:col-span-3 rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/50 p-5 lg:p-6 shadow-v3-xs"
+            >
+              <div className="flex items-baseline justify-between mb-4">
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.1em] font-medium text-v3-text-tertiary">
+                    Översikt
+                  </div>
+                  <h2 className="font-v3-display text-[22px] text-v3-text-primary mt-0.5">
+                    Veckans översikt
+                  </h2>
+                </div>
+                <span className="text-v3-xs text-v3-text-tertiary">
+                  {new Date().toLocaleDateString("sv-SE", {
+                    day: "numeric",
+                    month: "short",
+                  })}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <WeekStat
+                  label="Pass"
+                  value={String(stats?.sessionsThisWeek ?? 0)}
+                  sub="denna vecka"
+                />
+                <WeekStat
+                  label="Minuter"
+                  value={String(stats?.minutesThisWeek ?? 0)}
+                  sub="aktiv tid"
+                />
+              </div>
+            </section>
 
-          {/* Timeline */}
-          <ActivityTimeline entries={timeline} loading={dashLoading} />
+            <div className="lg:col-span-2">
+              <section
+                aria-label="Senaste aktiviteter"
+                className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/50 p-5 lg:p-6 shadow-v3-xs"
+              >
+                <ActivityTimeline entries={timeline} loading={dashLoading} />
+              </section>
+            </div>
+          </div>
         </>
       )}
-    </div>
-  );
-}
-
-function MiniRelationStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-v3-xl bg-white/10 border border-white/10 p-3">
-      <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-white/55">{label}</div>
-      <div className="font-v3-display text-[28px] leading-none mt-2 text-white tabular-nums">{value}</div>
     </div>
   );
 }
@@ -308,50 +292,60 @@ function MiniRelationStat({ label, value }: { label: string; value: string }) {
 function ActionCard({
   icon: Icon,
   title,
-  description,
-  cta,
   accent,
   onClick,
 }: {
   icon: LucideIcon;
   title: string;
-  description: string;
-  cta: string;
   accent: "brand" | "tavling" | "prestation" | "neutral";
   onClick: () => void;
 }) {
   const accentClass = {
     brand: "bg-v3-brand-500/10 text-v3-brand-700",
-    tavling: "bg-v3-accent-tavlings/12 text-v3-accent-tavlings",
-    prestation: "bg-v3-accent-prestation/12 text-v3-accent-prestation",
-    neutral: "bg-v3-canvas-sunken/70 text-v3-text-secondary",
+    tavling: "bg-v3-accent-tavlings/10 text-v3-accent-tavlings-text",
+    prestation: "bg-v3-accent-prestation/10 text-v3-accent-prestation-text",
+    neutral: "bg-v3-canvas-secondary text-v3-text-secondary",
   }[accent];
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="group text-left rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/35 hover:shadow-v3-sm transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-v3-brand-500/20"
+      className="group flex flex-col items-start gap-3 text-left rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/50 p-4 lg:p-5 hover:border-v3-brand-500/40 hover:shadow-v3-sm transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-v3-brand-500/20"
     >
       <div className={cn("h-10 w-10 rounded-v3-lg grid place-items-center", accentClass)}>
         <Icon size={18} strokeWidth={1.7} />
       </div>
-      <h3 className="font-v3-display text-v3-xl text-v3-text-primary mt-4">{title}</h3>
-      <p className="text-v3-sm text-v3-text-secondary mt-1 min-h-[40px]">{description}</p>
-      <div className="text-v3-sm font-medium text-v3-brand-700 mt-4 group-hover:translate-x-0.5 transition-transform">
-        {cta} →
-      </div>
+      <h3 className="font-v3-display text-[16px] lg:text-[17px] text-v3-text-primary leading-snug">
+        {title}
+      </h3>
     </button>
   );
 }
 
-function CompactStat({ label, value, sub }: { label: string; value: string; sub: string }) {
+function KpiCard({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
-    <div className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4">
-      <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
+    <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/50 p-4 lg:p-5 shadow-v3-xs flex flex-col justify-between min-h-[120px]">
+      <div className="text-[10px] uppercase tracking-[0.1em] font-medium text-v3-text-tertiary">
         {label}
       </div>
-      <div className="font-v3-display text-[32px] leading-none mt-1.5 text-v3-text-primary tabular-nums">
+      <div>
+        <div className="font-v3-display text-[36px] lg:text-[40px] leading-none text-v3-text-primary tabular-nums">
+          {value}
+        </div>
+        <div className="text-v3-xs text-v3-text-tertiary mt-1">{sub}</div>
+      </div>
+    </div>
+  );
+}
+
+function WeekStat({ label, value, sub }: { label: string; value: string; sub: string }) {
+  return (
+    <div className="rounded-v3-xl bg-v3-canvas-secondary/60 p-4">
+      <div className="text-[10px] uppercase tracking-[0.1em] font-medium text-v3-text-tertiary">
+        {label}
+      </div>
+      <div className="font-v3-display text-[32px] leading-none text-v3-text-primary tabular-nums mt-1.5">
         {value}
       </div>
       <div className="text-v3-xs text-v3-text-tertiary mt-1">{sub}</div>

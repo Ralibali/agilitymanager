@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Heart, Sparkles } from "lucide-react";
 import { HeroDashboardMockup } from "./HeroDashboardMockup";
 import { FadeIn, MagneticButton } from "@/components/motion";
 import { motion as fmMotion } from "framer-motion";
@@ -15,28 +15,47 @@ export function Hero() {
 
   return (
     <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 bg-page font-sans-ds overflow-hidden">
-      <div className="max-w-[1180px] mx-auto px-5 md:px-12 grid grid-cols-1 md:grid-cols-[1.1fr_1fr] gap-10 md:gap-14 items-center">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-28 -right-20 h-80 w-80 rounded-full bg-brand-600/10 blur-3xl" />
+        <div className="absolute top-44 -left-24 h-72 w-72 rounded-full bg-amber-300/20 blur-3xl" />
+      </div>
+
+      <div className="relative max-w-[1180px] mx-auto px-5 md:px-12 grid grid-cols-1 md:grid-cols-[1.1fr_1fr] gap-10 md:gap-14 items-center">
         {/* Vänster kolumn – sekventiell reveal */}
         <div>
           <FadeIn delay={0.04} duration="smooth">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-pill bg-brand-50 text-brand-900 text-[11px] uppercase tracking-[0.08em] mb-6">
-              Byggd av svenska tävlingsförare
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-pill bg-brand-50 text-brand-900 text-[11px] uppercase tracking-[0.08em] mb-6 border border-brand-600/10">
+              <Sparkles size={13} /> Din och hundens träningsresa – samlad på ett ställe
             </span>
           </FadeIn>
 
           <FadeIn delay={0.08} duration="slow">
-            <h1 className="text-[40px] sm:text-[48px] md:text-[56px] leading-[1.05] tracking-[-0.025em] font-medium">
-              <span className="text-brand-600 block">Träna smartare.</span>
-              <span className="text-text-primary block">Tävla bättre.</span>
+            <h1 className="text-[42px] sm:text-[54px] md:text-[68px] leading-[0.98] tracking-[-0.04em] font-medium">
+              <span className="text-text-primary block">Bli teamet</span>
+              <span className="text-brand-600 block">ni tränar för.</span>
             </h1>
           </FadeIn>
 
           <FadeIn delay={0.2} duration="slow">
-            <p className="mt-5 text-[16px] leading-[1.6] text-text-secondary max-w-[520px]">
-              Sveriges enda tränings- och tävlingsapp för agility och hoopers. Med
-              inbyggd coach, tävlingskalender från Agida och AI-insikter baserat
-              på dina pass.
+            <p className="mt-6 text-[17px] leading-[1.7] text-text-secondary max-w-[560px]">
+              AgilityManager hjälper dig förstå din hund, minnas varje pass och känna riktning i träningen. Logga, planera banor, följ mål och bygg en relation där varje liten förbättring syns.
             </p>
+          </FadeIn>
+
+          <FadeIn delay={0.28} duration="smooth">
+            <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-[560px]">
+              {[
+                ["🐾", "Minns känslan", "Inte bara siffror – även vad som fungerade."],
+                ["🎯", "Nästa steg", "Få fokus inför nästa pass och tävling."],
+                ["🧡", "Bygg relation", "Se utvecklingen mellan dig och hunden."],
+              ].map(([emoji, title, text]) => (
+                <div key={title} className="rounded-2xl border border-border-default bg-white/70 backdrop-blur px-4 py-3 shadow-sm">
+                  <div className="text-lg">{emoji}</div>
+                  <div className="text-[13px] font-medium text-text-primary mt-1">{title}</div>
+                  <div className="text-[11px] leading-snug text-text-tertiary mt-1">{text}</div>
+                </div>
+              ))}
+            </div>
           </FadeIn>
 
           <fmMotion.div
@@ -55,25 +74,29 @@ export function Hero() {
                 trackEvent("hero_primary_cta_click");
                 navigate("/auth?mode=signup");
               }}
-              className="h-12 sm:h-11 w-full sm:w-auto px-5 inline-flex items-center justify-center gap-1.5 rounded-ds-md bg-brand-600 text-white text-[15px] sm:text-[14px] font-medium hover:bg-brand-900 transition-colors active:scale-[0.98] [-webkit-tap-highlight-color:transparent]"
+              className="h-12 sm:h-11 w-full sm:w-auto px-5 inline-flex items-center justify-center gap-1.5 rounded-ds-md bg-brand-600 text-white text-[15px] sm:text-[14px] font-medium hover:bg-brand-900 transition-colors active:scale-[0.98] [-webkit-tap-highlight-color:transparent] shadow-lg shadow-brand-600/20"
               strength={5}
             >
-              Kom igång gratis <ArrowRight className="w-4 h-4" />
+              Skapa gratis konto <ArrowRight className="w-4 h-4" />
             </MagneticButton>
-            <a
-              href="#features"
-              onClick={() => trackEvent("hero_secondary_cta_click")}
-              className="h-12 sm:h-11 w-full sm:w-auto px-5 inline-flex items-center justify-center rounded-ds-md border border-border-default text-text-primary text-[15px] sm:text-[14px] font-medium hover:bg-subtle transition-colors active:scale-[0.98] [-webkit-tap-highlight-color:transparent]"
+            <button
+              type="button"
+              onClick={() => {
+                trackEvent("hero_free_planner_cta_click");
+                navigate("/banplanerare");
+              }}
+              className="h-12 sm:h-11 w-full sm:w-auto px-5 inline-flex items-center justify-center rounded-ds-md border border-border-default bg-white/80 text-text-primary text-[15px] sm:text-[14px] font-medium hover:bg-subtle transition-colors active:scale-[0.98] [-webkit-tap-highlight-color:transparent]"
             >
-              Se hur det fungerar
-            </a>
+              Testa gratis banplanerare
+            </button>
           </fmMotion.div>
 
           <FadeIn delay={0.55} duration="smooth">
-            <p className="mt-5 text-[12px] text-text-tertiary">
-              <span className="text-amber-500" aria-hidden>★★★★★</span> Inga kort
-              krävs · Gratis för 1 hund · Pro från 99 kr/mån
-            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-text-tertiary">
+              <span><span className="text-amber-500" aria-hidden>★★★★★</span> Inga kort krävs</span>
+              <span className="inline-flex items-center gap-1"><Heart size={13} className="text-brand-600" /> Gratis för 1 hund</span>
+              <span>Byggt för svensk agility & hoopers</span>
+            </div>
           </FadeIn>
         </div>
 
@@ -86,7 +109,12 @@ export function Hero() {
           ease="spring"
           className="relative md:pl-4"
         >
-          <HeroDashboardMockup />
+          <div className="relative">
+            <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-brand-600/20 via-transparent to-amber-300/25 blur-2xl" />
+            <div className="relative">
+              <HeroDashboardMockup />
+            </div>
+          </div>
         </FadeIn>
       </div>
     </section>

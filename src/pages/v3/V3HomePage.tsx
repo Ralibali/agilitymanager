@@ -31,6 +31,27 @@ function todaySeed(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+function getCurrentWeekDays(): { d: string; n: string; active: boolean; iso: string }[] {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const mondayOffset = today.getDay() === 0 ? -6 : 1 - today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + mondayOffset);
+  const labels = ["Mån", "Tis", "Ons", "Tors", "Fre", "Lör", "Sön"];
+
+  return labels.map((d, index) => {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + index);
+    const isToday = date.getTime() === today.getTime();
+    return {
+      d,
+      n: String(date.getDate()),
+      active: isToday,
+      iso: date.toISOString().slice(0, 10),
+    };
+  });
+}
+
 const HERO_EMPTY_COPY = [
   "Kom igång genom att logga första passet, sätta ett mål eller planera nästa tävling.",
   "Börja enkelt: fånga dagens känsla och bygg historiken steg för steg.",
@@ -298,7 +319,7 @@ function MetricCard({ icon: Icon, label, value, suffix, note, tone }: { icon: Lu
 }
 
 function WeeklyOverviewCard({ hasActivity }: { hasActivity: boolean }) {
-  const days = [{ d: "Mån", n: "28", done: false }, { d: "Tis", n: "29", done: false }, { d: "Ons", n: "30", done: false }, { d: "Tors", n: "1", done: false }, { d: "Fre", n: "2", done: false }, { d: "Lör", n: "3", active: true }, { d: "Sön", n: "4", done: false }];
+  const days = getCurrentWeekDays();
   return (
     <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs">
       <div className="flex items-center justify-between gap-3 mb-5">
@@ -306,9 +327,29 @@ function WeeklyOverviewCard({ hasActivity }: { hasActivity: boolean }) {
         <span className="text-v3-xs text-v3-text-tertiary">Automatisk översikt</span>
       </div>
       <div className="grid grid-cols-7 gap-2">
-        {days.map((day) => <div key={`${day.d}-${day.n}`} className={cn("rounded-v3-lg px-2 py-3 text-center border", day.active ? "border-v3-brand-500 bg-v3-brand-500/5" : "border-transparent bg-v3-canvas-sunken/30")}><div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary">{day.d}</div><div className="font-v3-display text-v3-xl text-v3-text-primary mt-1">{day.n}</div><div className="text-v3-brand-600 text-v3-sm mt-1">{day.done ? "✓" : "•"}</div></div>)}
+        {days.map((day) => (
+          <div
+            key={day.iso}
+            className={cn(
+              "rounded-v3-lg px-2 py-3 text-center border",
+              day.active ? "border-v3-brand-500 bg-v3-brand-500/5" : "border-transparent bg-v3-canvas-sunken/30",
+            )}
+          >
+            <div className="text-[10px] uppercase tracking-[0.08em] text-v3-text-tertiary">{day.d}</div>
+            <div className="font-v3-display text-v3-xl text-v3-text-primary mt-1">{day.n}</div>
+            <div className="text-v3-brand-600 text-v3-sm mt-1">•</div>
+          </div>
+        ))}
       </div>
-      <div className="mt-5"><div className="flex justify-between text-v3-sm text-v3-text-secondary mb-2"><span>{hasActivity ? "Följ veckans pass här" : "Inga pass loggade denna vecka"}</span><span>{hasActivity ? "—" : "0%"}</span></div><div className="h-2 rounded-full bg-v3-canvas-sunken overflow-hidden"><div className={cn("h-full rounded-full bg-v3-brand-500", hasActivity ? "w-[20%]" : "w-0")} /></div></div>
+      <div className="mt-5">
+        <div className="flex justify-between text-v3-sm text-v3-text-secondary mb-2">
+          <span>{hasActivity ? "Följ veckans pass här" : "Inga pass loggade denna vecka"}</span>
+          <span>{hasActivity ? "—" : "0%"}</span>
+        </div>
+        <div className="h-2 rounded-full bg-v3-canvas-sunken overflow-hidden">
+          <div className={cn("h-full rounded-full bg-v3-brand-500", hasActivity ? "w-[20%]" : "w-0")} />
+        </div>
+      </div>
     </section>
   );
 }

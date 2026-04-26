@@ -375,8 +375,9 @@ function parseFromMarkdown(md: string): HoopersCompetition[] {
   return competitions;
 }
 
+// deno-lint-ignore no-explicit-any
 async function upsertAndRespond(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   competitions: HoopersCompetition[],
   headers: Record<string, string>
 ) {

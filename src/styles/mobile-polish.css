@@ -112,6 +112,151 @@ textarea {
   .v3-mobile-card-padding {
     padding: 1rem;
   }
+
+  /* Dashboard mobile calm-down */
+  .max-w-\[1180px\] {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 5.25rem !important;
+    gap: 0.65rem !important;
+  }
+
+  .max-w-\[1180px\] > header:first-child {
+    min-height: 0 !important;
+    padding: 1rem !important;
+    border-radius: 1rem !important;
+  }
+
+  .max-w-\[1180px\] > header:first-child h1 {
+    font-size: 1.55rem !important;
+    line-height: 1.05 !important;
+    margin-top: 0.5rem !important;
+  }
+
+  .max-w-\[1180px\] > header:first-child p {
+    font-size: 0.86rem !important;
+    line-height: 1.35 !important;
+    margin-top: 0.45rem !important;
+  }
+
+  .max-w-\[1180px\] > header:first-child button {
+    height: 2.5rem !important;
+    margin-top: 0.8rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Quick actions: 2x2 compact instead of four tall stacked cards. */
+  section[aria-label="Snabbstart"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.5rem !important;
+  }
+
+  section[aria-label="Snabbstart"] button {
+    padding: 0.75rem !important;
+    border-radius: 1rem !important;
+    min-height: 4.6rem !important;
+  }
+
+  section[aria-label="Snabbstart"] button > div {
+    align-items: center !important;
+    gap: 0.55rem !important;
+  }
+
+  section[aria-label="Snabbstart"] button > div > div:first-child {
+    width: 2.25rem !important;
+    height: 2.25rem !important;
+  }
+
+  section[aria-label="Snabbstart"] h3 {
+    font-size: 0.92rem !important;
+    line-height: 1.05 !important;
+  }
+
+  section[aria-label="Snabbstart"] p {
+    display: none !important;
+  }
+
+  /* Smart suggestions: show the strongest recommendation only on mobile. */
+  section[aria-label="Snabbstart"] + section {
+    padding: 1rem !important;
+    border-radius: 1rem !important;
+  }
+
+  section[aria-label="Snabbstart"] + section > div:first-child {
+    margin-bottom: 0.75rem !important;
+  }
+
+  section[aria-label="Snabbstart"] + section h2 {
+    font-size: 1.15rem !important;
+  }
+
+  section[aria-label="Snabbstart"] + section .grid {
+    display: block !important;
+  }
+
+  section[aria-label="Snabbstart"] + section .grid > *:nth-child(n+2) {
+    display: none !important;
+  }
+
+  section[aria-label="Snabbstart"] + section .grid > *:first-child {
+    padding: 0.85rem !important;
+    border-radius: 0.9rem !important;
+  }
+
+  section[aria-label="Snabbstart"] + section .grid > *:first-child > div:first-child {
+    width: 2rem !important;
+    height: 2rem !important;
+    margin-bottom: 0.6rem !important;
+  }
+
+  section[aria-label="Snabbstart"] + section h3 {
+    font-size: 1rem !important;
+  }
+
+  section[aria-label="Snabbstart"] + section p {
+    font-size: 0.78rem !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Activation journey: turn the large checklist into a compact progress card. */
+  section[aria-label="Snabbstart"] + section + section {
+    padding: 1rem !important;
+    border-radius: 1rem !important;
+  }
+
+  section[aria-label="Snabbstart"] + section + section h2 {
+    font-size: 1.15rem !important;
+  }
+
+  section[aria-label="Snabbstart"] + section + section p {
+    display: none !important;
+  }
+
+  section[aria-label="Snabbstart"] + section + section .font-v3-display.text-\[34px\] {
+    font-size: 1.55rem !important;
+  }
+
+  section[aria-label="Snabbstart"] + section + section .grid {
+    display: none !important;
+  }
+
+  section[aria-label="Snabbstart"] + section + section .h-2 {
+    margin-bottom: 0 !important;
+  }
+
+  /* First metric row after activation: keep cards tighter. */
+  section[aria-label="Snabbstart"] + section + section + div {
+    gap: 0.65rem !important;
+  }
+
+  section[aria-label="Snabbstart"] + section + section + div section,
+  section[aria-label="Snabbstart"] + section + section + div > div > div {
+    min-height: 0 !important;
+    padding: 1rem !important;
+    border-radius: 1rem !important;
+  }
 }
 
 @media (max-width: 380px) {

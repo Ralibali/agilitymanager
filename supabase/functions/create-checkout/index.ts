@@ -27,6 +27,20 @@ serve(async (req) => {
     const { priceId } = await req.json();
     if (!priceId) throw new Error("priceId is required");
 
+    // Allowlist: current + legacy grandfathered price IDs from src/contexts/AuthContext.tsx
+    const ALLOWED_PRICE_IDS = new Set([
+      "price_1TNX9dHzffTezY82QlVT1FEA", // 79 kr/mån (current)
+      "price_1TNXAAHzffTezY82jUjqyL3f", // 790 kr/år (current)
+      "price_1T9AioHzffTezY82OrEqKflT", // legacy 19 kr/mån
+      "price_1T9AomHzffTezY82vtiObR7E", // legacy 99 kr/år
+    ]);
+    if (!ALLOWED_PRICE_IDS.has(priceId)) {
+      return new Response(JSON.stringify({ error: "Invalid priceId" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
@@ -44,8 +58,8 @@ serve(async (req) => {
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
       allow_promotion_codes: true,
-      success_url: `${origin}/settings?checkout=success`,
-      cancel_url: `${origin}/settings?checkout=cancel`,
+      success_url: `${origin}/v3/settings?checkout=success`,
+      cancel_url: `${origin}/v3/settings?checkout=cancel`,
     });
 
     return new Response(JSON.stringify({ url: session.url }), {

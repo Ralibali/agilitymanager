@@ -7,6 +7,35 @@ const logStep = (step: string, details?: unknown) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
 
+async function findUserByEmail(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  email: string
+) {
+  // Try profiles table first (fast path - assumes profiles has an email column
+  // synced from auth.users; if not, this will return null and we fall through)
+  const { data: profile } = await supabaseAdmin
+    .from("profiles")
+    .select("user_id")
+    .eq("email", email)
+    .maybeSingle();
+  if (profile?.user_id) {
+    const { data: userData } = await supabaseAdmin.auth.admin.getUserById(profile.user_id);
+    if (userData?.user) return userData.user;
+  }
+  // Fallback: paginate through auth.admin.listUsers (handles >50 users)
+  let page = 1;
+  const perPage = 1000;
+  while (page <= 50) { // hard cap: 50k users
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+    if (error) throw error;
+    const found = data?.users?.find(u => u.email === email);
+    if (found) return found;
+    if (!data?.users || data.users.length < perPage) return null;
+    page++;
+  }
+  return null;
+}
+
 serve(async (req) => {
   // Only POST allowed
   if (req.method !== "POST") {
@@ -71,9 +100,7 @@ serve(async (req) => {
       const customerEmail = session.customer_details?.email || session.customer_email;
 
       if (customerEmail) {
-        // Find user by email via auth admin
-        const { data: users } = await supabaseAdmin.auth.admin.listUsers();
-        const user = users?.users?.find(u => u.email === customerEmail);
+        const user = await findUserByEmail(supabaseAdmin, customerEmail);
         if (user) {
           await supabaseAdmin
             .from("profiles")
@@ -113,8 +140,7 @@ serve(async (req) => {
     }
 
     // Find user by email
-    const { data: users } = await supabaseAdmin.auth.admin.listUsers();
-    const user = users?.users?.find(u => u.email === email);
+    const user = await findUserByEmail(supabaseAdmin, email);
     if (!user) {
       logStep("No matching user found for email", { email });
       return new Response(JSON.stringify({ received: true }), { status: 200 });

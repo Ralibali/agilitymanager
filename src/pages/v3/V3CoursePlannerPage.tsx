@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Download, HelpCircle, Plus, RotateCcw, Save, Settings2, Trash2, Undo2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type PlannerObstacleType = "jump" | "tunnel" | "weave" | "tire" | "start" | "finish";
+type PlannerMode = "Agility" | "Hoopers";
+type PlannerObstacleType = "jump" | "tunnel" | "weave" | "tire" | "start" | "finish" | "hoop" | "barrel" | "gate";
 
 type PlannerObstacle = {
   id: string;
@@ -18,7 +19,7 @@ type PlannerObstacle = {
 
 const GUIDE_KEY = "am_v3_course_planner_guide_seen";
 
-const OBSTACLE_TYPES: { type: PlannerObstacleType; label: string; icon: string }[] = [
+const AGILITY_OBSTACLES: { type: PlannerObstacleType; label: string; icon: string }[] = [
   { type: "jump", label: "Hopp", icon: "┃" },
   { type: "tunnel", label: "Tunnel", icon: "⌒" },
   { type: "weave", label: "Slalom", icon: "⫶" },
@@ -27,13 +28,46 @@ const OBSTACLE_TYPES: { type: PlannerObstacleType; label: string; icon: string }
   { type: "finish", label: "Mål", icon: "◼" },
 ];
 
-const START_OBSTACLES: PlannerObstacle[] = [
+const HOOPERS_OBSTACLES: { type: PlannerObstacleType; label: string; icon: string }[] = [
+  { type: "hoop", label: "Hoop", icon: "∩" },
+  { type: "tunnel", label: "Tunnel", icon: "⌒" },
+  { type: "barrel", label: "Tunna", icon: "●" },
+  { type: "gate", label: "Staket", icon: "▱" },
+  { type: "start", label: "Start", icon: "▸" },
+  { type: "finish", label: "Mål", icon: "◼" },
+];
+
+const AGILITY_START_OBSTACLES: PlannerObstacle[] = [
   { id: "planner-start", type: "start", label: "Start", icon: "▸", x: 14, y: 82, rotation: 0 },
   { id: "planner-1", type: "jump", label: "Hopp", icon: "┃", x: 32, y: 68, rotation: 0, number: 1 },
   { id: "planner-2", type: "tunnel", label: "Tunnel", icon: "⌒", x: 68, y: 47, rotation: 14, number: 2 },
   { id: "planner-3", type: "weave", label: "Slalom", icon: "⫶", x: 48, y: 33, rotation: -16, number: 3 },
   { id: "planner-finish", type: "finish", label: "Mål", icon: "◼", x: 82, y: 18, rotation: 0 },
 ];
+
+const HOOPERS_START_OBSTACLES: PlannerObstacle[] = [
+  { id: "planner-hoopers-start", type: "start", label: "Start", icon: "▸", x: 14, y: 82, rotation: 0 },
+  { id: "planner-hoopers-1", type: "hoop", label: "Hoop", icon: "∩", x: 31, y: 69, rotation: 0, number: 1 },
+  { id: "planner-hoopers-2", type: "barrel", label: "Tunna", icon: "●", x: 61, y: 55, rotation: 0, number: 2 },
+  { id: "planner-hoopers-3", type: "tunnel", label: "Tunnel", icon: "⌒", x: 46, y: 34, rotation: -12, number: 3 },
+  { id: "planner-hoopers-finish", type: "finish", label: "Mål", icon: "◼", x: 82, y: 18, rotation: 0 },
+];
+
+function getObstacleTypes(mode: PlannerMode) {
+  return mode === "Hoopers" ? HOOPERS_OBSTACLES : AGILITY_OBSTACLES;
+}
+
+function getStartObstacles(mode: PlannerMode) {
+  return mode === "Hoopers" ? HOOPERS_START_OBSTACLES : AGILITY_START_OBSTACLES;
+}
+
+function getDefaultTool(mode: PlannerMode): PlannerObstacleType {
+  return mode === "Hoopers" ? "hoop" : "jump";
+}
+
+function getObstacleSpec(mode: PlannerMode, type: PlannerObstacleType) {
+  return getObstacleTypes(mode).find((item) => item.type === type) ?? getObstacleTypes(mode)[0];
+}
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -48,14 +82,15 @@ function pointToPercent(event: React.PointerEvent<HTMLElement>, element: HTMLEle
 }
 
 export default function V3CoursePlannerPage() {
-  const [mode, setMode] = useState<"Agility" | "Hoopers">("Agility");
+  const [mode, setMode] = useState<PlannerMode>("Agility");
   const [selectedTool, setSelectedTool] = useState<PlannerObstacleType>("jump");
   const [selectedId, setSelectedId] = useState<string | null>("planner-1");
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [obstacles, setObstacles] = useState<PlannerObstacle[]>(START_OBSTACLES);
+  const [obstacles, setObstacles] = useState<PlannerObstacle[]>(AGILITY_START_OBSTACLES);
   const [mobilePanel, setMobilePanel] = useState<"obstacles" | "tools">("obstacles");
   const [showGuide, setShowGuide] = useState(false);
 
+  const obstacleTypes = useMemo(() => getObstacleTypes(mode), [mode]);
   const selected = useMemo(() => obstacles.find((item) => item.id === selectedId) ?? null, [obstacles, selectedId]);
   const nextNumber = obstacles.filter((item) => item.number).length + 1;
 
@@ -76,12 +111,24 @@ export default function V3CoursePlannerPage() {
     setShowGuide(false);
   };
 
+  const switchMode = (nextMode: PlannerMode) => {
+    if (nextMode === mode) return;
+    const defaultTool = getDefaultTool(nextMode);
+    const start = getStartObstacles(nextMode);
+    setMode(nextMode);
+    setSelectedTool(defaultTool);
+    setObstacles(start);
+    setSelectedId(start.find((item) => item.number)?.id ?? start[0]?.id ?? null);
+    setDraggingId(null);
+    setMobilePanel("obstacles");
+  };
+
   const addObstacle = (type: PlannerObstacleType = selectedTool) => {
-    const spec = OBSTACLE_TYPES.find((item) => item.type === type) ?? OBSTACLE_TYPES[0];
+    const spec = getObstacleSpec(mode, type);
     const withNumber = type !== "start" && type !== "finish";
     const next: PlannerObstacle = {
       id: `${type}-${Date.now()}`,
-      type,
+      type: spec.type,
       label: spec.label,
       icon: spec.icon,
       x: 18 + ((obstacles.length * 13) % 64),
@@ -91,7 +138,7 @@ export default function V3CoursePlannerPage() {
     };
     setObstacles((items) => [...items, next]);
     setSelectedId(next.id);
-    setSelectedTool(type);
+    setSelectedTool(spec.type);
     setMobilePanel("obstacles");
   };
 
@@ -113,9 +160,10 @@ export default function V3CoursePlannerPage() {
   };
 
   const reset = () => {
-    setObstacles(START_OBSTACLES);
-    setSelectedId("planner-1");
-    setSelectedTool("jump");
+    const start = getStartObstacles(mode);
+    setObstacles(start);
+    setSelectedId(start.find((item) => item.number)?.id ?? start[0]?.id ?? null);
+    setSelectedTool(getDefaultTool(mode));
     setDraggingId(null);
   };
 
@@ -153,7 +201,7 @@ export default function V3CoursePlannerPage() {
 
           <div className="grid grid-cols-2 rounded-v3-base bg-white border border-black/8 p-1 shadow-v3-xs lg:w-[260px] lg:ml-auto">
             {(["Agility", "Hoopers"] as const).map((item) => (
-              <button key={item} type="button" onClick={() => setMode(item)} className={cn("h-10 rounded-[calc(theme(borderRadius.v3-base)-4px)] text-v3-sm font-semibold transition-all", mode === item ? "bg-v3-brand-600 text-white shadow-v3-xs" : "text-v3-text-secondary")}>{item}</button>
+              <button key={item} type="button" onClick={() => switchMode(item)} className={cn("h-10 rounded-v3-sm text-v3-sm font-semibold transition-all", mode === item ? "bg-v3-brand-600 text-white shadow-v3-xs" : "text-v3-text-secondary hover:bg-v3-canvas")}>{item}</button>
             ))}
           </div>
         </div>
@@ -165,13 +213,13 @@ export default function V3CoursePlannerPage() {
             <span className="h-9 w-9 rounded-full bg-v3-brand-500/10 text-v3-brand-700 grid place-items-center shrink-0"><CheckCircle2 size={17} /></span>
             <div className="min-w-0">
               <h1 className="font-v3-display text-[22px] lg:text-[30px] leading-tight text-v3-text-primary">Dra hinder på planen</h1>
-              <p className="text-v3-sm text-v3-text-tertiary mt-0.5">Dra hindren direkt på gräset. Öppna Verktyg för rotera, flytta och ta bort.</p>
+              <p className="text-v3-sm text-v3-text-tertiary mt-0.5">Läge: <strong>{mode}</strong>. Dra hindren direkt på gräset och använd Verktyg för finjustering.</p>
             </div>
           </div>
 
           <div className="hidden lg:block rounded-v3-xl bg-v3-brand-500/10 border border-v3-brand-500/15 p-4 text-v3-sm text-v3-text-secondary">
-            <strong className="block text-v3-text-primary mb-1">Grön plan, tydligare ritläge</strong>
-            Lägg till hinder, dra dem till rätt plats och rotera valt hinder med verktygsknappen.
+            <strong className="block text-v3-text-primary mb-1">{mode === "Hoopers" ? "Hoopers-läge" : "Agility-läge"}</strong>
+            {mode === "Hoopers" ? "Du får hoopers-hinder som hoop, tunna, tunnel och staket." : "Du får agilityhinder som hopp, tunnel, slalom och däck."}
           </div>
         </section>
 
@@ -192,13 +240,13 @@ export default function V3CoursePlannerPage() {
             <div className="flex items-center justify-center pb-2 lg:hidden"><span className="h-1 w-10 rounded-full bg-black/15" /></div>
             <div className="flex items-center justify-between gap-3 mb-3">
               <div>
-                <h2 className="font-v3-display text-v3-xl text-v3-text-primary">Hinder</h2>
+                <h2 className="font-v3-display text-v3-xl text-v3-text-primary">{mode}-hinder</h2>
                 <p className="text-v3-xs text-v3-text-tertiary">Tryck för att lägga till. Dra sedan på planen.</p>
               </div>
               {selected && <span className="rounded-full bg-v3-brand-500/10 px-3 py-1 text-v3-xs font-medium text-v3-brand-700">Valt: {selected.label}</span>}
             </div>
             <div className="grid grid-cols-3 lg:grid-cols-2 gap-2">
-              {OBSTACLE_TYPES.map((item) => {
+              {obstacleTypes.map((item) => {
                 const isActive = selectedTool === item.type;
                 return (
                   <button key={item.type} type="button" onClick={() => addObstacle(item.type)} className={cn("min-h-[68px] lg:min-h-[74px] rounded-v3-xl border p-2 text-center transition-all", isActive ? "bg-v3-brand-500/10 border-v3-brand-500/25 text-v3-brand-800" : "bg-v3-canvas border-v3-canvas-sunken/50 text-v3-text-secondary hover:border-v3-brand-500/30")}> 
@@ -290,16 +338,19 @@ function PlannerObstacleButton({ obstacle, selected, dragging, onSelect, onStart
   const isTunnel = obstacle.type === "tunnel";
   const isWeave = obstacle.type === "weave";
   const isTire = obstacle.type === "tire";
+  const isHoop = obstacle.type === "hoop";
+  const isBarrel = obstacle.type === "barrel";
+  const isGate = obstacle.type === "gate";
   return (
     <button
       type="button"
       onClick={(event) => { event.stopPropagation(); onSelect(); }}
       onPointerDown={onStartDrag}
-      className={cn("absolute grid place-items-center bg-white/92 border shadow-[0_8px_16px_rgba(24,64,33,.20)] transition-transform cursor-grab active:cursor-grabbing touch-none", selected ? "border-white ring-3 ring-white/40 scale-105 z-20" : "border-white/70 z-10", dragging && "scale-110 shadow-[0_16px_26px_rgba(24,64,33,.28)]", isTunnel ? "h-9 w-16 lg:h-10 lg:w-18 rounded-full" : isWeave ? "h-8 w-20 lg:h-9 lg:w-24 rounded-full" : isTire ? "h-10 w-10 lg:h-11 lg:w-11 rounded-full" : "h-9 w-9 lg:h-10 lg:w-10 rounded-lg")}
+      className={cn("absolute grid place-items-center bg-white/92 border shadow-[0_8px_16px_rgba(24,64,33,.20)] transition-transform cursor-grab active:cursor-grabbing touch-none", selected ? "border-white ring-3 ring-white/40 scale-105 z-20" : "border-white/70 z-10", dragging && "scale-110 shadow-[0_16px_26px_rgba(24,64,33,.28)]", isTunnel ? "h-9 w-16 lg:h-10 lg:w-18 rounded-full" : isWeave || isGate ? "h-8 w-20 lg:h-9 lg:w-24 rounded-full" : isTire || isHoop || isBarrel ? "h-10 w-10 lg:h-11 lg:w-11 rounded-full" : "h-9 w-9 lg:h-10 lg:w-10 rounded-lg")}
       style={{ left: `${obstacle.x}%`, top: `${obstacle.y}%`, transform: `translate(-50%, -50%) rotate(${obstacle.rotation}deg)` }}
       aria-label={obstacle.label}
     >
-      <span className={cn("leading-none font-bold pointer-events-none", isTunnel ? "text-[21px] text-v3-brand-700" : isWeave ? "text-[20px] text-v3-brand-700" : "text-[18px] text-v3-text-primary")}>{obstacle.icon}</span>
+      <span className={cn("leading-none font-bold pointer-events-none", isTunnel ? "text-[21px] text-v3-brand-700" : isWeave || isGate ? "text-[20px] text-v3-brand-700" : isHoop || isBarrel ? "text-[17px] text-v3-brand-700" : "text-[18px] text-v3-text-primary")}>{obstacle.icon}</span>
       {obstacle.number && <span className="absolute -right-1.5 -top-1.5 h-5 w-5 rounded-full bg-v3-brand-600 text-white text-[10px] font-bold grid place-items-center shadow-v3-xs pointer-events-none">{obstacle.number}</span>}
     </button>
   );
@@ -314,34 +365,20 @@ function PlannerGuide({ onClose }: { onClose: () => void }) {
             <div className="text-[10px] uppercase tracking-[0.1em] font-semibold text-v3-text-tertiary">Snabbguide</div>
             <h2 className="font-v3-display text-[28px] leading-tight text-v3-text-primary mt-1">Så bygger du en bana</h2>
           </div>
-          <button type="button" onClick={onClose} className="h-10 w-10 rounded-full bg-v3-canvas grid place-items-center text-v3-text-secondary hover:bg-v3-canvas-sunken">
-            <X size={18} />
-          </button>
+          <button type="button" onClick={onClose} className="h-10 w-10 rounded-full bg-v3-canvas grid place-items-center text-v3-text-secondary hover:bg-v3-canvas-sunken"><X size={18} /></button>
         </div>
         <div className="p-5 space-y-3">
-          <GuideStep number="1" title="Lägg till hinder" text="Tryck på Hinder eller välj ett hinderkort i panelen." />
-          <GuideStep number="2" title="Dra på gräset" text="Håll inne på ett hinder och dra det till rätt plats på planen." />
-          <GuideStep number="3" title="Öppna Verktyg" text="Använd Verktyg för att rotera, finjustera, ta bort eller återställa banan." />
-          <GuideStep number="4" title="Öppna guiden igen" text="Tryck på Guide i toppen om du vill se instruktionen igen senare." />
+          <GuideStep number="1" title="Välj Agility eller Hoopers" text="Läget byter hinderutbud och startbana." />
+          <GuideStep number="2" title="Lägg till hinder" text="Tryck på Hinder eller välj ett hinderkort i panelen." />
+          <GuideStep number="3" title="Dra på gräset" text="Håll inne på ett hinder och dra det till rätt plats på planen." />
+          <GuideStep number="4" title="Öppna Verktyg" text="Använd Verktyg för att rotera, finjustera, ta bort eller återställa banan." />
         </div>
-        <div className="p-5 pt-0">
-          <button type="button" onClick={onClose} className="w-full h-12 rounded-v3-base bg-v3-brand-600 text-white text-v3-sm font-semibold shadow-v3-sm hover:bg-v3-brand-700 transition-colors">
-            Jag fattar – börja rita
-          </button>
-        </div>
+        <div className="p-5 pt-0"><button type="button" onClick={onClose} className="w-full h-12 rounded-v3-base bg-v3-brand-600 text-white text-v3-sm font-semibold shadow-v3-sm hover:bg-v3-brand-700 transition-colors">Jag fattar – börja rita</button></div>
       </section>
     </div>
   );
 }
 
 function GuideStep({ number, title, text }: { number: string; title: string; text: string }) {
-  return (
-    <div className="flex gap-3 rounded-v3-xl bg-v3-canvas p-3">
-      <span className="h-8 w-8 rounded-full bg-v3-brand-500/10 text-v3-brand-700 text-v3-sm font-bold grid place-items-center shrink-0">{number}</span>
-      <div>
-        <h3 className="text-v3-sm font-semibold text-v3-text-primary">{title}</h3>
-        <p className="text-v3-sm text-v3-text-secondary mt-0.5 leading-relaxed">{text}</p>
-      </div>
-    </div>
-  );
+  return <div className="flex gap-3 rounded-v3-xl bg-v3-canvas p-3"><span className="h-8 w-8 rounded-full bg-v3-brand-500/10 text-v3-brand-700 text-v3-sm font-bold grid place-items-center shrink-0">{number}</span><div><h3 className="text-v3-sm font-semibold text-v3-text-primary">{title}</h3><p className="text-v3-sm text-v3-text-secondary mt-0.5 leading-relaxed">{text}</p></div></div>;
 }

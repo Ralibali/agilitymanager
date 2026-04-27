@@ -2,6 +2,7 @@ import { createRoot, hydrateRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import App from "./App.tsx";
 import "./index.css";
+import "./styles/mobile-polish.css";
 
 const rootEl = document.getElementById("root")!;
 const tree = (

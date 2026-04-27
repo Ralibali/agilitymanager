@@ -50,8 +50,9 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") || "https://agilitymanager.se";
 
-    // OBS: ingen trial_period_days här — vi sätter 14 dagars in-app trial via
-    // premium_until i profiles vid signup (ingen kortbindning krävs).
+    // OBS: ingen trial_period_days här — vi sätter 7 dagars in-app trial via
+    // account_age-check i check-subscription (ingen kortbindning krävs).
+    // Se även AuthContext.tsx (samma 7-dagarslogik klientsidan).
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,

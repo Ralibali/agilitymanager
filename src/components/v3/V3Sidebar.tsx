@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { ChevronsLeft, ChevronsRight, Heart, Plus } from "lucide-react";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import { V3_NAV_GROUPS, type V3NavItem } from "./navConfig";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/components/layout/useIsAdmin";
@@ -8,11 +8,6 @@ import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "v3-sidebar-collapsed";
 
-/**
- * v3 Sidebar – 240px expanded, 64px collapsed.
- * Desktop only (≥lg). Persist state i localStorage.
- * Färg: varm sand-canvas, mjuka borders, ingen brutal kontrast.
- */
 export function V3Sidebar() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -55,7 +50,6 @@ export function V3Sidebar() {
       aria-label="Huvudnavigation"
       data-collapsed={collapsed}
     >
-      {/* Logo + collapse */}
       <div className={cn("flex items-center h-14 px-3", collapsed ? "justify-center" : "justify-between")}>
         {!collapsed && (
           <div className="flex items-center gap-2 min-w-0">
@@ -80,42 +74,18 @@ export function V3Sidebar() {
         </button>
       </div>
 
-      {!collapsed && (
-        <div className="px-3 pb-3">
-          <div className="relative overflow-hidden rounded-v3-2xl bg-v3-text-primary text-v3-text-inverse p-4 shadow-v3-sm">
-            <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-v3-brand-500/25 blur-2xl" />
-            <div className="relative flex items-center gap-2 text-[10px] uppercase tracking-[0.08em] text-white/55">
-              <Heart size={12} /> Teamkänsla
-            </div>
-            <div className="relative font-v3-display text-v3-xl mt-2 leading-tight text-white">
-              Fånga passet när känslan är färsk.
-            </div>
-            <button
-              type="button"
-              onClick={() => navigate("/v3/training?action=new")}
-              className="relative mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-v3-base bg-white text-v3-text-primary text-v3-sm font-medium hover:bg-white/90 transition-colors"
-            >
-              <Plus size={14} /> Logga pass
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Topp-grupper */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-2 space-y-5">
         {topGroups.map((g) => (
           <V3NavGroupBlock key={g.label} label={g.label} items={g.items} collapsed={collapsed} />
         ))}
       </nav>
 
-      {/* System längst ner */}
       {systemGroup && (
         <div className="px-2 pb-2">
           <V3NavGroupBlock label={systemGroup.label} items={systemGroup.items} collapsed={collapsed} />
         </div>
       )}
 
-      {/* User card */}
       <div className="px-2 pb-3 pt-2 border-t border-v3-canvas-sunken/60">
         <button
           type="button"
@@ -144,15 +114,7 @@ export function V3Sidebar() {
   );
 }
 
-function V3NavGroupBlock({
-  label,
-  items,
-  collapsed,
-}: {
-  label: string;
-  items: V3NavItem[];
-  collapsed: boolean;
-}) {
+function V3NavGroupBlock({ label, items, collapsed }: { label: string; items: V3NavItem[]; collapsed: boolean }) {
   return (
     <div>
       {!collapsed && (

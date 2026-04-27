@@ -34,7 +34,8 @@ textarea {
   font-size: 16px;
 }
 
-.tool-btn {
+.tool-btn,
+.mobile-tool-btn {
   min-height: 44px;
   border-radius: 1rem;
   border: 1px solid rgba(0, 0, 0, 0.10);
@@ -49,15 +50,18 @@ textarea {
   transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
 }
 
-.tool-btn:hover {
+.tool-btn:hover,
+.mobile-tool-btn:hover {
   background: rgba(0, 0, 0, 0.03);
 }
 
-.tool-btn:active {
+.tool-btn:active,
+.mobile-tool-btn:active {
   transform: scale(0.98);
 }
 
-.tool-btn:disabled {
+.tool-btn:disabled,
+.mobile-tool-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
   transform: none;

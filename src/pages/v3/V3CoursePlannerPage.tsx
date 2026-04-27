@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, Download, Plus, RotateCcw, Save, Settings2, Trash2, Undo2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Download, HelpCircle, Plus, RotateCcw, Save, Settings2, Trash2, Undo2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type PlannerObstacleType = "jump" | "tunnel" | "weave" | "tire" | "start" | "finish";
@@ -15,6 +15,8 @@ type PlannerObstacle = {
   rotation: number;
   number?: number;
 };
+
+const GUIDE_KEY = "am_v3_course_planner_guide_seen";
 
 const OBSTACLE_TYPES: { type: PlannerObstacleType; label: string; icon: string }[] = [
   { type: "jump", label: "Hopp", icon: "┃" },
@@ -51,9 +53,28 @@ export default function V3CoursePlannerPage() {
   const [selectedId, setSelectedId] = useState<string | null>("planner-1");
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [obstacles, setObstacles] = useState<PlannerObstacle[]>(START_OBSTACLES);
+  const [mobilePanel, setMobilePanel] = useState<"obstacles" | "tools">("obstacles");
+  const [showGuide, setShowGuide] = useState(false);
 
   const selected = useMemo(() => obstacles.find((item) => item.id === selectedId) ?? null, [obstacles, selectedId]);
   const nextNumber = obstacles.filter((item) => item.number).length + 1;
+
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(GUIDE_KEY) !== "1") setShowGuide(true);
+    } catch {
+      setShowGuide(true);
+    }
+  }, []);
+
+  const closeGuide = () => {
+    try {
+      window.localStorage.setItem(GUIDE_KEY, "1");
+    } catch {
+      // Ignore storage errors.
+    }
+    setShowGuide(false);
+  };
 
   const addObstacle = (type: PlannerObstacleType = selectedTool) => {
     const spec = OBSTACLE_TYPES.find((item) => item.type === type) ?? OBSTACLE_TYPES[0];
@@ -71,6 +92,7 @@ export default function V3CoursePlannerPage() {
     setObstacles((items) => [...items, next]);
     setSelectedId(next.id);
     setSelectedTool(type);
+    setMobilePanel("obstacles");
   };
 
   const moveSelected = (dx: number, dy: number) => {
@@ -108,23 +130,24 @@ export default function V3CoursePlannerPage() {
     updateObstaclePosition(draggingId, point.x, point.y);
   };
 
-  const handleFieldPointerUp = () => {
-    setDraggingId(null);
-  };
+  const handleFieldPointerUp = () => setDraggingId(null);
 
   return (
     <div className="min-h-[100dvh] bg-[#f7f6f0] text-v3-text-primary pb-[92px] lg:pb-8 animate-v3-fade-in">
       <header className="sticky top-0 z-30 bg-[#f7f6f0]/92 backdrop-blur-xl border-b border-black/5 px-3 lg:px-8 pt-3 pb-2 lg:py-4">
         <div className="max-w-[1400px] mx-auto flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 overflow-x-auto v3-mobile-scroll">
             <Link to="/v3/courses" className="h-11 w-11 rounded-v3-base bg-white border border-black/8 shadow-v3-xs grid place-items-center text-v3-text-secondary shrink-0">
               <ArrowLeft size={20} strokeWidth={1.8} />
             </Link>
-            <button type="button" onClick={() => addObstacle()} className="h-11 px-4 rounded-v3-base bg-white border border-black/8 shadow-v3-xs inline-flex items-center gap-2 text-v3-sm font-medium">
+            <button type="button" onClick={() => { setMobilePanel("obstacles"); addObstacle(); }} className="h-11 px-4 rounded-v3-base bg-white border border-black/8 shadow-v3-xs inline-flex items-center gap-2 text-v3-sm font-medium shrink-0">
               <Plus size={17} className="text-v3-brand-600" /> Hinder
             </button>
-            <button type="button" onClick={rotateSelected} className="h-11 px-4 rounded-v3-base bg-white border border-black/8 shadow-v3-xs inline-flex items-center gap-2 text-v3-sm font-medium">
-              <Settings2 size={16} className="text-v3-brand-600" /> Verktyg
+            <button type="button" onClick={() => setMobilePanel((panel) => panel === "tools" ? "obstacles" : "tools")} className={cn("h-11 px-4 rounded-v3-base border border-black/8 shadow-v3-xs inline-flex items-center gap-2 text-v3-sm font-medium shrink-0", mobilePanel === "tools" ? "bg-v3-brand-600 text-white" : "bg-white")}>
+              <Settings2 size={16} className={mobilePanel === "tools" ? "text-white" : "text-v3-brand-600"} /> Verktyg
+            </button>
+            <button type="button" onClick={() => setShowGuide(true)} className="h-11 px-4 rounded-v3-base bg-white border border-black/8 shadow-v3-xs inline-flex items-center gap-2 text-v3-sm font-medium shrink-0">
+              <HelpCircle size={16} className="text-v3-brand-600" /> Guide
             </button>
           </div>
 
@@ -142,7 +165,7 @@ export default function V3CoursePlannerPage() {
             <span className="h-9 w-9 rounded-full bg-v3-brand-500/10 text-v3-brand-700 grid place-items-center shrink-0"><CheckCircle2 size={17} /></span>
             <div className="min-w-0">
               <h1 className="font-v3-display text-[22px] lg:text-[30px] leading-tight text-v3-text-primary">Dra hinder på planen</h1>
-              <p className="text-v3-sm text-v3-text-tertiary mt-0.5">Dra hindren direkt på gräset. Välj fler hinder i panelen.</p>
+              <p className="text-v3-sm text-v3-text-tertiary mt-0.5">Dra hindren direkt på gräset. Öppna Verktyg för rotera, flytta och ta bort.</p>
             </div>
           </div>
 
@@ -165,12 +188,12 @@ export default function V3CoursePlannerPage() {
         </section>
 
         <aside className="space-y-3 lg:order-3">
-          <section className="rounded-[22px] bg-white border border-black/6 shadow-v3-sm p-3 lg:p-4">
+          <section className={cn("rounded-[22px] bg-white border border-black/6 shadow-v3-sm p-3 lg:p-4", mobilePanel === "tools" && "hidden lg:block")}>
             <div className="flex items-center justify-center pb-2 lg:hidden"><span className="h-1 w-10 rounded-full bg-black/15" /></div>
             <div className="flex items-center justify-between gap-3 mb-3">
               <div>
                 <h2 className="font-v3-display text-v3-xl text-v3-text-primary">Hinder</h2>
-                <p className="text-v3-xs text-v3-text-tertiary">Tryck för att lägga till.</p>
+                <p className="text-v3-xs text-v3-text-tertiary">Tryck för att lägga till. Dra sedan på planen.</p>
               </div>
               {selected && <span className="rounded-full bg-v3-brand-500/10 px-3 py-1 text-v3-xs font-medium text-v3-brand-700">Valt: {selected.label}</span>}
             </div>
@@ -187,8 +210,14 @@ export default function V3CoursePlannerPage() {
             </div>
           </section>
 
-          <section className="rounded-[22px] bg-white border border-black/6 shadow-v3-sm p-3 lg:p-4">
-            <h2 className="font-v3-display text-v3-xl text-v3-text-primary mb-3 hidden lg:block">Verktyg</h2>
+          <section className={cn("rounded-[22px] bg-white border border-black/6 shadow-v3-sm p-3 lg:p-4", mobilePanel !== "tools" && "hidden lg:block")}>
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div>
+                <h2 className="font-v3-display text-v3-xl text-v3-text-primary">Verktyg</h2>
+                <p className="text-v3-xs text-v3-text-tertiary">Finjustera valt hinder.</p>
+              </div>
+              {selected && <span className="rounded-full bg-v3-brand-500/10 px-3 py-1 text-v3-xs font-medium text-v3-brand-700">{selected.label}</span>}
+            </div>
             <div className="grid grid-cols-4 lg:grid-cols-2 gap-2">
               <button type="button" onClick={() => moveSelected(0, -3)} disabled={!selected} className="mobile-tool-btn">↑</button>
               <button type="button" onClick={() => moveSelected(-3, 0)} disabled={!selected} className="mobile-tool-btn">←</button>
@@ -210,6 +239,8 @@ export default function V3CoursePlannerPage() {
           </section>
         </aside>
       </main>
+
+      {showGuide && <PlannerGuide onClose={closeGuide} />}
     </div>
   );
 }
@@ -264,17 +295,53 @@ function PlannerObstacleButton({ obstacle, selected, dragging, onSelect, onStart
       type="button"
       onClick={(event) => { event.stopPropagation(); onSelect(); }}
       onPointerDown={onStartDrag}
-      className={cn(
-        "absolute grid place-items-center bg-white/92 border shadow-[0_8px_16px_rgba(24,64,33,.20)] transition-transform cursor-grab active:cursor-grabbing touch-none",
-        selected ? "border-white ring-3 ring-white/40 scale-105 z-20" : "border-white/70 z-10",
-        dragging && "scale-110 shadow-[0_16px_26px_rgba(24,64,33,.28)]",
-        isTunnel ? "h-9 w-16 lg:h-10 lg:w-18 rounded-full" : isWeave ? "h-8 w-20 lg:h-9 lg:w-24 rounded-full" : isTire ? "h-10 w-10 lg:h-11 lg:w-11 rounded-full" : "h-9 w-9 lg:h-10 lg:w-10 rounded-lg",
-      )}
+      className={cn("absolute grid place-items-center bg-white/92 border shadow-[0_8px_16px_rgba(24,64,33,.20)] transition-transform cursor-grab active:cursor-grabbing touch-none", selected ? "border-white ring-3 ring-white/40 scale-105 z-20" : "border-white/70 z-10", dragging && "scale-110 shadow-[0_16px_26px_rgba(24,64,33,.28)]", isTunnel ? "h-9 w-16 lg:h-10 lg:w-18 rounded-full" : isWeave ? "h-8 w-20 lg:h-9 lg:w-24 rounded-full" : isTire ? "h-10 w-10 lg:h-11 lg:w-11 rounded-full" : "h-9 w-9 lg:h-10 lg:w-10 rounded-lg")}
       style={{ left: `${obstacle.x}%`, top: `${obstacle.y}%`, transform: `translate(-50%, -50%) rotate(${obstacle.rotation}deg)` }}
       aria-label={obstacle.label}
     >
       <span className={cn("leading-none font-bold pointer-events-none", isTunnel ? "text-[21px] text-v3-brand-700" : isWeave ? "text-[20px] text-v3-brand-700" : "text-[18px] text-v3-text-primary")}>{obstacle.icon}</span>
       {obstacle.number && <span className="absolute -right-1.5 -top-1.5 h-5 w-5 rounded-full bg-v3-brand-600 text-white text-[10px] font-bold grid place-items-center shadow-v3-xs pointer-events-none">{obstacle.number}</span>}
     </button>
+  );
+}
+
+function PlannerGuide({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[80] bg-v3-text-primary/45 backdrop-blur-sm px-4 py-6 flex items-center justify-center">
+      <section className="w-full max-w-md rounded-[26px] bg-white shadow-v3-xl border border-black/10 overflow-hidden animate-v3-fade-up">
+        <div className="p-5 border-b border-black/5 flex items-start justify-between gap-3">
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.1em] font-semibold text-v3-text-tertiary">Snabbguide</div>
+            <h2 className="font-v3-display text-[28px] leading-tight text-v3-text-primary mt-1">Så bygger du en bana</h2>
+          </div>
+          <button type="button" onClick={onClose} className="h-10 w-10 rounded-full bg-v3-canvas grid place-items-center text-v3-text-secondary hover:bg-v3-canvas-sunken">
+            <X size={18} />
+          </button>
+        </div>
+        <div className="p-5 space-y-3">
+          <GuideStep number="1" title="Lägg till hinder" text="Tryck på Hinder eller välj ett hinderkort i panelen." />
+          <GuideStep number="2" title="Dra på gräset" text="Håll inne på ett hinder och dra det till rätt plats på planen." />
+          <GuideStep number="3" title="Öppna Verktyg" text="Använd Verktyg för att rotera, finjustera, ta bort eller återställa banan." />
+          <GuideStep number="4" title="Öppna guiden igen" text="Tryck på Guide i toppen om du vill se instruktionen igen senare." />
+        </div>
+        <div className="p-5 pt-0">
+          <button type="button" onClick={onClose} className="w-full h-12 rounded-v3-base bg-v3-brand-600 text-white text-v3-sm font-semibold shadow-v3-sm hover:bg-v3-brand-700 transition-colors">
+            Jag fattar – börja rita
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function GuideStep({ number, title, text }: { number: string; title: string; text: string }) {
+  return (
+    <div className="flex gap-3 rounded-v3-xl bg-v3-canvas p-3">
+      <span className="h-8 w-8 rounded-full bg-v3-brand-500/10 text-v3-brand-700 text-v3-sm font-bold grid place-items-center shrink-0">{number}</span>
+      <div>
+        <h3 className="text-v3-sm font-semibold text-v3-text-primary">{title}</h3>
+        <p className="text-v3-sm text-v3-text-secondary mt-0.5 leading-relaxed">{text}</p>
+      </div>
+    </div>
   );
 }

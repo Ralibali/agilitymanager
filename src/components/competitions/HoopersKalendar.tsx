@@ -89,13 +89,6 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [interests, setInterests] = useState<Record<string, 'interested' | 'registered'>>({});
 
-  // Load user interests
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from('competition_interests')
-      .select('competition_id, status')
-      .eq('user_id', user.id)
   // Load interests (DB for logged-in, localStorage for guests)
   useEffect(() => {
     if (!user) {

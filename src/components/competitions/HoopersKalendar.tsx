@@ -75,6 +75,7 @@ interface Props {
 
 export function HoopersKalendar({ dogs, selectedDogId }: Props) {
   const { user } = useAuth();
+  const { interests, setInterest, isGuest } = useCompetitionInterests();
   const [competitions, setCompetitions] = useState<HoopersCompetition[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -83,56 +84,10 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
   const [countyFilter, setCountyFilter] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [interests, setInterests] = useState<Record<string, 'interested' | 'registered'>>({});
 
-  // Load user interests
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from('competition_interests')
-      .select('competition_id, status')
-      .eq('user_id', user.id)
-      .then(({ data }) => {
-        if (data) {
-          const map: Record<string, 'interested' | 'registered'> = {};
-          data.forEach((d: any) => { map[d.competition_id] = d.status; });
-          setInterests(map);
-        }
-      });
-  }, [user]);
-
-  const toggleInterest = async (comp: HoopersCompetition, targetStatus: 'interested' | 'registered') => {
-    if (!user) return;
-    const current = interests[comp.id];
-
-    if (current === targetStatus) {
-      // Remove
-      await supabase.from('competition_interests').delete().eq('user_id', user.id).eq('competition_id', comp.id);
-      setInterests(prev => { const next = { ...prev }; delete next[comp.id]; return next; });
-      toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
-      return;
-    }
-
-    // Determine dog info
+  const cycleStatus = async (comp: HoopersCompetition, target: InterestStatus) => {
     const dog = selectedDog || dogs.find(d => d.sport === 'Hoopers' || d.sport === 'Båda');
-    const dogName = dog?.name || null;
-    const dogClass = dog?.hoopers_level || null;
-
-    if (current) {
-      // Update
-      await supabase.from('competition_interests').update({ status: targetStatus }).eq('user_id', user.id).eq('competition_id', comp.id);
-    } else {
-      // Insert
-      await supabase.from('competition_interests').insert({
-        user_id: user.id,
-        competition_id: comp.id,
-        status: targetStatus,
-        dog_name: dogName,
-        class: dogClass,
-      });
-    }
-    setInterests(prev => ({ ...prev, [comp.id]: targetStatus }));
-    toast.success(targetStatus === 'interested' ? '⭐ Markerad som intresserad' : '✅ Markerad som anmäld');
+    await setInterest(comp.id, target, { dogName: dog?.name || null, dogClass: dog?.hoopers_level || null });
   };
 
   // Auto-filter based on selected dog's hoopers level
@@ -151,9 +106,12 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
     setLoading(true);
     const today = new Date().toISOString().split('T')[0];
 
-    const { data, error } = await supabase
-      .from('hoopers_competitions')
-      .select('*')
+    // Inloggade kan läsa fulla tabellen (med kontaktuppgifter), gäster läser publik vy
+    const query = user
+      ? supabase.from('hoopers_competitions').select('*')
+      : supabase.from('hoopers_competitions_public').select('*');
+
+    const { data, error } = await query
       .gte('date', today)
       .order('date', { ascending: true });
 
@@ -165,15 +123,36 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
       console.error('Error fetching hoopers competitions:', error);
     }
 
-    // If no data, trigger a scrape
-    if (!data || data.length === 0) {
+    // If no data and inloggad, trigger a scrape
+    if ((!data || data.length === 0) && user) {
       await handleRefresh(true);
     }
 
     setLoading(false);
-  }, []);
+  }, [user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  const handleRefresh = async (silent = false) => {
+    setRefreshing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('scrape-hoopers-competitions', {
+        method: 'POST',
+      });
+      if (error) throw error;
+      if (!silent) {
+        toast.success(`Uppdaterade ${data?.count || 0} hoopers-tävlingar`);
+      }
+      await fetchData();
+    } catch (err) {
+      console.error('Refresh error:', err);
+      if (!silent) {
+        toast.error('Kunde inte uppdatera tävlingar');
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const handleRefresh = async (silent = false) => {
     setRefreshing(true);

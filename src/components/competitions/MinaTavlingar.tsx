@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Star, CheckCircle2, ExternalLink, AlertTriangle, CheckCheck, Cloud } from 'lucide-react';
 import { readGuestInterests } from '@/hooks/useCompetitionInterests';
-import type { Competition, CompetitionInterest } from '@/types/competitions';
+import type { Competition } from '@/types/competitions';
 
 interface HoopersComp {
   id: string;

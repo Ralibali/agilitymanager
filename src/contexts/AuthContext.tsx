@@ -87,11 +87,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setLoading(false);
       if (session) {
         setTimeout(() => checkSubscription(), 0);
+        // Migrera gäst-intressen (sparade i localStorage) till DB vid inlogg
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          setTimeout(() => migrateGuestInterests(session.user.id), 0);
+        }
       } else {
         setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, isTrial: false, loading: false });
       }

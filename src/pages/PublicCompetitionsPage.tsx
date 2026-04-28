@@ -330,29 +330,53 @@ export default function PublicCompetitionsPage() {
             </span>
           </div>
 
-          {/* Tydlig datakälla & ansvarsfriskrivning */}
-          <div className="mt-6 rounded-2xl border border-border-subtle bg-surface px-4 py-3 sm:px-5 sm:py-4">
-            <div className="flex gap-3">
-              <Info className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" aria-hidden="true" />
-              <div className="text-sm text-text-secondary leading-relaxed">
-                <p>
-                  <strong className="text-text-primary">Datakälla:</strong> Tävlingsinformationen hämtas automatiskt från publika källor — främst{' '}
-                  <a href="https://agilitydata.se" target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-2 hover:underline">
-                    agilitydata.se
-                  </a>{' '}
-                  (SAgiK/AGIDA) för agility och{' '}
-                  <a href="https://shok.se" target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-2 hover:underline">
-                    SHoK
-                  </a>{' '}
-                  för hoopers. Data kan vara försenad eller felaktig.
-                </p>
-                <p className="mt-1.5">
-                  AgilityManager har inget samarbete med, och är inte godkänd av, SAgiK, AGIDA eller SHoK. Verifiera alltid information direkt hos arrangören innan anmälan.{' '}
-                  <Link to="/disclaimer" className="text-primary underline-offset-2 hover:underline">
-                    Läs fullständig ansvarsfriskrivning
-                  </Link>
-                  .
-                </p>
+          {/* Tydlig datakälla & integritets-/ansvarsfriskrivning */}
+          <div
+            role="region"
+            aria-label="Datakälla och integritet"
+            className="mt-6 overflow-hidden rounded-2xl border-2 border-primary/30 bg-surface shadow-sm"
+          >
+            {/* Topbar */}
+            <div className="flex items-center gap-2 bg-primary/10 px-4 py-2 sm:px-5">
+              <ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" />
+              <span className="text-xs font-semibold uppercase tracking-wide text-primary">
+                Öppen data · Ingen inloggning · Ingen spårning
+              </span>
+            </div>
+
+            <div className="grid gap-4 px-4 py-4 sm:px-5 sm:py-5 md:grid-cols-2">
+              {/* Datakälla */}
+              <div className="flex gap-3">
+                <Database className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" aria-hidden="true" />
+                <div className="text-sm text-text-secondary leading-relaxed">
+                  <p className="font-semibold text-text-primary">Var kommer datan ifrån?</p>
+                  <p className="mt-1">
+                    Tävlingsinformationen hämtas automatiskt från publika källor —{' '}
+                    <a href="https://agilitydata.se" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:no-underline">
+                      agilitydata.se
+                    </a>{' '}
+                    (SAgiK/AGIDA) för agility och{' '}
+                    <a href="https://shok.se" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:no-underline">
+                      shok.se
+                    </a>{' '}
+                    för hoopers. AgilityManager har <strong>inget samarbete</strong> med och är inte godkänd av dessa organisationer. Data kan vara försenad eller felaktig — verifiera alltid hos arrangören innan anmälan.
+                  </p>
+                </div>
+              </div>
+
+              {/* Integritet */}
+              <div className="flex gap-3">
+                <ShieldCheck className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" aria-hidden="true" />
+                <div className="text-sm text-text-secondary leading-relaxed">
+                  <p className="font-semibold text-text-primary">Du är inte inloggad</p>
+                  <p className="mt-1">
+                    Den här sidan kräver <strong>ingen inloggning</strong> och vi använder <strong>inga spårningscookies</strong> eller analysverktyg från tredje part. "Intresserad"-markeringar sparas enbart lokalt i din egen webbläsare (localStorage) och lämnar aldrig din enhet.{' '}
+                    <Link to="/disclaimer" className="text-primary underline underline-offset-2 hover:no-underline">
+                      Läs ansvarsfriskrivning
+                    </Link>
+                    .
+                  </p>
+                </div>
               </div>
             </div>
           </div>

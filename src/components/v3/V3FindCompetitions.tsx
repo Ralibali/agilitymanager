@@ -226,12 +226,30 @@ export function V3FindCompetitions({ preferredSport }: Props) {
       setMarkedRows([]);
       return;
     }
-    const { data } = await supabase
-      .from("competition_interests")
-      .select("competition_id, status")
-      .eq("user_id", user.id);
-    const map: Record<string, InterestStatus> = {};
+    let map: Record<string, InterestStatus> = {};
     const ids: string[] = [];
+
+    if (!user) {
+      // Gäst: läs från localStorage
+      const guestMap = readGuestInterests();
+      Object.values(guestMap).forEach((g) => {
+        if (g.status === "interested" || g.status === "registered") {
+          map[g.competition_id] = g.status as InterestStatus;
+          ids.push(g.competition_id);
+        }
+      });
+    } else {
+      const { data } = await supabase
+        .from("competition_interests")
+        .select("competition_id, status")
+        .eq("user_id", user.id);
+      (data ?? []).forEach((r) => {
+        if (r.status === "interested" || r.status === "registered") {
+          map[r.competition_id] = r.status as InterestStatus;
+          ids.push(r.competition_id);
+        }
+      });
+    }
     (data ?? []).forEach((r) => {
       if (r.status === "interested" || r.status === "registered") {
         map[r.competition_id] = r.status as InterestStatus;

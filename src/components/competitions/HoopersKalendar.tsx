@@ -154,26 +154,6 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
     }
   };
 
-  const handleRefresh = async (silent = false) => {
-    setRefreshing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('scrape-hoopers-competitions', {
-        method: 'POST',
-      });
-      if (error) throw error;
-      if (!silent) {
-        toast.success(`Uppdaterade ${data?.count || 0} hoopers-tävlingar`);
-      }
-      await fetchData();
-    } catch (err) {
-      console.error('Refresh error:', err);
-      if (!silent) {
-        toast.error('Kunde inte uppdatera tävlingar');
-      }
-    } finally {
-      setRefreshing(false);
-    }
-  };
 
   const filtered = useMemo(() => {
     return competitions.filter(comp => {

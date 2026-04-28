@@ -30,6 +30,55 @@ export const LEGACY_PRO_PRICE_IDS = [
   'price_1T9AomHzffTezY82vtiObR7E', // 99 kr/år
 ] as const;
 
+const GUEST_INTERESTS_KEY = 'am.guest.interests.v1';
+
+/**
+ * Migrera gäst-intressen från localStorage till DB vid inlogg.
+ * Körs idempotent: upsert på (user_id, competition_id), tar bort localStorage vid lyckat resultat.
+ */
+async function migrateGuestInterests(userId: string): Promise<void> {
+  if (typeof window === 'undefined') return;
+  try {
+    const raw = window.localStorage.getItem(GUEST_INTERESTS_KEY);
+    if (!raw) return;
+    const items = JSON.parse(raw) as Array<{
+      competition_id: string;
+      status: 'interested' | 'registered' | 'done';
+      dog_name: string | null;
+      class: string | null;
+    }>;
+    if (!Array.isArray(items) || items.length === 0) {
+      window.localStorage.removeItem(GUEST_INTERESTS_KEY);
+      return;
+    }
+
+    // Hämta befintliga intressen så vi inte skriver över redan synkade
+    const { data: existing } = await supabase
+      .from('competition_interests')
+      .select('competition_id')
+      .eq('user_id', userId);
+    const existingIds = new Set((existing || []).map((r: any) => r.competition_id));
+
+    const toInsert = items
+      .filter((i) => !existingIds.has(i.competition_id))
+      .map((i) => ({
+        user_id: userId,
+        competition_id: i.competition_id,
+        status: i.status,
+        dog_name: i.dog_name,
+        class: i.class,
+      }));
+
+    if (toInsert.length > 0) {
+      await supabase.from('competition_interests').insert(toInsert);
+    }
+    window.localStorage.removeItem(GUEST_INTERESTS_KEY);
+    window.dispatchEvent(new CustomEvent('am:guest-interests-changed'));
+  } catch (err) {
+    console.warn('[AuthContext] migrateGuestInterests failed', err);
+  }
+}
+
 interface SubscriptionState {
   subscribed: boolean;
   productId: string | null;

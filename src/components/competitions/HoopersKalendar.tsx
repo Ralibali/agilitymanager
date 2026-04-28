@@ -4,9 +4,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, MapPin, ExternalLink, Calendar as CalendarIcon, Filter, Star, CheckCircle2 } from 'lucide-react';
+import { RefreshCw, MapPin, ExternalLink, Calendar as CalendarIcon, Filter, Star, CheckCircle2, CheckCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import { useCompetitionInterests } from '@/hooks/useCompetitionInterests';
+import { Link } from 'react-router-dom';
+import { useCompetitionInterests, type InterestStatus } from '@/hooks/useCompetitionInterests';
 import type { Dog } from '@/types';
 
 interface HoopersCompetition {

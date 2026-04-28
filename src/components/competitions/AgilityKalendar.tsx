@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Calendar as CalendarIcon, Filter, Star, CheckCircle2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCompetitionInterests } from '@/hooks/useCompetitionInterests';
 import type { Dog } from '@/types';
 import type { Competition } from '@/types/competitions';
 

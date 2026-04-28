@@ -329,6 +329,33 @@ export default function PublicCompetitionsPage() {
               {regionFilter ? ` i ${REGION_LABELS[regionFilter]}` : ''}
             </span>
           </div>
+
+          {/* Tydlig datakälla & ansvarsfriskrivning */}
+          <div className="mt-6 rounded-2xl border border-border-subtle bg-surface px-4 py-3 sm:px-5 sm:py-4">
+            <div className="flex gap-3">
+              <Info className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" aria-hidden="true" />
+              <div className="text-sm text-text-secondary leading-relaxed">
+                <p>
+                  <strong className="text-text-primary">Datakälla:</strong> Tävlingsinformationen hämtas automatiskt från publika källor — främst{' '}
+                  <a href="https://agilitydata.se" target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-2 hover:underline">
+                    agilitydata.se
+                  </a>{' '}
+                  (SAgiK/AGIDA) för agility och{' '}
+                  <a href="https://shok.se" target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-2 hover:underline">
+                    SHoK
+                  </a>{' '}
+                  för hoopers. Data kan vara försenad eller felaktig.
+                </p>
+                <p className="mt-1.5">
+                  AgilityManager har inget samarbete med, och är inte godkänd av, SAgiK, AGIDA eller SHoK. Verifiera alltid information direkt hos arrangören innan anmälan.{' '}
+                  <Link to="/disclaimer" className="text-primary underline-offset-2 hover:underline">
+                    Läs fullständig ansvarsfriskrivning
+                  </Link>
+                  .
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 

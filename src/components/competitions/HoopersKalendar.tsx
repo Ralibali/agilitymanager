@@ -7,6 +7,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { RefreshCw, MapPin, ExternalLink, Calendar as CalendarIcon, Filter, Star, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Dog } from '@/types';
+import {
+  readGuestInterests,
+  setGuestInterest,
+  removeGuestInterest,
+  subscribeGuestInterests,
+} from '@/hooks/useGuestInterests';
 
 interface HoopersCompetition {
   id: string;

@@ -25,7 +25,20 @@ function formatDateRange(start: string | null, end: string | null): string {
 
 function stripHtml(s: string | null | undefined): string {
   if (!s) return "";
-  return s.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+  // Decode common entities first
+  let out = s
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, " ");
+  // Remove complete tags
+  out = out.replace(/<[^>]*>/g, "");
+  // Remove dangling/unterminated tag fragments (e.g. "<i class='...' title='...")
+  out = out.replace(/<[^<>]*$/g, "");
+  // Strip leading/trailing decorative emojis often added in source data
+  return out.replace(/\s+/g, " ").trim();
 }
 
 export default function CompetitionDetailPage() {

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RefreshCw, MapPin, ExternalLink, Calendar as CalendarIcon, Filter, Star, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCompetitionInterests } from '@/hooks/useCompetitionInterests';
 import type { Dog } from '@/types';
 
 interface HoopersCompetition {

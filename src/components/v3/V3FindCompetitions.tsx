@@ -213,25 +213,34 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     };
   }, [sport, view]);
 
-  // Hämta användarens intressen + de faktiska tävlingsraderna (oberoende av aktiv sport / tidsfönster)
+  // Hämta intressen (Supabase för inloggad, localStorage för gäst) + faktiska tävlingsraderna.
+  // Båda lägena delar samma map → exakt samma flikar/filter/UI.
   const reloadInterests = useCallback(async () => {
-    if (!user) {
-      setInterests({});
-      setMarkedRows([]);
-      return;
-    }
-    const { data } = await supabase
-      .from("competition_interests")
-      .select("competition_id, status")
-      .eq("user_id", user.id);
     const map: Record<string, InterestStatus> = {};
     const ids: string[] = [];
-    (data ?? []).forEach((r) => {
-      if (r.status === "interested" || r.status === "registered") {
-        map[r.competition_id] = r.status as InterestStatus;
-        ids.push(r.competition_id);
-      }
-    });
+
+    if (!user) {
+      // Gäst: läs från localStorage via samma hjälpare som useCompetitionInterests
+      const guestItems = readGuestInterests();
+      guestItems.forEach((g) => {
+        if (g.status === "interested" || g.status === "registered") {
+          map[g.competition_id] = g.status as InterestStatus;
+          ids.push(g.competition_id);
+        }
+      });
+    } else {
+      const { data } = await supabase
+        .from("competition_interests")
+        .select("competition_id, status")
+        .eq("user_id", user.id);
+      (data ?? []).forEach((r) => {
+        if (r.status === "interested" || r.status === "registered") {
+          map[r.competition_id] = r.status as InterestStatus;
+          ids.push(r.competition_id);
+        }
+      });
+    }
+
     setInterests(map);
 
     if (ids.length === 0) {
@@ -308,6 +317,23 @@ export function V3FindCompetitions({ preferredSport }: Props) {
   useEffect(() => {
     reloadInterests();
   }, [reloadInterests]);
+
+  // Lyssna på localStorage-ändringar (även mellan flikar) så gäst-UI återställs när användaren återvänder.
+  useEffect(() => {
+    if (user) return;
+    const onChange = () => { void reloadInterests(); };
+    const onStorage = (e: StorageEvent) => { if (e.key === "am.guest.interests.v1") onChange(); };
+    window.addEventListener("am:guest-interests-changed", onChange);
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("focus", onChange);
+    document.addEventListener("visibilitychange", onChange);
+    return () => {
+      window.removeEventListener("am:guest-interests-changed", onChange);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", onChange);
+      document.removeEventListener("visibilitychange", onChange);
+    };
+  }, [user, reloadInterests]);
 
   // Hämta tävlingar som vänner delat med mig (messages.shared_type='competition')
   const reloadShared = useCallback(async () => {

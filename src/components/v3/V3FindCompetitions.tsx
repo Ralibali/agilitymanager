@@ -250,12 +250,6 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         }
       });
     }
-    (data ?? []).forEach((r) => {
-      if (r.status === "interested" || r.status === "registered") {
-        map[r.competition_id] = r.status as InterestStatus;
-        ids.push(r.competition_id);
-      }
-    });
     setInterests(map);
 
     if (ids.length === 0) {

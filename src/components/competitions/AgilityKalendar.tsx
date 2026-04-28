@@ -50,62 +50,31 @@ export function AgilityKalendar({ competitions, dogs, selectedDogId }: Props) {
   const [classFilters, setClassFilters] = useState<Set<string>>(new Set());
   const [countyFilter, setCountyFilter] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [interests, setInterests] = useState<Record<string, 'interested' | 'registered'>>({});
-  const [loading, setLoading] = useState(true);
+  const { interests, loading, setInterest, isGuest } = useCompetitionInterests();
 
   const selectedDog = useMemo(() => dogs.find(d => d.id === selectedDogId), [dogs, selectedDogId]);
 
-  // Load user interests
-  useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    supabase
-      .from('competition_interests')
-      .select('competition_id, status')
-      .eq('user_id', user.id)
-      .then(({ data }) => {
-        if (data) {
-          const map: Record<string, 'interested' | 'registered'> = {};
-          data.forEach((d: any) => { map[d.competition_id] = d.status; });
-          setInterests(map);
-        }
-        setLoading(false);
-      });
-  }, [user]);
-
   const toggleInterest = async (comp: Competition, targetStatus: 'interested' | 'registered') => {
-    if (!user) {
-      toast.error('Logga in för att markera tävlingar');
-      return;
-    }
     const current = interests[comp.id];
-
-    if (current === targetStatus) {
-      await supabase.from('competition_interests').delete().eq('user_id', user.id).eq('competition_id', comp.id);
-      setInterests(prev => { const next = { ...prev }; delete next[comp.id]; return next; });
-      toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
-      return;
-    }
-
     const dog = selectedDog || dogs.find(d => d.sport === 'Agility' || d.sport === 'Båda');
     const dogName = dog?.name || null;
     const dogClass = dog?.competition_level || null;
 
-    if (current) {
-      await supabase.from('competition_interests').update({ status: targetStatus }).eq('user_id', user.id).eq('competition_id', comp.id);
+    await setInterest(comp.id, targetStatus, { dogName, dogClass });
+
+    if (current === targetStatus) {
+      toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
     } else {
-      await supabase.from('competition_interests').insert({
-        user_id: user.id,
-        competition_id: comp.id,
-        status: targetStatus,
-        dog_name: dogName,
-        class: dogClass,
-      });
+      toast.success(
+        targetStatus === 'interested'
+          ? isGuest
+            ? '⭐ Sparad lokalt — logga in för att synka mellan enheter'
+            : '⭐ Markerad som intresserad'
+          : isGuest
+            ? '✅ Sparad lokalt — logga in för att synka mellan enheter'
+            : '✅ Markerad som anmäld',
+      );
     }
-    setInterests(prev => ({ ...prev, [comp.id]: targetStatus }));
-    toast.success(targetStatus === 'interested' ? '⭐ Markerad som intresserad' : '✅ Markerad som anmäld');
   };
 
   const filtered = useMemo(() => {

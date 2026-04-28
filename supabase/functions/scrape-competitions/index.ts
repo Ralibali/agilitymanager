@@ -58,7 +58,13 @@ function decodeEntities(text: string): string {
 }
 
 function extractText(html: string): string {
-  return decodeEntities(html.replace(/<[^>]*>/g, "").trim());
+  // Decode entities first so encoded tags can also be stripped
+  let s = decodeEntities(html);
+  // Strip complete tags
+  s = s.replace(/<[^>]*>/g, " ");
+  // Strip dangling/unterminated tag fragments (e.g. "<i class='...' title='...")
+  s = s.replace(/<[^<>]*$/g, "");
+  return s.replace(/\s+/g, " ").trim();
 }
 
 function extractDivTexts(html: string): string[] {

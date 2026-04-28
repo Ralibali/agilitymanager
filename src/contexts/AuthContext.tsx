@@ -1,6 +1,50 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { readGuestInterests, clearGuestInterests } from '@/hooks/useGuestInterests';
+
+/**
+ * Migrera lokalt sparade gäst-intressen (localStorage) till databasen
+ * när en användare loggar in. Idempotent — befintliga rader skrivs inte över.
+ * Rensar localStorage när migrationen lyckats så att inget dubbelräknas.
+ */
+async function migrateGuestInterestsToDb(userId: string) {
+  try {
+    const guestMap = readGuestInterests();
+    const entries = Object.values(guestMap);
+    if (entries.length === 0) return;
+
+    // Hämta befintliga DB-rader för att undvika dubbletter (id är text, ej unique constraint).
+    const { data: existing } = await supabase
+      .from('competition_interests')
+      .select('competition_id')
+      .eq('user_id', userId);
+    const existingIds = new Set((existing || []).map((r: any) => r.competition_id));
+
+    const rowsToInsert = entries
+      .filter((g) => !existingIds.has(g.competition_id))
+      .map((g) => ({
+        user_id: userId,
+        competition_id: g.competition_id,
+        status: g.status,
+        dog_name: g.dog_name ?? null,
+        class: g.class ?? null,
+      }));
+
+    if (rowsToInsert.length > 0) {
+      const { error } = await supabase.from('competition_interests').insert(rowsToInsert);
+      if (error) {
+        console.warn('[guest-interests] migration failed', error);
+        return; // behåll localStorage för senare försök
+      }
+    }
+
+    clearGuestInterests();
+    console.info(`[guest-interests] migrated ${rowsToInsert.length} interest(s) to DB`);
+  } catch (e) {
+    console.warn('[guest-interests] migration error', e);
+  }
+}
 
 // Aktuella priser (v2 — 2026)
 // Gamla priser (price_1T9Aio... 19 kr/mån, price_1T9Aom... 99 kr/år) är fortfarande aktiva

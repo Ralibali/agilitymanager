@@ -39,7 +39,7 @@ function formatDateShort(dateStr: string | null): string {
 
 type Status = 'interested' | 'registered' | 'done';
 
-type MergedInterest = Partial<CompetitionInterest> & {
+type MergedInterest = {
   id: string;
   competition_id: string;
   status: Status;

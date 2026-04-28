@@ -1,0 +1,106 @@
+/*
+   V3 Desktop polish
+   Målet: kännas lika självklar på laptop/desktop som på mobil.
+   Den här filen är avsiktligt scoped till v3-layouten via main och v3-klasser.
+*/
+
+@layer components {
+  /* Desktop ska inte kännas som en mobilvy placerad i mitten av skärmen. */
+  @media (min-width: 1280px) {
+    main > div[class*="max-w-[1180px]"] {
+      max-width: min(1480px, calc(100vw - 112px));
+      padding-left: clamp(2.25rem, 3vw, 4rem);
+      padding-right: clamp(2.25rem, 3vw, 4rem);
+    }
+  }
+
+  @media (min-width: 1536px) {
+    main > div[class*="max-w-[1180px]"] {
+      max-width: min(1580px, calc(100vw - 144px));
+    }
+  }
+
+  /* Mer premium desktop-känsla: större arbetsyta, men fortfarande lugn. */
+  @media (min-width: 1024px) {
+    main > div[class*="max-w-[1180px]"] {
+      row-gap: 1.35rem;
+    }
+
+    main header[class*="rounded-[28px]"] {
+      min-height: 236px;
+      padding: clamp(2rem, 2.8vw, 3rem);
+    }
+
+    main header[class*="rounded-[28px]"] h1 {
+      max-width: 760px;
+    }
+
+    main section[aria-label="Snabbstart"] {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  /* Vid stora skärmar får dashboarden andas i två tydliga kolumner. */
+  @media (min-width: 1280px) {
+    main section[aria-label="Snabbstart"] + section {
+      padding: 1.5rem;
+    }
+
+    main section[aria-label="Snabbstart"] + section > div:last-child {
+      gap: 1rem;
+    }
+  }
+
+  /* Kort ska kännas klickbara, konsekventa och lite mer premium. */
+  main .rounded-v3-2xl.bg-v3-canvas-elevated,
+  main button.rounded-v3-2xl.bg-v3-canvas-elevated,
+  main section.rounded-v3-2xl.bg-v3-canvas-elevated {
+    border-color: hsl(var(--v3-canvas-sunken) / 0.72);
+    box-shadow:
+      0 1px 2px rgba(26, 29, 27, 0.035),
+      0 8px 24px rgba(26, 29, 27, 0.035);
+  }
+
+  main button.rounded-v3-2xl.bg-v3-canvas-elevated:hover,
+  main button[class*="rounded-v3-xl"]:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 2px 6px rgba(26, 29, 27, 0.055),
+      0 12px 28px rgba(26, 29, 27, 0.06);
+  }
+
+  /* Småtexter måste vara tydliga även på utzoomad laptop. */
+  main .text-v3-text-secondary {
+    color: hsl(var(--v3-text-secondary) / 0.96);
+  }
+
+  main .text-v3-text-tertiary {
+    color: hsl(var(--v3-text-tertiary) / 0.98);
+  }
+
+  main p.text-v3-sm,
+  main .text-v3-xs {
+    line-height: 1.55;
+  }
+
+  /* Mörka aktiveringskortet ska vara snyggt men inte dominera hela sidan. */
+  main section.bg-v3-text-primary.text-white {
+    background:
+      radial-gradient(circle at top right, hsl(var(--v3-brand-500) / 0.22), transparent 34%),
+      linear-gradient(135deg, hsl(var(--v3-text-primary)), hsl(138 32% 13%));
+    border: 1px solid hsl(var(--v3-brand-500) / 0.12);
+  }
+
+  @media (min-width: 1280px) {
+    main section.bg-v3-text-primary.text-white {
+      padding: 1.65rem;
+    }
+  }
+
+  /* Bättre läsbarhet och träffyta i veckokort / timeline på desktop. */
+  @media (min-width: 1024px) {
+    main [class*="min-h-[164px]"] {
+      min-height: 176px;
+    }
+  }
+}

@@ -19,6 +19,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Link } from 'react-router-dom';
 
 const CLASS_FILTERS = [
   { key: 'agility', label: 'Agility' },
@@ -110,8 +111,8 @@ interface TavlingsKalendarProps {
 export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { interests, setInterest, isGuest } = useCompetitionInterests();
   const [competitions, setCompetitions] = useState<Competition[]>([]);
-  const [interests, setInterests] = useState<Map<string, CompetitionInterest>>(new Map());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastFetched, setLastFetched] = useState<string | null>(null);
@@ -147,20 +148,14 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
   const activeFilters = useMemo(() => {
     if (!selectedDog) return manualFilters;
     const dogF = dogFiltersFor(selectedDog);
-    // Merge manual on top of dog filters
     const merged = new Set(dogF);
     manualFilters.forEach(f => {
-      if (merged.has(f)) {
-        // manual toggle removes a dog filter
-        merged.delete(f);
-      } else {
-        merged.add(f);
-      }
+      if (merged.has(f)) merged.delete(f);
+      else merged.add(f);
     });
     return merged;
   }, [selectedDog, manualFilters]);
 
-  // Reset manual filters when dog changes
   useEffect(() => {
     setManualFilters(new Set());
   }, [selectedDogId]);
@@ -179,19 +174,8 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
       setCompetitions(data as unknown as Competition[]);
       setLastFetched(data[0]?.fetched_at || null);
     }
-
-    if (user) {
-      const { data: intData } = await supabase
-        .from('competition_interests')
-        .select('*')
-        .eq('user_id', user.id);
-      const map = new Map<string, CompetitionInterest>();
-      (intData || []).forEach((i: any) => map.set(i.competition_id, i as CompetitionInterest));
-      setInterests(map);
-    }
-
     setLoading(false);
-  }, [user]);
+  }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -208,47 +192,21 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
     setRefreshing(false);
   };
 
-  const toggleInterest = async (compId: string, type: 'interested' | 'registered') => {
-    if (!user) return;
-    const current = interests.get(compId);
-    const dogName = selectedDog?.name || null;
-
-    if (type === 'interested' && current?.status === 'registered') {
+  const cycleStatus = async (compId: string, target: InterestStatus) => {
+    const current = interests[compId];
+    // Confirm dialog when downgrading from registered → interested
+    if (target === 'interested' && current === 'registered') {
       setConfirmDialog({ open: true, compId });
       return;
     }
-
-    if (current?.status === type) {
-      await supabase.from('competition_interests').delete().eq('id', current.id);
-      const newMap = new Map(interests);
-      newMap.delete(compId);
-      setInterests(newMap);
-    } else if (current) {
-      await supabase.from('competition_interests').update({ status: type, dog_name: dogName }).eq('id', current.id);
-      const newMap = new Map(interests);
-      newMap.set(compId, { ...current, status: type, dog_name: dogName });
-      setInterests(newMap);
-    } else {
-      const { data } = await supabase.from('competition_interests')
-        .insert({ user_id: user.id, competition_id: compId, status: type, dog_name: dogName })
-        .select().single();
-      if (data) {
-        const newMap = new Map(interests);
-        newMap.set(compId, data as unknown as CompetitionInterest);
-        setInterests(newMap);
-      }
-    }
+    const dogName = selectedDog?.name || null;
+    await setInterest(compId, target, { dogName });
   };
 
   const handleConfirmDowngrade = async () => {
     const compId = confirmDialog.compId;
-    const current = interests.get(compId);
-    if (current) {
-      await supabase.from('competition_interests').update({ status: 'interested' }).eq('id', current.id);
-      const newMap = new Map(interests);
-      newMap.set(compId, { ...current, status: 'interested' });
-      setInterests(newMap);
-    }
+    const dogName = selectedDog?.name || null;
+    await setInterest(compId, 'interested', { dogName });
     setConfirmDialog({ open: false, compId: '' });
   };
 
@@ -263,7 +221,6 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
     setSelectedCounties(new Set());
   };
 
-  // Check if a filter is visually "checked" — from dog or manual
   const isFilterActive = (key: string) => activeFilters.has(key);
 
   const filtered = competitions.filter(c => {

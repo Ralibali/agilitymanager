@@ -225,18 +225,13 @@ export default function PublicCompetitionsPage() {
     [regionScoped],
   );
 
-  // Tillgängliga regioner — endast de som faktiskt har tävlingar.
+  // Tillgängliga regioner — visa ALLA svenska län (inkl. de utan tävlingar just nu)
+  // så att användare kan navigera till alla SEO-sidor (t.ex. /tavlingar?region=gotland).
   const availableRegions = useMemo(() => {
-    const set = new Set<string>();
-    for (const c of competitions) {
-      if (!c.region) continue;
-      const slug = slugify(c.region.replace(/s? län$/i, ''));
-      if (REGION_LABELS[slug]) set.add(slug);
-    }
-    return Array.from(set).sort((a, b) =>
+    return Object.keys(REGION_LABELS).sort((a, b) =>
       REGION_LABELS[a].localeCompare(REGION_LABELS[b], 'sv'),
     );
-  }, [competitions]);
+  }, []);
 
   // SEO: dynamisk titel/beskrivning/canonical baserat på filter.
   // Varje filtrerad vy får egen canonical så Google kan indexera dem separat.

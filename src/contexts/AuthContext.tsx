@@ -148,8 +148,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
-      if (session) checkSubscription();
-      else setSubscription(prev => ({ ...prev, loading: false }));
+      if (session) {
+        checkSubscription();
+        if (session.user) migrateGuestInterestsToDb(session.user.id);
+      } else {
+        setSubscription(prev => ({ ...prev, loading: false }));
+      }
     });
 
     return () => authSub.unsubscribe();

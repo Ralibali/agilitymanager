@@ -4,11 +4,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, MapPin, ExternalLink, Calendar as CalendarIcon, Filter, Star, CheckCircle2, CheckCheck } from 'lucide-react';
+import { RefreshCw, MapPin, ExternalLink, Calendar as CalendarIcon, Filter, Star, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
-import { useCompetitionInterests, type InterestStatus } from '@/hooks/useCompetitionInterests';
 import type { Dog } from '@/types';
+import {
+  readGuestInterests,
+  setGuestInterest,
+  removeGuestInterest,
+  subscribeGuestInterests,
+} from '@/hooks/useGuestInterests';
 
 interface HoopersCompetition {
   id: string;
@@ -26,8 +30,8 @@ interface HoopersCompetition {
   registration_opens: string | null;
   registration_closes: string | null;
   registration_status: string;
-  contact_person?: string;
-  contact_email?: string;
+  contact_person: string;
+  contact_email: string;
   judge: string;
   source_url: string;
   extra_info: string;
@@ -75,7 +79,6 @@ interface Props {
 
 export function HoopersKalendar({ dogs, selectedDogId }: Props) {
   const { user } = useAuth();
-  const { interests, setInterest, isGuest } = useCompetitionInterests();
   const [competitions, setCompetitions] = useState<HoopersCompetition[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -84,10 +87,82 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
   const [countyFilter, setCountyFilter] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [interests, setInterests] = useState<Record<string, 'interested' | 'registered'>>({});
 
-  const cycleStatus = async (comp: HoopersCompetition, target: InterestStatus) => {
+  // Load interests (DB for logged-in, localStorage for guests)
+  useEffect(() => {
+    if (!user) {
+      const loadGuest = () => {
+        const map = readGuestInterests();
+        const out: Record<string, 'interested' | 'registered'> = {};
+        Object.values(map).forEach((g) => {
+          if (g.status === 'interested' || g.status === 'registered') {
+            out[g.competition_id] = g.status;
+          }
+        });
+        setInterests(out);
+      };
+      loadGuest();
+      const unsub = subscribeGuestInterests(loadGuest);
+      return unsub;
+    }
+    supabase
+      .from('competition_interests')
+      .select('competition_id, status')
+      .eq('user_id', user.id)
+      .then(({ data }) => {
+        if (data) {
+          const map: Record<string, 'interested' | 'registered'> = {};
+          data.forEach((d: any) => { map[d.competition_id] = d.status; });
+          setInterests(map);
+        }
+      });
+  }, [user]);
+
+  const toggleInterest = async (comp: HoopersCompetition, targetStatus: 'interested' | 'registered') => {
+    const current = interests[comp.id];
     const dog = selectedDog || dogs.find(d => d.sport === 'Hoopers' || d.sport === 'Båda');
-    await setInterest(comp.id, target, { dogName: dog?.name || null, dogClass: dog?.hoopers_level || null });
+    const dogName = dog?.name || null;
+    const dogClass = dog?.hoopers_level || null;
+
+    // Guest mode → localStorage
+    if (!user) {
+      if (current === targetStatus) {
+        removeGuestInterest(comp.id);
+        setInterests(prev => { const next = { ...prev }; delete next[comp.id]; return next; });
+        toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
+      } else {
+        setGuestInterest(comp.id, targetStatus, { dog_name: dogName, class: dogClass });
+        setInterests(prev => ({ ...prev, [comp.id]: targetStatus }));
+        toast.success(
+          targetStatus === 'interested'
+            ? '⭐ Sparat lokalt – logga in för att synka'
+            : '✅ Sparat lokalt – logga in för att synka'
+        );
+      }
+      return;
+    }
+
+    if (current === targetStatus) {
+      await supabase.from('competition_interests').delete().eq('user_id', user.id).eq('competition_id', comp.id);
+      setInterests(prev => { const next = { ...prev }; delete next[comp.id]; return next; });
+      toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
+      return;
+    }
+
+    if (current) {
+      await supabase.from('competition_interests').update({ status: targetStatus }).eq('user_id', user.id).eq('competition_id', comp.id);
+    } else {
+      await supabase.from('competition_interests').insert({
+        user_id: user.id,
+        competition_id: comp.id,
+        status: targetStatus,
+        dog_name: dogName,
+        class: dogClass,
+      });
+    }
+    setInterests(prev => ({ ...prev, [comp.id]: targetStatus }));
+    toast.success(targetStatus === 'interested' ? '⭐ Markerad som intresserad' : '✅ Markerad som anmäld');
   };
 
   // Auto-filter based on selected dog's hoopers level
@@ -106,12 +181,9 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
     setLoading(true);
     const today = new Date().toISOString().split('T')[0];
 
-    // Inloggade kan läsa fulla tabellen (med kontaktuppgifter), gäster läser publik vy
-    const query = user
-      ? supabase.from('hoopers_competitions').select('*')
-      : supabase.from('hoopers_competitions_public').select('*');
-
-    const { data, error } = await query
+    const { data, error } = await supabase
+      .from('hoopers_competitions')
+      .select('*')
       .gte('date', today)
       .order('date', { ascending: true });
 
@@ -123,13 +195,13 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
       console.error('Error fetching hoopers competitions:', error);
     }
 
-    // If no data and inloggad, trigger a scrape
-    if ((!data || data.length === 0) && user) {
+    // If no data, trigger a scrape
+    if (!data || data.length === 0) {
       await handleRefresh(true);
     }
 
     setLoading(false);
-  }, [user]);
+  }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -153,7 +225,6 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
       setRefreshing(false);
     }
   };
-
 
   const filtered = useMemo(() => {
     return competitions.filter(comp => {
@@ -365,61 +436,39 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
                 </div>
               </button>
 
-              {/* Interest action row — visas även för gäster (sparas i localStorage) */}
-              {(() => {
-                const status = interests[comp.id];
-                const isPast = comp.date ? new Date(comp.date + 'T23:59:59') < new Date() : false;
-                return (
-                  <div className="flex items-center gap-2 px-3 pb-2.5 -mt-1 flex-wrap">
-                    <button
-                      onClick={() => cycleStatus(comp, 'interested')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
-                        status === 'interested'
-                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
-                          : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
-                      }`}
-                    >
-                      <Star size={13} className={status === 'interested' ? 'fill-amber-500 text-amber-500' : ''} />
-                      {status === 'interested' ? 'Intresserad' : 'Intresse'}
-                    </button>
-                    <button
-                      onClick={() => cycleStatus(comp, 'registered')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
-                        status === 'registered'
-                          ? 'text-white'
-                          : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
-                      }`}
-                      style={status === 'registered' ? { background: '#1a6b3c' } : {}}
-                    >
-                      <CheckCircle2 size={13} className={status === 'registered' ? 'fill-white text-white' : ''} />
-                      {status === 'registered' ? 'Anmäld ✓' : 'Anmäld'}
-                    </button>
-                    {(isPast || status === 'done') && (
-                      <button
-                        onClick={() => cycleStatus(comp, 'done')}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
-                          status === 'done'
-                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                            : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
-                        }`}
-                      >
-                        <CheckCheck size={13} className={status === 'done' ? 'text-blue-600' : ''} />
-                        {status === 'done' ? 'Klar' : 'Klar?'}
-                      </button>
-                    )}
-                    {status && selectedDog && (
-                      <span className="text-[10px] text-muted-foreground ml-auto">
-                        🐕 {selectedDog.name}
-                      </span>
-                    )}
-                    {isGuest && status && (
-                      <span className="w-full text-[10px] text-muted-foreground">
-                        Sparad lokalt. <Link to="/auth" className="text-primary underline">Logga in</Link> för att synka.
-                      </span>
-                    )}
-                  </div>
-                );
-              })()}
+              {/* Interest action row */}
+              {user && (
+                <div className="flex items-center gap-2 px-3 pb-2.5 -mt-1">
+                  <button
+                    onClick={() => toggleInterest(comp, 'interested')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
+                      interests[comp.id] === 'interested'
+                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                        : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                    }`}
+                  >
+                    <Star size={13} className={interests[comp.id] === 'interested' ? 'fill-amber-500 text-amber-500' : ''} />
+                    {interests[comp.id] === 'interested' ? 'Intresserad' : 'Intresse'}
+                  </button>
+                  <button
+                    onClick={() => toggleInterest(comp, 'registered')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
+                      interests[comp.id] === 'registered'
+                        ? 'text-white'
+                        : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                    }`}
+                    style={interests[comp.id] === 'registered' ? { background: '#1a6b3c' } : {}}
+                  >
+                    <CheckCircle2 size={13} className={interests[comp.id] === 'registered' ? 'fill-white text-white' : ''} />
+                    {interests[comp.id] === 'registered' ? 'Anmäld ✓' : 'Anmäld'}
+                  </button>
+                  {interests[comp.id] && selectedDog && (
+                    <span className="text-[10px] text-muted-foreground ml-auto">
+                      🐕 {selectedDog.name}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Expanded details */}
               {expanded === comp.id && (

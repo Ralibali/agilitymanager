@@ -8,10 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, MapPin, ExternalLink, Star, CheckCircle2, Home, TreePine, Send, Trophy, CheckCheck } from 'lucide-react';
+import { RefreshCw, MapPin, ExternalLink, Star, CheckCircle2, Home, TreePine, Send, Trophy } from 'lucide-react';
 import CompetitionResultsViewer from '@/components/competitions/CompetitionResultsViewer';
-import { SWEDISH_COUNTIES, type Competition } from '@/types/competitions';
-import { useCompetitionInterests, type InterestStatus } from '@/hooks/useCompetitionInterests';
+import { SWEDISH_COUNTIES, type Competition, type CompetitionInterest } from '@/types/competitions';
 import { getCountyForLocation } from '@/lib/swedishCityCounty';
 import { useToast } from '@/hooks/use-toast';
 import type { Dog } from '@/types';
@@ -19,7 +18,6 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Link } from 'react-router-dom';
 
 const CLASS_FILTERS = [
   { key: 'agility', label: 'Agility' },
@@ -111,8 +109,8 @@ interface TavlingsKalendarProps {
 export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { interests, setInterest, isGuest } = useCompetitionInterests();
   const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [interests, setInterests] = useState<Map<string, CompetitionInterest>>(new Map());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastFetched, setLastFetched] = useState<string | null>(null);
@@ -148,14 +146,20 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
   const activeFilters = useMemo(() => {
     if (!selectedDog) return manualFilters;
     const dogF = dogFiltersFor(selectedDog);
+    // Merge manual on top of dog filters
     const merged = new Set(dogF);
     manualFilters.forEach(f => {
-      if (merged.has(f)) merged.delete(f);
-      else merged.add(f);
+      if (merged.has(f)) {
+        // manual toggle removes a dog filter
+        merged.delete(f);
+      } else {
+        merged.add(f);
+      }
     });
     return merged;
   }, [selectedDog, manualFilters]);
 
+  // Reset manual filters when dog changes
   useEffect(() => {
     setManualFilters(new Set());
   }, [selectedDogId]);
@@ -174,8 +178,19 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
       setCompetitions(data as unknown as Competition[]);
       setLastFetched(data[0]?.fetched_at || null);
     }
+
+    if (user) {
+      const { data: intData } = await supabase
+        .from('competition_interests')
+        .select('*')
+        .eq('user_id', user.id);
+      const map = new Map<string, CompetitionInterest>();
+      (intData || []).forEach((i: any) => map.set(i.competition_id, i as CompetitionInterest));
+      setInterests(map);
+    }
+
     setLoading(false);
-  }, []);
+  }, [user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -192,21 +207,47 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
     setRefreshing(false);
   };
 
-  const cycleStatus = async (compId: string, target: InterestStatus) => {
-    const current = interests[compId];
-    // Confirm dialog when downgrading from registered → interested
-    if (target === 'interested' && current === 'registered') {
+  const toggleInterest = async (compId: string, type: 'interested' | 'registered') => {
+    if (!user) return;
+    const current = interests.get(compId);
+    const dogName = selectedDog?.name || null;
+
+    if (type === 'interested' && current?.status === 'registered') {
       setConfirmDialog({ open: true, compId });
       return;
     }
-    const dogName = selectedDog?.name || null;
-    await setInterest(compId, target, { dogName });
+
+    if (current?.status === type) {
+      await supabase.from('competition_interests').delete().eq('id', current.id);
+      const newMap = new Map(interests);
+      newMap.delete(compId);
+      setInterests(newMap);
+    } else if (current) {
+      await supabase.from('competition_interests').update({ status: type, dog_name: dogName }).eq('id', current.id);
+      const newMap = new Map(interests);
+      newMap.set(compId, { ...current, status: type, dog_name: dogName });
+      setInterests(newMap);
+    } else {
+      const { data } = await supabase.from('competition_interests')
+        .insert({ user_id: user.id, competition_id: compId, status: type, dog_name: dogName })
+        .select().single();
+      if (data) {
+        const newMap = new Map(interests);
+        newMap.set(compId, data as unknown as CompetitionInterest);
+        setInterests(newMap);
+      }
+    }
   };
 
   const handleConfirmDowngrade = async () => {
     const compId = confirmDialog.compId;
-    const dogName = selectedDog?.name || null;
-    await setInterest(compId, 'interested', { dogName });
+    const current = interests.get(compId);
+    if (current) {
+      await supabase.from('competition_interests').update({ status: 'interested' }).eq('id', current.id);
+      const newMap = new Map(interests);
+      newMap.set(compId, { ...current, status: 'interested' });
+      setInterests(newMap);
+    }
     setConfirmDialog({ open: false, compId: '' });
   };
 
@@ -221,6 +262,7 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
     setSelectedCounties(new Set());
   };
 
+  // Check if a filter is visually "checked" — from dog or manual
   const isFilterActive = (key: string) => activeFilters.has(key);
 
   const filtered = competitions.filter(c => {
@@ -324,65 +366,46 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
       ) : (
         <div className="space-y-3">
           {filtered.map(comp => {
-            const status = interests[comp.id];
-            const isPast = comp.date_end ? new Date(comp.date_end + 'T23:59:59') < new Date() : (comp.date_start ? new Date(comp.date_start + 'T23:59:59') < new Date() : false);
+            const interest = interests.get(comp.id);
             return (
               <div key={comp.id} className="bg-card rounded-xl border border-border p-4 relative">
-                {/* Interest action row — visas även för gäster (sparas i localStorage) */}
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <button
-                    onClick={() => cycleStatus(comp.id, 'interested')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
-                      status === 'interested'
-                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
-                        : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
-                    }`}
-                  >
-                    <Star size={13} className={status === 'interested' ? 'fill-amber-500 text-amber-500' : ''} />
-                    {status === 'interested' ? 'Intresserad' : 'Intresse'}
-                  </button>
-                  <button
-                    onClick={() => cycleStatus(comp.id, 'registered')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
-                      status === 'registered'
-                        ? 'text-white'
-                        : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
-                    }`}
-                    style={status === 'registered' ? { background: '#1a6b3c' } : {}}
-                  >
-                    <CheckCircle2 size={13} className={status === 'registered' ? 'fill-white text-white' : ''} />
-                    {status === 'registered' ? 'Anmäld ✓' : 'Anmäld'}
-                  </button>
-                  {(isPast || status === 'done') && (
+                {/* Interest action row */}
+                {user && (
+                  <div className="flex items-center gap-2 mb-2">
                     <button
-                      onClick={() => cycleStatus(comp.id, 'done')}
+                      onClick={() => toggleInterest(comp.id, 'interested')}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
-                        status === 'done'
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                        interest?.status === 'interested'
+                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
                           : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
                       }`}
                     >
-                      <CheckCheck size={13} className={status === 'done' ? 'text-blue-600' : ''} />
-                      {status === 'done' ? 'Klar' : 'Klar?'}
+                      <Star size={13} className={interest?.status === 'interested' ? 'fill-amber-500 text-amber-500' : ''} />
+                      {interest?.status === 'interested' ? 'Intresserad' : 'Intresse'}
                     </button>
-                  )}
-                  {user && (
+                    <button
+                      onClick={() => toggleInterest(comp.id, 'registered')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
+                        interest?.status === 'registered'
+                          ? 'text-white'
+                          : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                      }`}
+                      style={interest?.status === 'registered' ? { background: '#1a6b3c' } : {}}
+                    >
+                      <CheckCircle2 size={13} className={interest?.status === 'registered' ? 'fill-white text-white' : ''} />
+                      {interest?.status === 'registered' ? 'Anmäld ✓' : 'Anmäld'}
+                    </button>
                     <button
                       onClick={() => setShareComp({ open: true, comp })}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground hover:bg-secondary/80 transition-all btn-press ml-auto"
                     >
                       <Send size={13} /> Tipsa
                     </button>
-                  )}
-                  {status && selectedDog && (
-                    <span className="text-[10px] text-muted-foreground">
-                      🐕 {selectedDog.name}
-                    </span>
-                  )}
-                </div>
-                {isGuest && status && (
-                  <div className="mb-2 -mt-1 text-[10px] text-muted-foreground">
-                    Sparad lokalt på din enhet. <Link to="/auth" className="text-primary underline">Logga in</Link> för att synka.
+                    {interest && selectedDog && (
+                      <span className="text-[10px] text-muted-foreground">
+                        🐕 {selectedDog.name}
+                      </span>
+                    )}
                   </div>
                 )}
                 <div className="text-lg font-bold font-display text-primary mb-1">

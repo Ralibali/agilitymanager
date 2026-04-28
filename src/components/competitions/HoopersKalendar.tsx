@@ -27,7 +27,8 @@ interface HoopersCompetition {
   registration_closes: string | null;
   registration_status: string;
   contact_person: string;
-  contact_email: string;
+  contact_person?: string;
+  contact_email?: string;
   judge: string;
   source_url: string;
   extra_info: string;

@@ -151,21 +151,22 @@ export function V3EditDogSheet({ open, dog, onClose, onSaved }: Props) {
       />
       <div
         className={cn(
-          "absolute inset-x-0 bottom-0 bg-v3-canvas-elevated rounded-t-v3-2xl shadow-v3-xl",
+          "absolute inset-x-0 bottom-0 bg-v3-canvas-elevated shadow-v3-xl",
           "max-h-[92vh] flex flex-col",
-          "pb-[env(safe-area-inset-bottom,0px)] animate-v3-sheet-in",
+          "rounded-t-v3-2xl pb-[env(safe-area-inset-bottom,0px)] animate-v3-sheet-in",
+          "lg:inset-x-auto lg:right-6 lg:top-6 lg:bottom-6 lg:w-[720px] lg:max-w-[calc(100vw-3rem)] lg:max-h-none lg:rounded-v3-2xl lg:animate-v3-scale-in",
         )}
       >
-        <div className="flex justify-center pt-2.5 pb-1 shrink-0">
+        <div className="flex justify-center pt-2.5 pb-1 shrink-0 lg:hidden">
           <span className="h-1 w-9 rounded-full bg-v3-canvas-sunken" />
         </div>
 
-        <div className="flex items-center justify-between px-5 pt-1 pb-3 shrink-0">
+        <div className="flex items-center justify-between px-5 lg:px-7 pt-4 lg:pt-6 pb-4 shrink-0 border-b border-v3-canvas-sunken/40">
           <div className="min-w-0">
-            <h2 className="font-v3-display text-[24px] leading-tight text-v3-text-primary truncate">
+            <h2 className="font-v3-display text-[24px] lg:text-[30px] leading-tight text-v3-text-primary truncate">
               Redigera {dog.name}
             </h2>
-            <p className="text-v3-xs text-v3-text-tertiary mt-0.5">
+            <p className="text-v3-xs lg:text-v3-sm text-v3-text-tertiary mt-0.5">
               Profil, sport och nivåer
             </p>
           </div>
@@ -179,9 +180,8 @@ export function V3EditDogSheet({ open, dog, onClose, onSaved }: Props) {
           </button>
         </div>
 
-        <div className="overflow-y-auto px-5 pb-5 space-y-5 flex-1">
-          {/* Foto */}
-          <div className="flex items-center gap-3">
+        <div className="overflow-y-auto px-5 lg:px-7 py-5 lg:py-6 space-y-5 flex-1">
+          <div className="flex items-center gap-3 rounded-v3-2xl bg-v3-canvas border border-v3-canvas-sunken/60 p-3">
             <div className="h-16 w-16 rounded-v3-xl bg-v3-brand-100 grid place-items-center overflow-hidden shrink-0">
               {dog.photo_url ? (
                 <img src={dog.photo_url} alt={dog.name} className="h-full w-full object-cover" />
@@ -191,9 +191,13 @@ export function V3EditDogSheet({ open, dog, onClose, onSaved }: Props) {
                 </span>
               )}
             </div>
-            <label className="inline-flex items-center gap-2 h-9 px-3 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken/60 text-v3-sm text-v3-text-secondary hover:text-v3-text-primary cursor-pointer transition-colors">
+            <div className="min-w-0 flex-1">
+              <div className="text-v3-sm font-medium text-v3-text-primary">Profilbild</div>
+              <div className="text-v3-xs text-v3-text-tertiary mt-0.5">Använd gärna en tydlig bild på hunden.</div>
+            </div>
+            <label className="inline-flex items-center gap-2 h-9 px-3 rounded-v3-base bg-v3-canvas-elevated border border-v3-canvas-sunken/60 text-v3-sm text-v3-text-secondary hover:text-v3-text-primary cursor-pointer transition-colors shrink-0">
               {uploading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
-              {uploading ? "Laddar upp…" : dog.photo_url ? "Byt foto" : "Lägg till foto"}
+              {uploading ? "Laddar…" : dog.photo_url ? "Byt" : "Lägg till"}
               <input
                 type="file"
                 accept="image/*"
@@ -206,42 +210,26 @@ export function V3EditDogSheet({ open, dog, onClose, onSaved }: Props) {
             </label>
           </div>
 
-          <Field label="Namn">
-            <input
-              value={form.name}
-              onChange={(e) => update("name", e.target.value)}
-              maxLength={40}
-              className={inputClass}
-            />
-          </Field>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Field label="Namn">
+              <input value={form.name} onChange={(e) => update("name", e.target.value)} maxLength={40} className={inputClass} />
+            </Field>
 
-          <Field label="Ras">
-            <input
-              value={form.breed}
-              onChange={(e) => update("breed", e.target.value)}
-              maxLength={60}
-              className={inputClass}
-            />
-          </Field>
+            <Field label="Ras">
+              <input value={form.breed} onChange={(e) => update("breed", e.target.value)} maxLength={60} className={inputClass} />
+            </Field>
+          </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Field label="Sport">
-              <select
-                value={form.sport}
-                onChange={(e) => update("sport", e.target.value as Sport)}
-                className={selectClass}
-              >
+              <select value={form.sport} onChange={(e) => update("sport", e.target.value as Sport)} className={selectClass}>
                 <option value="Agility">Agility</option>
                 <option value="Hoopers">Hoopers</option>
                 <option value="Båda">Båda</option>
               </select>
             </Field>
             <Field label="Storleksklass">
-              <select
-                value={form.size_class}
-                onChange={(e) => update("size_class", e.target.value as SizeClass)}
-                className={selectClass}
-              >
+              <select value={form.size_class} onChange={(e) => update("size_class", e.target.value as SizeClass)} className={selectClass}>
                 <option value="XS">XS</option>
                 <option value="S">S</option>
                 <option value="M">M</option>
@@ -251,13 +239,9 @@ export function V3EditDogSheet({ open, dog, onClose, onSaved }: Props) {
           </div>
 
           {showAgility && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Field label="Agility-klass">
-                <select
-                  value={form.competition_level}
-                  onChange={(e) => update("competition_level", e.target.value as CompetitionLevel)}
-                  className={selectClass}
-                >
+                <select value={form.competition_level} onChange={(e) => update("competition_level", e.target.value as CompetitionLevel)} className={selectClass}>
                   <option value="Nollklass">Nollklass</option>
                   <option value="K1">Klass 1</option>
                   <option value="K2">Klass 2</option>
@@ -265,11 +249,7 @@ export function V3EditDogSheet({ open, dog, onClose, onSaved }: Props) {
                 </select>
               </Field>
               <Field label="Hopp-klass">
-                <select
-                  value={form.jumping_level}
-                  onChange={(e) => update("jumping_level", e.target.value as CompetitionLevel)}
-                  className={selectClass}
-                >
+                <select value={form.jumping_level} onChange={(e) => update("jumping_level", e.target.value as CompetitionLevel)} className={selectClass}>
                   <option value="Nollklass">Nollklass</option>
                   <option value="K1">Klass 1</option>
                   <option value="K2">Klass 2</option>
@@ -280,13 +260,9 @@ export function V3EditDogSheet({ open, dog, onClose, onSaved }: Props) {
           )}
 
           {showHoopers && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Field label="Hoopers-klass">
-                <select
-                  value={form.hoopers_level}
-                  onChange={(e) => update("hoopers_level", e.target.value as HoopersLevel)}
-                  className={selectClass}
-                >
+                <select value={form.hoopers_level} onChange={(e) => update("hoopers_level", e.target.value as HoopersLevel)} className={selectClass}>
                   <option value="Startklass">Startklass</option>
                   <option value="Klass 1">Klass 1</option>
                   <option value="Klass 2">Klass 2</option>
@@ -294,11 +270,7 @@ export function V3EditDogSheet({ open, dog, onClose, onSaved }: Props) {
                 </select>
               </Field>
               <Field label="Hoopers-storlek">
-                <select
-                  value={form.hoopers_size}
-                  onChange={(e) => update("hoopers_size", e.target.value as HoopersSize)}
-                  className={selectClass}
-                >
+                <select value={form.hoopers_size} onChange={(e) => update("hoopers_size", e.target.value as HoopersSize)} className={selectClass}>
                   <option value="Small">Small (&lt;40 cm)</option>
                   <option value="Large">Large (≥40 cm)</option>
                 </select>
@@ -310,14 +282,13 @@ export function V3EditDogSheet({ open, dog, onClose, onSaved }: Props) {
             <textarea
               value={form.notes}
               onChange={(e) => update("notes", e.target.value)}
-              rows={3}
+              rows={4}
               maxLength={500}
               placeholder="Personlighet, träningsfokus, skador…"
-              className={cn(inputClass, "resize-none leading-snug")}
+              className={cn(inputClass, "h-auto min-h-[112px] resize-none leading-snug py-3")}
             />
           </Field>
 
-          {/* Aktiv tävlingshund */}
           <button
             type="button"
             onClick={() => update("is_active_competition_dog", !form.is_active_competition_dog)}
@@ -335,66 +306,31 @@ export function V3EditDogSheet({ open, dog, onClose, onSaved }: Props) {
                   {form.is_active_competition_dog ? "Aktiv tävlingshund" : "Pensionerad"}
                 </div>
                 <div className="text-[11px] text-v3-text-tertiary mt-0.5">
-                  {form.is_active_competition_dog
-                    ? "Visas i statistik och tävlingsval"
-                    : "Sparas men exkluderas från aktiv lista"}
+                  {form.is_active_competition_dog ? "Visas i statistik och tävlingsval" : "Sparas men exkluderas från aktiv lista"}
                 </div>
               </div>
             </div>
-            <span
-              className={cn(
-                "h-5 w-9 rounded-full relative transition-colors",
-                form.is_active_competition_dog ? "bg-v3-brand-500" : "bg-v3-canvas-sunken",
-              )}
-            >
-              <span
-                className={cn(
-                  "absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform",
-                  form.is_active_competition_dog ? "translate-x-[18px]" : "translate-x-0.5",
-                )}
-              />
+            <span className={cn("h-5 w-9 rounded-full relative transition-colors", form.is_active_competition_dog ? "bg-v3-brand-500" : "bg-v3-canvas-sunken")}>
+              <span className={cn("absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform", form.is_active_competition_dog ? "translate-x-[18px]" : "translate-x-0.5")} />
             </span>
           </button>
 
-          {/* Ta bort */}
-          <button
-            type="button"
-            onClick={remove}
-            disabled={submitting}
-            className="w-full inline-flex items-center justify-center gap-2 h-10 rounded-v3-base text-v3-sm font-medium text-v3-accent-tavlings hover:bg-v3-accent-tavlings/10 transition-colors"
-          >
+          <button type="button" onClick={remove} disabled={submitting} className="w-full inline-flex items-center justify-center gap-2 h-10 rounded-v3-base text-v3-sm font-medium text-v3-accent-tavlings hover:bg-v3-accent-tavlings/10 transition-colors">
             <Trash2 size={14} /> Ta bort hund
           </button>
         </div>
 
-        <div className="border-t border-v3-canvas-sunken/40 px-5 py-3 bg-v3-canvas-elevated shrink-0 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="h-11 px-4 rounded-v3-base text-v3-sm font-medium text-v3-text-secondary hover:bg-v3-canvas-secondary transition-colors"
-          >
+        <div className="border-t border-v3-canvas-sunken/40 px-5 lg:px-7 py-3 bg-v3-canvas-elevated shrink-0 flex items-center gap-3">
+          <button type="button" onClick={onClose} className="h-11 px-4 rounded-v3-base text-v3-sm font-medium text-v3-text-secondary hover:bg-v3-canvas-secondary transition-colors">
             Avbryt
           </button>
           <button
             type="button"
             onClick={save}
             disabled={submitting}
-            className={cn(
-              "flex-1 h-11 rounded-v3-base inline-flex items-center justify-center gap-2",
-              "bg-v3-brand-500 text-white text-v3-sm font-medium",
-              "hover:bg-v3-brand-600 transition-colors",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
-            )}
+            className={cn("flex-1 h-11 rounded-v3-base inline-flex items-center justify-center gap-2", "bg-v3-brand-500 text-white text-v3-sm font-medium", "hover:bg-v3-brand-600 transition-colors", "disabled:opacity-50 disabled:cursor-not-allowed")}
           >
-            {submitting ? (
-              <>
-                <Loader2 size={16} className="animate-spin" /> Sparar…
-              </>
-            ) : (
-              <>
-                <Check size={16} strokeWidth={2} /> Spara
-              </>
-            )}
+            {submitting ? <><Loader2 size={16} className="animate-spin" /> Sparar…</> : <><Check size={16} strokeWidth={2} /> Spara</>}
           </button>
         </div>
       </div>

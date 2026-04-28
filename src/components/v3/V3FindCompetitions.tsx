@@ -385,18 +385,45 @@ export function V3FindCompetitions({ preferredSport }: Props) {
   }, [reloadShared]);
 
   const toggleInterest = async (comp: CompRow, target: InterestStatus) => {
-    if (!user) {
-      toast.error("Logga in för att markera tävlingar");
-      return;
-    }
     const compKey = comp.competition_id ?? comp.id;
     const current = interests[compKey];
+
+    // Optimistisk UI-uppdatering (samma logik för gäst & inloggad)
     setInterests((prev) => {
       const next = { ...prev };
       if (current === target) delete next[compKey];
       else next[compKey] = target;
       return next;
     });
+
+    // Gäst: skriv till localStorage i samma format som useCompetitionInterests
+    if (!user) {
+      try {
+        const GUEST_KEY = "am.guest.interests.v1";
+        const raw = window.localStorage.getItem(GUEST_KEY);
+        const items: Array<{ competition_id: string; status: InterestStatus; dog_name: string | null; class: string | null; created_at: string }> = raw ? JSON.parse(raw) : [];
+        const idx = items.findIndex((i) => i.competition_id === compKey);
+        let next = items;
+        if (idx >= 0 && items[idx].status === target) {
+          next = items.filter((_, i) => i !== idx);
+          toast.success(target === "interested" ? "Intresse borttaget" : "Anmälan borttagen");
+        } else if (idx >= 0) {
+          next = items.map((it, i) => (i === idx ? { ...it, status: target } : it));
+          toast.success(target === "interested" ? "⭐ Sparad i webbläsaren" : "✅ Sparad i webbläsaren");
+        } else {
+          next = [...items, { competition_id: compKey, status: target, dog_name: null, class: null, created_at: new Date().toISOString() }];
+          toast.success(target === "interested" ? "⭐ Sparad i webbläsaren" : "✅ Sparad i webbläsaren");
+        }
+        window.localStorage.setItem(GUEST_KEY, JSON.stringify(next));
+        window.dispatchEvent(new CustomEvent("am:guest-interests-changed"));
+      } catch (e) {
+        console.error(e);
+        toast.error("Kunde inte spara lokalt");
+        reloadInterests();
+      }
+      return;
+    }
+
     try {
       if (current === target) {
         await supabase

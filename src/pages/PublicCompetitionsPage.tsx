@@ -1,21 +1,16 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Calendar, MapPin, ExternalLink, ArrowRight, Trophy, X, Info } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { motion } from 'framer-motion';
+import { Calendar, Trophy, Info, ArrowRight, UserPlus, ListChecks, Star } from 'lucide-react';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingFooterV2 } from '@/components/landing/LandingFooterV2';
-import { buildAgilityCompetitionPath, buildHoopersCompetitionPath, slugify } from '@/lib/competitionSlug';
-import { Disclaimer } from '@/components/Disclaimer';
+import { TavlingsKalendar } from '@/components/competitions/TavlingsKalendar';
+import { HoopersKalendar } from '@/components/competitions/HoopersKalendar';
+import { MinaTavlingar } from '@/components/competitions/MinaTavlingar';
 
-type Sport = 'agility' | 'hoopers';
-type SportFilter = 'all' | Sport;
+const SITE_URL = 'https://agilitymanager.se';
 
-/**
- * Region-slug → display-namn för svenska län. Slug används i URL
- * (?region=stockholm) och matchas case-insensitivt mot competition.region/county.
- * Vi accepterar både "Stockholm" och "Stockholms län" från databasen.
- */
 const REGION_LABELS: Record<string, string> = {
   stockholm: 'Stockholm',
   uppsala: 'Uppsala',
@@ -40,233 +35,71 @@ const REGION_LABELS: Record<string, string> = {
   norrbotten: 'Norrbotten',
 };
 
-function regionMatches(competitionRegion: string | null, regionSlug: string | null): boolean {
-  if (!regionSlug) return true;
-  if (!competitionRegion) return false;
-  // Normalisera "Stockholms län" → "stockholm"
-  const normalized = slugify(competitionRegion.replace(/s? län$/i, ''));
-  return normalized === regionSlug || normalized.startsWith(regionSlug);
-}
+type SportFilter = 'all' | 'agility' | 'hoopers';
+type TabId = 'competitions' | 'mine';
 
-interface UnifiedCompetition {
-  id: string;
-  rawId: string; // ursprungligt id utan sport-prefix, för länk till detalj
-  name: string;
-  club: string;
-  location: string;
-  region: string | null;
-  date_start: string; // ISO date
-  date_end: string | null;
-  sport: Sport;
-  classes: string[];
-  source_url: string | null;
-  status: string | null;
-}
+const stagger = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.05 } },
+};
+const fadeSlide = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] as const } },
+};
 
-const SITE_URL = 'https://agilitymanager.se';
-
-function stripHtml(s: string | null | undefined): string {
-  if (!s) return '';
-  let out = s
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&nbsp;/g, ' ');
-  out = out.replace(/<[^>]*>/g, '');
-  out = out.replace(/<[^<>]*$/g, '');
-  return out.replace(/\s+/g, ' ').trim();
-}
-
-function formatDateRange(start: string, end: string | null): string {
-  const startDate = new Date(start);
-  const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
-  const startStr = startDate.toLocaleDateString('sv-SE', opts);
-  if (!end || end === start) return startStr;
-  const endDate = new Date(end);
-  const sameYear = startDate.getFullYear() === endDate.getFullYear();
-  const sameMonth = sameYear && startDate.getMonth() === endDate.getMonth();
-  if (sameMonth) {
-    return `${startDate.getDate()}–${endDate.toLocaleDateString('sv-SE', opts)}`;
-  }
-  return `${startStr} – ${endDate.toLocaleDateString('sv-SE', opts)}`;
-}
-
-function groupByMonth(items: UnifiedCompetition[]): { label: string; items: UnifiedCompetition[] }[] {
-  const map = new Map<string, UnifiedCompetition[]>();
-  for (const c of items) {
-    const d = new Date(c.date_start);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    if (!map.has(key)) map.set(key, []);
-    map.get(key)!.push(c);
-  }
-  const sortedKeys = Array.from(map.keys()).sort();
-  return sortedKeys.map((key) => {
-    const [y, m] = key.split('-').map(Number);
-    const date = new Date(y, m - 1, 1);
-    const label = date.toLocaleDateString('sv-SE', { month: 'long', year: 'numeric' });
-    return { label: label.charAt(0).toUpperCase() + label.slice(1), items: map.get(key)! };
-  });
+function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className="px-3.5 py-1.5 text-xs font-medium whitespace-nowrap flex-shrink-0 transition-all rounded-full"
+      style={{
+        background: active ? 'hsl(var(--foreground))' : 'hsl(var(--card))',
+        color: active ? 'hsl(var(--card))' : 'hsl(var(--foreground))',
+        border: `1px solid ${active ? 'hsl(var(--foreground))' : 'hsl(var(--border))'}`,
+      }}
+    >
+      {children}
+    </button>
+  );
 }
 
 export default function PublicCompetitionsPage() {
-  const [competitions, setCompetitions] = useState<UnifiedCompetition[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<TabId>('competitions');
 
-  // URL-synkat filter — single source of truth är querystring.
-  // Detta gör vyer delbara: /tavlingar?region=stockholm&sport=hoopers
   const sportFilter: SportFilter = (() => {
     const s = searchParams.get('sport');
     return s === 'agility' || s === 'hoopers' ? s : 'all';
   })();
-  const regionFilter: string | null = (() => {
-    const r = searchParams.get('region')?.toLowerCase() ?? null;
-    return r && REGION_LABELS[r] ? r : null;
-  })();
+  const regionSlug = (searchParams.get('region') || '').toLowerCase();
+  const regionLabel = REGION_LABELS[regionSlug] || null;
 
-  const updateFilter = useCallback(
-    (next: { sport?: SportFilter; region?: string | null }) => {
-      const params = new URLSearchParams(searchParams);
-      if (next.sport !== undefined) {
-        if (next.sport === 'all') params.delete('sport');
-        else params.set('sport', next.sport);
-      }
-      if (next.region !== undefined) {
-        if (!next.region) params.delete('region');
-        else params.set('region', next.region);
-      }
-      setSearchParams(params, { replace: true });
-    },
-    [searchParams, setSearchParams],
-  );
+  const setSport = (next: SportFilter) => {
+    const params = new URLSearchParams(searchParams);
+    if (next === 'all') params.delete('sport');
+    else params.set('sport', next);
+    setSearchParams(params, { replace: true });
+  };
 
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    let cancelled = false;
-
-    Promise.all([
-      supabase
-        .from('competitions')
-        .select('id, competition_name, club_name, location, region, date_start, date_end, classes_agility, classes_hopp, source_url, status')
-        .gte('date_start', today)
-        .order('date_start', { ascending: true })
-        .limit(500),
-      supabase
-        .from('hoopers_competitions_public')
-        .select('competition_id, competition_name, club_name, location, county, date, classes, source_url, registration_status')
-        .gte('date', today)
-        .order('date', { ascending: true })
-        .limit(200),
-    ]).then(([agilityRes, hoopersRes]) => {
-      if (cancelled) return;
-      const agility: UnifiedCompetition[] = (agilityRes.data || []).map((r: any) => ({
-        id: `a-${r.id}`,
-        rawId: r.id,
-        name: stripHtml(r.competition_name) || 'Tävling',
-        club: stripHtml(r.club_name) || '',
-        location: stripHtml(r.location) || '',
-        region: r.region,
-        date_start: r.date_start,
-        date_end: r.date_end,
-        sport: 'agility',
-        classes: [...(r.classes_agility || []), ...(r.classes_hopp || [])],
-        source_url: r.source_url,
-        status: r.status,
-      }));
-      const hoopers: UnifiedCompetition[] = (hoopersRes.data || []).map((r: any) => ({
-        id: `h-${r.competition_id}`,
-        rawId: r.competition_id,
-        name: stripHtml(r.competition_name) || 'Hooperstävling',
-        club: stripHtml(r.club_name) || '',
-        location: stripHtml(r.location) || '',
-        region: r.county,
-        date_start: r.date,
-        date_end: null,
-        sport: 'hoopers',
-        classes: r.classes || [],
-        source_url: r.source_url,
-        status: r.registration_status,
-      }));
-      const combined = [...agility, ...hoopers].sort((a, b) =>
-        a.date_start.localeCompare(b.date_start),
-      );
-      setCompetitions(combined);
-      setLoading(false);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const filtered = useMemo(() => {
-    return competitions.filter((c) => {
-      if (sportFilter !== 'all' && c.sport !== sportFilter) return false;
-      if (!regionMatches(c.region, regionFilter)) return false;
-      return true;
-    });
-  }, [competitions, sportFilter, regionFilter]);
-
-  const grouped = useMemo(() => groupByMonth(filtered), [filtered]);
-
-  // Counts respekterar region men inte sport (annars går sport-knappar i 0)
-  const regionScoped = useMemo(
-    () => competitions.filter((c) => regionMatches(c.region, regionFilter)),
-    [competitions, regionFilter],
-  );
-  const counts = useMemo(
-    () => ({
-      all: regionScoped.length,
-      agility: regionScoped.filter((c) => c.sport === 'agility').length,
-      hoopers: regionScoped.filter((c) => c.sport === 'hoopers').length,
-    }),
-    [regionScoped],
-  );
-
-  // Tillgängliga regioner — visa ALLA svenska län (inkl. de utan tävlingar just nu)
-  // så att användare kan navigera till alla SEO-sidor (t.ex. /tavlingar?region=gotland).
-  const availableRegions = useMemo(() => {
-    return Object.keys(REGION_LABELS).sort((a, b) =>
-      REGION_LABELS[a].localeCompare(REGION_LABELS[b], 'sv'),
-    );
-  }, []);
-
-  // SEO: dynamisk titel/beskrivning/canonical baserat på filter.
-  // Varje filtrerad vy får egen canonical så Google kan indexera dem separat.
+  // SEO
   const seo = useMemo(() => {
-    const regionLabel = regionFilter ? REGION_LABELS[regionFilter] : null;
-    const sportLabel =
-      sportFilter === 'agility' ? 'Agility' : sportFilter === 'hoopers' ? 'Hoopers' : null;
-
+    const sportLabel = sportFilter === 'agility' ? 'Agility' : sportFilter === 'hoopers' ? 'Hoopers' : null;
     const titleBits = [sportLabel ? `${sportLabel}tävlingar` : 'Agility- och hooperstävlingar'];
-    if (regionLabel) titleBits.push(`i ${regionLabel}`);
-    else titleBits.push('i Sverige');
+    titleBits.push(regionLabel ? `i ${regionLabel}` : 'i Sverige');
     const title = `${titleBits.join(' ')} | AgilityManager`;
-
-    const descBits: string[] = [];
-    descBits.push(
-      `Komplett översikt över kommande ${sportLabel ? sportLabel.toLowerCase() + 's' : 'agility- och hoopers'}tävlingar`,
-    );
-    if (regionLabel) descBits.push(`i ${regionLabel} län`);
-    descBits.push('. Datum, klubbar, klasser och anmälningslänkar — uppdateras dagligen.');
-    const description = descBits.join(' ').replace(' .', '.');
-
+    const description = `Komplett översikt över kommande ${sportLabel ? sportLabel.toLowerCase() + 's' : 'agility- och hoopers'}tävlingar${regionLabel ? ` i ${regionLabel} län` : ''}. Markera intresse, anmäl och spåra dina tävlingar — fungerar utan inloggning.`;
     const params = new URLSearchParams();
-    if (regionFilter) params.set('region', regionFilter);
+    if (regionSlug) params.set('region', regionSlug);
     if (sportFilter !== 'all') params.set('sport', sportFilter);
     const qs = params.toString();
     const canonical = `${SITE_URL}/tavlingar${qs ? `?${qs}` : ''}`;
-
     const h1 = regionLabel
       ? `${sportLabel || 'Tävlingar'} i ${regionLabel}`
       : sportLabel
         ? `${sportLabel}tävlingar i Sverige`
         : 'Tävlingar i Sverige';
-
     return { title, description, canonical, h1 };
-  }, [sportFilter, regionFilter]);
+  }, [sportFilter, regionSlug, regionLabel]);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -277,7 +110,12 @@ export default function PublicCompetitionsPage() {
     isPartOf: { '@type': 'WebSite', name: 'AgilityManager', url: SITE_URL },
   };
 
-  const hasActiveFilter = sportFilter !== 'all' || regionFilter !== null;
+  const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
+    { id: 'competitions', label: 'Tävlingar', icon: <Calendar size={13} /> },
+    { id: 'mine', label: 'Mina', icon: <Star size={13} /> },
+  ];
+
+  const hasActiveFilter = sportFilter !== 'all' || regionLabel !== null;
 
   return (
     <div className="min-h-screen bg-page font-sans-ds text-text-primary">
@@ -294,19 +132,15 @@ export default function PublicCompetitionsPage() {
 
       <LandingNav />
 
-      {/* Hero */}
+      {/* Hero + datakälla */}
       <header className="border-b border-border-subtle bg-page">
-        <div className="mx-auto max-w-6xl px-4 py-12 md:py-16">
+        <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
           <nav aria-label="Brödsmulor" className="mb-4 text-sm text-text-secondary">
-            <Link to="/" className="hover:text-text-primary">
-              Startsidan
-            </Link>{' '}
-            /{' '}
+            <Link to="/" className="hover:text-text-primary">Startsidan</Link>
+            {' / '}
             {hasActiveFilter ? (
               <>
-                <Link to="/tavlingar" className="hover:text-text-primary">
-                  Tävlingar
-                </Link>
+                <Link to="/tavlingar" className="hover:text-text-primary">Tävlingar</Link>
                 {' / '}
                 <span>{seo.h1}</span>
               </>
@@ -314,221 +148,162 @@ export default function PublicCompetitionsPage() {
               'Tävlingar'
             )}
           </nav>
-          <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight">
+          <h1 className="font-display text-3xl md:text-5xl font-bold tracking-tight">
             {seo.h1}
           </h1>
-          <p className="mt-3 max-w-2xl text-lg text-text-secondary">
-            {regionFilter
-              ? `Kommande tävlingar i ${REGION_LABELS[regionFilter]}. Uppdateras dagligen från Agilitydata.se och SHoK.`
-              : 'Kommande agility- och hooperstävlingar enligt Agilitydata.se. Uppdateras dagligen.'}
+          <p className="mt-3 max-w-2xl text-base md:text-lg text-text-secondary">
+            {regionLabel
+              ? `Kommande tävlingar i ${regionLabel}. Uppdateras dagligen från Agilitydata.se och SHoK.`
+              : 'Kommande agility- och hooperstävlingar. Markera intresse, planera anmälan och håll koll — även utan konto.'}
           </p>
-          <div className="mt-6 flex flex-wrap items-center gap-2 text-sm text-text-secondary">
-            <Trophy className="h-4 w-4" />
-            <span>
-              {filtered.length} kommande tävlingar
-              {regionFilter ? ` i ${REGION_LABELS[regionFilter]}` : ''}
-            </span>
-          </div>
 
-          {/* Tydlig datakälla & ansvarsfriskrivning */}
+          {/* Datakälla & ansvarsfriskrivning */}
           <div className="mt-6 rounded-2xl border border-border-subtle bg-surface px-4 py-3 sm:px-5 sm:py-4">
             <div className="flex gap-3">
               <Info className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" aria-hidden="true" />
               <div className="text-sm text-text-secondary leading-relaxed">
                 <p>
                   <strong className="text-text-primary">Datakälla:</strong> Tävlingsinformationen hämtas automatiskt från publika källor — främst{' '}
-                  <a href="https://agilitydata.se" target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-2 hover:underline">
-                    agilitydata.se
-                  </a>{' '}
+                  <a href="https://agilitydata.se" target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-2 hover:underline">agilitydata.se</a>{' '}
                   (SAgiK/AGIDA) för agility och{' '}
-                  <a href="https://shok.se" target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-2 hover:underline">
-                    SHoK
-                  </a>{' '}
+                  <a href="https://shok.se" target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-2 hover:underline">SHoK</a>{' '}
                   för hoopers. Data kan vara försenad eller felaktig.
                 </p>
                 <p className="mt-1.5">
                   AgilityManager har inget samarbete med, och är inte godkänd av, SAgiK, AGIDA eller SHoK. Verifiera alltid information direkt hos arrangören innan anmälan.{' '}
-                  <Link to="/disclaimer" className="text-primary underline-offset-2 hover:underline">
-                    Läs fullständig ansvarsfriskrivning
-                  </Link>
-                  .
+                  <Link to="/disclaimer" className="text-primary underline-offset-2 hover:underline">Läs fullständig ansvarsfriskrivning</Link>.
                 </p>
               </div>
             </div>
           </div>
+
+          {/* Signup CTA */}
+          <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 sm:px-5 sm:py-4">
+            <UserPlus className="h-5 w-5 flex-shrink-0 text-primary" aria-hidden="true" />
+            <p className="text-sm text-text-secondary flex-1">
+              Skapa ett konto för att synka dina tävlingsmarkeringar mellan enheter, lägga till hundar och få filter anpassade till klass.
+            </p>
+            <Link to="/auth" className="inline-flex items-center gap-1 rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 whitespace-nowrap">
+              Skapa konto <ArrowRight size={14} />
+            </Link>
+          </div>
         </div>
       </header>
 
-      {/* Filter */}
-      <div className="sticky top-0 z-10 border-b border-border-subtle bg-page/95 backdrop-blur supports-[backdrop-filter]:bg-page/80">
-        <div className="mx-auto max-w-6xl px-4 py-3 space-y-2">
-          <div className="flex flex-wrap gap-2">
-            {(['all', 'agility', 'hoopers'] as const).map((opt) => (
-              <button
-                key={opt}
-                onClick={() => updateFilter({ sport: opt })}
-                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                  sportFilter === opt
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-surface text-text-secondary hover:bg-surface-2'
-                }`}
-              >
-                {opt === 'all' ? 'Alla' : opt === 'agility' ? 'Agility' : 'Hoopers'}{' '}
-                <span className="opacity-70">({counts[opt]})</span>
-              </button>
-            ))}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <label htmlFor="region-select" className="text-sm text-text-secondary">
-              Län:
-            </label>
-            <select
-              id="region-select"
-              value={regionFilter ?? ''}
-              onChange={(e) => updateFilter({ region: e.target.value || null })}
-              className="rounded-lg border border-border-subtle bg-surface px-3 py-1.5 text-sm text-text-primary focus:border-primary focus:outline-none"
-            >
-              <option value="">Alla län</option>
-              {availableRegions.map((slug) => (
-                <option key={slug} value={slug}>
-                  {REGION_LABELS[slug]}
-                </option>
-              ))}
-            </select>
-            {hasActiveFilter && (
-              <button
-                onClick={() => setSearchParams(new URLSearchParams(), { replace: true })}
-                className="ml-auto inline-flex items-center gap-1 rounded-full bg-surface px-3 py-1 text-xs text-text-secondary hover:bg-surface-2"
-              >
-                <X className="h-3 w-3" /> Rensa filter
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+      <motion.main
+        variants={stagger}
+        initial="hidden"
+        animate="show"
+        className="mx-auto max-w-3xl px-4 pt-6 pb-16"
+      >
+        {/* Sport filter chips — speglar inloggad vy */}
+        <motion.div variants={fadeSlide} className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-1">
+          <FilterChip active={sportFilter === 'all'} onClick={() => setSport('all')}>🏆 Alla</FilterChip>
+          <FilterChip active={sportFilter === 'agility'} onClick={() => setSport('agility')}>🏃 Agility</FilterChip>
+          <FilterChip active={sportFilter === 'hoopers'} onClick={() => setSport('hoopers')}>🐕 Hoopers</FilterChip>
+        </motion.div>
 
-      {/* List */}
-      <main className="mx-auto max-w-6xl px-4 py-8 md:py-12">
-        {loading ? (
-          <div className="space-y-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 animate-pulse rounded-xl bg-surface" />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-border-subtle bg-surface p-12 text-center">
-            <Calendar className="mx-auto mb-4 h-10 w-10 text-text-muted" />
-            <h2 className="font-display text-xl font-semibold">Inga kommande tävlingar</h2>
-            <p className="mt-2 text-text-secondary">
-              Det finns inga registrerade tävlingar för det här filtret just nu. Titta tillbaka snart.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-12">
-            {grouped.map((group) => (
-              <section key={group.label}>
-                <h2 className="font-display mb-4 text-xl font-semibold text-text-primary">
-                  {group.label}
-                </h2>
-                <ul className="space-y-3">
-                  {group.items.map((c) => {
-                    const detailPath = c.sport === 'agility'
-                      ? buildAgilityCompetitionPath(c.rawId, { club: c.club, name: c.name, location: c.location, date: c.date_start })
-                      : buildHoopersCompetitionPath(c.rawId, { club: c.club, name: c.name, location: c.location, date: c.date_start });
-                    return (
-                    <li
-                      key={c.id}
-                      className="group rounded-xl border border-border-subtle bg-surface p-4 transition-colors hover:border-primary/40 md:p-5"
-                    >
-                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                        <Link to={detailPath} className="min-w-0 flex-1">
-                          <div className="mb-1 flex flex-wrap items-center gap-2 text-xs">
-                            <span
-                              className={`rounded-full px-2 py-0.5 font-medium ${
-                                c.sport === 'agility'
-                                  ? 'bg-primary/10 text-primary'
-                                  : 'bg-secondary/10 text-secondary'
-                              }`}
-                            >
-                              {c.sport === 'agility' ? 'Agility' : 'Hoopers'}
-                            </span>
-                            <span className="flex items-center gap-1 text-text-secondary">
-                              <Calendar className="h-3.5 w-3.5" />
-                              {formatDateRange(c.date_start, c.date_end)}
-                            </span>
-                            {c.status && (
-                              <span className="text-text-muted">· {c.status}</span>
-                            )}
-                          </div>
-                          <h3 className="font-display text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
-                            {c.name}
-                          </h3>
-                          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-secondary">
-                            {c.club && <span>{c.club}</span>}
-                            {c.location && (
-                              <span className="flex items-center gap-1">
-                                <MapPin className="h-3.5 w-3.5" />
-                                {c.location}
-                                {c.region ? `, ${c.region}` : ''}
-                              </span>
-                            )}
-                          </div>
-                          {c.classes.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {c.classes.map((cls) => (
-                                <span
-                                  key={cls}
-                                  className="rounded bg-surface-2 px-1.5 py-0.5 text-xs text-text-secondary"
-                                >
-                                  {cls}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </Link>
-                        {c.source_url && (
-                          <a
-                            href={c.source_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border-subtle px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-surface-2"
-                          >
-                            Anmäl <ExternalLink className="h-3.5 w-3.5" />
-                          </a>
-                        )}
-                      </div>
-                    </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            ))}
-          </div>
+        {/* Tabs */}
+        <motion.div variants={fadeSlide} className="flex border-b border-border mb-4">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className="flex-1 pb-2.5 text-xs font-medium text-center transition-colors relative flex items-center justify-center gap-1.5"
+              style={{
+                color: activeTab === tab.id ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                fontWeight: activeTab === tab.id ? 600 : 500,
+              }}
+            >
+              {tab.icon}
+              {tab.label}
+              {activeTab === tab.id && (
+                <motion.div
+                  layoutId="publicCompTabUnderline"
+                  className="absolute bottom-0 left-3 right-3"
+                  style={{ height: 2, background: 'hsl(var(--primary))', borderRadius: 1 }}
+                />
+              )}
+            </button>
+          ))}
+        </motion.div>
+
+        {/* Tävlingar */}
+        {activeTab === 'competitions' && (
+          <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-4">
+            {sportFilter !== 'hoopers' && (
+              <motion.a
+                variants={fadeSlide}
+                href="https://www.agida.se"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3.5 bg-card border border-border block rounded-xl hover:shadow-sm transition-shadow"
+              >
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 gradient-primary">
+                  <Calendar size={16} className="text-primary-foreground" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-[13px] font-semibold text-foreground">Hitta tävlingar på Agida</div>
+                  <div className="text-[11px] text-muted-foreground">Kommande agilitytävlingar i hela Sverige</div>
+                </div>
+                <ArrowRight size={14} className="text-primary" />
+              </motion.a>
+            )}
+
+            {sportFilter !== 'agility' && (
+              <motion.a
+                variants={fadeSlide}
+                href="https://shoktavling.se/?page=tavlingar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3.5 bg-card border border-border block rounded-xl hover:shadow-sm transition-shadow"
+              >
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 gradient-accent">
+                  <Trophy size={16} className="text-accent-foreground" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-[13px] font-semibold text-foreground">Hitta tävlingar på SHoK</div>
+                  <div className="text-[11px] text-muted-foreground">Kommande hoopers-tävlingar</div>
+                </div>
+                <ArrowRight size={14} className="text-accent" />
+              </motion.a>
+            )}
+
+            {/* Agility-kalendern (full version) */}
+            {sportFilter !== 'hoopers' && (
+              <motion.div variants={fadeSlide}>
+                <TavlingsKalendar dogs={[]} selectedDogId={null} />
+              </motion.div>
+            )}
+
+            {/* Hoopers-kalendern (full version) */}
+            {sportFilter !== 'agility' && (
+              <motion.div variants={fadeSlide}>
+                <HoopersKalendar dogs={[]} selectedDogId={null} />
+              </motion.div>
+            )}
+          </motion.div>
         )}
 
-        {/* CTA */}
-        <section className="mt-16 rounded-2xl bg-gradient-to-br from-primary/10 via-surface to-secondary/10 p-8 text-center md:p-12">
-          <h2 className="font-display text-2xl font-bold md:text-3xl">
-            Logga in för att följa dina tävlingar
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-text-secondary">
-            På AgilityManager kan du spara tävlingar, få startlistor automatiskt, följa resultat och
-            analysera utvecklingen för din hund över tid.
-          </p>
-          <Link
-            to="/auth"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Kom igång gratis <ArrowRight className="h-4 w-4" />
-          </Link>
-          <p className="mt-3 text-xs text-text-muted">Källa: Agilitydata.se</p>
-        </section>
+        {/* Mina (lokalt sparade) */}
+        {activeTab === 'mine' && (
+          <motion.div variants={fadeSlide}>
+            <MinaTavlingar />
+          </motion.div>
+        )}
 
-        {/* Ansvarsfriskrivning för crawlat tävlingsdata */}
-        <section className="max-w-3xl mx-auto px-5 md:px-12 pb-12">
-          <Disclaimer variant="competition" />
-        </section>
-      </main>
+        {/* Bottom CTA */}
+        <div className="mt-10 rounded-2xl border border-border bg-card p-5 text-center">
+          <ListChecks className="mx-auto mb-2 h-8 w-8 text-primary" />
+          <h2 className="font-display text-lg font-semibold mb-1">Kom igång gratis</h2>
+          <p className="text-sm text-text-secondary mb-3">
+            Med konto får du dog-anpassade filter, synk mellan enheter, resultatlogg och mycket mer.
+          </p>
+          <Link to="/auth" className="inline-flex items-center gap-1 rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">
+            Skapa konto <ArrowRight size={14} />
+          </Link>
+        </div>
+      </motion.main>
 
       <LandingFooterV2 />
     </div>

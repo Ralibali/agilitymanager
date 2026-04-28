@@ -61,11 +61,23 @@ export function AgilityKalendar({ competitions, dogs, selectedDogId }: Props) {
 
   const selectedDog = useMemo(() => dogs.find(d => d.id === selectedDogId), [dogs, selectedDogId]);
 
-  // Load user interests
+  // Load interests (DB for logged-in, localStorage for guests)
   useEffect(() => {
     if (!user) {
+      const loadGuest = () => {
+        const map = readGuestInterests();
+        const out: Record<string, 'interested' | 'registered'> = {};
+        Object.values(map).forEach((g) => {
+          if (g.status === 'interested' || g.status === 'registered') {
+            out[g.competition_id] = g.status;
+          }
+        });
+        setInterests(out);
+      };
+      loadGuest();
       setLoading(false);
-      return;
+      const unsub = subscribeGuestInterests(loadGuest);
+      return unsub;
     }
     supabase
       .from('competition_interests')
@@ -82,11 +94,28 @@ export function AgilityKalendar({ competitions, dogs, selectedDogId }: Props) {
   }, [user]);
 
   const toggleInterest = async (comp: Competition, targetStatus: 'interested' | 'registered') => {
+    const current = interests[comp.id];
+    const dog = selectedDog || dogs.find(d => d.sport === 'Agility' || d.sport === 'Båda');
+    const dogName = dog?.name || null;
+    const dogClass = dog?.competition_level || null;
+
+    // Guest mode → localStorage
     if (!user) {
-      toast.error('Logga in för att markera tävlingar');
+      if (current === targetStatus) {
+        removeGuestInterest(comp.id);
+        setInterests(prev => { const next = { ...prev }; delete next[comp.id]; return next; });
+        toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
+      } else {
+        setGuestInterest(comp.id, targetStatus, { dog_name: dogName, class: dogClass });
+        setInterests(prev => ({ ...prev, [comp.id]: targetStatus }));
+        toast.success(
+          targetStatus === 'interested'
+            ? '⭐ Sparat lokalt – logga in för att synka'
+            : '✅ Sparat lokalt – logga in för att synka'
+        );
+      }
       return;
     }
-    const current = interests[comp.id];
 
     if (current === targetStatus) {
       await supabase.from('competition_interests').delete().eq('user_id', user.id).eq('competition_id', comp.id);
@@ -94,10 +123,6 @@ export function AgilityKalendar({ competitions, dogs, selectedDogId }: Props) {
       toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
       return;
     }
-
-    const dog = selectedDog || dogs.find(d => d.sport === 'Agility' || d.sport === 'Båda');
-    const dogName = dog?.name || null;
-    const dogClass = dog?.competition_level || null;
 
     if (current) {
       await supabase.from('competition_interests').update({ status: targetStatus }).eq('user_id', user.id).eq('competition_id', comp.id);

@@ -8,6 +8,12 @@ import ShareToFriendDialog from "@/components/ShareToFriendDialog";
 import { FetchMyResultDialog, type FetchMyResultTarget } from "@/components/v3/FetchMyResultDialog";
 import { store } from "@/lib/store";
 import type { Dog } from "@/types";
+import {
+  readGuestInterests,
+  setGuestInterest,
+  removeGuestInterest,
+  subscribeGuestInterests,
+} from "@/hooks/useGuestInterests";
 
 type Sport = "Agility" | "Hoopers";
 type InterestStatus = "interested" | "registered";

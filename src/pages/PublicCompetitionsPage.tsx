@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Calendar, MapPin, ExternalLink, ArrowRight, Trophy, X, Info } from 'lucide-react';
+import { Calendar, MapPin, ExternalLink, ArrowRight, Trophy, X, Info, ShieldCheck, Database } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingFooterV2 } from '@/components/landing/LandingFooterV2';

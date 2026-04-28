@@ -1,13 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Calendar as CalendarIcon, Filter, Star, CheckCircle2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
-import { useCompetitionInterests } from '@/hooks/useCompetitionInterests';
 import type { Dog } from '@/types';
 import type { Competition } from '@/types/competitions';
+import {
+  readGuestInterests,
+  setGuestInterest,
+  removeGuestInterest,
+  subscribeGuestInterests,
+} from '@/hooks/useGuestInterests';
 
 const AGILITY_CLASS_FILTERS = [
   { key: 'Klass 1', label: 'Klass 1', match: ['Ag1', 'Hp1', 'Ho1', 'Klass 1', '1'] },
@@ -50,9 +56,42 @@ export function AgilityKalendar({ competitions, dogs, selectedDogId }: Props) {
   const [classFilters, setClassFilters] = useState<Set<string>>(new Set());
   const [countyFilter, setCountyFilter] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const { interests, loading, setInterest, isGuest } = useCompetitionInterests();
+  const [interests, setInterests] = useState<Record<string, 'interested' | 'registered'>>({});
+  const [loading, setLoading] = useState(true);
 
   const selectedDog = useMemo(() => dogs.find(d => d.id === selectedDogId), [dogs, selectedDogId]);
+
+  // Load interests (DB for logged-in, localStorage for guests)
+  useEffect(() => {
+    if (!user) {
+      const loadGuest = () => {
+        const map = readGuestInterests();
+        const out: Record<string, 'interested' | 'registered'> = {};
+        Object.values(map).forEach((g) => {
+          if (g.status === 'interested' || g.status === 'registered') {
+            out[g.competition_id] = g.status;
+          }
+        });
+        setInterests(out);
+      };
+      loadGuest();
+      setLoading(false);
+      const unsub = subscribeGuestInterests(loadGuest);
+      return unsub;
+    }
+    supabase
+      .from('competition_interests')
+      .select('competition_id, status')
+      .eq('user_id', user.id)
+      .then(({ data }) => {
+        if (data) {
+          const map: Record<string, 'interested' | 'registered'> = {};
+          data.forEach((d: any) => { map[d.competition_id] = d.status; });
+          setInterests(map);
+        }
+        setLoading(false);
+      });
+  }, [user]);
 
   const toggleInterest = async (comp: Competition, targetStatus: 'interested' | 'registered') => {
     const current = interests[comp.id];
@@ -60,21 +99,44 @@ export function AgilityKalendar({ competitions, dogs, selectedDogId }: Props) {
     const dogName = dog?.name || null;
     const dogClass = dog?.competition_level || null;
 
-    await setInterest(comp.id, targetStatus, { dogName, dogClass });
+    // Guest mode → localStorage
+    if (!user) {
+      if (current === targetStatus) {
+        removeGuestInterest(comp.id);
+        setInterests(prev => { const next = { ...prev }; delete next[comp.id]; return next; });
+        toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
+      } else {
+        setGuestInterest(comp.id, targetStatus, { dog_name: dogName, class: dogClass });
+        setInterests(prev => ({ ...prev, [comp.id]: targetStatus }));
+        toast.success(
+          targetStatus === 'interested'
+            ? '⭐ Sparat lokalt – logga in för att synka'
+            : '✅ Sparat lokalt – logga in för att synka'
+        );
+      }
+      return;
+    }
 
     if (current === targetStatus) {
+      await supabase.from('competition_interests').delete().eq('user_id', user.id).eq('competition_id', comp.id);
+      setInterests(prev => { const next = { ...prev }; delete next[comp.id]; return next; });
       toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
-    } else {
-      toast.success(
-        targetStatus === 'interested'
-          ? isGuest
-            ? '⭐ Sparad lokalt — logga in för att synka mellan enheter'
-            : '⭐ Markerad som intresserad'
-          : isGuest
-            ? '✅ Sparad lokalt — logga in för att synka mellan enheter'
-            : '✅ Markerad som anmäld',
-      );
+      return;
     }
+
+    if (current) {
+      await supabase.from('competition_interests').update({ status: targetStatus }).eq('user_id', user.id).eq('competition_id', comp.id);
+    } else {
+      await supabase.from('competition_interests').insert({
+        user_id: user.id,
+        competition_id: comp.id,
+        status: targetStatus,
+        dog_name: dogName,
+        class: dogClass,
+      });
+    }
+    setInterests(prev => ({ ...prev, [comp.id]: targetStatus }));
+    toast.success(targetStatus === 'interested' ? '⭐ Markerad som intresserad' : '✅ Markerad som anmäld');
   };
 
   const filtered = useMemo(() => {

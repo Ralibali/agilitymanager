@@ -6,8 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RefreshCw, MapPin, ExternalLink, Calendar as CalendarIcon, Filter, Star, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useCompetitionInterests } from '@/hooks/useCompetitionInterests';
 import type { Dog } from '@/types';
+import {
+  readGuestInterests,
+  setGuestInterest,
+  removeGuestInterest,
+  subscribeGuestInterests,
+} from '@/hooks/useGuestInterests';
 
 interface HoopersCompetition {
   id: string;
@@ -84,9 +89,23 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [interests, setInterests] = useState<Record<string, 'interested' | 'registered'>>({});
 
-  // Load user interests
+  // Load interests (DB for logged-in, localStorage for guests)
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      const loadGuest = () => {
+        const map = readGuestInterests();
+        const out: Record<string, 'interested' | 'registered'> = {};
+        Object.values(map).forEach((g) => {
+          if (g.status === 'interested' || g.status === 'registered') {
+            out[g.competition_id] = g.status;
+          }
+        });
+        setInterests(out);
+      };
+      loadGuest();
+      const unsub = subscribeGuestInterests(loadGuest);
+      return unsub;
+    }
     supabase
       .from('competition_interests')
       .select('competition_id, status')
@@ -101,27 +120,39 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
   }, [user]);
 
   const toggleInterest = async (comp: HoopersCompetition, targetStatus: 'interested' | 'registered') => {
-    if (!user) return;
     const current = interests[comp.id];
+    const dog = selectedDog || dogs.find(d => d.sport === 'Hoopers' || d.sport === 'Båda');
+    const dogName = dog?.name || null;
+    const dogClass = dog?.hoopers_level || null;
+
+    // Guest mode → localStorage
+    if (!user) {
+      if (current === targetStatus) {
+        removeGuestInterest(comp.id);
+        setInterests(prev => { const next = { ...prev }; delete next[comp.id]; return next; });
+        toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
+      } else {
+        setGuestInterest(comp.id, targetStatus, { dog_name: dogName, class: dogClass });
+        setInterests(prev => ({ ...prev, [comp.id]: targetStatus }));
+        toast.success(
+          targetStatus === 'interested'
+            ? '⭐ Sparat lokalt – logga in för att synka'
+            : '✅ Sparat lokalt – logga in för att synka'
+        );
+      }
+      return;
+    }
 
     if (current === targetStatus) {
-      // Remove
       await supabase.from('competition_interests').delete().eq('user_id', user.id).eq('competition_id', comp.id);
       setInterests(prev => { const next = { ...prev }; delete next[comp.id]; return next; });
       toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
       return;
     }
 
-    // Determine dog info
-    const dog = selectedDog || dogs.find(d => d.sport === 'Hoopers' || d.sport === 'Båda');
-    const dogName = dog?.name || null;
-    const dogClass = dog?.hoopers_level || null;
-
     if (current) {
-      // Update
       await supabase.from('competition_interests').update({ status: targetStatus }).eq('user_id', user.id).eq('competition_id', comp.id);
     } else {
-      // Insert
       await supabase.from('competition_interests').insert({
         user_id: user.id,
         competition_id: comp.id,

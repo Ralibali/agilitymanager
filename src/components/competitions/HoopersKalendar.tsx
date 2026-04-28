@@ -365,39 +365,61 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
                 </div>
               </button>
 
-              {/* Interest action row */}
-              {user && (
-                <div className="flex items-center gap-2 px-3 pb-2.5 -mt-1">
-                  <button
-                    onClick={() => toggleInterest(comp, 'interested')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
-                      interests[comp.id] === 'interested'
-                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
-                        : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
-                    }`}
-                  >
-                    <Star size={13} className={interests[comp.id] === 'interested' ? 'fill-amber-500 text-amber-500' : ''} />
-                    {interests[comp.id] === 'interested' ? 'Intresserad' : 'Intresse'}
-                  </button>
-                  <button
-                    onClick={() => toggleInterest(comp, 'registered')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
-                      interests[comp.id] === 'registered'
-                        ? 'text-white'
-                        : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
-                    }`}
-                    style={interests[comp.id] === 'registered' ? { background: '#1a6b3c' } : {}}
-                  >
-                    <CheckCircle2 size={13} className={interests[comp.id] === 'registered' ? 'fill-white text-white' : ''} />
-                    {interests[comp.id] === 'registered' ? 'Anmäld ✓' : 'Anmäld'}
-                  </button>
-                  {interests[comp.id] && selectedDog && (
-                    <span className="text-[10px] text-muted-foreground ml-auto">
-                      🐕 {selectedDog.name}
-                    </span>
-                  )}
-                </div>
-              )}
+              {/* Interest action row — visas även för gäster (sparas i localStorage) */}
+              {(() => {
+                const status = interests[comp.id];
+                const isPast = comp.date ? new Date(comp.date + 'T23:59:59') < new Date() : false;
+                return (
+                  <div className="flex items-center gap-2 px-3 pb-2.5 -mt-1 flex-wrap">
+                    <button
+                      onClick={() => cycleStatus(comp, 'interested')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
+                        status === 'interested'
+                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                          : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                      }`}
+                    >
+                      <Star size={13} className={status === 'interested' ? 'fill-amber-500 text-amber-500' : ''} />
+                      {status === 'interested' ? 'Intresserad' : 'Intresse'}
+                    </button>
+                    <button
+                      onClick={() => cycleStatus(comp, 'registered')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
+                        status === 'registered'
+                          ? 'text-white'
+                          : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                      }`}
+                      style={status === 'registered' ? { background: '#1a6b3c' } : {}}
+                    >
+                      <CheckCircle2 size={13} className={status === 'registered' ? 'fill-white text-white' : ''} />
+                      {status === 'registered' ? 'Anmäld ✓' : 'Anmäld'}
+                    </button>
+                    {(isPast || status === 'done') && (
+                      <button
+                        onClick={() => cycleStatus(comp, 'done')}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
+                          status === 'done'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                            : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                        }`}
+                      >
+                        <CheckCheck size={13} className={status === 'done' ? 'text-blue-600' : ''} />
+                        {status === 'done' ? 'Klar' : 'Klar?'}
+                      </button>
+                    )}
+                    {status && selectedDog && (
+                      <span className="text-[10px] text-muted-foreground ml-auto">
+                        🐕 {selectedDog.name}
+                      </span>
+                    )}
+                    {isGuest && status && (
+                      <span className="w-full text-[10px] text-muted-foreground">
+                        Sparad lokalt. <Link to="/auth" className="text-primary underline">Logga in</Link> för att synka.
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Expanded details */}
               {expanded === comp.id && (

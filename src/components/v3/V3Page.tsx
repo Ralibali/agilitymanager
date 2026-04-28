@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 export function V3Page({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn("max-w-[1180px] mx-auto px-5 lg:px-10 py-6 lg:py-9 space-y-5 animate-v3-fade-in", className)}>
+    <div className={cn("max-w-[1380px] 2xl:max-w-[1540px] mx-auto px-5 lg:px-10 2xl:px-14 py-6 lg:py-9 space-y-5 animate-v3-fade-in", className)}>
       {children}
     </div>
   );
@@ -29,7 +29,7 @@ export function V3PageHero({
   return (
     <header
       className={cn(
-        "relative overflow-hidden rounded-[28px] border p-5 lg:p-6 shadow-v3-xs",
+        "relative overflow-hidden rounded-[28px] border p-5 lg:p-7 shadow-v3-xs",
         dark
           ? "bg-v3-text-primary border-v3-text-primary/10 text-white"
           : "bg-v3-canvas-elevated border-v3-canvas-sunken/40 text-v3-text-primary",

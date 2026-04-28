@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import ShareToFriendDialog from "@/components/ShareToFriendDialog";
 import { FetchMyResultDialog, type FetchMyResultTarget } from "@/components/v3/FetchMyResultDialog";
 import { store } from "@/lib/store";
+import { readGuestInterests } from "@/hooks/useCompetitionInterests";
 import type { Dog } from "@/types";
 
 type Sport = "Agility" | "Hoopers";
@@ -213,25 +214,34 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     };
   }, [sport, view]);
 
-  // Hämta användarens intressen + de faktiska tävlingsraderna (oberoende av aktiv sport / tidsfönster)
+  // Hämta intressen (Supabase för inloggad, localStorage för gäst) + faktiska tävlingsraderna.
+  // Båda lägena delar samma map → exakt samma flikar/filter/UI.
   const reloadInterests = useCallback(async () => {
-    if (!user) {
-      setInterests({});
-      setMarkedRows([]);
-      return;
-    }
-    const { data } = await supabase
-      .from("competition_interests")
-      .select("competition_id, status")
-      .eq("user_id", user.id);
     const map: Record<string, InterestStatus> = {};
     const ids: string[] = [];
-    (data ?? []).forEach((r) => {
-      if (r.status === "interested" || r.status === "registered") {
-        map[r.competition_id] = r.status as InterestStatus;
-        ids.push(r.competition_id);
-      }
-    });
+
+    if (!user) {
+      // Gäst: läs från localStorage via samma hjälpare som useCompetitionInterests
+      const guestItems = readGuestInterests();
+      guestItems.forEach((g) => {
+        if (g.status === "interested" || g.status === "registered") {
+          map[g.competition_id] = g.status as InterestStatus;
+          ids.push(g.competition_id);
+        }
+      });
+    } else {
+      const { data } = await supabase
+        .from("competition_interests")
+        .select("competition_id, status")
+        .eq("user_id", user.id);
+      (data ?? []).forEach((r) => {
+        if (r.status === "interested" || r.status === "registered") {
+          map[r.competition_id] = r.status as InterestStatus;
+          ids.push(r.competition_id);
+        }
+      });
+    }
+
     setInterests(map);
 
     if (ids.length === 0) {
@@ -309,6 +319,23 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     reloadInterests();
   }, [reloadInterests]);
 
+  // Lyssna på localStorage-ändringar (även mellan flikar) så gäst-UI återställs när användaren återvänder.
+  useEffect(() => {
+    if (user) return;
+    const onChange = () => { void reloadInterests(); };
+    const onStorage = (e: StorageEvent) => { if (e.key === "am.guest.interests.v1") onChange(); };
+    window.addEventListener("am:guest-interests-changed", onChange);
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("focus", onChange);
+    document.addEventListener("visibilitychange", onChange);
+    return () => {
+      window.removeEventListener("am:guest-interests-changed", onChange);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", onChange);
+      document.removeEventListener("visibilitychange", onChange);
+    };
+  }, [user, reloadInterests]);
+
   // Hämta tävlingar som vänner delat med mig (messages.shared_type='competition')
   const reloadShared = useCallback(async () => {
     if (!user) {
@@ -358,18 +385,45 @@ export function V3FindCompetitions({ preferredSport }: Props) {
   }, [reloadShared]);
 
   const toggleInterest = async (comp: CompRow, target: InterestStatus) => {
-    if (!user) {
-      toast.error("Logga in för att markera tävlingar");
-      return;
-    }
     const compKey = comp.competition_id ?? comp.id;
     const current = interests[compKey];
+
+    // Optimistisk UI-uppdatering (samma logik för gäst & inloggad)
     setInterests((prev) => {
       const next = { ...prev };
       if (current === target) delete next[compKey];
       else next[compKey] = target;
       return next;
     });
+
+    // Gäst: skriv till localStorage i samma format som useCompetitionInterests
+    if (!user) {
+      try {
+        const GUEST_KEY = "am.guest.interests.v1";
+        const raw = window.localStorage.getItem(GUEST_KEY);
+        const items: Array<{ competition_id: string; status: InterestStatus; dog_name: string | null; class: string | null; created_at: string }> = raw ? JSON.parse(raw) : [];
+        const idx = items.findIndex((i) => i.competition_id === compKey);
+        let next = items;
+        if (idx >= 0 && items[idx].status === target) {
+          next = items.filter((_, i) => i !== idx);
+          toast.success(target === "interested" ? "Intresse borttaget" : "Anmälan borttagen");
+        } else if (idx >= 0) {
+          next = items.map((it, i) => (i === idx ? { ...it, status: target } : it));
+          toast.success(target === "interested" ? "⭐ Sparad i webbläsaren" : "✅ Sparad i webbläsaren");
+        } else {
+          next = [...items, { competition_id: compKey, status: target, dog_name: null, class: null, created_at: new Date().toISOString() }];
+          toast.success(target === "interested" ? "⭐ Sparad i webbläsaren" : "✅ Sparad i webbläsaren");
+        }
+        window.localStorage.setItem(GUEST_KEY, JSON.stringify(next));
+        window.dispatchEvent(new CustomEvent("am:guest-interests-changed"));
+      } catch (e) {
+        console.error(e);
+        toast.error("Kunde inte spara lokalt");
+        reloadInterests();
+      }
+      return;
+    }
+
     try {
       if (current === target) {
         await supabase

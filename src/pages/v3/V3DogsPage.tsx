@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Pencil, Trophy, Activity, Calendar } from "lucide-react";
+import { Plus, Pencil, Trophy, Activity, Calendar, Dog as DogIcon } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import type { Dog } from "@/types";
 import { V3AddDogSheet } from "@/components/v3/V3AddDogSheet";
 import { V3EditDogSheet } from "@/components/v3/V3EditDogSheet";
+import { V3Page, V3PageHero, V3PrimaryButton } from "@/components/v3/V3Page";
 
 type DogStats = {
   trainingCount: number;
@@ -116,34 +117,29 @@ export default function V3DogsPage() {
   const activeCount = useMemo(() => dogs.filter((d) => d.is_active_competition_dog).length, [dogs]);
 
   return (
-    <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 font-v3-sans animate-v3-fade-in">
-      <header className="flex flex-wrap items-end justify-between gap-4 mb-6 lg:mb-8">
-        <div>
-          <h1 className="font-v3-display text-[40px] lg:text-[56px] leading-[1.05] tracking-[-0.02em] text-v3-text-primary">
-            Mina hundar
-          </h1>
-          <p className="text-v3-sm text-v3-text-secondary mt-1">
-            {dogs.length} totalt · {activeCount} aktiv{activeCount === 1 ? "" : "a"}
-          </p>
-        </div>
-        <button type="button" onClick={() => setAddOpen(true)} className="inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shrink-0">
-          <Plus size={16} strokeWidth={1.8} /> Ny hund
-        </button>
-      </header>
+    <V3Page>
+      <V3PageHero
+        eyebrow="Hundar"
+        title="Mina hundar"
+        description={`${dogs.length} totalt · ${activeCount} aktiv${activeCount === 1 ? "" : "a"}. Hantera profiler, nivåer och vilken hund som ska vara aktiv i träning och tävling.`}
+        icon={DogIcon}
+      >
+        <V3PrimaryButton onClick={() => setAddOpen(true)} icon={Plus}>Ny hund</V3PrimaryButton>
+      </V3PageHero>
 
       {loading ? (
-        <div className="space-y-3">{[0, 1, 2].map((i) => <div key={i} className="h-[120px] rounded-v3-2xl v3-skeleton" />)}</div>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">{[0, 1, 2].map((i) => <div key={i} className="h-[132px] rounded-v3-2xl v3-skeleton" />)}</div>
       ) : dogs.length === 0 ? (
         <EmptyState onAdd={() => setAddOpen(true)} />
       ) : (
-        <ul className="space-y-3">
+        <ul className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {dogs.map((dog, i) => {
             const s = stats[dog.id] ?? { trainingCount: 0, resultCount: 0, lastTraining: null };
             const age = ageFromBirthdate(dog.birthdate);
             const meta = [age, dog.breed, dog.sport].filter(Boolean).join(" · ");
             return (
               <motion.li key={dog.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.25, ease: "easeOut" }}>
-                <button type="button" onClick={() => setEditDog(dog)} className={cn("w-full text-left rounded-v3-2xl border p-4 lg:p-5 transition-all", "bg-v3-canvas-elevated border-v3-canvas-sunken/40", "hover:border-v3-brand-500/30 hover:shadow-v3-sm") }>
+                <button type="button" onClick={() => setEditDog(dog)} className={cn("w-full h-full text-left rounded-v3-2xl border p-4 lg:p-5 transition-all", "bg-v3-canvas-elevated border-v3-canvas-sunken/40", "hover:border-v3-brand-500/30 hover:shadow-v3-sm") }>
                   <div className="flex items-start gap-4">
                     <div className="h-16 w-16 lg:h-20 lg:w-20 rounded-v3-xl bg-v3-brand-100 grid place-items-center overflow-hidden shrink-0">
                       {dog.photo_url ? <img src={dog.photo_url} alt={dog.name} className="h-full w-full object-cover" /> : <span className="font-v3-display text-[28px] lg:text-[32px] text-v3-brand-700 leading-none">{initialsOf(dog.name)}</span>}
@@ -163,7 +159,7 @@ export default function V3DogsPage() {
                         {(dog.sport === "Agility" || dog.sport === "Båda") && <><Badge>AG {dog.competition_level}</Badge><Badge>Hopp {dog.jumping_level}</Badge><Badge tone="muted">{dog.size_class}</Badge></>}
                         {(dog.sport === "Hoopers" || dog.sport === "Båda") && <><Badge tone="hoopers">HO {dog.hoopers_level}</Badge><Badge tone="muted">{dog.hoopers_size}</Badge></>}
                       </div>
-                      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-v3-canvas-sunken/40">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 pt-3 border-t border-v3-canvas-sunken/40">
                         <Stat icon={<Activity size={12} />} value={s.trainingCount} label="pass" />
                         <Stat icon={<Trophy size={12} />} value={s.resultCount} label="resultat" />
                         <Stat icon={<Calendar size={12} />} value={relativeDate(s.lastTraining)} label="senast" />
@@ -179,7 +175,7 @@ export default function V3DogsPage() {
 
       <V3AddDogSheet open={addOpen} onClose={() => setAddOpen(false)} onAdded={() => reload()} />
       <V3EditDogSheet open={!!editDog} dog={editDog} onClose={() => setEditDog(null)} onSaved={() => reload()} />
-    </div>
+    </V3Page>
   );
 }
 

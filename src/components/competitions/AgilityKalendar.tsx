@@ -8,6 +8,12 @@ import { MapPin, Calendar as CalendarIcon, Filter, Star, CheckCircle2, ExternalL
 import { toast } from 'sonner';
 import type { Dog } from '@/types';
 import type { Competition } from '@/types/competitions';
+import {
+  readGuestInterests,
+  setGuestInterest,
+  removeGuestInterest,
+  subscribeGuestInterests,
+} from '@/hooks/useGuestInterests';
 
 const AGILITY_CLASS_FILTERS = [
   { key: 'Klass 1', label: 'Klass 1', match: ['Ag1', 'Hp1', 'Ho1', 'Klass 1', '1'] },

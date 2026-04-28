@@ -67,7 +67,16 @@ const SITE_URL = 'https://agilitymanager.se';
 
 function stripHtml(s: string | null | undefined): string {
   if (!s) return '';
-  return s.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  let out = s
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ');
+  out = out.replace(/<[^>]*>/g, '');
+  out = out.replace(/<[^<>]*$/g, '');
+  return out.replace(/\s+/g, ' ').trim();
 }
 
 function formatDateRange(start: string, end: string | null): string {

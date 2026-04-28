@@ -1,63 +1,65 @@
-import { useState, useEffect } from 'react';
-import { ExternalLink, Info, ChevronDown } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-
-const MOBILE_BREAKPOINT = 768;
+import { Info, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Props {
   sourceUrl?: string;
+  sport?: 'agility' | 'hoopers';
 }
 
-export function AgilityDataAttribution({ sourceUrl }: Props) {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    // Default = hopfälld. Öppna bara automatiskt på desktop efter mount.
-    if (window.innerWidth >= MOBILE_BREAKPOINT) setOpen(true);
-  }, []);
-
+/**
+ * Tydlig, alltid synlig datakälla & ansvarsfriskrivning för publika tävlingssidor.
+ * Lugn 'Varm Sand'-stil men omöjlig att missa.
+ */
+export function AgilityDataAttribution({ sourceUrl, sport = 'agility' }: Props) {
+  const isHoopers = sport === 'hoopers';
   return (
-    <div className="mt-6 bg-muted/50 border border-border rounded-xl text-xs text-muted-foreground">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-2 px-4 py-2.5 text-left"
-      >
-        <Info size={14} className="text-primary flex-shrink-0" />
-        <span className="text-[11px] text-muted-foreground flex-1">Data från agilitydata.se · SAgiK / AGIDA</span>
-        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <ChevronDown size={14} className="text-muted-foreground" />
-        </motion.div>
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="px-4 pb-3 space-y-2 border-t border-border pt-2">
-              <p>
-                AgilityManager hämtar automatiskt tävlingsdata och resultat direkt från agilitydata.se i realtid
-                när du öppnar denna sida. Informationen visas live och lagras aldrig av AgilityManager.
-              </p>
-              <p>
-                All data tillhör Svenska Agilityklubben (SAgiK) och Agility Informations Data AB (AGIDA).
-                AgilityManager har inget samarbete med eller är godkänd av SAgiK.
-              </p>
-              <a
-                href={sourceUrl || 'https://agilitydata.se'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-primary hover:underline font-medium"
-              >
-                🔗 Se originaldatan på agilitydata.se <ExternalLink size={12} />
-              </a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    <aside
+      className="mt-8 rounded-2xl border border-border-subtle bg-surface px-4 py-4 sm:px-5"
+      aria-label="Datakälla och ansvarsfriskrivning"
+    >
+      <div className="flex gap-3">
+        <Info className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" aria-hidden="true" />
+        <div className="text-sm text-text-secondary leading-relaxed space-y-2">
+          <p>
+            <strong className="text-text-primary">Datakälla:</strong>{' '}
+            {isHoopers ? (
+              <>
+                Information hämtas automatiskt från{' '}
+                <a
+                  href={sourceUrl || 'https://shok.se'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-primary underline-offset-2 hover:underline"
+                >
+                  SHoK <ExternalLink className="h-3 w-3" />
+                </a>
+                . Data kan vara försenad eller felaktig.
+              </>
+            ) : (
+              <>
+                Information hämtas automatiskt från{' '}
+                <a
+                  href={sourceUrl || 'https://agilitydata.se'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-primary underline-offset-2 hover:underline"
+                >
+                  agilitydata.se <ExternalLink className="h-3 w-3" />
+                </a>{' '}
+                (SAgiK/AGIDA). Data kan vara försenad eller felaktig.
+              </>
+            )}
+          </p>
+          <p>
+            AgilityManager har inget samarbete med, och är inte godkänd av,{' '}
+            {isHoopers ? 'SHoK' : 'SAgiK eller AGIDA'}. Verifiera alltid information direkt hos arrangören innan anmälan.{' '}
+            <Link to="/disclaimer" className="text-primary underline-offset-2 hover:underline">
+              Läs fullständig ansvarsfriskrivning
+            </Link>
+            .
+          </p>
+        </div>
+      </div>
+    </aside>
   );
 }

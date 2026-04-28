@@ -3,6 +3,7 @@ import { HelmetProvider } from "react-helmet-async";
 import App from "./App.tsx";
 import "./index.css";
 import "./styles/mobile-polish.css";
+import "./styles/v3-desktop-polish.css";
 
 const rootEl = document.getElementById("root")!;
 const tree = (

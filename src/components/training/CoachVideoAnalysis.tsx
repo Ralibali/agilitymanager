@@ -145,6 +145,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
         question: question.trim(),
         dogId,
         sport,
+        privacyMode,
         fileName: file.name,
       }));
       // Redirect to Stripe payment

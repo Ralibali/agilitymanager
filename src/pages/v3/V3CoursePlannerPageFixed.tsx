@@ -549,19 +549,46 @@ function MobileBottomBar({ toolMode, setToolMode, onOpenObstacles, onOpenMore, o
   );
 }
 
+function useSwipeDownToClose(onClose: () => void, threshold = 60) {
+  const startY = React.useRef<number | null>(null);
+  const deltaY = React.useRef(0);
+  return {
+    onTouchStart: (e: React.TouchEvent) => {
+      startY.current = e.touches[0].clientY;
+      deltaY.current = 0;
+    },
+    onTouchMove: (e: React.TouchEvent) => {
+      if (startY.current == null) return;
+      deltaY.current = e.touches[0].clientY - startY.current;
+    },
+    onTouchEnd: () => {
+      if (deltaY.current > threshold) onClose();
+      startY.current = null;
+      deltaY.current = 0;
+    },
+  };
+}
+
 function MobileObstaclesStrip({ specs, selectedTool, onPick, onClose }: {
   specs: ObstacleSpec[];
   selectedTool: ObstacleType;
   onPick: (t: ObstacleType) => void;
   onClose: () => void;
 }) {
+  const swipe = useSwipeDownToClose(onClose);
   return (
     <div
       className="fixed left-0 right-0 z-40 lg:hidden bg-white/97 backdrop-blur-xl border-t border-black/8 shadow-[0_-4px_18px_rgba(0,0,0,0.06)]"
       style={{ bottom: "calc(70px + env(safe-area-inset-bottom))" }}
     >
-      <div className="flex items-center justify-between px-3 pt-2 pb-1">
-        <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-v3-text-tertiary">Tryck för att lägga till</div>
+      <div
+        className="flex items-center justify-between px-3 pt-2 pb-1 touch-none cursor-grab active:cursor-grabbing"
+        {...swipe}
+      >
+        <div className="flex flex-col gap-1">
+          <div className="h-1 w-9 rounded-full bg-black/15 mb-0.5 self-start" aria-hidden />
+          <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-v3-text-tertiary">Tryck för att lägga till</div>
+        </div>
         <button onClick={onClose} className="h-7 w-7 -mr-1 rounded-full grid place-items-center text-v3-text-tertiary hover:bg-v3-canvas" aria-label="Stäng"><X size={14} /></button>
       </div>
       <div className="overflow-x-auto overflow-y-hidden">

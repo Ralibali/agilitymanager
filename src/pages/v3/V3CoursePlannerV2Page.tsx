@@ -532,9 +532,10 @@ function ArenaCanvas({
   );
 }
 
-function ObstacleSvg({ obstacle, selected, onPointerDown }: {
+function ObstacleSvg({ obstacle, selected, hasIssue, onPointerDown }: {
   obstacle: ObstacleV2;
   selected: boolean;
+  hasIssue?: boolean;
   onPointerDown: (e: PointerEvent<SVGGElement>) => void;
 }) {
   const def = getObstacleDefV2(obstacle.type);
@@ -547,8 +548,10 @@ function ObstacleSvg({ obstacle, selected, onPointerDown }: {
       onClick={(e) => e.stopPropagation()}
       style={{ cursor: "grab" }}
     >
+      {hasIssue && !selected && (
+        <circle r={Math.max(w, d) / 2 + 0.35} fill="#ef4444" opacity={0.18} />
+      )}
       <ObstacleShape def={def} selected={selected} />
-      {/* selection ring */}
       {selected && (
         <circle r={Math.max(w, d) / 2 + 0.4} fill="none" stroke="#1a6b3c" strokeWidth={0.12} strokeDasharray="0.3 0.2" />
       )}

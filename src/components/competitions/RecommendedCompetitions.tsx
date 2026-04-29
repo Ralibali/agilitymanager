@@ -120,15 +120,16 @@ interface RecommendedCompetitionsProps {
 }
 
 export function RecommendedCompetitions({ dogs }: RecommendedCompetitionsProps) {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [competitions, setCompetitions] = useState<Competition[]>([]);
-  const [interests, setInterests] = useState<Map<string, CompetitionInterest>>(new Map());
   const [loading, setLoading] = useState(true);
   const [selectedDogId, setSelectedDogId] = useState<string | null>(null);
   const [userCity, setUserCity] = useState<string>('Stockholm');
   const [maxKm, setMaxKm] = useState(200);
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; compId: string }>({ open: false, compId: '' });
+
+  // Delad intresse-hook (DB för inloggade, cookie/localStorage för gäster)
+  const { interests, setInterest } = useCompetitionInterests();
 
   const activeDogs = useMemo(() => (dogs || []).filter(d => d.is_active_competition_dog), [dogs]);
 
@@ -141,7 +142,7 @@ export function RecommendedCompetitions({ dogs }: RecommendedCompetitionsProps) 
   const selectedDog = useMemo(() => activeDogs.find(d => d.id === selectedDogId) || null, [activeDogs, selectedDogId]);
 
   useEffect(() => {
-    async function fetch() {
+    async function fetchData() {
       setLoading(true);
       const today = new Date().toISOString().split('T')[0];
       const { data } = await supabase
@@ -152,20 +153,10 @@ export function RecommendedCompetitions({ dogs }: RecommendedCompetitionsProps) 
         .limit(500);
 
       setCompetitions((data || []) as unknown as Competition[]);
-
-      if (user) {
-        const { data: intData } = await supabase
-          .from('competition_interests')
-          .select('*')
-          .eq('user_id', user.id);
-        const map = new Map<string, CompetitionInterest>();
-        (intData || []).forEach((i: any) => map.set(i.competition_id, i as CompetitionInterest));
-        setInterests(map);
-      }
       setLoading(false);
     }
-    fetch();
-  }, [user]);
+    fetchData();
+  }, []);
 
   const userCoords = useMemo(() => CITY_COORDS[userCity] || null, [userCity]);
 
@@ -181,49 +172,32 @@ export function RecommendedCompetitions({ dogs }: RecommendedCompetitionsProps) 
       .slice(0, 20);
   }, [competitions, selectedDog, userCoords, maxKm]);
 
-  const toggleInterest = async (compId: string, type: 'interested' | 'registered') => {
-    if (!user) return;
-    const current = interests.get(compId);
-    const dogName = selectedDog?.name || null;
+  const toggleInterest = async (comp: Competition, type: InterestStatus) => {
+    const current = interests[comp.id];
 
-    if (type === 'interested' && current?.status === 'registered') {
-      setConfirmDialog({ open: true, compId });
+    // Skydd: kräv bekräftelse om degradering från "anmäld" till "intresserad"
+    if (type === 'interested' && current === 'registered') {
+      setConfirmDialog({ open: true, compId: comp.id });
       return;
     }
 
-    if (current?.status === type) {
-      await supabase.from('competition_interests').delete().eq('id', current.id);
-      const newMap = new Map(interests);
-      newMap.delete(compId);
-      setInterests(newMap);
-    } else if (current) {
-      await supabase.from('competition_interests').update({ status: type, dog_name: dogName }).eq('id', current.id);
-      const newMap = new Map(interests);
-      newMap.set(compId, { ...current, status: type, dog_name: dogName });
-      setInterests(newMap);
-    } else {
-      const { data } = await supabase.from('competition_interests')
-        .insert({ user_id: user.id, competition_id: compId, status: type, dog_name: dogName })
-        .select().single();
-      if (data) {
-        const newMap = new Map(interests);
-        newMap.set(compId, data as unknown as CompetitionInterest);
-        setInterests(newMap);
-      }
-    }
+    await setInterest(comp.id, type, {
+      dogName: selectedDog?.name || null,
+      dogClass: selectedDog?.competition_level || null,
+      sport: 'Agility',
+      region: comp.location ? getCountyForLocation(comp.location) : null,
+    });
   };
 
   const handleConfirmDowngrade = async () => {
-    const compId = confirmDialog.compId;
-    const current = interests.get(compId);
-    if (current) {
-      await supabase.from('competition_interests').update({ status: 'interested' }).eq('id', current.id);
-      const newMap = new Map(interests);
-      newMap.set(compId, { ...current, status: 'interested' });
-      setInterests(newMap);
-    }
+    await setInterest(confirmDialog.compId, 'interested', {
+      dogName: selectedDog?.name || null,
+      dogClass: selectedDog?.competition_level || null,
+      sport: 'Agility',
+    });
     setConfirmDialog({ open: false, compId: '' });
   };
+
 
   const cities = Object.keys(CITY_COORDS).sort();
 

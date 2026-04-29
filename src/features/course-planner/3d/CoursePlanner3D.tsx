@@ -351,9 +351,27 @@ function MobileWalkUI({
         onTouchCancel={() => { lookId.current = null; }}
       />
 
-      {/* Hint */}
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-30 px-3 py-1 rounded-full bg-black/45 backdrop-blur text-white/80 text-[11px] pointer-events-none">
-        Joystick = gå · Dra på vyn = titta · Håll Sprint
+      {/* Onboarding hint — auto-dismiss after 5s, tap to close */}
+      {showHint && (
+        <button
+          type="button"
+          onClick={() => setShowHint(false)}
+          className="absolute top-[170px] left-1/2 -translate-x-1/2 z-30 px-4 py-3 rounded-2xl bg-black/70 backdrop-blur-md border border-white/15 text-white text-[12px] leading-snug max-w-[88vw] shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300"
+        >
+          <div className="font-semibold mb-1.5 text-[13px]">Så styr du</div>
+          <div className="opacity-90 text-left space-y-0.5">
+            <div>🕹 <strong>Joystick</strong> nere till vänster — gå i banan</div>
+            <div>👆 <strong>Dra på vyn</strong> — titta runt</div>
+            <div>⚡ <strong>Håll Sprint</strong> — spring snabbare</div>
+            <div>👈 <strong>Pilarna</strong> uppe till höger — hoppa mellan hinder</div>
+          </div>
+          <div className="mt-2 text-[10px] opacity-60">Tryck för att stänga</div>
+        </button>
+      )}
+
+      {/* Persistent compact label */}
+      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-30 px-3 py-1 rounded-full bg-black/45 backdrop-blur text-white/75 text-[10px] pointer-events-none">
+        Joystick · Dra för att titta · Sprint
       </div>
 
       {/* Joystick (left) */}

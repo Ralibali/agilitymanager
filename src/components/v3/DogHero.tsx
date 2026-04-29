@@ -1,7 +1,8 @@
 import { useMemo } from "react";
-import { ChevronRight, Heart, Plus, Star } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
 import type { V3Dog } from "@/hooks/v3/useV3Dogs";
 import { cn } from "@/lib/utils";
+import { BrandPill } from "@/components/brand/BrandPill";
 
 interface Props {
   dogs: V3Dog[];

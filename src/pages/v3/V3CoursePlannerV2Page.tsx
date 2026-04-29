@@ -527,14 +527,16 @@ export default function V3CoursePlannerV2Page() {
 
   function handlePointerDown(e: PointerEvent<SVGGElement>, id: string) {
     e.stopPropagation();
+    const ob = course.obstacles.find((o) => o.id === id);
     if (tool === "erase") { deleteObstacle(id); return; }
     if (tool === "number") {
-      const ob = course.obstacles.find((o) => o.id === id);
+      if (ob?.locked) { toast.error("Hindret är låst"); return; }
       const next = ob?.number ? undefined : ((Math.max(0, ...course.obstacles.map((x) => x.number ?? 0))) + 1);
       setObstacleNumber(id, next);
       return;
     }
     setSelectedId(id);
+    if (ob?.locked) return; // Markera men dra inte
     setDraggingId(id);
     (e.target as Element).setPointerCapture?.(e.pointerId);
   }

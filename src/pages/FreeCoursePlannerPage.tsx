@@ -22,17 +22,30 @@ const OBSTACLES: { type: ObstacleType; label: string; symbol: string }[] = [
   { type: "finish", label: "Mål", symbol: "◼" },
 ];
 
+// Free planner now uses the same 0–100 percentage coordinate system as V3.
+// That makes future import/upgrade from free sketch -> full planner much safer.
 const START_COURSE: FreeObstacle[] = [
-  { id: "demo-start", type: "start", label: "Start", symbol: "▸", x: 72, y: 398, rotation: 0 },
-  { id: "demo-1", type: "jump", label: "Hopp", symbol: "┃", x: 145, y: 330, rotation: 0, number: 1 },
-  { id: "demo-2", type: "tunnel", label: "Tunnel", symbol: "⌒", x: 260, y: 250, rotation: 20, number: 2 },
-  { id: "demo-3", type: "jump", label: "Hopp", symbol: "┃", x: 380, y: 170, rotation: -18, number: 3 },
-  { id: "demo-finish", type: "finish", label: "Mål", symbol: "◼", x: 500, y: 94, rotation: 0 },
+  { id: "demo-start", type: "start", label: "Start", symbol: "▸", x: 12, y: 87, rotation: 0 },
+  { id: "demo-1", type: "jump", label: "Hopp", symbol: "┃", x: 24, y: 72, rotation: 0, number: 1 },
+  { id: "demo-2", type: "tunnel", label: "Tunnel", symbol: "⌒", x: 43, y: 54, rotation: 20, number: 2 },
+  { id: "demo-3", type: "jump", label: "Hopp", symbol: "┃", x: 63, y: 37, rotation: -18, number: 3 },
+  { id: "demo-finish", type: "finish", label: "Mål", symbol: "◼", x: 83, y: 20, rotation: 0 },
 ];
+
+const clampPercent = (value: number) => Math.min(96, Math.max(4, value));
 
 function createObstacle(type: ObstacleType, index: number): FreeObstacle {
   const template = OBSTACLES.find((item) => item.type === type) ?? OBSTACLES[0];
-  return { id: `${type}-${Date.now()}-${index}`, type, label: template.label, symbol: template.symbol, x: 95 + ((index * 74) % 420), y: 110 + ((index * 58) % 260), rotation: type === "tunnel" ? 20 : 0, number: type === "start" || type === "finish" ? undefined : index };
+  return {
+    id: `${type}-${Date.now()}-${index}`,
+    type,
+    label: template.label,
+    symbol: template.symbol,
+    x: clampPercent(16 + ((index * 12) % 70)),
+    y: clampPercent(24 + ((index * 11) % 56)),
+    rotation: type === "tunnel" ? 20 : 0,
+    number: type === "start" || type === "finish" ? undefined : index,
+  };
 }
 
 export default function FreeCoursePlannerPage() {
@@ -49,7 +62,7 @@ export default function FreeCoursePlannerPage() {
     setObstacles((items) => [...items, next]);
     setSelectedId(next.id);
   };
-  const moveSelected = (dx: number, dy: number) => { if (!selectedId) return; setObstacles((items) => items.map((item) => item.id === selectedId ? { ...item, x: Math.min(550, Math.max(40, item.x + dx)), y: Math.min(410, Math.max(50, item.y + dy)) } : item)); };
+  const moveSelected = (dx: number, dy: number) => { if (!selectedId) return; setObstacles((items) => items.map((item) => item.id === selectedId ? { ...item, x: clampPercent(item.x + dx), y: clampPercent(item.y + dy) } : item)); };
   const rotateSelected = () => { if (!selectedId) return; setObstacles((items) => items.map((item) => item.id === selectedId ? { ...item, rotation: (item.rotation + 15) % 360 } : item)); };
   const removeSelected = () => { if (!selectedId) return; setObstacles((items) => items.filter((item) => item.id !== selectedId)); setSelectedId(null); setLimitHit(false); };
   const reset = () => { setObstacles(START_COURSE); setSelectedId(START_COURSE[1]?.id ?? null); setLimitHit(false); setLockedAction(null); };
@@ -74,7 +87,7 @@ export default function FreeCoursePlannerPage() {
             <div className="mt-6 flex flex-col sm:flex-row gap-3 v3-mobile-stack"><a href="#verktyg" className="inline-flex h-12 items-center justify-center rounded-full bg-[#617457] px-5 text-sm font-medium text-white hover:bg-[#526349]">Testa gratis<ArrowRight size={16} className="ml-2" /></a><Link to={AUTH_SIGNUP} className="inline-flex h-12 items-center justify-center rounded-full border border-black/10 bg-white px-5 text-sm font-medium hover:bg-black/[0.03]">Spara banor med konto</Link></div>
             <div className="mt-5 grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-2 max-w-lg text-xs text-black/60"><div className="rounded-2xl bg-white/70 border border-black/10 p-3"><strong className="block text-black">10 hinder</strong> i gratisläget</div><div className="rounded-2xl bg-white/70 border border-black/10 p-3"><strong className="block text-black">Spara i appen</strong> med konto</div><div className="rounded-2xl bg-white/70 border border-black/10 p-3"><strong className="block text-black">Logga pass</strong> och se statistik</div></div>
           </div>
-          <div className="rounded-[2rem] border border-black/10 bg-white p-2 sm:p-4 shadow-2xl shadow-black/10"><PlannerCanvas obstacles={obstacles} selectedId={selectedId} onSelect={setSelectedId} /></div>
+          <div className="rounded-[2rem] border border-black/10 bg-white p-2 sm:p-4 shadow-2xl shadow-black/10"><PlannerCanvas obstacles={START_COURSE} selectedId={null} preview /></div>
         </section>
 
         <section id="verktyg" className="max-w-6xl mx-auto px-4 sm:px-5 py-6 sm:py-8 grid lg:grid-cols-[260px_1fr_280px] gap-4">
@@ -87,8 +100,8 @@ export default function FreeCoursePlannerPage() {
           <div className="rounded-[2rem] border border-black/10 bg-white p-2 sm:p-3 shadow-xl shadow-black/5"><PlannerCanvas obstacles={obstacles} selectedId={selectedId} onSelect={setSelectedId} large /></div>
 
           <aside className="rounded-3xl border border-black/10 bg-white p-4 h-fit space-y-4">
-            <div><h2 className="font-display text-xl">Valt hinder</h2>{selected ? <p className="text-sm text-black/60 mt-1 break-words">{selected.label} · x {Math.round(selected.x)}, y {Math.round(selected.y)}</p> : <p className="text-sm text-black/60 mt-1">Klicka på ett hinder i banan.</p>}</div>
-            <div className="grid grid-cols-3 gap-2"><button type="button" onClick={() => moveSelected(0, -15)} disabled={!selected} className="tool-btn">↑</button><button type="button" onClick={() => moveSelected(-15, 0)} disabled={!selected} className="tool-btn">←</button><button type="button" onClick={() => moveSelected(15, 0)} disabled={!selected} className="tool-btn">→</button><button type="button" onClick={() => moveSelected(0, 15)} disabled={!selected} className="tool-btn">↓</button><button type="button" onClick={rotateSelected} disabled={!selected} className="tool-btn col-span-2"><RotateCcw size={14} /> Rotera</button></div>
+            <div><h2 className="font-display text-xl">Valt hinder</h2>{selected ? <p className="text-sm text-black/60 mt-1 break-words">{selected.label} · x {Math.round(selected.x)}%, y {Math.round(selected.y)}%</p> : <p className="text-sm text-black/60 mt-1">Klicka på ett hinder i banan.</p>}</div>
+            <div className="grid grid-cols-3 gap-2"><button type="button" onClick={() => moveSelected(0, -3)} disabled={!selected} className="tool-btn">↑</button><button type="button" onClick={() => moveSelected(-3, 0)} disabled={!selected} className="tool-btn">←</button><button type="button" onClick={() => moveSelected(3, 0)} disabled={!selected} className="tool-btn">→</button><button type="button" onClick={() => moveSelected(0, 3)} disabled={!selected} className="tool-btn">↓</button><button type="button" onClick={rotateSelected} disabled={!selected} className="tool-btn col-span-2"><RotateCcw size={14} /> Rotera</button></div>
             <button type="button" onClick={removeSelected} disabled={!selected} className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 text-sm font-medium text-red-700 disabled:opacity-40"><Trash2 size={14} /> Ta bort</button>
             <button type="button" onClick={reset} className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-black/10 bg-white text-sm font-medium hover:bg-black/[0.03]">Återställ demo</button>
             <div className="rounded-3xl border border-[#617457]/20 bg-[#f2f6ee] p-4"><div className="text-sm font-semibold text-[#172016]">Vill du fortsätta senare?</div><p className="text-sm text-black/60 mt-1">Spara banan i appen, logga passet efter träningen och följ utvecklingen i statistik.</p><div className="grid grid-cols-2 gap-2 mt-3"><button type="button" onClick={() => setLockedAction("save")} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-white border border-black/10 text-sm font-medium hover:bg-black/[0.03]"><Save size={14} /> Spara</button><button type="button" onClick={() => setLockedAction("export")} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-white border border-black/10 text-sm font-medium hover:bg-black/[0.03]"><FileDown size={14} /> Export</button></div>{lockedAction && <div className="mt-3 rounded-2xl bg-white border border-black/10 p-3 text-sm text-black/65"><strong className="text-black">{lockedAction === "save" ? "Spara bana" : "Exportera bana"}</strong> är en konto-funktion. Skapa konto så kan du fortsätta i fulla banplaneraren.<Link to={AUTH_SIGNUP} className="mt-2 inline-flex w-full h-10 items-center justify-center rounded-full bg-[#617457] text-white text-sm font-medium">Skapa konto</Link></div>}</div>
@@ -106,13 +119,13 @@ export default function FreeCoursePlannerPage() {
 
 function JourneyCard({ icon: Icon, title, text }: { icon: typeof Save; title: string; text: string }) { return <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-4"><div className="h-10 w-10 rounded-full bg-white/10 grid place-items-center mb-3"><Icon size={17} /></div><h3 className="font-semibold text-sm">{title}</h3><p className="text-sm text-white/60 mt-1">{text}</p></div>; }
 
-function PlannerCanvas({ obstacles, selectedId, onSelect, large }: { obstacles: FreeObstacle[]; selectedId: string | null; onSelect: (id: string) => void; large?: boolean }) {
+function PlannerCanvas({ obstacles, selectedId, onSelect, large, preview }: { obstacles: FreeObstacle[]; selectedId: string | null; onSelect?: (id: string) => void; large?: boolean; preview?: boolean }) {
   return (
     <div className="v3-mobile-scroll">
-      <div className={cn("relative overflow-hidden rounded-[1.5rem] border border-black/10 bg-[#edf2e7]", large ? "min-h-[460px] sm:min-h-[540px] min-w-[560px] lg:min-w-0" : "min-h-[320px] sm:min-h-[360px] min-w-[520px] sm:min-w-0") }>
+      <div className={cn("relative overflow-hidden rounded-[1.5rem] border border-black/10 bg-[#edf2e7]", large ? "min-h-[460px] sm:min-h-[540px] min-w-[560px] lg:min-w-0" : "min-h-[320px] sm:min-h-[360px] min-w-[520px] sm:min-w-0", preview && "pointer-events-none") }>
         <div className="absolute inset-0 opacity-40" style={{ backgroundImage: "linear-gradient(to right, rgba(0,0,0,.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,.08) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
-        <div className="absolute left-4 top-4 rounded-full bg-white/85 px-3 py-1 text-xs font-medium text-black/60 border border-black/10">20 × 30 m demo</div><div className="absolute right-4 top-4 rounded-full bg-white/85 px-3 py-1 text-xs font-medium text-black/60 border border-black/10 inline-flex items-center gap-1"><MousePointer2 size={12} /> Klicka hinder</div>
-        {obstacles.map((obstacle) => { const selected = obstacle.id === selectedId; return <button key={obstacle.id} type="button" onClick={() => onSelect(obstacle.id)} className={cn("absolute grid place-items-center rounded-xl border bg-white shadow-sm transition-all", selected ? "border-[#617457] ring-4 ring-[#617457]/15 scale-105" : "border-black/15 hover:border-[#617457]/40", obstacle.type === "tunnel" ? "h-14 w-20" : obstacle.type === "weave" ? "h-10 w-24" : "h-12 w-12")} style={{ left: `${(obstacle.x / 600) * 100}%`, top: `${(obstacle.y / 460) * 100}%`, transform: `translate(-50%, -50%) rotate(${obstacle.rotation}deg)` }} title={obstacle.label}><span className="text-2xl leading-none text-[#172016]">{obstacle.symbol}</span>{obstacle.number && <span className="absolute -right-2 -top-2 h-6 w-6 rounded-full bg-[#617457] text-white text-xs font-bold grid place-items-center">{obstacle.number}</span>}</button>; })}
+        <div className="absolute left-4 top-4 rounded-full bg-white/85 px-3 py-1 text-xs font-medium text-black/60 border border-black/10">20 × 30 m demo</div><div className="absolute right-4 top-4 rounded-full bg-white/85 px-3 py-1 text-xs font-medium text-black/60 border border-black/10 inline-flex items-center gap-1"><MousePointer2 size={12} /> {preview ? "Exempelbana" : "Klicka hinder"}</div>
+        {obstacles.map((obstacle) => { const selected = obstacle.id === selectedId && !preview; return <button key={obstacle.id} type="button" onClick={() => onSelect?.(obstacle.id)} className={cn("absolute grid place-items-center rounded-xl border bg-white shadow-sm transition-all", selected ? "border-[#617457] ring-4 ring-[#617457]/15 scale-105" : "border-black/15 hover:border-[#617457]/40", obstacle.type === "tunnel" ? "h-14 w-20" : obstacle.type === "weave" ? "h-10 w-24" : "h-12 w-12")} style={{ left: `${obstacle.x}%`, top: `${obstacle.y}%`, transform: `translate(-50%, -50%) rotate(${obstacle.rotation}deg)` }} title={obstacle.label} aria-label={obstacle.label}><span className="text-2xl leading-none text-[#172016]">{obstacle.symbol}</span>{obstacle.number && <span className="absolute -right-2 -top-2 h-6 w-6 rounded-full bg-[#617457] text-white text-xs font-bold grid place-items-center">{obstacle.number}</span>}</button>; })}
         <div className="absolute left-4 bottom-4 rounded-full bg-white/90 border border-black/10 px-3 py-1 text-xs font-semibold text-[#617457] shadow-sm inline-flex items-center gap-1.5"><CheckCircle2 size={12} /> Gratis demo</div><div className="absolute bottom-4 right-4 rounded-full bg-white/85 border border-black/10 px-3 py-1 text-xs font-semibold text-black/55 shadow-sm">{WATERMARK}</div><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-white/70 to-transparent h-24 pointer-events-none" />
       </div>
     </div>

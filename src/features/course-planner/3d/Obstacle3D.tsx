@@ -10,6 +10,7 @@ export type Obstacle3DProps = {
   number?: number;
   color?: string;
   onSelect?: () => void;
+  highlight?: boolean;
 };
 
 const WHITE = "#ffffff";

@@ -93,7 +93,8 @@
     --font-sans: 'Inter', 'Figtree', sans-serif;
 
     /* Surfaces */
-    --bg-page: 48 23% 98%;
+    /* Brand foundation: --bg-page mappad till bone (#F5F1E8) – följer hela publika ytan. */
+    --bg-page: 42 39% 94%;
     --bg-surface: 0 0% 100%;
     --bg-subtle: 45 17% 95%;
     --bg-inverse: 150 21% 7%;

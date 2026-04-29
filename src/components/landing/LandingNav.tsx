@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { motion as M } from "@/lib/motion";
+import { Button } from "@/components/ui/button";
 
 const NAV_LINKS = [
   { href: "#features", label: "Funktioner" },
@@ -28,9 +29,9 @@ function NavLinkSweep({
     <a
       {...props}
       className={cn(
-        "relative text-[13px] text-text-secondary hover:text-text-primary transition-colors",
+        "relative text-[13px] text-stone hover:text-forest transition-colors",
         "after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-full",
-        "after:bg-text-primary after:origin-left after:scale-x-0 hover:after:scale-x-100",
+        "after:bg-forest after:origin-left after:scale-x-0 hover:after:scale-x-100",
         "after:transition-transform after:duration-[240ms] after:ease-[cubic-bezier(0.4,0,0.2,1)]",
         props.className,
       )}
@@ -62,12 +63,11 @@ export function LandingNav() {
     <header
       className={cn(
         "fixed top-0 inset-x-0 z-50 h-16 transition-colors duration-200",
-        scrolled
-          ? "bg-page/80 backdrop-blur-md border-b border-border-subtle"
-          : "bg-transparent",
+        "bg-bone/80 backdrop-blur-sm border-b",
+        scrolled ? "border-forest/8" : "border-transparent",
       )}
     >
-      <div className="max-w-[1180px] mx-auto h-full px-5 md:px-12 flex items-center justify-between font-sans-ds">
+      <div className="max-w-6xl mx-auto h-full px-6 md:px-6 flex items-center justify-between">
         {/* Logo + easter-egg wiggle */}
         <Link
           to="/"
@@ -76,21 +76,21 @@ export function LandingNav() {
         >
           <span
             aria-hidden
-            className="w-7 h-7 rounded-ds-sm bg-inverse flex items-center justify-center transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-safe:group-hover:[transform:rotate(-3deg)_scale(1.06)]"
+            className="w-7 h-7 rounded-ds-sm bg-forest flex items-center justify-center transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-safe:group-hover:[transform:rotate(-3deg)_scale(1.06)]"
           >
             <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none">
               <path
                 d="M4 17 C 8 9, 16 9, 20 17"
-                stroke="hsl(var(--brand-500))"
+                stroke="#B5F94A"
                 strokeWidth="2.4"
                 strokeLinecap="round"
               />
-              <circle cx="4" cy="17" r="1.6" fill="hsl(var(--brand-500))" />
-              <circle cx="20" cy="17" r="1.6" fill="hsl(var(--brand-500))" />
+              <circle cx="4" cy="17" r="1.6" fill="#B5F94A" />
+              <circle cx="20" cy="17" r="1.6" fill="#B5F94A" />
             </svg>
           </span>
-          <span className="text-[15px] tracking-tight text-text-primary transition-colors group-hover:text-brand-600">
-            agilitymanager
+          <span className="text-[15px] tracking-tight text-forest transition-colors group-hover:text-forest-soft">
+            agility<span className="font-normal opacity-60">manager</span>
           </span>
         </Link>
 
@@ -116,25 +116,21 @@ export function LandingNav() {
           )}
         </nav>
 
-        {/* Desktop CTAs – tap-scale + sub-hover lift */}
+        {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-2">
-          <motion.button
-            whileTap={{ scale: 0.96 }}
-            transition={{ duration: M.duration.fast, ease: M.ease.smooth }}
+          <button
             onClick={() => goAuth("login", "nav_login_click")}
-            className="h-9 px-3 text-[13px] text-text-secondary hover:text-text-primary transition-colors"
+            className="h-9 px-3 text-[13px] text-stone hover:text-forest transition-colors"
           >
             Logga in
-          </motion.button>
-          <motion.button
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.96 }}
-            transition={{ duration: M.duration.fast, ease: M.ease.smooth }}
+          </button>
+          <Button
+            variant="brand"
             onClick={() => goAuth("signup", "nav_cta_click")}
-            className="h-9 px-4 text-[13px] rounded-ds-md bg-brand-600 text-white hover:bg-brand-900 transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_-2px_rgba(26,107,60,0.35)]"
+            className="h-9"
           >
             Kom igång gratis
-          </motion.button>
+          </Button>
         </div>
 
         {/* Mobile toggle – ≥44px target */}
@@ -219,17 +215,20 @@ export function LandingNav() {
               >
                 Logga in
               </motion.button>
-              <motion.button
+              <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 4 },
                   visible: { opacity: 1, y: 0 },
                 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => goAuth("signup", "nav_cta_click")}
-                className="mt-2 h-12 rounded-ds-md bg-brand-600 text-white text-[15px] font-medium [-webkit-tap-highlight-color:transparent] active:bg-brand-900 transition-colors"
               >
-                Kom igång gratis
-              </motion.button>
+                <Button
+                  variant="brand"
+                  onClick={() => goAuth("signup", "nav_cta_click")}
+                  className="mt-2 h-12 w-full"
+                >
+                  Kom igång gratis
+                </Button>
+              </motion.div>
             </motion.nav>
           </motion.div>
         )}

@@ -479,8 +479,20 @@ function VideoPicker({
 }
 
 function ReviewStep({
-  pack, file, question, sport,
-}: { pack: typeof COACH_PACKS[number]; file: File; question: string; sport: Sport }) {
+  pack, file, question, sport, privacyMode, acknowledged, onAcknowledgedChange,
+}: {
+  pack: typeof COACH_PACKS[number];
+  file: File;
+  question: string;
+  sport: Sport;
+  privacyMode: PrivacyMode;
+  acknowledged: boolean;
+  onAcknowledgedChange: (v: boolean) => void;
+}) {
+  const privacyLabel = privacyMode === "private_no_export"
+    ? "Endast jag, exportera ej (coachen kan inte ladda ner eller dela)"
+    : "Endast jag och coachen (visas aldrig för andra användare)";
+
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-stone/15 bg-cream/40 p-4">
@@ -492,6 +504,25 @@ function ReviewStep({
           <div className="text-[11px] tracking-wide font-medium text-stone uppercase mb-1">Din fråga</div>
           <p className="text-[14px] text-text-primary leading-relaxed whitespace-pre-wrap">{question}</p>
         </div>
+      </div>
+
+      <div className="rounded-2xl border-2 border-forest/30 bg-forest/[0.04] p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Lock size={15} className="text-forest" />
+          <div className="text-[13px] font-display text-forest">Sekretessinställning</div>
+        </div>
+        <p className="text-[13px] text-text-primary leading-relaxed mb-3">{privacyLabel}</p>
+        <label className="flex items-start gap-2.5 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={acknowledged}
+            onChange={(e) => onAcknowledgedChange(e.target.checked)}
+            className="mt-0.5 w-4 h-4 accent-forest cursor-pointer"
+          />
+          <span className="text-[12px] text-text-secondary leading-snug">
+            Jag har läst och godkänner sekretessinställningen ovan. Den kan inte ändras efter uppladdning.
+          </span>
+        </label>
       </div>
 
       <ul className="space-y-2 text-[13px] text-text-secondary">

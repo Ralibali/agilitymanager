@@ -80,6 +80,7 @@ function downloadFile(filename: string, content: string, type = "application/jso
 }
 
 export default function V3CoursePlannerPageFixed() {
+  const { user } = useAuth();
   const [mode, setMode] = useState<PlannerMode>("Agility");
   const [courses, setCourses] = useState<Courses>(() => loadInitial());
   const [selectedTool, setSelectedTool] = useState<ObstacleType>("jump");

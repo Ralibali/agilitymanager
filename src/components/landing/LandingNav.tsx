@@ -29,9 +29,9 @@ function NavLinkSweep({
     <a
       {...props}
       className={cn(
-        "relative text-[13px] text-text-secondary hover:text-text-primary transition-colors",
+        "relative text-[13px] text-stone hover:text-forest transition-colors",
         "after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-full",
-        "after:bg-text-primary after:origin-left after:scale-x-0 hover:after:scale-x-100",
+        "after:bg-forest after:origin-left after:scale-x-0 hover:after:scale-x-100",
         "after:transition-transform after:duration-[240ms] after:ease-[cubic-bezier(0.4,0,0.2,1)]",
         props.className,
       )}

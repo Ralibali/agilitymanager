@@ -63,12 +63,11 @@ export function LandingNav() {
     <header
       className={cn(
         "fixed top-0 inset-x-0 z-50 h-16 transition-colors duration-200",
-        scrolled
-          ? "bg-page/80 backdrop-blur-md border-b border-border-subtle"
-          : "bg-transparent",
+        "bg-bone/80 backdrop-blur-sm border-b",
+        scrolled ? "border-forest/8" : "border-transparent",
       )}
     >
-      <div className="max-w-[1180px] mx-auto h-full px-5 md:px-12 flex items-center justify-between font-sans-ds">
+      <div className="max-w-6xl mx-auto h-full px-6 md:px-6 flex items-center justify-between">
         {/* Logo + easter-egg wiggle */}
         <Link
           to="/"
@@ -77,21 +76,21 @@ export function LandingNav() {
         >
           <span
             aria-hidden
-            className="w-7 h-7 rounded-ds-sm bg-inverse flex items-center justify-center transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-safe:group-hover:[transform:rotate(-3deg)_scale(1.06)]"
+            className="w-7 h-7 rounded-ds-sm bg-forest flex items-center justify-center transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-safe:group-hover:[transform:rotate(-3deg)_scale(1.06)]"
           >
             <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none">
               <path
                 d="M4 17 C 8 9, 16 9, 20 17"
-                stroke="hsl(var(--brand-500))"
+                stroke="#B5F94A"
                 strokeWidth="2.4"
                 strokeLinecap="round"
               />
-              <circle cx="4" cy="17" r="1.6" fill="hsl(var(--brand-500))" />
-              <circle cx="20" cy="17" r="1.6" fill="hsl(var(--brand-500))" />
+              <circle cx="4" cy="17" r="1.6" fill="#B5F94A" />
+              <circle cx="20" cy="17" r="1.6" fill="#B5F94A" />
             </svg>
           </span>
-          <span className="text-[15px] tracking-tight text-text-primary transition-colors group-hover:text-brand-600">
-            agilitymanager
+          <span className="text-[15px] tracking-tight text-forest transition-colors group-hover:text-forest-soft">
+            agility<span className="font-normal opacity-60">manager</span>
           </span>
         </Link>
 

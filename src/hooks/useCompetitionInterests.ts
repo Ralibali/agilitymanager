@@ -113,6 +113,18 @@ export function useCompetitionInterests(): UseCompetitionInterestsResult {
     return subscribeGuestInterests(loadFromGuest);
   }, [user, loadFromGuest]);
 
+  // Live-synk mellan flikar för inloggade — annan flik skriver en signal,
+  // denna flik kör refresh() så HoopersKalendar och övriga vyer uppdateras.
+  useEffect(() => {
+    if (!user) return;
+    const KEY = `competition_interests_signal:${user.id}`;
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === KEY) void refresh();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [user, refresh]);
+
   const setInterest = useCallback<UseCompetitionInterestsResult['setInterest']>(
     async (competitionId, status, meta) => {
       const dogName = meta?.dogName ?? null;

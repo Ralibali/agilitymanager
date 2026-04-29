@@ -474,10 +474,14 @@ function ToolBtn({ active, onClick, icon, children }: { active: boolean; onClick
 }
 
 function ArenaCanvas({
-  course, selectedId, onObstacleDown, onPointerMove, onPointerUp, onBackgroundClick,
+  svgRef, course, selectedId, highlightIds, showPath,
+  onObstacleDown, onPointerMove, onPointerUp, onBackgroundClick,
 }: {
+  svgRef: React.MutableRefObject<SVGSVGElement | null>;
   course: CourseV2;
   selectedId: string | null;
+  highlightIds: Set<string>;
+  showPath: boolean;
   onObstacleDown: (e: PointerEvent<SVGGElement>, id: string) => void;
   onPointerMove: (e: PointerEvent<SVGSVGElement>) => void;
   onPointerUp: () => void;
@@ -485,11 +489,17 @@ function ArenaCanvas({
 }) {
   const w = course.arenaWidthM;
   const h = course.arenaHeightM;
-  // visa banan med margin
   const padding = 1;
+  const numbered = course.obstacles
+    .filter((o) => o.number != null)
+    .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+  const pathD = numbered.length > 1
+    ? numbered.map((o, i) => `${i === 0 ? "M" : "L"} ${o.x} ${o.y}`).join(" ")
+    : "";
   return (
     <div className="rounded-xl bg-[#e8efe0] p-2 overflow-auto">
       <svg
+        ref={svgRef}
         viewBox={`${-padding} ${-padding} ${w + padding * 2} ${h + padding * 2}`}
         className="w-full h-auto max-h-[calc(100dvh-200px)] touch-none select-none"
         onPointerMove={onPointerMove}
@@ -498,21 +508,22 @@ function ArenaCanvas({
         onClick={onBackgroundClick}
         style={{ cursor: "default" }}
       >
-        {/* Underlag */}
         <rect x={0} y={0} width={w} height={h} fill="#dce5cf" stroke="#173d2c" strokeWidth={0.05} />
-        {/* Rutnät 1 m */}
         {Array.from({ length: w + 1 }).map((_, i) => (
           <line key={`vx${i}`} x1={i} y1={0} x2={i} y2={h} stroke="#173d2c" strokeWidth={i % 5 === 0 ? 0.04 : 0.015} opacity={i % 5 === 0 ? 0.45 : 0.25} />
         ))}
         {Array.from({ length: h + 1 }).map((_, i) => (
           <line key={`hz${i}`} x1={0} y1={i} x2={w} y2={i} stroke="#173d2c" strokeWidth={i % 5 === 0 ? 0.04 : 0.015} opacity={i % 5 === 0 ? 0.45 : 0.25} />
         ))}
-        {/* Hinder */}
+        {showPath && pathD && (
+          <path d={pathD} fill="none" stroke="#c85d1e" strokeWidth={0.18} strokeDasharray="0.5 0.3" strokeLinecap="round" opacity={0.85} />
+        )}
         {course.obstacles.map((ob) => (
           <ObstacleSvg
             key={ob.id}
             obstacle={ob}
             selected={selectedId === ob.id}
+            hasIssue={highlightIds.has(ob.id)}
             onPointerDown={(e) => onObstacleDown(e, ob.id)}
           />
         ))}

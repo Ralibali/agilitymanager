@@ -29,6 +29,14 @@ export default function V3CoachPage() {
           Ladda upp en kort video av ett pass eller ett moment och få personlig, skriftlig
           feedback från vår certifierade coach Malin Öster inom 48 timmar.
         </p>
+        <Link
+          to="/v3/coach/status"
+          className="inline-flex items-center gap-2 text-v3-sm text-v3-brand-500 hover:text-v3-brand-600 mt-1"
+        >
+          <ClipboardList size={16} strokeWidth={1.8} />
+          Se status för mina inskickade videor
+          <ArrowRight size={14} />
+        </Link>
       </header>
 
       {/* Coach-presentation */}

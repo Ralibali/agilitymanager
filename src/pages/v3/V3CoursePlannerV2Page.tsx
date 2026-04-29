@@ -12,7 +12,7 @@
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
 import { useEffect, useMemo, useRef, useState, useCallback, type PointerEvent } from "react";
-import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, FileDown, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff, Library, Undo2, Redo2, Copy, Magnet, ListOrdered } from "lucide-react";
+import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff, Library, Undo2, Redo2, Copy, Magnet, Box, Footprints } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -39,6 +39,8 @@ import { useCoursePlannerHotkeys } from "@/hooks/useCoursePlannerHotkeys";
 import { useProfileName } from "@/hooks/useProfileName";
 import { exportTrainingPdf } from "@/features/course-planner-v2/trainingPdf";
 import { exportBuildPdf } from "@/features/course-planner-v2/buildPdf";
+import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
+import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
 
 const STORAGE_KEY = "am_course_planner_v2";
 
@@ -50,6 +52,10 @@ interface ObstacleV2 {
   y: number;
   rotation: number;
   number?: number;
+  /** Tunnel-böjning 0–90° (0 = rak). Endast meningsfullt för tunneltyper. */
+  curveDeg?: number;
+  /** Vilken sida tunneln böjer åt. Default "right". */
+  curveSide?: "left" | "right";
 }
 
 interface CourseV2 {
@@ -105,6 +111,7 @@ export default function V3CoursePlannerV2Page() {
   const [shareOpen, setShareOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [view3D, setView3D] = useState<null | "view" | "walk">(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   // Undo/redo (begränsad till 30 steg)
@@ -394,6 +401,18 @@ export default function V3CoursePlannerV2Page() {
     }));
   }
 
+  function setTunnelCurve(id: string, patch: { curveDeg?: number; curveSide?: "left" | "right" }) {
+    setCourse((c) => ({
+      ...c,
+      obstacles: c.obstacles.map((o) => {
+        if (o.id !== id) return o;
+        const curveDeg = patch.curveDeg !== undefined ? Math.max(0, Math.min(90, patch.curveDeg)) : o.curveDeg;
+        const curveSide = patch.curveSide ?? o.curveSide;
+        return { ...o, curveDeg, curveSide };
+      }),
+    }));
+  }
+
   function setObstacleNumber(id: string, num: number | undefined) {
     setCourse((c) => ({
       ...c,
@@ -507,6 +526,8 @@ export default function V3CoursePlannerV2Page() {
       sizeClass: course.sizeClass, classTemplate: course.classTemplate,
       obstacles: course.obstacles,
     }),
+    open3DView: () => setView3D("view"),
+    open3DWalk: () => setView3D("walk"),
     undo, redo,
     duplicateSelected: () => { if (selectedId) duplicateObstacle(selectedId); },
     deleteSelected: () => { if (selectedId) deleteObstacle(selectedId); },
@@ -565,6 +586,8 @@ export default function V3CoursePlannerV2Page() {
               obstacles: course.obstacles,
             })}
             onJson={handleExportJson}
+            on3DView={() => setView3D("view")}
+            on3DWalk={() => setView3D("walk")}
           />
           <button
             onClick={async () => {
@@ -603,6 +626,23 @@ export default function V3CoursePlannerV2Page() {
       />
 
       <KeyboardShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} />
+
+      {view3D && (
+        <LazyCoursePlanner3D
+          obstacles={mapAllToObstacle3D(
+            course.obstacles,
+            course.arenaWidthM,
+            course.arenaHeightM,
+            (t) => getObstacleDefV2(t)?.label,
+          )}
+          paths={[]}
+          widthMeters={course.arenaWidthM}
+          heightMeters={course.arenaHeightM}
+          courseName={course.name}
+          initialMode={view3D}
+          onClose={() => setView3D(null)}
+        />
+      )}
 
       {issuesOpen && (
         <div className="bg-white border-b border-black/5 px-4 py-3 max-h-[40vh] overflow-y-auto">
@@ -691,7 +731,6 @@ export default function V3CoursePlannerV2Page() {
               <button onClick={redo} disabled={historyRef.current.future.length === 0} title="Gör om (Ctrl+Shift+Z)" className="h-8 w-8 grid place-items-center rounded-lg bg-white border border-black/8 hover:border-neutral-400 disabled:opacity-30"><Redo2 size={13} /></button>
               <button onClick={() => selected && duplicateObstacle(selected.id)} disabled={!selected} title="Duplicera (Ctrl+D)" className="h-8 w-8 grid place-items-center rounded-lg bg-white border border-black/8 hover:border-neutral-400 disabled:opacity-30"><Copy size={13} /></button>
               <button onClick={() => setSnap((v) => !v)} title="Snap-to-grid (0,5 m)" className={cn("h-8 px-2.5 rounded-lg text-[11px] font-semibold border inline-flex items-center gap-1", snap ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/8")}><Magnet size={12} /> Snap</button>
-              <button onClick={() => exportStartlistPdf({ courseName: course.name, sport: course.sport, sizeClass: course.sizeClass, classTemplate: course.classTemplate, obstacles: course.obstacles })} className="h-8 px-2.5 rounded-lg text-[11px] font-semibold bg-white border border-black/8 hover:border-neutral-400 inline-flex items-center gap-1" title="Startlista PDF"><ListOrdered size={12} /> Startlista</button>
               <button
                 onClick={() => setShowPath((v) => !v)}
                 className={cn(
@@ -758,6 +797,7 @@ export default function V3CoursePlannerV2Page() {
               onRotate={(deg) => rotateObstacle(selected.id, deg)}
               onDelete={() => deleteObstacle(selected.id)}
               onNumberChange={(n) => setObstacleNumber(selected.id, n)}
+              onTunnelCurve={(p) => setTunnelCurve(selected.id, p)}
             />
           ) : (
             <SummaryPanel course={course} />
@@ -882,7 +922,7 @@ function ObstacleSvg({ obstacle, selected, hasIssue, onPointerDown }: {
       {hasIssue && !selected && (
         <circle r={Math.max(w, d) / 2 + 0.35} fill="#ef4444" opacity={0.18} />
       )}
-      <ObstacleShape def={def} selected={selected} />
+      <ObstacleShape def={def} selected={selected} obstacle={obstacle} />
       {selected && (
         <circle r={Math.max(w, d) / 2 + 0.4} fill="none" stroke="#1a6b3c" strokeWidth={0.12} strokeDasharray="0.3 0.2" />
       )}
@@ -896,7 +936,7 @@ function ObstacleSvg({ obstacle, selected, hasIssue, onPointerDown }: {
   );
 }
 
-function ObstacleShape({ def, selected }: { def: ObstacleDefV2; selected: boolean }) {
+function ObstacleShape({ def, selected, obstacle }: { def: ObstacleDefV2; selected: boolean; obstacle?: ObstacleV2 }) {
   const { w, d } = def.sizeM;
   const stroke = selected ? "#1a6b3c" : "#173d2c";
   const sw = 0.06;
@@ -920,8 +960,30 @@ function ObstacleShape({ def, selected }: { def: ObstacleDefV2; selected: boolea
         <circle r={Math.min(w, d) / 2} fill="none" stroke={stroke} strokeWidth={sw * 2} />
         <circle r={Math.min(w, d) / 2 - 0.15} fill="#fff" stroke={stroke} strokeWidth={sw} />
       </g>;
-    case "tunnel":
-      return <rect x={-w / 2} y={-d / 2} width={w} height={d} rx={d / 2} ry={d / 2} fill="#cfe2f3" stroke={stroke} strokeWidth={sw} />;
+    case "tunnel": {
+      const curveDeg = Math.max(0, Math.min(90, obstacle?.curveDeg ?? 0));
+      if (curveDeg < 1) {
+        return <rect x={-w / 2} y={-d / 2} width={w} height={d} rx={d / 2} ry={d / 2} fill="#cfe2f3" stroke={stroke} strokeWidth={sw} />;
+      }
+      // Böjd tunnel: rita en bezier-kurva mellan ändarna med kontrollpunkt offset åt curveSide.
+      // Tunneln går längs w-axeln (x: -w/2 → w/2). Sidan är längs y.
+      const side = (obstacle?.curveSide ?? "right") === "right" ? 1 : -1;
+      const r = d / 2;
+      const offset = Math.tan((curveDeg * Math.PI / 180) / 2) * (w / 2);
+      const x0 = -w / 2, x1 = w / 2;
+      const cx = 0, cy = side * offset;
+      // Två parallella bezier-kurvor (tubens kanter) + fyllnad mellan.
+      const top = `M ${x0} ${-r} Q ${cx} ${cy - r} ${x1} ${-r}`;
+      const bot = `M ${x0} ${r} Q ${cx} ${cy + r} ${x1} ${r}`;
+      const fill = `M ${x0} ${-r} Q ${cx} ${cy - r} ${x1} ${-r} L ${x1} ${r} Q ${cx} ${cy + r} ${x0} ${r} Z`;
+      return <g>
+        <path d={fill} fill="#cfe2f3" stroke="none" />
+        <path d={top} fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" />
+        <path d={bot} fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" />
+        <circle cx={x0} cy={0} r={r} fill="none" stroke={stroke} strokeWidth={sw * 0.6} opacity={0.4} />
+        <circle cx={x1} cy={0} r={r} fill="none" stroke={stroke} strokeWidth={sw * 0.6} opacity={0.4} />
+      </g>;
+    }
     case "weave_8":
     case "weave_10":
     case "weave_12": {
@@ -979,17 +1041,21 @@ function ObstacleShape({ def, selected }: { def: ObstacleDefV2; selected: boolea
   }
 }
 
-function SelectedPanel({ obstacle, size, onRotate, onDelete, onNumberChange }: {
+function SelectedPanel({ obstacle, size, onRotate, onDelete, onNumberChange, onTunnelCurve }: {
   obstacle: ObstacleV2;
   size: SizeClassKey;
   onRotate: (deg: number) => void;
   onDelete: () => void;
   onNumberChange: (n: number | undefined) => void;
+  onTunnelCurve?: (patch: { curveDeg?: number; curveSide?: "left" | "right" }) => void;
 }) {
   const def = getObstacleDefV2(obstacle.type)!;
   const sizeDef = SIZE_CLASSES.find((s) => s.key === size)!;
   const showJumpHeight = ["jump", "wall", "combo", "longjump"].includes(def.type);
   const showTireHeight = def.type === "tire";
+  const isTunnel = def.type === "tunnel";
+  const curveDeg = obstacle.curveDeg ?? 0;
+  const curveSide = obstacle.curveSide ?? "right";
   return (
     <section>
       <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Valt hinder</h3>
@@ -1042,6 +1108,33 @@ function SelectedPanel({ obstacle, size, onRotate, onDelete, onNumberChange }: {
           className="h-9 w-20 px-2 rounded-lg border border-black/10 text-[12px]"
         />
       </div>
+      {isTunnel && onTunnelCurve && (
+        <div className="mt-3 rounded-xl border border-black/8 p-3 bg-white space-y-2">
+          <div className="flex items-baseline justify-between">
+            <div className="text-[11px] font-semibold text-neutral-700">Tunnelböjning</div>
+            <div className="text-[11px] text-neutral-500">{curveDeg}°</div>
+          </div>
+          <input
+            type="range" min={0} max={90} step={5} value={curveDeg}
+            onChange={(e) => onTunnelCurve({ curveDeg: Number(e.target.value) })}
+            className="w-full accent-[#1a6b3c]"
+          />
+          <div className="grid grid-cols-2 gap-1.5">
+            <button
+              onClick={() => onTunnelCurve({ curveSide: "left" })}
+              className={cn("h-8 rounded-lg text-[11px] font-semibold border", curveSide === "left" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/10")}
+            >Vänster</button>
+            <button
+              onClick={() => onTunnelCurve({ curveSide: "right" })}
+              className={cn("h-8 rounded-lg text-[11px] font-semibold border", curveSide === "right" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/10")}
+            >Höger</button>
+          </div>
+          <button
+            onClick={() => onTunnelCurve({ curveDeg: 0 })}
+            className="w-full h-8 rounded-lg text-[11px] font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+          >Återställ till rak</button>
+        </div>
+      )}
       <button onClick={onDelete} className="mt-3 w-full h-9 rounded-lg bg-red-50 text-red-700 border border-red-200 text-[12px] font-semibold inline-flex items-center justify-center gap-1.5">
         <Trash2 size={13} /> Ta bort hinder
       </button>

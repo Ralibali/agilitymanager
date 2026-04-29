@@ -7,7 +7,8 @@ import {
   Save, Library, Share2, Dumbbell,
   MousePointer2, Eraser, Hash, ListOrdered, Eye, AlertTriangle,
   Plus, Activity, Flag, FileDown,
-  Undo2, Redo2, Copy, Trash2, RotateCw,
+  Undo2, Redo2, Copy, Trash2,
+  Box, Footprints,
 } from "lucide-react";
 import type { PaletteCommand } from "@/components/course-planner-v2/CommandPalette";
 import type { Sport, ObstacleTypeV2 } from "@/features/course-planner-v2/config";
@@ -39,6 +40,10 @@ export interface PlannerCommandHandlers {
   exportTrainingPdf: () => void;
   exportBuildPdf: () => void;
   exportStartlist: () => void;
+
+  // 3D
+  open3DView: () => void;
+  open3DWalk: () => void;
 
   // Redigering
   undo: () => void;
@@ -171,6 +176,22 @@ export function buildPlannerCommands(h: PlannerCommandHandlers): PaletteCommand[
       id: "export.startlist", group: "Export", label: "Exportera Startlista",
       keywords: ["pdf", "startlista", "export"],
       icon: <FileDown size={14} />, run: h.exportStartlist,
+    },
+  );
+
+  // ───────── 3D ─────────
+  cmds.push(
+    {
+      id: "view.3d", group: "3D", label: "Visa 3D-vy",
+      hint: "Öppnar banan i 3D",
+      keywords: ["3d", "vy", "rendering", "tre dimensioner"],
+      icon: <Box size={14} />, run: h.open3DView,
+    },
+    {
+      id: "view.3dWalk", group: "3D", label: "Gå banan (3D)",
+      hint: "Walk-mode genom hindren i ordning",
+      keywords: ["gå", "walk", "first person", "förare"],
+      icon: <Footprints size={14} />, run: h.open3DWalk,
     },
   );
 

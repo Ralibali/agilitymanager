@@ -28,6 +28,10 @@ export interface ObstacleLite {
   y: number; // m
   rotation: number;
   number?: number;
+  /** Tunnel-böjning 0–90°. 0 = rak. Ignoreras om typen inte är tunnel. */
+  curveDeg?: number;
+  /** Riktning på böjningen. Default "right". */
+  curveSide?: "left" | "right";
 }
 
 export interface CourseLite {

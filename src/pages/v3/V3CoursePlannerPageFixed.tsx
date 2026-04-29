@@ -508,7 +508,47 @@ function GrassField({ course, selectedId, draggingId, grid, toolMode, currentPat
     {course.obstacles.map(obstacle => <ObstacleButton key={obstacle.id} obstacle={obstacle} selected={selectedId === obstacle.id} dragging={draggingId === obstacle.id} erasing={toolMode === "erase"} onDown={(event) => onObstacleDown(event, obstacle)} onSelect={() => onSelect(obstacle.id)} />)}
   </div>;
 }
-function ObstacleButton({ obstacle, selected, dragging, erasing, onDown, onSelect }: { obstacle: Obstacle; selected: boolean; dragging: boolean; erasing: boolean; onDown: (event: PointerEvent<HTMLButtonElement>) => void; onSelect: () => void }) { const bg = obstacle.color ?? "#ffffff"; return <button type="button" onClick={(e) => { e.stopPropagation(); onSelect(); }} onPointerDown={onDown} className={cn("absolute grid place-items-center border shadow-[0_8px_16px_rgba(24,64,33,.20)] transition-transform touch-none", erasing ? "cursor-cell" : "cursor-grab active:cursor-grabbing", selected ? "border-white ring-4 ring-white/40 scale-105 z-20" : "border-white/70 z-10", dragging && "scale-110 shadow-[0_16px_26px_rgba(24,64,33,.28)]", obstacleSize(obstacle.shape))} style={{ left: `${obstacle.x}%`, top: `${obstacle.y}%`, transform: `translate(-50%, -50%) rotate(${obstacle.rotation}deg)`, background: bg }} aria-label={obstacle.label}><span className="leading-none font-bold pointer-events-none text-[16px] lg:text-[18px] text-v3-brand-900">{obstacle.icon}</span>{obstacle.number && <span className="absolute -right-1.5 -top-1.5 h-5 w-5 rounded-full bg-v3-brand-600 text-white text-[10px] font-bold grid place-items-center shadow-v3-xs pointer-events-none">{obstacle.number}</span>}</button>; }
+function ObstacleButton({ obstacle, selected, dragging, erasing, onDown, onSelect }: { obstacle: Obstacle; selected: boolean; dragging: boolean; erasing: boolean; onDown: (event: PointerEvent<HTMLButtonElement>) => void; onSelect: () => void }) {
+  const bg = obstacle.color ?? "#ffffff";
+  const active = dragging || selected;
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); onSelect(); }}
+      onPointerDown={onDown}
+      className={cn(
+        "absolute grid place-items-center border shadow-[0_8px_16px_rgba(24,64,33,.20)] transition-transform touch-none",
+        erasing ? "cursor-cell" : "cursor-grab active:cursor-grabbing",
+        selected ? "border-white ring-4 ring-white/40 scale-105 z-20" : "border-white/70 z-10",
+        dragging && "scale-110 shadow-[0_16px_26px_rgba(24,64,33,.28)] z-30",
+        obstacleSize(obstacle.shape),
+      )}
+      style={{ left: `${obstacle.x}%`, top: `${obstacle.y}%`, transform: `translate(-50%, -50%) rotate(${obstacle.rotation}deg)`, background: bg }}
+      aria-label={obstacle.number ? `${obstacle.label} nummer ${obstacle.number}` : obstacle.label}
+    >
+      <span className="leading-none font-bold pointer-events-none text-[16px] lg:text-[18px] text-v3-brand-900">{obstacle.icon}</span>
+      {obstacle.number && (
+        <span
+          className={cn(
+            "absolute -right-2 -top-2 rounded-full bg-v3-brand-600 text-white font-extrabold grid place-items-center pointer-events-none ring-2 ring-white shadow-[0_4px_10px_rgba(0,0,0,.35)] tabular-nums transition-all",
+            active ? "h-7 w-7 text-[13px]" : "h-6 w-6 text-[12px]",
+          )}
+          style={{ transform: `rotate(${-obstacle.rotation}deg)` }}
+        >
+          {obstacle.number}
+        </span>
+      )}
+      {dragging && obstacle.number && (
+        <span
+          className="absolute left-1/2 -bottom-9 -translate-x-1/2 px-2 py-0.5 rounded-full bg-v3-text-primary/90 text-white text-[11px] font-bold tabular-nums pointer-events-none shadow-v3-md whitespace-nowrap"
+          style={{ transform: `translateX(-50%) rotate(${-obstacle.rotation}deg)` }}
+        >
+          #{obstacle.number}
+        </span>
+      )}
+    </button>
+  );
+}
 function obstacleSize(shape: Shape) { if (shape === "long") return "h-7 w-20 lg:h-9 lg:w-28 rounded-full"; if (shape === "wide") return "h-7 w-14 lg:h-9 lg:w-20 rounded-lg"; if (shape === "tunnel") return "h-8 w-14 lg:h-10 lg:w-20 rounded-full"; if (shape === "circle") return "h-9 w-9 lg:h-11 lg:w-11 rounded-full"; if (shape === "zone") return "h-14 w-14 lg:h-20 lg:w-20 rounded-lg bg-white/40 border-dashed"; if (shape === "triangle") return "h-9 w-9 lg:h-11 lg:w-11 rounded-lg"; return "h-8 w-8 lg:h-10 lg:w-10 rounded-lg"; }
 
 function SavedDialog({ saved, onClose, onOpen }: { saved: SavedCourse[]; onClose: () => void; onOpen: (entry: SavedCourse) => void }) { return <div className="fixed inset-0 z-[1100] bg-v3-text-primary/45 backdrop-blur-sm px-4 py-6 flex items-center justify-center"><section className="w-full max-w-lg rounded-[26px] bg-white shadow-v3-xl border border-black/10 overflow-hidden"><div className="p-5 border-b border-black/5 flex justify-between"><div><div className="text-[10px] uppercase tracking-[0.1em] font-semibold text-v3-text-tertiary">Bibliotek</div><h2 className="font-v3-display text-[28px]">Sparade banor</h2></div><button onClick={onClose} className="h-10 w-10 rounded-full bg-v3-canvas grid place-items-center"><X size={18} /></button></div><div className="p-5 space-y-2 max-h-[55vh] overflow-y-auto">{saved.length === 0 ? <p className="text-v3-sm text-v3-text-secondary">Inga sparade banor än.</p> : saved.map(entry => <button key={entry.id} onClick={() => onOpen(entry)} className="w-full text-left rounded-v3-xl border border-v3-canvas-sunken/60 bg-v3-canvas p-4 hover:bg-v3-canvas-sunken/40"><div className="font-semibold text-v3-text-primary">{entry.name}</div><div className="text-v3-xs text-v3-text-tertiary mt-1">{entry.mode} · {new Date(entry.savedAt).toLocaleString("sv-SE")}</div></button>)}</div></section></div>; }

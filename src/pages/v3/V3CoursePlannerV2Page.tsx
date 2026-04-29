@@ -988,15 +988,22 @@ function ArenaCanvas({
         {showPath && pathD && (
           <path d={pathD} fill="none" stroke="#c85d1e" strokeWidth={0.18} strokeDasharray="0.5 0.3" strokeLinecap="round" opacity={0.85} />
         )}
-        {course.obstacles.map((ob) => (
-          <ObstacleSvg
-            key={ob.id}
-            obstacle={ob}
-            selected={selectedId === ob.id}
-            hasIssue={highlightIds.has(ob.id)}
-            onPointerDown={(e) => onObstacleDown(e, ob.id)}
-          />
-        ))}
+        {[...course.obstacles]
+          .sort((a, b) => {
+            const za = a.zIndex ?? 0;
+            const zb = b.zIndex ?? 0;
+            if (za !== zb) return za - zb;
+            return a.id.localeCompare(b.id);
+          })
+          .map((ob) => (
+            <ObstacleSvg
+              key={ob.id}
+              obstacle={ob}
+              selected={selectedId === ob.id}
+              hasIssue={highlightIds.has(ob.id)}
+              onPointerDown={(e) => onObstacleDown(e, ob.id)}
+            />
+          ))}
       </svg>
     </div>
   );

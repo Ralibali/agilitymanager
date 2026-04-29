@@ -7,7 +7,8 @@ import {
   Save, Library, Share2, Dumbbell,
   MousePointer2, Eraser, Hash, ListOrdered, Eye, AlertTriangle,
   Plus, Activity, Flag, FileDown,
-  Undo2, Redo2, Copy, Trash2, RotateCw,
+  Undo2, Redo2, Copy, Trash2,
+  Box, Footprints,
 } from "lucide-react";
 import type { PaletteCommand } from "@/components/course-planner-v2/CommandPalette";
 import type { Sport, ObstacleTypeV2 } from "@/features/course-planner-v2/config";

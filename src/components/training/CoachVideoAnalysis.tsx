@@ -218,6 +218,15 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="pb-3 space-y-3">
+        {resumedFromStripe && !file && (
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs text-foreground flex items-start gap-2">
+            <CheckCircle2 size={14} className="text-primary mt-0.5 shrink-0" />
+            <div>
+              <strong className="font-medium">Betalning bekräftad.</strong> Välj samma video igen
+              nedan så slutförs uppladdningen automatiskt — inget mer betalas.
+            </div>
+          </div>
+        )}
         <p className="text-xs text-muted-foreground">
           Ladda upp en träningsvideo och ställ en fråga – vår coach granskar och ger personlig feedback.
           {!isPro && <> <span className="text-foreground font-medium">Pro-medlemmar får 50% rabatt.</span></>}

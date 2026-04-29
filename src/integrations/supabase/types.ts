@@ -521,6 +521,7 @@ export type Database = {
           created_at: string
           dog_id: string | null
           id: string
+          privacy_mode: string
           question: string
           sport: string
           status: string
@@ -533,6 +534,7 @@ export type Database = {
           created_at?: string
           dog_id?: string | null
           id?: string
+          privacy_mode?: string
           question: string
           sport?: string
           status?: string
@@ -545,6 +547,7 @@ export type Database = {
           created_at?: string
           dog_id?: string | null
           id?: string
+          privacy_mode?: string
           question?: string
           sport?: string
           status?: string

@@ -34,110 +34,14 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-xl font-display font-semibold text-foreground">2. Personuppgiftsansvarig</h2>
             <p className="text-muted-foreground">
               Aurora Media är personuppgiftsansvarig för den behandling av personuppgifter som sker
-              inom ramen för Tjänsten och beslutar om ändamålen och medlen för behandlingen.
+              inom ramen för Tjänsten.
             </p>
             <ul className="list-none pl-0 text-muted-foreground space-y-1">
               <li><strong>Företag:</strong> Aurora Media</li>
-              <li><strong>Tjänst:</strong> AgilityManager (agilitymanager.se)</li>
-              <li><strong>Land:</strong> Sverige</li>
               <li><strong>E-post:</strong>{' '}
                 <a href="mailto:info@auroramedia.se" className="text-primary underline">info@auroramedia.se</a>
               </li>
             </ul>
-          </section>
-
-          <section id="kontakt">
-            <h2 className="text-xl font-display font-semibold text-foreground">2A. Kontakt och dataskyddsfrågor</h2>
-            <p className="text-muted-foreground">
-              Har du frågor om hur vi behandlar dina personuppgifter, vill utöva dina rättigheter
-              enligt GDPR (se avsnitt 8), eller misstänker en personuppgiftsincident — kontakta oss
-              i första hand via e-post. Vi har ingen utsedd dataskyddsombud (DPO) eftersom det
-              inte krävs enligt artikel 37 GDPR för vår verksamhet, men alla dataskyddsfrågor
-              hanteras direkt av personuppgiftsansvarig.
-            </p>
-
-            <h3 className="text-lg font-semibold text-foreground mt-3">Så här kontaktar du oss</h3>
-            <ul className="list-disc pl-5 text-muted-foreground space-y-1">
-              <li>
-                <strong>Allmänna dataskyddsfrågor &amp; rättigheter:</strong>{' '}
-                <a href="mailto:info@auroramedia.se?subject=Dataskydd%20%E2%80%93%20fr%C3%A5ga" className="text-primary underline">
-                  info@auroramedia.se
-                </a>
-              </li>
-              <li>
-                <strong>Begära registerutdrag (art. 15):</strong> mejla med ämnet
-                {' '}<em>"Registerutdrag"</em> från den e-post som är kopplad till ditt konto.
-              </li>
-              <li>
-                <strong>Begära radering (art. 17):</strong> mejla med ämnet
-                {' '}<em>"Radera mitt konto"</em>, eller använd självbetjäningen i appen
-                (se avsnittet nedan).
-              </li>
-              <li>
-                <strong>Misstänkt personuppgiftsincident:</strong> mejla med ämnet
-                {' '}<em>"Incident"</em> så återkopplar vi snarast.
-              </li>
-            </ul>
-            <p className="text-muted-foreground mt-2 text-sm">
-              Vi besvarar din begäran utan onödigt dröjsmål och senast inom <strong>en månad</strong>{' '}
-              från att vi mottagit den (artikel 12.3 GDPR). Vid komplexa ärenden kan tiden förlängas
-              med upp till två månader, varvid du informeras inom den första månaden.
-            </p>
-
-            <h3 className="text-lg font-semibold text-foreground mt-4">Var begär jag export eller radering i appen?</h3>
-            <p className="text-muted-foreground mb-2">
-              Du kan själv hantera dina uppgifter direkt i appen utan att kontakta oss:
-            </p>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-muted-foreground border-collapse">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-2 pr-4 font-semibold text-foreground">Vad du vill göra</th>
-                    <th className="text-left py-2 font-semibold text-foreground">Var i appen</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-border/50">
-                    <td className="py-2 pr-4">Se och ändra dina kontouppgifter</td>
-                    <td className="py-2"><strong>Inställningar → Profil</strong></td>
-                  </tr>
-                  <tr className="border-b border-border/50">
-                    <td className="py-2 pr-4">Exportera träningslogg (CSV/PDF)</td>
-                    <td className="py-2"><strong>Träning → Exportera</strong></td>
-                  </tr>
-                  <tr className="border-b border-border/50">
-                    <td className="py-2 pr-4">Exportera sparade banor (PNG/PDF/JSON)</td>
-                    <td className="py-2"><strong>Banplanerare → Exportera</strong></td>
-                  </tr>
-                  <tr className="border-b border-border/50">
-                    <td className="py-2 pr-4">Komplett dataexport (alla uppgifter)</td>
-                    <td className="py-2"><strong>Inställningar → Integritet → Begär dataexport</strong></td>
-                  </tr>
-                  <tr className="border-b border-border/50">
-                    <td className="py-2 pr-4">Hantera cookie-samtycke</td>
-                    <td className="py-2"><strong>Inställningar → Cookies</strong> (eller länken i sidfoten)</td>
-                  </tr>
-                  <tr className="border-b border-border/50">
-                    <td className="py-2 pr-4">Avregistrera nyhetsbrev</td>
-                    <td className="py-2"><strong>Inställningar → Notiser</strong> eller länk i mejlets sidfot</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-4">Radera ditt konto och all data</td>
-                    <td className="py-2"><strong>Inställningar → Integritet → Radera konto</strong></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <p className="text-muted-foreground mt-3 text-sm">
-              Vid radering av konto tas all personlig data bort inom 30 dagar, med undantag för
-              uppgifter vi enligt lag är skyldiga att bevara (t.ex. bokföringsunderlag i 7 år
-              enligt bokföringslagen 1999:1078). Saknar du en självbetjäningsfunktion ovan,
-              mejla oss på{' '}
-              <a href="mailto:info@auroramedia.se" className="text-primary underline">
-                info@auroramedia.se
-              </a>{' '}
-              så hjälper vi dig manuellt.
-            </p>
           </section>
 
           <section>

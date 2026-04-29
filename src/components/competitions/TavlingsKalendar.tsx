@@ -340,48 +340,63 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
       ) : (
         <div className="space-y-3">
           {filtered.map(comp => {
-            const interest = interests.get(comp.id);
+            const status = interests[comp.id];
+            const isPast = !!comp.date_end && new Date(comp.date_end + 'T23:59:59') < new Date();
             return (
               <div key={comp.id} className="bg-card rounded-xl border border-border p-4 relative">
-                {/* Interest action row */}
-                {user && (
-                  <div className="flex items-center gap-2 mb-2">
+                {/* Statuskedja: Intresse → Anmäld → (Genomförd när tävlingen passerat) */}
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <button
+                    onClick={() => toggleInterest(comp.id, 'interested', comp)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
+                      status === 'interested'
+                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                        : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                    }`}
+                  >
+                    <Star size={13} className={status === 'interested' ? 'fill-amber-500 text-amber-500' : ''} />
+                    {status === 'interested' ? 'Intresserad' : 'Intresse'}
+                  </button>
+                  <button
+                    onClick={() => toggleInterest(comp.id, 'registered', comp)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
+                      status === 'registered'
+                        ? 'text-white'
+                        : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                    }`}
+                    style={status === 'registered' ? { background: '#1a6b3c' } : {}}
+                  >
+                    <CheckCircle2 size={13} className={status === 'registered' ? 'fill-white text-white' : ''} />
+                    {status === 'registered' ? 'Anmäld ✓' : 'Anmäld'}
+                  </button>
+                  {(isPast || status === 'done') && (
                     <button
-                      onClick={() => toggleInterest(comp.id, 'interested')}
+                      onClick={() => toggleInterest(comp.id, 'done', comp)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
-                        interest?.status === 'interested'
-                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                        status === 'done'
+                          ? 'bg-primary/15 text-primary'
                           : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
                       }`}
                     >
-                      <Star size={13} className={interest?.status === 'interested' ? 'fill-amber-500 text-amber-500' : ''} />
-                      {interest?.status === 'interested' ? 'Intresserad' : 'Intresse'}
+                      <Flag size={13} className={status === 'done' ? 'fill-primary text-primary' : ''} />
+                      {status === 'done' ? 'Genomförd ✓' : 'Genomförd'}
                     </button>
-                    <button
-                      onClick={() => toggleInterest(comp.id, 'registered')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
-                        interest?.status === 'registered'
-                          ? 'text-white'
-                          : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
-                      }`}
-                      style={interest?.status === 'registered' ? { background: '#1a6b3c' } : {}}
-                    >
-                      <CheckCircle2 size={13} className={interest?.status === 'registered' ? 'fill-white text-white' : ''} />
-                      {interest?.status === 'registered' ? 'Anmäld ✓' : 'Anmäld'}
-                    </button>
+                  )}
+                  {user && (
                     <button
                       onClick={() => setShareComp({ open: true, comp })}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground hover:bg-secondary/80 transition-all btn-press ml-auto"
                     >
                       <Send size={13} /> Tipsa
                     </button>
-                    {interest && selectedDog && (
-                      <span className="text-[10px] text-muted-foreground">
-                        🐕 {selectedDog.name}
-                      </span>
-                    )}
-                  </div>
-                )}
+                  )}
+                  {status && selectedDog && (
+                    <span className="text-[10px] text-muted-foreground">
+                      🐕 {selectedDog.name}
+                    </span>
+                  )}
+                </div>
+
                 <div className="text-lg font-bold font-display text-primary mb-1">
                   {formatDateRange(comp.date_start, comp.date_end)}
                 </div>

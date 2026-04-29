@@ -63,6 +63,12 @@ export function CommandPalette({
   }, [activeIdx]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      onOpenChange(false);
+      return;
+    }
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setActiveIdx((i) => Math.min(i + 1, filtered.length - 1));
@@ -92,7 +98,14 @@ export function CommandPalette({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl p-0 gap-0 overflow-hidden [&>button.absolute]:hidden">
+      <DialogContent
+        className="max-w-xl p-0 gap-0 overflow-hidden [&>button.absolute]:hidden"
+        onEscapeKeyDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onOpenChange(false);
+        }}
+      >
         {/* Search input */}
         <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
           <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />

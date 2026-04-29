@@ -55,6 +55,7 @@ const V3CoachPage = React.lazy(() => import("./pages/v3/V3CoachPage"));
 const V3CoachStatusPage = React.lazy(() => import("./pages/v3/V3CoachStatusPage"));
 const V3CoursePlannerPage = React.lazy(() => import("./pages/v3/V3CoursePlannerPageTunnelIntegrated"));
 const V3CoursePlannerV2Page = React.lazy(() => import("./pages/v3/V3CoursePlannerV2Page"));
+const V3CoursePlannerV2JudgePage = React.lazy(() => import("./pages/v3/V3CoursePlannerV2JudgePage"));
 const V3FriendsPage = React.lazy(() => import("./pages/v3/V3FriendsPage"));
 const V3ChatListPage = React.lazy(() => import("./pages/v3/V3ChatListPage"));
 const V3ChatPage = React.lazy(() => import("./pages/v3/V3ChatPage"));
@@ -127,6 +128,7 @@ const App = () => (
                 <Route path="/design-demo" element={<DesignDemoPage />} />
                 <Route path="/hjalp/resultathamtning" element={<HelpResultImportPage />} />
                 <Route path="/coach" element={<PublicCoachPage />} />
+                <Route path="/v3/course-planner-v2/judge/:slug" element={<V3CoursePlannerV2JudgePage />} />
 
                 <Route path="/v3" element={<V3Guard />}>
                   <Route index element={<V3HomePage />} />

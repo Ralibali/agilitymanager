@@ -11,8 +11,8 @@
  * Data sparas i localStorage under egen nyckel — påverkar INTE v1.
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
-import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, FileDown, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, useCallback, type PointerEvent } from "react";
+import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, FileDown, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff, Library, Undo2, Redo2, Copy, Magnet, ListOrdered } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -25,7 +25,12 @@ import {
 } from "@/features/course-planner-v2/config";
 import { validateCourse, computeCourseTimes, summarizeIssues, type ValidationIssue } from "@/features/course-planner-v2/validation";
 import { exportJudgePdf } from "@/features/course-planner-v2/judgePdf";
-import ShareCourseDialog from "@/components/course-planner/ShareCourseDialog";
+import { exportStartlistPdf } from "@/features/course-planner-v2/startlistPdf";
+import CourseLibraryDialog from "@/features/course-planner-v2/CourseLibraryDialog";
+import ClubShareDialog from "@/features/course-planner-v2/ClubShareDialog";
+import CourseCommentsPanel from "@/features/course-planner-v2/CourseCommentsPanel";
+import { instantiatePrebuilt, type PrebuiltCourse } from "@/features/course-planner-v2/templates";
+import type { LibraryCourse } from "@/features/course-planner-v2/library";
 
 const STORAGE_KEY = "am_course_planner_v2";
 
@@ -76,13 +81,15 @@ function uid() { return Math.random().toString(36).slice(2, 10); }
 export default function V3CoursePlannerV2Page() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [course, setCourse] = useState<CourseV2>(() => loadCourse());
+  const [course, setCourseRaw] = useState<CourseV2>(() => loadCourse());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tool, setTool] = useState<"select" | "erase" | "number">("select");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [showPath, setShowPath] = useState(true);
   const [issuesOpen, setIssuesOpen] = useState(false);
+  const [snap, setSnap] = useState(true);
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const [cloudId, setCloudId] = useState<string | null>(() => {
     try { return localStorage.getItem(STORAGE_KEY + "_cloud_id"); } catch { return null; }
   });
@@ -90,11 +97,60 @@ export default function V3CoursePlannerV2Page() {
   const [shareOpen, setShareOpen] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
+  // Undo/redo (begränsad till 30 steg)
+  const historyRef = useRef<{ past: CourseV2[]; future: CourseV2[] }>({ past: [], future: [] });
+  const skipHistoryRef = useRef(false);
+
+  const setCourse = useCallback((updater: CourseV2 | ((c: CourseV2) => CourseV2)) => {
+    setCourseRaw((prev) => {
+      const next = typeof updater === "function" ? (updater as (c: CourseV2) => CourseV2)(prev) : updater;
+      if (!skipHistoryRef.current && next !== prev) {
+        historyRef.current.past.push(prev);
+        if (historyRef.current.past.length > 30) historyRef.current.past.shift();
+        historyRef.current.future = [];
+      }
+      skipHistoryRef.current = false;
+      return next;
+    });
+  }, []);
+
+  const undo = useCallback(() => {
+    const h = historyRef.current;
+    if (h.past.length === 0) return;
+    const prev = h.past.pop()!;
+    setCourseRaw((cur) => { h.future.unshift(cur); return prev; });
+    skipHistoryRef.current = true;
+  }, []);
+  const redo = useCallback(() => {
+    const h = historyRef.current;
+    if (h.future.length === 0) return;
+    const next = h.future.shift()!;
+    setCourseRaw((cur) => { h.past.push(cur); return next; });
+    skipHistoryRef.current = true;
+  }, []);
+
   // Autospara lokalt
   useEffect(() => {
     const t = setTimeout(() => { saveCourse(course); setSavedAt(new Date()); }, 600);
     return () => clearTimeout(t);
   }, [course]);
+
+  // Kortkommandon
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      const meta = e.ctrlKey || e.metaKey;
+      if (meta && e.key.toLowerCase() === "z" && !e.shiftKey) { e.preventDefault(); undo(); return; }
+      if (meta && (e.key.toLowerCase() === "y" || (e.key.toLowerCase() === "z" && e.shiftKey))) { e.preventDefault(); redo(); return; }
+      if (meta && e.key.toLowerCase() === "d" && selectedId) { e.preventDefault(); duplicateObstacle(selectedId); return; }
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedId) { e.preventDefault(); deleteObstacle(selectedId); return; }
+      if (e.key.toLowerCase() === "r" && selectedId) { e.preventDefault(); rotateObstacle(selectedId, e.shiftKey ? -15 : 15); return; }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId, undo, redo]);
 
   // Validering + tider — räknas live
   const issues = useMemo(() => validateCourse(course), [course]);
@@ -191,7 +247,54 @@ export default function V3CoursePlannerV2Page() {
   }
 
 
+  function handlePickFromLibrary(kind: "prebuilt" | "saved", payload: PrebuiltCourse | LibraryCourse) {
+    if (course.obstacles.length > 0) {
+      const ok = window.confirm("Att ladda en ny bana ersätter nuvarande bana. Fortsätt?");
+      if (!ok) return;
+    }
+    if (kind === "prebuilt") {
+      const p = payload as PrebuiltCourse;
+      setCourse({
+        name: p.label, sport: p.sport, sizeClass: p.defaultSize,
+        arenaWidthM: p.arenaWidthM, arenaHeightM: p.arenaHeightM,
+        classTemplate: p.classTemplate, obstacles: instantiatePrebuilt(p),
+      });
+      setCloudId(null);
+      try { localStorage.removeItem(STORAGE_KEY + "_cloud_id"); } catch { /* ignore */ }
+      toast.success(`${p.label} laddad`);
+    } else {
+      const c = payload as LibraryCourse;
+      const data = c.course_data as any;
+      if (!data?.obstacles) { toast.error("Banan har ett okänt format"); return; }
+      setCourse({
+        name: c.name,
+        sport: data.sport ?? "agility",
+        sizeClass: data.sizeClass ?? "L",
+        arenaWidthM: data.arenaWidthM ?? 30,
+        arenaHeightM: data.arenaHeightM ?? 40,
+        classTemplate: data.classTemplate ?? null,
+        obstacles: data.obstacles,
+      });
+      // Bara aktivera moln-länk om det är ägarens egna bana
+      if (user?.id === c.user_id) {
+        setCloudId(c.id);
+        try { localStorage.setItem(STORAGE_KEY + "_cloud_id", c.id); } catch { /* ignore */ }
+      } else {
+        setCloudId(null);
+        try { localStorage.removeItem(STORAGE_KEY + "_cloud_id"); } catch { /* ignore */ }
+      }
+      setSelectedId(null);
+      toast.success(`${c.name} laddad`);
+    }
+  }
+
+  // Snap-to-grid: 0.5 m steg
+  function snapM(v: number): number {
+    return snap ? Math.round(v * 2) / 2 : v;
+  }
+
   const selected = course.obstacles.find((o) => o.id === selectedId) ?? null;
+
 
   function update(patch: Partial<CourseV2>) {
     setCourse((c) => ({ ...c, ...patch }));
@@ -219,13 +322,22 @@ export default function V3CoursePlannerV2Page() {
     const id = uid();
     const ob: ObstacleV2 = {
       id, type,
-      x: course.arenaWidthM / 2,
-      y: course.arenaHeightM / 2,
+      x: snapM(course.arenaWidthM / 2),
+      y: snapM(course.arenaHeightM / 2),
       rotation: 0,
     };
     setCourse((c) => ({ ...c, obstacles: [...c.obstacles, ob] }));
     setSelectedId(id);
     setTool("select");
+  }
+
+  function duplicateObstacle(id: string) {
+    const ob = course.obstacles.find((o) => o.id === id);
+    if (!ob) return;
+    const newId = uid();
+    const copy: ObstacleV2 = { ...ob, id: newId, x: snapM(ob.x + 1), y: snapM(ob.y + 1), number: undefined };
+    setCourse((c) => ({ ...c, obstacles: [...c.obstacles, copy] }));
+    setSelectedId(newId);
   }
 
   function applyTemplate(key: ClassTemplateKey) {
@@ -302,7 +414,7 @@ export default function V3CoursePlannerV2Page() {
     setCourse((c) => ({
       ...c,
       obstacles: c.obstacles.map((o) => o.id === draggingId
-        ? { ...o, x: clamp(local.x, 0, c.arenaWidthM), y: clamp(local.y, 0, c.arenaHeightM) }
+        ? { ...o, x: snapM(clamp(local.x, 0, c.arenaWidthM)), y: snapM(clamp(local.y, 0, c.arenaHeightM)) }
         : o),
     }));
   }
@@ -344,6 +456,13 @@ export default function V3CoursePlannerV2Page() {
           <SegmentedSport value={course.sport} onChange={switchSport} />
           <ValidationBadge summary={issueSummary} onClick={() => setIssuesOpen((v) => !v)} active={issuesOpen} />
           <button
+            onClick={() => setLibraryOpen(true)}
+            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400"
+            title="Öppna banbibliotek"
+          >
+            <Library size={14} /> <span className="hidden sm:inline">Bibliotek</span>
+          </button>
+          <button
             onClick={handleTrainThis}
             className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400"
             title="Skapa träningspass från denna bana"
@@ -354,7 +473,7 @@ export default function V3CoursePlannerV2Page() {
             onClick={handleShare}
             disabled={!user}
             className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400 disabled:opacity-40"
-            title={user ? "Dela banan med en kompis" : "Logga in för att dela"}
+            title={user ? "Dela banan (klubb / publik länk)" : "Logga in för att dela"}
           >
             <Share2 size={14} /> <span className="hidden sm:inline">Dela</span>
           </button>
@@ -382,11 +501,17 @@ export default function V3CoursePlannerV2Page() {
         </div>
       </header>
 
-      <ShareCourseDialog
+      <ClubShareDialog
         open={shareOpen}
         onOpenChange={setShareOpen}
-        savedCourses={cloudId ? [{ id: cloudId, name: course.name || "Ny bana" }] : []}
-        currentCourseId={cloudId}
+        courseId={cloudId}
+        courseName={course.name || "Ny bana"}
+      />
+
+      <CourseLibraryDialog
+        open={libraryOpen}
+        onOpenChange={setLibraryOpen}
+        onPick={handlePickFromLibrary}
       />
 
       {issuesOpen && (
@@ -472,6 +597,11 @@ export default function V3CoursePlannerV2Page() {
               <ToolBtn active={tool === "erase"} onClick={() => setTool("erase")} icon={<Eraser size={14} />}>Sudda</ToolBtn>
               <ToolBtn active={tool === "number"} onClick={() => setTool("number")} icon={<Hash size={14} />}>Nummer</ToolBtn>
               <button onClick={autoRenumber} className="h-8 px-2.5 rounded-lg text-[11px] font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200">Auto-numrera</button>
+              <button onClick={undo} disabled={historyRef.current.past.length === 0} title="Ångra (Ctrl+Z)" className="h-8 w-8 grid place-items-center rounded-lg bg-white border border-black/8 hover:border-neutral-400 disabled:opacity-30"><Undo2 size={13} /></button>
+              <button onClick={redo} disabled={historyRef.current.future.length === 0} title="Gör om (Ctrl+Shift+Z)" className="h-8 w-8 grid place-items-center rounded-lg bg-white border border-black/8 hover:border-neutral-400 disabled:opacity-30"><Redo2 size={13} /></button>
+              <button onClick={() => selected && duplicateObstacle(selected.id)} disabled={!selected} title="Duplicera (Ctrl+D)" className="h-8 w-8 grid place-items-center rounded-lg bg-white border border-black/8 hover:border-neutral-400 disabled:opacity-30"><Copy size={13} /></button>
+              <button onClick={() => setSnap((v) => !v)} title="Snap-to-grid (0,5 m)" className={cn("h-8 px-2.5 rounded-lg text-[11px] font-semibold border inline-flex items-center gap-1", snap ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/8")}><Magnet size={12} /> Snap</button>
+              <button onClick={() => exportStartlistPdf({ courseName: course.name, sport: course.sport, sizeClass: course.sizeClass, classTemplate: course.classTemplate, obstacles: course.obstacles })} className="h-8 px-2.5 rounded-lg text-[11px] font-semibold bg-white border border-black/8 hover:border-neutral-400 inline-flex items-center gap-1" title="Startlista PDF"><ListOrdered size={12} /> Startlista</button>
               <button
                 onClick={() => setShowPath((v) => !v)}
                 className={cn(
@@ -542,6 +672,7 @@ export default function V3CoursePlannerV2Page() {
           ) : (
             <SummaryPanel course={course} />
           )}
+          <CourseCommentsPanel courseId={cloudId} enabled={!!cloudId} />
         </aside>
       </main>
     </div>

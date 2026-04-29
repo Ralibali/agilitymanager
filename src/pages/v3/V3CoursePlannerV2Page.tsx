@@ -34,6 +34,7 @@ import type { LibraryCourse } from "@/features/course-planner-v2/library";
 import { CommandPalette } from "@/components/course-planner-v2/CommandPalette";
 import { KeyboardShortcutsHelp } from "@/components/course-planner-v2/KeyboardShortcutsHelp";
 import { ExportMenu } from "@/components/course-planner-v2/ExportMenu";
+import { PlannerTopbar } from "@/components/course-planner-v2/PlannerTopbar";
 import { CanvasRulers } from "@/components/course-planner-v2/CanvasRulers";
 import { ViewportControls } from "@/components/course-planner-v2/ViewportControls";
 import { useCanvasViewport } from "@/features/course-planner-v2/useCanvasViewport";

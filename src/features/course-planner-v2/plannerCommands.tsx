@@ -9,6 +9,7 @@ import {
   Plus, Activity, Flag, FileDown,
   Undo2, Redo2, Copy, Trash2,
   Box, Footprints,
+  Lock, ArrowUp, ArrowDown, ArrowUpToLine, ArrowDownToLine,
 } from "lucide-react";
 import type { PaletteCommand } from "@/components/course-planner-v2/CommandPalette";
 import type { Sport, ObstacleTypeV2 } from "@/features/course-planner-v2/config";

@@ -512,6 +512,180 @@ function MobileSheet({ title, onClose, children }: { title: string; onClose: () 
   );
 }
 
+function MobileBottomBar({ toolMode, setToolMode, onOpenObstacles, onOpenMore, obstaclesOpen }: {
+  toolMode: ToolMode;
+  setToolMode: (t: ToolMode) => void;
+  onOpenObstacles: () => void;
+  onOpenMore: () => void;
+  obstaclesOpen: boolean;
+}) {
+  const Btn = ({ active, onClick, icon, label }: { active?: boolean; onClick: () => void; icon: ReactNode; label: string }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex-1 min-w-0 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-colors",
+        active ? "bg-v3-brand-600 text-white" : "text-v3-text-secondary hover:bg-v3-canvas"
+      )}
+    >
+      {icon}
+      <span className="text-[10px] font-semibold leading-none">{label}</span>
+    </button>
+  );
+  return (
+    <div
+      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 backdrop-blur-xl border-t border-black/8 shadow-[0_-6px_24px_rgba(0,0,0,0.08)]"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
+      <div className="flex items-stretch gap-0.5 px-1.5 py-1.5">
+        <Btn active={toolMode === "select"} onClick={() => setToolMode("select")} icon={<MousePointer2 size={17} />} label="Välj" />
+        <Btn active={toolMode === "draw"} onClick={() => setToolMode("draw")} icon={<Pencil size={17} />} label="Rita" />
+        <Btn active={toolMode === "erase"} onClick={() => setToolMode("erase")} icon={<Eraser size={17} />} label="Sudda" />
+        <Btn active={toolMode === "number"} onClick={() => setToolMode("number")} icon={<Hash size={17} />} label="Nummer" />
+        <Btn active={obstaclesOpen} onClick={onOpenObstacles} icon={<Plus size={17} />} label="Hinder" />
+        <Btn onClick={onOpenMore} icon={<MenuIcon size={17} />} label="Mer" />
+      </div>
+    </div>
+  );
+}
+
+function MobileObstaclesStrip({ specs, selectedTool, onPick, onClose }: {
+  specs: ObstacleSpec[];
+  selectedTool: ObstacleType;
+  onPick: (t: ObstacleType) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed left-0 right-0 z-40 lg:hidden bg-white/97 backdrop-blur-xl border-t border-black/8 shadow-[0_-4px_18px_rgba(0,0,0,0.06)]"
+      style={{ bottom: "calc(70px + env(safe-area-inset-bottom))" }}
+    >
+      <div className="flex items-center justify-between px-3 pt-2 pb-1">
+        <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-v3-text-tertiary">Tryck för att lägga till</div>
+        <button onClick={onClose} className="h-7 w-7 -mr-1 rounded-full grid place-items-center text-v3-text-tertiary hover:bg-v3-canvas" aria-label="Stäng"><X size={14} /></button>
+      </div>
+      <div className="overflow-x-auto overflow-y-hidden">
+        <div className="flex gap-1.5 px-3 pb-2.5 min-w-max">
+          {specs.map(item => (
+            <button
+              key={item.type}
+              type="button"
+              onClick={() => onPick(item.type)}
+              className={cn(
+                "shrink-0 w-[68px] h-[64px] rounded-xl border flex flex-col items-center justify-center gap-1 px-1 transition-all",
+                selectedTool === item.type
+                  ? "bg-v3-brand-500/10 border-v3-brand-500/40 text-v3-brand-800 ring-2 ring-v3-brand-500/25"
+                  : "bg-v3-canvas border-v3-canvas-sunken/60 text-v3-text-secondary"
+              )}
+            >
+              <span className="text-[20px] leading-none">{item.icon}</span>
+              <span className="text-[10px] font-semibold leading-tight text-center truncate w-full">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileEditPopover({ selected, rotateSelected, deleteSelected, renumberSelected, onClose, onMore }: {
+  selected: Obstacle;
+  rotateSelected: (deg?: number) => void;
+  deleteSelected: () => void;
+  renumberSelected: () => void;
+  onClose: () => void;
+  onMore: () => void;
+}) {
+  return (
+    <div
+      className="fixed left-2 right-2 z-40 lg:hidden bg-v3-text-primary/95 backdrop-blur text-white rounded-2xl shadow-v3-lg flex items-center gap-1 px-1.5 py-1.5"
+      style={{ bottom: "calc(150px + env(safe-area-inset-bottom))" }}
+    >
+      <div className="flex-1 min-w-0 px-2">
+        <div className="text-[12px] font-semibold truncate">{selected.label}{selected.number ? ` · #${selected.number}` : ""}</div>
+      </div>
+      <button onClick={() => rotateSelected(-15)} className="h-9 w-9 rounded-lg grid place-items-center hover:bg-white/10" aria-label="Rotera vänster"><RotateCcw size={15} /></button>
+      <button onClick={() => rotateSelected(15)} className="h-9 w-9 rounded-lg grid place-items-center hover:bg-white/10" aria-label="Rotera höger"><RotateCcw size={15} className="-scale-x-100" /></button>
+      <button onClick={renumberSelected} className="h-9 px-2 rounded-lg grid place-items-center hover:bg-white/10" aria-label="Numrera"><Hash size={15} /></button>
+      <button onClick={deleteSelected} className="h-9 w-9 rounded-lg grid place-items-center text-red-300 hover:bg-red-500/20" aria-label="Ta bort"><Trash2 size={15} /></button>
+      <button onClick={onMore} className="h-9 w-9 rounded-lg grid place-items-center hover:bg-white/10" aria-label="Mer"><Settings2 size={15} /></button>
+      <button onClick={onClose} className="h-9 w-9 rounded-lg grid place-items-center hover:bg-white/10" aria-label="Stäng"><X size={15} /></button>
+    </div>
+  );
+}
+
+function MobileMoreSheet({ onClose, actions, grid, snap, zoom }: {
+  onClose: () => void;
+  actions: {
+    save: () => void; open: () => void; pdf: () => void; json: () => void;
+    toggleGrid: () => void; toggleSnap: () => void; zoomIn: () => void; zoomOut: () => void;
+    undoPath: () => void; reset: () => void; go3D: () => void; walk: () => void; guide: () => void;
+  };
+  grid: boolean; snap: boolean; zoom: number;
+}) {
+  const Pill = ({ onClick, icon, label, active }: { onClick: () => void; icon: ReactNode; label: string; active?: boolean }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "h-10 px-3 rounded-full inline-flex items-center gap-1.5 text-[12px] font-semibold border whitespace-nowrap shrink-0",
+        active ? "bg-v3-brand-600 text-white border-v3-brand-600" : "bg-v3-canvas text-v3-text-secondary border-v3-canvas-sunken/70"
+      )}
+    >
+      {icon}{label}
+    </button>
+  );
+  const Section = ({ title, children }: { title: string; children: ReactNode }) => (
+    <div>
+      <div className="text-[9px] uppercase tracking-[0.1em] font-bold text-v3-text-tertiary px-1 mb-1.5">{title}</div>
+      <div className="flex flex-wrap gap-1.5">{children}</div>
+    </div>
+  );
+  return (
+    <div className="fixed inset-0 z-[1050] lg:hidden">
+      <div className="absolute inset-0 bg-black/35" onClick={onClose} />
+      <div
+        className="absolute left-0 right-0 bottom-0 max-h-[45vh] bg-white rounded-t-[22px] shadow-v3-xl border-t border-black/10 flex flex-col"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-full pt-2.5 pb-1 flex justify-center"
+          aria-label="Stäng"
+        >
+          <div className="h-1.5 w-12 rounded-full bg-black/20" />
+        </button>
+        <div className="px-4 pb-1 flex items-center justify-between">
+          <h3 className="font-v3-display text-[18px]">Mer</h3>
+          <button onClick={onClose} className="h-8 w-8 rounded-full bg-v3-canvas grid place-items-center" aria-label="Stäng"><X size={14} /></button>
+        </div>
+        <div className="px-4 pb-4 pt-1 overflow-y-auto space-y-3">
+          <Section title="Fil">
+            <Pill onClick={actions.save} icon={<Save size={14} />} label="Spara" />
+            <Pill onClick={actions.open} icon={<FolderOpen size={14} />} label="Öppna" />
+            <Pill onClick={actions.pdf} icon={<FileText size={14} />} label="PDF" />
+            <Pill onClick={actions.json} icon={<Download size={14} />} label="JSON" />
+          </Section>
+          <Section title="Arbetsyta">
+            <Pill onClick={actions.toggleGrid} icon={<Grid3X3 size={14} />} label={grid ? "Rutnät av" : "Rutnät på"} active={grid} />
+            <Pill onClick={actions.toggleSnap} icon={<Move size={14} />} label={snap ? "Snap av" : "Snap på"} active={snap} />
+            <Pill onClick={actions.zoomOut} icon={<ZoomOut size={14} />} label="Zoom -" />
+            <Pill onClick={actions.zoomIn} icon={<ZoomIn size={14} />} label={`${zoom}%`} />
+            <Pill onClick={actions.go3D} icon={<Box size={14} />} label="3D-vy" />
+            <Pill onClick={actions.walk} icon={<Footprints size={14} />} label="Gå banan" />
+          </Section>
+          <Section title="Redigera">
+            <Pill onClick={actions.undoPath} icon={<Undo2 size={14} />} label="Ångra ritning" />
+            <Pill onClick={actions.reset} icon={<RotateCcw size={14} />} label="Återställ bana" />
+            <Pill onClick={actions.guide} icon={<HelpCircle size={14} />} label="Guide" />
+          </Section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LeftPanelContent({ grouped, selectedTool, setSelectedTool, addObstacle }: { grouped: [string, ObstacleSpec[]][]; selectedTool: ObstacleType; setSelectedTool: (t: ObstacleType) => void; addObstacle: (t: ObstacleType) => void }) {
   return <>{grouped.map(([category, items]) => (
     <section key={category} className="mb-4">

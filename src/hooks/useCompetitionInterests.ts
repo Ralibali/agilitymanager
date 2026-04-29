@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -10,6 +10,7 @@ import {
   type GuestInterestStatus,
   type GuestSport,
 } from '@/lib/guestInterestsStorage';
+import { getGuestInterestsSyncEnabled } from '@/lib/guestInterestsSyncPref';
 
 export type InterestStatus = GuestInterestStatus;
 

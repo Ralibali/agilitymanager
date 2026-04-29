@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -10,6 +10,7 @@ import {
   type GuestInterestStatus,
   type GuestSport,
 } from '@/lib/guestInterestsStorage';
+import { getGuestInterestsSyncEnabled } from '@/lib/guestInterestsSyncPref';
 
 export type InterestStatus = GuestInterestStatus;
 
@@ -39,6 +40,7 @@ export function useCompetitionInterests(): UseCompetitionInterestsResult {
   const [interests, setInterests] = useState<Record<string, InterestStatus>>({});
   const [loading, setLoading] = useState(true);
   const isGuest = !user;
+  const mergedForUserRef = useRef<string | null>(null);
 
   const loadFromGuest = useCallback(() => {
     const items = readGuestInterestItems();
@@ -48,12 +50,45 @@ export function useCompetitionInterests(): UseCompetitionInterestsResult {
     setLoading(false);
   }, []);
 
+  /** Synka eventuella lokala gästmarkeringar in i kontot vid inloggning. */
+  const mergeGuestIntoAccount = useCallback(async (userId: string) => {
+    if (!getGuestInterestsSyncEnabled()) return;
+    // 'done' lagras inte i DB pga CHECK-constraint på (interested|registered) — filtrera bort.
+    const items = readGuestInterestItems().filter(
+      (it) => it.status === 'interested' || it.status === 'registered',
+    );
+    if (items.length === 0) {
+      clearGuestInterestItems();
+      return;
+    }
+
+    const rows = items.map((it) => ({
+      user_id: userId,
+      competition_id: it.competition_id,
+      status: it.status,
+      dog_name: it.dog_name,
+      class: it.class,
+    }));
+    // upsert kräver unik (user_id, competition_id) — lägg till markeringar som inte
+    // redan finns; befintliga rader skrivs över med gästens status.
+    const { error } = await supabase
+      .from('competition_interests')
+      .upsert(rows, { onConflict: 'user_id,competition_id' });
+    if (!error) {
+      clearGuestInterestItems();
+    }
+  }, []);
+
   const refresh = useCallback(async () => {
     if (!user) {
       loadFromGuest();
       return;
     }
     setLoading(true);
+    if (mergedForUserRef.current !== user.id) {
+      mergedForUserRef.current = user.id;
+      await mergeGuestIntoAccount(user.id);
+    }
     const { data } = await supabase
       .from('competition_interests')
       .select('competition_id, status')
@@ -66,7 +101,7 @@ export function useCompetitionInterests(): UseCompetitionInterestsResult {
     }
     setInterests(map);
     setLoading(false);
-  }, [user, loadFromGuest]);
+  }, [user, loadFromGuest, mergeGuestIntoAccount]);
 
   useEffect(() => {
     void refresh();

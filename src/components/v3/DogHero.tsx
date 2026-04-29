@@ -1,7 +1,8 @@
 import { useMemo } from "react";
-import { ChevronRight, Heart, Plus, Star } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
 import type { V3Dog } from "@/hooks/v3/useV3Dogs";
 import { cn } from "@/lib/utils";
+import { BrandPill } from "@/components/brand/BrandPill";
 
 interface Props {
   dogs: V3Dog[];
@@ -49,14 +50,14 @@ export function DogHero({ dogs, active, activeId, onSelect, onAddDog }: Props) {
 
   if (!active) {
     return (
-      <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-6 lg:p-8 shadow-v3-xs">
-        <p className="text-v3-base text-v3-text-secondary mb-3">
+      <div className="rounded-2xl bg-white border border-forest/12 p-6 lg:p-8">
+        <p className="text-base text-stone mb-3">
           Lägg till din första hund för att börja logga pass och resultat.
         </p>
         <button
           type="button"
           onClick={onAddDog}
-          className="inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors"
+          className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-forest text-bone text-sm font-medium hover:bg-forest-soft transition-colors"
         >
           <Plus size={16} strokeWidth={1.6} />
           Lägg till hund
@@ -67,12 +68,12 @@ export function DogHero({ dogs, active, activeId, onSelect, onAddDog }: Props) {
 
   return (
     <section aria-label="Aktiv hund" className="space-y-3">
-      <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 lg:p-5 shadow-v3-xs">
+      <div className="rounded-2xl bg-white border border-forest/12 p-5 mb-2">
         <div className="flex items-center gap-4">
           <div
             className={cn(
-              "h-16 w-16 lg:h-18 lg:w-18 rounded-v3-xl shrink-0 overflow-hidden",
-              "bg-gradient-to-br from-v3-brand-100 to-v3-canvas-sunken grid place-items-center shadow-v3-xs",
+              "h-16 w-16 lg:h-18 lg:w-18 rounded-xl shrink-0 overflow-hidden",
+              "bg-forest grid place-items-center",
             )}
           >
             {active.photo_url ? (
@@ -82,32 +83,28 @@ export function DogHero({ dogs, active, activeId, onSelect, onAddDog }: Props) {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <span className="font-v3-display text-[30px] text-v3-brand-700 leading-none">
+              <span className="font-brand-display text-[30px] text-lime leading-none">
                 {initialsOf(active.name)}
               </span>
             )}
           </div>
 
           <div className="min-w-0 flex-1">
-            <h2 className="font-v3-display text-[28px] lg:text-[34px] leading-[1.05] tracking-[-0.02em] text-v3-text-primary truncate">
+            <h2 className="font-brand-display text-[28px] lg:text-[34px] leading-[1.05] tracking-[-0.02em] text-forest truncate">
               {active.name}
             </h2>
             {subtitle && (
-              <p className="text-v3-sm text-v3-text-secondary mt-1 truncate">
+              <p className="text-[13px] text-stone mt-1 truncate">
                 {subtitle}
               </p>
             )}
             <div className="flex flex-wrap gap-2 mt-3">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-v3-brand-500/10 border border-v3-brand-500/10 px-3 py-1 text-v3-xs font-medium text-v3-brand-700">
-                <Heart size={12} /> Team {active.name}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-v3-accent-prestation/12 border border-v3-accent-prestation/10 px-3 py-1 text-v3-xs font-medium text-v3-accent-prestation">
-                <Star size={12} /> Varje pass räknas
-              </span>
+              <BrandPill color="moss" dot>Team {active.name}</BrandPill>
+              <BrandPill color="coral" dot>Varje pass räknas</BrandPill>
             </div>
           </div>
 
-          <ChevronRight className="hidden sm:block text-v3-text-tertiary" size={18} strokeWidth={1.6} />
+          <ChevronRight className="hidden sm:block text-stone" size={18} strokeWidth={1.6} />
         </div>
       </div>
 
@@ -126,25 +123,25 @@ export function DogHero({ dogs, active, activeId, onSelect, onAddDog }: Props) {
                 className={cn(
                   "flex items-center gap-2 h-9 pl-1 pr-3 rounded-full transition-all",
                   isActive
-                    ? "bg-v3-brand-500/10 ring-1 ring-v3-brand-500/30"
-                    : "bg-v3-canvas-elevated hover:bg-v3-canvas-secondary border border-v3-canvas-sunken/40",
+                    ? "bg-forest text-bone"
+                    : "bg-white border border-forest/12 hover:bg-bone-2",
                 )}
               >
                 <span
                   className={cn(
                     "h-7 w-7 rounded-full overflow-hidden grid place-items-center shrink-0",
-                    isActive ? "bg-v3-brand-500/20" : "bg-v3-canvas-sunken",
+                    isActive ? "bg-lime" : "bg-bone-2",
                   )}
                 >
                   {d.photo_url ? (
                     <img src={d.photo_url} alt="" className="h-full w-full object-cover" />
                   ) : (
-                    <span className={cn("text-[11px] font-medium", isActive ? "text-v3-brand-700" : "text-v3-text-secondary")}>
+                    <span className={cn("text-[11px] font-medium", isActive ? "text-forest" : "text-stone")}>
                       {initialsOf(d.name)}
                     </span>
                   )}
                 </span>
-                <span className={cn("text-v3-sm font-medium", isActive ? "text-v3-brand-700" : "text-v3-text-primary")}>
+                <span className={cn("text-sm font-medium", isActive ? "text-bone" : "text-forest")}>
                   {d.name}
                 </span>
               </button>
@@ -155,7 +152,7 @@ export function DogHero({ dogs, active, activeId, onSelect, onAddDog }: Props) {
               type="button"
               onClick={onAddDog}
               aria-label="Lägg till hund"
-              className="h-9 w-9 rounded-full bg-v3-canvas-elevated border border-v3-canvas-sunken/40 grid place-items-center text-v3-text-tertiary hover:text-v3-text-primary hover:bg-v3-canvas-secondary transition-colors"
+              className="h-9 w-9 rounded-full bg-white border border-forest/12 grid place-items-center text-stone hover:text-forest hover:bg-bone-2 transition-colors"
             >
               <Plus size={16} strokeWidth={1.6} />
             </button>

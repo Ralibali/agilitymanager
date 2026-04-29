@@ -74,6 +74,8 @@ function saveCourse(c: CourseV2) {
 function uid() { return Math.random().toString(36).slice(2, 10); }
 
 export default function V3CoursePlannerV2Page() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [course, setCourse] = useState<CourseV2>(() => loadCourse());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tool, setTool] = useState<"select" | "erase" | "number">("select");
@@ -81,9 +83,14 @@ export default function V3CoursePlannerV2Page() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [showPath, setShowPath] = useState(true);
   const [issuesOpen, setIssuesOpen] = useState(false);
+  const [cloudId, setCloudId] = useState<string | null>(() => {
+    try { return localStorage.getItem(STORAGE_KEY + "_cloud_id"); } catch { return null; }
+  });
+  const [savingCloud, setSavingCloud] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  // Autospara
+  // Autospara lokalt
   useEffect(() => {
     const t = setTimeout(() => { saveCourse(course); setSavedAt(new Date()); }, 600);
     return () => clearTimeout(t);
@@ -112,6 +119,75 @@ export default function V3CoursePlannerV2Page() {
       console.error(e);
       toast.error("Kunde inte skapa PDF");
     }
+  }
+
+  /** Sparar/uppdaterar banan i molnet (saved_courses). Returnerar id eller null. */
+  async function saveToCloud(opts?: { silent?: boolean }): Promise<string | null> {
+    if (!user?.id) {
+      if (!opts?.silent) toast.error("Logga in för att spara i molnet");
+      return null;
+    }
+    setSavingCloud(true);
+    try {
+      const payload = {
+        user_id: user.id,
+        name: course.name || "Ny bana",
+        description: "",
+        course_data: {
+          version: 2,
+          sport: course.sport,
+          sizeClass: course.sizeClass,
+          arenaWidthM: course.arenaWidthM,
+          arenaHeightM: course.arenaHeightM,
+          classTemplate: course.classTemplate,
+          obstacles: course.obstacles,
+        } as unknown,
+        canvas_width: Math.round(course.arenaWidthM * 20),
+        canvas_height: Math.round(course.arenaHeightM * 20),
+      };
+      let id = cloudId;
+      if (id) {
+        const { error } = await supabase.from("saved_courses")
+          .update(payload).eq("id", id).eq("user_id", user.id);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from("saved_courses")
+          .insert(payload).select("id").single();
+        if (error) throw error;
+        id = data.id as string;
+        setCloudId(id);
+        try { localStorage.setItem(STORAGE_KEY + "_cloud_id", id); } catch { /* ignore */ }
+      }
+      if (!opts?.silent) toast.success("Bana sparad i molnet");
+      return id;
+    } catch (e) {
+      console.error(e);
+      if (!opts?.silent) toast.error("Kunde inte spara i molnet");
+      return null;
+    } finally {
+      setSavingCloud(false);
+    }
+  }
+
+  async function handleShare() {
+    const id = cloudId ?? await saveToCloud({ silent: true });
+    if (!id) {
+      toast.error("Banan måste sparas i molnet först — logga in och försök igen");
+      return;
+    }
+    setShareOpen(true);
+  }
+
+  function handleTrainThis() {
+    const sport = course.sport === "agility" ? "agility" : "hoopers";
+    const params = new URLSearchParams({
+      from: "course-planner",
+      sport,
+      courseName: course.name || "Ny bana",
+      sizeClass: course.sizeClass,
+    });
+    if (cloudId) params.set("courseId", cloudId);
+    navigate(`/v3/training?${params.toString()}`);
   }
 
 

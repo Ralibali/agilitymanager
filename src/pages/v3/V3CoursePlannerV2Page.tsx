@@ -262,7 +262,14 @@ export default function V3CoursePlannerV2Page() {
         </span>
         <div className="ml-auto flex items-center gap-2">
           <SegmentedSport value={course.sport} onChange={switchSport} />
-          <span className="hidden md:inline-flex text-[10px] uppercase tracking-wider px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">v2 beta</span>
+          <ValidationBadge summary={issueSummary} onClick={() => setIssuesOpen((v) => !v)} active={issuesOpen} />
+          <button
+            onClick={handleExportPdf}
+            className="hidden sm:inline-flex h-9 px-3 rounded-full bg-white border border-black/10 text-[12px] font-semibold items-center gap-1.5 hover:border-neutral-400"
+            title="Exportera domar-PDF"
+          >
+            <FileDown size={14} /> PDF
+          </button>
           <button
             onClick={() => { saveCourse(course); toast.success("Bana sparad"); }}
             className="h-9 px-3 rounded-full bg-[#1a6b3c] text-white text-[12px] font-semibold inline-flex items-center gap-1.5"
@@ -271,6 +278,12 @@ export default function V3CoursePlannerV2Page() {
           </button>
         </div>
       </header>
+
+      {issuesOpen && (
+        <div className="bg-white border-b border-black/5 px-4 py-3 max-h-[40vh] overflow-y-auto">
+          <IssuesList issues={issues} onSelect={(id) => { if (id) setSelectedId(id); }} />
+        </div>
+      )}
 
       {/* MAIN GRID */}
       <main className="grid gap-3 p-3 lg:p-4 lg:grid-cols-[280px_minmax(0,1fr)_320px]">

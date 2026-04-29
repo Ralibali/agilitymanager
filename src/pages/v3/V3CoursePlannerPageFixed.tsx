@@ -291,6 +291,63 @@ export default function V3CoursePlannerPageFixed() {
     for (const n of course.numbers) { const p = toPdf(n); const [r, g, b] = hexToRgb(n.color || DRAW_RED); pdf.setFillColor(r, g, b); pdf.circle(p.x, p.y, 2.5, "F"); pdf.setTextColor(n.color === "#ffffff" ? 20 : 255, n.color === "#ffffff" ? 40 : 255, n.color === "#ffffff" ? 20 : 255); pdf.setFontSize(5.5); pdf.text(String(n.num), p.x, p.y + 0.8, { align: "center" }); }
     pdf.setDrawColor(120, 120, 120); pdf.line(marginX + fieldW - 36, top + fieldH - 5, marginX + fieldW - 8, top + fieldH - 5); pdf.line(marginX + fieldW - 36, top + fieldH - 6, marginX + fieldW - 36, top + fieldH - 4); pdf.line(marginX + fieldW - 8, top + fieldH - 6, marginX + fieldW - 8, top + fieldH - 4); pdf.setTextColor(100, 100, 100); pdf.text("5 m", marginX + fieldW - 22, top + fieldH - 7, { align: "center" });
     pdf.setFontSize(6); pdf.text("Skapad med AgilityManager - agilitymanager.se", pageW / 2, pageH - 8, { align: "center" });
+
+    // ===== SID 2: Sammanfattning =====
+    pdf.addPage("a4", "landscape");
+    pdf.setFillColor(...hexToRgb(NAVY)); pdf.rect(0, 0, pageW, headerH, "F");
+    pdf.setTextColor(255, 255, 255); pdf.setFont("helvetica", "bold"); pdf.setFontSize(11); pdf.text(`${course.name || `${mode}-bana`} - Sammanfattning`, 10, 8.5);
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.text(course.location ? `Plats: ${course.location}` : "AgilityManager - Banplanerare", 10, 13.5);
+    pdf.setFontSize(7); pdf.text(date, pageW - 10, 10.5, { align: "right" });
+
+    // Vänster kolumn: metadata
+    let cy = 30;
+    pdf.setTextColor(30, 30, 30); pdf.setFont("helvetica", "bold"); pdf.setFontSize(11); pdf.text("Banuppgifter", 14, cy); cy += 7;
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(9.5); pdf.setTextColor(55, 55, 55);
+    const meta: Array<[string, string]> = [
+      ["Banans namn", course.name || "(namnlöst)"],
+      ["Plats", course.location?.trim() || "-"],
+      ["Sport / läge", mode],
+      ["Banstorlek", `${course.width} x ${course.height} m`],
+      ["Antal hinder", String(course.obstacles.length)],
+      ["Antal banritlinjer", String(course.paths.length)],
+      ["Antal nummermarkörer", String(course.numbers.length)],
+      ["Datum", date],
+    ];
+    for (const [k, v] of meta) {
+      pdf.setTextColor(110, 110, 110); pdf.text(k, 14, cy);
+      pdf.setTextColor(30, 30, 30); pdf.text(v, 70, cy);
+      cy += 6;
+    }
+
+    // Höger kolumn: hinder per typ
+    const counts = new Map<ObstacleType, number>();
+    for (const o of course.obstacles) counts.set(o.type, (counts.get(o.type) ?? 0) + 1);
+    const labelFor = (t: ObstacleType) => specsFor(mode).find(s => s.type === t)?.label ?? t;
+    const rows = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+
+    let ry = 30;
+    const colX = pageW / 2 + 10;
+    pdf.setTextColor(30, 30, 30); pdf.setFont("helvetica", "bold"); pdf.setFontSize(11); pdf.text("Hinder per typ", colX, ry); ry += 7;
+    pdf.setFont("helvetica", "bold"); pdf.setFontSize(8.5); pdf.setTextColor(110, 110, 110);
+    pdf.text("Typ", colX, ry); pdf.text("Antal", pageW - 18, ry, { align: "right" });
+    ry += 2; pdf.setDrawColor(220, 220, 220); pdf.setLineWidth(0.2); pdf.line(colX, ry, pageW - 14, ry); ry += 5;
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(9.5); pdf.setTextColor(40, 40, 40);
+    if (rows.length === 0) {
+      pdf.setTextColor(140, 140, 140); pdf.text("Inga hinder placerade.", colX, ry);
+    } else {
+      for (const [type, count] of rows) {
+        if (ry > pageH - 20) break;
+        pdf.text(labelFor(type), colX, ry);
+        pdf.text(String(count), pageW - 18, ry, { align: "right" });
+        ry += 6;
+      }
+      ry += 2; pdf.setDrawColor(180, 180, 180); pdf.line(colX, ry, pageW - 14, ry); ry += 5;
+      pdf.setFont("helvetica", "bold"); pdf.text("Totalt", colX, ry); pdf.text(String(course.obstacles.length), pageW - 18, ry, { align: "right" });
+    }
+
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(6); pdf.setTextColor(120, 120, 120);
+    pdf.text("Skapad med AgilityManager - agilitymanager.se", pageW / 2, pageH - 8, { align: "center" });
+
     const filename = buildExportName([course.name, course.location, mode], "pdf");
     pdf.save(filename); toast.success(`PDF skapad: ${filename}`);
   };

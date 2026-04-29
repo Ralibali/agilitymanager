@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { motion as M } from "@/lib/motion";
+import { Button } from "@/components/ui/button";
 
 const NAV_LINKS = [
   { href: "#features", label: "Funktioner" },

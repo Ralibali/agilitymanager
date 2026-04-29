@@ -355,10 +355,11 @@ export default function V3CoursePlannerPageFixed() {
 
   return <div className={cn("min-h-[100dvh] bg-[#f7f6f0] text-v3-text-primary animate-v3-fade-in", fullscreen && "fixed inset-0 z-[1000] overflow-auto")}>
     {/* === MOBILE HEADER === */}
-    <header className="lg:hidden sticky top-0 z-40 bg-[#f7f6f0]/95 backdrop-blur-xl border-b border-black/5 px-3 py-2.5 flex items-center gap-2">
-      <button type="button" onClick={() => { window.location.href = "/v3/courses"; }} className="h-10 w-10 rounded-full bg-white border border-black/8 grid place-items-center text-v3-text-secondary shrink-0" aria-label="Tillbaka"><ArrowLeft size={18} /></button>
-      <input value={course.name} onChange={(e) => updateCourse(prev => ({ ...prev, name: e.target.value }))} className="h-10 min-w-0 flex-1 rounded-full border border-black/8 bg-white px-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-v3-brand-500/25" />
-      <button type="button" onClick={() => setMoreOpen(true)} className="h-10 w-10 rounded-full bg-white border border-black/8 grid place-items-center" aria-label="Meny"><MenuIcon size={18} /></button>
+    <header className="lg:hidden sticky top-0 z-40 bg-[#f7f6f0]/95 backdrop-blur-xl border-b border-black/5 px-2 py-1.5 flex items-center gap-1.5">
+      <button type="button" onClick={() => { window.location.href = "/v3/courses"; }} className="h-9 w-9 rounded-full bg-white border border-black/8 grid place-items-center text-v3-text-secondary shrink-0" aria-label="Tillbaka"><ArrowLeft size={16} /></button>
+      <input value={course.name} onChange={(e) => updateCourse(prev => ({ ...prev, name: e.target.value }))} className="h-9 min-w-0 flex-1 rounded-full border border-black/8 bg-white px-3 text-[13px] font-semibold outline-none focus:ring-2 focus:ring-v3-brand-500/25" />
+      <button type="button" onClick={() => switchMode(mode === "Agility" ? "Hoopers" : "Agility")} className="h-9 px-2.5 rounded-full bg-v3-brand-600 text-white text-[11px] font-bold shrink-0" aria-label="Byt sport">{mode === "Agility" ? "A" : "H"}</button>
+      <button type="button" onClick={() => setView3DMode("view")} className="h-9 w-9 rounded-full bg-white border border-black/8 grid place-items-center" aria-label="3D"><Box size={16} /></button>
     </header>
 
     {/* === DESKTOP HEADER === */}

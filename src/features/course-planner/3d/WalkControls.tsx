@@ -101,7 +101,7 @@ export function WalkControls({
     camera.quaternion.setFromEuler(euler);
 
     // Movement
-    const sprint = keys.current["shift"] ? sprintMul : 1;
+    const sprint = keys.current["shift"] || sprintRef?.current ? sprintMul : 1;
     const v = speed * sprint * dt;
     const forward = new THREE.Vector3();
     camera.getWorldDirection(forward);

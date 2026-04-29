@@ -297,6 +297,42 @@ export default function V3SettingsPage() {
           </section>
 
           <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-6 animate-v3-fade-up">
+            <h3 className="font-v3-display text-v3-xl text-v3-text-primary mb-1">Lokala tävlingsmarkeringar</h3>
+            <p className="text-v3-xs text-v3-text-tertiary mb-4">
+              {user
+                ? "Markeringar du gör utloggad sparas på enheten och kan synkas till ditt konto vid inloggning."
+                : "Dina markeringar sparas just nu på den här enheten. Logga in för att synka dem till ditt konto."}
+            </p>
+
+            <label className="flex items-start justify-between gap-3 cursor-pointer mb-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-1.5 text-v3-sm text-v3-text-primary">
+                  <RefreshCw className="h-3.5 w-3.5" /> Synka över enheter vid inloggning
+                </div>
+                <p className="text-v3-xs text-v3-text-tertiary mt-0.5">
+                  När på: lokala markeringar flyttas till ditt konto nästa gång du loggar in.
+                </p>
+              </div>
+              <Switch checked={guestSyncEnabled} onCheckedChange={handleToggleGuestSync} />
+            </label>
+
+            <div className="flex items-center justify-between gap-3 pt-3 border-t border-v3-canvas-sunken">
+              <div className="text-v3-xs text-v3-text-tertiary">
+                {localGuestCount === 0
+                  ? "Inga lokala markeringar"
+                  : `${localGuestCount} lokal${localGuestCount === 1 ? "" : "a"} markering${localGuestCount === 1 ? "" : "ar"}`}
+              </div>
+              <button
+                onClick={handleClearLocalGuestData}
+                disabled={localGuestCount === 0}
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-v3-base bg-v3-canvas-secondary border border-v3-canvas-sunken text-v3-xs text-v3-text-primary v3-tappable v3-focus-ring disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> Rensa lokala data
+              </button>
+            </div>
+          </section>
+
+          <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-6 animate-v3-fade-up">
             <h3 className="font-v3-display text-v3-xl text-v3-text-primary mb-4">Utseende</h3>
             <div className="inline-flex rounded-v3-base bg-v3-canvas-secondary p-1 w-full">
               {(["light", "dark"] as const).map((mode) => (

@@ -187,6 +187,16 @@ export default function AuthPage() {
           </div>
         )}
 
+        {source === 'competitions' && guestInterestCount > 0 && !resetMode && (
+          <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 text-sm text-muted-foreground">
+            <strong className="flex items-center gap-2 text-foreground mb-1">
+              <CheckCircle2 size={16} className="text-primary" />
+              Vi har sparat dina {guestInterestCount} markering{guestInterestCount === 1 ? '' : 'ar'}
+            </strong>
+            De kopplas automatiskt till ditt konto när du loggat in — ingenting går förlorat.
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {resetMode ? (
             <>

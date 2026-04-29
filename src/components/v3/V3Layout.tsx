@@ -28,7 +28,8 @@ function clickButtonByLabels(labels: string[]): boolean {
  * Desktop: collapsable sidebar + Outlet
  * Mobil:   Outlet + bottom-nav (5 slots, center-FAB)
  *
- * Inget i shellen byts vid navigation – bara Outlet.
+ * Banplaneraren behöver däremot en egen full arbetsyta. Där döljer vi både
+ * app-sidebar och bottom-nav så att 2D/3D/Gå banan inte täcks på mobil.
  */
 export function V3Layout() {
   const [moreOpen, setMoreOpen] = useState(false);
@@ -37,6 +38,7 @@ export function V3Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const handledActionRef = useRef<string | null>(null);
+  const isCoursePlanner = location.pathname === "/v3/course-planner";
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -75,11 +77,11 @@ export function V3Layout() {
   }, [location.pathname, location.search, navigate, setLogOpen]);
 
   return (
-    <div className="min-h-screen bg-v3-canvas text-v3-text-primary font-v3-sans flex">
-      <V3Sidebar />
+    <div className={`min-h-screen bg-v3-canvas text-v3-text-primary font-v3-sans flex ${isCoursePlanner ? "v3-course-planner-app-shell" : ""}`}>
+      {!isCoursePlanner && <V3Sidebar />}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <main className="flex-1 pb-24 lg:pb-0">
+        <main className={`flex-1 ${isCoursePlanner ? "pb-0 lg:pb-0 overflow-x-hidden" : "pb-24 lg:pb-0"}`}>
           <Suspense
             fallback={
               <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-8">
@@ -102,20 +104,24 @@ export function V3Layout() {
         </main>
       </div>
 
-      <V3BottomNav
-        onOpenQuickActions={() => setQuickOpen(true)}
-        onOpenMore={() => setMoreOpen(true)}
-      />
-      <V3MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} />
-      <V3QuickActionSheet
-        open={quickOpen}
-        onClose={() => setQuickOpen(false)}
-        onLogTraining={() => {
-          setQuickOpen(false);
-          setLogOpen(true);
-        }}
-      />
-      <V3LogTrainingSheet open={logOpen} onClose={closeLog} />
+      {!isCoursePlanner && (
+        <>
+          <V3BottomNav
+            onOpenQuickActions={() => setQuickOpen(true)}
+            onOpenMore={() => setMoreOpen(true)}
+          />
+          <V3MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} />
+          <V3QuickActionSheet
+            open={quickOpen}
+            onClose={() => setQuickOpen(false)}
+            onLogTraining={() => {
+              setQuickOpen(false);
+              setLogOpen(true);
+            }}
+          />
+          <V3LogTrainingSheet open={logOpen} onClose={closeLog} />
+        </>
+      )}
     </div>
   );
 }

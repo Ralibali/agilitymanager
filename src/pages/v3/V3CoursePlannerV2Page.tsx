@@ -224,7 +224,52 @@ export default function V3CoursePlannerV2Page() {
     } catch { toast.error("Kunde inte exportera JSON"); }
   }
 
-  /** Sparar/uppdaterar banan i molnet (saved_courses). Returnerar id eller null. */
+  function handleImportJsonClick() {
+    importInputRef.current?.click();
+  }
+
+  async function handleImportJsonFile(file: File) {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Filen är för stor (max 5 MB).");
+      return;
+    }
+    let text: string;
+    try {
+      text = await file.text();
+    } catch {
+      toast.error("Kunde inte läsa filen.");
+      return;
+    }
+    const result = parseCourseJson(text);
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+    if (course.obstacles.length > 0) {
+      const ok = window.confirm(
+        `Importera "${result.course.name}"?\nDen ersätter den nuvarande banan (${course.obstacles.length} hinder).`,
+      );
+      if (!ok) return;
+    }
+    setCourse({
+      name: result.course.name,
+      sport: result.course.sport,
+      sizeClass: result.course.sizeClass,
+      arenaWidthM: result.course.arenaWidthM,
+      arenaHeightM: result.course.arenaHeightM,
+      classTemplate: result.course.classTemplate,
+      obstacles: result.course.obstacles,
+    });
+    setSelectedId(null);
+    // Lokal moln-länk gäller inte längre — nästa molnspar skapar ny rad.
+    setCloudId(null);
+    try { localStorage.removeItem(STORAGE_KEY + "_cloud_id"); } catch { /* ignore */ }
+    if (result.warnings.length > 0) {
+      toast.success(`Banan importerad — ${result.warnings.join(" ")}`);
+    } else {
+      toast.success(`"${result.course.name}" importerad`);
+    }
+  }
   async function saveToCloud(opts?: { silent?: boolean }): Promise<string | null> {
     if (!user?.id) {
       if (!opts?.silent) toast.error("Logga in för att spara i molnet");

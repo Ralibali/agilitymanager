@@ -226,7 +226,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
 
     if (!user) {
       // Gäst: läs från localStorage via samma hjälpare som useCompetitionInterests
-      const guestItems = readGuestInterests();
+      const guestItems = readGuestInterestItems();
       guestItems.forEach((g) => {
         if (g.status === "interested" || g.status === "registered") {
           map[g.competition_id] = g.status as InterestStatus;

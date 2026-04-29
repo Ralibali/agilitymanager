@@ -175,6 +175,17 @@ export default {
           error: "hsl(var(--v3-error))",
           info: "hsl(var(--v3-info))",
         },
+        // === Brand foundation (rena hex-tokens, additivt) ===
+        bone: "#F5F1E8",
+        "bone-2": "#ECE7DA",
+        cream: "#FAF6EE",
+        forest: "#0E1F18",
+        "forest-soft": "#1F3329",
+        moss: "#B8C9B2",
+        "moss-deep": "#2C4135",
+        lime: "#B5F94A",
+        coral: "#E76F51",
+        stone: "#6B6B5F",
       },
       borderRadius: {
         lg: "var(--radius-card)",

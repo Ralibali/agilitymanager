@@ -397,7 +397,7 @@ export default function V3CoursePlannerV2Page() {
     setCourse((c) => ({
       ...c,
       obstacles: c.obstacles.map((o) => o.id === draggingId
-        ? { ...o, x: clamp(local.x, 0, c.arenaWidthM), y: clamp(local.y, 0, c.arenaHeightM) }
+        ? { ...o, x: snapM(clamp(local.x, 0, c.arenaWidthM)), y: snapM(clamp(local.y, 0, c.arenaHeightM)) }
         : o),
     }));
   }
@@ -650,6 +650,7 @@ export default function V3CoursePlannerV2Page() {
           ) : (
             <SummaryPanel course={course} />
           )}
+          <CourseCommentsPanel courseId={cloudId} enabled={!!cloudId} />
         </aside>
       </main>
     </div>

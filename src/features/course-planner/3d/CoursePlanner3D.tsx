@@ -216,6 +216,7 @@ export default function CoursePlanner3D(props: CoursePlanner3DProps) {
               <WalkControls
                 joystickRef={joystickRef}
                 lookDeltaRef={lookDeltaRef}
+                sprintRef={sprintRef}
                 isMobile={isMobile}
                 bounds={{ w: widthMeters, h: heightMeters }}
               />

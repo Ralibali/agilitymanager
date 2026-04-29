@@ -121,10 +121,13 @@ export default function V3CoursePlannerV2Page() {
   const { user } = useAuth();
   const [course, setCourseRaw] = useState<CourseV2>(() => loadCourse());
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [tool, setTool] = useState<"select" | "erase" | "number">("select");
+  const [tool, setTool] = useState<"select" | "erase" | "number" | "measure">("select");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [showPath, setShowPath] = useState(true);
+  const [showDimensions, setShowDimensions] = useState<boolean>(() => {
+    try { return localStorage.getItem(DIM_STORAGE_KEY) !== "0"; } catch { return true; }
+  });
   const [issuesOpen, setIssuesOpen] = useState(false);
   const [snap, setSnap] = useState(true);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -136,8 +139,64 @@ export default function V3CoursePlannerV2Page() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [view3D, setView3D] = useState<null | "view" | "walk">(null);
-  const svgRef = useRef<SVGSVGElement | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [hoverM, setHoverM] = useState<{ x: number; y: number } | null>(null);
+  const [spaceDown, setSpaceDown] = useState(false);
+  const [panning, setPanning] = useState(false);
+  const fullscreenRootRef = useRef<HTMLDivElement | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Viewport (zoom/pan) — persisteras per moln-id om finns, annars generic.
+  const viewport = useCanvasViewport({
+    storageKey: cloudId ?? "local",
+    arenaWidthM: course.arenaWidthM,
+    arenaHeightM: course.arenaHeightM,
+    paddingM: 1,
+  });
+  const svgRef = viewport.svgRef;
+
+  // Persistera Mått-toggle.
+  useEffect(() => {
+    try { localStorage.setItem(DIM_STORAGE_KEY, showDimensions ? "1" : "0"); } catch { /* ignore */ }
+  }, [showDimensions]);
+
+  // Helskärmsläge — lyssna på fullscreenchange.
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const toggleFullscreen = useCallback(async () => {
+    const el = fullscreenRootRef.current;
+    if (!el) return;
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await el.requestFullscreen();
+    } catch (e) { console.error(e); }
+  }, []);
+
+  // Mellanslag = panorera-läge.
+  useEffect(() => {
+    const isTyping = (t: EventTarget | null) => {
+      const el = t as HTMLElement | null;
+      if (!el) return false;
+      const tag = el.tagName;
+      return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+    };
+    const onDown = (e: KeyboardEvent) => {
+      if (e.code === "Space" && !isTyping(e.target) && !e.repeat) {
+        e.preventDefault();
+        setSpaceDown(true);
+      }
+    };
+    const onUp = (e: KeyboardEvent) => {
+      if (e.code === "Space") setSpaceDown(false);
+    };
+    window.addEventListener("keydown", onDown);
+    window.addEventListener("keyup", onUp);
+    return () => { window.removeEventListener("keydown", onDown); window.removeEventListener("keyup", onUp); };
+  }, []);
 
   // Undo/redo (begränsad till 30 steg)
   const historyRef = useRef<{ past: CourseV2[]; future: CourseV2[] }>({ past: [], future: [] });

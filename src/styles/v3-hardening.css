@@ -4,7 +4,6 @@
   premiumkänslan när de ligger utanför de vanliga V3Page-komponenterna.
 */
 
-/* Banplaneraren använder samma knappklass på mobil och desktop. */
 .mobile-tool-btn {
   min-height: 2.75rem;
   display: inline-flex;
@@ -45,7 +44,6 @@
     0 0 0 4px hsl(var(--v3-brand-500));
 }
 
-/* Nuvarande V3Page-bredder. Ersätter äldre polish-regler som bara träffade 1180px-containern. */
 @media (min-width: 1280px) {
   main > div[class*="max-w-[1380px]"] {
     max-width: min(1480px, calc(100vw - 112px));
@@ -58,16 +56,197 @@
   }
 }
 
-/* Gemensam kortkänsla utan att låsa oss till enskilda gamla komponenter. */
 main .rounded-v3-2xl.bg-v3-canvas-elevated,
 main .rounded-v3-xl.bg-v3-canvas-elevated {
   border-color: hsl(var(--v3-canvas-sunken) / 0.68);
 }
 
-/* Gör formulär och filter mer konsekventa efter designprompter. */
 main input,
 main select,
 main textarea,
 button {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* === Full banplanerare, v3-design utan att ta bort gamla funktioner === */
+.v3-course-planner-shell {
+  --planner-topbar-height: 72px;
+  background:
+    radial-gradient(circle at 18% 0%, hsl(var(--v3-brand-500) / 0.07), transparent 26%),
+    hsl(var(--v3-canvas));
+}
+
+.v3-course-planner-topbar {
+  position: relative;
+  z-index: 45;
+}
+
+.v3-course-planner-frame {
+  position: relative;
+  padding: 0.75rem 0.75rem 1.25rem;
+}
+
+.v3-course-planner-frame > div {
+  max-width: min(1500px, calc(100vw - 24px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.v3-course-planner-control {
+  min-height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  border: 1px solid hsl(var(--v3-canvas-sunken) / 0.72);
+  background: hsl(var(--v3-canvas-elevated));
+  color: hsl(var(--v3-text-secondary));
+  padding: 0 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  box-shadow: 0 1px 2px rgba(26, 29, 27, 0.04);
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.v3-course-planner-control:hover {
+  transform: translateY(-1px);
+  background: hsl(var(--v3-canvas));
+  color: hsl(var(--v3-text-primary));
+  box-shadow: 0 8px 22px rgba(26, 29, 27, 0.06);
+}
+
+.v3-course-planner-control-primary {
+  background: hsl(var(--v3-text-primary));
+  border-color: hsl(var(--v3-text-primary));
+  color: hsl(var(--v3-text-inverse));
+}
+
+.v3-course-planner-control-primary:hover {
+  background: hsl(var(--v3-brand-600));
+  color: hsl(var(--v3-text-inverse));
+}
+
+.v3-course-planner-tip {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  max-width: 780px;
+  border-radius: 1rem;
+  border: 1px solid hsl(var(--v3-brand-500) / 0.18);
+  background: hsl(var(--v3-brand-500) / 0.08);
+  color: hsl(var(--v3-text-secondary));
+  padding: 0.75rem 0.85rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  box-shadow: 0 8px 26px rgba(26, 29, 27, 0.045);
+}
+
+.v3-course-planner-tip strong {
+  color: hsl(var(--v3-text-primary));
+}
+
+.v3-course-planner-tip button {
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  color: hsl(var(--v3-text-tertiary));
+}
+
+.v3-course-planner-tip button:hover {
+  background: hsl(var(--v3-canvas-elevated) / 0.8);
+  color: hsl(var(--v3-text-primary));
+}
+
+/* V3-skin på gamla banplaneraren: behåll DOM och funktioner, polera ytorna. */
+.v3-course-planner-frame :is(.bg-background, .bg-card, .bg-white) {
+  background-color: hsl(var(--v3-canvas-elevated)) !important;
+}
+
+.v3-course-planner-frame :is(.border, .border-border, .border-input) {
+  border-color: hsl(var(--v3-canvas-sunken) / 0.68) !important;
+}
+
+.v3-course-planner-frame :is(.rounded-lg, .rounded-xl, .rounded-2xl) {
+  border-radius: 1rem;
+}
+
+.v3-course-planner-frame button:not([data-radix-collection-item]) {
+  border-radius: 0.875rem;
+}
+
+.v3-course-planner-frame :is(input, select, textarea, [role="combobox"]) {
+  border-radius: 0.875rem !important;
+  border-color: hsl(var(--v3-canvas-sunken) / 0.72) !important;
+  background-color: hsl(var(--v3-canvas)) !important;
+}
+
+.v3-course-planner-frame :is(.shadow, .shadow-sm, .shadow-md, .shadow-lg) {
+  box-shadow: 0 12px 30px rgba(26, 29, 27, 0.055) !important;
+}
+
+/* Stäng vänster verktygs-/sidopanel i själva banplaneraren och ge planen mer plats. */
+@media (min-width: 1024px) {
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame aside:first-of-type,
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="w-64"]:first-child,
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="w-72"]:first-child,
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="w-80"]:first-child,
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="basis-64"]:first-child,
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="basis-72"]:first-child,
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="basis-80"]:first-child {
+    display: none !important;
+  }
+
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame > div {
+    max-width: min(1760px, calc(100vw - 32px));
+  }
+}
+
+/* Storbild: samma gamla komponent och alla funktioner, men maximal arbetsyta. */
+.v3-course-planner-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  min-height: 100dvh;
+  overflow: auto;
+  background:
+    radial-gradient(circle at 18% 0%, hsl(var(--v3-brand-500) / 0.08), transparent 28%),
+    hsl(var(--v3-canvas));
+}
+
+.v3-course-planner-fullscreen .v3-course-planner-topbar {
+  position: sticky;
+  top: 0;
+  padding-bottom: 0.75rem;
+  background: hsl(var(--v3-canvas) / 0.92);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid hsl(var(--v3-canvas-sunken) / 0.52);
+}
+
+.v3-course-planner-fullscreen .v3-course-planner-frame {
+  padding: 0.75rem;
+}
+
+.v3-course-planner-fullscreen .v3-course-planner-frame > div {
+  max-width: none;
+  width: 100%;
+}
+
+.v3-course-planner-fullscreen .v3-course-planner-frame :is(canvas, svg) {
+  max-width: none;
+}
+
+@media (max-width: 767px) {
+  .v3-course-planner-frame {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .v3-course-planner-tip {
+    font-size: 0.75rem;
+  }
 }

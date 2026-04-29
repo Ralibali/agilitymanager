@@ -538,12 +538,31 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
 
       
 
-      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ open: false, compId: '' })}>
+      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ open: false, compId: '', targetType: null })}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Ta bort anmälan?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {(() => {
+                const cur = interests[confirmDialog.compId];
+                const tgt = confirmDialog.targetType;
+                if (tgt === null) {
+                  return cur === 'done' ? 'Ta bort genomförd?' : 'Ta bort anmälan?';
+                }
+                if (cur === 'done') return 'Ändra från genomförd?';
+                return 'Ta bort anmälan?';
+              })()}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Du är markerad som anmäld till denna tävling. Vill du ändra tillbaka till intresserad?
+              {(() => {
+                const cur = interests[confirmDialog.compId];
+                const tgt = confirmDialog.targetType;
+                const curLabel = cur === 'done' ? 'genomförd' : cur === 'registered' ? 'anmäld' : 'intresserad';
+                if (tgt === null) {
+                  return `Du är markerad som ${curLabel} på denna tävling. Vill du ta bort markeringen helt?`;
+                }
+                const tgtLabel = tgt === 'registered' ? 'anmäld' : 'intresserad';
+                return `Du är markerad som ${curLabel}. Vill du ändra tillbaka till ${tgtLabel}?`;
+              })()}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

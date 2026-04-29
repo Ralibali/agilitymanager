@@ -269,7 +269,7 @@ export default function V3CoursePlannerPageFixed() {
   const reset = () => { updateCourse(makeCourse(mode)); setSelectedId(null); toast.success(`${mode}-banan återställd`); };
   const saveToLibrary = () => { const entry = { id: uid("saved"), name: course.name.trim() || `${mode}-bana`, mode, savedAt: new Date().toISOString(), course }; const next = [entry, ...saved].slice(0, 20); setSaved(next); window.localStorage.setItem(LIBRARY_KEY, JSON.stringify(next)); toast.success("Banan sparades"); };
   const openSaved = (entry: SavedCourse) => { setMode(entry.mode); setCourses(prev => ({ ...prev, [entry.mode]: entry.course })); setSavedOpen(false); toast.success(`Öppnade ${entry.name}`); };
-  const exportJson = () => { downloadFile(`${course.name || mode}-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ mode, course }, null, 2)); toast.success("JSON exporterad"); };
+  const exportJson = () => { downloadFile(buildExportName([course.name, course.location, mode], "json"), JSON.stringify({ mode, course }, null, 2)); toast.success("JSON exporterad"); };
   const exportPdf = () => {
     const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const pageW = 297, pageH = 210, headerH = 17, date = new Date().toISOString().slice(0, 10);

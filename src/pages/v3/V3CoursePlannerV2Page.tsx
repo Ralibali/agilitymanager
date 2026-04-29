@@ -12,7 +12,7 @@
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
 import { useEffect, useMemo, useRef, useState, useCallback, type PointerEvent } from "react";
-import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff, Library, Undo2, Redo2, Copy, Magnet, Box, Footprints, Lock, Unlock, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff, Library, Undo2, Redo2, Copy, Magnet, Box, Footprints, Lock, Unlock, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown, Ruler, Crosshair } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,9 @@ import type { LibraryCourse } from "@/features/course-planner-v2/library";
 import { CommandPalette } from "@/components/course-planner-v2/CommandPalette";
 import { KeyboardShortcutsHelp } from "@/components/course-planner-v2/KeyboardShortcutsHelp";
 import { ExportMenu } from "@/components/course-planner-v2/ExportMenu";
+import { CanvasRulers } from "@/components/course-planner-v2/CanvasRulers";
+import { ViewportControls } from "@/components/course-planner-v2/ViewportControls";
+import { useCanvasViewport } from "@/features/course-planner-v2/useCanvasViewport";
 import { buildPlannerCommands } from "@/features/course-planner-v2/plannerCommands";
 import { useCoursePlannerHotkeys } from "@/hooks/useCoursePlannerHotkeys";
 import { useProfileName } from "@/hooks/useProfileName";
@@ -42,6 +45,8 @@ import { exportBuildPdf } from "@/features/course-planner-v2/buildPdf";
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
 import { parseCourseJson } from "@/features/course-planner-v2/importJson";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
+
+const DIM_STORAGE_KEY = "am_planner_show_dimensions";
 
 const STORAGE_KEY = "am_course_planner_v2";
 
@@ -116,10 +121,13 @@ export default function V3CoursePlannerV2Page() {
   const { user } = useAuth();
   const [course, setCourseRaw] = useState<CourseV2>(() => loadCourse());
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [tool, setTool] = useState<"select" | "erase" | "number">("select");
+  const [tool, setTool] = useState<"select" | "erase" | "number" | "measure">("select");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [showPath, setShowPath] = useState(true);
+  const [showDimensions, setShowDimensions] = useState<boolean>(() => {
+    try { return localStorage.getItem(DIM_STORAGE_KEY) !== "0"; } catch { return true; }
+  });
   const [issuesOpen, setIssuesOpen] = useState(false);
   const [snap, setSnap] = useState(true);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -131,8 +139,33 @@ export default function V3CoursePlannerV2Page() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [view3D, setView3D] = useState<null | "view" | "walk">(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const fullscreenRootRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Persistera Mått-toggle.
+  useEffect(() => {
+    try { localStorage.setItem(DIM_STORAGE_KEY, showDimensions ? "1" : "0"); } catch { /* ignore */ }
+  }, [showDimensions]);
+
+  // Helskärmsläge — lyssna på fullscreenchange.
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const toggleFullscreen = useCallback(async () => {
+    const el = fullscreenRootRef.current;
+    if (!el) return;
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await el.requestFullscreen();
+    } catch (e) { console.error(e); }
+  }, []);
+  // Stoppa orefererade variabler från att smälla — kommer bindas i nästa pass.
+  void isFullscreen; void toggleFullscreen; void fullscreenRootRef;
 
   // Undo/redo (begränsad till 30 steg)
   const historyRef = useRef<{ past: CourseV2[]; future: CourseV2[] }>({ past: [], future: [] });

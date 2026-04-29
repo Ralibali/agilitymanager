@@ -48,21 +48,31 @@ export interface ArenaRenderOpts {
   showPath?: boolean;
   /** Skala på nummer-brickor (i mm). Default ~3. */
   numberBadgeMm?: number;
+  /** Visa banmått (yttre linjaler med tickmarks). Default true. */
+  showDimensions?: boolean;
 }
 
 /** Returnerar de faktiska arena-måtten (mm) som ritades — användbart för layout. */
 export function drawArenaVector(doc: jsPDF, opts: ArenaRenderOpts): { w: number; h: number; mmPerM: number } {
-  const { x, y, maxWidth, maxHeight, arenaWidthM, arenaHeightM, obstacles } = opts;
+  const { x: x0, y: y0, maxWidth, maxHeight, arenaWidthM, arenaHeightM, obstacles } = opts;
   const grid = opts.grid !== false;
   const showPath = opts.showPath !== false;
   const numberBadge = opts.numberBadgeMm ?? 3;
+  const showDim = opts.showDimensions !== false;
+  // Reservera plats för linjaler/dimensioner (vänster + topp).
+  const dimMargin = showDim ? 8 : 0;
+
+  const x = x0 + dimMargin;
+  const y = y0 + dimMargin;
+  const availW = maxWidth - dimMargin;
+  const availH = maxHeight - dimMargin;
 
   // Anpassa till tillgängligt utrymme bibehållande aspekt
   const aspect = arenaHeightM / arenaWidthM;
-  let w = maxWidth;
+  let w = availW;
   let h = w * aspect;
-  if (h > maxHeight) {
-    h = maxHeight;
+  if (h > availH) {
+    h = availH;
     w = h / aspect;
   }
   const mmPerM = w / arenaWidthM;
@@ -74,6 +84,11 @@ export function drawArenaVector(doc: jsPDF, opts: ArenaRenderOpts): { w: number;
   doc.setDrawColor(...PDF_BRAND.arenaBorder);
   doc.setLineWidth(0.5);
   doc.rect(x, y, w, h, "FD");
+
+  // Banmått (linjaler med tickmarks) — alltid med i PDF om inte explicit avstängt.
+  if (showDim) {
+    drawArenaDimensions(doc, x, y, w, h, arenaWidthM, arenaHeightM);
+  }
 
   // Rutnät
   if (grid) {
@@ -393,6 +408,68 @@ export function drawFooterAllPages(doc: jsPDF, opts: { authorName: string }) {
     doc.rect(0, PDF_PAGE.height - 3, PDF_PAGE.width, 3, "F");
   }
   doc.setTextColor(0);
+}
+
+/**
+ * Ritar yttre banmått (linjaler) ovanför och till vänster om arenan.
+ * Tickmarks vid varje 5 m, fina streck vid varje 1 m, mått-text "X m" centrerat.
+ */
+export function drawArenaDimensions(
+  doc: jsPDF,
+  arenaX: number, arenaY: number,
+  arenaWidthMm: number, arenaHeightMm: number,
+  arenaWidthM: number, arenaHeightM: number,
+): void {
+  const offset = 4; // mm utanför banan
+  doc.setDrawColor(...PDF_BRAND.muted);
+  doc.setTextColor(...PDF_BRAND.muted);
+
+  // Topp-linje
+  doc.setLineWidth(0.25);
+  doc.line(arenaX, arenaY - offset, arenaX + arenaWidthMm, arenaY - offset);
+  // Bredd-text
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text(`${arenaWidthM} m`, arenaX + arenaWidthMm / 2, arenaY - offset - 2, { align: "center" });
+
+  // Tickmarks topp
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6);
+  doc.setLineWidth(0.15);
+  for (let m = 0; m <= arenaWidthM; m++) {
+    const px = arenaX + (m / arenaWidthM) * arenaWidthMm;
+    const major = m % 5 === 0;
+    const tickLen = major ? 1.5 : 0.6;
+    doc.line(px, arenaY - offset, px, arenaY - offset - tickLen);
+    if (major && m > 0 && m < arenaWidthM) {
+      doc.text(String(m), px, arenaY - offset - tickLen - 0.5, { align: "center" });
+    }
+  }
+
+  // Vänster-linje
+  doc.setLineWidth(0.25);
+  doc.line(arenaX - offset, arenaY, arenaX - offset, arenaY + arenaHeightMm);
+  // Höjd-text (roterad)
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text(`${arenaHeightM} m`, arenaX - offset - 2, arenaY + arenaHeightMm / 2, { align: "center", angle: 90 });
+
+  // Tickmarks vänster
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6);
+  doc.setLineWidth(0.15);
+  for (let m = 0; m <= arenaHeightM; m++) {
+    const py = arenaY + (m / arenaHeightM) * arenaHeightMm;
+    const major = m % 5 === 0;
+    const tickLen = major ? 1.5 : 0.6;
+    doc.line(arenaX - offset, py, arenaX - offset - tickLen, py);
+    if (major && m > 0 && m < arenaHeightM) {
+      doc.text(String(m), arenaX - offset - tickLen - 0.5, py + 0.8, { align: "right" });
+    }
+  }
+
+  doc.setTextColor(0);
+  doc.setLineWidth(0.5);
 }
 
 /** Sanering av filnamn. */

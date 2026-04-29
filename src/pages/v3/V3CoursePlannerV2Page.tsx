@@ -141,7 +141,7 @@ export default function V3CoursePlannerV2Page() {
           arenaHeightM: course.arenaHeightM,
           classTemplate: course.classTemplate,
           obstacles: course.obstacles,
-        } as unknown,
+        } as any,
         canvas_width: Math.round(course.arenaWidthM * 20),
         canvas_height: Math.round(course.arenaHeightM * 20),
       };

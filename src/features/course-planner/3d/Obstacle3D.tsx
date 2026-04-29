@@ -21,26 +21,43 @@ const RUBBER = "#222222";
 const NAVY = "#20245f";
 const EPS = 0.002; // small lift to avoid z-fighting with floor
 
-function NumberPlate({ number, height = 1.2 }: { number?: number; height?: number }) {
+function NumberPlate({ number, height = 1.2, highlight = false }: { number?: number; height?: number; highlight?: boolean }) {
   if (!number) return null;
+  const fill = highlight ? "#f59e0b" : "#1d6f3c";
+  const outline = highlight ? "#7a3d05" : "#0b3a1f";
+  const ring = highlight ? "#fff7c0" : "#ffffff";
+  const radius = highlight ? 0.34 : 0.28;
+  const ringOuter = highlight ? 0.42 : 0.32;
   return (
     <Billboard position={[0, height + 0.55, 0]} renderOrder={999}>
+      {/* Soft drop shadow halo for legibility against any background */}
+      <mesh position={[0, 0, -0.001]} renderOrder={998}>
+        <circleGeometry args={[radius + 0.18, 32]} />
+        <meshBasicMaterial color="#000000" transparent opacity={0.28} depthTest={false} />
+      </mesh>
+      {/* Pulsing outer ring on highlight */}
+      {highlight && (
+        <mesh position={[0, 0, 0.0005]} renderOrder={998}>
+          <ringGeometry args={[ringOuter + 0.06, ringOuter + 0.12, 32]} />
+          <meshBasicMaterial color="#fde68a" depthTest={false} transparent opacity={0.65} />
+        </mesh>
+      )}
       <mesh renderOrder={999}>
-        <circleGeometry args={[0.28, 32]} />
-        <meshBasicMaterial color="#1d6f3c" depthTest={false} transparent />
+        <circleGeometry args={[radius, 32]} />
+        <meshBasicMaterial color={fill} depthTest={false} transparent />
       </mesh>
       <mesh position={[0, 0, 0.001]} renderOrder={999}>
-        <ringGeometry args={[0.28, 0.32, 32]} />
-        <meshBasicMaterial color="#ffffff" depthTest={false} transparent />
+        <ringGeometry args={[radius, ringOuter, 32]} />
+        <meshBasicMaterial color={ring} depthTest={false} transparent />
       </mesh>
       <Text
         position={[0, 0, 0.01]}
-        fontSize={0.32}
+        fontSize={highlight ? 0.4 : 0.32}
         color="white"
         anchorX="center"
         anchorY="middle"
-        outlineWidth={0.02}
-        outlineColor="#0b3a1f"
+        outlineWidth={0.025}
+        outlineColor={outline}
         renderOrder={1000}
       >
         {String(number)}

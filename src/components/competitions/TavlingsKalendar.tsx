@@ -211,6 +211,8 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
     setRefreshing(false);
   };
 
+  const STATUS_RANK: Record<string, number> = { interested: 1, registered: 2, done: 3 };
+
   const toggleInterest = async (compId: string, type: InterestStatus, comp?: Competition) => {
     const current = interests[compId];
     const dogName = selectedDog?.name || null;
@@ -226,9 +228,12 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
       return;
     }
 
-    // Skydd: kräv bekräftelse om man försöker degradera från "anmäld" till "intresserad"
-    if (type === 'interested' && current === 'registered') {
-      setConfirmDialog({ open: true, compId });
+    // Bekräftelse vid nedstegning från en högre status (inkl. att toggla bort
+    // samma höga status). interested → null lämnas fritt (låg insats).
+    const isToggleOff = current === type && current !== 'interested';
+    const isDowngrade = current && STATUS_RANK[current] > STATUS_RANK[type];
+    if (isToggleOff || isDowngrade) {
+      setConfirmDialog({ open: true, compId, targetType: isToggleOff ? null : type, comp });
       return;
     }
 
@@ -241,13 +246,21 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
   };
 
   const handleConfirmDowngrade = async () => {
-    const compId = confirmDialog.compId;
-    await setInterest(compId, 'interested', {
-      dogName: selectedDog?.name || null,
-      dogClass: selectedDog?.competition_level || null,
-      sport: 'Agility',
-    });
-    setConfirmDialog({ open: false, compId: '' });
+    const { compId, targetType, comp } = confirmDialog;
+    const dogName = selectedDog?.name || null;
+    const dogClass = selectedDog?.competition_level || null;
+    const region = comp?.location ? getCountyForLocation(comp.location) : null;
+
+    if (targetType === null) {
+      // Toggle av samma status — kalla setInterest med nuvarande status så hooken raderar
+      const current = interests[compId];
+      if (current) {
+        await setInterest(compId, current, { dogName, dogClass, sport: 'Agility', region });
+      }
+    } else {
+      await setInterest(compId, targetType, { dogName, dogClass, sport: 'Agility', region });
+    }
+    setConfirmDialog({ open: false, compId: '', targetType: null });
   };
 
 

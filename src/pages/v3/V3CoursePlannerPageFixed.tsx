@@ -201,9 +201,24 @@ export default function V3CoursePlannerPageFixed() {
   const eraseNear = (x: number, y: number) => {
     const p = { x, y };
     const hit = course.obstacles.find(o => distance(p, o) < 4.5);
-    if (hit) { setObstacles(prev => prev.filter(o => o.id !== hit.id)); if (selectedId === hit.id) setSelectedId(null); return; }
+    if (hit) {
+      updateCourse(prev => {
+        const obstacles = prev.obstacles.filter(o => o.id !== hit.id);
+        const compacted = compactNumbering(obstacles, prev.numbers);
+        return { ...prev, ...compacted };
+      });
+      if (selectedId === hit.id) setSelectedId(null);
+      return;
+    }
     setPaths(prev => prev.filter(path => !path.points.some(pt => distance(p, pt) < 3.5)));
-    setNumbers(prev => prev.filter(n => distance(p, n) > 4));
+    const removed = course.numbers.filter(n => distance(p, n) <= 4);
+    if (removed.length > 0) {
+      updateCourse(prev => {
+        const numbers = prev.numbers.filter(n => distance(p, n) > 4);
+        const compacted = compactNumbering(prev.obstacles, numbers);
+        return { ...prev, ...compacted };
+      });
+    }
   };
   const fieldDown = (event: PointerEvent<HTMLDivElement>) => {
     const p = toPoint(event);

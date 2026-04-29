@@ -660,6 +660,7 @@ export default function V3CoursePlannerV2Page() {
     openLibrary: () => setLibraryOpen(true),
     openShare: () => { void handleShare(); },
     trainThis: handleTrainThis,
+    importJson: handleImportJsonClick,
     setToolSelect: () => setTool("select"),
     setToolErase: () => setTool("erase"),
     setToolNumber: () => setTool("number"),

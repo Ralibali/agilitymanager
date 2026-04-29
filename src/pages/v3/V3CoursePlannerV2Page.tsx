@@ -742,6 +742,7 @@ export default function V3CoursePlannerV2Page() {
               obstacles: course.obstacles,
             })}
             onJson={handleExportJson}
+            onImportJson={handleImportJsonClick}
             on3DView={() => setView3D("view")}
             on3DWalk={() => setView3D("walk")}
           />

@@ -26,7 +26,10 @@ interface CoachFeedback {
   sport: string;
   status: string;
   created_at: string;
+  privacy_mode?: 'private' | 'private_no_export';
 }
+
+type PrivacyMode = 'private' | 'private_no_export';
 
 interface CoachVideoAnalysisProps {
   dogs: Dog[];

@@ -198,6 +198,27 @@ export default function V3CoursePlannerPageFixed() {
   const moveSelected = (dx: number, dy: number) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, x: clamp(o.x + dx, 0, 100), y: clamp(o.y + dy, 0, 100) } : o));
   const recolorSelected = (nextColor: string) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, color: nextColor } : o));
   const renumberSelected = () => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, number: nextNumber } : o));
+  const autoRenumberAll = () => {
+    updateCourse(prev => {
+      const skip = new Set<ObstacleType>(["start", "finish", "handler_zone"]);
+      const numerable = prev.obstacles
+        .filter(o => !skip.has(o.type))
+        .map((o, idx) => ({ o, idx, key: o.y * 1000 + o.x }))
+        .sort((a, b) => a.key - b.key);
+      const orderMap = new Map<string, number>();
+      numerable.forEach((entry, i) => orderMap.set(entry.o.id, i + 1));
+      const obstacles = prev.obstacles.map(o => skip.has(o.type) ? { ...o, number: undefined } : { ...o, number: orderMap.get(o.id) });
+      const offset = numerable.length;
+      const sortedNumbers = [...prev.numbers]
+        .map((n, idx) => ({ n, idx, key: n.y * 1000 + n.x }))
+        .sort((a, b) => a.key - b.key);
+      const numberMap = new Map<string, number>();
+      sortedNumbers.forEach((entry, i) => numberMap.set(entry.n.id, offset + i + 1));
+      const numbers = prev.numbers.map(n => ({ ...n, num: numberMap.get(n.id) ?? n.num }));
+      return { ...prev, obstacles, numbers };
+    });
+    toast.success("Numrering återställd");
+  };
   const eraseNear = (x: number, y: number) => {
     const p = { x, y };
     const hit = course.obstacles.find(o => distance(p, o) < 4.5);
@@ -310,7 +331,7 @@ export default function V3CoursePlannerPageFixed() {
         </div>
       </section>
 
-      {rightOpen && !isMobile && <RightPanel selected={selected} toolMode={toolMode} setToolMode={setToolMode} setRightOpen={setRightOpen} setGuide={setGuide} moveSelected={moveSelected} rotateSelected={rotateSelected} renumberSelected={renumberSelected} deleteSelected={deleteSelected} setColor={setColor} recolorSelected={recolorSelected} course={course} updateCourse={updateCourse} exportJson={exportJson} exportPdf={exportPdf} reset={reset} setPaths={setPaths} />}
+      {rightOpen && !isMobile && <RightPanel selected={selected} toolMode={toolMode} setToolMode={setToolMode} setRightOpen={setRightOpen} setGuide={setGuide} moveSelected={moveSelected} rotateSelected={rotateSelected} renumberSelected={renumberSelected} autoRenumberAll={autoRenumberAll} deleteSelected={deleteSelected} setColor={setColor} recolorSelected={recolorSelected} course={course} updateCourse={updateCourse} exportJson={exportJson} exportPdf={exportPdf} reset={reset} setPaths={setPaths} />}
     </main>
 
     {/* === MOBILE FAB BAR === */}
@@ -333,7 +354,7 @@ export default function V3CoursePlannerPageFixed() {
     {/* === MOBILE RIGHT DRAWER === */}
     {isMobile && rightOpen && (
       <MobileSheet title="Verktyg" onClose={() => setRightOpen(false)}>
-        <RightPanelContent selected={selected} toolMode={toolMode} setToolMode={setToolMode} setGuide={setGuide} moveSelected={moveSelected} rotateSelected={rotateSelected} renumberSelected={renumberSelected} deleteSelected={deleteSelected} setColor={setColor} recolorSelected={recolorSelected} course={course} updateCourse={updateCourse} exportJson={exportJson} exportPdf={exportPdf} reset={reset} setPaths={setPaths} />
+        <RightPanelContent selected={selected} toolMode={toolMode} setToolMode={setToolMode} setGuide={setGuide} moveSelected={moveSelected} rotateSelected={rotateSelected} renumberSelected={renumberSelected} autoRenumberAll={autoRenumberAll} deleteSelected={deleteSelected} setColor={setColor} recolorSelected={recolorSelected} course={course} updateCourse={updateCourse} exportJson={exportJson} exportPdf={exportPdf} reset={reset} setPaths={setPaths} />
       </MobileSheet>
     )}
 
@@ -417,7 +438,7 @@ function LeftPanel({ grouped, selectedTool, setSelectedTool, addObstacle, mode }
   </aside>;
 }
 
-function RightPanelContent({ selected, toolMode, setToolMode, setGuide, moveSelected, rotateSelected, renumberSelected, deleteSelected, setColor, recolorSelected, course, updateCourse, exportJson, exportPdf, reset, setPaths }: { selected: Obstacle | null; toolMode: ToolMode; setToolMode: (t: ToolMode) => void; setGuide: (v: boolean) => void; moveSelected: (dx: number, dy: number) => void; rotateSelected: (deg?: number) => void; renumberSelected: () => void; deleteSelected: () => void; setColor: (c: string) => void; recolorSelected: (c: string) => void; course: CourseState; updateCourse: (updater: CourseState | ((prev: CourseState) => CourseState)) => void; exportJson: () => void; exportPdf: () => void; reset: () => void; setPaths: (updater: DrawPath[] | ((prev: DrawPath[]) => DrawPath[])) => void }) {
+function RightPanelContent({ selected, toolMode, setToolMode, setGuide, moveSelected, rotateSelected, renumberSelected, autoRenumberAll, deleteSelected, setColor, recolorSelected, course, updateCourse, exportJson, exportPdf, reset, setPaths }: { selected: Obstacle | null; toolMode: ToolMode; setToolMode: (t: ToolMode) => void; setGuide: (v: boolean) => void; moveSelected: (dx: number, dy: number) => void; rotateSelected: (deg?: number) => void; renumberSelected: () => void; autoRenumberAll: () => void; deleteSelected: () => void; setColor: (c: string) => void; recolorSelected: (c: string) => void; course: CourseState; updateCourse: (updater: CourseState | ((prev: CourseState) => CourseState)) => void; exportJson: () => void; exportPdf: () => void; reset: () => void; setPaths: (updater: DrawPath[] | ((prev: DrawPath[]) => DrawPath[])) => void }) {
   return <>
     <section className="mb-4">
       <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-v3-text-tertiary mb-2">Verktyg</div>
@@ -460,11 +481,12 @@ function RightPanelContent({ selected, toolMode, setToolMode, setGuide, moveSele
         <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={exportPdf}><FileText size={14} /> PDF</button>
         <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={reset}><RotateCcw size={14} /> Återställ</button>
         <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={() => setPaths(prev => prev.slice(0, -1))}><Undo2 size={14} /> Ångra</button>
+        <button className="col-span-2 h-11 rounded-v3-base bg-v3-brand-50 border border-v3-brand-200 text-v3-brand-700 text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={autoRenumberAll}><Hash size={14} /> Auto-numrera om</button>
       </div>
     </section>
   </>;
 }
-function RightPanel(props: { selected: Obstacle | null; toolMode: ToolMode; setToolMode: (t: ToolMode) => void; setRightOpen: (v: boolean) => void; setGuide: (v: boolean) => void; moveSelected: (dx: number, dy: number) => void; rotateSelected: (deg?: number) => void; renumberSelected: () => void; deleteSelected: () => void; setColor: (c: string) => void; recolorSelected: (c: string) => void; course: CourseState; updateCourse: (updater: CourseState | ((prev: CourseState) => CourseState)) => void; exportJson: () => void; exportPdf: () => void; reset: () => void; setPaths: (updater: DrawPath[] | ((prev: DrawPath[]) => DrawPath[])) => void }) {
+function RightPanel(props: { selected: Obstacle | null; toolMode: ToolMode; setToolMode: (t: ToolMode) => void; setRightOpen: (v: boolean) => void; setGuide: (v: boolean) => void; moveSelected: (dx: number, dy: number) => void; rotateSelected: (deg?: number) => void; renumberSelected: () => void; autoRenumberAll: () => void; deleteSelected: () => void; setColor: (c: string) => void; recolorSelected: (c: string) => void; course: CourseState; updateCourse: (updater: CourseState | ((prev: CourseState) => CourseState)) => void; exportJson: () => void; exportPdf: () => void; reset: () => void; setPaths: (updater: DrawPath[] | ((prev: DrawPath[]) => DrawPath[])) => void }) {
   return <aside className="space-y-3"><section className="rounded-[22px] bg-white border border-black/6 shadow-v3-sm p-4">
     <div className="flex items-center justify-between gap-3 mb-3">
       <div><h2 className="font-v3-display text-v3-xl">Verktyg</h2><p className="text-v3-xs text-v3-text-tertiary">Rita, numrera, sudda och exportera.</p></div>

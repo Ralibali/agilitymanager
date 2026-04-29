@@ -53,6 +53,32 @@ export default function V3SettingsPage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [billingTab, setBillingTab] = useState<"monthly" | "yearly">("yearly");
 
+  // Gästmarkeringar (lokala) — synk-pref + lokal räknare
+  const [guestSyncEnabled, setGuestSyncEnabledState] = useState<boolean>(getGuestInterestsSyncEnabled());
+  const [localGuestCount, setLocalGuestCount] = useState<number>(0);
+
+  useEffect(() => {
+    const refreshCount = () => setLocalGuestCount(readGuestInterestItems().length);
+    refreshCount();
+    const offCount = subscribeGuestInterests(refreshCount);
+    const offPref = subscribeGuestInterestsSyncPref(() => setGuestSyncEnabledState(getGuestInterestsSyncEnabled()));
+    return () => { offCount(); offPref(); };
+  }, []);
+
+  const handleToggleGuestSync = (enabled: boolean) => {
+    setGuestInterestsSyncEnabled(enabled);
+    setGuestSyncEnabledState(enabled);
+    toast.success(enabled ? "Synk aktiverad — lokala markeringar följer med vid inloggning" : "Synk avstängd — markeringar stannar på den här enheten");
+  };
+
+  const handleClearLocalGuestData = () => {
+    if (localGuestCount === 0) return;
+    if (!window.confirm(`Rensa ${localGuestCount} lokala tävlingsmarkering${localGuestCount === 1 ? "" : "ar"} från den här enheten? Markeringar som redan synkats till ditt konto påverkas inte.`)) return;
+    clearGuestInterestItems();
+    setLocalGuestCount(0);
+    toast.success("Lokala markeringar rensade");
+  };
+
   useEffect(() => {
     const checkout = searchParams.get("checkout");
     if (checkout === "success") {

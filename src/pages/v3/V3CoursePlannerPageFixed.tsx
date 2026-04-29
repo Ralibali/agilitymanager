@@ -359,7 +359,6 @@ export default function V3CoursePlannerPageFixed() {
       <button type="button" onClick={() => { window.location.href = "/v3/courses"; }} className="h-9 w-9 rounded-full bg-white border border-black/8 grid place-items-center text-v3-text-secondary shrink-0" aria-label="Tillbaka"><ArrowLeft size={16} /></button>
       <input value={course.name} onChange={(e) => updateCourse(prev => ({ ...prev, name: e.target.value }))} className="h-9 min-w-0 flex-1 rounded-full border border-black/8 bg-white px-3 text-[13px] font-semibold outline-none focus:ring-2 focus:ring-v3-brand-500/25" />
       <button type="button" onClick={() => switchMode(mode === "Agility" ? "Hoopers" : "Agility")} className="h-9 px-2.5 rounded-full bg-v3-brand-600 text-white text-[11px] font-bold shrink-0" aria-label="Byt sport">{mode === "Agility" ? "A" : "H"}</button>
-      <button type="button" onClick={() => setView3DMode("view")} className="h-9 w-9 rounded-full bg-white border border-black/8 grid place-items-center" aria-label="3D"><Box size={16} /></button>
     </header>
 
     {/* === DESKTOP HEADER === */}

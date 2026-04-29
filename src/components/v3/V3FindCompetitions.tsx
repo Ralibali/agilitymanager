@@ -323,21 +323,10 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     reloadInterests();
   }, [reloadInterests]);
 
-  // Lyssna på localStorage-ändringar (även mellan flikar) så gäst-UI återställs när användaren återvänder.
+  // Lyssna på localStorage-ändringar (även mellan flikar/visibility/focus) via central modul.
   useEffect(() => {
     if (user) return;
-    const onChange = () => { void reloadInterests(); };
-    const onStorage = (e: StorageEvent) => { if (e.key === "am.guest.interests.v1") onChange(); };
-    window.addEventListener("am:guest-interests-changed", onChange);
-    window.addEventListener("storage", onStorage);
-    window.addEventListener("focus", onChange);
-    document.addEventListener("visibilitychange", onChange);
-    return () => {
-      window.removeEventListener("am:guest-interests-changed", onChange);
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener("focus", onChange);
-      document.removeEventListener("visibilitychange", onChange);
-    };
+    return subscribeGuestInterests(() => { void reloadInterests(); });
   }, [user, reloadInterests]);
 
   // Hämta tävlingar som vänner delat med mig (messages.shared_type='competition')

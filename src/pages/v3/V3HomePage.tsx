@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Dog as DogIcon, Target, BarChart3, CalendarDays, Flame, Medal, Lightbulb, ArrowRight, CheckCircle2, Circle, type LucideIcon } from "lucide-react";
+import { Plus, Dog as DogIcon, Target, BarChart3, CalendarDays, Flame, Medal, Lightbulb, ArrowRight, CheckCircle2, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";

@@ -101,21 +101,20 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
     if (!selectedTunnel) return;
     setCurveOverrides((prev) => {
       const current = prev[selectedTunnel.id] ?? { curveDeg: selectedTunnel.curveDeg ?? 0, curveSide: selectedTunnel.curveSide ?? "left" };
-      return {
-        ...prev,
-        [selectedTunnel.id]: {
-          curveDeg: Math.max(0, Math.min(90, patch.curveDeg ?? current.curveDeg)),
-          curveSide: patch.curveSide ?? current.curveSide,
-        },
+      const next = {
+        curveDeg: Math.max(0, Math.min(90, patch.curveDeg ?? current.curveDeg)),
+        curveSide: patch.curveSide ?? current.curveSide,
       };
+      window.dispatchEvent(new CustomEvent("am:tunnel-curve-updated", { detail: { id: selectedTunnel.id, curve: next } }));
+      return { ...prev, [selectedTunnel.id]: next };
     });
   };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") mode === "walk" ? setMode("view") : onClose();
-      if (mode === "walk" && (e.key === "ArrowRight" || e.key.toLowerCase() === "n")) setCurrentIdx((i) => Math.min(numbered.length - 1, i + 1));
-      if (mode === "walk" && (e.key === "ArrowLeft" || e.key.toLowerCase() === "p")) setCurrentIdx((i) => Math.max(0, i - 1));
+      if (mode === "walk" && e.key.toLowerCase() === "n") setCurrentIdx((i) => Math.min(numbered.length - 1, i + 1));
+      if (mode === "walk" && e.key.toLowerCase() === "p") setCurrentIdx((i) => Math.max(0, i - 1));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -147,9 +146,9 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
     return <div className="fixed inset-0 z-[1100] bg-[#f6f2ea] text-v3-text-primary grid place-items-center p-6"><div className="max-w-md text-center space-y-4 rounded-[28px] bg-white border border-black/8 shadow-v3-xl p-6"><div className="text-2xl font-semibold">3D-läget kan inte visas</div><p className="text-v3-text-secondary">Din enhet eller webbläsare stöder inte WebGL.</p><button onClick={onClose} className="h-11 px-5 rounded-full bg-v3-text-primary text-white font-semibold">Tillbaka till 2D</button></div></div>;
   }
 
-  const sceneObstacles = obstacles.map((o) => ({ ...o, ...map2DTo3D(o.x, o.y, widthMeters, heightMeters) }));
+  const sceneObstacles = useMemo(() => obstacles.map((o) => ({ ...o, ...map2DTo3D(o.x, o.y, widthMeters, heightMeters) })), [obstacles, widthMeters, heightMeters]);
   const maxDim = Math.max(widthMeters, heightMeters);
-  const overviewCamera = isMobile ? ([widthMeters * 0.42, maxDim * 0.42, heightMeters * 0.74] as [number, number, number]) : ([widthMeters * 0.5, maxDim * 0.46, heightMeters * 0.68] as [number, number, number]);
+  const overviewCamera = useMemo(() => isMobile ? ([widthMeters * 0.42, maxDim * 0.42, heightMeters * 0.74] as [number, number, number]) : ([widthMeters * 0.5, maxDim * 0.46, heightMeters * 0.68] as [number, number, number]), [isMobile, widthMeters, heightMeters, maxDim]);
   const startWalk = () => { setCurrentIdx(0); setShowHint(true); setMode("walk"); };
 
   return (
@@ -198,7 +197,7 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
 
       {mode === "view" && <div className="absolute bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-20 text-black/70 text-[11px] sm:text-xs bg-white/80 border border-black/8 shadow-lg backdrop-blur px-3 py-1.5 rounded-full text-center max-w-[92vw]">Dra för att rotera · Nyp/scrolla för att zooma · Klicka på en tunnel för att böja den</div>}
       {mode === "walk" && isMobile && numbered.length > 0 && <MobileWalkControls joystickRef={joystickRef} lookDeltaRef={lookDeltaRef} sprintRef={sprintRef} knob={knob} setKnob={setKnob} sprinting={sprinting} setSprinting={setSprinting} showHint={showHint} setShowHint={setShowHint} />}
-      {mode === "walk" && !isMobile && numbered.length > 0 && <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 text-white/80 text-xs bg-black/50 px-3 py-1.5 rounded-full">WASD = gå · Shift = spring · ←/→ = hinder · Esc = lämna</div>}
+      {mode === "walk" && !isMobile && numbered.length > 0 && <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 text-white/80 text-xs bg-black/50 px-3 py-1.5 rounded-full">WASD/pilar = gå · Shift = spring · N/P = hinder · Esc = lämna</div>}
     </div>
   );
 }

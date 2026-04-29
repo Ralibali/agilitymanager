@@ -154,23 +154,48 @@ export default function V3CoursePlannerV2Page() {
   const issueIdSet = useMemo(() => new Set(issues.filter((i) => i.obstacleId).map((i) => i.obstacleId!)), [issues]);
   const times = useMemo(() => computeCourseTimes(course), [course]);
 
+  const profileName = useProfileName();
+
+  const baseExportInput = useCallback(() => ({
+    name: course.name,
+    sport: course.sport,
+    sizeClass: course.sizeClass,
+    arenaWidthM: course.arenaWidthM,
+    arenaHeightM: course.arenaHeightM,
+    classTemplate: course.classTemplate,
+    obstacles: course.obstacles,
+    authorName: profileName,
+  }), [course, profileName]);
+
   async function handleExportPdf() {
     try {
-      await exportJudgePdf({
-        name: course.name,
-        sport: course.sport,
-        sizeClass: course.sizeClass,
-        arenaWidthM: course.arenaWidthM,
-        arenaHeightM: course.arenaHeightM,
-        classTemplate: course.classTemplate,
-        obstacles: course.obstacles,
-        svgElement: svgRef.current,
-      });
+      await exportJudgePdf({ ...baseExportInput(), svgElement: svgRef.current });
       toast.success("Domar-PDF skapad");
-    } catch (e) {
-      console.error(e);
-      toast.error("Kunde inte skapa PDF");
-    }
+    } catch (e) { console.error(e); toast.error("Kunde inte skapa PDF"); }
+  }
+
+  async function handleExportTrainingPdf() {
+    try { await exportTrainingPdf(baseExportInput()); toast.success("Tränings-PDF skapad"); }
+    catch (e) { console.error(e); toast.error("Kunde inte skapa PDF"); }
+  }
+
+  async function handleExportBuildPdf() {
+    try { await exportBuildPdf(baseExportInput()); toast.success("Bygg-PDF skapad"); }
+    catch (e) { console.error(e); toast.error("Kunde inte skapa PDF"); }
+  }
+
+  function handleExportJson() {
+    try {
+      const data = JSON.stringify({ version: 2, ...course }, null, 2);
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(course.name || "bana").replace(/[^a-z0-9åäö_-]+/gi, "_")}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("JSON exporterad");
+    } catch { toast.error("Kunde inte exportera JSON"); }
   }
 
   /** Sparar/uppdaterar banan i molnet (saved_courses). Returnerar id eller null. */

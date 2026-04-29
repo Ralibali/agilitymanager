@@ -253,7 +253,7 @@ export function V3FindCompetitions({ preferredSport }: { preferredSport: Sport }
         <button type="button" onClick={() => setDebouncedQuery(query)} className="inline-flex items-center gap-1 hover:text-v3-text-primary"><RefreshCw size={12} /> Uppdatera</button>
       </div>
 
-      {error && <div className="rounded-v3-lg border border-red-200 bg-red-50 px-4 py-3 text-v3-sm text-red-700">{error}</div>}
+      {error && <div className="rounded-v3-lg border border-red-200 bg-red-50 px-4 py-3 text-v3-sm text-coral">{error}</div>}
       {loading ? <SkeletonList /> : filtered.length === 0 ? <EmptyState query={debouncedQuery} /> : <div className="space-y-2">{filtered.map((row) => <CompetitionCard key={`${row.sport}-${row.id}`} row={row} />)}</div>}
     </div>
   );
@@ -279,7 +279,7 @@ function CompetitionCard({ row }: { row: CompRow }) {
         {(row.judges?.length || row.price_per_lopp || row.extra_info) && <p className="text-v3-xs text-v3-text-tertiary mt-3 line-clamp-2">{[row.judges?.length ? `Domare: ${row.judges.join(", ")}` : null, row.price_per_lopp, row.extra_info].filter(Boolean).join(" · ")}</p>}
       </div>
       <div className="flex lg:flex-col gap-2 lg:items-end shrink-0">
-        {deadline !== null && <span className={cn("inline-flex items-center h-8 px-3 rounded-full text-v3-xs font-medium", deadline < 0 ? "bg-v3-canvas-sunken text-v3-text-tertiary" : deadline <= 7 ? "bg-orange-100 text-orange-700" : "bg-v3-brand-500/10 text-v3-brand-700")}>{deadline < 0 ? "Anmälan stängd" : deadline === 0 ? "Sista dag idag" : `${deadline} d kvar`}</span>}
+        {deadline !== null && <span className={cn("inline-flex items-center h-8 px-3 rounded-full text-v3-xs font-medium", deadline < 0 ? "bg-v3-canvas-sunken text-v3-text-tertiary" : deadline <= 7 ? "bg-coral/20 text-coral" : "bg-v3-brand-500/10 text-v3-brand-700")}>{deadline < 0 ? "Anmälan stängd" : deadline === 0 ? "Sista dag idag" : `${deadline} d kvar`}</span>}
         {row.source_url && <a href={row.source_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 h-9 px-3 rounded-v3-base bg-v3-text-primary text-v3-text-inverse text-v3-xs font-medium hover:opacity-90 transition-opacity"><ExternalLink size={13} /> Öppna</a>}
       </div>
     </div>

@@ -68,7 +68,7 @@ function PatternsTab({ stats, compareRows, compareLoading, activeDogId }: { stat
 }
 
 function Metric({ icon: Icon, label, value, sub, tone }: { icon: LucideIcon; label: string; value: string; sub: string; tone: "green" | "warm" | "neutral" }) {
-  const toneClass = tone === "green" ? "bg-v3-brand-500/10 text-v3-brand-700" : tone === "warm" ? "bg-orange-100 text-orange-700" : "bg-v3-canvas-sunken/70 text-v3-text-secondary";
+  const toneClass = tone === "green" ? "bg-v3-brand-500/10 text-v3-brand-700" : tone === "warm" ? "bg-coral/20 text-coral" : "bg-v3-canvas-sunken/70 text-v3-text-secondary";
   return <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs min-h-[150px]"><div className="flex items-start justify-between gap-3"><div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary">{label}</div><div className={cn("h-9 w-9 rounded-full grid place-items-center", toneClass)}><Icon size={16} strokeWidth={1.8} /></div></div><div className="font-v3-display text-[34px] leading-none mt-5 text-v3-text-primary tabular-nums truncate">{value}</div><div className="text-v3-sm text-v3-text-tertiary mt-1">{sub}</div></section>;
 }
 

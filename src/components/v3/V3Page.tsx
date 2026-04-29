@@ -118,7 +118,7 @@ export function V3MetricCard({
 }) {
   const toneClass = {
     green: "bg-v3-brand-500/10 text-v3-brand-700",
-    warm: "bg-orange-100 text-orange-700",
+    warm: "bg-coral/20 text-coral",
     neutral: "bg-v3-canvas-sunken/70 text-v3-text-secondary",
   }[tone];
 

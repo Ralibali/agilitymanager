@@ -574,6 +574,8 @@ export default function V3CoursePlannerV2Page() {
               obstacles: course.obstacles,
             })}
             onJson={handleExportJson}
+            on3DView={() => setView3D("view")}
+            on3DWalk={() => setView3D("walk")}
           />
           <button
             onClick={async () => {

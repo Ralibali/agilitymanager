@@ -87,8 +87,8 @@ serve(async (req) => {
         coach_video_credits: pack,
         is_pro_price: String(isPro),
       },
-      success_url: `${req.headers.get("origin")}/training?coach_paid=true&pack=${pack}`,
-      cancel_url: `${req.headers.get("origin")}/training`,
+      success_url: `${req.headers.get("origin")}/v3/coach?coach_paid=true&pack=${pack}`,
+      cancel_url: `${req.headers.get("origin")}/v3/coach?coach_canceled=true`,
     });
 
     return new Response(JSON.stringify({ url: session.url, isPro }), {

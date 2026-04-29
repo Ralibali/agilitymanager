@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -43,6 +43,46 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
   const [pack, setPack] = useState<'1' | '3' | '5'>('1');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resumedFromStripe, setResumedFromStripe] = useState(false);
+  const uploadCardRef = useRef<HTMLDivElement>(null);
+
+  // Återuppta efter Stripe Checkout: återställ formuläret och be användaren välja videon igen
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const hasPaid = params.get('coach_paid') === 'true';
+    const wasCanceled = params.get('coach_canceled') === 'true';
+
+    if (wasCanceled) {
+      toast.info('Betalningen avbröts — inget har dragits.');
+      const url = new URL(window.location.href);
+      url.searchParams.delete('coach_canceled');
+      window.history.replaceState({}, '', url.toString());
+      return;
+    }
+
+    if (!hasPaid) return;
+
+    try {
+      const raw = sessionStorage.getItem('coach_pending');
+      if (raw) {
+        const pending = JSON.parse(raw) as {
+          question?: string; dogId?: string; sport?: string;
+        };
+        if (pending.question) setQuestion(pending.question);
+        if (pending.dogId) setDogId(pending.dogId);
+        if (pending.sport) setSport(pending.sport);
+      }
+    } catch {/* ignore */}
+
+    setResumedFromStripe(true);
+    toast.success('Betalning klar! Välj samma video igen för att slutföra uppladdningen.');
+
+    // Scrolla till uppladdningskortet så användaren ser nästa steg
+    setTimeout(() => {
+      uploadCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Standardpriser och Pro-priser (~50% rabatt). Faktiskt pris valideras server-side.
   const PACK_LABELS: Record<'1' | '3' | '5', { standard: string; pro: string; sub: string }> = {
@@ -165,7 +205,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
   const getDog = (id: string | null) => id ? dogs.find(d => d.id === id) : null;
 
   return (
-    <Card className="mb-4 border-border/50">
+    <Card className="mb-4 border-border/50" ref={uploadCardRef}>
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-display flex items-center gap-2 flex-wrap">
           <GraduationCap size={18} className="text-primary" />
@@ -178,6 +218,15 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="pb-3 space-y-3">
+        {resumedFromStripe && !file && (
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs text-foreground flex items-start gap-2">
+            <CheckCircle2 size={14} className="text-primary mt-0.5 shrink-0" />
+            <div>
+              <strong className="font-medium">Betalning bekräftad.</strong> Välj samma video igen
+              nedan så slutförs uppladdningen automatiskt — inget mer betalas.
+            </div>
+          </div>
+        )}
         <p className="text-xs text-muted-foreground">
           Ladda upp en träningsvideo och ställ en fråga – vår coach granskar och ger personlig feedback.
           {!isPro && <> <span className="text-foreground font-medium">Pro-medlemmar får 50% rabatt.</span></>}

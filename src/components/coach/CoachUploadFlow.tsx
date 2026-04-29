@@ -31,32 +31,44 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialPack?: CoachPackId;
+  /** Förifyll formuläret efter Stripe-återkomst (sport + fråga). */
+  prefill?: { pack?: CoachPackId; sport?: Sport; question?: string };
+  /** Starta direkt på ett visst steg (t.ex. 2 efter Stripe-redirect). */
+  initialStep?: Step;
 }
 
 type Step = 1 | 2 | 3 | 4;
 
-export default function CoachUploadFlow({ open, onOpenChange, initialPack = "1" }: Props) {
+export default function CoachUploadFlow({
+  open,
+  onOpenChange,
+  initialPack = "1",
+  prefill,
+  initialStep = 1,
+}: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [step, setStep] = useState<Step>(1);
-  const [pack, setPack] = useState<CoachPackId>(initialPack);
+  const [step, setStep] = useState<Step>(initialStep);
+  const [pack, setPack] = useState<CoachPackId>(prefill?.pack ?? initialPack);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [question, setQuestion] = useState("");
-  const [sport, setSport] = useState<Sport>("agility");
+  const [question, setQuestion] = useState(prefill?.question ?? "");
+  const [sport, setSport] = useState<Sport>(prefill?.sport ?? "agility");
   const [submitting, setSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
 
   // Reset on open / pack change
   useEffect(() => {
     if (!open) return;
-    setStep(1);
-    setPack(initialPack);
+    setStep(initialStep);
+    setPack(prefill?.pack ?? initialPack);
+    if (prefill?.question !== undefined) setQuestion(prefill.question);
+    if (prefill?.sport !== undefined) setSport(prefill.sport);
     setProgress(0);
     setSubmitting(false);
-  }, [open, initialPack]);
+  }, [open, initialPack, initialStep, prefill?.pack, prefill?.question, prefill?.sport]);
 
   // Object URL cleanup
   useEffect(() => {

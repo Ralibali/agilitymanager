@@ -500,8 +500,8 @@ export default function V3CoursePlannerV2Page() {
     switchSport,
     currentSport: course.sport,
     exportJudgePdf: () => { void handleExportPdf(); },
-    exportTrainingPdf: () => toast.info("Tränings-PDF kommer i nästa sprint"),
-    exportBuildPdf: () => toast.info("Bygg-PDF kommer i nästa sprint"),
+    exportTrainingPdf: () => { void handleExportTrainingPdf(); },
+    exportBuildPdf: () => { void handleExportBuildPdf(); },
     exportStartlist: () => exportStartlistPdf({
       courseName: course.name, sport: course.sport,
       sizeClass: course.sizeClass, classTemplate: course.classTemplate,
@@ -555,13 +555,17 @@ export default function V3CoursePlannerV2Page() {
           >
             <Share2 size={14} /> <span className="hidden sm:inline">Dela</span>
           </button>
-          <button
-            onClick={handleExportPdf}
-            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400"
-            title="Exportera domar-PDF"
-          >
-            <FileDown size={14} /> <span className="hidden sm:inline">PDF</span>
-          </button>
+          <ExportMenu
+            onJudge={() => { void handleExportPdf(); }}
+            onTraining={() => { void handleExportTrainingPdf(); }}
+            onBuild={() => { void handleExportBuildPdf(); }}
+            onStartlist={() => exportStartlistPdf({
+              courseName: course.name, sport: course.sport,
+              sizeClass: course.sizeClass, classTemplate: course.classTemplate,
+              obstacles: course.obstacles,
+            })}
+            onJson={handleExportJson}
+          />
           <button
             onClick={async () => {
               saveCourse(course);

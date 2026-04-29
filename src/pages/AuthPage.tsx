@@ -35,6 +35,16 @@ export default function AuthPage() {
   const [resetMode, setResetMode] = useState(false);
   const { toast } = useToast();
 
+  // Visa pending gäst-markeringar om användaren kommer från tävlingskalendern
+  const guestInterestCount = useMemo(() => {
+    if (source !== 'competitions') return 0;
+    try {
+      return readGuestInterestItems().length;
+    } catch {
+      return 0;
+    }
+  }, [source]);
+
   useEffect(() => {
     if (mode === 'signup') setIsLogin(false);
     if (mode === 'login') setIsLogin(true);

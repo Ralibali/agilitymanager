@@ -280,7 +280,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
           {/* Sekretessläge */}
           <div>
             <Label className="text-xs flex items-center gap-1.5">
-              <Lock size={11} className="text-muted-foreground" /> Sekretess för videon
+              <LockIcon size={11} className="text-muted-foreground" /> Sekretess för videon
             </Label>
             <div className="grid grid-cols-1 gap-1.5 mt-1">
               {([
@@ -327,7 +327,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
               })}
             </div>
             <p className="text-[10px] text-muted-foreground mt-1.5 flex items-start gap-1">
-              <Lock size={10} className="mt-0.5 shrink-0" />
+              <LockIcon size={10} className="mt-0.5 shrink-0" />
               Coachvideor är alltid privata – ingen annan användare kan se dem. Sekretessläget styr om vi får använda videon i interna exempel.
             </p>
           </div>

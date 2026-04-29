@@ -14,9 +14,11 @@ interface Props {
   onBuild: () => void;
   onStartlist: () => void;
   onJson: () => void;
+  on3DView?: () => void;
+  on3DWalk?: () => void;
 }
 
-export function ExportMenu({ onJudge, onTraining, onBuild, onStartlist, onJson }: Props) {
+export function ExportMenu({ onJudge, onTraining, onBuild, onStartlist, onJson, on3DView, on3DWalk }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -37,6 +39,9 @@ export function ExportMenu({ onJudge, onTraining, onBuild, onStartlist, onJson }
         <DropdownMenuItem onSelect={onStartlist}>Startlista</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={onJson}>JSON (rådata)</DropdownMenuItem>
+        {(on3DView || on3DWalk) && <DropdownMenuSeparator />}
+        {on3DView && <DropdownMenuItem onSelect={on3DView}>Visa 3D-vy</DropdownMenuItem>}
+        {on3DWalk && <DropdownMenuItem onSelect={on3DWalk}>Gå banan (3D)</DropdownMenuItem>}
       </DropdownMenuContent>
     </DropdownMenu>
   );

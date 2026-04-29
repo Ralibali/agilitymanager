@@ -387,17 +387,12 @@ export default function V3CoursePlannerPageFixed() {
       </div>
     </header>
 
-    {/* === MOBILE MODE TABS === */}
-    <div className="lg:hidden px-3 pt-2">
-      <Segmented value={mode} onChange={switchMode} options={["Agility", "Hoopers"]} />
-    </div>
-
-    <main className={cn("max-w-[1760px] mx-auto px-3 lg:px-6 py-3 lg:py-4 grid gap-3 lg:gap-4", "lg:" + (leftOpen && rightOpen ? "grid-cols-[300px_minmax(0,1fr)_330px]" : leftOpen ? "grid-cols-[300px_minmax(0,1fr)]" : rightOpen ? "grid-cols-[minmax(0,1fr)_330px]" : "grid-cols-1"))}>
+    <main className={cn("max-w-[1760px] mx-auto px-1.5 lg:px-6 py-1.5 lg:py-4 grid gap-3 lg:gap-4", "lg:" + (leftOpen && rightOpen ? "grid-cols-[300px_minmax(0,1fr)_330px]" : leftOpen ? "grid-cols-[300px_minmax(0,1fr)]" : rightOpen ? "grid-cols-[minmax(0,1fr)_330px]" : "grid-cols-1"))}>
       {/* Hidden on mobile, shown as drawer */}
       {leftOpen && !isMobile && <LeftPanel grouped={grouped} selectedTool={selectedTool} setSelectedTool={setSelectedTool} addObstacle={addObstacle} mode={mode} />}
 
-      <section className="rounded-[20px] lg:rounded-[24px] bg-white border border-black/6 shadow-v3-sm p-1.5 lg:p-4 min-w-0">
-        <div className="relative overflow-hidden lg:overflow-auto rounded-[16px] lg:rounded-[20px] bg-[#17351f]/10 p-1.5 lg:p-5">
+      <section className="rounded-[14px] lg:rounded-[24px] bg-white border border-black/6 shadow-v3-sm p-1 lg:p-4 min-w-0">
+        <div className="relative overflow-hidden lg:overflow-auto rounded-[12px] lg:rounded-[20px] bg-[#17351f]/10 p-0.5 lg:p-5">
           <div className="origin-top-left transition-transform" style={{ width: isMobile ? "100%" : `${zoom}%`, minWidth: isMobile ? "100%" : "760px" }}>
             <GrassField course={course} selectedId={selectedId} draggingId={draggingId} grid={grid} toolMode={toolMode} currentPath={currentPath} onFieldDown={fieldDown} onFieldMove={fieldMove} onFieldUp={fieldUp} onObstacleDown={(event, obstacle) => { event.preventDefault(); event.stopPropagation(); if (toolMode === "erase") { eraseNear(obstacle.x, obstacle.y); return; } setSelectedId(obstacle.id); setToolMode("select"); setDraggingId(obstacle.id); event.currentTarget.setPointerCapture(event.pointerId); }} onSelect={setSelectedId} />
           </div>

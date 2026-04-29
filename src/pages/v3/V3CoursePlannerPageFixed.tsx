@@ -550,14 +550,14 @@ function MobileBottomBar({ toolMode, setToolMode, onOpenObstacles, onOpenMore, o
 }
 
 function useSwipeDownToClose(onClose: () => void, threshold = 60) {
-  const startY = React.useRef<number | null>(null);
-  const deltaY = React.useRef(0);
+  const startY = useRef<number | null>(null);
+  const deltaY = useRef(0);
   return {
-    onTouchStart: (e: React.TouchEvent) => {
+    onTouchStart: (e: ReactTouchEvent) => {
       startY.current = e.touches[0].clientY;
       deltaY.current = 0;
     },
-    onTouchMove: (e: React.TouchEvent) => {
+    onTouchMove: (e: ReactTouchEvent) => {
       if (startY.current == null) return;
       deltaY.current = e.touches[0].clientY - startY.current;
     },

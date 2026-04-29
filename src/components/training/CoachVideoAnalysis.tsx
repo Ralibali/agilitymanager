@@ -386,6 +386,15 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
                           {isPending && (
                             <Badge variant="secondary" className="text-[10px] h-4 text-amber-600">Väntar på svar</Badge>
                           )}
+                          {fb.privacy_mode === 'private_no_export' ? (
+                            <Badge variant="secondary" className="text-[10px] h-4 gap-1">
+                              <LockIcon size={9} /> Privat · ej export
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-[10px] h-4 gap-1">
+                              <LockIcon size={9} /> Privat
+                            </Badge>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">

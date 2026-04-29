@@ -376,8 +376,7 @@ export default function V3CoursePlannerPageFixed() {
           <span className="h-10 min-w-[58px] rounded-v3-base bg-white border border-black/8 grid place-items-center text-v3-xs font-semibold shadow-v3-xs">{zoom}%</span>
           <ToolbarButton onClick={() => setZoom(z => clamp(z + 10, 50, 160))} icon={<ZoomIn size={15} />} />
           <ToolbarButton onClick={() => setGrid(v => !v)} active={grid} icon={<Grid3X3 size={15} />}>Rutnät</ToolbarButton>
-          <ToolbarButton onClick={() => setView3DMode("view")} icon={<Box size={15} />}>3D</ToolbarButton>
-          <ToolbarButton onClick={() => setView3DMode("walk")} icon={<Footprints size={15} />}>Gå banan</ToolbarButton>
+          {/* 3D-vy och Gå banan dolda — kod finns kvar i src/features/course-planner/3d/ */}
           <ToolbarButton onClick={saveToLibrary} icon={<Save size={15} />}>Spara</ToolbarButton>
           <ToolbarButton onClick={() => setSavedOpen(true)} icon={<FolderOpen size={15} />}>Öppna</ToolbarButton>
           <ToolbarButton onClick={exportPdf} icon={<FileText size={15} />}>PDF</ToolbarButton>

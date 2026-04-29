@@ -14,7 +14,7 @@ type ObstacleSpec = { type: ObstacleType; label: string; icon: string; shape: Sh
 type Obstacle = ObstacleSpec & { id: string; x: number; y: number; rotation: number; number?: number; color?: string };
 type DrawPath = { id: string; points: Point[]; color: string; width: number };
 type FreeNumber = { id: string; x: number; y: number; num: number; color: string };
-type CourseState = { obstacles: Obstacle[]; paths: DrawPath[]; numbers: FreeNumber[]; width: number; height: number; name: string };
+type CourseState = { obstacles: Obstacle[]; paths: DrawPath[]; numbers: FreeNumber[]; width: number; height: number; name: string; location?: string };
 type Courses = Record<PlannerMode, CourseState>;
 type SavedCourse = { id: string; name: string; mode: PlannerMode; savedAt: string; course: CourseState };
 
@@ -42,6 +42,19 @@ const defaultTool = (mode: PlannerMode): ObstacleType => mode === "Hoopers" ? "h
 const specFor = (mode: PlannerMode, type: ObstacleType) => specsFor(mode).find(s => s.type === type) ?? specsFor(mode)[0];
 const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
 const hexToRgb = (hex: string) => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)] as const;
+const slugify = (s: string) => s
+  .normalize("NFD")
+  .replace(/å/gi, "a").replace(/ä/gi, "a").replace(/ö/gi, "o")
+  .replace(/[\u0300-\u036f]/g, "")
+  .replace(/[^a-zA-Z0-9]+/g, "-")
+  .replace(/^-+|-+$/g, "")
+  .toLowerCase()
+  .slice(0, 60);
+const buildExportName = (parts: Array<string | undefined>, ext: string) => {
+  const date = new Date().toISOString().slice(0, 10);
+  const slug = parts.filter(Boolean).map(p => slugify(String(p))).filter(Boolean).join("_");
+  return `${slug || "bana"}_${date}.${ext}`;
+};
 
 function makeCourse(mode: PlannerMode): CourseState {
   const start = specsFor(mode).find(s => s.type === "start")!;
@@ -256,13 +269,14 @@ export default function V3CoursePlannerPageFixed() {
   const reset = () => { updateCourse(makeCourse(mode)); setSelectedId(null); toast.success(`${mode}-banan återställd`); };
   const saveToLibrary = () => { const entry = { id: uid("saved"), name: course.name.trim() || `${mode}-bana`, mode, savedAt: new Date().toISOString(), course }; const next = [entry, ...saved].slice(0, 20); setSaved(next); window.localStorage.setItem(LIBRARY_KEY, JSON.stringify(next)); toast.success("Banan sparades"); };
   const openSaved = (entry: SavedCourse) => { setMode(entry.mode); setCourses(prev => ({ ...prev, [entry.mode]: entry.course })); setSavedOpen(false); toast.success(`Öppnade ${entry.name}`); };
-  const exportJson = () => { downloadFile(`${course.name || mode}-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ mode, course }, null, 2)); toast.success("JSON exporterad"); };
+  const exportJson = () => { downloadFile(buildExportName([course.name, course.location, mode], "json"), JSON.stringify({ mode, course }, null, 2)); toast.success("JSON exporterad"); };
   const exportPdf = () => {
     const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const pageW = 297, pageH = 210, headerH = 17, date = new Date().toISOString().slice(0, 10);
     pdf.setFillColor(...hexToRgb(NAVY)); pdf.rect(0, 0, pageW, headerH, "F");
-    pdf.setTextColor(255, 255, 255); pdf.setFont("helvetica", "bold"); pdf.setFontSize(10); pdf.text("AgilityManager - Banplanerare", 10, 10.5);
-    pdf.setFont("helvetica", "normal"); pdf.setFontSize(7); pdf.text(date, pageW - 10, 10.5, { align: "right" });
+    pdf.setTextColor(255, 255, 255); pdf.setFont("helvetica", "bold"); pdf.setFontSize(11); pdf.text(course.name || `${mode}-bana`, 10, 8.5);
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.text(course.location ? `Plats: ${course.location}` : "AgilityManager - Banplanerare", 10, 13.5);
+    pdf.setFontSize(7); pdf.text(date, pageW - 10, 10.5, { align: "right" });
     pdf.setTextColor(55, 55, 55); pdf.setFontSize(8); pdf.text(`Sport: ${mode}   |   Banstorlek: ${course.width} x ${course.height} m   |   Antal hinder: ${course.obstacles.length}`, 10, 26);
     const marginX = 18, top = 33, fieldW = 262, fieldH = Math.min(150, fieldW * (course.height / course.width));
     pdf.setFillColor(248, 248, 248); pdf.rect(marginX, top, fieldW, fieldH, "F");
@@ -277,7 +291,8 @@ export default function V3CoursePlannerPageFixed() {
     for (const n of course.numbers) { const p = toPdf(n); const [r, g, b] = hexToRgb(n.color || DRAW_RED); pdf.setFillColor(r, g, b); pdf.circle(p.x, p.y, 2.5, "F"); pdf.setTextColor(n.color === "#ffffff" ? 20 : 255, n.color === "#ffffff" ? 40 : 255, n.color === "#ffffff" ? 20 : 255); pdf.setFontSize(5.5); pdf.text(String(n.num), p.x, p.y + 0.8, { align: "center" }); }
     pdf.setDrawColor(120, 120, 120); pdf.line(marginX + fieldW - 36, top + fieldH - 5, marginX + fieldW - 8, top + fieldH - 5); pdf.line(marginX + fieldW - 36, top + fieldH - 6, marginX + fieldW - 36, top + fieldH - 4); pdf.line(marginX + fieldW - 8, top + fieldH - 6, marginX + fieldW - 8, top + fieldH - 4); pdf.setTextColor(100, 100, 100); pdf.text("5 m", marginX + fieldW - 22, top + fieldH - 7, { align: "center" });
     pdf.setFontSize(6); pdf.text("Skapad med AgilityManager - agilitymanager.se", pageW / 2, pageH - 8, { align: "center" });
-    pdf.save(`${course.name || mode}.pdf`); toast.success("PDF skapad");
+    const filename = buildExportName([course.name, course.location, mode], "pdf");
+    pdf.save(filename); toast.success(`PDF skapad: ${filename}`);
   };
   const closeGuide = () => { window.localStorage.setItem(GUIDE_KEY, "1"); setGuide(false); };
 
@@ -475,6 +490,13 @@ function RightPanelContent({ selected, toolMode, setToolMode, setGuide, moveSele
     </section>
     <section className="space-y-2">
       <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-v3-text-tertiary">Banstorlek & PDF</div>
+      <input
+        type="text"
+        value={course.location ?? ""}
+        onChange={(e) => updateCourse(prev => ({ ...prev, location: e.target.value }))}
+        placeholder="Plats (t.ex. SHK Stockholm)"
+        className="w-full h-11 rounded-v3-base border border-v3-canvas-sunken bg-v3-canvas px-3 text-v3-sm placeholder:text-v3-text-tertiary"
+      />
       <select value={`${course.width}x${course.height}`} onChange={(e) => { const s = SIZES.find(item => `${item.width}x${item.height}` === e.target.value); if (s) updateCourse(prev => ({ ...prev, width: s.width, height: s.height })); }} className="w-full h-11 rounded-v3-base border border-v3-canvas-sunken bg-v3-canvas px-3 text-v3-sm">{SIZES.map(s => <option key={s.label} value={`${s.width}x${s.height}`}>{s.label}</option>)}</select>
       <div className="grid grid-cols-2 gap-2">
         <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={exportJson}><Download size={14} /> JSON</button>

@@ -67,11 +67,12 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
       const raw = sessionStorage.getItem('coach_pending');
       if (raw) {
         const pending = JSON.parse(raw) as {
-          question?: string; dogId?: string; sport?: string;
+          question?: string; dogId?: string; sport?: string; privacyMode?: 'private' | 'private_no_export';
         };
         if (pending.question) setQuestion(pending.question);
         if (pending.dogId) setDogId(pending.dogId);
         if (pending.sport) setSport(pending.sport);
+        if (pending.privacyMode) setPrivacyMode(pending.privacyMode);
       }
     } catch {/* ignore */}
 

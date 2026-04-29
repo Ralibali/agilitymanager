@@ -389,26 +389,22 @@ export function V3FindCompetitions({ preferredSport }: Props) {
       return next;
     });
 
-    // Gäst: skriv till localStorage i samma format som useCompetitionInterests
+    // Gäst: använd central versionssäkrad storage-modul (med metadata för filtrering)
     if (!user) {
       try {
-        const GUEST_KEY = "am.guest.interests.v1";
-        const raw = window.localStorage.getItem(GUEST_KEY);
-        const items: Array<{ competition_id: string; status: InterestStatus; dog_name: string | null; class: string | null; created_at: string }> = raw ? JSON.parse(raw) : [];
-        const idx = items.findIndex((i) => i.competition_id === compKey);
-        let next = items;
-        if (idx >= 0 && items[idx].status === target) {
-          next = items.filter((_, i) => i !== idx);
+        const result = setGuestInterestStorage({
+          competition_id: compKey,
+          status: target,
+          sport: comp.sport,
+          region: comp.region,
+          class: comp.classes?.[0] ?? null,
+          dog_name: null,
+        });
+        if (result === null) {
           toast.success(target === "interested" ? "Intresse borttaget" : "Anmälan borttagen");
-        } else if (idx >= 0) {
-          next = items.map((it, i) => (i === idx ? { ...it, status: target } : it));
-          toast.success(target === "interested" ? "⭐ Sparad i webbläsaren" : "✅ Sparad i webbläsaren");
         } else {
-          next = [...items, { competition_id: compKey, status: target, dog_name: null, class: null, created_at: new Date().toISOString() }];
           toast.success(target === "interested" ? "⭐ Sparad i webbläsaren" : "✅ Sparad i webbläsaren");
         }
-        window.localStorage.setItem(GUEST_KEY, JSON.stringify(next));
-        window.dispatchEvent(new CustomEvent("am:guest-interests-changed"));
       } catch (e) {
         console.error(e);
         toast.error("Kunde inte spara lokalt");

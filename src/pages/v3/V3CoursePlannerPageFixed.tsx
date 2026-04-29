@@ -171,26 +171,22 @@ export default function V3CoursePlannerPageFixed() {
   const openSaved = (entry: SavedCourse) => { setMode(entry.mode); setCourses(prev => ({ ...prev, [entry.mode]: entry.course })); setSavedOpen(false); toast.success(`Öppnade ${entry.name}`); };
   const exportJson = () => { downloadFile(`${course.name || mode}-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ mode, course }, null, 2)); toast.success("JSON exporterad"); };
   const exportPdf = () => {
-    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-    const pageW = 297, pageH = 210, headerH = 17, date = new Date().toISOString().slice(0, 10);
-    pdf.setFillColor(...hexToRgb(NAVY)); pdf.rect(0, 0, pageW, headerH, "F");
-    pdf.setTextColor(255, 255, 255); pdf.setFont("helvetica", "bold"); pdf.setFontSize(10); pdf.text("AgilityManager - Banplanerare", 10, 10.5);
-    pdf.setFont("helvetica", "normal"); pdf.setFontSize(7); pdf.text(date, pageW - 10, 10.5, { align: "right" });
-    pdf.setTextColor(55, 55, 55); pdf.setFontSize(8); pdf.text(`Sport: ${mode}   |   Banstorlek: ${course.width} x ${course.height} m   |   Antal hinder: ${course.obstacles.length}`, 10, 26);
-    const marginX = 18, top = 33, fieldW = 262, fieldH = Math.min(150, fieldW * (course.height / course.width));
-    pdf.setFillColor(248, 248, 248); pdf.rect(marginX, top, fieldW, fieldH, "F");
-    for (let x = 0; x <= course.width; x++) { const px = marginX + (x / course.width) * fieldW; const c = x % 5 === 0 ? 215 : 238; pdf.setDrawColor(c, c, c); pdf.setLineWidth(0.12); pdf.line(px, top, px, top + fieldH); if (x % 5 === 0) pdf.text(String(x), px - 1, top + fieldH + 5); }
-    for (let y = 0; y <= course.height; y++) { const py = top + (y / course.height) * fieldH; const c = y % 5 === 0 ? 215 : 238; pdf.setDrawColor(c, c, c); pdf.line(marginX, py, marginX + fieldW, py); if (y % 5 === 0 && y > 0) pdf.text(String(y), marginX - 4, py + 1); }
-    pdf.setTextColor(120, 120, 120); pdf.setFontSize(5.5); pdf.text("1 ruta = 1 meter", marginX + 3, top + 5);
-    const toPdf = (p: Point) => ({ x: marginX + (p.x / 100) * fieldW, y: top + (p.y / 100) * fieldH });
-    pdf.setDrawColor(...hexToRgb(DRAW_RED)); pdf.setLineWidth(0.7); if (typeof pdf.setLineDashPattern === "function") pdf.setLineDashPattern([2, 1.6], 0);
-    for (const path of course.paths) { if (path.points.length < 2) continue; const first = toPdf(path.points[0]); pdf.moveTo(first.x, first.y); for (const pt of path.points.slice(1)) { const p = toPdf(pt); pdf.lineTo(p.x, p.y); } pdf.stroke(); }
-    if (typeof pdf.setLineDashPattern === "function") pdf.setLineDashPattern([], 0);
-    for (const obstacle of course.obstacles) drawPdfObstacle(pdf, obstacle, toPdf(obstacle));
-    for (const n of course.numbers) { const p = toPdf(n); const [r, g, b] = hexToRgb(n.color || DRAW_RED); pdf.setFillColor(r, g, b); pdf.circle(p.x, p.y, 2.5, "F"); pdf.setTextColor(n.color === "#ffffff" ? 20 : 255, n.color === "#ffffff" ? 40 : 255, n.color === "#ffffff" ? 20 : 255); pdf.setFontSize(5.5); pdf.text(String(n.num), p.x, p.y + 0.8, { align: "center" }); }
-    pdf.setDrawColor(120, 120, 120); pdf.line(marginX + fieldW - 36, top + fieldH - 5, marginX + fieldW - 8, top + fieldH - 5); pdf.line(marginX + fieldW - 36, top + fieldH - 6, marginX + fieldW - 36, top + fieldH - 4); pdf.line(marginX + fieldW - 8, top + fieldH - 6, marginX + fieldW - 8, top + fieldH - 4); pdf.setTextColor(100, 100, 100); pdf.text("5 m", marginX + fieldW - 22, top + fieldH - 7, { align: "center" });
-    pdf.setFontSize(6); pdf.text("Skapad med AgilityManager - agilitymanager.se", pageW / 2, pageH - 8, { align: "center" });
-    pdf.save(`${course.name || mode}.pdf`); toast.success("PDF skapad");
+    try {
+      const creator =
+        (user?.user_metadata as { full_name?: string; name?: string } | undefined)?.full_name ||
+        (user?.user_metadata as { name?: string } | undefined)?.name ||
+        user?.email ||
+        "Anonym";
+      exportCoursePdf(course, {
+        mode,
+        creator,
+        location: course.location?.trim() || undefined,
+      });
+      toast.success("PDF skapad i 3D-vy");
+    } catch (e) {
+      console.error("PDF-export misslyckades", e);
+      toast.error("Kunde inte skapa PDF");
+    }
   };
   const closeGuide = () => { window.localStorage.setItem(GUIDE_KEY, "1"); setGuide(false); };
 

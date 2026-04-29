@@ -296,6 +296,14 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
 
   return (
     <div className="space-y-4">
+      {isGuest && <GuestConversionBanner markedCount={markedCount} />}
+      <GuestSignupModal
+        open={signupModal.open}
+        onOpenChange={(o) => setSignupModal((s) => ({ ...s, open: o }))}
+        title={signupModal.title}
+        description={signupModal.description}
+        markedCount={markedCount}
+      />
       {/* Dog filter description */}
       {selectedDog && (
         <div className="bg-primary/5 rounded-lg px-3 py-2 text-xs text-primary font-medium">

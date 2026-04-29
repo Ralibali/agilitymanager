@@ -340,9 +340,24 @@ export default function V3CoursePlannerV2Page() {
         <span className="hidden md:inline text-[11px] text-neutral-500">
           {savedAt ? `Autosparad ${savedAt.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}` : "Sparas…"}
         </span>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
           <SegmentedSport value={course.sport} onChange={switchSport} />
           <ValidationBadge summary={issueSummary} onClick={() => setIssuesOpen((v) => !v)} active={issuesOpen} />
+          <button
+            onClick={handleTrainThis}
+            className="hidden md:inline-flex h-9 px-3 rounded-full bg-white border border-black/10 text-[12px] font-semibold items-center gap-1.5 hover:border-neutral-400"
+            title="Skapa träningspass från denna bana"
+          >
+            <Dumbbell size={14} /> Träna
+          </button>
+          <button
+            onClick={handleShare}
+            disabled={!user}
+            className="hidden md:inline-flex h-9 px-3 rounded-full bg-white border border-black/10 text-[12px] font-semibold items-center gap-1.5 hover:border-neutral-400 disabled:opacity-40"
+            title={user ? "Dela banan med en kompis" : "Logga in för att dela"}
+          >
+            <Share2 size={14} /> Dela
+          </button>
           <button
             onClick={handleExportPdf}
             className="hidden sm:inline-flex h-9 px-3 rounded-full bg-white border border-black/10 text-[12px] font-semibold items-center gap-1.5 hover:border-neutral-400"
@@ -351,13 +366,28 @@ export default function V3CoursePlannerV2Page() {
             <FileDown size={14} /> PDF
           </button>
           <button
-            onClick={() => { saveCourse(course); toast.success("Bana sparad"); }}
-            className="h-9 px-3 rounded-full bg-[#1a6b3c] text-white text-[12px] font-semibold inline-flex items-center gap-1.5"
+            onClick={async () => {
+              saveCourse(course);
+              if (user) await saveToCloud();
+              else toast.success("Bana sparad lokalt");
+            }}
+            disabled={savingCloud}
+            className="h-9 px-3 rounded-full bg-[#1a6b3c] text-white text-[12px] font-semibold inline-flex items-center gap-1.5 disabled:opacity-60"
+            title={user ? "Spara i molnet" : "Sparas lokalt — logga in för molnsynk"}
           >
-            <Save size={14} /> Spara
+            {user ? <Cloud size={14} /> : <CloudOff size={14} />}
+            <span className="hidden xs:inline">Spara</span>
+            <Save size={14} className="xs:hidden" />
           </button>
         </div>
       </header>
+
+      <ShareCourseDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        savedCourses={cloudId ? [{ id: cloudId, name: course.name || "Ny bana" }] : []}
+        currentCourseId={cloudId}
+      />
 
       {issuesOpen && (
         <div className="bg-white border-b border-black/5 px-4 py-3 max-h-[40vh] overflow-y-auto">

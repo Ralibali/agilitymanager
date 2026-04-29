@@ -40,6 +40,7 @@ const HoopersCompetitionDetailPage = React.lazy(() => import("./pages/HoopersCom
 const BreedsIndexPage = React.lazy(() => import("./pages/BreedsIndexPage"));
 const BreedDetailPage = React.lazy(() => import("./pages/BreedDetailPage"));
 const HelpResultImportPage = React.lazy(() => import("./pages/HelpResultImportPage"));
+const PublicCoachPage = React.lazy(() => import("./pages/PublicCoachPage"));
 
 // v2-shellen är pensionerad – alla skyddade rutter går nu via v3.
 

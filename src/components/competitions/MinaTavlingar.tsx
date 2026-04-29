@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { stripHtml } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,8 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Star, CheckCircle2, ExternalLink, AlertTriangle } from 'lucide-react';
-import type { Competition, CompetitionInterest } from '@/types/competitions';
+import { Star, CheckCircle2, ExternalLink, AlertTriangle, Flag } from 'lucide-react';
+import type { Competition } from '@/types/competitions';
+import { useCompetitionInterests, type InterestStatus } from '@/hooks/useCompetitionInterests';
+import { readGuestInterestItems, type GuestInterestItem } from '@/lib/guestInterestsStorage';
 
 interface HoopersComp {
   id: string;
@@ -35,73 +37,115 @@ function formatDateShort(dateStr: string | null): string {
   return `${d.getDate()} ${months[d.getMonth()]}`;
 }
 
-type MergedInterest = CompetitionInterest & {
+interface MergedItem {
+  competition_id: string;
+  status: InterestStatus;
+  dog_name: string | null;
+  class: string | null;
   competition?: Competition;
   hoopersCompetition?: HoopersComp;
   sport: 'agility' | 'hoopers';
-};
+}
 
 export function MinaTavlingar() {
   const { user } = useAuth();
-  const [interests, setInterests] = useState<MergedInterest[]>([]);
+  // Delad intresse-hook — funkar för både inloggad och gäst
+  const { interests } = useCompetitionInterests();
+
+  const [competitionsById, setCompetitionsById] = useState<Map<string, Competition>>(new Map());
+  const [hoopersById, setHoopersById] = useState<Map<string, HoopersComp>>(new Map());
+  const [dbMeta, setDbMeta] = useState<Map<string, { dog_name: string | null; class: string | null }>>(new Map());
   const [loading, setLoading] = useState(true);
 
+  // Lista av alla competition_ids vi har intresse för
+  const interestIds = useMemo(() => Object.keys(interests), [interests]);
+
+  // För inloggade — hämta meta (dog_name, class) från DB. För gäster — läs från localStorage.
   useEffect(() => {
-    if (!user) return;
-    const load = async () => {
-      setLoading(true);
-      const { data: intData } = await supabase
-        .from('competition_interests')
-        .select('*')
-        .eq('user_id', user.id);
+    if (user) {
+      (async () => {
+        const { data } = await supabase
+          .from('competition_interests')
+          .select('competition_id, dog_name, class')
+          .eq('user_id', user.id);
+        const map = new Map<string, { dog_name: string | null; class: string | null }>();
+        (data || []).forEach((r: any) => map.set(r.competition_id, { dog_name: r.dog_name ?? null, class: r.class ?? null }));
+        setDbMeta(map);
+      })();
+    } else {
+      const items: GuestInterestItem[] = readGuestInterestItems();
+      const map = new Map<string, { dog_name: string | null; class: string | null }>();
+      items.forEach((it) => map.set(it.competition_id, { dog_name: it.dog_name ?? null, class: it.class ?? null }));
+      setDbMeta(map);
+    }
+  }, [user, interests]);
 
-      if (!intData || intData.length === 0) {
-        setInterests([]);
-        setLoading(false);
-        return;
-      }
-
-      const compIds = intData.map((i: any) => i.competition_id);
-
-      // Fetch from both agility and hoopers tables in parallel
-      const [agilityRes, hoopersRes] = await Promise.all([
-        supabase.from('competitions').select('*').in('id', compIds),
-        supabase.from('hoopers_competitions').select('id, competition_id, competition_name, date, location, club_name, source_url, registration_closes').in('id', compIds),
-      ]);
-
-      const agilityMap = new Map((agilityRes.data || []).map((c: any) => [c.id, c]));
-      const hoopersMap = new Map((hoopersRes.data || []).map((c: any) => [c.id, c]));
-
-      const merged: MergedInterest[] = intData.map((i: any) => {
-        const agilityComp = agilityMap.get(i.competition_id) as Competition | undefined;
-        const hoopersComp = hoopersMap.get(i.competition_id) as HoopersComp | undefined;
-        return {
-          ...(i as CompetitionInterest),
-          competition: agilityComp,
-          hoopersCompetition: hoopersComp,
-          sport: hoopersComp ? 'hoopers' as const : 'agility' as const,
-        };
-      });
-
-      setInterests(merged);
+  // Hämta tävlingsdata för relevanta id:n. Inloggade får full hoopers-tabell, gäster får publik vy.
+  useEffect(() => {
+    if (interestIds.length === 0) {
+      setCompetitionsById(new Map());
+      setHoopersById(new Map());
       setLoading(false);
-    };
-    load();
-  }, [user]);
+      return;
+    }
+    setLoading(true);
 
-  const interested = interests.filter(i => i.status === 'interested');
-  const registered = interests.filter(i => i.status === 'registered');
+    const hoopersTable = user ? 'hoopers_competitions' : 'hoopers_competitions_public';
+
+    Promise.all([
+      supabase.from('competitions').select('*').in('id', interestIds),
+      supabase
+        .from(hoopersTable as 'hoopers_competitions')
+        .select('id, competition_id, competition_name, date, location, club_name, source_url, registration_closes')
+        .in('id', interestIds),
+    ]).then(([agilityRes, hoopersRes]) => {
+      const aMap = new Map<string, Competition>();
+      (agilityRes.data || []).forEach((c: any) => aMap.set(c.id, c as Competition));
+      setCompetitionsById(aMap);
+
+      const hMap = new Map<string, HoopersComp>();
+      (hoopersRes.data || []).forEach((c: any) => hMap.set(c.id, c as HoopersComp));
+      setHoopersById(hMap);
+
+      setLoading(false);
+    });
+  }, [interestIds.join('|'), user]);
+
+  const merged: MergedItem[] = useMemo(() => {
+    return interestIds
+      .map((id) => {
+        const status = interests[id];
+        if (!status) return null;
+        const meta = dbMeta.get(id);
+        const agility = competitionsById.get(id);
+        const hoopers = hoopersById.get(id);
+        if (!agility && !hoopers) return null;
+        return {
+          competition_id: id,
+          status,
+          dog_name: meta?.dog_name ?? null,
+          class: meta?.class ?? null,
+          competition: agility,
+          hoopersCompetition: hoopers,
+          sport: hoopers ? ('hoopers' as const) : ('agility' as const),
+        } as MergedItem;
+      })
+      .filter((x): x is MergedItem => x !== null);
+  }, [interestIds, interests, dbMeta, competitionsById, hoopersById]);
+
+  const interested = merged.filter((i) => i.status === 'interested');
+  const registered = merged.filter((i) => i.status === 'registered');
+  const done = merged.filter((i) => i.status === 'done');
 
   if (loading) {
-    return <div className="space-y-3">{[1, 2].map(i => <Skeleton key={i} className="h-32 rounded-xl" />)}</div>;
+    return <div className="space-y-3">{[1, 2].map((i) => <Skeleton key={i} className="h-32 rounded-xl" />)}</div>;
   }
 
-  const renderCard = (item: MergedInterest, type: 'interested' | 'registered') => {
+  const renderCard = (item: MergedItem, type: InterestStatus) => {
     const isHoopers = item.sport === 'hoopers';
     const comp = item.competition;
     const hComp = item.hoopersCompetition;
 
-    // Get unified fields
     const dateStr = isHoopers ? hComp?.date : comp?.date_start;
     const clubName = isHoopers ? (hComp?.club_name || '') : stripHtml(comp?.club_name || '');
     const compName = isHoopers ? (hComp?.competition_name || 'Hooperstävling') : stripHtml(comp?.competition_name || '');
@@ -114,15 +158,31 @@ export function MinaTavlingar() {
     const daysToReg = daysUntil(regDeadline || null);
     const daysToComp = daysUntil(dateStr || null);
 
+    const StatusIcon =
+      type === 'interested' ? Star : type === 'registered' ? CheckCircle2 : Flag;
+    const statusIconClass =
+      type === 'interested'
+        ? 'fill-yellow-400 text-yellow-400'
+        : type === 'registered'
+          ? 'fill-green-500 text-green-500'
+          : 'fill-primary text-primary';
+
     return (
-      <div key={item.id} className="bg-card rounded-xl border border-border p-4">
+      <div key={item.competition_id} className="bg-card rounded-xl border border-border p-4">
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-1.5">
               <div className="text-lg font-bold font-display text-primary">
                 {formatDateShort(dateStr || null)}
               </div>
-              <Badge variant="outline" className={`text-[9px] px-1.5 py-0 ${isHoopers ? 'border-orange-500/50 text-orange-600 dark:text-orange-400' : 'border-blue-500/50 text-blue-600 dark:text-blue-400'}`}>
+              <Badge
+                variant="outline"
+                className={`text-[9px] px-1.5 py-0 ${
+                  isHoopers
+                    ? 'border-orange-500/50 text-orange-600 dark:text-orange-400'
+                    : 'border-blue-500/50 text-blue-600 dark:text-blue-400'
+                }`}
+              >
                 {isHoopers ? '🐕 Hoopers' : '🏃 Agility'}
               </Badge>
             </div>
@@ -130,14 +190,17 @@ export function MinaTavlingar() {
             <div className="text-xs text-muted-foreground">{compName}</div>
             <div className="text-xs text-muted-foreground mt-1">{location}</div>
           </div>
-          {type === 'interested'
-            ? <Star size={20} className="fill-yellow-400 text-yellow-400" />
-            : <CheckCircle2 size={20} className="fill-green-500 text-green-500" />}
+          <StatusIcon size={20} className={statusIconClass} />
         </div>
 
         {type === 'interested' && (
           <div className="mt-3 space-y-1">
-            {item.dog_name && <div className="text-xs font-medium">🐕 {item.dog_name}{item.class ? ` · ${item.class}` : ''}</div>}
+            {item.dog_name && (
+              <div className="text-xs font-medium">
+                🐕 {item.dog_name}
+                {item.class ? ` · ${item.class}` : ''}
+              </div>
+            )}
             {daysToReg !== null && daysToReg > 0 && daysToReg <= 7 && (
               <div className="flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
                 <AlertTriangle size={12} /> Stänger om {daysToReg} dagar
@@ -165,18 +228,28 @@ export function MinaTavlingar() {
             {item.class && <div className="text-xs">Klass: {item.class}</div>}
           </div>
         )}
+
+        {type === 'done' && (
+          <div className="mt-3 space-y-1">
+            {item.dog_name && <div className="text-xs">Hund: {item.dog_name}</div>}
+            {item.class && <div className="text-xs">Klass: {item.class}</div>}
+          </div>
+        )}
       </div>
     );
   };
 
   return (
     <Tabs defaultValue="interested">
-      <TabsList className="w-full grid grid-cols-2 mb-4">
+      <TabsList className="w-full grid grid-cols-3 mb-4">
         <TabsTrigger value="interested" className="gap-1 text-xs">
           <Star size={14} /> Intresserad ({interested.length})
         </TabsTrigger>
         <TabsTrigger value="registered" className="gap-1 text-xs">
           <CheckCircle2 size={14} /> Anmäld ({registered.length})
+        </TabsTrigger>
+        <TabsTrigger value="done" className="gap-1 text-xs">
+          <Flag size={14} /> Genomförd ({done.length})
         </TabsTrigger>
       </TabsList>
 
@@ -186,7 +259,7 @@ export function MinaTavlingar() {
             Inga stjärnmärkta tävlingar ännu. Markera tävlingar med ⭐️ i kalendern!
           </p>
         ) : (
-          <div className="space-y-3">{interested.map(i => renderCard(i, 'interested'))}</div>
+          <div className="space-y-3">{interested.map((i) => renderCard(i, 'interested'))}</div>
         )}
       </TabsContent>
 
@@ -196,7 +269,17 @@ export function MinaTavlingar() {
             Inga anmälda tävlingar ännu. Markera tävlingar med ✅ i kalendern!
           </p>
         ) : (
-          <div className="space-y-3">{registered.map(i => renderCard(i, 'registered'))}</div>
+          <div className="space-y-3">{registered.map((i) => renderCard(i, 'registered'))}</div>
+        )}
+      </TabsContent>
+
+      <TabsContent value="done">
+        {done.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8 text-sm">
+            Inga genomförda tävlingar markerade ännu.
+          </p>
+        ) : (
+          <div className="space-y-3">{done.map((i) => renderCard(i, 'done'))}</div>
         )}
       </TabsContent>
     </Tabs>

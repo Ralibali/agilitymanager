@@ -114,7 +114,7 @@ export default function V3ChatListPage() {
   return (
     <div className="max-w-[900px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-6 animate-v3-fade-in">
       <header>
-        <p className="text-v3-eyebrow uppercase tracking-[0.18em] text-v3-text-tertiary mb-2">
+        <p className="text-v3-eyebrow tracking-[0.18em] text-v3-text-tertiary mb-2">
           Gemenskap
         </p>
         <h1 className="text-v3-display text-v3-text-primary font-v3-display leading-tight">

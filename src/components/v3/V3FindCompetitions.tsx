@@ -807,7 +807,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                       </span>
                       <span
                         className={cn(
-                          "px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium shrink-0",
+                          "px-1.5 py-0.5 rounded text-[9px] tracking-wider font-medium shrink-0",
                           r.sport === "Hoopers"
                             ? "bg-v3-brand-500/10 text-v3-brand-700"
                             : "bg-v3-canvas-sunken text-v3-text-secondary",
@@ -816,27 +816,27 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                         {r.sport}
                       </span>
                       {status === "interested" && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium bg-amber-500/15 text-amber-700 shrink-0 inline-flex items-center gap-1">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] tracking-wider font-medium bg-amber-500/15 text-amber-700 shrink-0 inline-flex items-center gap-1">
                           <Star size={9} className="fill-amber-500 text-amber-500" /> Intresserad
                         </span>
                       )}
                       {status === "registered" && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium bg-green-500/15 text-green-700 shrink-0 inline-flex items-center gap-1">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] tracking-wider font-medium bg-green-500/15 text-green-700 shrink-0 inline-flex items-center gap-1">
                           <Check size={9} /> Anmäld
                         </span>
                       )}
                       {past && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium bg-v3-canvas-sunken text-v3-text-tertiary shrink-0">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] tracking-wider font-medium bg-v3-canvas-sunken text-v3-text-tertiary shrink-0">
                           Genomförd
                         </span>
                       )}
                       {!past && deadlineClosed && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium bg-v3-canvas-sunken text-v3-text-tertiary shrink-0">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] tracking-wider font-medium bg-v3-canvas-sunken text-v3-text-tertiary shrink-0">
                           Stängd
                         </span>
                       )}
                       {!past && deadlineSoon && !status && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium bg-amber-500/15 text-amber-700 shrink-0">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] tracking-wider font-medium bg-amber-500/15 text-amber-700 shrink-0">
                           {deadlineDays === 0 ? "Sista dagen" : `${deadlineDays} d kvar`}
                         </span>
                       )}

@@ -212,7 +212,7 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                   <Sparkles className="h-9 w-9 text-v3-brand-700" strokeWidth={1.5} />
                 </div>
                 <div className="space-y-2">
-                  <p className="text-v3-xs uppercase tracking-[0.18em] text-v3-text-tertiary">
+                  <p className="text-v3-xs tracking-[0.18em] text-v3-text-tertiary">
                     Välkommen
                   </p>
                   <h1 className="font-v3-display text-v3-4xl text-v3-text-primary">
@@ -547,7 +547,7 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                   🐾
                 </motion.div>
                 <div className="space-y-2">
-                  <p className="text-v3-xs uppercase tracking-[0.18em] text-v3-text-tertiary">
+                  <p className="text-v3-xs tracking-[0.18em] text-v3-text-tertiary">
                     Klart
                   </p>
                   <h2 className="font-v3-display text-v3-4xl text-v3-text-primary">

@@ -197,7 +197,7 @@ export default function V3FriendsPage() {
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <p className="text-v3-eyebrow uppercase tracking-[0.18em] text-v3-text-tertiary mb-2">
+          <p className="text-v3-eyebrow tracking-[0.18em] text-v3-text-tertiary mb-2">
             Gemenskap
           </p>
           <h1 className="text-v3-display text-v3-text-primary font-v3-display leading-tight">
@@ -466,7 +466,7 @@ function V3Stat({
 }) {
   return (
     <div className="p-4 rounded-v3-xl border border-v3-border bg-v3-surface">
-      <p className="text-v3-micro uppercase tracking-wider text-v3-text-tertiary">
+      <p className="text-v3-micro tracking-wider text-v3-text-tertiary">
         {label}
       </p>
       <p className="text-2xl font-v3-display text-v3-text-primary mt-1 truncate">

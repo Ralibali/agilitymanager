@@ -29,7 +29,7 @@ function V3StatCard({ icon: Icon, label, value }: StatCardProps) {
     <div className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-4 animate-v3-fade-up">
       <div className="flex items-center gap-2 text-v3-text-tertiary">
         <Icon className="h-3.5 w-3.5" />
-        <span className="text-v3-2xs uppercase tracking-[0.14em]">{label}</span>
+        <span className="text-v3-2xs tracking-[0.14em]">{label}</span>
       </div>
       <p className="font-v3-display text-v3-2xl text-v3-text-primary mt-2 tabular-nums">
         {value.toLocaleString("sv-SE")}
@@ -125,7 +125,7 @@ export default function V3AdminPage() {
       {/* Header */}
       <header className="flex items-end justify-between gap-4 flex-wrap">
         <div className="space-y-2">
-          <p className="text-v3-xs uppercase tracking-[0.18em] text-v3-text-tertiary font-v3-sans">
+          <p className="text-v3-xs tracking-[0.18em] text-v3-text-tertiary font-v3-sans">
             System
           </p>
           <h1 className="font-v3-display text-v3-4xl lg:text-v3-5xl text-v3-text-primary">

@@ -180,7 +180,7 @@ export default function V3DogsPage() {
 }
 
 function Badge({ children, tone = "brand" }: { children: React.ReactNode; tone?: "brand" | "muted" | "hoopers" }) {
-  return <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full uppercase tracking-[0.04em]", tone === "brand" && "bg-v3-brand-500/10 text-v3-brand-700", tone === "muted" && "bg-v3-canvas-sunken text-v3-text-secondary", tone === "hoopers" && "bg-v3-accent-prestation/15 text-v3-accent-prestation")}>{children}</span>;
+  return <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full tracking-[0.04em]", tone === "brand" && "bg-v3-brand-500/10 text-v3-brand-700", tone === "muted" && "bg-v3-canvas-sunken text-v3-text-secondary", tone === "hoopers" && "bg-v3-accent-prestation/15 text-v3-accent-prestation")}>{children}</span>;
 }
 
 function Stat({ icon, value, label }: { icon: React.ReactNode; value: number | string; label: string }) {

@@ -123,8 +123,10 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
     setLoading(true);
     const today = new Date().toISOString().split('T')[0];
 
+    // Inloggade läser från huvudtabellen; utloggade får den publika vyn (RLS-säker).
+    const tableName = user ? 'hoopers_competitions' : 'hoopers_competitions_public';
     const { data, error } = await supabase
-      .from('hoopers_competitions')
+      .from(tableName as 'hoopers_competitions')
       .select('*')
       .gte('date', today)
       .order('date', { ascending: true });
@@ -137,13 +139,14 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
       console.error('Error fetching hoopers competitions:', error);
     }
 
-    // If no data, trigger a scrape
-    if (!data || data.length === 0) {
+    // Endast inloggade triggar en ny scrape om listan är tom (kräver auth/admin-resurser).
+    if (user && (!data || data.length === 0)) {
       await handleRefresh(true);
     }
 
     setLoading(false);
-  }, []);
+  }, [user]);
+
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

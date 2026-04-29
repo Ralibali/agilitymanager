@@ -290,7 +290,8 @@ export default function V3CoursePlannerPageFixed() {
     for (const n of course.numbers) { const p = toPdf(n); const [r, g, b] = hexToRgb(n.color || DRAW_RED); pdf.setFillColor(r, g, b); pdf.circle(p.x, p.y, 2.5, "F"); pdf.setTextColor(n.color === "#ffffff" ? 20 : 255, n.color === "#ffffff" ? 40 : 255, n.color === "#ffffff" ? 20 : 255); pdf.setFontSize(5.5); pdf.text(String(n.num), p.x, p.y + 0.8, { align: "center" }); }
     pdf.setDrawColor(120, 120, 120); pdf.line(marginX + fieldW - 36, top + fieldH - 5, marginX + fieldW - 8, top + fieldH - 5); pdf.line(marginX + fieldW - 36, top + fieldH - 6, marginX + fieldW - 36, top + fieldH - 4); pdf.line(marginX + fieldW - 8, top + fieldH - 6, marginX + fieldW - 8, top + fieldH - 4); pdf.setTextColor(100, 100, 100); pdf.text("5 m", marginX + fieldW - 22, top + fieldH - 7, { align: "center" });
     pdf.setFontSize(6); pdf.text("Skapad med AgilityManager - agilitymanager.se", pageW / 2, pageH - 8, { align: "center" });
-    pdf.save(`${course.name || mode}.pdf`); toast.success("PDF skapad");
+    const filename = buildExportName([course.name, course.location, mode], "pdf");
+    pdf.save(filename); toast.success(`PDF skapad: ${filename}`);
   };
   const closeGuide = () => { window.localStorage.setItem(GUIDE_KEY, "1"); setGuide(false); };
 

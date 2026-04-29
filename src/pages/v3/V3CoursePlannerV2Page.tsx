@@ -381,7 +381,8 @@ export default function V3CoursePlannerV2Page() {
     const ob = course.obstacles.find((o) => o.id === id);
     if (!ob) return;
     const newId = uid();
-    const copy: ObstacleV2 = { ...ob, id: newId, x: snapM(ob.x + 1), y: snapM(ob.y + 1), number: undefined };
+    // Duplikat ärver INTE locked — användaren vill kunna flytta kopian direkt.
+    const copy: ObstacleV2 = { ...ob, id: newId, x: snapM(ob.x + 1), y: snapM(ob.y + 1), number: undefined, locked: false };
     setCourse((c) => ({ ...c, obstacles: [...c.obstacles, copy] }));
     setSelectedId(newId);
   }

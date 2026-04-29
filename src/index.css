@@ -270,6 +270,10 @@
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
+  /* Brand foundation alias — samma effekt som .tabular-nums, kortare namn. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
   .v3-selection ::selection {
     background-color: hsl(var(--v3-brand-100));
     color: hsl(var(--v3-text-primary));

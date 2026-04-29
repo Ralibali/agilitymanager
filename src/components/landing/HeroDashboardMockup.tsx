@@ -31,7 +31,7 @@ export function HeroDashboardMockup() {
                 Översikt
               </p>
               <h3 className="text-[18px] text-text-primary tracking-tight">
-                Hej, Anna
+                Hej, Annika
               </h3>
             </div>
             <span className="text-[11px] text-text-tertiary">torsdag 17 apr</span>

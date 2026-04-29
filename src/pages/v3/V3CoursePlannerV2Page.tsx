@@ -11,8 +11,8 @@
  * Data sparas i localStorage under egen nyckel — påverkar INTE v1.
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
-import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, FileDown, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, useCallback, type PointerEvent } from "react";
+import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, FileDown, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff, Library, Undo2, Redo2, Copy, Magnet, ListOrdered } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -25,7 +25,12 @@ import {
 } from "@/features/course-planner-v2/config";
 import { validateCourse, computeCourseTimes, summarizeIssues, type ValidationIssue } from "@/features/course-planner-v2/validation";
 import { exportJudgePdf } from "@/features/course-planner-v2/judgePdf";
-import ShareCourseDialog from "@/components/course-planner/ShareCourseDialog";
+import { exportStartlistPdf } from "@/features/course-planner-v2/startlistPdf";
+import CourseLibraryDialog from "@/features/course-planner-v2/CourseLibraryDialog";
+import ClubShareDialog from "@/features/course-planner-v2/ClubShareDialog";
+import CourseCommentsPanel from "@/features/course-planner-v2/CourseCommentsPanel";
+import { instantiatePrebuilt, type PrebuiltCourse } from "@/features/course-planner-v2/templates";
+import type { LibraryCourse } from "@/features/course-planner-v2/library";
 
 const STORAGE_KEY = "am_course_planner_v2";
 

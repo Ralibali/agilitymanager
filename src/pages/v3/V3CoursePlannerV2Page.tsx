@@ -242,7 +242,7 @@ export default function V3CoursePlannerV2Page() {
       return;
     }
     const result = parseCourseJson(text);
-    if (!result.ok) {
+    if (result.ok !== true) {
       toast.error(result.error);
       return;
     }

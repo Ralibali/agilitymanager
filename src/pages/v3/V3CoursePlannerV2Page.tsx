@@ -785,3 +785,83 @@ function ObstacleGlyph({ type }: { type: ObstacleTypeV2 }) {
     default: return null;
   }
 }
+
+/* ───────────── Validering UI ───────────── */
+
+function ValidationBadge({ summary, onClick, active }: {
+  summary: { errors: number; warnings: number; info: number };
+  onClick: () => void;
+  active: boolean;
+}) {
+  const total = summary.errors + summary.warnings + summary.info;
+  const ok = total === 0;
+  const tone = summary.errors > 0
+    ? "bg-red-50 text-red-700 border-red-200"
+    : summary.warnings > 0
+      ? "bg-amber-50 text-amber-700 border-amber-200"
+      : ok
+        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+        : "bg-blue-50 text-blue-700 border-blue-200";
+  return (
+    <button
+      onClick={onClick}
+      title="Visa valideringsdetaljer"
+      className={cn(
+        "h-9 px-2.5 rounded-full border text-[11px] font-semibold inline-flex items-center gap-1.5 transition",
+        tone,
+        active && "ring-2 ring-offset-1",
+      )}
+    >
+      {ok ? <CheckCircle2 size={13} /> : summary.errors > 0 ? <AlertCircle size={13} /> : <AlertTriangle size={13} />}
+      {ok ? "OK" : (
+        <>
+          {summary.errors > 0 && <span>{summary.errors} fel</span>}
+          {summary.warnings > 0 && <span>{summary.warnings} varn</span>}
+          {summary.errors === 0 && summary.warnings === 0 && summary.info > 0 && <span>{summary.info} info</span>}
+        </>
+      )}
+    </button>
+  );
+}
+
+function IssuesList({ issues, onSelect }: {
+  issues: ValidationIssue[];
+  onSelect: (id: string | undefined) => void;
+}) {
+  if (issues.length === 0) {
+    return (
+      <div className="flex items-center gap-2 text-emerald-700 text-[12px] font-medium">
+        <CheckCircle2 size={14} /> Inga regelproblem hittades. Banan ser bra ut.
+      </div>
+    );
+  }
+  const order: Record<ValidationIssue["level"], number> = { error: 0, warning: 1, info: 2 };
+  const sorted = [...issues].sort((a, b) => order[a.level] - order[b.level]);
+  return (
+    <ul className="space-y-1">
+      {sorted.map((iss, idx) => {
+        const tone = iss.level === "error"
+          ? "text-red-700 bg-red-50 border-red-100"
+          : iss.level === "warning"
+            ? "text-amber-700 bg-amber-50 border-amber-100"
+            : "text-blue-700 bg-blue-50 border-blue-100";
+        const Icon = iss.level === "error" ? AlertCircle : iss.level === "warning" ? AlertTriangle : Info;
+        return (
+          <li key={idx}>
+            <button
+              onClick={() => onSelect(iss.obstacleId)}
+              className={cn(
+                "w-full text-left px-2.5 py-1.5 rounded-lg border text-[12px] inline-flex items-start gap-2 hover:brightness-95 transition",
+                tone,
+              )}
+            >
+              <Icon size={13} className="mt-0.5 shrink-0" />
+              <span>{iss.message}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+

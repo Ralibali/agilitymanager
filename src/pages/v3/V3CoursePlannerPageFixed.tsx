@@ -130,7 +130,26 @@ export default function V3CoursePlannerPageFixed() {
     for (const item of specsFor(mode)) map.set(item.category, [...(map.get(item.category) ?? []), item]);
     return Array.from(map.entries());
   }, [mode]);
-  const nextNumber = Math.max(0, ...course.obstacles.map(o => o.number ?? 0), ...course.numbers.map(n => n.num)) + 1;
+  const nextNumber = useMemo(() => {
+    const used = new Set<number>();
+    for (const o of course.obstacles) if (o.number) used.add(o.number);
+    for (const n of course.numbers) used.add(n.num);
+    let i = 1;
+    while (used.has(i)) i++;
+    return i;
+  }, [course.obstacles, course.numbers]);
+  const compactNumbering = (obstacles: Obstacle[], numbers: FreeNumber[]) => {
+    const all = [
+      ...obstacles.filter(o => o.number).map(o => ({ kind: "o" as const, id: o.id, num: o.number! })),
+      ...numbers.map(n => ({ kind: "n" as const, id: n.id, num: n.num })),
+    ].sort((a, b) => a.num - b.num);
+    const remap = new Map<string, number>();
+    all.forEach((item, idx) => remap.set(`${item.kind}:${item.id}`, idx + 1));
+    return {
+      obstacles: obstacles.map(o => o.number ? { ...o, number: remap.get(`o:${o.id}`) ?? o.number } : o),
+      numbers: numbers.map(n => ({ ...n, num: remap.get(`n:${n.id}`) ?? n.num })),
+    };
+  };
 
   useEffect(() => { try { if (window.localStorage.getItem(GUIDE_KEY) !== "1") setGuide(true); } catch { setGuide(true); } }, []);
   useEffect(() => { window.localStorage.setItem(SAVE_KEY, JSON.stringify(courses)); }, [courses]);
@@ -165,7 +184,16 @@ export default function V3CoursePlannerPageFixed() {
     if (isMobile) setLeftOpen(false);
   };
   const switchMode = (next: PlannerMode) => { setMode(next); setSelectedTool(defaultTool(next)); setSelectedId(null); setDraggingId(null); setToolMode("select"); };
-  const deleteSelected = () => { if (!selectedId) return; setObstacles(prev => prev.filter(o => o.id !== selectedId)); setNumbers(prev => prev.filter(n => n.id !== selectedId)); setSelectedId(null); };
+  const deleteSelected = () => {
+    if (!selectedId) return;
+    updateCourse(prev => {
+      const obstacles = prev.obstacles.filter(o => o.id !== selectedId);
+      const numbers = prev.numbers.filter(n => n.id !== selectedId);
+      const compacted = compactNumbering(obstacles, numbers);
+      return { ...prev, ...compacted };
+    });
+    setSelectedId(null);
+  };
   const rotateSelected = (deg = 15) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, rotation: (o.rotation + deg + 360) % 360 } : o));
   const moveSelected = (dx: number, dy: number) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, x: clamp(o.x + dx, 0, 100), y: clamp(o.y + dy, 0, 100) } : o));
   const recolorSelected = (nextColor: string) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, color: nextColor } : o));
@@ -173,9 +201,24 @@ export default function V3CoursePlannerPageFixed() {
   const eraseNear = (x: number, y: number) => {
     const p = { x, y };
     const hit = course.obstacles.find(o => distance(p, o) < 4.5);
-    if (hit) { setObstacles(prev => prev.filter(o => o.id !== hit.id)); if (selectedId === hit.id) setSelectedId(null); return; }
+    if (hit) {
+      updateCourse(prev => {
+        const obstacles = prev.obstacles.filter(o => o.id !== hit.id);
+        const compacted = compactNumbering(obstacles, prev.numbers);
+        return { ...prev, ...compacted };
+      });
+      if (selectedId === hit.id) setSelectedId(null);
+      return;
+    }
     setPaths(prev => prev.filter(path => !path.points.some(pt => distance(p, pt) < 3.5)));
-    setNumbers(prev => prev.filter(n => distance(p, n) > 4));
+    const removed = course.numbers.filter(n => distance(p, n) <= 4);
+    if (removed.length > 0) {
+      updateCourse(prev => {
+        const numbers = prev.numbers.filter(n => distance(p, n) > 4);
+        const compacted = compactNumbering(prev.obstacles, numbers);
+        return { ...prev, ...compacted };
+      });
+    }
   };
   const fieldDown = (event: PointerEvent<HTMLDivElement>) => {
     const p = toPoint(event);

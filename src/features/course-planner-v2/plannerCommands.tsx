@@ -119,7 +119,7 @@ export function buildPlannerCommands(h: PlannerCommandHandlers): PaletteCommand[
   const addable: { type: ObstacleTypeV2; label: string; sport: Sport[] }[] = [
     { type: "jump",     label: "Hopp",      sport: ["agility"] },
     { type: "tunnel",   label: "Tunnel",    sport: ["agility", "hoopers"] },
-    { type: "slalom12", label: "Slalom 12", sport: ["agility"] },
+    { type: "weave_12", label: "Slalom 12", sport: ["agility"] },
     { type: "aframe",   label: "A-hinder",  sport: ["agility"] },
     { type: "start",    label: "Start",     sport: ["agility", "hoopers"] },
     { type: "finish",   label: "Mål",       sport: ["agility", "hoopers"] },

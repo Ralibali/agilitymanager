@@ -6,6 +6,7 @@ import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingFooterV2 } from '@/components/landing/LandingFooterV2';
 import { Disclaimer } from '@/components/Disclaimer';
 import { V3FindCompetitions } from '@/components/v3/V3FindCompetitions';
+import { GuestRecommendedCompetitions } from '@/components/competitions/GuestRecommendedCompetitions';
 
 /**
  * Region-slug → display-namn för svenska län (används bara för SEO-titel/H1).
@@ -177,6 +178,19 @@ export default function PublicCompetitionsPage() {
 
       {/* Delad komponent — exakt samma flikar, filter och intresse-status som inloggade */}
       <main className="mx-auto max-w-6xl px-4 py-8 md:py-12">
+        {/* Rekommendationer för gäster: datum + region (fallback Stockholm) */}
+        <section className="mb-10">
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <div>
+              <h2 className="font-display text-2xl font-bold">Rekommenderade tävlingar</h2>
+              <p className="text-sm text-text-secondary mt-1">
+                Närmast i tiden från din ort. Logga in för matchning mot din hunds klass och storlek.
+              </p>
+            </div>
+          </div>
+          <GuestRecommendedCompetitions limit={6} />
+        </section>
+
         <V3FindCompetitions preferredSport={preferredSport} />
 
         {/* CTA */}

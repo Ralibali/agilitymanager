@@ -78,6 +78,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
     } catch {/* ignore */}
 
     setResumedFromStripe(true);
+    setPrivacyAcknowledged(true);
     toast.success('Betalning klar! Välj samma video igen för att slutföra uppladdningen.');
 
     // Scrolla till uppladdningskortet så användaren ser nästa steg

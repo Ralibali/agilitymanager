@@ -162,18 +162,17 @@ export function PlannerTopbar({
         {/* Grupp 5: export */}
         {exportMenu}
 
-        {/* Grupp 6: spara (primär) */}
+        {/* Grupp 6: spara (primär). Ikon-bara på mobil, ikon+text från sm. */}
         <button
           type="button"
           onClick={() => { void onSave(); }}
           disabled={saveDisabled}
-          className="h-9 px-3 rounded-full bg-[#1a6b3c] text-white text-[12px] font-semibold inline-flex items-center gap-1.5 hover:bg-[#155730] disabled:opacity-60 transition"
+          className="h-9 w-9 sm:w-auto sm:px-3 inline-flex items-center justify-center rounded-full bg-[#1a6b3c] text-white text-[12px] font-semibold gap-1.5 hover:bg-[#155730] disabled:opacity-60 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a6b3c]/40 shrink-0"
           title={isAuthenticated ? "Spara i molnet" : "Sparas lokalt — logga in för molnsynk"}
           aria-label="Spara bana"
         >
           {isAuthenticated ? <Cloud size={14} /> : <CloudOff size={14} />}
-          <span className="hidden xs:inline sm:inline">Spara</span>
-          <Save size={14} className="xs:hidden sm:hidden" aria-hidden />
+          <span className="hidden sm:inline">Spara</span>
         </button>
       </div>
     </header>

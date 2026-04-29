@@ -1219,13 +1219,38 @@ function SelectedPanel({
       </div>
 
       <div className="grid grid-cols-2 gap-1.5 mt-3">
-        <button onClick={() => onRotate(15)} className="h-9 rounded-lg bg-white border border-black/10 text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 hover:border-neutral-400">
+        <button onClick={() => onRotate(15)} disabled={locked} className="h-9 rounded-lg bg-white border border-black/10 text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed">
           <RotateCw size={13} /> Rotera 15°
         </button>
-        <button onClick={() => onRotate(90)} className="h-9 rounded-lg bg-white border border-black/10 text-[12px] font-semibold hover:border-neutral-400">
+        <button onClick={() => onRotate(90)} disabled={locked} className="h-9 rounded-lg bg-white border border-black/10 text-[12px] font-semibold hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed">
           Rotera 90°
         </button>
       </div>
+
+      <button
+        onClick={onToggleLock}
+        className={cn(
+          "mt-2 w-full h-9 rounded-lg text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 border transition",
+          locked
+            ? "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
+            : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
+        )}
+        title="Lås/lås upp hindret (förhindrar drag, rotation och radering)"
+      >
+        {locked ? <><Lock size={13} /> Låst — klicka för att låsa upp</> : <><Unlock size={13} /> Lås hinder</>}
+      </button>
+
+      <div className="mt-3">
+        <div className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-1">Stapelordning</div>
+        <div className="grid grid-cols-4 gap-1">
+          <button onClick={onSendToBack} title="Längst bak (Ctrl+Shift+[)" className="h-8 rounded-lg bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowDownToLine size={13} /></button>
+          <button onClick={onSendBackward} title="Bakåt ett steg (Ctrl+[)" className="h-8 rounded-lg bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowDown size={13} /></button>
+          <button onClick={onBringForward} title="Framåt ett steg (Ctrl+])" className="h-8 rounded-lg bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowUp size={13} /></button>
+          <button onClick={onBringToFront} title="Längst fram (Ctrl+Shift+])" className="h-8 rounded-lg bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowUpToLine size={13} /></button>
+        </div>
+        <div className="text-[10px] text-neutral-500 mt-1">Lager: {obstacle.zIndex ?? 0}</div>
+      </div>
+
       <div className="mt-2 flex items-center gap-2">
         <label className="text-[11px] text-neutral-600">Nummer</label>
         <input
@@ -1236,7 +1261,8 @@ function SelectedPanel({
             onNumberChange(v === "" ? undefined : Number(v));
           }}
           min={1}
-          className="h-9 w-20 px-2 rounded-lg border border-black/10 text-[12px]"
+          disabled={locked}
+          className="h-9 w-20 px-2 rounded-lg border border-black/10 text-[12px] disabled:opacity-50"
         />
       </div>
       {isTunnel && onTunnelCurve && (

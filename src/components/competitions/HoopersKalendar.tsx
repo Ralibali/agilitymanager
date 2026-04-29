@@ -89,10 +89,34 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
   // Delad intresse-hook (hanterar både inloggad och gäst via localStorage)
   const { interests, setInterest, isGuest } = useCompetitionInterests();
 
+  // Konverterings-modal-state
+  const [signupModal, setSignupModal] = useState<{ open: boolean; title?: string; description?: string }>({ open: false });
+  const markedCount = useMemo(() => Object.keys(interests).length, [interests]);
+
+  // Exit-intent: trigga modal om gäst med 2+ markeringar verkar lämna
+  useExitIntent({
+    enabled: isGuest && markedCount >= 2,
+    onTrigger: () => setSignupModal({
+      open: true,
+      title: 'Spara dina markeringar innan du går',
+      description: `Du har ${markedCount} markeringar — skapa konto på 30 sekunder så är de kvar nästa gång.`,
+    }),
+  });
+
   // Auto-filter based on selected dog's hoopers level
   const selectedDog = useMemo(() => dogs.find(d => d.id === selectedDogId), [dogs, selectedDogId]);
 
   const toggleInterest = async (comp: HoopersCompetition, targetStatus: 'interested' | 'registered') => {
+    // Hard-wall: gäst får inte markera "Anmäld" — öppna signup-modal istället
+    if (targetStatus === 'registered' && isGuest && interests[comp.id] !== 'registered') {
+      setSignupModal({
+        open: true,
+        title: 'Anmälan kräver konto',
+        description: 'Anmälningar sparas på ditt konto så du har dem på alla enheter och får påminnelser. Intresse (⭐) kan du markera utan konto.',
+      });
+      return;
+    }
+
     const dog = selectedDog || dogs.find(d => d.sport === 'Hoopers' || d.sport === 'Båda');
     const dogName = dog?.name || null;
     const dogClass = dog?.hoopers_level || null;
@@ -107,17 +131,6 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
 
     if (wasActive) {
       toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
-    } else if (targetStatus === 'registered' && isGuest) {
-      toast.success('✅ Markerad som anmäld', {
-        description: 'Logga in för att slutföra anmälan och spara mellan enheter.',
-        action: {
-          label: 'Logga in',
-          onClick: () => {
-            window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
-          },
-        },
-        duration: 8000,
-      });
     } else {
       toast.success(targetStatus === 'interested' ? '⭐ Markerad som intresserad' : '✅ Markerad som anmäld');
     }

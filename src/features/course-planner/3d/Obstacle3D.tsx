@@ -9,6 +9,7 @@ export type Obstacle3DProps = {
   rotationDeg: number;
   number?: number;
   color?: string;
+  onSelect?: () => void;
 };
 
 const WHITE = "#ffffff";
@@ -316,7 +317,7 @@ function FinishGate() {
   );
 }
 
-export function Obstacle3D({ type, x, z, rotationDeg, number, color }: Obstacle3DProps) {
+export function Obstacle3D({ type, x, z, rotationDeg, number, color, onSelect }: Obstacle3DProps) {
   const rotY = useMemo(() => (rotationDeg * Math.PI) / 180, [rotationDeg]);
   const renderModel = () => {
     switch (type) {
@@ -347,10 +348,24 @@ export function Obstacle3D({ type, x, z, rotationDeg, number, color }: Obstacle3
     dog_walk: 1.5, balance: 1.5, seesaw: 0.9, weave: 1.2, tire: 1.7, hoop: 1.3,
     hoopers_tunnel: 1.2, barrel: 1.1, gate: 1.0, handler_zone: 0.4, start: 1.4, finish: 1.4,
   };
+  // Invisible click hitbox — generous box around the model so taps register easily.
+  const hit = heightMap[type] ?? 1;
   return (
     <group position={[x, 0, z]} rotation={[0, rotY, 0]}>
       {renderModel()}
-      <NumberPlate number={number} height={heightMap[type] ?? 1} />
+      <NumberPlate number={number} height={hit} />
+      {onSelect && (
+        <mesh
+          position={[0, hit / 2 + 0.1, 0]}
+          onClick={(e) => { e.stopPropagation(); onSelect(); }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerOver={(e) => { e.stopPropagation(); document.body.style.cursor = "pointer"; }}
+          onPointerOut={() => { document.body.style.cursor = "auto"; }}
+        >
+          <boxGeometry args={[2.2, hit + 0.4, 2.2]} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+        </mesh>
+      )}
     </group>
   );
 }

@@ -194,9 +194,15 @@ export default function CoursePlanner3D(props: CoursePlanner3DProps) {
             <PerspectiveCamera makeDefault position={walkPose.pos} fov={70} />
           )}
           <Arena3D widthMeters={widthMeters} heightMeters={heightMeters} />
-          {sceneObstacles.map((o) => (
-            <Obstacle3D key={o.id} type={o.type} x={o._x} z={o._z} rotationDeg={o.rotation} number={o.number} color={o.color} />
-          ))}
+          {sceneObstacles.map((o) => {
+            const numIdx = numbered.findIndex((n) => n.id === o.id);
+            const handleSelect = numIdx >= 0
+              ? () => { setCurrentIdx(numIdx); setMode("walk"); }
+              : undefined;
+            return (
+              <Obstacle3D key={o.id} type={o.type} x={o._x} z={o._z} rotationDeg={o.rotation} number={o.number} color={o.color} onSelect={handleSelect} />
+            );
+          })}
           <PathLine3D paths={paths} widthMeters={widthMeters} heightMeters={heightMeters} />
 
           {mode === "view" ? (

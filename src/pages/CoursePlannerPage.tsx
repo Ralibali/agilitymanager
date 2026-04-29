@@ -2291,7 +2291,6 @@ export default function CoursePlannerPage() {
 
     // Render canvas to image
     const dpr = window.devicePixelRatio || 1;
-    const padding = 20;
     const imgCanvas = document.createElement('canvas');
     const imgW = canvasWidth + MARGIN;
     const imgH = canvasHeight + MARGIN;
@@ -2310,39 +2309,106 @@ export default function CoursePlannerPage() {
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
 
-    // Header
-    doc.setFillColor(30, 30, 90);
-    doc.rect(0, 0, pageW, 16, 'F');
+    // Brand colors (Varm Sand: primary #1a6b3c, secondary #c85d1e)
+    const BRAND_PRIMARY: [number, number, number] = [26, 107, 60];
+    const BRAND_SECONDARY: [number, number, number] = [200, 93, 30];
+
+    // Header band
+    doc.setFillColor(...BRAND_PRIMARY);
+    doc.rect(0, 0, pageW, 18, 'F');
+    // Accent stripe
+    doc.setFillColor(...BRAND_SECONDARY);
+    doc.rect(0, 18, pageW, 1.2, 'F');
+
+    // Logo mark (circle + paw-like dot cluster)
+    doc.setFillColor(255, 255, 255);
+    doc.circle(12, 9, 5, 'F');
+    doc.setFillColor(...BRAND_PRIMARY);
+    doc.circle(12, 9.5, 2.2, 'F');
+    doc.circle(10, 7.5, 0.9, 'F');
+    doc.circle(14, 7.5, 0.9, 'F');
+    doc.circle(9, 10, 0.8, 'F');
+    doc.circle(15, 10, 0.8, 'F');
+
+    // Brand title
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(13);
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('AgilityManager - Banplanerare', 10, 10.5);
-    doc.setFontSize(9);
+    doc.text('AgilityManager', 21, 9);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text(today, pageW - 10, 10.5, { align: 'right' });
+    doc.text('Banplanerare · agilitymanager.se', 21, 13.5);
+
+    // Date right
+    doc.setFontSize(9);
+    doc.text(today, pageW - 10, 11, { align: 'right' });
 
     // Metadata line
     doc.setTextColor(60, 60, 60);
     doc.setFontSize(10);
-    const metaY = 24;
-    doc.text(`Sport: ${sportLabel}   |   Banstorlek: ${widthM} x ${heightM} m   |   Antal hinder: ${obstacleCount}`, 10, metaY);
+    doc.setFont('helvetica', 'bold');
+    const metaY = 28;
+    doc.text(`${sportLabel}`, 10, metaY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`·  Banstorlek: ${widthM} × ${heightM} m  ·  Antal hinder: ${obstacleCount}`, 10 + doc.getTextWidth(sportLabel) + 2, metaY);
 
-    // Canvas image - fit within page with margins
+    // Canvas image - fit within page with margins (leave room for footer + watermark)
     const availW = pageW - 20;
-    const availH = pageH - metaY - 22;
+    const availH = pageH - metaY - 26;
     const scale = Math.min(availW / imgW, availH / imgH);
     const drawW = imgW * scale;
     const drawH = imgH * scale;
     const drawX = (pageW - drawW) / 2;
     const drawY = metaY + 6;
+
+    // Subtle frame around the course image
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.3);
+    doc.rect(drawX - 1, drawY - 1, drawW + 2, drawH + 2);
+
     doc.addImage(imgData, 'PNG', drawX, drawY, drawW, drawH);
 
-    // Footer
-    doc.setFontSize(7);
-    doc.setTextColor(140, 140, 140);
-    doc.text('Skapad med AgilityManager - agilitymanager.se', pageW / 2, pageH - 6, { align: 'center' });
+    // Diagonal watermark stamp across the course
+    try {
+      const gState = (doc as any).GState ? new (doc as any).GState({ opacity: 0.08 }) : null;
+      if (gState) (doc as any).setGState(gState);
+      doc.setTextColor(...BRAND_PRIMARY);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(72);
+      const cx = drawX + drawW / 2;
+      const cy = drawY + drawH / 2;
+      doc.text('AGILITYMANAGER', cx, cy, { align: 'center', angle: 30 } as any);
+      if (gState) {
+        const reset = new (doc as any).GState({ opacity: 1 });
+        (doc as any).setGState(reset);
+      }
+    } catch {
+      // Older jsPDF: skip watermark if GState not available
+    }
 
-    doc.save('agility-bana.pdf');
+    // "Stamp" badge — bottom right corner of the course
+    const stampX = drawX + drawW - 38;
+    const stampY = drawY + drawH - 14;
+    doc.setDrawColor(...BRAND_SECONDARY);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(stampX, stampY, 36, 10, 1.5, 1.5, 'S');
+    doc.setTextColor(...BRAND_SECONDARY);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.text('SKAPAD MED', stampX + 18, stampY + 4, { align: 'center' });
+    doc.setFontSize(8);
+    doc.text('AGILITYMANAGER.SE', stampX + 18, stampY + 8, { align: 'center' });
+
+    // Footer band
+    doc.setFillColor(245, 243, 238);
+    doc.rect(0, pageH - 10, pageW, 10, 'F');
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.text('© AgilityManager · agilitymanager.se · Sveriges smartaste banplanerare', 10, pageH - 4);
+    doc.text(`Genererad ${today}`, pageW - 10, pageH - 4, { align: 'right' });
+
+    doc.save('agilitymanager-bana.pdf');
     toast.success('Bana exporterad som PDF');
   };
 

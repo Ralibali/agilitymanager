@@ -101,11 +101,57 @@ export const DARK_THEME: ObstacleTheme = {
   handler_zone:   { body: 'hsl(0, 80%, 55%)' },
 };
 
+/* ─── Print-optimerad (svartvit / utskriftsvänlig) ─── */
+export const PRINT_THEME: ObstacleTheme = {
+  jump:      { body: 'hsl(0, 0%, 25%)',  accent: 'hsl(0, 0%, 95%)' },
+  long_jump: { body: 'hsl(0, 0%, 35%)',  accent: 'hsl(0, 0%, 90%)' },
+  oxer:      { body: 'hsl(0, 0%, 25%)',  accent: 'hsl(0, 0%, 95%)' },
+  wall:      { body: 'hsl(0, 0%, 50%)',  accent: 'hsl(0, 0%, 85%)' },
+  tunnel:    { body: 'hsl(0, 0%, 40%)',  accent: 'hsl(0, 0%, 70%)' },
+  a_frame:   { body: 'hsl(0, 0%, 60%)',  contact: 'hsl(0, 0%, 20%)', stroke: 'hsl(0, 0%, 20%)' },
+  dog_walk:  { body: 'hsl(0, 0%, 60%)',  contact: 'hsl(0, 0%, 20%)', stroke: 'hsl(0, 0%, 20%)' },
+  balance:   { body: 'hsl(0, 0%, 55%)',  contact: 'hsl(0, 0%, 25%)', stroke: 'hsl(0, 0%, 20%)' },
+  seesaw:    { body: 'hsl(0, 0%, 60%)',  contact: 'hsl(0, 0%, 20%)', stroke: 'hsl(0, 0%, 20%)' },
+  weave:     { body: 'hsl(0, 0%, 20%)',  accent: 'hsl(0, 0%, 90%)' },
+  tire:      { body: 'hsl(0, 0%, 15%)',  accent: 'hsl(0, 0%, 80%)' },
+  start:     { body: 'hsl(0, 0%, 30%)' },
+  finish:    { body: 'hsl(0, 0%, 20%)' },
+  hoop:           { body: 'hsl(0, 0%, 30%)',  accent: 'hsl(0, 0%, 70%)' },
+  hoopers_tunnel: { body: 'hsl(0, 0%, 40%)',  accent: 'hsl(0, 0%, 75%)' },
+  barrel:         { body: 'hsl(0, 0%, 25%)',  accent: 'hsl(0, 0%, 60%)' },
+  gate:           { body: 'hsl(0, 0%, 45%)',  accent: 'hsl(0, 0%, 70%)' },
+  handler_zone:   { body: 'hsl(0, 0%, 30%)' },
+};
+
+/* ─── Hög kontrast (för projektor/hall, tydlighet > estetik) ─── */
+export const HIGH_CONTRAST_THEME: ObstacleTheme = {
+  jump:      { body: 'hsl(355, 95%, 45%)', accent: 'hsl(0, 0%, 100%)' },
+  long_jump: { body: 'hsl(215, 95%, 40%)', accent: 'hsl(0, 0%, 100%)' },
+  oxer:      { body: 'hsl(355, 95%, 45%)', accent: 'hsl(0, 0%, 100%)' },
+  wall:      { body: 'hsl(0, 0%, 15%)',    accent: 'hsl(0, 0%, 95%)' },
+  tunnel:    { body: 'hsl(28, 100%, 45%)', accent: 'hsl(28, 80%, 30%)' },
+  a_frame:   { body: 'hsl(50, 100%, 50%)', contact: 'hsl(355, 95%, 45%)', stroke: 'hsl(0, 0%, 15%)' },
+  dog_walk:  { body: 'hsl(50, 100%, 50%)', contact: 'hsl(355, 95%, 45%)', stroke: 'hsl(0, 0%, 15%)' },
+  balance:   { body: 'hsl(215, 95%, 40%)', contact: 'hsl(50, 100%, 50%)', stroke: 'hsl(0, 0%, 15%)' },
+  seesaw:    { body: 'hsl(142, 75%, 35%)', contact: 'hsl(355, 95%, 45%)', stroke: 'hsl(0, 0%, 15%)' },
+  weave:     { body: 'hsl(290, 85%, 45%)', accent: 'hsl(0, 0%, 100%)' },
+  tire:      { body: 'hsl(0, 0%, 10%)',    accent: 'hsl(50, 100%, 50%)' },
+  start:     { body: 'hsl(142, 80%, 32%)' },
+  finish:    { body: 'hsl(355, 95%, 40%)' },
+  hoop:           { body: 'hsl(50, 100%, 50%)', accent: 'hsl(215, 95%, 40%)' },
+  hoopers_tunnel: { body: 'hsl(215, 95%, 40%)', accent: 'hsl(215, 70%, 25%)' },
+  barrel:         { body: 'hsl(215, 95%, 40%)', accent: 'hsl(215, 70%, 20%)' },
+  gate:           { body: 'hsl(28, 100%, 50%)', accent: 'hsl(28, 85%, 30%)' },
+  handler_zone:   { body: 'hsl(355, 95%, 45%)' },
+};
+
 export const PRESET_THEMES: { id: string; label: string; theme: ObstacleTheme; darkCanvas?: boolean }[] = [
-  { id: 'standard', label: 'Standard', theme: STANDARD_THEME },
-  { id: 'galican',  label: 'Galican',  theme: GALICAN_THEME },
-  { id: 'bing',     label: 'Bing',     theme: BING_THEME },
-  { id: 'dark',     label: 'Mörk hall', theme: DARK_THEME, darkCanvas: true },
+  { id: 'standard',      label: 'Standard',       theme: STANDARD_THEME },
+  { id: 'high-contrast', label: 'Hög kontrast',   theme: HIGH_CONTRAST_THEME },
+  { id: 'print',         label: 'Print/Utskrift', theme: PRINT_THEME },
+  { id: 'galican',       label: 'Galican',        theme: GALICAN_THEME },
+  { id: 'bing',          label: 'Bing',           theme: BING_THEME },
+  { id: 'dark',          label: 'Mörk hall',      theme: DARK_THEME, darkCanvas: true },
 ];
 
 export function getObstacleColors(theme: ObstacleTheme, type: string): ObstacleColors {

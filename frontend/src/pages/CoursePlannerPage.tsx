@@ -1,5 +1,4 @@
 import { Helmet } from 'react-helmet-async';
-import jsPDF from 'jspdf';
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { PageContainer } from '@/components/PageContainer';
 import { Button } from '@/components/ui/button';
@@ -8,19 +7,24 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette, Copy, Ruler, ChevronDown, X, MoreHorizontal, Settings2, Wrench, FileText, ArrowLeft } from 'lucide-react';
+import { Save, Trash2, RotateCcw, FolderOpen, Download, Upload, Sparkles, Minus, Plus, Pencil, Eraser, Hash, Maximize, Minimize, Undo2, ZoomIn, ZoomOut, Maximize2, Share2, Palette, Copy, Ruler, ChevronDown, X, MoreHorizontal, Settings2, Wrench, FileText, ArrowLeft, Keyboard, Command as CommandIcon, FilePlus2, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { motion as m } from 'framer-motion';
 import ShareCourseDialog from '@/components/course-planner/ShareCourseDialog';
 import ObstacleColorPanel from '@/components/course-planner/ObstacleColorPanel';
 import { CoursePlannerTutorial, TutorialButton } from '@/components/course-planner/CoursePlannerTutorial';
+import { CommandPalette } from '@/components/course-planner/CommandPalette';
+import type { PaletteCommand } from '@/components/course-planner/CommandPalette';
+import { KeyboardShortcutsHelp } from '@/components/course-planner/KeyboardShortcutsHelp';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { toast } from 'sonner';
 import { PremiumGate, usePremium, PremiumBadge } from '@/components/PremiumGate';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useProfileName } from '@/hooks/useProfileName';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { OBSTACLE_INFO, CONTACT_TYPES, MIN_DISTANCES, HOOPERS_MIN_DISTANCES, SHOK_CLASSES, SHOK_SCORING, HOOPERS_ARENA_SIZE } from '@/lib/courseObstacleInfo';
+import { exportCoursePDF } from '@/lib/coursePDFExport';
 import {
   PRESET_THEMES,
   STANDARD_THEME,
@@ -473,6 +477,9 @@ export default function CoursePlannerPage() {
   const [editingCourseName, setEditingCourseName] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  // Fas-1 UX: kommandopalett (Cmd/Ctrl+K) och tangentbordshjälp (?)
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   // Mobile bottom-sheet state (used when the modern editor renders on small screens)
   const [mobileLeftSheetOpen, setMobileLeftSheetOpen] = useState(false);
   const [mobileRightSheetOpen, setMobileRightSheetOpen] = useState(false);
@@ -1812,6 +1819,29 @@ export default function CoursePlannerPage() {
         e.preventDefault();
         setSaveOpen(true);
       }
+      // Kommandopalett - Cmd/Ctrl+K
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        setCommandPaletteOpen(v => !v);
+      }
+      // Exportera PDF - Cmd/Ctrl+P
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+        const target = e.target as HTMLElement | null;
+        const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+        if (!isInput && obstacles.length > 0) {
+          e.preventDefault();
+          exportPDF();
+        }
+      }
+      // Tangentbordshjälp - ? eller Shift+/
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        const target = e.target as HTMLElement | null;
+        const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+        if (!isInput) {
+          e.preventDefault();
+          setShowShortcuts(v => !v);
+        }
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -2279,21 +2309,17 @@ export default function CoursePlannerPage() {
     toast.success('Bana exporterad som JSON');
   };
 
-  const exportPDF = () => {
+  const { name: currentUserName } = useProfileName();
+
+  const exportPDF = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const widthM = Math.round(canvasWidth / PX_PER_METER);
-    const heightM = Math.round(canvasHeight / PX_PER_METER);
-    const obstacleCount = obstacles.filter(o => o.type !== 'start' && o.type !== 'finish' && o.type !== 'handler_zone').length;
-    const today = new Date().toLocaleDateString('sv-SE');
-    const sportLabel = sportMode === 'hoopers' ? 'Hoopers' : 'Agility';
-
-    // Render canvas to image
-    const dpr = window.devicePixelRatio || 1;
-    const imgCanvas = document.createElement('canvas');
+    // Render canvas to high-res PNG for the PDF
+    const dpr = Math.max(window.devicePixelRatio || 1, 2);
     const imgW = canvasWidth + MARGIN;
     const imgH = canvasHeight + MARGIN;
+    const imgCanvas = document.createElement('canvas');
     imgCanvas.width = imgW * dpr;
     imgCanvas.height = imgH * dpr;
     const imgCtx = imgCanvas.getContext('2d')!;
@@ -2301,115 +2327,95 @@ export default function CoursePlannerPage() {
     imgCtx.fillStyle = '#ffffff';
     imgCtx.fillRect(0, 0, imgW, imgH);
     imgCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, imgW, imgH);
-    const imgData = imgCanvas.toDataURL('image/png');
+    const overviewImageData = imgCanvas.toDataURL('image/png');
 
-    // Create PDF in landscape A4
-    const isWide = widthM >= heightM;
-    const doc = new jsPDF({ orientation: isWide ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-
-    // Brand colors (Varm Sand: primary #1a6b3c, secondary #c85d1e)
-    const BRAND_PRIMARY: [number, number, number] = [26, 107, 60];
-    const BRAND_SECONDARY: [number, number, number] = [200, 93, 30];
-
-    // Header band
-    doc.setFillColor(...BRAND_PRIMARY);
-    doc.rect(0, 0, pageW, 18, 'F');
-    // Accent stripe
-    doc.setFillColor(...BRAND_SECONDARY);
-    doc.rect(0, 18, pageW, 1.2, 'F');
-
-    // Logo mark (circle + paw-like dot cluster)
-    doc.setFillColor(255, 255, 255);
-    doc.circle(12, 9, 5, 'F');
-    doc.setFillColor(...BRAND_PRIMARY);
-    doc.circle(12, 9.5, 2.2, 'F');
-    doc.circle(10, 7.5, 0.9, 'F');
-    doc.circle(14, 7.5, 0.9, 'F');
-    doc.circle(9, 10, 0.8, 'F');
-    doc.circle(15, 10, 0.8, 'F');
-
-    // Brand title
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('AgilityManager', 21, 9);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Banplanerare · agilitymanager.se', 21, 13.5);
-
-    // Date right
-    doc.setFontSize(9);
-    doc.text(today, pageW - 10, 11, { align: 'right' });
-
-    // Metadata line
-    doc.setTextColor(60, 60, 60);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    const metaY = 28;
-    doc.text(`${sportLabel}`, 10, metaY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`·  Banstorlek: ${widthM} × ${heightM} m  ·  Antal hinder: ${obstacleCount}`, 10 + doc.getTextWidth(sportLabel) + 2, metaY);
-
-    // Canvas image - fit within page with margins (leave room for footer + watermark)
-    const availW = pageW - 20;
-    const availH = pageH - metaY - 26;
-    const scale = Math.min(availW / imgW, availH / imgH);
-    const drawW = imgW * scale;
-    const drawH = imgH * scale;
-    const drawX = (pageW - drawW) / 2;
-    const drawY = metaY + 6;
-
-    // Subtle frame around the course image
-    doc.setDrawColor(220, 220, 220);
-    doc.setLineWidth(0.3);
-    doc.rect(drawX - 1, drawY - 1, drawW + 2, drawH + 2);
-
-    doc.addImage(imgData, 'PNG', drawX, drawY, drawW, drawH);
-
-    // Diagonal watermark stamp across the course
-    try {
-      const gState = (doc as any).GState ? new (doc as any).GState({ opacity: 0.08 }) : null;
-      if (gState) (doc as any).setGState(gState);
-      doc.setTextColor(...BRAND_PRIMARY);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(72);
-      const cx = drawX + drawW / 2;
-      const cy = drawY + drawH / 2;
-      doc.text('AGILITYMANAGER', cx, cy, { align: 'center', angle: 30 } as any);
-      if (gState) {
-        const reset = new (doc as any).GState({ opacity: 1 });
-        (doc as any).setGState(reset);
+    // Optional: render a handler-path-only view if the user has drawn one
+    let handlerPathImageData: string | undefined;
+    if (handlerPath.length > 1) {
+      try {
+        const hpCanvas = document.createElement('canvas');
+        hpCanvas.width = imgW * dpr;
+        hpCanvas.height = imgH * dpr;
+        const hpCtx = hpCanvas.getContext('2d')!;
+        hpCtx.scale(dpr, dpr);
+        hpCtx.fillStyle = '#ffffff';
+        hpCtx.fillRect(0, 0, imgW, imgH);
+        // Re-draw just course outline + light obstacles + highlighted handler path
+        hpCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, imgW, imgH);
+        // Overlay a slight white veil to fade the course, then re-draw path bolder
+        hpCtx.fillStyle = 'rgba(255,255,255,0.55)';
+        hpCtx.fillRect(0, 0, imgW, imgH);
+        hpCtx.strokeStyle = '#c85d1e';
+        hpCtx.lineWidth = 4;
+        hpCtx.lineCap = 'round';
+        hpCtx.lineJoin = 'round';
+        hpCtx.beginPath();
+        handlerPath.forEach((p, i) => {
+          const x = p.x + MARGIN / 2;
+          const y = p.y + MARGIN / 2;
+          if (i === 0) hpCtx.moveTo(x, y);
+          else hpCtx.lineTo(x, y);
+        });
+        hpCtx.stroke();
+        // Draw start/end markers on handler path
+        if (handlerPath.length > 0) {
+          const p0 = handlerPath[0];
+          const pN = handlerPath[handlerPath.length - 1];
+          hpCtx.fillStyle = '#1a6b3c';
+          hpCtx.beginPath();
+          hpCtx.arc(p0.x + MARGIN / 2, p0.y + MARGIN / 2, 7, 0, Math.PI * 2);
+          hpCtx.fill();
+          hpCtx.fillStyle = '#c85d1e';
+          hpCtx.beginPath();
+          hpCtx.arc(pN.x + MARGIN / 2, pN.y + MARGIN / 2, 7, 0, Math.PI * 2);
+          hpCtx.fill();
+        }
+        handlerPathImageData = hpCanvas.toDataURL('image/png');
+      } catch {
+        handlerPathImageData = undefined;
       }
-    } catch {
-      // Older jsPDF: skip watermark if GState not available
     }
 
-    // "Stamp" badge — bottom right corner of the course
-    const stampX = drawX + drawW - 38;
-    const stampY = drawY + drawH - 14;
-    doc.setDrawColor(...BRAND_SECONDARY);
-    doc.setLineWidth(0.6);
-    doc.roundedRect(stampX, stampY, 36, 10, 1.5, 1.5, 'S');
-    doc.setTextColor(...BRAND_SECONDARY);
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'bold');
-    doc.text('SKAPAD MED', stampX + 18, stampY + 4, { align: 'center' });
-    doc.setFontSize(8);
-    doc.text('AGILITYMANAGER.SE', stampX + 18, stampY + 8, { align: 'center' });
+    const shokLabel = sportMode === 'agility'
+      ? SHOK_CLASSES[shokClassIndex]?.label
+      : undefined;
 
-    // Footer band
-    doc.setFillColor(245, 243, 238);
-    doc.rect(0, pageH - 10, pageW, 10, 'F');
-    doc.setTextColor(100, 100, 100);
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.text('© AgilityManager · agilitymanager.se · Sveriges smartaste banplanerare', 10, pageH - 4);
-    doc.text(`Genererad ${today}`, pageW - 10, pageH - 4, { align: 'right' });
-
-    doc.save('agilitymanager-bana.pdf');
-    toast.success('Bana exporterad som PDF');
+    try {
+      await exportCoursePDF(
+        {
+          obstacles: obstacles.map(o => ({
+            id: o.id,
+            type: o.type,
+            x: o.x,
+            y: o.y,
+            rotation: o.rotation,
+            label: o.label,
+            numbers: o.numbers || [],
+            colorNumbers: o.colorNumbers,
+            tunnelLength: o.tunnelLength,
+            bendAngle: o.bendAngle,
+            barrelDirection: o.barrelDirection,
+          })),
+          handlerPath,
+          canvasWidth,
+          canvasHeight,
+          pxPerMeter: PX_PER_METER,
+          courseName: courseName || 'Namnlös bana',
+          sportMode,
+          shokClassLabel: shokLabel,
+          overviewImageData,
+          handlerPathImageData,
+          userName: currentUserName,
+          date: new Date(),
+        },
+        imgW,
+        imgH,
+      );
+      toast.success('Bana exporterad som PDF');
+    } catch (err) {
+      console.error('PDF export failed', err);
+      toast.error('Kunde inte skapa PDF');
+    }
   };
 
   const importJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -3632,6 +3638,62 @@ export default function CoursePlannerPage() {
     );
   }
 
+  /* ── buildCommands: genererar alla kommandon för kommandopaletten (Ctrl+K) ── */
+  const buildCommands = (): PaletteCommand[] => {
+    const obstacleCount = obstacles.length;
+    const hasSelected = !!selected;
+    const cmds: PaletteCommand[] = [
+      // Fil
+      { id: 'save', group: 'Fil', label: 'Spara bana...', shortcut: ['Ctrl', 'S'], keywords: ['spara', 'save'], icon: <Save className="h-4 w-4" />, run: () => setSaveOpen(true) },
+      { id: 'load', group: 'Fil', label: 'Öppna/läs in bana...', keywords: ['öppna', 'ladda', 'load'], icon: <FolderOpen className="h-4 w-4" />, run: () => setLoadOpen(true) },
+      { id: 'new', group: 'Fil', label: 'Ny tom bana', keywords: ['ny', 'tom', 'rensa', 'new'], icon: <FilePlus2 className="h-4 w-4" />, run: () => {
+        if (obstacleCount > 0 && !confirm('Rensa banan? Osparat arbete försvinner.')) return;
+        setObstaclesRaw([]); setHandlerPath([]); setFreeNumbers([]); setSelected(null); setIsDirty(false);
+        historyRef.current = [{ obstacles: [], handlerPath: [], label: 'Start' }]; historyIndexRef.current = 0; setHistoryVersion(v => v + 1);
+        toast.success('Ny tom bana');
+      } },
+      { id: 'export-pdf', group: 'Fil', label: 'Exportera som PDF', shortcut: ['Ctrl', 'P'], keywords: ['pdf', 'skriv ut', 'export', 'download'], icon: <FileText className="h-4 w-4" />, run: () => { if (obstacleCount === 0) { toast.error('Lägg till hinder först'); return; } exportPDF(); } },
+      { id: 'export-json', group: 'Fil', label: 'Exportera som JSON', keywords: ['json', 'export', 'fil'], icon: <Download className="h-4 w-4" />, run: () => { if (obstacleCount === 0) { toast.error('Lägg till hinder först'); return; } exportJSON(); } },
+      { id: 'share', group: 'Fil', label: 'Dela bana...', keywords: ['dela', 'share', 'länk'], icon: <Share2 className="h-4 w-4" />, run: () => setShareOpen(true) },
+
+      // Redigering
+      { id: 'undo', group: 'Redigering', label: 'Ångra', shortcut: ['Ctrl', 'Z'], keywords: ['undo', 'ångra', 'tillbaka'], icon: <Undo2 className="h-4 w-4" />, run: () => handleUndo() },
+      { id: 'redo', group: 'Redigering', label: 'Gör om', shortcut: ['Ctrl', 'Y'], keywords: ['redo', 'framåt'], icon: <RotateCcw className="h-4 w-4" />, run: () => handleRedo() },
+      { id: 'duplicate', group: 'Redigering', label: 'Duplicera markerat hinder', shortcut: ['Ctrl', 'D'], keywords: ['duplicera', 'kopiera'], icon: <Copy className="h-4 w-4" />, run: () => {
+        const obs = obstacles.find(o => o.id === selected);
+        if (!obs) { toast.error('Markera ett hinder först'); return; }
+        const dup: Obstacle = { ...obs, id: nextId(), x: obs.x + 30, y: obs.y + 30, numbers: [], colorNumbers: [] };
+        setObstaclesRaw(prev => {
+          const next = [...prev, dup];
+          pushHistory(next, handlerPath, `Duplicerade ${obs.label || 'hinder'}`);
+          setIsDirty(true);
+          return next;
+        });
+        setSelected(dup.id);
+        toast.success('Hinder duplicerat');
+      } },
+      { id: 'delete', group: 'Redigering', label: 'Ta bort markerat hinder', shortcut: ['Del'], keywords: ['radera', 'ta bort', 'delete'], icon: <Trash2 className="h-4 w-4" />, run: () => { if (hasSelected) deleteSelected(); else toast.error('Markera ett hinder först'); } },
+
+      // Verktyg
+      { id: 'mode-draw', group: 'Verktyg', label: drawingMode ? 'Avsluta förarens väg' : 'Rita förarens väg', keywords: ['path', 'handler', 'väg', 'linje'], icon: <Pencil className="h-4 w-4" />, run: () => { setDrawingMode(v => !v); setNumberingMode(false); setMeasureMode(false); } },
+      { id: 'mode-number', group: 'Verktyg', label: numberingMode ? 'Avsluta numrering' : 'Numrera hinder', keywords: ['nummer', 'numrering', 'ordning'], icon: <Hash className="h-4 w-4" />, run: () => { setNumberingMode(v => !v); setDrawingMode(false); setMeasureMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } } },
+      { id: 'mode-measure', group: 'Verktyg', label: measureMode ? 'Avsluta mätverktyg' : 'Mätverktyg', keywords: ['mät', 'avstånd', 'linjal'], icon: <Ruler className="h-4 w-4" />, run: () => { setMeasureMode(v => !v); setDrawingMode(false); setNumberingMode(false); setMeasurePoints([]); } },
+      { id: 'toggle-grid', group: 'Verktyg', label: showGrid ? 'Dölj rutnät' : 'Visa rutnät', keywords: ['grid', 'rutnät'], icon: <Settings2 className="h-4 w-4" />, run: () => setShowGrid(g => !g) },
+
+      // Vy
+      { id: 'fit-screen', group: 'Vy', label: 'Anpassa till skärm', shortcut: ['Ctrl', '0'], keywords: ['zoom', 'fit', 'anpassa'], icon: <Maximize2 className="h-4 w-4" />, run: () => fitToScreen() },
+      { id: 'zoom-in', group: 'Vy', label: 'Zooma in', keywords: ['zoom', 'in', '+'], icon: <ZoomIn className="h-4 w-4" />, run: () => setZoom(z => Math.min(z * 1.25, 4)) },
+      { id: 'zoom-out', group: 'Vy', label: 'Zooma ut', keywords: ['zoom', 'ut', '-'], icon: <ZoomOut className="h-4 w-4" />, run: () => setZoom(z => Math.max(z / 1.25, 0.25)) },
+      { id: 'sport-agility', group: 'Vy', label: 'Byt till Agility-läge', keywords: ['agility', 'skk'], icon: <Sparkles className="h-4 w-4" />, run: () => setSportMode('agility') },
+      { id: 'sport-hoopers', group: 'Vy', label: 'Byt till Hoopers-läge', keywords: ['hoopers', 'shok'], icon: <Sparkles className="h-4 w-4" />, run: () => setSportMode('hoopers') },
+
+      // Hjälp
+      { id: 'help-shortcuts', group: 'Hjälp', label: 'Visa kortkommandon', shortcut: ['?'], keywords: ['kortkommandon', 'shortcuts', 'tangentbord', 'keyboard'], icon: <Keyboard className="h-4 w-4" />, run: () => setShowShortcuts(true) },
+      { id: 'help-tutorial', group: 'Hjälp', label: 'Starta introduktion / rundtur', keywords: ['tutorial', 'guide', 'intro', 'help'], icon: <HelpCircle className="h-4 w-4" />, run: () => setShowTutorial(true) },
+    ];
+    return cmds;
+  };
+
   return (
     <>
     <Helmet>
@@ -4758,6 +4820,14 @@ export default function CoursePlannerPage() {
       </PremiumGate>
     </PageContainer>
     <CoursePlannerTutorial forceOpen={showTutorial} onClose={() => setShowTutorial(false)} />
+    {/* Kommandopalett (Ctrl/Cmd+K) – snabbsökning av alla funktioner */}
+    <CommandPalette
+      open={commandPaletteOpen}
+      onOpenChange={setCommandPaletteOpen}
+      commands={buildCommands()}
+    />
+    {/* Tangentbordshjälp (tryck ?) */}
+    <KeyboardShortcutsHelp open={showShortcuts} onOpenChange={setShowShortcuts} />
     </>
   );
 }

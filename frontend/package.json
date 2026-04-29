@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "vite",
     "dev": "vite",
     "build": "vite build && node scripts/generate-static-pages.mjs && node scripts/generate-sitemap.mjs",
     "build:no-snap": "vite build",

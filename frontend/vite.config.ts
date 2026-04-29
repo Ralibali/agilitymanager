@@ -117,7 +117,16 @@ export default defineConfig(({ mode }) => {
   return {
     server: {
       host: "::",
-      port: 8080,
+      port: Number(process.env.PORT) || 3000,
+      allowedHosts: [
+        '.preview.emergentagent.com',
+        '.preview.emergentcf.cloud',
+        '.cluster-0.preview.emergentcf.cloud',
+        '.emergentagent.com',
+        '.emergentcf.cloud',
+        'localhost',
+        '127.0.0.1',
+      ],
       hmr: {
         overlay: false,
       },

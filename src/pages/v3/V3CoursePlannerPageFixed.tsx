@@ -354,7 +354,7 @@ export default function V3CoursePlannerPageFixed() {
     {/* === MOBILE RIGHT DRAWER === */}
     {isMobile && rightOpen && (
       <MobileSheet title="Verktyg" onClose={() => setRightOpen(false)}>
-        <RightPanelContent selected={selected} toolMode={toolMode} setToolMode={setToolMode} setGuide={setGuide} moveSelected={moveSelected} rotateSelected={rotateSelected} renumberSelected={renumberSelected} deleteSelected={deleteSelected} setColor={setColor} recolorSelected={recolorSelected} course={course} updateCourse={updateCourse} exportJson={exportJson} exportPdf={exportPdf} reset={reset} setPaths={setPaths} />
+        <RightPanelContent selected={selected} toolMode={toolMode} setToolMode={setToolMode} setGuide={setGuide} moveSelected={moveSelected} rotateSelected={rotateSelected} renumberSelected={renumberSelected} autoRenumberAll={autoRenumberAll} deleteSelected={deleteSelected} setColor={setColor} recolorSelected={recolorSelected} course={course} updateCourse={updateCourse} exportJson={exportJson} exportPdf={exportPdf} reset={reset} setPaths={setPaths} />
       </MobileSheet>
     )}
 

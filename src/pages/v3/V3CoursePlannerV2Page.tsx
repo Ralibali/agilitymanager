@@ -1018,12 +1018,13 @@ function ObstacleSvg({ obstacle, selected, hasIssue, onPointerDown }: {
   const def = getObstacleDefV2(obstacle.type);
   if (!def) return null;
   const { w, d } = def.sizeM;
+  const locked = !!obstacle.locked;
   return (
     <g
       transform={`translate(${obstacle.x} ${obstacle.y}) rotate(${obstacle.rotation})`}
       onPointerDown={onPointerDown}
       onClick={(e) => e.stopPropagation()}
-      style={{ cursor: "grab" }}
+      style={{ cursor: locked ? "not-allowed" : "grab" }}
     >
       {hasIssue && !selected && (
         <circle r={Math.max(w, d) / 2 + 0.35} fill="#ef4444" opacity={0.18} />
@@ -1031,6 +1032,16 @@ function ObstacleSvg({ obstacle, selected, hasIssue, onPointerDown }: {
       <ObstacleShape def={def} selected={selected} obstacle={obstacle} />
       {selected && (
         <circle r={Math.max(w, d) / 2 + 0.4} fill="none" stroke="#1a6b3c" strokeWidth={0.12} strokeDasharray="0.3 0.2" />
+      )}
+      {locked && (
+        // Hänglås-glyf uppe till vänster på hindret. Roteras tillbaka så det alltid står upp.
+        <g transform={`translate(${-w / 2 - 0.25} ${-d / 2 - 0.25}) rotate(${-obstacle.rotation})`}>
+          <circle r={0.36} fill="#fff" stroke="#173d2c" strokeWidth={0.05} />
+          <g transform="translate(-0.22 -0.22) scale(0.018)" fill="none" stroke="#173d2c" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" fill="#fff" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </g>
+        </g>
       )}
       {obstacle.number != null && (
         <g transform={`translate(${w / 2 + 0.3} ${-d / 2 - 0.3})`}>

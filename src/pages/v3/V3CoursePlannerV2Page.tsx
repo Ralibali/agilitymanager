@@ -12,10 +12,12 @@
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
-import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, FileDown, AlertTriangle, AlertCircle, Info, CheckCircle2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, FileDown, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   OBSTACLES_V2, SIZE_CLASSES, CLASS_TEMPLATES, getArenaPresetsBySport,
   getObstacleDefV2, getTemplatesBySport,
@@ -23,6 +25,7 @@ import {
 } from "@/features/course-planner-v2/config";
 import { validateCourse, computeCourseTimes, summarizeIssues, type ValidationIssue } from "@/features/course-planner-v2/validation";
 import { exportJudgePdf } from "@/features/course-planner-v2/judgePdf";
+import ShareCourseDialog from "@/components/course-planner/ShareCourseDialog";
 
 const STORAGE_KEY = "am_course_planner_v2";
 
@@ -71,6 +74,8 @@ function saveCourse(c: CourseV2) {
 function uid() { return Math.random().toString(36).slice(2, 10); }
 
 export default function V3CoursePlannerV2Page() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [course, setCourse] = useState<CourseV2>(() => loadCourse());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tool, setTool] = useState<"select" | "erase" | "number">("select");
@@ -78,9 +83,14 @@ export default function V3CoursePlannerV2Page() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [showPath, setShowPath] = useState(true);
   const [issuesOpen, setIssuesOpen] = useState(false);
+  const [cloudId, setCloudId] = useState<string | null>(() => {
+    try { return localStorage.getItem(STORAGE_KEY + "_cloud_id"); } catch { return null; }
+  });
+  const [savingCloud, setSavingCloud] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  // Autospara
+  // Autospara lokalt
   useEffect(() => {
     const t = setTimeout(() => { saveCourse(course); setSavedAt(new Date()); }, 600);
     return () => clearTimeout(t);
@@ -109,6 +119,75 @@ export default function V3CoursePlannerV2Page() {
       console.error(e);
       toast.error("Kunde inte skapa PDF");
     }
+  }
+
+  /** Sparar/uppdaterar banan i molnet (saved_courses). Returnerar id eller null. */
+  async function saveToCloud(opts?: { silent?: boolean }): Promise<string | null> {
+    if (!user?.id) {
+      if (!opts?.silent) toast.error("Logga in för att spara i molnet");
+      return null;
+    }
+    setSavingCloud(true);
+    try {
+      const payload = {
+        user_id: user.id,
+        name: course.name || "Ny bana",
+        description: "",
+        course_data: {
+          version: 2,
+          sport: course.sport,
+          sizeClass: course.sizeClass,
+          arenaWidthM: course.arenaWidthM,
+          arenaHeightM: course.arenaHeightM,
+          classTemplate: course.classTemplate,
+          obstacles: course.obstacles,
+        } as any,
+        canvas_width: Math.round(course.arenaWidthM * 20),
+        canvas_height: Math.round(course.arenaHeightM * 20),
+      };
+      let id = cloudId;
+      if (id) {
+        const { error } = await supabase.from("saved_courses")
+          .update(payload).eq("id", id).eq("user_id", user.id);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from("saved_courses")
+          .insert(payload).select("id").single();
+        if (error) throw error;
+        id = data.id as string;
+        setCloudId(id);
+        try { localStorage.setItem(STORAGE_KEY + "_cloud_id", id); } catch { /* ignore */ }
+      }
+      if (!opts?.silent) toast.success("Bana sparad i molnet");
+      return id;
+    } catch (e) {
+      console.error(e);
+      if (!opts?.silent) toast.error("Kunde inte spara i molnet");
+      return null;
+    } finally {
+      setSavingCloud(false);
+    }
+  }
+
+  async function handleShare() {
+    const id = cloudId ?? await saveToCloud({ silent: true });
+    if (!id) {
+      toast.error("Banan måste sparas i molnet först — logga in och försök igen");
+      return;
+    }
+    setShareOpen(true);
+  }
+
+  function handleTrainThis() {
+    const sport = course.sport === "agility" ? "agility" : "hoopers";
+    const params = new URLSearchParams({
+      from: "course-planner",
+      sport,
+      courseName: course.name || "Ny bana",
+      sizeClass: course.sizeClass,
+    });
+    if (cloudId) params.set("courseId", cloudId);
+    navigate(`/v3/training?${params.toString()}`);
   }
 
 
@@ -261,24 +340,54 @@ export default function V3CoursePlannerV2Page() {
         <span className="hidden md:inline text-[11px] text-neutral-500">
           {savedAt ? `Autosparad ${savedAt.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}` : "Sparas…"}
         </span>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
           <SegmentedSport value={course.sport} onChange={switchSport} />
           <ValidationBadge summary={issueSummary} onClick={() => setIssuesOpen((v) => !v)} active={issuesOpen} />
           <button
-            onClick={handleExportPdf}
-            className="hidden sm:inline-flex h-9 px-3 rounded-full bg-white border border-black/10 text-[12px] font-semibold items-center gap-1.5 hover:border-neutral-400"
-            title="Exportera domar-PDF"
+            onClick={handleTrainThis}
+            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400"
+            title="Skapa träningspass från denna bana"
           >
-            <FileDown size={14} /> PDF
+            <Dumbbell size={14} /> <span className="hidden sm:inline">Träna</span>
           </button>
           <button
-            onClick={() => { saveCourse(course); toast.success("Bana sparad"); }}
-            className="h-9 px-3 rounded-full bg-[#1a6b3c] text-white text-[12px] font-semibold inline-flex items-center gap-1.5"
+            onClick={handleShare}
+            disabled={!user}
+            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400 disabled:opacity-40"
+            title={user ? "Dela banan med en kompis" : "Logga in för att dela"}
           >
-            <Save size={14} /> Spara
+            <Share2 size={14} /> <span className="hidden sm:inline">Dela</span>
+          </button>
+          <button
+            onClick={handleExportPdf}
+            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400"
+            title="Exportera domar-PDF"
+          >
+            <FileDown size={14} /> <span className="hidden sm:inline">PDF</span>
+          </button>
+          <button
+            onClick={async () => {
+              saveCourse(course);
+              if (user) await saveToCloud();
+              else toast.success("Bana sparad lokalt");
+            }}
+            disabled={savingCloud}
+            className="h-9 px-3 rounded-full bg-[#1a6b3c] text-white text-[12px] font-semibold inline-flex items-center gap-1.5 disabled:opacity-60"
+            title={user ? "Spara i molnet" : "Sparas lokalt — logga in för molnsynk"}
+          >
+            {user ? <Cloud size={14} /> : <CloudOff size={14} />}
+            <span className="hidden xs:inline">Spara</span>
+            <Save size={14} className="xs:hidden" />
           </button>
         </div>
       </header>
+
+      <ShareCourseDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        savedCourses={cloudId ? [{ id: cloudId, name: course.name || "Ny bana" }] : []}
+        currentCourseId={cloudId}
+      />
 
       {issuesOpen && (
         <div className="bg-white border-b border-black/5 px-4 py-3 max-h-[40vh] overflow-y-auto">

@@ -184,7 +184,16 @@ export default function V3CoursePlannerPageFixed() {
     if (isMobile) setLeftOpen(false);
   };
   const switchMode = (next: PlannerMode) => { setMode(next); setSelectedTool(defaultTool(next)); setSelectedId(null); setDraggingId(null); setToolMode("select"); };
-  const deleteSelected = () => { if (!selectedId) return; setObstacles(prev => prev.filter(o => o.id !== selectedId)); setNumbers(prev => prev.filter(n => n.id !== selectedId)); setSelectedId(null); };
+  const deleteSelected = () => {
+    if (!selectedId) return;
+    updateCourse(prev => {
+      const obstacles = prev.obstacles.filter(o => o.id !== selectedId);
+      const numbers = prev.numbers.filter(n => n.id !== selectedId);
+      const compacted = compactNumbering(obstacles, numbers);
+      return { ...prev, ...compacted };
+    });
+    setSelectedId(null);
+  };
   const rotateSelected = (deg = 15) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, rotation: (o.rotation + deg + 360) % 360 } : o));
   const moveSelected = (dx: number, dy: number) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, x: clamp(o.x + dx, 0, 100), y: clamp(o.y + dy, 0, 100) } : o));
   const recolorSelected = (nextColor: string) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, color: nextColor } : o));

@@ -1041,17 +1041,21 @@ function ObstacleShape({ def, selected, obstacle }: { def: ObstacleDefV2; select
   }
 }
 
-function SelectedPanel({ obstacle, size, onRotate, onDelete, onNumberChange }: {
+function SelectedPanel({ obstacle, size, onRotate, onDelete, onNumberChange, onTunnelCurve }: {
   obstacle: ObstacleV2;
   size: SizeClassKey;
   onRotate: (deg: number) => void;
   onDelete: () => void;
   onNumberChange: (n: number | undefined) => void;
+  onTunnelCurve?: (patch: { curveDeg?: number; curveSide?: "left" | "right" }) => void;
 }) {
   const def = getObstacleDefV2(obstacle.type)!;
   const sizeDef = SIZE_CLASSES.find((s) => s.key === size)!;
   const showJumpHeight = ["jump", "wall", "combo", "longjump"].includes(def.type);
   const showTireHeight = def.type === "tire";
+  const isTunnel = def.type === "tunnel";
+  const curveDeg = obstacle.curveDeg ?? 0;
+  const curveSide = obstacle.curveSide ?? "right";
   return (
     <section>
       <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Valt hinder</h3>

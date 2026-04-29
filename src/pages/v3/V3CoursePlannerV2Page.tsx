@@ -383,6 +383,13 @@ export default function V3CoursePlannerV2Page() {
           <SegmentedSport value={course.sport} onChange={switchSport} />
           <ValidationBadge summary={issueSummary} onClick={() => setIssuesOpen((v) => !v)} active={issuesOpen} />
           <button
+            onClick={() => setLibraryOpen(true)}
+            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400"
+            title="Öppna banbibliotek"
+          >
+            <Library size={14} /> <span className="hidden sm:inline">Bibliotek</span>
+          </button>
+          <button
             onClick={handleTrainThis}
             className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400"
             title="Skapa träningspass från denna bana"
@@ -393,7 +400,7 @@ export default function V3CoursePlannerV2Page() {
             onClick={handleShare}
             disabled={!user}
             className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400 disabled:opacity-40"
-            title={user ? "Dela banan med en kompis" : "Logga in för att dela"}
+            title={user ? "Dela banan (klubb / publik länk)" : "Logga in för att dela"}
           >
             <Share2 size={14} /> <span className="hidden sm:inline">Dela</span>
           </button>
@@ -421,11 +428,17 @@ export default function V3CoursePlannerV2Page() {
         </div>
       </header>
 
-      <ShareCourseDialog
+      <ClubShareDialog
         open={shareOpen}
         onOpenChange={setShareOpen}
-        savedCourses={cloudId ? [{ id: cloudId, name: course.name || "Ny bana" }] : []}
-        currentCourseId={cloudId}
+        courseId={cloudId}
+        courseName={course.name || "Ny bana"}
+      />
+
+      <CourseLibraryDialog
+        open={libraryOpen}
+        onOpenChange={setLibraryOpen}
+        onPick={handlePickFromLibrary}
       />
 
       {issuesOpen && (

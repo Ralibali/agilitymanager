@@ -233,7 +233,15 @@ export default function CoachUploadFlow({
           )}
 
           {step === 3 && (
-            <ReviewStep pack={selectedPack} file={file!} question={question} sport={sport} />
+            <ReviewStep
+              pack={selectedPack}
+              file={file!}
+              question={question}
+              sport={sport}
+              privacyMode={privacyMode}
+              acknowledged={privacyAcknowledged}
+              onAcknowledgedChange={setPrivacyAcknowledged}
+            />
           )}
 
           {step === 4 && (

@@ -93,9 +93,13 @@ export function buildPlannerCommands(h: PlannerCommandHandlers): PaletteCommand[
       keywords: ["träna", "träning", "log", "pass"],
       icon: <Dumbbell size={14} />, run: h.trainThis,
     },
+    {
+      id: "course.importJson", group: "Bana", label: "Importera bana från JSON…",
+      hint: "Återställ eller flytta en exporterad bana mellan enheter",
+      keywords: ["importera", "import", "json", "ladda upp", "återställ"],
+      icon: <Upload size={14} />, run: h.importJson,
+    },
   );
-
-  // ───────── Verktyg ─────────
   cmds.push(
     {
       id: "tool.select", group: "Verktyg", label: "Välj-verktyg",

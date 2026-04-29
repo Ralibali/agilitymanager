@@ -16,6 +16,7 @@ import { useCompetitionInterests, type InterestStatus } from '@/hooks/useCompeti
 import { GuestConversionBanner } from './GuestConversionBanner';
 import { GuestSignupModal } from './GuestSignupModal';
 import { useExitIntent } from '@/hooks/useExitIntent';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Dog } from '@/types';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -416,19 +417,41 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
                     <CheckCircle2 size={13} className={status === 'registered' ? 'fill-white text-white' : ''} />
                     {status === 'registered' ? 'Anmäld ✓' : 'Anmäld'}
                   </button>
-                  {(isPast || status === 'done') && (
-                    <button
-                      onClick={() => toggleInterest(comp.id, 'done', comp)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
-                        status === 'done'
-                          ? 'bg-primary/15 text-primary'
-                          : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
-                      }`}
-                    >
-                      <Flag size={13} className={status === 'done' ? 'fill-primary text-primary' : ''} />
-                      {status === 'done' ? 'Genomförd ✓' : 'Genomförd'}
-                    </button>
-                  )}
+                  {(() => {
+                    const canMarkDone = isPast || status === 'done';
+                    const button = (
+                      <button
+                        type="button"
+                        onClick={() => canMarkDone && toggleInterest(comp.id, 'done', comp)}
+                        disabled={!canMarkDone}
+                        aria-disabled={!canMarkDone}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all btn-press ${
+                          status === 'done'
+                            ? 'bg-primary/15 text-primary'
+                            : canMarkDone
+                              ? 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                              : 'bg-secondary/40 text-muted-foreground/50 cursor-not-allowed'
+                        }`}
+                      >
+                        <Flag size={13} className={status === 'done' ? 'fill-primary text-primary' : ''} />
+                        {status === 'done' ? 'Genomförd ✓' : 'Genomförd'}
+                      </button>
+                    );
+                    if (canMarkDone) return button;
+                    return (
+                      <TooltipProvider delayDuration={150}>
+                        <Tooltip>
+                          {/* span behövs eftersom disabled-knappar inte triggar pointer-events */}
+                          <TooltipTrigger asChild>
+                            <span tabIndex={0} className="inline-flex">{button}</span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-[220px] text-xs">
+                            Kan markeras som genomförd först efter tävlingsdatum{comp.date_end ? ` (${new Date(comp.date_end).toLocaleDateString('sv-SE')})` : ''}.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    );
+                  })()}
                   {user && (
                     <button
                       onClick={() => setShareComp({ open: true, comp })}

@@ -148,37 +148,50 @@ export function useCompetitionInterests(): UseCompetitionInterestsResult {
       }
 
       const current = interests[competitionId];
+
+      // Optimistisk lokal uppdatering — sync till DB sker nedan
+      const previousState = interests;
       if (current === status) {
-        await supabase
-          .from('competition_interests')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('competition_id', competitionId);
         setInterests((prev) => {
           const next = { ...prev };
           delete next[competitionId];
           return next;
         });
-        broadcastInterestChange(user.id);
-        return;
-      }
-      if (current) {
-        await supabase
-          .from('competition_interests')
-          .update({ status, dog_name: dogName, class: dogClass })
-          .eq('user_id', user.id)
-          .eq('competition_id', competitionId);
       } else {
-        await supabase.from('competition_interests').insert({
-          user_id: user.id,
-          competition_id: competitionId,
-          status,
-          dog_name: dogName,
-          class: dogClass,
-        });
+        setInterests((prev) => ({ ...prev, [competitionId]: status }));
       }
-      setInterests((prev) => ({ ...prev, [competitionId]: status }));
-      broadcastInterestChange(user.id);
+
+      try {
+        if (current === status) {
+          const { error } = await supabase
+            .from('competition_interests')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('competition_id', competitionId);
+          if (error) throw error;
+        } else if (current) {
+          const { error } = await supabase
+            .from('competition_interests')
+            .update({ status, dog_name: dogName, class: dogClass })
+            .eq('user_id', user.id)
+            .eq('competition_id', competitionId);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from('competition_interests').insert({
+            user_id: user.id,
+            competition_id: competitionId,
+            status,
+            dog_name: dogName,
+            class: dogClass,
+          });
+          if (error) throw error;
+        }
+        broadcastInterestChange(user.id);
+      } catch (err) {
+        // Rollback vid fel
+        setInterests(previousState);
+        throw err;
+      }
     },
     [user, interests],
   );

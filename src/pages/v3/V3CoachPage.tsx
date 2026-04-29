@@ -45,6 +45,13 @@ export default function V3CoachPage() {
             <ClipboardCheck size={16} strokeWidth={1.8} />
             QA-checklista (mobil)
           </Link>
+          <Link
+            to="/v3/screen-check"
+            className="inline-flex items-center gap-2 text-v3-sm text-v3-text-secondary hover:text-v3-text-primary"
+          >
+            <ClipboardCheck size={16} strokeWidth={1.8} />
+            Skärmkontroll
+          </Link>
         </div>
       </header>
 

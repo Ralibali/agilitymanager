@@ -69,7 +69,9 @@ export default function CoursePlanner3D(props: CoursePlanner3DProps) {
   // Walk control inputs (refs so they don't trigger re-renders)
   const joystickRef = useRef({ x: 0, y: 0 });
   const lookDeltaRef = useRef({ x: 0, y: 0 });
+  const sprintRef = useRef(false);
   const [knob, setKnob] = useState({ x: 0, y: 0 });
+  const [sprinting, setSprinting] = useState(false);
 
   // ESC handler
   useEffect(() => {
@@ -214,6 +216,7 @@ export default function CoursePlanner3D(props: CoursePlanner3DProps) {
               <WalkControls
                 joystickRef={joystickRef}
                 lookDeltaRef={lookDeltaRef}
+                sprintRef={sprintRef}
                 isMobile={isMobile}
                 bounds={{ w: widthMeters, h: heightMeters }}
               />
@@ -239,8 +242,11 @@ export default function CoursePlanner3D(props: CoursePlanner3DProps) {
         <MobileWalkUI
           joystickRef={joystickRef}
           lookDeltaRef={lookDeltaRef}
+          sprintRef={sprintRef}
           knob={knob}
           setKnob={setKnob}
+          sprinting={sprinting}
+          setSprinting={setSprinting}
         />
       )}
     </div>
@@ -250,15 +256,22 @@ export default function CoursePlanner3D(props: CoursePlanner3DProps) {
 function MobileWalkUI({
   joystickRef,
   lookDeltaRef,
+  sprintRef,
   knob,
   setKnob,
+  sprinting,
+  setSprinting,
 }: {
   joystickRef: { current: { x: number; y: number } };
   lookDeltaRef: { current: { x: number; y: number } };
+  sprintRef: { current: boolean };
   knob: { x: number; y: number };
   setKnob: (v: { x: number; y: number }) => void;
+  sprinting: boolean;
+  setSprinting: (v: boolean) => void;
 }) {
   const padRef = useRef<HTMLDivElement | null>(null);
+  const stickTouchId = useRef<number | null>(null);
   const lookId = useRef<number | null>(null);
   const lookLast = useRef({ x: 0, y: 0 });
 
@@ -274,39 +287,29 @@ function MobileWalkUI({
     setKnob({ x: dx, y: dy });
     joystickRef.current = { x: dx, y: dy };
   };
-  const reset = () => {
+  const resetStick = () => {
     setKnob({ x: 0, y: 0 });
     joystickRef.current = { x: 0, y: 0 };
+    stickTouchId.current = null;
   };
 
   return (
     <>
+      {/* Full-screen look pad – sits BELOW the UI controls (z-10).
+          Touches on joystick/sprint/topbar/HUD never reach this layer because
+          those elements are positioned above with their own pointer events. */}
       <div
-        ref={padRef}
-        className="absolute left-5 bottom-6 z-30 h-32 w-32 rounded-full bg-white/15 backdrop-blur border border-white/30"
-        style={{ touchAction: "none" }}
-        onTouchStart={(e) => { e.preventDefault(); const t = e.touches[0]; setStick(t.clientX, t.clientY); }}
-        onTouchMove={(e) => { e.preventDefault(); const t = e.touches[0]; setStick(t.clientX, t.clientY); }}
-        onTouchEnd={(e) => { e.preventDefault(); reset(); }}
-        onTouchCancel={() => reset()}
-      >
-        <div
-          className="absolute h-12 w-12 rounded-full bg-white/80 shadow-lg pointer-events-none"
-          style={{ left: "50%", top: "50%", transform: `translate(-50%, -50%) translate(${knob.x * 28}px, ${knob.y * 28}px)` }}
-        />
-      </div>
-      {/* Right half look pad */}
-      <div
-        className="absolute right-0 top-[140px] bottom-0 w-1/2 z-20"
+        className="absolute inset-0 z-10"
         style={{ touchAction: "none" }}
         onTouchStart={(e) => {
-          const t = e.touches[0];
+          if (lookId.current != null) return;
+          const t = e.changedTouches[0];
           lookId.current = t.identifier;
           lookLast.current = { x: t.clientX, y: t.clientY };
         }}
         onTouchMove={(e) => {
-          for (let i = 0; i < e.touches.length; i++) {
-            const t = e.touches[i];
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i];
             if (t.identifier === lookId.current) {
               const dx = t.clientX - lookLast.current.x;
               const dy = t.clientY - lookLast.current.y;
@@ -316,9 +319,85 @@ function MobileWalkUI({
             }
           }
         }}
-        onTouchEnd={() => { lookId.current = null; }}
+        onTouchEnd={(e) => {
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === lookId.current) {
+              lookId.current = null;
+            }
+          }
+        }}
         onTouchCancel={() => { lookId.current = null; }}
       />
+
+      {/* Hint */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-30 px-3 py-1 rounded-full bg-black/45 backdrop-blur text-white/80 text-[11px] pointer-events-none">
+        Joystick = gå · Dra på vyn = titta · Håll Sprint
+      </div>
+
+      {/* Joystick (left) */}
+      <div
+        ref={padRef}
+        className="absolute left-4 bottom-10 z-30 h-28 w-28 rounded-full bg-white/15 backdrop-blur border border-white/30 shadow-lg"
+        style={{ touchAction: "none" }}
+        onTouchStart={(e) => {
+          e.stopPropagation();
+          const t = e.changedTouches[0];
+          stickTouchId.current = t.identifier;
+          setStick(t.clientX, t.clientY);
+        }}
+        onTouchMove={(e) => {
+          e.stopPropagation();
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i];
+            if (t.identifier === stickTouchId.current) {
+              setStick(t.clientX, t.clientY);
+            }
+          }
+        }}
+        onTouchEnd={(e) => {
+          e.stopPropagation();
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === stickTouchId.current) {
+              resetStick();
+            }
+          }
+        }}
+        onTouchCancel={(e) => { e.stopPropagation(); resetStick(); }}
+      >
+        <div
+          className="absolute h-11 w-11 rounded-full bg-white/85 shadow-lg pointer-events-none"
+          style={{ left: "50%", top: "50%", transform: `translate(-50%, -50%) translate(${knob.x * 26}px, ${knob.y * 26}px)` }}
+        />
+      </div>
+
+      {/* Sprint button (right) */}
+      <button
+        type="button"
+        className={`absolute right-4 bottom-10 z-30 h-20 w-20 rounded-full backdrop-blur border shadow-lg text-white text-xs font-bold uppercase tracking-wider select-none transition-colors ${
+          sprinting
+            ? "bg-amber-400/80 border-amber-200 text-black"
+            : "bg-white/15 border-white/30"
+        }`}
+        style={{ touchAction: "none" }}
+        onTouchStart={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          sprintRef.current = true;
+          setSprinting(true);
+        }}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          sprintRef.current = false;
+          setSprinting(false);
+        }}
+        onTouchCancel={() => {
+          sprintRef.current = false;
+          setSprinting(false);
+        }}
+      >
+        Sprint
+      </button>
     </>
   );
 }

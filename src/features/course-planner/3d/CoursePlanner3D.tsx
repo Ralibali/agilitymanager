@@ -291,6 +291,11 @@ function MobileWalkUI({
   const stickTouchId = useRef<number | null>(null);
   const lookId = useRef<number | null>(null);
   const lookLast = useRef({ x: 0, y: 0 });
+  const [showHint, setShowHint] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setShowHint(false), 5000);
+    return () => clearTimeout(t);
+  }, []);
 
   const setStick = (clientX: number, clientY: number) => {
     if (!padRef.current) return;

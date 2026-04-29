@@ -34,6 +34,11 @@ const SECTIONS: Section[] = [
       { keys: ["Backspace"], label: "Ta bort markerat hinder" },
       { keys: ["R"], label: "Rotera markerat hinder 15°" },
       { keys: ["Shift", "R"], label: "Rotera markerat hinder -15°" },
+      { keys: ["L"], label: "Lås / lås upp markerat hinder" },
+      { keys: ["Ctrl", "]"], label: "Flytta hinder framåt (z-order)" },
+      { keys: ["Ctrl", "["], label: "Flytta hinder bakåt (z-order)" },
+      { keys: ["Ctrl", "Shift", "]"], label: "Längst fram" },
+      { keys: ["Ctrl", "Shift", "["], label: "Längst bak" },
     ],
   },
   {

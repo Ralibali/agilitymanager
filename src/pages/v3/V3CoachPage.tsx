@@ -1,6 +1,6 @@
 import { Suspense, lazy } from "react";
 import { Link } from "react-router-dom";
-import { GraduationCap, Award, Heart, Trophy, ClipboardList, ArrowRight } from "lucide-react";
+import { GraduationCap, Award, Heart, Trophy, ClipboardList, ArrowRight, ClipboardCheck } from "lucide-react";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { Disclaimer } from "@/components/Disclaimer";
 import type { Dog } from "@/types";

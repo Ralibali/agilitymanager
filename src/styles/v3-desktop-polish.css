@@ -4,7 +4,7 @@
    Den här filen är avsiktligt scoped till v3-layouten via main och v3-klasser.
 */
 
-@layer components {
+/* Standalone CSS — ingen @layer wrapper (laddas separat från Tailwind-entryn). */
   /* Desktop ska inte kännas som en mobilvy placerad i mitten av skärmen. */
   @media (min-width: 1280px) {
     main > div[class*="max-w-[1180px]"] {

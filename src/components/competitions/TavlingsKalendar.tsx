@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAttribution';
 import { stripHtml } from '@/lib/utils';
 import ShareToFriendDialog from '@/components/ShareToFriendDialog';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,16 +7,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, MapPin, ExternalLink, Star, CheckCircle2, Home, TreePine, Send, Trophy } from 'lucide-react';
+import { RefreshCw, MapPin, ExternalLink, Star, CheckCircle2, Home, TreePine, Send, Trophy, Flag } from 'lucide-react';
 import CompetitionResultsViewer from '@/components/competitions/CompetitionResultsViewer';
-import { SWEDISH_COUNTIES, type Competition, type CompetitionInterest } from '@/types/competitions';
+import { SWEDISH_COUNTIES, type Competition } from '@/types/competitions';
 import { getCountyForLocation } from '@/lib/swedishCityCounty';
 import { useToast } from '@/hooks/use-toast';
+import { useCompetitionInterests, type InterestStatus } from '@/hooks/useCompetitionInterests';
 import type { Dog } from '@/types';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+
 
 const CLASS_FILTERS = [
   { key: 'agility', label: 'Agility' },

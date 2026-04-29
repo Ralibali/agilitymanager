@@ -125,7 +125,20 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
   const [friendNames, setFriendNames] = useState<string[]>([]);
 
   // Delad intresse-hook — hanterar både inloggad (DB) och gäst (cookie/localStorage)
-  const { interests, setInterest } = useCompetitionInterests();
+  const { interests, setInterest, isGuest } = useCompetitionInterests();
+
+  // Konverterings-modal-state
+  const [signupModal, setSignupModal] = useState<{ open: boolean; title?: string; description?: string }>({ open: false });
+  const markedCount = useMemo(() => Object.keys(interests).length, [interests]);
+
+  useExitIntent({
+    enabled: isGuest && markedCount >= 2,
+    onTrigger: () => setSignupModal({
+      open: true,
+      title: 'Spara dina markeringar innan du går',
+      description: `Du har ${markedCount} markeringar — skapa konto på 30 sekunder så är de kvar nästa gång.`,
+    }),
+  });
 
   // Fetch friend names for result highlighting
   useEffect(() => {

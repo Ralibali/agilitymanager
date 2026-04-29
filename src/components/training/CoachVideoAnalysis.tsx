@@ -298,6 +298,31 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
           </div>
 
           <div>
+            <Label className="text-xs">Sekretess</Label>
+            <div className="grid grid-cols-2 gap-1.5 mt-1">
+              {([
+                { id: 'private', title: 'Endast jag', sub: 'Du och coachen' },
+                { id: 'private_no_export', title: 'Endast jag, exportera ej', sub: 'Coachen kan ej dela' },
+              ] as const).map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setPrivacyMode(opt.id)}
+                  disabled={isSubmitting}
+                  className={`rounded-lg border p-2 text-left transition-all ${
+                    privacyMode === opt.id
+                      ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                      : 'border-border bg-secondary/20 hover:border-border/80'
+                  }`}
+                >
+                  <div className="text-xs font-semibold">{opt.title}</div>
+                  <div className="text-[10px] text-muted-foreground">{opt.sub}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
             <Label className="text-xs">Paket</Label>
             <div className="grid grid-cols-3 gap-1.5 mt-1">
               {(['1', '3', '5'] as const).map((p) => (

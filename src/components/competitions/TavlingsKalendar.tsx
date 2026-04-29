@@ -16,6 +16,7 @@ import { useCompetitionInterests, type InterestStatus } from '@/hooks/useCompeti
 import { GuestConversionBanner } from './GuestConversionBanner';
 import { GuestSignupModal } from './GuestSignupModal';
 import { useExitIntent } from '@/hooks/useExitIntent';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Dog } from '@/types';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,

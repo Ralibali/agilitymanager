@@ -150,6 +150,7 @@ const App = () => (
               <Route path="/club-invite/:code" element={<ClubInvitePage />} />
               <Route path="/design-demo" element={<DesignDemoPage />} />
               <Route path="/hjalp/resultathamtning" element={<HelpResultImportPage />} />
+              <Route path="/coach" element={<PublicCoachPage />} />
 
               {/* v3 – Addiction Update (Fas 3: skyddad bakom V3Guard som renderar V3Layout) */}
               <Route path="/v3" element={<V3Guard />}>

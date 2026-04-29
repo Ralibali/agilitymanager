@@ -109,9 +109,10 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
   }
 
   const sceneObstacles = obstacles.map((o) => ({ ...o, ...map2DTo3D(o.x, o.y, widthMeters, heightMeters) }));
+  const maxDim = Math.max(widthMeters, heightMeters);
   const overviewCamera = isMobile
-    ? ([widthMeters * 0.48, Math.max(widthMeters, heightMeters) * 0.48, heightMeters * 0.88] as [number, number, number])
-    : ([widthMeters * 0.58, Math.max(widthMeters, heightMeters) * 0.52, heightMeters * 0.75] as [number, number, number]);
+    ? ([widthMeters * 0.42, maxDim * 0.42, heightMeters * 0.74] as [number, number, number])
+    : ([widthMeters * 0.5, maxDim * 0.46, heightMeters * 0.68] as [number, number, number]);
 
   return (
     <div className="fixed inset-0 z-[1100] bg-[#f6f2ea]" style={{ touchAction: "none" }}>
@@ -126,16 +127,17 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
       {mode === "walk" && <div className="absolute top-[72px] left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-full bg-black/55 backdrop-blur text-white text-xs sm:text-sm font-semibold max-w-[92vw] text-center">{currentObstacle ? <>Hinder {currentObstacle.number}: {currentObstacle.label ?? currentObstacle.type}{nextObstacle && <span className="opacity-70"> · Nästa: {nextObstacle.number} {nextObstacle.label ?? nextObstacle.type}</span>}</> : "Inga numrerade hinder"}</div>}
       {mode === "walk" && numbered.length > 1 && <div className="absolute right-3 top-[126px] z-30 flex flex-col gap-2"><button onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))} className="h-11 w-11 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg"><ChevronLeft size={20} /></button><button onClick={() => setCurrentIdx((i) => Math.min(numbered.length - 1, i + 1))} className="h-11 w-11 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg"><ChevronRight size={20} /></button></div>}
 
-      <Canvas shadows={false} dpr={isMobile ? [1, 1.35] : [1, 2]} gl={{ antialias: true, powerPreference: "high-performance" }} camera={{ position: overviewCamera, fov: isMobile ? 52 : 48, near: 0.1, far: 1000 }} onCreated={({ gl }) => { gl.setClearColor("#f6f2ea"); gl.toneMapping = THREE.ACESFilmicToneMapping; gl.toneMappingExposure = 1.22; }}>
+      <Canvas shadows dpr={isMobile ? [1, 1.25] : [1, 1.75]} gl={{ antialias: true, powerPreference: "high-performance" }} camera={{ position: overviewCamera, fov: isMobile ? 50 : 46, near: 0.1, far: 1000 }} onCreated={({ gl }) => { gl.setClearColor("#f6f2ea"); gl.toneMapping = THREE.ACESFilmicToneMapping; gl.toneMappingExposure = 1.08; gl.shadowMap.enabled = true; gl.shadowMap.type = THREE.PCFSoftShadowMap; }}>
+        <fog attach="fog" args={["#f6f2ea", maxDim * 1.15, maxDim * 2.9]} />
         <Suspense fallback={null}>
-          {mode === "view" ? <PerspectiveCamera makeDefault position={overviewCamera} fov={isMobile ? 52 : 48} /> : <PerspectiveCamera makeDefault position={walkPose.pos} fov={70} />}
+          {mode === "view" ? <PerspectiveCamera makeDefault position={overviewCamera} fov={isMobile ? 50 : 46} /> : <PerspectiveCamera makeDefault position={walkPose.pos} fov={70} />}
           <Arena3D widthMeters={widthMeters} heightMeters={heightMeters} />
           {sceneObstacles.map((o) => {
             const numIdx = numbered.findIndex((n) => n.id === o.id);
             return <Obstacle3D key={o.id} type={o.type} x={o.x} z={o.z} rotationDeg={o.rotation} number={o.number} color={o.color} onSelect={numIdx >= 0 ? () => { setCurrentIdx(numIdx); setMode("walk"); } : undefined} highlight={mode === "walk" && numIdx >= 0 && numIdx === currentIdx} />;
           })}
           <PathLine3D paths={paths} widthMeters={widthMeters} heightMeters={heightMeters} />
-          {mode === "view" ? <OrbitControls enablePan enableRotate enableZoom minDistance={3} maxDistance={Math.max(widthMeters, heightMeters) * 2} maxPolarAngle={Math.PI / 2 - 0.05} target={[0, 0.5, 0]} makeDefault /> : <><CameraTeleport pos={walkPose.pos} lookAt={walkPose.target} version={teleportV} /><WalkControls joystickRef={joystickRef} lookDeltaRef={lookDeltaRef} sprintRef={sprintRef} isMobile={isMobile} bounds={{ w: widthMeters, h: heightMeters }} /></>}
+          {mode === "view" ? <OrbitControls enablePan enableRotate enableZoom minDistance={3} maxDistance={Math.max(widthMeters, heightMeters) * 1.75} maxPolarAngle={Math.PI / 2 - 0.08} target={[0, 0.65, 0]} makeDefault /> : <><CameraTeleport pos={walkPose.pos} lookAt={walkPose.target} version={teleportV} /><WalkControls joystickRef={joystickRef} lookDeltaRef={lookDeltaRef} sprintRef={sprintRef} isMobile={isMobile} bounds={{ w: widthMeters, h: heightMeters }} /></>}
         </Suspense>
       </Canvas>
 

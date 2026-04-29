@@ -276,7 +276,12 @@ export default function CoachUploadFlow({
               </Button>
             )}
             {step === 3 && (
-              <Button variant="brand" onClick={handleConfirmAndSubmit} className="h-10">
+              <Button
+                variant="brand"
+                onClick={handleConfirmAndSubmit}
+                disabled={!privacyAcknowledged}
+                className="h-10"
+              >
                 <Lock size={14} className="mr-1" /> Bekräfta &amp; betala
               </Button>
             )}

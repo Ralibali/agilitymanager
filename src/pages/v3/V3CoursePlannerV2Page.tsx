@@ -429,6 +429,63 @@ export default function V3CoursePlannerV2Page() {
   const templates = getTemplatesBySport(course.sport);
   const arenaPresets = useMemo(() => getArenaPresetsBySport(course.sport), [course.sport]);
 
+  // Spara-handler delas av topbar-knapp, palette och Ctrl+S.
+  const handleSaveAll = useCallback(async () => {
+    saveCourse(course);
+    if (user) await saveToCloud();
+    else toast.success("Bana sparad lokalt");
+  }, [course, user]); // saveToCloud läses som closure — OK eftersom course är dep.
+
+  // Globala kortkommandon (DEL 2 i sprint 6).
+  useCoursePlannerHotkeys({
+    openPalette: () => setPaletteOpen(true),
+    openHelp: () => setHelpOpen(true),
+    save: () => { void handleSaveAll(); },
+    exportJudgePdf: () => { void handleExportPdf(); },
+    undo,
+    redo,
+    duplicateSelected: () => { if (selectedId) duplicateObstacle(selectedId); },
+    deleteSelected: () => { if (selectedId) deleteObstacle(selectedId); },
+    rotateSelected: (deg) => { if (selectedId) rotateObstacle(selectedId, deg); },
+    setToolSelect: () => setTool("select"),
+    setToolErase: () => setTool("erase"),
+    setToolNumber: () => setTool("number"),
+    togglePath: () => setShowPath((v) => !v),
+    deselect: () => setSelectedId(null),
+    hasSelection: () => selectedId != null,
+  });
+
+  // Bygger kommandolistan för paletten.
+  const paletteCommands = useMemo(() => buildPlannerCommands({
+    save: () => { void handleSaveAll(); },
+    openLibrary: () => setLibraryOpen(true),
+    openShare: () => { void handleShare(); },
+    trainThis: handleTrainThis,
+    setToolSelect: () => setTool("select"),
+    setToolErase: () => setTool("erase"),
+    setToolNumber: () => setTool("number"),
+    autoNumber: autoRenumber,
+    togglePath: () => setShowPath((v) => !v),
+    toggleValidation: () => setIssuesOpen((v) => !v),
+    addObstacle: placeObstacle,
+    switchSport,
+    currentSport: course.sport,
+    exportJudgePdf: () => { void handleExportPdf(); },
+    exportTrainingPdf: () => toast.info("Tränings-PDF kommer i nästa sprint"),
+    exportBuildPdf: () => toast.info("Bygg-PDF kommer i nästa sprint"),
+    exportStartlist: () => exportStartlistPdf({
+      courseName: course.name, sport: course.sport,
+      sizeClass: course.sizeClass, classTemplate: course.classTemplate,
+      obstacles: course.obstacles,
+    }),
+    undo, redo,
+    duplicateSelected: () => { if (selectedId) duplicateObstacle(selectedId); },
+    deleteSelected: () => { if (selectedId) deleteObstacle(selectedId); },
+    hasSelection: selectedId != null,
+    canUndo: historyRef.current.past.length > 0,
+    canRedo: historyRef.current.future.length > 0,
+  }), [course, selectedId, handleSaveAll, undo, redo]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="min-h-[100dvh] bg-[#f9f8f6] text-neutral-900">
       {/* TOPBAR */}

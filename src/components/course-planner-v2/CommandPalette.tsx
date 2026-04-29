@@ -63,6 +63,12 @@ export function CommandPalette({
   }, [activeIdx]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      onOpenChange(false);
+      return;
+    }
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setActiveIdx((i) => Math.min(i + 1, filtered.length - 1));

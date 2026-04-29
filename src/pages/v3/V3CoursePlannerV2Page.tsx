@@ -33,8 +33,12 @@ import { instantiatePrebuilt, type PrebuiltCourse } from "@/features/course-plan
 import type { LibraryCourse } from "@/features/course-planner-v2/library";
 import { CommandPalette } from "@/components/course-planner-v2/CommandPalette";
 import { KeyboardShortcutsHelp } from "@/components/course-planner-v2/KeyboardShortcutsHelp";
+import { ExportMenu } from "@/components/course-planner-v2/ExportMenu";
 import { buildPlannerCommands } from "@/features/course-planner-v2/plannerCommands";
 import { useCoursePlannerHotkeys } from "@/hooks/useCoursePlannerHotkeys";
+import { useProfileName } from "@/hooks/useProfileName";
+import { exportTrainingPdf } from "@/features/course-planner-v2/trainingPdf";
+import { exportBuildPdf } from "@/features/course-planner-v2/buildPdf";
 
 const STORAGE_KEY = "am_course_planner_v2";
 

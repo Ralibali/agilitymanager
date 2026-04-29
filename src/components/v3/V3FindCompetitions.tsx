@@ -7,7 +7,11 @@ import { toast } from "sonner";
 import ShareToFriendDialog from "@/components/ShareToFriendDialog";
 import { FetchMyResultDialog, type FetchMyResultTarget } from "@/components/v3/FetchMyResultDialog";
 import { store } from "@/lib/store";
-import { readGuestInterests } from "@/hooks/useCompetitionInterests";
+import {
+  readGuestInterestItems,
+  setGuestInterest as setGuestInterestStorage,
+  subscribeGuestInterests,
+} from "@/lib/guestInterestsStorage";
 import type { Dog } from "@/types";
 
 type Sport = "Agility" | "Hoopers";
@@ -222,7 +226,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
 
     if (!user) {
       // Gäst: läs från localStorage via samma hjälpare som useCompetitionInterests
-      const guestItems = readGuestInterests();
+      const guestItems = readGuestInterestItems();
       guestItems.forEach((g) => {
         if (g.status === "interested" || g.status === "registered") {
           map[g.competition_id] = g.status as InterestStatus;
@@ -319,21 +323,10 @@ export function V3FindCompetitions({ preferredSport }: Props) {
     reloadInterests();
   }, [reloadInterests]);
 
-  // Lyssna på localStorage-ändringar (även mellan flikar) så gäst-UI återställs när användaren återvänder.
+  // Lyssna på localStorage-ändringar (även mellan flikar/visibility/focus) via central modul.
   useEffect(() => {
     if (user) return;
-    const onChange = () => { void reloadInterests(); };
-    const onStorage = (e: StorageEvent) => { if (e.key === "am.guest.interests.v1") onChange(); };
-    window.addEventListener("am:guest-interests-changed", onChange);
-    window.addEventListener("storage", onStorage);
-    window.addEventListener("focus", onChange);
-    document.addEventListener("visibilitychange", onChange);
-    return () => {
-      window.removeEventListener("am:guest-interests-changed", onChange);
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener("focus", onChange);
-      document.removeEventListener("visibilitychange", onChange);
-    };
+    return subscribeGuestInterests(() => { void reloadInterests(); });
   }, [user, reloadInterests]);
 
   // Hämta tävlingar som vänner delat med mig (messages.shared_type='competition')
@@ -396,26 +389,22 @@ export function V3FindCompetitions({ preferredSport }: Props) {
       return next;
     });
 
-    // Gäst: skriv till localStorage i samma format som useCompetitionInterests
+    // Gäst: använd central versionssäkrad storage-modul (med metadata för filtrering)
     if (!user) {
       try {
-        const GUEST_KEY = "am.guest.interests.v1";
-        const raw = window.localStorage.getItem(GUEST_KEY);
-        const items: Array<{ competition_id: string; status: InterestStatus; dog_name: string | null; class: string | null; created_at: string }> = raw ? JSON.parse(raw) : [];
-        const idx = items.findIndex((i) => i.competition_id === compKey);
-        let next = items;
-        if (idx >= 0 && items[idx].status === target) {
-          next = items.filter((_, i) => i !== idx);
+        const result = setGuestInterestStorage({
+          competition_id: compKey,
+          status: target,
+          sport: comp.sport,
+          region: comp.region,
+          class: comp.classes?.[0] ?? null,
+          dog_name: null,
+        });
+        if (result === null) {
           toast.success(target === "interested" ? "Intresse borttaget" : "Anmälan borttagen");
-        } else if (idx >= 0) {
-          next = items.map((it, i) => (i === idx ? { ...it, status: target } : it));
-          toast.success(target === "interested" ? "⭐ Sparad i webbläsaren" : "✅ Sparad i webbläsaren");
         } else {
-          next = [...items, { competition_id: compKey, status: target, dog_name: null, class: null, created_at: new Date().toISOString() }];
           toast.success(target === "interested" ? "⭐ Sparad i webbläsaren" : "✅ Sparad i webbläsaren");
         }
-        window.localStorage.setItem(GUEST_KEY, JSON.stringify(next));
-        window.dispatchEvent(new CustomEvent("am:guest-interests-changed"));
       } catch (e) {
         console.error(e);
         toast.error("Kunde inte spara lokalt");

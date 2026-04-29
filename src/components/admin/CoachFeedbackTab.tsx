@@ -159,27 +159,32 @@ export default function CoachFeedbackTab() {
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <Textarea
-                    value={replyText[fb.id] || fb.coach_response || ''}
-                    onChange={e => setReplyText(prev => ({ ...prev, [fb.id]: e.target.value }))}
-                    placeholder="Skriv ditt svar till användaren..."
-                    rows={4}
-                  />
-                  <Button
-                    onClick={() => {
-                      const text = replyText[fb.id]?.trim();
-                      if (!text) return toast.error('Skriv ett svar');
-                      replyMutation.mutate({ id: fb.id, response: text });
-                    }}
-                    disabled={replyMutation.isPending}
-                    className="gap-2"
-                    size="sm"
-                  >
-                    {replyMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                    Skicka svar
-                  </Button>
-                </div>
+                {!fb.coach_response && (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={replyText[fb.id] || ''}
+                      onChange={e => setReplyText(prev => ({ ...prev, [fb.id]: e.target.value }))}
+                      placeholder="Skriv ditt svar till användaren..."
+                      rows={4}
+                    />
+                    <Button
+                      onClick={() => {
+                        const text = replyText[fb.id]?.trim();
+                        if (!text) return toast.error('Skriv ett svar');
+                        replyMutation.mutate({ id: fb.id, response: text });
+                      }}
+                      disabled={replyMutation.isPending}
+                      className="gap-2"
+                      size="sm"
+                    >
+                      {replyMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                      Skicka svar
+                    </Button>
+                  </div>
+                )}
+
+                {/* Trådad konversation (följdfråga + följdsvar) */}
+                {fb.coach_response && <AdminFollowupThread feedbackId={fb.id} />}
               </CardContent>
             )}
           </Card>

@@ -909,7 +909,7 @@ function ObstacleSvg({ obstacle, selected, hasIssue, onPointerDown }: {
       {hasIssue && !selected && (
         <circle r={Math.max(w, d) / 2 + 0.35} fill="#ef4444" opacity={0.18} />
       )}
-      <ObstacleShape def={def} selected={selected} />
+      <ObstacleShape def={def} selected={selected} obstacle={obstacle} />
       {selected && (
         <circle r={Math.max(w, d) / 2 + 0.4} fill="none" stroke="#1a6b3c" strokeWidth={0.12} strokeDasharray="0.3 0.2" />
       )}

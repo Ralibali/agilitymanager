@@ -179,6 +179,22 @@ export function buildPlannerCommands(h: PlannerCommandHandlers): PaletteCommand[
     },
   );
 
+  // ───────── 3D ─────────
+  cmds.push(
+    {
+      id: "view.3d", group: "3D", label: "Visa 3D-vy",
+      hint: "Öppnar banan i 3D",
+      keywords: ["3d", "vy", "rendering", "tre dimensioner"],
+      icon: <Box size={14} />, run: h.open3DView,
+    },
+    {
+      id: "view.3dWalk", group: "3D", label: "Gå banan (3D)",
+      hint: "Walk-mode genom hindren i ordning",
+      keywords: ["gå", "walk", "first person", "förare"],
+      icon: <Footprints size={14} />, run: h.open3DWalk,
+    },
+  );
+
   // ───────── Redigering ─────────
   if (h.canUndo) {
     cmds.push({

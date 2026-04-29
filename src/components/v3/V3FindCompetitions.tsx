@@ -7,7 +7,11 @@ import { toast } from "sonner";
 import ShareToFriendDialog from "@/components/ShareToFriendDialog";
 import { FetchMyResultDialog, type FetchMyResultTarget } from "@/components/v3/FetchMyResultDialog";
 import { store } from "@/lib/store";
-import { readGuestInterests } from "@/hooks/useCompetitionInterests";
+import {
+  readGuestInterestItems,
+  setGuestInterest as setGuestInterestStorage,
+  subscribeGuestInterests,
+} from "@/lib/guestInterestsStorage";
 import type { Dog } from "@/types";
 
 type Sport = "Agility" | "Hoopers";

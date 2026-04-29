@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, type PointerEvent, type ReactNode } from "react";
 import jsPDF from "jspdf";
-import { ArrowLeft, Download, Eraser, FileText, FolderOpen, Grid3X3, Hash, HelpCircle, Maximize2, Minimize2, MousePointer2, Move, PanelLeftClose, PanelLeftOpen, Pencil, RotateCcw, Save, Settings2, Trash2, Undo2, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowLeft, Box, Download, Eraser, FileText, FolderOpen, Footprints, Grid3X3, Hash, HelpCircle, Maximize2, Minimize2, MousePointer2, Move, PanelLeftClose, PanelLeftOpen, Pencil, RotateCcw, Save, Settings2, Trash2, Undo2, X, ZoomIn, ZoomOut } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
 
 type PlannerMode = "Agility" | "Hoopers";
 type ToolMode = "select" | "draw" | "erase" | "number" | "measure";

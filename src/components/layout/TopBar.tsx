@@ -1,20 +1,16 @@
-import { Search, Bell, Sun, Moon } from "lucide-react";
+import { Search, Bell } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { NAV_GROUPS } from "./navConfig";
 import { GlobalSearchDialog } from "./GlobalSearchDialog";
 
 /**
  * Persistent topbar (desktop ≥1024px).
- * Breadcrumb + global sök (cmd+k) + notiser + theme toggle.
+ * Breadcrumb + global sök (cmd+k) + notiser.
  */
 export function TopBar() {
   const location = useLocation();
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   // Cmd/Ctrl+K för att öppna sökningen globalt
   useEffect(() => {

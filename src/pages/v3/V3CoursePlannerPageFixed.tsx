@@ -668,6 +668,7 @@ function MobileMoreSheet({ onClose, actions, grid, snap, zoom }: {
       <div className="flex flex-wrap gap-1.5">{children}</div>
     </div>
   );
+  const swipe = useSwipeDownToClose(onClose);
   return (
     <div className="fixed inset-0 z-[1050] lg:hidden">
       <div className="absolute inset-0 bg-black/35" onClick={onClose} />
@@ -678,12 +679,13 @@ function MobileMoreSheet({ onClose, actions, grid, snap, zoom }: {
         <button
           type="button"
           onClick={onClose}
-          className="w-full pt-2.5 pb-1 flex justify-center"
+          className="w-full pt-2.5 pb-1 flex justify-center touch-none"
           aria-label="Stäng"
+          {...swipe}
         >
           <div className="h-1.5 w-12 rounded-full bg-black/20" />
         </button>
-        <div className="px-4 pb-1 flex items-center justify-between">
+        <div className="px-4 pb-1 flex items-center justify-between" {...swipe}>
           <h3 className="font-v3-display text-[18px]">Mer</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-full bg-v3-canvas grid place-items-center" aria-label="Stäng"><X size={14} /></button>
         </div>

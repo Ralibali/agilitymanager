@@ -11,8 +11,8 @@
  * Data sparas i localStorage under egen nyckel — påverkar INTE v1.
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
-import { useEffect, useMemo, useState, type PointerEvent } from "react";
-import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, FileDown, AlertTriangle, AlertCircle, Info, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,8 @@ import {
   getObstacleDefV2, getTemplatesBySport,
   type Sport, type SizeClassKey, type ObstacleTypeV2, type ClassTemplateKey, type ObstacleDefV2,
 } from "@/features/course-planner-v2/config";
+import { validateCourse, computeCourseTimes, summarizeIssues, type ValidationIssue } from "@/features/course-planner-v2/validation";
+import { exportJudgePdf } from "@/features/course-planner-v2/judgePdf";
 
 const STORAGE_KEY = "am_course_planner_v2";
 

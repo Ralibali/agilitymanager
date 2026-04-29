@@ -93,6 +93,18 @@ export function useCoursePlannerHotkeys(handlers: CoursePlannerHotkeyHandlers): 
         }
         return;
       }
+      // Z-order: Ctrl/Cmd + ] / [ (med Shift = längst fram/bak)
+      if (meta && (e.key === "]" || e.key === "[")) {
+        if (handlers.hasSelection()) {
+          e.preventDefault();
+          if (e.key === "]") {
+            e.shiftKey ? handlers.bringToFront() : handlers.bringForward();
+          } else {
+            e.shiftKey ? handlers.sendToBack() : handlers.sendBackward();
+          }
+        }
+        return;
+      }
       if (e.key === "Delete" || e.key === "Backspace") {
         if (handlers.hasSelection()) {
           e.preventDefault();

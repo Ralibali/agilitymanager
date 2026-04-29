@@ -1163,14 +1163,23 @@ function ObstacleShape({ def, selected, obstacle }: { def: ObstacleDefV2; select
   }
 }
 
-function SelectedPanel({ obstacle, size, onRotate, onDelete, onNumberChange, onTunnelCurve }: {
+function SelectedPanel({
+  obstacle, size, onRotate, onDelete, onNumberChange, onTunnelCurve,
+  onToggleLock, onBringForward, onSendBackward, onBringToFront, onSendToBack,
+}: {
   obstacle: ObstacleV2;
   size: SizeClassKey;
   onRotate: (deg: number) => void;
   onDelete: () => void;
   onNumberChange: (n: number | undefined) => void;
   onTunnelCurve?: (patch: { curveDeg?: number; curveSide?: "left" | "right" }) => void;
+  onToggleLock: () => void;
+  onBringForward: () => void;
+  onSendBackward: () => void;
+  onBringToFront: () => void;
+  onSendToBack: () => void;
 }) {
+  const locked = !!obstacle.locked;
   const def = getObstacleDefV2(obstacle.type)!;
   const sizeDef = SIZE_CLASSES.find((s) => s.key === size)!;
   const showJumpHeight = ["jump", "wall", "combo", "longjump"].includes(def.type);

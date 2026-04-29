@@ -146,6 +146,14 @@ export function AgilityKalendar({ competitions, dogs, selectedDogId }: Props) {
 
   return (
     <div>
+      {isGuest && <GuestConversionBanner markedCount={markedCount} />}
+      <GuestSignupModal
+        open={signupModal.open}
+        onOpenChange={(o) => setSignupModal((s) => ({ ...s, open: o }))}
+        title={signupModal.title}
+        description={signupModal.description}
+        markedCount={markedCount}
+      />
       {/* Header row */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">

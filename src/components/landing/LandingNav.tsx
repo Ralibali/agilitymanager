@@ -215,17 +215,20 @@ export function LandingNav() {
               >
                 Logga in
               </motion.button>
-              <motion.button
+              <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 4 },
                   visible: { opacity: 1, y: 0 },
                 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => goAuth("signup", "nav_cta_click")}
-                className="mt-2 h-12 rounded-ds-md bg-brand-600 text-white text-[15px] font-medium [-webkit-tap-highlight-color:transparent] active:bg-brand-900 transition-colors"
               >
-                Kom igång gratis
-              </motion.button>
+                <Button
+                  variant="brand"
+                  onClick={() => goAuth("signup", "nav_cta_click")}
+                  className="mt-2 h-12 w-full"
+                >
+                  Kom igång gratis
+                </Button>
+              </motion.div>
             </motion.nav>
           </motion.div>
         )}

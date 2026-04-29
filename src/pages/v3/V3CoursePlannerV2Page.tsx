@@ -409,6 +409,11 @@ export default function V3CoursePlannerV2Page() {
   }
 
   function deleteObstacle(id: string) {
+    const ob = course.obstacles.find((o) => o.id === id);
+    if (ob?.locked) {
+      toast.error("Hindret är låst — lås upp först");
+      return;
+    }
     setCourse((c) => ({ ...c, obstacles: c.obstacles.filter((o) => o.id !== id) }));
     setSelectedId(null);
   }

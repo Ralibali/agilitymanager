@@ -89,10 +89,6 @@ export default function PublicCompetitionsPage() {
     isPartOf: { '@type': 'WebSite', name: 'AgilityManager', url: SITE_URL },
   };
 
-  // Förvald sport till den delade komponenten — Hoopers om filtret är hoopers,
-  // annars Agility (komponentens initial). Användaren kan byta inifrån.
-  const preferredSport = sportFilter === 'hoopers' ? 'Hoopers' : 'Agility';
-
   const hasActiveFilter = sportFilter !== 'all' || regionFilter !== null;
 
   return (

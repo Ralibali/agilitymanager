@@ -40,6 +40,7 @@ import { useProfileName } from "@/hooks/useProfileName";
 import { exportTrainingPdf } from "@/features/course-planner-v2/trainingPdf";
 import { exportBuildPdf } from "@/features/course-planner-v2/buildPdf";
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
+import { parseCourseJson } from "@/features/course-planner-v2/importJson";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
 
 const STORAGE_KEY = "am_course_planner_v2";

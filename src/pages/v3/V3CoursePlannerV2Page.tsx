@@ -600,6 +600,11 @@ export default function V3CoursePlannerV2Page() {
     togglePath: () => setShowPath((v) => !v),
     deselect: () => setSelectedId(null),
     hasSelection: () => selectedId != null,
+    bringForward: () => { if (selectedId) bringForward(selectedId); },
+    sendBackward: () => { if (selectedId) sendBackward(selectedId); },
+    bringToFront: () => { if (selectedId) bringToFront(selectedId); },
+    sendToBack: () => { if (selectedId) sendToBack(selectedId); },
+    toggleLockSelected: () => { if (selectedId) toggleLock(selectedId); },
   });
 
   // Bygger kommandolistan för paletten.

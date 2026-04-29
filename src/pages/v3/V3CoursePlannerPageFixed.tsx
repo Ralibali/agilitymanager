@@ -130,7 +130,26 @@ export default function V3CoursePlannerPageFixed() {
     for (const item of specsFor(mode)) map.set(item.category, [...(map.get(item.category) ?? []), item]);
     return Array.from(map.entries());
   }, [mode]);
-  const nextNumber = Math.max(0, ...course.obstacles.map(o => o.number ?? 0), ...course.numbers.map(n => n.num)) + 1;
+  const nextNumber = useMemo(() => {
+    const used = new Set<number>();
+    for (const o of course.obstacles) if (o.number) used.add(o.number);
+    for (const n of course.numbers) used.add(n.num);
+    let i = 1;
+    while (used.has(i)) i++;
+    return i;
+  }, [course.obstacles, course.numbers]);
+  const compactNumbering = (obstacles: Obstacle[], numbers: FreeNumber[]) => {
+    const all = [
+      ...obstacles.filter(o => o.number).map(o => ({ kind: "o" as const, id: o.id, num: o.number! })),
+      ...numbers.map(n => ({ kind: "n" as const, id: n.id, num: n.num })),
+    ].sort((a, b) => a.num - b.num);
+    const remap = new Map<string, number>();
+    all.forEach((item, idx) => remap.set(`${item.kind}:${item.id}`, idx + 1));
+    return {
+      obstacles: obstacles.map(o => o.number ? { ...o, number: remap.get(`o:${o.id}`) ?? o.number } : o),
+      numbers: numbers.map(n => ({ ...n, num: remap.get(`n:${n.id}`) ?? n.num })),
+    };
+  };
 
   useEffect(() => { try { if (window.localStorage.getItem(GUIDE_KEY) !== "1") setGuide(true); } catch { setGuide(true); } }, []);
   useEffect(() => { window.localStorage.setItem(SAVE_KEY, JSON.stringify(courses)); }, [courses]);

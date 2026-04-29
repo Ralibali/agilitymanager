@@ -84,11 +84,12 @@ function Oxer({ color = WHITE }: { color?: string }) {
   );
 }
 function LongJump() {
+  // 2D: wide (horizontal). Long axis along X. Planks staggered along X.
   return (
-    <group>
+    <group rotation={[0, Math.PI / 2, 0]}>
       {[-0.6, -0.2, 0.2, 0.6].map((z, i) => (
         <mesh key={i} position={[0, 0.12 + i * 0.04 + EPS, z]} castShadow receiveShadow>
-          <boxGeometry args={[1.2, 0.08, 0.16]} />
+          <boxGeometry args={[1.4, 0.08, 0.16]} />
           <meshStandardMaterial color={WHITE} />
         </mesh>
       ))}
@@ -96,17 +97,18 @@ function LongJump() {
   );
 }
 function Wall({ color = RED }: { color?: string }) {
+  // 2D: wide. Long axis along X.
   return (
     <mesh position={[0, 0.4 + EPS, 0]} castShadow receiveShadow>
-      <boxGeometry args={[1.2, 0.8, 0.25]} />
+      <boxGeometry args={[1.4, 0.8, 0.35]} />
       <meshStandardMaterial color={color} />
     </mesh>
   );
 }
 function Tunnel({ color = BLUE, length = 3, radius = 0.4 }: { color?: string; length?: number; radius?: number }) {
-  // Lift by radius so tunnel rests on floor, not buried in it.
+  // 2D: tunnel shape is horizontal (long along X). Rotate so length runs along X.
   return (
-    <group position={[0, radius + EPS, 0]}>
+    <group position={[0, radius + EPS, 0]} rotation={[0, Math.PI / 2, 0]}>
       <mesh rotation={[Math.PI / 2, 0, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[radius, radius, length, 28, 1, true]} />
         <meshStandardMaterial color={color} side={THREE.DoubleSide} roughness={0.7} />

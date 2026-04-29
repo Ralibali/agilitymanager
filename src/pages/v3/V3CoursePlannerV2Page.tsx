@@ -728,44 +728,16 @@ export default function V3CoursePlannerV2Page() {
 
   return (
     <div className="min-h-[100dvh] bg-[#f9f8f6] text-neutral-900">
-      {/* TOPBAR */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-black/5 px-4 py-2.5 flex items-center gap-3">
-        <Link to="/v3/courses" className="h-9 w-9 grid place-items-center rounded-full bg-neutral-100 text-neutral-700" aria-label="Tillbaka">
-          <ArrowLeft size={16} />
-        </Link>
-        <input
-          value={course.name}
-          onChange={(e) => update({ name: e.target.value })}
-          className="h-9 min-w-0 flex-1 max-w-[320px] px-3 rounded-full border border-black/10 bg-white text-sm font-semibold outline-none focus:ring-2 focus:ring-[#1a6b3c]/25"
-        />
-        <span className="hidden md:inline text-[11px] text-neutral-500">
-          {savedAt ? `Autosparad ${savedAt.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}` : "Sparas…"}
-        </span>
-        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-          <SegmentedSport value={course.sport} onChange={switchSport} />
+      {/* TOPBAR — strukturerad med funktionell gruppering, kebab-overflow på mobil */}
+      <PlannerTopbar
+        courseName={course.name}
+        onCourseNameChange={(name) => update({ name })}
+        savedAt={savedAt}
+        sportToggle={<SegmentedSport value={course.sport} onChange={switchSport} />}
+        validationBadge={
           <ValidationBadge summary={issueSummary} onClick={() => setIssuesOpen((v) => !v)} active={issuesOpen} />
-          <button
-            onClick={() => setLibraryOpen(true)}
-            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400"
-            title="Öppna banbibliotek"
-          >
-            <Library size={14} /> <span className="hidden sm:inline">Bibliotek</span>
-          </button>
-          <button
-            onClick={handleTrainThis}
-            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400"
-            title="Skapa träningspass från denna bana"
-          >
-            <Dumbbell size={14} /> <span className="hidden sm:inline">Träna</span>
-          </button>
-          <button
-            onClick={handleShare}
-            disabled={!user}
-            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400 disabled:opacity-40"
-            title={user ? "Dela banan (klubb / publik länk)" : "Logga in för att dela"}
-          >
-            <Share2 size={14} /> <span className="hidden sm:inline">Dela</span>
-          </button>
+        }
+        exportMenu={
           <ExportMenu
             onJudge={() => { void handleExportPdf(); }}
             onTraining={() => { void handleExportTrainingPdf(); }}
@@ -780,22 +752,20 @@ export default function V3CoursePlannerV2Page() {
             on3DView={() => setView3D("view")}
             on3DWalk={() => setView3D("walk")}
           />
-          <button
-            onClick={async () => {
-              saveCourse(course);
-              if (user) await saveToCloud();
-              else toast.success("Bana sparad lokalt");
-            }}
-            disabled={savingCloud}
-            className="h-9 px-3 rounded-full bg-[#1a6b3c] text-white text-[12px] font-semibold inline-flex items-center gap-1.5 disabled:opacity-60"
-            title={user ? "Spara i molnet" : "Sparas lokalt — logga in för molnsynk"}
-          >
-            {user ? <Cloud size={14} /> : <CloudOff size={14} />}
-            <span className="hidden xs:inline">Spara</span>
-            <Save size={14} className="xs:hidden" />
-          </button>
-        </div>
-      </header>
+        }
+        onLibrary={() => setLibraryOpen(true)}
+        onTrain={handleTrainThis}
+        onShare={handleShare}
+        shareDisabled={!user}
+        shareTitle={user ? "Dela banan (klubb / publik länk)" : "Logga in för att dela"}
+        onSave={async () => {
+          saveCourse(course);
+          if (user) await saveToCloud();
+          else toast.success("Bana sparad lokalt");
+        }}
+        saveDisabled={savingCloud}
+        isAuthenticated={!!user}
+      />
 
       {/* Dold input för JSON-import. Triggas via ExportMenu eller kommandopaletten. */}
       <input

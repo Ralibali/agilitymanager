@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Calendar, ExternalLink, Filter, Info, MapPin, RefreshCw, Search, Trophy, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn, stripHtml } from "@/lib/utils";
+import { SWEDISH_COUNTIES } from "@/types/competitions";
 
 type Sport = "Agility" | "Hoopers";
 
@@ -197,7 +198,12 @@ export function V3FindCompetitions({ preferredSport }: { preferredSport: Sport }
     return () => { cancelled = true; };
   }, [sport, debouncedQuery, includePast]);
 
-  const regions = useMemo(() => Array.from(new Set(rows.map((r) => r.region).filter(Boolean) as string[])).sort(), [rows]);
+  const regions = useMemo(() => {
+    // Alltid visa alla svenska län + ev. extra värden från data (t.ex. "Nationell")
+    const fromData = new Set(rows.map((r) => r.region).filter(Boolean) as string[]);
+    const all = new Set<string>([...SWEDISH_COUNTIES, ...fromData]);
+    return Array.from(all).sort((a, b) => a.localeCompare(b, "sv"));
+  }, [rows]);
   const months = useMemo(() => Array.from(new Set(rows.map((r) => monthKey(r.date)).filter(Boolean) as string[])).sort(), [rows]);
   const classes = useMemo(() => Array.from(new Set(rows.flatMap((r) => r.classes ?? []).filter(Boolean))).sort(), [rows]);
 

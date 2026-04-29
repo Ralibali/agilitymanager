@@ -244,6 +244,7 @@ export default function V3CoursePlannerV2Page() {
   }, [palette]);
   const sizeDef = SIZE_CLASSES.find((s) => s.key === course.sizeClass)!;
   const templates = getTemplatesBySport(course.sport);
+  const arenaPresets = useMemo(() => getArenaPresetsBySport(course.sport), [course.sport]);
 
   return (
     <div className="min-h-[100dvh] bg-[#f9f8f6] text-neutral-900">
@@ -336,7 +337,7 @@ export default function V3CoursePlannerV2Page() {
           <section>
             <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Banstorlek</h3>
             <div className="grid grid-cols-2 gap-1">
-              {ARENA_PRESETS.map((p) => (
+              {arenaPresets.map((p) => (
                 <button
                   key={p.label}
                   onClick={() => update({ arenaWidthM: p.width, arenaHeightM: p.height })}

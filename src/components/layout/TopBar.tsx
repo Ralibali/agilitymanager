@@ -60,14 +60,6 @@ export function TopBar() {
         <Bell size={16} strokeWidth={1.5} />
       </button>
 
-      <button
-        type="button"
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        className="h-8 w-8 flex items-center justify-center rounded-ds-md text-text-secondary hover:bg-subtle hover:text-text-primary transition-colors"
-        aria-label="Växla tema"
-      >
-        {mounted && theme === "dark" ? <Sun size={16} strokeWidth={1.5} /> : <Moon size={16} strokeWidth={1.5} />}
-      </button>
     </header>
   );
 }

@@ -51,9 +51,22 @@ function sportLabel(sport: V3TrainingFilter["sport"]): string {
 
 export default function V3TrainingPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { dogs, active, activeId, setActive, loading: dogsLoading } = useV3Dogs();
   const [filter, setFilter] = useState<V3TrainingFilter>({ sport: "all", period: "30d" });
   const { sessions, stats, loading } = useV3Training(activeId, filter);
+
+  // Inkommande från banplaneraren — öppna log-sheet och ge feedback
+  useEffect(() => {
+    if (searchParams.get("from") === "course-planner") {
+      const courseName = searchParams.get("courseName") || "banan";
+      toast.success(`Loggar pass för "${courseName}"`);
+      openV3LogSheet();
+      const next = new URLSearchParams(searchParams);
+      next.delete("from"); next.delete("courseName"); next.delete("courseId"); next.delete("sport"); next.delete("sizeClass");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const exportCsv = () => {
     if (!active) return;

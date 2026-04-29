@@ -305,13 +305,22 @@ export default function V3CoursePlannerV2Page() {
     const id = uid();
     const ob: ObstacleV2 = {
       id, type,
-      x: course.arenaWidthM / 2,
-      y: course.arenaHeightM / 2,
+      x: snapM(course.arenaWidthM / 2),
+      y: snapM(course.arenaHeightM / 2),
       rotation: 0,
     };
     setCourse((c) => ({ ...c, obstacles: [...c.obstacles, ob] }));
     setSelectedId(id);
     setTool("select");
+  }
+
+  function duplicateObstacle(id: string) {
+    const ob = course.obstacles.find((o) => o.id === id);
+    if (!ob) return;
+    const newId = uid();
+    const copy: ObstacleV2 = { ...ob, id: newId, x: snapM(ob.x + 1), y: snapM(ob.y + 1), number: undefined };
+    setCourse((c) => ({ ...c, obstacles: [...c.obstacles, copy] }));
+    setSelectedId(newId);
   }
 
   function applyTemplate(key: ClassTemplateKey) {

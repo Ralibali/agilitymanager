@@ -216,6 +216,16 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
     const dogName = selectedDog?.name || null;
     const dogClass = selectedDog?.competition_level || null;
 
+    // Hard-wall: gäst får inte markera "Anmäld" — öppna signup-modal
+    if (type === 'registered' && isGuest && current !== 'registered') {
+      setSignupModal({
+        open: true,
+        title: 'Anmälan kräver konto',
+        description: 'Anmälningar sparas på ditt konto så du har dem på alla enheter och får påminnelser. Intresse (⭐) kan du markera utan konto.',
+      });
+      return;
+    }
+
     // Skydd: kräv bekräftelse om man försöker degradera från "anmäld" till "intresserad"
     if (type === 'interested' && current === 'registered') {
       setConfirmDialog({ open: true, compId });

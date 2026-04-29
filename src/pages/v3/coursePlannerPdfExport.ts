@@ -116,7 +116,7 @@ function fillPolygon(pdf: jsPDF, pts: PdfPoint[], rgb: [number, number, number],
   for (let i = 1; i < pts.length; i++) lines.push([pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y]);
   // stäng
   lines.push([pts[0].x - pts[pts.length - 1].x, pts[0].y - pts[pts.length - 1].y]);
-  // @ts-expect-error – jsPDF lines styles parameter
+  // @ts-ignore – jsPDF lines styles parameter
   pdf.lines(lines, start.x, start.y, [1, 1], stroke ? "FD" : "F", true);
 }
 
@@ -291,14 +291,14 @@ function drawIsoNumberedPath(
   if (numbered.length < 2) return;
   pdf.setDrawColor(...RED);
   pdf.setLineWidth(0.55);
-  // @ts-expect-error – setLineDash inte typat
+  // @ts-ignore – setLineDash inte typat
   if (typeof pdf.setLineDashPattern === "function") pdf.setLineDashPattern([2, 1.6], 0);
   for (let i = 1; i < numbered.length; i++) {
     const a = project(numbered[i - 1].x, numbered[i - 1].y, 1.5);
     const b = project(numbered[i].x, numbered[i].y, 1.5);
     pdf.line(a.x, a.y, b.x, b.y);
   }
-  // @ts-expect-error
+  // @ts-ignore
   if (typeof pdf.setLineDashPattern === "function") pdf.setLineDashPattern([], 0);
 }
 
@@ -341,7 +341,7 @@ function drawTopDown(pdf: jsPDF, course: PdfCourse, x: number, y: number, w: num
   // Ritlinjer
   pdf.setDrawColor(...RED);
   pdf.setLineWidth(0.55);
-  // @ts-expect-error
+  // @ts-ignore
   if (typeof pdf.setLineDashPattern === "function") pdf.setLineDashPattern([2, 1.6], 0);
   for (const path of course.paths) {
     for (let i = 1; i < path.points.length; i++) {
@@ -350,7 +350,7 @@ function drawTopDown(pdf: jsPDF, course: PdfCourse, x: number, y: number, w: num
       pdf.line(a.x, a.y, b.x, b.y);
     }
   }
-  // @ts-expect-error
+  // @ts-ignore
   if (typeof pdf.setLineDashPattern === "function") pdf.setLineDashPattern([], 0);
 
   // Hinder

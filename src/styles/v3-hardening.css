@@ -1,0 +1,73 @@
+/*
+  V3 hardening
+  Små men viktiga stabilitetsregler som gör att specialflöden inte tappar
+  premiumkänslan när de ligger utanför de vanliga V3Page-komponenterna.
+*/
+
+/* Banplaneraren använder samma knappklass på mobil och desktop. */
+.mobile-tool-btn {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 0.875rem;
+  border: 1px solid hsl(var(--v3-canvas-sunken) / 0.72);
+  background: hsl(var(--v3-canvas-elevated));
+  color: hsl(var(--v3-text-primary));
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1;
+  box-shadow: 0 1px 2px rgba(26, 29, 27, 0.035);
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, opacity 160ms ease;
+}
+
+.mobile-tool-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: hsl(var(--v3-canvas));
+  box-shadow: 0 6px 18px rgba(26, 29, 27, 0.055);
+}
+
+.mobile-tool-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+}
+
+.mobile-tool-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.mobile-tool-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px hsl(var(--v3-canvas)),
+    0 0 0 4px hsl(var(--v3-brand-500));
+}
+
+/* Nuvarande V3Page-bredder. Ersätter äldre polish-regler som bara träffade 1180px-containern. */
+@media (min-width: 1280px) {
+  main > div[class*="max-w-[1380px]"] {
+    max-width: min(1480px, calc(100vw - 112px));
+  }
+}
+
+@media (min-width: 1536px) {
+  main > div[class*="2xl:max-w-[1540px]"] {
+    max-width: min(1580px, calc(100vw - 144px));
+  }
+}
+
+/* Gemensam kortkänsla utan att låsa oss till enskilda gamla komponenter. */
+main .rounded-v3-2xl.bg-v3-canvas-elevated,
+main .rounded-v3-xl.bg-v3-canvas-elevated {
+  border-color: hsl(var(--v3-canvas-sunken) / 0.68);
+}
+
+/* Gör formulär och filter mer konsekventa efter designprompter. */
+main input,
+main select,
+main textarea,
+button {
+  -webkit-tap-highlight-color: transparent;
+}

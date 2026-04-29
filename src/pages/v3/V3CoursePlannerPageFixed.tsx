@@ -402,44 +402,72 @@ export default function V3CoursePlannerPageFixed() {
       {rightOpen && !isMobile && <RightPanel selected={selected} toolMode={toolMode} setToolMode={setToolMode} setRightOpen={setRightOpen} setGuide={setGuide} moveSelected={moveSelected} rotateSelected={rotateSelected} renumberSelected={renumberSelected} autoRenumberAll={autoRenumberAll} deleteSelected={deleteSelected} setColor={setColor} recolorSelected={recolorSelected} course={course} updateCourse={updateCourse} exportJson={exportJson} exportPdf={exportPdf} reset={reset} setPaths={setPaths} />}
     </main>
 
-    {/* === MOBILE FAB BAR === */}
+    {/* Spacer so the field isn't hidden behind sticky bottom bar */}
+    {isMobile && !view3DMode && <div style={{ height: "calc(132px + env(safe-area-inset-bottom))" }} aria-hidden />}
+
+    {/* === MOBILE BOTTOM TOOLBAR === */}
     {isMobile && !view3DMode && (
-      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-2 py-2 rounded-full bg-v3-text-primary/95 backdrop-blur shadow-v3-lg text-white" style={{ paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))" }}>
-        <FabBtn onClick={() => setLeftOpen(true)} icon={<Plus size={18} />} label="Hinder" />
-        <FabBtn onClick={() => setRightOpen(true)} icon={<Settings2 size={18} />} label="Verktyg" />
-        <FabBtn onClick={() => setView3DMode("view")} icon={<Box size={18} />} label="3D" />
-        <FabBtn onClick={() => setView3DMode("walk")} icon={<Footprints size={18} />} label="Gå" />
-      </div>
+      <MobileBottomBar
+        toolMode={toolMode}
+        setToolMode={setToolMode}
+        onOpenObstacles={() => setLeftOpen(v => !v)}
+        onOpenMore={() => setMoreOpen(true)}
+        obstaclesOpen={leftOpen}
+      />
     )}
 
-    {/* === MOBILE LEFT DRAWER === */}
-    {isMobile && leftOpen && (
-      <MobileSheet title={`${mode}-hinder`} onClose={() => setLeftOpen(false)}>
-        <LeftPanelContent grouped={grouped} selectedTool={selectedTool} setSelectedTool={setSelectedTool} addObstacle={addObstacle} />
-      </MobileSheet>
+    {/* === MOBILE HORIZONTAL OBSTACLES STRIP === */}
+    {isMobile && !view3DMode && leftOpen && (
+      <MobileObstaclesStrip
+        specs={specsFor(mode)}
+        selectedTool={selectedTool}
+        onPick={(t) => { setSelectedTool(t); addObstacle(t); }}
+        onClose={() => setLeftOpen(false)}
+      />
     )}
 
-    {/* === MOBILE RIGHT DRAWER === */}
+    {/* === MOBILE CONTEXTUAL EDIT POPOVER (when an obstacle is selected) === */}
+    {isMobile && !view3DMode && selected && (
+      <MobileEditPopover
+        selected={selected}
+        rotateSelected={rotateSelected}
+        deleteSelected={deleteSelected}
+        renumberSelected={renumberSelected}
+        onClose={() => setSelectedId(null)}
+        onMore={() => setRightOpen(true)}
+      />
+    )}
+
+    {/* === MOBILE RIGHT DRAWER (advanced tools / object props) === */}
     {isMobile && rightOpen && (
       <MobileSheet title="Verktyg" onClose={() => setRightOpen(false)}>
         <RightPanelContent selected={selected} toolMode={toolMode} setToolMode={setToolMode} setGuide={setGuide} moveSelected={moveSelected} rotateSelected={rotateSelected} renumberSelected={renumberSelected} autoRenumberAll={autoRenumberAll} deleteSelected={deleteSelected} setColor={setColor} recolorSelected={recolorSelected} course={course} updateCourse={updateCourse} exportJson={exportJson} exportPdf={exportPdf} reset={reset} setPaths={setPaths} />
       </MobileSheet>
     )}
 
-    {/* === MOBILE MORE MENU === */}
+    {/* === MOBILE MORE MENU (compact bottomsheet) === */}
     {isMobile && moreOpen && (
-      <MobileSheet title="Mer" onClose={() => setMoreOpen(false)}>
-        <div className="grid grid-cols-2 gap-2">
-          <SheetBtn onClick={() => { saveToLibrary(); setMoreOpen(false); }} icon={<Save size={16} />} label="Spara" />
-          <SheetBtn onClick={() => { setSavedOpen(true); setMoreOpen(false); }} icon={<FolderOpen size={16} />} label="Öppna" />
-          <SheetBtn onClick={() => { exportPdf(); setMoreOpen(false); }} icon={<FileText size={16} />} label="PDF" />
-          <SheetBtn onClick={() => { exportJson(); setMoreOpen(false); }} icon={<Download size={16} />} label="JSON" />
-          <SheetBtn onClick={() => { setGrid(v => !v); }} icon={<Grid3X3 size={16} />} label={grid ? "Dölj rutnät" : "Visa rutnät"} />
-          <SheetBtn onClick={() => { setSnap(v => !v); }} icon={<Move size={16} />} label={snap ? "Snap av" : "Snap på"} />
-          <SheetBtn onClick={() => { setGuide(true); setMoreOpen(false); }} icon={<HelpCircle size={16} />} label="Guide" />
-          <SheetBtn onClick={() => { reset(); setMoreOpen(false); }} icon={<RotateCcw size={16} />} label="Återställ" />
-        </div>
-      </MobileSheet>
+      <MobileMoreSheet
+        onClose={() => setMoreOpen(false)}
+        actions={{
+          save: () => { saveToLibrary(); setMoreOpen(false); },
+          open: () => { setSavedOpen(true); setMoreOpen(false); },
+          pdf: () => { exportPdf(); setMoreOpen(false); },
+          json: () => { exportJson(); setMoreOpen(false); },
+          toggleGrid: () => setGrid(v => !v),
+          toggleSnap: () => setSnap(v => !v),
+          zoomIn: () => setZoom(z => clamp(z + 10, 50, 160)),
+          zoomOut: () => setZoom(z => clamp(z - 10, 50, 160)),
+          undoPath: () => setPaths(prev => prev.slice(0, -1)),
+          reset: () => { reset(); setMoreOpen(false); },
+          go3D: () => { setView3DMode("view"); setMoreOpen(false); },
+          walk: () => { setView3DMode("walk"); setMoreOpen(false); },
+          guide: () => { setGuide(true); setMoreOpen(false); },
+        }}
+        grid={grid}
+        snap={snap}
+        zoom={zoom}
+      />
     )}
 
     {savedOpen && <SavedDialog saved={saved} onClose={() => setSavedOpen(false)} onOpen={openSaved} />}

@@ -4,7 +4,7 @@ import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 import { X, Eye, Footprints, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { Arena3D } from "./Arena3D";
-import { Obstacle3D } from "./Obstacle3D";
+import { Obstacle3D } from "./Obstacle3DPolished";
 import { PathLine3D } from "./PathLine3D";
 import { WalkControls } from "./WalkControls";
 import { map2DTo3D } from "./coordinateMapping";

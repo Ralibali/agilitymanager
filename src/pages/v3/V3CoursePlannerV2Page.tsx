@@ -50,6 +50,10 @@ interface ObstacleV2 {
   y: number;
   rotation: number;
   number?: number;
+  /** Tunnel-böjning 0–90° (0 = rak). Endast meningsfullt för tunneltyper. */
+  curveDeg?: number;
+  /** Vilken sida tunneln böjer åt. Default "right". */
+  curveSide?: "left" | "right";
 }
 
 interface CourseV2 {

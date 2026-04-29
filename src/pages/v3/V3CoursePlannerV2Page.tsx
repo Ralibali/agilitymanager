@@ -135,6 +135,23 @@ export default function V3CoursePlannerV2Page() {
     return () => clearTimeout(t);
   }, [course]);
 
+  // Kortkommandon
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      const meta = e.ctrlKey || e.metaKey;
+      if (meta && e.key.toLowerCase() === "z" && !e.shiftKey) { e.preventDefault(); undo(); return; }
+      if (meta && (e.key.toLowerCase() === "y" || (e.key.toLowerCase() === "z" && e.shiftKey))) { e.preventDefault(); redo(); return; }
+      if (meta && e.key.toLowerCase() === "d" && selectedId) { e.preventDefault(); duplicateObstacle(selectedId); return; }
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedId) { e.preventDefault(); deleteObstacle(selectedId); return; }
+      if (e.key.toLowerCase() === "r" && selectedId) { e.preventDefault(); rotateObstacle(selectedId, e.shiftKey ? -15 : 15); return; }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId, undo, redo]);
+
   // Validering + tider — räknas live
   const issues = useMemo(() => validateCourse(course), [course]);
   const issueSummary = useMemo(() => summarizeIssues(issues), [issues]);

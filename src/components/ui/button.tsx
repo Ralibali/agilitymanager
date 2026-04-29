@@ -20,6 +20,11 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:-translate-y-px motion-reduce:hover:translate-y-0",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // === Brand foundation (opt-in via variant="brand" / "brand-outline") ===
+        brand:
+          "bg-forest text-bone hover:bg-forest-soft rounded-pill-full px-5 py-2.5 text-sm font-medium",
+        "brand-outline":
+          "border border-forest text-forest bg-transparent hover:bg-forest hover:text-bone rounded-pill-full px-5 py-2.5 text-sm font-medium",
       },
       size: {
         default: "h-10 px-4 py-2",

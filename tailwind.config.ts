@@ -21,6 +21,14 @@ export default {
         "v3-sans": ["'Epilogue'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
         "v3-display": ["'Urbanist'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
         "v3-mono": ["'JetBrains Mono'", "ui-monospace", "monospace"],
+        // === Brand foundation (laddas men aktiveras explicit) ===
+        // OBS: Vi skriver INTE över `display`/`sans`/`serif` med Geist/Inter Variable/
+        // Instrument Serif eftersom det skulle ändra utseendet globalt direkt. Använd
+        // `font-brand-display`, `font-brand-sans`, `font-brand-serif` när komponenter
+        // ska opt:a in i nya brandet.
+        "brand-display": ["Geist", "system-ui", "sans-serif"],
+        "brand-sans": ["'Inter Variable'", "Inter", "system-ui", "sans-serif"],
+        "brand-serif": ["'Instrument Serif'", "Georgia", "serif"],
       },
       fontSize: {
         base: ["14px", "1.5"],
@@ -167,12 +175,26 @@ export default {
           error: "hsl(var(--v3-error))",
           info: "hsl(var(--v3-info))",
         },
+        // === Brand foundation (rena hex-tokens, additivt) ===
+        bone: "#F5F1E8",
+        "bone-2": "#ECE7DA",
+        cream: "#FAF6EE",
+        forest: "#0E1F18",
+        "forest-soft": "#1F3329",
+        moss: "#B8C9B2",
+        "moss-deep": "#2C4135",
+        lime: "#B5F94A",
+        coral: "#E76F51",
+        stone: "#6B6B5F",
       },
       borderRadius: {
         lg: "var(--radius-card)",
         md: "var(--radius-button)",
         sm: "var(--radius-sm)",
         pill: "var(--radius-pill)",
+        // Brand foundation: full pill (9999px). Befintlig `pill` (≈40px) lämnas orörd
+        // för att inte ändra utseendet på befintliga komponenter.
+        "pill-full": "9999px",
         "ds-sm": "var(--r-sm)",
         "ds-md": "var(--r-md)",
         "ds-lg": "var(--r-lg)",

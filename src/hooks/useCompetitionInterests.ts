@@ -53,10 +53,8 @@ export function useCompetitionInterests(): UseCompetitionInterestsResult {
   /** Synka eventuella lokala gästmarkeringar in i kontot vid inloggning. */
   const mergeGuestIntoAccount = useCallback(async (userId: string) => {
     if (!getGuestInterestsSyncEnabled()) return;
-    // 'done' lagras inte i DB pga CHECK-constraint på (interested|registered) — filtrera bort.
-    const items = readGuestInterestItems().filter(
-      (it) => it.status === 'interested' || it.status === 'registered',
-    );
+    // Alla statusar (interested, registered, done) synkas nu — DB tillåter alla tre.
+    const items = readGuestInterestItems();
     if (items.length === 0) {
       clearGuestInterestItems();
       return;

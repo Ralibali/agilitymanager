@@ -108,6 +108,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
         dogId,
         sport,
         fileName: file.name,
+        privacyMode,
       }));
       // Redirect to Stripe payment
       setIsSubmitting(true);
@@ -144,6 +145,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
           question: question.trim(),
           sport,
           status: 'pending',
+          privacy_mode: privacyMode,
         } as any);
       if (insertError) throw insertError;
 

@@ -18,6 +18,8 @@ export type Planner3DObstacle = {
   number?: number;
   color?: string;
   label?: string;
+  curveDeg?: number;
+  curveSide?: "left" | "right";
 };
 export type Planner3DPath = { id: string; points: { x: number; y: number }[]; color?: string };
 export type CoursePlanner3DProps = {
@@ -30,6 +32,9 @@ export type CoursePlanner3DProps = {
   onClose: () => void;
 };
 
+type TunnelCurve = { curveDeg: number; curveSide: "left" | "right" };
+const TUNNEL_CURVE_KEY = "am_v3_course_planner_tunnel_curves";
+
 function detectWebGL(): boolean {
   try {
     const c = document.createElement("canvas");
@@ -38,7 +43,16 @@ function detectWebGL(): boolean {
     return false;
   }
 }
-
+function loadTunnelCurves(): Record<string, TunnelCurve> {
+  try {
+    return JSON.parse(window.localStorage.getItem(TUNNEL_CURVE_KEY) ?? "{}") as Record<string, TunnelCurve>;
+  } catch {
+    return {};
+  }
+}
+function isTunnel(type?: string) {
+  return type === "tunnel" || type === "hoopers_tunnel";
+}
 function CameraTeleport({ pos, lookAt, version }: { pos: [number, number, number]; lookAt: [number, number, number]; version: number }) {
   const { camera } = useThree();
   useEffect(() => {
@@ -47,7 +61,6 @@ function CameraTeleport({ pos, lookAt, version }: { pos: [number, number, number
   }, [camera, lookAt, pos, version]);
   return null;
 }
-
 function obstacleDistanceMeters(a?: Planner3DObstacle, b?: Planner3DObstacle, widthMeters?: number, heightMeters?: number) {
   if (!a || !b || !widthMeters || !heightMeters) return null;
   const pa = map2DTo3D(a.x, a.y, widthMeters, heightMeters);
@@ -71,6 +84,32 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
   const [knob, setKnob] = useState({ x: 0, y: 0 });
   const [sprinting, setSprinting] = useState(false);
   const [showHint, setShowHint] = useState(true);
+  const [curveOverrides, setCurveOverrides] = useState<Record<string, TunnelCurve>>(() => loadTunnelCurves());
+  const [selectedTunnelId, setSelectedTunnelId] = useState<string | null>(null);
+
+  const selectedTunnel = useMemo(() => obstacles.find((o) => o.id === selectedTunnelId && isTunnel(o.type)) ?? null, [obstacles, selectedTunnelId]);
+  const selectedTunnelCurve = selectedTunnel ? (curveOverrides[selectedTunnel.id] ?? { curveDeg: selectedTunnel.curveDeg ?? 0, curveSide: selectedTunnel.curveSide ?? "left" }) : null;
+
+  useEffect(() => {
+    try { window.localStorage.setItem(TUNNEL_CURVE_KEY, JSON.stringify(curveOverrides)); } catch { /* ignore */ }
+  }, [curveOverrides]);
+  useEffect(() => {
+    if (selectedTunnelId && !obstacles.some((o) => o.id === selectedTunnelId)) setSelectedTunnelId(null);
+  }, [obstacles, selectedTunnelId]);
+
+  const updateTunnelCurve = (patch: Partial<TunnelCurve>) => {
+    if (!selectedTunnel) return;
+    setCurveOverrides((prev) => {
+      const current = prev[selectedTunnel.id] ?? { curveDeg: selectedTunnel.curveDeg ?? 0, curveSide: selectedTunnel.curveSide ?? "left" };
+      return {
+        ...prev,
+        [selectedTunnel.id]: {
+          curveDeg: Math.max(0, Math.min(90, patch.curveDeg ?? current.curveDeg)),
+          curveSide: patch.curveSide ?? current.curveSide,
+        },
+      };
+    });
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -87,21 +126,10 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
     const prevOverscroll = document.body.style.overscrollBehavior;
     document.body.style.overflow = "hidden";
     document.body.style.overscrollBehavior = "none";
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      document.body.style.overscrollBehavior = prevOverscroll;
-    };
+    return () => { document.body.style.overflow = prevOverflow; document.body.style.overscrollBehavior = prevOverscroll; };
   }, []);
-
-  useEffect(() => {
-    if (mode === "walk") setTeleportV((v) => v + 1);
-  }, [mode, currentIdx]);
-
-  useEffect(() => {
-    if (!showHint) return;
-    const t = window.setTimeout(() => setShowHint(false), 3200);
-    return () => window.clearTimeout(t);
-  }, [showHint]);
+  useEffect(() => { if (mode === "walk") setTeleportV((v) => v + 1); }, [mode, currentIdx]);
+  useEffect(() => { if (!showHint) return; const t = window.setTimeout(() => setShowHint(false), 3200); return () => window.clearTimeout(t); }, [showHint]);
 
   const walkPose = useMemo(() => {
     if (!numbered.length) return { pos: [0, 1.65, 0] as [number, number, number], target: [0, 1.65, -1] as [number, number, number] };
@@ -121,15 +149,8 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
 
   const sceneObstacles = obstacles.map((o) => ({ ...o, ...map2DTo3D(o.x, o.y, widthMeters, heightMeters) }));
   const maxDim = Math.max(widthMeters, heightMeters);
-  const overviewCamera = isMobile
-    ? ([widthMeters * 0.42, maxDim * 0.42, heightMeters * 0.74] as [number, number, number])
-    : ([widthMeters * 0.5, maxDim * 0.46, heightMeters * 0.68] as [number, number, number]);
-
-  const startWalk = () => {
-    setCurrentIdx(0);
-    setShowHint(true);
-    setMode("walk");
-  };
+  const overviewCamera = isMobile ? ([widthMeters * 0.42, maxDim * 0.42, heightMeters * 0.74] as [number, number, number]) : ([widthMeters * 0.5, maxDim * 0.46, heightMeters * 0.68] as [number, number, number]);
+  const startWalk = () => { setCurrentIdx(0); setShowHint(true); setMode("walk"); };
 
   return (
     <div className="fixed inset-0 z-[1100] bg-[#f6f2ea]" style={{ touchAction: "none" }}>
@@ -141,27 +162,22 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
         </div>
       </div>
 
-      {mode === "walk" && numbered.length === 0 && (
-        <div className="absolute left-1/2 top-[88px] z-40 w-[min(92vw,420px)] -translate-x-1/2 rounded-[24px] bg-white/92 border border-black/10 shadow-2xl backdrop-blur-xl p-4 text-center">
-          <div className="text-[11px] uppercase tracking-[0.12em] font-semibold text-v3-text-tertiary mb-1">Gå banan</div>
-          <div className="text-lg font-semibold text-v3-text-primary">Numrera hindren i 2D först</div>
-          <p className="mt-1 text-sm text-v3-text-secondary">För att kunna gå banan i rätt ordning behöver hindren ha nummer.</p>
-          <button onClick={onClose} className="mt-3 h-10 px-4 rounded-full bg-v3-text-primary text-white text-sm font-semibold">Tillbaka till 2D</button>
-        </div>
-      )}
+      {mode === "walk" && numbered.length === 0 && <div className="absolute left-1/2 top-[88px] z-40 w-[min(92vw,420px)] -translate-x-1/2 rounded-[24px] bg-white/92 border border-black/10 shadow-2xl backdrop-blur-xl p-4 text-center"><div className="text-[11px] uppercase tracking-[0.12em] font-semibold text-v3-text-tertiary mb-1">Gå banan</div><div className="text-lg font-semibold text-v3-text-primary">Numrera hindren i 2D först</div><p className="mt-1 text-sm text-v3-text-secondary">För att kunna gå banan i rätt ordning behöver hindren ha nummer.</p><button onClick={onClose} className="mt-3 h-10 px-4 rounded-full bg-v3-text-primary text-white text-sm font-semibold">Tillbaka till 2D</button></div>}
+      {mode === "walk" && numbered.length > 0 && <div className="absolute top-[72px] left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-[18px] bg-black/58 backdrop-blur text-white text-xs sm:text-sm font-semibold max-w-[92vw] text-center shadow-lg"><div>Hinder {currentObstacle?.number}: {currentObstacle?.label ?? currentObstacle?.type}</div>{nextObstacle ? <div className="opacity-75 text-[11px] mt-0.5">Nästa: {nextObstacle.number} {nextObstacle.label ?? nextObstacle.type}{distanceToNext != null ? ` · ca ${distanceToNext} m` : ""}</div> : <div className="opacity-75 text-[11px] mt-0.5">Sista hindret</div>}</div>}
+      {mode === "walk" && numbered.length > 1 && <div className="absolute right-3 top-[126px] z-30 flex flex-col gap-2"><button onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))} className="h-11 w-11 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg"><ChevronLeft size={20} /></button><button onClick={() => setCurrentIdx((i) => Math.min(numbered.length - 1, i + 1))} className="h-11 w-11 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg"><ChevronRight size={20} /></button><button onClick={() => setCurrentIdx(0)} className="h-11 w-11 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg"><RotateCcw size={17} /></button></div>}
 
-      {mode === "walk" && numbered.length > 0 && (
-        <div className="absolute top-[72px] left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-[18px] bg-black/58 backdrop-blur text-white text-xs sm:text-sm font-semibold max-w-[92vw] text-center shadow-lg">
-          <div>Hinder {currentObstacle?.number}: {currentObstacle?.label ?? currentObstacle?.type}</div>
-          {nextObstacle ? <div className="opacity-75 text-[11px] mt-0.5">Nästa: {nextObstacle.number} {nextObstacle.label ?? nextObstacle.type}{distanceToNext != null ? ` · ca ${distanceToNext} m` : ""}</div> : <div className="opacity-75 text-[11px] mt-0.5">Sista hindret</div>}
-        </div>
-      )}
-
-      {mode === "walk" && numbered.length > 1 && (
-        <div className="absolute right-3 top-[126px] z-30 flex flex-col gap-2">
-          <button onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))} className="h-11 w-11 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg"><ChevronLeft size={20} /></button>
-          <button onClick={() => setCurrentIdx((i) => Math.min(numbered.length - 1, i + 1))} className="h-11 w-11 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg"><ChevronRight size={20} /></button>
-          <button onClick={() => setCurrentIdx(0)} className="h-11 w-11 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg"><RotateCcw size={17} /></button>
+      {selectedTunnel && selectedTunnelCurve && (
+        <div className="absolute left-3 right-3 bottom-[max(3.2rem,calc(env(safe-area-inset-bottom)+3.2rem))] sm:left-auto sm:right-4 sm:bottom-4 sm:w-[340px] z-40 rounded-[24px] bg-white/92 border border-black/10 shadow-2xl backdrop-blur-xl p-4 text-v3-text-primary" style={{ touchAction: "auto" }}>
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div><div className="text-xs uppercase tracking-[0.12em] font-bold text-v3-text-tertiary">Tunnel</div><div className="text-base font-semibold">Böjning {selectedTunnelCurve.curveDeg}°</div></div>
+            <button onClick={() => setSelectedTunnelId(null)} className="h-8 w-8 rounded-full bg-black/5 grid place-items-center"><X size={15} /></button>
+          </div>
+          <input type="range" min={0} max={90} step={5} value={selectedTunnelCurve.curveDeg} onChange={(e) => updateTunnelCurve({ curveDeg: Number(e.target.value) })} className="w-full accent-[#173d2c]" />
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button onClick={() => updateTunnelCurve({ curveSide: "left" })} className={`h-10 rounded-full text-sm font-semibold ${selectedTunnelCurve.curveSide === "left" ? "bg-[#173d2c] text-white" : "bg-black/5 text-v3-text-secondary"}`}>Böj vänster</button>
+            <button onClick={() => updateTunnelCurve({ curveSide: "right" })} className={`h-10 rounded-full text-sm font-semibold ${selectedTunnelCurve.curveSide === "right" ? "bg-[#173d2c] text-white" : "bg-black/5 text-v3-text-secondary"}`}>Böj höger</button>
+          </div>
+          <p className="mt-2 text-xs text-v3-text-secondary">Klicka på en tunnel i 3D för att välja den. 0° är rak tunnel, 90° är maxböj.</p>
         </div>
       )}
 
@@ -172,14 +188,15 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
           <Arena3D widthMeters={widthMeters} heightMeters={heightMeters} />
           {sceneObstacles.map((o) => {
             const numIdx = numbered.findIndex((n) => n.id === o.id);
-            return <Obstacle3D key={o.id} type={o.type} x={o.x} z={o.z} rotationDeg={o.rotation} number={o.number} color={o.color} onSelect={numIdx >= 0 ? () => { setCurrentIdx(numIdx); setMode("walk"); } : undefined} highlight={mode === "walk" && numIdx >= 0 && numIdx === currentIdx} />;
+            const curve = curveOverrides[o.id] ?? { curveDeg: o.curveDeg ?? 0, curveSide: o.curveSide ?? "left" };
+            return <Obstacle3D key={o.id} type={o.type} x={o.x} z={o.z} rotationDeg={o.rotation} number={o.number} color={o.color} curveDeg={curve.curveDeg} curveSide={curve.curveSide} onSelect={() => { if (isTunnel(o.type)) setSelectedTunnelId(o.id); if (numIdx >= 0) { setCurrentIdx(numIdx); if (mode === "walk") setTeleportV((v) => v + 1); } }} highlight={mode === "walk" && numIdx >= 0 && numIdx === currentIdx} />;
           })}
           <PathLine3D paths={paths} widthMeters={widthMeters} heightMeters={heightMeters} />
           {mode === "view" ? <OrbitControls enablePan enableRotate enableZoom minDistance={3} maxDistance={Math.max(widthMeters, heightMeters) * 1.75} maxPolarAngle={Math.PI / 2 - 0.08} target={[0, 0.65, 0]} makeDefault /> : <><CameraTeleport pos={walkPose.pos} lookAt={walkPose.target} version={teleportV} /><WalkControls joystickRef={joystickRef} lookDeltaRef={lookDeltaRef} sprintRef={sprintRef} isMobile={isMobile} bounds={{ w: widthMeters, h: heightMeters }} /></>}
         </Suspense>
       </Canvas>
 
-      {mode === "view" && <div className="absolute bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-20 text-black/70 text-[11px] sm:text-xs bg-white/80 border border-black/8 shadow-lg backdrop-blur px-3 py-1.5 rounded-full text-center max-w-[92vw]">Dra för att rotera · Nyp/scrolla för att zooma</div>}
+      {mode === "view" && <div className="absolute bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-20 text-black/70 text-[11px] sm:text-xs bg-white/80 border border-black/8 shadow-lg backdrop-blur px-3 py-1.5 rounded-full text-center max-w-[92vw]">Dra för att rotera · Nyp/scrolla för att zooma · Klicka på en tunnel för att böja den</div>}
       {mode === "walk" && isMobile && numbered.length > 0 && <MobileWalkControls joystickRef={joystickRef} lookDeltaRef={lookDeltaRef} sprintRef={sprintRef} knob={knob} setKnob={setKnob} sprinting={sprinting} setSprinting={setSprinting} showHint={showHint} setShowHint={setShowHint} />}
       {mode === "walk" && !isMobile && numbered.length > 0 && <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 text-white/80 text-xs bg-black/50 px-3 py-1.5 rounded-full">WASD = gå · Shift = spring · ←/→ = hinder · Esc = lämna</div>}
     </div>

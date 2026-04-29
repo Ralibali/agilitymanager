@@ -490,6 +490,13 @@ function RightPanelContent({ selected, toolMode, setToolMode, setGuide, moveSele
     </section>
     <section className="space-y-2">
       <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-v3-text-tertiary">Banstorlek & PDF</div>
+      <input
+        type="text"
+        value={course.location ?? ""}
+        onChange={(e) => updateCourse(prev => ({ ...prev, location: e.target.value }))}
+        placeholder="Plats (t.ex. SHK Stockholm)"
+        className="w-full h-11 rounded-v3-base border border-v3-canvas-sunken bg-v3-canvas px-3 text-v3-sm placeholder:text-v3-text-tertiary"
+      />
       <select value={`${course.width}x${course.height}`} onChange={(e) => { const s = SIZES.find(item => `${item.width}x${item.height}` === e.target.value); if (s) updateCourse(prev => ({ ...prev, width: s.width, height: s.height })); }} className="w-full h-11 rounded-v3-base border border-v3-canvas-sunken bg-v3-canvas px-3 text-v3-sm">{SIZES.map(s => <option key={s.label} value={`${s.width}x${s.height}`}>{s.label}</option>)}</select>
       <div className="grid grid-cols-2 gap-2">
         <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={exportJson}><Download size={14} /> JSON</button>

@@ -421,6 +421,33 @@ function VideoPicker({
       </div>
 
       <div className="space-y-2">
+        <Label className="text-[13px] font-medium flex items-center gap-1.5">
+          <Lock size={13} className="text-forest" /> Sekretess
+        </Label>
+        <div className="grid grid-cols-1 gap-2">
+          {([
+            { id: "private" as const, title: "Endast jag och coachen", sub: "Videon visas aldrig för andra användare." },
+            { id: "private_no_export" as const, title: "Endast jag, exportera ej", sub: "Coachen kan inte ladda ner eller dela videon." },
+          ]).map((opt) => {
+            const checked = privacyMode === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setPrivacyMode(opt.id)}
+                className={`text-left rounded-2xl border p-3 transition ${
+                  checked ? "border-forest bg-forest/[0.04] ring-1 ring-forest/30" : "border-stone/15 bg-white hover:bg-cream/60"
+                }`}
+              >
+                <div className="text-[13px] font-medium text-text-primary">{opt.title}</div>
+                <div className="text-[11px] text-stone mt-0.5">{opt.sub}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="coach-question" className="text-[13px] font-medium">Vad vill du ha feedback på?</Label>
         <Textarea
           id="coach-question"

@@ -17,7 +17,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
-  OBSTACLES_V2, SIZE_CLASSES, CLASS_TEMPLATES, ARENA_PRESETS,
+  OBSTACLES_V2, SIZE_CLASSES, CLASS_TEMPLATES, getArenaPresetsBySport,
   getObstacleDefV2, getTemplatesBySport,
   type Sport, type SizeClassKey, type ObstacleTypeV2, type ClassTemplateKey, type ObstacleDefV2,
 } from "@/features/course-planner-v2/config";

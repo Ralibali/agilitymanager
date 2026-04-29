@@ -334,7 +334,7 @@ function PackPicker({ pack, onChange }: { pack: CoachPackId; onChange: (p: Coach
 }
 
 function VideoPicker({
-  file, previewUrl, onPick, onClear, onDrop, inputRef, onChange, question, setQuestion, sport, setSport,
+  file, previewUrl, onPick, onClear, onDrop, inputRef, onChange, question, setQuestion, sport, setSport, privacyMode, setPrivacyMode,
 }: {
   file: File | null;
   previewUrl: string | null;
@@ -347,6 +347,8 @@ function VideoPicker({
   setQuestion: (v: string) => void;
   sport: Sport;
   setSport: (s: Sport) => void;
+  privacyMode: PrivacyMode;
+  setPrivacyMode: (p: PrivacyMode) => void;
 }) {
   return (
     <div className="space-y-4">

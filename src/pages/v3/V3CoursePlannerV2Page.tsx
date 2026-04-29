@@ -1273,26 +1273,35 @@ function SelectedPanel({
           </div>
           <input
             type="range" min={0} max={90} step={5} value={curveDeg}
+            disabled={locked}
             onChange={(e) => onTunnelCurve({ curveDeg: Number(e.target.value) })}
-            className="w-full accent-[#1a6b3c]"
+            className="w-full accent-[#1a6b3c] disabled:opacity-50"
           />
           <div className="grid grid-cols-2 gap-1.5">
             <button
               onClick={() => onTunnelCurve({ curveSide: "left" })}
-              className={cn("h-8 rounded-lg text-[11px] font-semibold border", curveSide === "left" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/10")}
+              disabled={locked}
+              className={cn("h-8 rounded-lg text-[11px] font-semibold border disabled:opacity-40", curveSide === "left" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/10")}
             >Vänster</button>
             <button
               onClick={() => onTunnelCurve({ curveSide: "right" })}
-              className={cn("h-8 rounded-lg text-[11px] font-semibold border", curveSide === "right" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/10")}
+              disabled={locked}
+              className={cn("h-8 rounded-lg text-[11px] font-semibold border disabled:opacity-40", curveSide === "right" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/10")}
             >Höger</button>
           </div>
           <button
             onClick={() => onTunnelCurve({ curveDeg: 0 })}
-            className="w-full h-8 rounded-lg text-[11px] font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+            disabled={locked}
+            className="w-full h-8 rounded-lg text-[11px] font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200 disabled:opacity-40"
           >Återställ till rak</button>
         </div>
       )}
-      <button onClick={onDelete} className="mt-3 w-full h-9 rounded-lg bg-red-50 text-red-700 border border-red-200 text-[12px] font-semibold inline-flex items-center justify-center gap-1.5">
+      <button
+        onClick={onDelete}
+        disabled={locked}
+        title={locked ? "Lås upp först för att ta bort" : "Ta bort hinder"}
+        className="mt-3 w-full h-9 rounded-lg bg-red-50 text-red-700 border border-red-200 text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+      >
         <Trash2 size={13} /> Ta bort hinder
       </button>
     </section>

@@ -198,6 +198,27 @@ export default function V3CoursePlannerPageFixed() {
   const moveSelected = (dx: number, dy: number) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, x: clamp(o.x + dx, 0, 100), y: clamp(o.y + dy, 0, 100) } : o));
   const recolorSelected = (nextColor: string) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, color: nextColor } : o));
   const renumberSelected = () => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, number: nextNumber } : o));
+  const autoRenumberAll = () => {
+    updateCourse(prev => {
+      const skip = new Set<ObstacleType>(["start", "finish", "handler_zone"]);
+      const numerable = prev.obstacles
+        .filter(o => !skip.has(o.type))
+        .map((o, idx) => ({ o, idx, key: o.y * 1000 + o.x }))
+        .sort((a, b) => a.key - b.key);
+      const orderMap = new Map<string, number>();
+      numerable.forEach((entry, i) => orderMap.set(entry.o.id, i + 1));
+      const obstacles = prev.obstacles.map(o => skip.has(o.type) ? { ...o, number: undefined } : { ...o, number: orderMap.get(o.id) });
+      const offset = numerable.length;
+      const sortedNumbers = [...prev.numbers]
+        .map((n, idx) => ({ n, idx, key: n.y * 1000 + n.x }))
+        .sort((a, b) => a.key - b.key);
+      const numberMap = new Map<string, number>();
+      sortedNumbers.forEach((entry, i) => numberMap.set(entry.n.id, offset + i + 1));
+      const numbers = prev.numbers.map(n => ({ ...n, num: numberMap.get(n.id) ?? n.num }));
+      return { ...prev, obstacles, numbers };
+    });
+    toast.success("Numrering återställd");
+  };
   const eraseNear = (x: number, y: number) => {
     const p = { x, y };
     const hit = course.obstacles.find(o => distance(p, o) < 4.5);

@@ -116,25 +116,21 @@ export function LandingNav() {
           )}
         </nav>
 
-        {/* Desktop CTAs – tap-scale + sub-hover lift */}
+        {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-2">
-          <motion.button
-            whileTap={{ scale: 0.96 }}
-            transition={{ duration: M.duration.fast, ease: M.ease.smooth }}
+          <button
             onClick={() => goAuth("login", "nav_login_click")}
-            className="h-9 px-3 text-[13px] text-text-secondary hover:text-text-primary transition-colors"
+            className="h-9 px-3 text-[13px] text-stone hover:text-forest transition-colors"
           >
             Logga in
-          </motion.button>
-          <motion.button
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.96 }}
-            transition={{ duration: M.duration.fast, ease: M.ease.smooth }}
+          </button>
+          <Button
+            variant="brand"
             onClick={() => goAuth("signup", "nav_cta_click")}
-            className="h-9 px-4 text-[13px] rounded-ds-md bg-brand-600 text-white hover:bg-brand-900 transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_-2px_rgba(26,107,60,0.35)]"
+            className="h-9"
           >
             Kom igång gratis
-          </motion.button>
+          </Button>
         </div>
 
         {/* Mobile toggle – ≥44px target */}

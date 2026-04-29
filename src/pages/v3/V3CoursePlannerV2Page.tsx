@@ -923,7 +923,7 @@ function ObstacleSvg({ obstacle, selected, hasIssue, onPointerDown }: {
   );
 }
 
-function ObstacleShape({ def, selected }: { def: ObstacleDefV2; selected: boolean }) {
+function ObstacleShape({ def, selected, obstacle }: { def: ObstacleDefV2; selected: boolean; obstacle?: ObstacleV2 }) {
   const { w, d } = def.sizeM;
   const stroke = selected ? "#1a6b3c" : "#173d2c";
   const sw = 0.06;
@@ -947,8 +947,30 @@ function ObstacleShape({ def, selected }: { def: ObstacleDefV2; selected: boolea
         <circle r={Math.min(w, d) / 2} fill="none" stroke={stroke} strokeWidth={sw * 2} />
         <circle r={Math.min(w, d) / 2 - 0.15} fill="#fff" stroke={stroke} strokeWidth={sw} />
       </g>;
-    case "tunnel":
-      return <rect x={-w / 2} y={-d / 2} width={w} height={d} rx={d / 2} ry={d / 2} fill="#cfe2f3" stroke={stroke} strokeWidth={sw} />;
+    case "tunnel": {
+      const curveDeg = Math.max(0, Math.min(90, obstacle?.curveDeg ?? 0));
+      if (curveDeg < 1) {
+        return <rect x={-w / 2} y={-d / 2} width={w} height={d} rx={d / 2} ry={d / 2} fill="#cfe2f3" stroke={stroke} strokeWidth={sw} />;
+      }
+      // Böjd tunnel: rita en bezier-kurva mellan ändarna med kontrollpunkt offset åt curveSide.
+      // Tunneln går längs w-axeln (x: -w/2 → w/2). Sidan är längs y.
+      const side = (obstacle?.curveSide ?? "right") === "right" ? 1 : -1;
+      const r = d / 2;
+      const offset = Math.tan((curveDeg * Math.PI / 180) / 2) * (w / 2);
+      const x0 = -w / 2, x1 = w / 2;
+      const cx = 0, cy = side * offset;
+      // Två parallella bezier-kurvor (tubens kanter) + fyllnad mellan.
+      const top = `M ${x0} ${-r} Q ${cx} ${cy - r} ${x1} ${-r}`;
+      const bot = `M ${x0} ${r} Q ${cx} ${cy + r} ${x1} ${r}`;
+      const fill = `M ${x0} ${-r} Q ${cx} ${cy - r} ${x1} ${-r} L ${x1} ${r} Q ${cx} ${cy + r} ${x0} ${r} Z`;
+      return <g>
+        <path d={fill} fill="#cfe2f3" stroke="none" />
+        <path d={top} fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" />
+        <path d={bot} fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" />
+        <circle cx={x0} cy={0} r={r} fill="none" stroke={stroke} strokeWidth={sw * 0.6} opacity={0.4} />
+        <circle cx={x1} cy={0} r={r} fill="none" stroke={stroke} strokeWidth={sw * 0.6} opacity={0.4} />
+      </g>;
+    }
     case "weave_8":
     case "weave_10":
     case "weave_12": {

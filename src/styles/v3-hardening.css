@@ -20,77 +20,26 @@
   box-shadow: 0 1px 2px rgba(26, 29, 27, 0.035);
   transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, opacity 160ms ease;
 }
+.mobile-tool-btn:hover:not(:disabled) { transform: translateY(-1px); background: hsl(var(--v3-canvas)); box-shadow: 0 6px 18px rgba(26, 29, 27, 0.055); }
+.mobile-tool-btn:active:not(:disabled) { transform: translateY(0) scale(0.985); }
+.mobile-tool-btn:disabled { opacity: 0.42; cursor: not-allowed; box-shadow: none; }
+.mobile-tool-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px hsl(var(--v3-canvas)), 0 0 0 4px hsl(var(--v3-brand-500)); }
 
-.mobile-tool-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  background: hsl(var(--v3-canvas));
-  box-shadow: 0 6px 18px rgba(26, 29, 27, 0.055);
-}
-
-.mobile-tool-btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.985);
-}
-
-.mobile-tool-btn:disabled {
-  opacity: 0.42;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.mobile-tool-btn:focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 2px hsl(var(--v3-canvas)),
-    0 0 0 4px hsl(var(--v3-brand-500));
-}
-
-@media (min-width: 1280px) {
-  main > div[class*="max-w-[1380px]"] {
-    max-width: min(1480px, calc(100vw - 112px));
-  }
-}
-
-@media (min-width: 1536px) {
-  main > div[class*="2xl:max-w-[1540px]"] {
-    max-width: min(1580px, calc(100vw - 144px));
-  }
-}
+@media (min-width: 1280px) { main > div[class*="max-w-[1380px]"] { max-width: min(1480px, calc(100vw - 112px)); } }
+@media (min-width: 1536px) { main > div[class*="2xl:max-w-[1540px]"] { max-width: min(1580px, calc(100vw - 144px)); } }
 
 main .rounded-v3-2xl.bg-v3-canvas-elevated,
-main .rounded-v3-xl.bg-v3-canvas-elevated {
-  border-color: hsl(var(--v3-canvas-sunken) / 0.68);
-}
-
-main input,
-main select,
-main textarea,
-button {
-  -webkit-tap-highlight-color: transparent;
-}
+main .rounded-v3-xl.bg-v3-canvas-elevated { border-color: hsl(var(--v3-canvas-sunken) / 0.68); }
+main input, main select, main textarea, button { -webkit-tap-highlight-color: transparent; }
 
 /* === Full banplanerare, v3-design utan att ta bort gamla funktioner === */
 .v3-course-planner-shell {
   --planner-topbar-height: 72px;
-  background:
-    radial-gradient(circle at 18% 0%, hsl(var(--v3-brand-500) / 0.07), transparent 26%),
-    hsl(var(--v3-canvas));
+  background: radial-gradient(circle at 18% 0%, hsl(var(--v3-brand-500) / 0.07), transparent 26%), hsl(var(--v3-canvas));
 }
-
-.v3-course-planner-topbar {
-  position: relative;
-  z-index: 45;
-}
-
-.v3-course-planner-frame {
-  position: relative;
-  padding: 0.75rem 0.75rem 1.25rem;
-}
-
-.v3-course-planner-frame > div {
-  max-width: min(1500px, calc(100vw - 24px));
-  margin-left: auto;
-  margin-right: auto;
-}
+.v3-course-planner-topbar { position: relative; z-index: 45; }
+.v3-course-planner-frame { position: relative; padding: 0.75rem 0.75rem 1.25rem; }
+.v3-course-planner-frame > div { max-width: min(1500px, calc(100vw - 24px)); margin-left: auto; margin-right: auto; }
 
 .v3-course-planner-control {
   min-height: 2.25rem;
@@ -108,24 +57,9 @@ button {
   box-shadow: 0 1px 2px rgba(26, 29, 27, 0.04);
   transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, color 160ms ease;
 }
-
-.v3-course-planner-control:hover {
-  transform: translateY(-1px);
-  background: hsl(var(--v3-canvas));
-  color: hsl(var(--v3-text-primary));
-  box-shadow: 0 8px 22px rgba(26, 29, 27, 0.06);
-}
-
-.v3-course-planner-control-primary {
-  background: hsl(var(--v3-text-primary));
-  border-color: hsl(var(--v3-text-primary));
-  color: hsl(var(--v3-text-inverse));
-}
-
-.v3-course-planner-control-primary:hover {
-  background: hsl(var(--v3-brand-600));
-  color: hsl(var(--v3-text-inverse));
-}
+.v3-course-planner-control:hover { transform: translateY(-1px); background: hsl(var(--v3-canvas)); color: hsl(var(--v3-text-primary)); box-shadow: 0 8px 22px rgba(26, 29, 27, 0.06); }
+.v3-course-planner-control-primary { background: hsl(var(--v3-text-primary)); border-color: hsl(var(--v3-text-primary)); color: hsl(var(--v3-text-inverse)); }
+.v3-course-planner-control-primary:hover { background: hsl(var(--v3-brand-600)); color: hsl(var(--v3-text-inverse)); }
 
 .v3-course-planner-tip {
   margin-top: 0.75rem;
@@ -142,54 +76,80 @@ button {
   line-height: 1.45;
   box-shadow: 0 8px 26px rgba(26, 29, 27, 0.045);
 }
+.v3-course-planner-tip strong { color: hsl(var(--v3-text-primary)); }
+.v3-course-planner-tip button { margin-left: auto; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 999px; color: hsl(var(--v3-text-tertiary)); }
+.v3-course-planner-tip button:hover { background: hsl(var(--v3-canvas-elevated) / 0.8); color: hsl(var(--v3-text-primary)); }
 
-.v3-course-planner-tip strong {
-  color: hsl(var(--v3-text-primary));
+/* V3-skin på fulla banplaneraren: gräsplan + ljus premium-UI, men samma DOM/funktioner. */
+.v3-course-planner-frame {
+  --planner-grass: #7bad5e;
+  --planner-grass-dark: #5f9745;
+  --planner-grass-line: rgba(255, 255, 255, 0.22);
+  --planner-panel: hsl(var(--v3-canvas-elevated));
+  --planner-panel-soft: hsl(var(--v3-canvas));
+  --planner-border: hsl(var(--v3-canvas-sunken) / 0.72);
+  --planner-text: hsl(var(--v3-text-primary));
+  --planner-muted: hsl(var(--v3-text-secondary));
 }
 
-.v3-course-planner-tip button {
-  margin-left: auto;
-  display: grid;
-  place-items: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 999px;
-  color: hsl(var(--v3-text-tertiary));
+/* Gör den mörka arbetsytan till gräsbakgrund. */
+.v3-course-planner-frame [class*="bg-slate-950"],
+.v3-course-planner-frame [class*="bg-slate-900"],
+.v3-course-planner-frame [class*="bg-zinc-950"],
+.v3-course-planner-frame [class*="bg-zinc-900"],
+.v3-course-planner-frame [class*="bg-gray-950"],
+.v3-course-planner-frame [class*="bg-gray-900"],
+.v3-course-planner-frame [class*="bg-neutral-950"],
+.v3-course-planner-frame [class*="bg-neutral-900"],
+.v3-course-planner-frame [class*="bg-[#0"],
+.v3-course-planner-frame [class*="bg-[#1"] {
+  background-color: var(--planner-panel) !important;
+  color: var(--planner-text) !important;
 }
 
-.v3-course-planner-tip button:hover {
-  background: hsl(var(--v3-canvas-elevated) / 0.8);
-  color: hsl(var(--v3-text-primary));
+/* Själva rit-/banområdet ska se ut som grönt gräs, inte vitt rutpapper. */
+.v3-course-planner-frame [class*="bg-white"][class*="overflow-hidden"],
+.v3-course-planner-frame [class*="bg-white"][class*="relative"],
+.v3-course-planner-frame [class*="bg-background"][class*="overflow-hidden"],
+.v3-course-planner-frame [class*="bg-background"][class*="relative"] {
+  background-color: var(--planner-grass) !important;
+  background-image:
+    radial-gradient(circle at 18px 18px, rgba(255,255,255,.10) 1px, transparent 1.8px),
+    linear-gradient(var(--planner-grass-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--planner-grass-line) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(255,255,255,.10), rgba(28,80,38,.16)) !important;
+  background-size: 20px 20px, 68px 68px, 68px 68px, 100% 100% !important;
+  border: 1px solid rgba(255,255,255,.32) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), 0 18px 44px rgba(40, 70, 40, 0.18) !important;
 }
 
-/* V3-skin på gamla banplaneraren: behåll DOM och funktioner, polera ytorna. */
-.v3-course-planner-frame :is(.bg-background, .bg-card, .bg-white) {
+/* Om banan renderas som SVG/canvas med vit bakgrund hjälper detta utan att röra funktionerna. */
+.v3-course-planner-frame svg,
+.v3-course-planner-frame canvas {
+  background-color: var(--planner-grass) !important;
+  border-radius: 0.5rem;
+}
+
+/* Paneler, toppbar, kort och kontroller i ljus v3-stil. */
+.v3-course-planner-frame :is(.bg-background, .bg-card, .bg-white) { background-color: var(--planner-panel) !important; color: var(--planner-text) !important; }
+.v3-course-planner-frame :is(.text-white, .text-slate-100, .text-slate-200, .text-gray-100, .text-gray-200) { color: var(--planner-text) !important; }
+.v3-course-planner-frame :is(.text-slate-300, .text-slate-400, .text-gray-300, .text-gray-400, .text-muted-foreground) { color: var(--planner-muted) !important; }
+.v3-course-planner-frame :is(.border, .border-border, .border-input, .border-slate-700, .border-slate-800, .border-gray-700, .border-gray-800) { border-color: var(--planner-border) !important; }
+.v3-course-planner-frame :is(.rounded-lg, .rounded-xl, .rounded-2xl) { border-radius: 1rem; }
+.v3-course-planner-frame button:not([data-radix-collection-item]) { border-radius: 0.875rem; }
+.v3-course-planner-frame :is(input, select, textarea, [role="combobox"]) { border-radius: 0.875rem !important; border-color: var(--planner-border) !important; background-color: var(--planner-panel-soft) !important; color: var(--planner-text) !important; }
+.v3-course-planner-frame :is(.shadow, .shadow-sm, .shadow-md, .shadow-lg) { box-shadow: 0 12px 30px rgba(26, 29, 27, 0.055) !important; }
+
+/* Hinderkort ska kännas som de gröna v3-korten, inte mörka panelkort. */
+.v3-course-planner-frame button[class*="border"]:not(.v3-course-planner-control) {
   background-color: hsl(var(--v3-canvas-elevated)) !important;
+  color: hsl(var(--v3-text-primary)) !important;
+}
+.v3-course-planner-frame button[class*="border"]:not(.v3-course-planner-control):hover {
+  background-color: hsl(var(--v3-brand-500) / 0.10) !important;
+  border-color: hsl(var(--v3-brand-500) / 0.32) !important;
 }
 
-.v3-course-planner-frame :is(.border, .border-border, .border-input) {
-  border-color: hsl(var(--v3-canvas-sunken) / 0.68) !important;
-}
-
-.v3-course-planner-frame :is(.rounded-lg, .rounded-xl, .rounded-2xl) {
-  border-radius: 1rem;
-}
-
-.v3-course-planner-frame button:not([data-radix-collection-item]) {
-  border-radius: 0.875rem;
-}
-
-.v3-course-planner-frame :is(input, select, textarea, [role="combobox"]) {
-  border-radius: 0.875rem !important;
-  border-color: hsl(var(--v3-canvas-sunken) / 0.72) !important;
-  background-color: hsl(var(--v3-canvas)) !important;
-}
-
-.v3-course-planner-frame :is(.shadow, .shadow-sm, .shadow-md, .shadow-lg) {
-  box-shadow: 0 12px 30px rgba(26, 29, 27, 0.055) !important;
-}
-
-/* Stäng vänster verktygs-/sidopanel i själva banplaneraren och ge planen mer plats. */
 @media (min-width: 1024px) {
   .v3-course-planner-sidebar-collapsed .v3-course-planner-frame aside:first-of-type,
   .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="w-64"]:first-child,
@@ -197,56 +157,24 @@ button {
   .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="w-80"]:first-child,
   .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="basis-64"]:first-child,
   .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="basis-72"]:first-child,
-  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="basis-80"]:first-child {
-    display: none !important;
-  }
-
-  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame > div {
-    max-width: min(1760px, calc(100vw - 32px));
-  }
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="basis-80"]:first-child { display: none !important; }
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame > div { max-width: min(1760px, calc(100vw - 32px)); }
 }
 
-/* Storbild: samma gamla komponent och alla funktioner, men maximal arbetsyta. */
 .v3-course-planner-fullscreen {
   position: fixed;
   inset: 0;
   z-index: 1000;
   min-height: 100dvh;
   overflow: auto;
-  background:
-    radial-gradient(circle at 18% 0%, hsl(var(--v3-brand-500) / 0.08), transparent 28%),
-    hsl(var(--v3-canvas));
+  background: radial-gradient(circle at 18% 0%, hsl(var(--v3-brand-500) / 0.08), transparent 28%), hsl(var(--v3-canvas));
 }
-
-.v3-course-planner-fullscreen .v3-course-planner-topbar {
-  position: sticky;
-  top: 0;
-  padding-bottom: 0.75rem;
-  background: hsl(var(--v3-canvas) / 0.92);
-  backdrop-filter: blur(18px);
-  border-bottom: 1px solid hsl(var(--v3-canvas-sunken) / 0.52);
-}
-
-.v3-course-planner-fullscreen .v3-course-planner-frame {
-  padding: 0.75rem;
-}
-
-.v3-course-planner-fullscreen .v3-course-planner-frame > div {
-  max-width: none;
-  width: 100%;
-}
-
-.v3-course-planner-fullscreen .v3-course-planner-frame :is(canvas, svg) {
-  max-width: none;
-}
+.v3-course-planner-fullscreen .v3-course-planner-topbar { position: sticky; top: 0; padding-bottom: 0.75rem; background: hsl(var(--v3-canvas) / 0.92); backdrop-filter: blur(18px); border-bottom: 1px solid hsl(var(--v3-canvas-sunken) / 0.52); }
+.v3-course-planner-fullscreen .v3-course-planner-frame { padding: 0.75rem; }
+.v3-course-planner-fullscreen .v3-course-planner-frame > div { max-width: none; width: 100%; }
+.v3-course-planner-fullscreen .v3-course-planner-frame :is(canvas, svg) { max-width: none; }
 
 @media (max-width: 767px) {
-  .v3-course-planner-frame {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-  }
-
-  .v3-course-planner-tip {
-    font-size: 0.75rem;
-  }
+  .v3-course-planner-frame { padding-left: 0.5rem; padding-right: 0.5rem; }
+  .v3-course-planner-tip { font-size: 0.75rem; }
 }

@@ -12,10 +12,12 @@
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
-import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, FileDown, AlertTriangle, AlertCircle, Info, CheckCircle2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, FileDown, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   OBSTACLES_V2, SIZE_CLASSES, CLASS_TEMPLATES, getArenaPresetsBySport,
   getObstacleDefV2, getTemplatesBySport,
@@ -23,6 +25,7 @@ import {
 } from "@/features/course-planner-v2/config";
 import { validateCourse, computeCourseTimes, summarizeIssues, type ValidationIssue } from "@/features/course-planner-v2/validation";
 import { exportJudgePdf } from "@/features/course-planner-v2/judgePdf";
+import ShareCourseDialog from "@/components/course-planner/ShareCourseDialog";
 
 const STORAGE_KEY = "am_course_planner_v2";
 

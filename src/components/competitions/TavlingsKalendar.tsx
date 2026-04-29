@@ -210,7 +210,7 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
       dogName,
       dogClass,
       sport: 'Agility',
-      region: comp?.region || (comp?.location ? getCountyForLocation(comp.location) : null),
+      region: comp?.location ? getCountyForLocation(comp.location) : null,
     });
   };
 

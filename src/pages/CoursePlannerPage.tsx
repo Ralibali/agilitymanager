@@ -2991,6 +2991,42 @@ export default function CoursePlannerPage() {
                 </button>
               </div>
 
+              {/* Always-on verktygsrad – synlig oavsett om ett hinder är markerat */}
+              <div className="shrink-0 px-2 py-2 border-b border-[hsl(221,20%,18%)] bg-[hsl(221,28%,9%)]">
+                <div className="grid grid-cols-3 gap-1">
+                  <button
+                    onClick={() => { setDrawingMode(!drawingMode); setNumberingMode(false); setMeasureMode(false); }}
+                    className={`h-10 flex flex-col items-center justify-center gap-0.5 rounded border transition-colors ${
+                      drawingMode ? 'bg-orange-500/15 border-orange-500/40 text-orange-400' : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)] hover:border-primary/40'
+                    }`}
+                    title="Rita förarlinje"
+                  >
+                    <Pencil size={13} />
+                    <span className="text-[9px]">Rita</span>
+                  </button>
+                  <button
+                    onClick={() => { setNumberingMode(!numberingMode); setDrawingMode(false); setMeasureMode(false); if (!numberingMode) { setNextNumberToAssign(1); setNumberingHistory([]); } }}
+                    className={`h-10 flex flex-col items-center justify-center gap-0.5 rounded border transition-colors ${
+                      numberingMode ? 'bg-blue-500/15 border-blue-500/40 text-blue-400' : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)] hover:border-primary/40'
+                    }`}
+                    title="Numrera hinder"
+                  >
+                    <Hash size={13} />
+                    <span className="text-[9px]">Numrera</span>
+                  </button>
+                  <button
+                    onClick={() => { setMeasureMode(!measureMode); setDrawingMode(false); setNumberingMode(false); setMeasurePoints([]); }}
+                    className={`h-10 flex flex-col items-center justify-center gap-0.5 rounded border transition-colors ${
+                      measureMode ? 'bg-yellow-500/15 border-yellow-500/40 text-yellow-400' : 'bg-[hsl(221,25%,14%)] border-[hsl(221,20%,22%)] hover:border-primary/40'
+                    }`}
+                    title="Mätverktyg"
+                  >
+                    <Ruler size={13} />
+                    <span className="text-[9px]">Mät</span>
+                  </button>
+                </div>
+              </div>
+
               <div className="flex-1 overflow-y-auto">
                 {selectedObs ? (
                   /* ── PROPERTIES PANEL ── */

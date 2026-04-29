@@ -277,6 +277,61 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
             </div>
           </div>
 
+          {/* Sekretessläge */}
+          <div>
+            <Label className="text-xs flex items-center gap-1.5">
+              <Lock size={11} className="text-muted-foreground" /> Sekretess för videon
+            </Label>
+            <div className="grid grid-cols-1 gap-1.5 mt-1">
+              {([
+                {
+                  id: 'private' as const,
+                  title: 'Privat',
+                  desc: 'Bara du och coachen ser videon. Lagras säkert i din profil.',
+                },
+                {
+                  id: 'private_no_export' as const,
+                  title: 'Privat – exportera ej',
+                  desc: 'Som ovan, men videon får aldrig användas i utbildning, marknadsföring eller exempel.',
+                },
+              ]).map((opt) => {
+                const checked = privacyMode === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setPrivacyMode(opt.id)}
+                    disabled={isSubmitting}
+                    className={`rounded-lg border p-2.5 text-left transition-all ${
+                      checked
+                        ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                        : 'border-border bg-secondary/20 hover:border-border/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 ${
+                          checked ? 'border-primary bg-primary' : 'border-muted-foreground/40'
+                        }`}
+                      />
+                      <span className="text-xs font-semibold text-foreground">{opt.title}</span>
+                      {opt.id === 'private_no_export' && (
+                        <Badge variant="secondary" className="text-[9px] h-4 ml-auto">
+                          Strikt
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground leading-tight mt-1 ml-5">{opt.desc}</p>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1.5 flex items-start gap-1">
+              <Lock size={10} className="mt-0.5 shrink-0" />
+              Coachvideor är alltid privata – ingen annan användare kan se dem. Sekretessläget styr om vi får använda videon i interna exempel.
+            </p>
+          </div>
+
           <Button onClick={handleSubmit} className="w-full gap-2" disabled={!file || !question.trim() || isSubmitting}>
             {isSubmitting ? (
               <><Loader2 size={14} className="animate-spin" /> Bearbetar...</>

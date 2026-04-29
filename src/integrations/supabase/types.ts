@@ -521,6 +521,7 @@ export type Database = {
           created_at: string
           dog_id: string | null
           id: string
+          privacy_mode: string
           question: string
           sport: string
           status: string
@@ -533,6 +534,7 @@ export type Database = {
           created_at?: string
           dog_id?: string | null
           id?: string
+          privacy_mode?: string
           question: string
           sport?: string
           status?: string
@@ -545,6 +547,7 @@ export type Database = {
           created_at?: string
           dog_id?: string | null
           id?: string
+          privacy_mode?: string
           question?: string
           sport?: string
           status?: string
@@ -557,6 +560,38 @@ export type Database = {
             columns: ["dog_id"]
             isOneToOne: false
             referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_feedback_messages: {
+        Row: {
+          content: string
+          created_at: string
+          feedback_id: string
+          id: string
+          sender: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          feedback_id: string
+          id?: string
+          sender: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          feedback_id?: string
+          id?: string
+          sender?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_feedback_messages_feedback_id_fkey"
+            columns: ["feedback_id"]
+            isOneToOne: false
+            referencedRelation: "coach_feedback"
             referencedColumns: ["id"]
           },
         ]

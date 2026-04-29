@@ -31,6 +31,10 @@ import ClubShareDialog from "@/features/course-planner-v2/ClubShareDialog";
 import CourseCommentsPanel from "@/features/course-planner-v2/CourseCommentsPanel";
 import { instantiatePrebuilt, type PrebuiltCourse } from "@/features/course-planner-v2/templates";
 import type { LibraryCourse } from "@/features/course-planner-v2/library";
+import { CommandPalette } from "@/components/course-planner-v2/CommandPalette";
+import { KeyboardShortcutsHelp } from "@/components/course-planner-v2/KeyboardShortcutsHelp";
+import { buildPlannerCommands } from "@/features/course-planner-v2/plannerCommands";
+import { useCoursePlannerHotkeys } from "@/hooks/useCoursePlannerHotkeys";
 
 const STORAGE_KEY = "am_course_planner_v2";
 
@@ -95,6 +99,8 @@ export default function V3CoursePlannerV2Page() {
   });
   const [savingCloud, setSavingCloud] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   // Undo/redo (begränsad till 30 steg)
@@ -135,22 +141,8 @@ export default function V3CoursePlannerV2Page() {
     return () => clearTimeout(t);
   }, [course]);
 
-  // Kortkommandon
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      const t = e.target as HTMLElement | null;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
-      const meta = e.ctrlKey || e.metaKey;
-      if (meta && e.key.toLowerCase() === "z" && !e.shiftKey) { e.preventDefault(); undo(); return; }
-      if (meta && (e.key.toLowerCase() === "y" || (e.key.toLowerCase() === "z" && e.shiftKey))) { e.preventDefault(); redo(); return; }
-      if (meta && e.key.toLowerCase() === "d" && selectedId) { e.preventDefault(); duplicateObstacle(selectedId); return; }
-      if ((e.key === "Delete" || e.key === "Backspace") && selectedId) { e.preventDefault(); deleteObstacle(selectedId); return; }
-      if (e.key.toLowerCase() === "r" && selectedId) { e.preventDefault(); rotateObstacle(selectedId, e.shiftKey ? -15 : 15); return; }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedId, undo, redo]);
+  // Globala kortkommandon hanteras av useCoursePlannerHotkeys (anropas
+  // längre ner i komponenten där alla handlers redan är definierade).
 
   // Validering + tider — räknas live
   const issues = useMemo(() => validateCourse(course), [course]);
@@ -437,6 +429,63 @@ export default function V3CoursePlannerV2Page() {
   const templates = getTemplatesBySport(course.sport);
   const arenaPresets = useMemo(() => getArenaPresetsBySport(course.sport), [course.sport]);
 
+  // Spara-handler delas av topbar-knapp, palette och Ctrl+S.
+  const handleSaveAll = useCallback(async () => {
+    saveCourse(course);
+    if (user) await saveToCloud();
+    else toast.success("Bana sparad lokalt");
+  }, [course, user]); // saveToCloud läses som closure — OK eftersom course är dep.
+
+  // Globala kortkommandon (DEL 2 i sprint 6).
+  useCoursePlannerHotkeys({
+    openPalette: () => setPaletteOpen(true),
+    openHelp: () => setHelpOpen(true),
+    save: () => { void handleSaveAll(); },
+    exportJudgePdf: () => { void handleExportPdf(); },
+    undo,
+    redo,
+    duplicateSelected: () => { if (selectedId) duplicateObstacle(selectedId); },
+    deleteSelected: () => { if (selectedId) deleteObstacle(selectedId); },
+    rotateSelected: (deg) => { if (selectedId) rotateObstacle(selectedId, deg); },
+    setToolSelect: () => setTool("select"),
+    setToolErase: () => setTool("erase"),
+    setToolNumber: () => setTool("number"),
+    togglePath: () => setShowPath((v) => !v),
+    deselect: () => setSelectedId(null),
+    hasSelection: () => selectedId != null,
+  });
+
+  // Bygger kommandolistan för paletten.
+  const paletteCommands = useMemo(() => buildPlannerCommands({
+    save: () => { void handleSaveAll(); },
+    openLibrary: () => setLibraryOpen(true),
+    openShare: () => { void handleShare(); },
+    trainThis: handleTrainThis,
+    setToolSelect: () => setTool("select"),
+    setToolErase: () => setTool("erase"),
+    setToolNumber: () => setTool("number"),
+    autoNumber: autoRenumber,
+    togglePath: () => setShowPath((v) => !v),
+    toggleValidation: () => setIssuesOpen((v) => !v),
+    addObstacle: placeObstacle,
+    switchSport,
+    currentSport: course.sport,
+    exportJudgePdf: () => { void handleExportPdf(); },
+    exportTrainingPdf: () => toast.info("Tränings-PDF kommer i nästa sprint"),
+    exportBuildPdf: () => toast.info("Bygg-PDF kommer i nästa sprint"),
+    exportStartlist: () => exportStartlistPdf({
+      courseName: course.name, sport: course.sport,
+      sizeClass: course.sizeClass, classTemplate: course.classTemplate,
+      obstacles: course.obstacles,
+    }),
+    undo, redo,
+    duplicateSelected: () => { if (selectedId) duplicateObstacle(selectedId); },
+    deleteSelected: () => { if (selectedId) deleteObstacle(selectedId); },
+    hasSelection: selectedId != null,
+    canUndo: historyRef.current.past.length > 0,
+    canRedo: historyRef.current.future.length > 0,
+  }), [course, selectedId, handleSaveAll, undo, redo]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="min-h-[100dvh] bg-[#f9f8f6] text-neutral-900">
       {/* TOPBAR */}
@@ -513,6 +562,14 @@ export default function V3CoursePlannerV2Page() {
         onOpenChange={setLibraryOpen}
         onPick={handlePickFromLibrary}
       />
+
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        commands={paletteCommands}
+      />
+
+      <KeyboardShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} />
 
       {issuesOpen && (
         <div className="bg-white border-b border-black/5 px-4 py-3 max-h-[40vh] overflow-y-auto">

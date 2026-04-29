@@ -205,7 +205,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
   const getDog = (id: string | null) => id ? dogs.find(d => d.id === id) : null;
 
   return (
-    <Card className="mb-4 border-border/50">
+    <Card className="mb-4 border-border/50" ref={uploadCardRef}>
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-display flex items-center gap-2 flex-wrap">
           <GraduationCap size={18} className="text-primary" />

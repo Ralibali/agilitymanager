@@ -21,6 +21,14 @@ export default {
         "v3-sans": ["'Epilogue'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
         "v3-display": ["'Urbanist'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
         "v3-mono": ["'JetBrains Mono'", "ui-monospace", "monospace"],
+        // === Brand foundation (laddas men aktiveras explicit) ===
+        // OBS: Vi skriver INTE över `display`/`sans`/`serif` med Geist/Inter Variable/
+        // Instrument Serif eftersom det skulle ändra utseendet globalt direkt. Använd
+        // `font-brand-display`, `font-brand-sans`, `font-brand-serif` när komponenter
+        // ska opt:a in i nya brandet.
+        "brand-display": ["Geist", "system-ui", "sans-serif"],
+        "brand-sans": ["'Inter Variable'", "Inter", "system-ui", "sans-serif"],
+        "brand-serif": ["'Instrument Serif'", "Georgia", "serif"],
       },
       fontSize: {
         base: ["14px", "1.5"],

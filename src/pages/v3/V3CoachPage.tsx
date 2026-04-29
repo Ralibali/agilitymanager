@@ -1,6 +1,6 @@
 import { Suspense, lazy } from "react";
 import { Link } from "react-router-dom";
-import { GraduationCap, Award, Heart, Trophy, ClipboardList, ArrowRight } from "lucide-react";
+import { GraduationCap, Award, Heart, Trophy, ClipboardList, ArrowRight, ClipboardCheck } from "lucide-react";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { Disclaimer } from "@/components/Disclaimer";
 import type { Dog } from "@/types";
@@ -29,14 +29,23 @@ export default function V3CoachPage() {
           Ladda upp en kort video av ett pass eller ett moment och få personlig, skriftlig
           feedback från vår certifierade coach Malin Öster inom 48 timmar.
         </p>
-        <Link
-          to="/v3/coach/status"
-          className="inline-flex items-center gap-2 text-v3-sm text-v3-brand-500 hover:text-v3-brand-600 mt-1"
-        >
-          <ClipboardList size={16} strokeWidth={1.8} />
-          Se status för mina inskickade videor
-          <ArrowRight size={14} />
-        </Link>
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-1">
+          <Link
+            to="/v3/coach/status"
+            className="inline-flex items-center gap-2 text-v3-sm text-v3-brand-500 hover:text-v3-brand-600"
+          >
+            <ClipboardList size={16} strokeWidth={1.8} />
+            Se status för mina inskickade videor
+            <ArrowRight size={14} />
+          </Link>
+          <Link
+            to="/v3/coach/qa"
+            className="inline-flex items-center gap-2 text-v3-sm text-v3-text-secondary hover:text-v3-text-primary"
+          >
+            <ClipboardCheck size={16} strokeWidth={1.8} />
+            QA-checklista (mobil)
+          </Link>
+        </div>
       </header>
 
       {/* Coach-presentation */}

@@ -741,7 +741,7 @@ function SummaryPanel({ course }: { course: CourseV2 }) {
         {maxTime != null && <Row label="Maxtid" value={`${maxTime} s`} />}
       </div>
       <p className="mt-2 text-[10px] text-neutral-500 leading-snug">
-        Realtidsvalidering, säkerhetsvarningar och domar-PDF kommer i Sprint 2.
+        Banlängden räknas mellan numrerade hinder. Referens- och maxtid kommer från klassmallen.
       </p>
     </section>
   );

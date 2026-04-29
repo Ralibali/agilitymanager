@@ -261,16 +261,30 @@ function SmartTipsPanel({ tips, onLog, onNavigate }: { tips: SmartTip[]; onLog: 
     return onNavigate("/v3/stats");
   };
   return (
-    <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs">
+    <section className="rounded-2xl bg-white border border-forest/8 p-5">
       <div className="flex items-start justify-between gap-4 mb-4">
-        <div><div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary"><Lightbulb size={13} strokeWidth={1.8} /> Smarta förslag</div><h2 className="font-v3-display text-v3-2xl text-v3-text-primary mt-1">Nästa bästa steg</h2></div>
-        <span className="hidden sm:inline-flex rounded-full bg-v3-brand-500/10 px-3 py-1 text-v3-xs font-medium text-v3-brand-700">Anpassas efter din data</span>
+        <div className="flex flex-col gap-2">
+          <BrandPill color="lime" dot>
+            <Lightbulb size={11} strokeWidth={1.8} /> Smarta förslag
+          </BrandPill>
+          <h2 className="font-brand-display text-2xl text-forest">Nästa bästa steg</h2>
+        </div>
+        <BrandPill color="moss" className="hidden sm:inline-flex">Anpassas efter din data</BrandPill>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {tips.map((tip) => (
-          <button key={tip.title} type="button" onClick={() => handleAction(tip.action)} className="group text-left rounded-v3-xl border border-v3-canvas-sunken/40 bg-v3-canvas/45 p-4 hover:border-v3-brand-500/30 hover:bg-v3-canvas-elevated transition-all">
-            <div className={cn("h-9 w-9 rounded-full grid place-items-center mb-3", tip.tone === "brand" && "bg-v3-brand-500/10 text-v3-brand-700", tip.tone === "warm" && "bg-orange-100 text-orange-700", tip.tone === "neutral" && "bg-v3-canvas-sunken text-v3-text-secondary")}><ArrowRight size={15} strokeWidth={1.8} className="group-hover:translate-x-0.5 transition-transform" /></div>
-            <h3 className="font-v3-display text-v3-lg text-v3-text-primary leading-tight">{tip.title}</h3><p className="text-v3-sm text-v3-text-secondary mt-1.5 line-clamp-3">{tip.body}</p><div className="text-v3-sm font-medium text-v3-brand-700 mt-4">{tip.actionLabel} →</div>
+          <button
+            key={tip.title}
+            type="button"
+            onClick={() => handleAction(tip.action)}
+            className="group text-left bg-cream rounded-xl p-5 border border-forest/8 hover:border-forest/20 transition-all"
+          >
+            <div className="h-8 w-8 rounded-full bg-lime grid place-items-center mb-3">
+              <ArrowRight size={15} strokeWidth={1.8} className="text-forest group-hover:translate-x-0.5 transition-transform" />
+            </div>
+            <h3 className="font-brand-display text-[14px] text-forest leading-tight">{tip.title}</h3>
+            <p className="text-[13px] text-stone mt-1.5 leading-relaxed line-clamp-3">{tip.body}</p>
+            <div className="text-sm font-medium text-forest mt-4">{tip.actionLabel} →</div>
           </button>
         ))}
       </div>
@@ -288,19 +302,45 @@ function ActivationChecklist({ steps, onLog, onNavigate }: { steps: ActivationSt
     return onNavigate("/v3/stats");
   };
   return (
-    <section className="rounded-v3-2xl bg-v3-text-primary text-white p-5 shadow-v3-sm overflow-hidden relative">
-      <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-v3-brand-500/20 blur-2xl" />
+    <section className="rounded-2xl bg-forest text-bone p-8 mb-8 overflow-hidden relative">
       <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
-        <div><div className="text-[10px] uppercase tracking-[0.08em] font-medium text-white/55">Kom igång</div><h2 className="font-v3-display text-v3-2xl mt-1">Din aktiveringsresa</h2><p className="text-v3-sm text-white/65 mt-1">Ju fler steg användaren gör, desto tydligare blir värdet i appen.</p></div>
-        <div className="lg:text-right"><div className="font-v3-display text-[34px] leading-none tabular-nums">{progress}%</div><div className="text-v3-xs text-white/55 mt-1">{completed}/{steps.length} steg klara</div></div>
+        <div>
+          <div className="text-[11px] tracking-[0.04em] font-medium text-bone/60">Kom igång</div>
+          <h2 className="font-brand-display text-2xl mt-1">Din aktiveringsresa</h2>
+          <p className="text-sm text-bone/65 mt-1">Ju fler steg användaren gör, desto tydligare blir värdet i appen.</p>
+        </div>
+        <div className="lg:text-right">
+          <div className="font-brand-display text-[34px] leading-none tabular">{progress}%</div>
+          <div className="text-[11px] text-bone/55 mt-1">{completed}/{steps.length} steg klara</div>
+        </div>
       </div>
-      <div className="relative h-2 rounded-full bg-white/10 overflow-hidden mb-4"><div className="h-full bg-v3-brand-500 rounded-full transition-all" style={{ width: `${progress}%` }} /></div>
+      <div className="relative h-1.5 rounded-full bg-bone/15 overflow-hidden mb-4">
+        <div className="h-full bg-lime rounded-full transition-all" style={{ width: `${progress}%` }} />
+      </div>
       <div className="relative grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
         {steps.map((step) => (
-          <button key={step.title} type="button" onClick={() => !step.done && handle(step.action)} className={cn("text-left rounded-v3-xl border p-3 transition-all", step.done ? "bg-white/8 border-white/10 cursor-default" : "bg-white/[0.03] border-white/10 hover:bg-white/10 hover:border-white/20")}> 
+          <button
+            key={step.title}
+            type="button"
+            onClick={() => !step.done && handle(step.action)}
+            className={cn(
+              "text-left rounded-lg p-4 transition-all bg-bone/8",
+              step.done ? "cursor-default" : "hover:bg-bone/15",
+            )}
+          >
             <div className="flex items-start gap-2">
-              {step.done ? <CheckCircle2 size={18} className="text-v3-brand-400 shrink-0 mt-0.5" /> : <Circle size={18} className="text-white/35 shrink-0 mt-0.5" />}
-              <div className="min-w-0"><h3 className="text-v3-sm font-medium text-white">{step.title}</h3><p className="text-v3-xs text-white/55 mt-1 leading-relaxed">{step.body}</p>{!step.done && <div className="text-v3-xs font-medium text-v3-brand-300 mt-2">{step.actionLabel} →</div>}</div>
+              {step.done ? (
+                <span className="h-[18px] w-[18px] rounded-full bg-lime grid place-items-center shrink-0 mt-0.5">
+                  <CheckCircle2 size={14} strokeWidth={2} className="text-forest" />
+                </span>
+              ) : (
+                <span className="h-[18px] w-[18px] rounded-full border border-bone/35 shrink-0 mt-0.5" />
+              )}
+              <div className="min-w-0">
+                <h3 className="text-sm font-medium text-bone">{step.title}</h3>
+                <p className="text-[11px] text-bone/60 mt-1 leading-relaxed">{step.body}</p>
+                {!step.done && <div className="text-[11px] font-medium text-lime mt-2">{step.actionLabel} →</div>}
+              </div>
             </div>
           </button>
         ))}

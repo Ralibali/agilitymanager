@@ -54,17 +54,25 @@ export interface ArenaRenderOpts {
 
 /** Returnerar de faktiska arena-måtten (mm) som ritades — användbart för layout. */
 export function drawArenaVector(doc: jsPDF, opts: ArenaRenderOpts): { w: number; h: number; mmPerM: number } {
-  const { x, y, maxWidth, maxHeight, arenaWidthM, arenaHeightM, obstacles } = opts;
+  const { x: x0, y: y0, maxWidth, maxHeight, arenaWidthM, arenaHeightM, obstacles } = opts;
   const grid = opts.grid !== false;
   const showPath = opts.showPath !== false;
   const numberBadge = opts.numberBadgeMm ?? 3;
+  const showDim = opts.showDimensions !== false;
+  // Reservera plats för linjaler/dimensioner (vänster + topp).
+  const dimMargin = showDim ? 8 : 0;
+
+  const x = x0 + dimMargin;
+  const y = y0 + dimMargin;
+  const availW = maxWidth - dimMargin;
+  const availH = maxHeight - dimMargin;
 
   // Anpassa till tillgängligt utrymme bibehållande aspekt
   const aspect = arenaHeightM / arenaWidthM;
-  let w = maxWidth;
+  let w = availW;
   let h = w * aspect;
-  if (h > maxHeight) {
-    h = maxHeight;
+  if (h > availH) {
+    h = availH;
     w = h / aspect;
   }
   const mmPerM = w / arenaWidthM;
@@ -78,7 +86,7 @@ export function drawArenaVector(doc: jsPDF, opts: ArenaRenderOpts): { w: number;
   doc.rect(x, y, w, h, "FD");
 
   // Banmått (linjaler med tickmarks) — alltid med i PDF om inte explicit avstängt.
-  if (opts.showDimensions !== false) {
+  if (showDim) {
     drawArenaDimensions(doc, x, y, w, h, arenaWidthM, arenaHeightM);
   }
 

@@ -638,6 +638,11 @@ export default function V3CoursePlannerV2Page() {
     hasSelection: selectedId != null,
     canUndo: historyRef.current.past.length > 0,
     canRedo: historyRef.current.future.length > 0,
+    toggleLockSelected: () => { if (selectedId) toggleLock(selectedId); },
+    bringForward: () => { if (selectedId) bringForward(selectedId); },
+    sendBackward: () => { if (selectedId) sendBackward(selectedId); },
+    bringToFront: () => { if (selectedId) bringToFront(selectedId); },
+    sendToBack: () => { if (selectedId) sendToBack(selectedId); },
   }), [course, selectedId, handleSaveAll, undo, redo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

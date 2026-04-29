@@ -699,8 +699,7 @@ function MobileMoreSheet({ onClose, actions, grid, snap, zoom }: {
             <Pill onClick={actions.toggleSnap} icon={<Move size={14} />} label={snap ? "Snap av" : "Snap på"} active={snap} />
             <Pill onClick={actions.zoomOut} icon={<ZoomOut size={14} />} label="Zoom -" />
             <Pill onClick={actions.zoomIn} icon={<ZoomIn size={14} />} label={`${zoom}%`} />
-            <Pill onClick={actions.go3D} icon={<Box size={14} />} label="3D-vy" />
-            <Pill onClick={actions.walk} icon={<Footprints size={14} />} label="Gå banan" />
+            {/* 3D-vy och Gå banan dolda — kod finns kvar i src/features/course-planner/3d/ */}
           </Section>
           <Section title="Redigera">
             <Pill onClick={actions.undoPath} icon={<Undo2 size={14} />} label="Ångra ritning" />

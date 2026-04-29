@@ -481,6 +481,7 @@ function RightPanelContent({ selected, toolMode, setToolMode, setGuide, moveSele
         <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={exportPdf}><FileText size={14} /> PDF</button>
         <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={reset}><RotateCcw size={14} /> Återställ</button>
         <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={() => setPaths(prev => prev.slice(0, -1))}><Undo2 size={14} /> Ångra</button>
+        <button className="col-span-2 h-11 rounded-v3-base bg-v3-brand-50 border border-v3-brand-200 text-v3-brand-700 text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={autoRenumberAll}><Hash size={14} /> Auto-numrera om</button>
       </div>
     </section>
   </>;

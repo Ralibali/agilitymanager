@@ -30,7 +30,7 @@ export function StatRow({ stats }: Props) {
           key={it.label}
           className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 lg:p-5"
         >
-          <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
+          <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary">
             {it.label}
           </div>
           <div className="font-v3-display text-[36px] lg:text-[44px] leading-none mt-2 text-v3-text-primary tabular-nums">

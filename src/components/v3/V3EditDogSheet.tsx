@@ -346,7 +346,7 @@ const selectClass = cn(inputClass, "appearance-none cursor-pointer pr-8");
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-[11px] uppercase tracking-[0.06em] font-medium text-v3-text-tertiary mb-1.5">
+      <label className="block text-[11px] tracking-[0.06em] font-medium text-v3-text-tertiary mb-1.5">
         {label}
       </label>
       {children}

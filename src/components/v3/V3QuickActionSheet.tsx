@@ -61,7 +61,7 @@ export function V3QuickActionSheet({ open, onClose, onLogTraining }: Props) {
           </div>
           <div className="relative flex items-start justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.08em] text-white/70 mb-3">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] tracking-[0.04em] text-white/70 mb-3">
                 <Heart size={12} /> Teamets nästa steg
               </div>
               <h2 className="font-v3-display text-[26px] leading-tight text-white">Vad vill du fånga nu?</h2>

@@ -151,7 +151,7 @@ export default function V3DogsPage() {
                           {meta && <p className="text-v3-xs lg:text-v3-sm text-v3-text-secondary mt-0.5 truncate">{meta}</p>}
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          {!dog.is_active_competition_dog && <span className="text-[10px] uppercase tracking-[0.06em] px-2 py-0.5 rounded-full bg-v3-canvas-sunken text-v3-text-tertiary font-medium">Pension</span>}
+                          {!dog.is_active_competition_dog && <span className="text-[11px] tracking-[0.06em] px-2 py-0.5 rounded-full bg-v3-canvas-sunken text-v3-text-tertiary font-medium">Pension</span>}
                           <span className="h-7 w-7 grid place-items-center rounded-full text-v3-text-tertiary group-hover:text-v3-text-primary"><Pencil size={13} /></span>
                         </div>
                       </div>

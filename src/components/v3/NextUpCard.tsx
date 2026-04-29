@@ -43,7 +43,7 @@ export function NextUpCard({ next }: Props) {
         aria-label="Nästa upp"
         className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 lg:p-6"
       >
-        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-2">
+        <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary mb-2">
           Nästa upp
         </div>
         <p className="font-v3-display text-v3-2xl text-v3-text-primary leading-tight">
@@ -84,7 +84,7 @@ export function NextUpCard({ next }: Props) {
       className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 lg:p-6"
     >
       <div className="flex items-start justify-between gap-3 mb-4">
-        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
+        <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary">
           Nästa upp
         </div>
         <Link
@@ -99,13 +99,13 @@ export function NextUpCard({ next }: Props) {
       <div className="flex items-start gap-4">
         {/* Datum-block */}
         <div className="shrink-0 text-center bg-v3-canvas-secondary rounded-v3-lg px-3 py-2 min-w-[64px]">
-          <div className="text-[10px] uppercase tracking-wide font-medium text-v3-text-tertiary">
+          <div className="text-[11px] tracking-wide font-medium text-v3-text-tertiary">
             {f.weekday}
           </div>
           <div className="font-v3-display text-[32px] leading-none text-v3-text-primary tabular-nums my-0.5">
             {f.day}
           </div>
-          <div className="text-[10px] uppercase tracking-wide font-medium text-v3-text-tertiary">
+          <div className="text-[11px] tracking-wide font-medium text-v3-text-tertiary">
             {f.month}
           </div>
         </div>

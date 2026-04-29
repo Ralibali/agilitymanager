@@ -1066,7 +1066,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                     {/* Domare */}
                     {r.judges && r.judges.length > 0 && (
                       <div>
-                        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-1.5 inline-flex items-center gap-1.5">
+                        <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary mb-1.5 inline-flex items-center gap-1.5">
                           <Gavel size={11} strokeWidth={1.8} /> Domare
                         </div>
                         <ul className="text-v3-sm text-v3-text-primary space-y-0.5">
@@ -1080,7 +1080,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                     {/* Extra info / kontakt */}
                     {r.extra_info && (
                       <div>
-                        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-1">
+                        <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary mb-1">
                           Extra info
                         </div>
                         <p className="text-v3-sm text-v3-text-secondary whitespace-pre-line">
@@ -1147,7 +1147,7 @@ function DetailItem({
     <div className="flex items-start gap-2 min-w-0">
       <Icon size={13} strokeWidth={1.8} className="text-v3-text-tertiary mt-0.5 shrink-0" />
       <div className="min-w-0">
-        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
+        <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary">
           {label}
         </div>
         <div className="text-v3-sm text-v3-text-primary break-words">{value}</div>
@@ -1159,7 +1159,7 @@ function DetailItem({
 function ClassGroup({ label, items }: { label: string; items: string[] }) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-1.5">
+      <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary mb-1.5">
         {label} ({items.length})
       </div>
       <div className="flex flex-wrap gap-1">
@@ -1189,7 +1189,7 @@ function FilterSelect({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <label className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary w-20 shrink-0">
+      <label className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary w-20 shrink-0">
         {label}
       </label>
       <select

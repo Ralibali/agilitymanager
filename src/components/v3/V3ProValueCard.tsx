@@ -38,7 +38,7 @@ export function V3ProValueCard({
       <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-v3-brand-500/25 blur-3xl" />
       <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
         <div className="min-w-0 max-w-2xl">
-          <div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.08em] font-medium text-white/55">
+          <div className="inline-flex items-center gap-2 text-[10px] tracking-[0.04em] font-medium text-white/55">
             <Lock size={13} strokeWidth={1.8} /> Pro-värde
           </div>
           <h2 className="font-v3-display text-[24px] sm:text-v3-2xl lg:text-[30px] leading-tight mt-1 break-words">{title}</h2>

@@ -157,7 +157,7 @@ export default function V3GoalsPage() {
           <section className="space-y-4 pt-2">
             <div className="flex items-end justify-between">
               <div>
-                <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">Prestationer</div>
+                <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary">Prestationer</div>
                 <h2 className="font-v3-display text-v3-2xl text-v3-text-primary mt-1">Badges</h2>
               </div>
               <span className="text-v3-xs text-v3-text-tertiary tabular-nums">{unlockedCount} / {BADGE_DEFS.length}</span>
@@ -189,7 +189,7 @@ export default function V3GoalsPage() {
 function StatTile({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4">
-      <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">{label}</div>
+      <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary">{label}</div>
       <div className="font-v3-display text-[28px] leading-none mt-2 text-v3-text-primary tabular-nums truncate">{value}</div>
       <div className="text-v3-xs text-v3-text-tertiary mt-1">{sub}</div>
     </div>

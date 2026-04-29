@@ -318,7 +318,7 @@ export function FetchMyResultDialog({ open, onOpenChange, target, dogs }: Props)
           {phase === "setup" && (
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary block mb-1.5">
+                <label className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary block mb-1.5">
                   Hund
                 </label>
                 <select
@@ -334,7 +334,7 @@ export function FetchMyResultDialog({ open, onOpenChange, target, dogs }: Props)
                 </select>
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary block mb-1.5">
+                <label className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary block mb-1.5">
                   Ditt namn (förare)
                 </label>
                 <input
@@ -437,12 +437,12 @@ export function FetchMyResultDialog({ open, onOpenChange, target, dogs }: Props)
                                     </span>
                                   )}
                                   {m.disqualified && (
-                                    <span className="text-[10px] uppercase tracking-wider font-medium px-1.5 py-0.5 rounded bg-v3-canvas-sunken text-v3-text-tertiary">
+                                    <span className="text-[11px] tracking-wider font-medium px-1.5 py-0.5 rounded bg-v3-canvas-sunken text-v3-text-tertiary">
                                       Disk
                                     </span>
                                   )}
                                   {m.passed && !m.disqualified && (
-                                    <span className="text-[10px] uppercase tracking-wider font-medium px-1.5 py-0.5 rounded bg-green-500/15 text-green-700">
+                                    <span className="text-[11px] tracking-wider font-medium px-1.5 py-0.5 rounded bg-green-500/15 text-green-700">
                                       Godkänd
                                     </span>
                                   )}

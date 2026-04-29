@@ -165,7 +165,7 @@ function TrainingContextCard({ dogName, period, sport, count, loading, onLog, on
     <V3Card className="p-4 lg:p-5">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">Aktiv träningsvy</div>
+          <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary">Aktiv träningsvy</div>
           <h2 className="font-v3-display text-v3-2xl text-v3-text-primary mt-1">{dogName} · {periodLabel(period)} · {sportLabel(sport)}</h2>
           <p className="text-v3-sm text-v3-text-secondary mt-1">{loading ? "Hämtar pass…" : count > 0 ? `${count} pass matchar aktuell vy.` : "Inga pass matchar aktuell vy ännu."}</p>
         </div>
@@ -179,7 +179,7 @@ function TrainingContextCard({ dogName, period, sport, count, loading, onLog, on
 }
 
 function FilterRow<T extends string>({ label, options, value, onChange }: { label: string; options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
-  return <div className="flex items-center gap-3"><span className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary w-14 shrink-0">{label}</span><div className="flex flex-wrap gap-1.5">{options.map((opt) => { const active = opt.value === value; return <button key={opt.value} type="button" onClick={() => onChange(opt.value)} className={cn("h-8 px-3 rounded-v3-base text-v3-xs font-medium transition-colors", active ? "bg-v3-text-primary text-v3-text-inverse" : "bg-v3-canvas-elevated text-v3-text-secondary border border-v3-canvas-sunken/60 hover:bg-v3-canvas-sunken")}>{opt.label}</button>; })}</div></div>;
+  return <div className="flex items-center gap-3"><span className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary w-14 shrink-0">{label}</span><div className="flex flex-wrap gap-1.5">{options.map((opt) => { const active = opt.value === value; return <button key={opt.value} type="button" onClick={() => onChange(opt.value)} className={cn("h-8 px-3 rounded-v3-base text-v3-xs font-medium transition-colors", active ? "bg-v3-text-primary text-v3-text-inverse" : "bg-v3-canvas-elevated text-v3-text-secondary border border-v3-canvas-sunken/60 hover:bg-v3-canvas-sunken")}>{opt.label}</button>; })}</div></div>;
 }
 
 function WeekBars({ data }: { data: { week: string; count: number; minutes: number }[] }) {

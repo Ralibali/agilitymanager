@@ -260,7 +260,7 @@ export function V3FindCompetitions({ preferredSport }: { preferredSport: Sport }
 }
 
 function Select({ label, value, options, onChange }: { label: string; value: string; options: { value: string; label: string }[]; onChange: (value: string) => void }) {
-  return <label className="block"><span className="block text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-1.5">{label}</span><select value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-10 px-3 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken/60 text-v3-sm text-v3-text-primary focus:outline-none focus:ring-2 focus:ring-v3-brand-500/30">{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>;
+  return <label className="block"><span className="block text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary mb-1.5">{label}</span><select value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-10 px-3 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken/60 text-v3-sm text-v3-text-primary focus:outline-none focus:ring-2 focus:ring-v3-brand-500/30">{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>;
 }
 
 function CompetitionCard({ row }: { row: CompRow }) {

@@ -84,7 +84,7 @@ export function V3AddPlannedSheet({ open, onClose, dog, onSaved }: Props) {
       <div className="relative w-full max-w-[640px] bg-v3-canvas rounded-t-v3-2xl lg:rounded-v3-2xl lg:mb-10 max-h-[92vh] flex flex-col shadow-v3-xl animate-v3-sheet-in-4">
         <header className="flex items-center justify-between px-5 py-4 border-b border-v3-canvas-sunken/40 shrink-0">
           <div>
-            <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
+            <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary">
               Planera tävling
             </div>
             <h2 className="font-v3-display text-v3-2xl text-v3-text-primary leading-none mt-1">
@@ -187,7 +187,7 @@ export function V3AddPlannedSheet({ open, onClose, dog, onSaved }: Props) {
 function Field({ label, icon, children }: { label: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-2">
+      <span className="flex items-center gap-1.5 text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary mb-2">
         {icon}
         {label}
       </span>

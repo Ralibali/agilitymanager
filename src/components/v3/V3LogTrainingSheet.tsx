@@ -329,7 +329,7 @@ const inputClass = "w-full h-10 px-3 rounded-v3-base bg-v3-canvas border border-
 const selectClass = cn(inputClass, "appearance-none cursor-pointer pr-8");
 
 function Field({ label, icon, error, children }: { label: string; icon?: React.ReactNode; error?: string; children: React.ReactNode }) {
-  return <div><label className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.06em] font-medium text-v3-text-tertiary mb-1.5">{icon}{label}</label>{children}{error && <p className="text-[11px] text-v3-accent-tavlings mt-1">{error}</p>}</div>;
+  return <div><label className="flex items-center gap-1.5 text-[11px] tracking-[0.06em] font-medium text-v3-text-tertiary mb-1.5">{icon}{label}</label>{children}{error && <p className="text-[11px] text-v3-accent-tavlings mt-1">{error}</p>}</div>;
 }
 
 function StarPicker({ value, onChange, compact = false }: { value: number; onChange: (v: number) => void; compact?: boolean }) {

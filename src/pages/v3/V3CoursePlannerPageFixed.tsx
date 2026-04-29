@@ -42,6 +42,19 @@ const defaultTool = (mode: PlannerMode): ObstacleType => mode === "Hoopers" ? "h
 const specFor = (mode: PlannerMode, type: ObstacleType) => specsFor(mode).find(s => s.type === type) ?? specsFor(mode)[0];
 const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
 const hexToRgb = (hex: string) => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)] as const;
+const slugify = (s: string) => s
+  .normalize("NFD")
+  .replace(/å/gi, "a").replace(/ä/gi, "a").replace(/ö/gi, "o")
+  .replace(/[\u0300-\u036f]/g, "")
+  .replace(/[^a-zA-Z0-9]+/g, "-")
+  .replace(/^-+|-+$/g, "")
+  .toLowerCase()
+  .slice(0, 60);
+const buildExportName = (parts: Array<string | undefined>, ext: string) => {
+  const date = new Date().toISOString().slice(0, 10);
+  const slug = parts.filter(Boolean).map(p => slugify(String(p))).filter(Boolean).join("_");
+  return `${slug || "bana"}_${date}.${ext}`;
+};
 
 function makeCourse(mode: PlannerMode): CourseState {
   const start = specsFor(mode).find(s => s.type === "start")!;

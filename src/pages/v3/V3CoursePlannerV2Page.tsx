@@ -131,6 +131,7 @@ export default function V3CoursePlannerV2Page() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [view3D, setView3D] = useState<null | "view" | "walk">(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
 
   // Undo/redo (begränsad till 30 steg)
   const historyRef = useRef<{ past: CourseV2[]; future: CourseV2[] }>({ past: [], future: [] });

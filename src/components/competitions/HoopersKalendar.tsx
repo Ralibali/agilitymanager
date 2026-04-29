@@ -82,60 +82,32 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
   const [countyFilter, setCountyFilter] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [interests, setInterests] = useState<Record<string, 'interested' | 'registered'>>({});
 
-  // Load user interests
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from('competition_interests')
-      .select('competition_id, status')
-      .eq('user_id', user.id)
-      .then(({ data }) => {
-        if (data) {
-          const map: Record<string, 'interested' | 'registered'> = {};
-          data.forEach((d: any) => { map[d.competition_id] = d.status; });
-          setInterests(map);
-        }
-      });
-  }, [user]);
-
-  const toggleInterest = async (comp: HoopersCompetition, targetStatus: 'interested' | 'registered') => {
-    if (!user) return;
-    const current = interests[comp.id];
-
-    if (current === targetStatus) {
-      // Remove
-      await supabase.from('competition_interests').delete().eq('user_id', user.id).eq('competition_id', comp.id);
-      setInterests(prev => { const next = { ...prev }; delete next[comp.id]; return next; });
-      toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
-      return;
-    }
-
-    // Determine dog info
-    const dog = selectedDog || dogs.find(d => d.sport === 'Hoopers' || d.sport === 'Båda');
-    const dogName = dog?.name || null;
-    const dogClass = dog?.hoopers_level || null;
-
-    if (current) {
-      // Update
-      await supabase.from('competition_interests').update({ status: targetStatus }).eq('user_id', user.id).eq('competition_id', comp.id);
-    } else {
-      // Insert
-      await supabase.from('competition_interests').insert({
-        user_id: user.id,
-        competition_id: comp.id,
-        status: targetStatus,
-        dog_name: dogName,
-        class: dogClass,
-      });
-    }
-    setInterests(prev => ({ ...prev, [comp.id]: targetStatus }));
-    toast.success(targetStatus === 'interested' ? '⭐ Markerad som intresserad' : '✅ Markerad som anmäld');
-  };
+  // Delad intresse-hook (hanterar både inloggad och gäst via localStorage)
+  const { interests, setInterest } = useCompetitionInterests();
 
   // Auto-filter based on selected dog's hoopers level
   const selectedDog = useMemo(() => dogs.find(d => d.id === selectedDogId), [dogs, selectedDogId]);
+
+  const toggleInterest = async (comp: HoopersCompetition, targetStatus: 'interested' | 'registered') => {
+    const dog = selectedDog || dogs.find(d => d.sport === 'Hoopers' || d.sport === 'Båda');
+    const dogName = dog?.name || null;
+    const dogClass = dog?.hoopers_level || null;
+    const wasActive = interests[comp.id] === targetStatus;
+
+    await setInterest(comp.id, targetStatus, {
+      dogName,
+      dogClass,
+      sport: 'Hoopers',
+      region: comp.county || null,
+    });
+
+    if (wasActive) {
+      toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
+    } else {
+      toast.success(targetStatus === 'interested' ? '⭐ Markerad som intresserad' : '✅ Markerad som anmäld');
+    }
+  };
 
   useEffect(() => {
     if (selectedDog && selectedDog.sport === 'Hoopers') {
@@ -145,6 +117,7 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
       setClassFilters(new Set());
     }
   }, [selectedDog]);
+
 
   const fetchData = useCallback(async () => {
     setLoading(true);

@@ -12,7 +12,7 @@
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
 import { useEffect, useMemo, useRef, useState, useCallback, type PointerEvent } from "react";
-import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff, Library, Undo2, Redo2, Copy, Magnet, Box, Footprints, Lock, Unlock, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff, Library, Undo2, Redo2, Copy, Magnet, Box, Footprints, Lock, Unlock, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown, Ruler, Crosshair } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,9 @@ import type { LibraryCourse } from "@/features/course-planner-v2/library";
 import { CommandPalette } from "@/components/course-planner-v2/CommandPalette";
 import { KeyboardShortcutsHelp } from "@/components/course-planner-v2/KeyboardShortcutsHelp";
 import { ExportMenu } from "@/components/course-planner-v2/ExportMenu";
+import { CanvasRulers } from "@/components/course-planner-v2/CanvasRulers";
+import { ViewportControls } from "@/components/course-planner-v2/ViewportControls";
+import { useCanvasViewport } from "@/features/course-planner-v2/useCanvasViewport";
 import { buildPlannerCommands } from "@/features/course-planner-v2/plannerCommands";
 import { useCoursePlannerHotkeys } from "@/hooks/useCoursePlannerHotkeys";
 import { useProfileName } from "@/hooks/useProfileName";
@@ -42,6 +45,8 @@ import { exportBuildPdf } from "@/features/course-planner-v2/buildPdf";
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
 import { parseCourseJson } from "@/features/course-planner-v2/importJson";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
+
+const DIM_STORAGE_KEY = "am_planner_show_dimensions";
 
 const STORAGE_KEY = "am_course_planner_v2";
 

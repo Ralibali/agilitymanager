@@ -274,8 +274,9 @@ export default function V3CoursePlannerPageFixed() {
     const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const pageW = 297, pageH = 210, headerH = 17, date = new Date().toISOString().slice(0, 10);
     pdf.setFillColor(...hexToRgb(NAVY)); pdf.rect(0, 0, pageW, headerH, "F");
-    pdf.setTextColor(255, 255, 255); pdf.setFont("helvetica", "bold"); pdf.setFontSize(10); pdf.text("AgilityManager - Banplanerare", 10, 10.5);
-    pdf.setFont("helvetica", "normal"); pdf.setFontSize(7); pdf.text(date, pageW - 10, 10.5, { align: "right" });
+    pdf.setTextColor(255, 255, 255); pdf.setFont("helvetica", "bold"); pdf.setFontSize(11); pdf.text(course.name || `${mode}-bana`, 10, 8.5);
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.text(course.location ? `Plats: ${course.location}` : "AgilityManager - Banplanerare", 10, 13.5);
+    pdf.setFontSize(7); pdf.text(date, pageW - 10, 10.5, { align: "right" });
     pdf.setTextColor(55, 55, 55); pdf.setFontSize(8); pdf.text(`Sport: ${mode}   |   Banstorlek: ${course.width} x ${course.height} m   |   Antal hinder: ${course.obstacles.length}`, 10, 26);
     const marginX = 18, top = 33, fieldW = 262, fieldH = Math.min(150, fieldW * (course.height / course.width));
     pdf.setFillColor(248, 248, 248); pdf.rect(marginX, top, fieldW, fieldH, "F");

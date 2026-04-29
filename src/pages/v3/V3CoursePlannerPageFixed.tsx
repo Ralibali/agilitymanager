@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type PointerEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode, type TouchEvent as ReactTouchEvent } from "react";
 import jsPDF from "jspdf";
 import { ArrowLeft, Box, Download, Eraser, FileText, FolderOpen, Footprints, Grid3X3, Hash, HelpCircle, Maximize2, MenuIcon, Minimize2, MousePointer2, Move, PanelLeftClose, PanelLeftOpen, Pencil, Plus, RotateCcw, Save, Settings2, Trash2, Undo2, X, ZoomIn, ZoomOut } from "lucide-react";
 import { toast } from "sonner";
@@ -549,19 +549,46 @@ function MobileBottomBar({ toolMode, setToolMode, onOpenObstacles, onOpenMore, o
   );
 }
 
+function useSwipeDownToClose(onClose: () => void, threshold = 60) {
+  const startY = useRef<number | null>(null);
+  const deltaY = useRef(0);
+  return {
+    onTouchStart: (e: ReactTouchEvent) => {
+      startY.current = e.touches[0].clientY;
+      deltaY.current = 0;
+    },
+    onTouchMove: (e: ReactTouchEvent) => {
+      if (startY.current == null) return;
+      deltaY.current = e.touches[0].clientY - startY.current;
+    },
+    onTouchEnd: () => {
+      if (deltaY.current > threshold) onClose();
+      startY.current = null;
+      deltaY.current = 0;
+    },
+  };
+}
+
 function MobileObstaclesStrip({ specs, selectedTool, onPick, onClose }: {
   specs: ObstacleSpec[];
   selectedTool: ObstacleType;
   onPick: (t: ObstacleType) => void;
   onClose: () => void;
 }) {
+  const swipe = useSwipeDownToClose(onClose);
   return (
     <div
       className="fixed left-0 right-0 z-40 lg:hidden bg-white/97 backdrop-blur-xl border-t border-black/8 shadow-[0_-4px_18px_rgba(0,0,0,0.06)]"
       style={{ bottom: "calc(70px + env(safe-area-inset-bottom))" }}
     >
-      <div className="flex items-center justify-between px-3 pt-2 pb-1">
-        <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-v3-text-tertiary">Tryck för att lägga till</div>
+      <div
+        className="flex items-center justify-between px-3 pt-2 pb-1 touch-none cursor-grab active:cursor-grabbing"
+        {...swipe}
+      >
+        <div className="flex flex-col gap-1">
+          <div className="h-1 w-9 rounded-full bg-black/15 mb-0.5 self-start" aria-hidden />
+          <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-v3-text-tertiary">Tryck för att lägga till</div>
+        </div>
         <button onClick={onClose} className="h-7 w-7 -mr-1 rounded-full grid place-items-center text-v3-text-tertiary hover:bg-v3-canvas" aria-label="Stäng"><X size={14} /></button>
       </div>
       <div className="overflow-x-auto overflow-y-hidden">
@@ -641,6 +668,7 @@ function MobileMoreSheet({ onClose, actions, grid, snap, zoom }: {
       <div className="flex flex-wrap gap-1.5">{children}</div>
     </div>
   );
+  const swipe = useSwipeDownToClose(onClose);
   return (
     <div className="fixed inset-0 z-[1050] lg:hidden">
       <div className="absolute inset-0 bg-black/35" onClick={onClose} />
@@ -651,12 +679,13 @@ function MobileMoreSheet({ onClose, actions, grid, snap, zoom }: {
         <button
           type="button"
           onClick={onClose}
-          className="w-full pt-2.5 pb-1 flex justify-center"
+          className="w-full pt-2.5 pb-1 flex justify-center touch-none"
           aria-label="Stäng"
+          {...swipe}
         >
           <div className="h-1.5 w-12 rounded-full bg-black/20" />
         </button>
-        <div className="px-4 pb-1 flex items-center justify-between">
+        <div className="px-4 pb-1 flex items-center justify-between" {...swipe}>
           <h3 className="font-v3-display text-[18px]">Mer</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-full bg-v3-canvas grid place-items-center" aria-label="Stäng"><X size={14} /></button>
         </div>

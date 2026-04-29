@@ -9,6 +9,7 @@ export type Obstacle3DProps = {
   rotationDeg: number;
   number?: number;
   color?: string;
+  onSelect?: () => void;
 };
 
 const WHITE = "#ffffff";

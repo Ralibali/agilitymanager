@@ -113,9 +113,9 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <CookieBanner />
         <AuthProvider>
         <BrowserRouter>
+          <CookieBanner />
           <ScrollToTop />
           <Suspense fallback={<LazyFallback />}>
             <Routes>

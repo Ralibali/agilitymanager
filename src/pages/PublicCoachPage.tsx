@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { GraduationCap, Award, Trophy, Heart, Video, Clock, CheckCircle2, ArrowRight, Sparkles, Star } from "lucide-react";
@@ -6,16 +7,17 @@ import { Button } from "@/components/ui/button";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { LandingFooterV2 } from "@/components/landing/LandingFooterV2";
 import { useAuth } from "@/contexts/AuthContext";
+import CoachUploadFlow, { type CoachPackId } from "@/components/coach/CoachUploadFlow";
 
 /**
  * Publik coach-sida – tillgänglig utan inloggning.
- * Säljer in coach-feedback-tjänsten till alla besökare.
- * CTA leder till /v3/coach (inloggad) eller /auth?redirect=/v3/coach (utloggad).
+ * Säljer in coach-feedback-tjänsten och låter besökaren starta uppladdningsflödet
+ * direkt från sidan (paket → video → bekräftelse → betalning + uppladdning).
  */
 const PACKS = [
-  { id: "1", title: "1 video", price: 149, pro: 79, sub: "Perfekt att testa", popular: false },
-  { id: "3", title: "3-pack", price: 399, pro: 199, sub: "Spara 50 kr", popular: true },
-  { id: "5", title: "5-pack", price: 599, pro: 299, sub: "Bäst värde", popular: false },
+  { id: "1" as CoachPackId, title: "1 video", price: 149, pro: 79, sub: "Perfekt att testa", popular: false },
+  { id: "3" as CoachPackId, title: "3-pack", price: 399, pro: 199, sub: "Spara 50 kr", popular: true },
+  { id: "5" as CoachPackId, title: "5-pack", price: 599, pro: 299, sub: "Bäst värde", popular: false },
 ];
 
 const STEPS = [
@@ -27,11 +29,15 @@ const STEPS = [
 export default function PublicCoachPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [selectedPack, setSelectedPack] = useState<CoachPackId>("1");
 
-  const goToCoach = () => {
-    if (user) navigate("/v3/coach");
-    else navigate("/auth?redirect=/v3/coach&intent=coach");
+  const startUpload = (pack: CoachPackId) => {
+    setSelectedPack(pack);
+    setUploadOpen(true);
   };
+
+  const goToCoach = () => startUpload(selectedPack);
 
   return (
     <div className="min-h-screen bg-cream text-text-primary">

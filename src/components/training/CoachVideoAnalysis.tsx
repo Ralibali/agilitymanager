@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { DogAvatar } from '@/components/DogAvatar';
-import { Video, Upload, Loader2, MessageSquare, Trash2, ChevronDown, ChevronUp, GraduationCap, Clock, CheckCircle2, Sparkles } from 'lucide-react';
+import { Video, Upload, Loader2, MessageSquare, Trash2, ChevronDown, ChevronUp, GraduationCap, Clock, CheckCircle2, Sparkles, Send, User as UserIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -339,7 +339,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
                     </button>
 
                     <AnimatePresence>
-                      {isExpanded && fb.coach_response && (
+                      {isExpanded && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
@@ -348,20 +348,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
                           className="overflow-hidden"
                         >
                           <div className="px-3 pb-3 border-t border-border/50 pt-2">
-                            <p className="text-[10px] font-semibold text-primary mb-1">Coachens svar:</p>
-                            <p className="text-xs whitespace-pre-wrap">{fb.coach_response}</p>
-                          </div>
-                        </motion.div>
-                      )}
-                      {isExpanded && isPending && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="px-3 pb-3 border-t border-border/50 pt-2">
-                            <p className="text-xs text-muted-foreground italic">Coachen har ännu inte svarat. Du får besked här när svaret är klart.</p>
+                            <ConversationThread feedback={fb} />
                           </div>
                         </motion.div>
                       )}
@@ -374,5 +361,149 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+interface ThreadMessage {
+  id: string;
+  feedback_id: string;
+  sender: 'user' | 'coach';
+  content: string;
+  created_at: string;
+}
+
+function ConversationThread({ feedback }: { feedback: CoachFeedback }) {
+  const queryClient = useQueryClient();
+  const [followup, setFollowup] = useState('');
+
+  const { data: messages = [], isLoading } = useQuery({
+    queryKey: ['coach-feedback-thread', feedback.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('coach_feedback_messages' as any)
+        .select('*')
+        .eq('feedback_id', feedback.id)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as unknown as ThreadMessage[];
+    },
+  });
+
+  const sendFollowup = useMutation({
+    mutationFn: async (content: string) => {
+      const { error } = await supabase
+        .from('coach_feedback_messages' as any)
+        .insert({ feedback_id: feedback.id, sender: 'user', content } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coach-feedback-thread', feedback.id] });
+      setFollowup('');
+      toast.success('Följdfråga skickad');
+    },
+    onError: (e: any) => toast.error(e.message || 'Kunde inte skicka följdfråga'),
+  });
+
+  const userFollowup = messages.find(m => m.sender === 'user');
+  const coachFollowup = messages.find(m => m.sender === 'coach');
+  const canPostFollowup = !!feedback.coach_response && !userFollowup;
+
+  return (
+    <div className="space-y-2">
+      {/* Original fråga */}
+      <div className="flex gap-2 items-start">
+        <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center shrink-0">
+          <UserIcon size={12} className="text-muted-foreground" />
+        </div>
+        <div className="flex-1 rounded-lg bg-secondary/40 px-2.5 py-1.5">
+          <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">Du</p>
+          <p className="text-xs whitespace-pre-wrap">{feedback.question}</p>
+        </div>
+      </div>
+
+      {/* Coach – första svar */}
+      {feedback.coach_response ? (
+        <div className="flex gap-2 items-start">
+          <div className="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+            <GraduationCap size={12} className="text-primary" />
+          </div>
+          <div className="flex-1 rounded-lg bg-primary/5 border border-primary/15 px-2.5 py-1.5">
+            <p className="text-[10px] font-semibold text-primary mb-0.5">Coach</p>
+            <p className="text-xs whitespace-pre-wrap">{feedback.coach_response}</p>
+          </div>
+        </div>
+      ) : (
+        <p className="text-[11px] text-muted-foreground italic pl-8">
+          Coachen har ännu inte svarat. Du får besked när svaret är klart.
+        </p>
+      )}
+
+      {isLoading ? null : (
+        <>
+          {/* Användarens följdfråga */}
+          {userFollowup && (
+            <div className="flex gap-2 items-start">
+              <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                <UserIcon size={12} className="text-muted-foreground" />
+              </div>
+              <div className="flex-1 rounded-lg bg-secondary/40 px-2.5 py-1.5">
+                <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">Du · följdfråga</p>
+                <p className="text-xs whitespace-pre-wrap">{userFollowup.content}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Coachens följdsvar */}
+          {coachFollowup && (
+            <div className="flex gap-2 items-start">
+              <div className="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                <GraduationCap size={12} className="text-primary" />
+              </div>
+              <div className="flex-1 rounded-lg bg-primary/5 border border-primary/15 px-2.5 py-1.5">
+                <p className="text-[10px] font-semibold text-primary mb-0.5">Coach · följdsvar</p>
+                <p className="text-xs whitespace-pre-wrap">{coachFollowup.content}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Inputfält för följdfråga */}
+          {canPostFollowup && (
+            <div className="pt-1.5 space-y-1.5">
+              <Textarea
+                value={followup}
+                onChange={(e) => setFollowup(e.target.value.slice(0, 600))}
+                placeholder="Skriv en kort följdfråga (1 per video, ingår i paketet)..."
+                rows={2}
+                className="text-xs resize-none"
+              />
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground">{followup.length}/600 · 1 följdfråga ingår</span>
+                <Button
+                  size="sm"
+                  onClick={() => sendFollowup.mutate(followup.trim())}
+                  disabled={followup.trim().length < 3 || sendFollowup.isPending}
+                  className="h-7 gap-1.5 text-xs"
+                >
+                  {sendFollowup.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+                  Skicka följdfråga
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {userFollowup && !coachFollowup && (
+            <p className="text-[11px] text-muted-foreground italic pl-8">
+              Coachen får ditt följdmeddelande och återkommer inom 5 arbetsdagar.
+            </p>
+          )}
+
+          {coachFollowup && (
+            <p className="text-[11px] text-muted-foreground italic pl-8">
+              Tråden är avslutad. Behöver du mer feedback – skicka in en ny video.
+            </p>
+          )}
+        </>
+      )}
+    </div>
   );
 }

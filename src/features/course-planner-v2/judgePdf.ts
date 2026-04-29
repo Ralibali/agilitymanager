@@ -1,15 +1,19 @@
 /**
- * Sprint 4 — Polerad domar-PDF för Banplaneraren v2.
- * A4-stående med färgad header, banbild, meta-rutor, klassmall-info och hinderlista.
+ * Banplaneraren v2 — Sprint 6 (DEL 3)
+ * Polerad domar-PDF — VEKTOR-rendering, sida 2 statistik, footer på alla sidor.
+ *
+ * Sida 1: brand-header + meta-rutor + banbild (vektor) + hinderlista
+ * Sida 2: statistik (banlängd, SCT per storleksklass, hinderfördelning)
  */
 import jsPDF from "jspdf";
 import {
   CLASS_TEMPLATES, SIZE_CLASSES, getObstacleDefV2,
   type ClassTemplateKey, type ObstacleTypeV2, type SizeClassKey, type Sport,
 } from "./config";
-import { computeCourseTimes, validateCourse, type ObstacleLite } from "./validation";
+import { computeCourseTimes, computeCourseLength, validateCourse, type ObstacleLite } from "./validation";
+import { PDF_BRAND, PDF_PAGE, drawArenaVector, drawHeaderBand, drawFooterAllPages, safeFileName } from "./pdfHelpers";
 
-interface JudgePdfInput {
+export interface JudgePdfInput {
   name: string;
   sport: Sport;
   sizeClass: SizeClassKey;
@@ -17,54 +21,17 @@ interface JudgePdfInput {
   arenaHeightM: number;
   classTemplate: ClassTemplateKey | null;
   obstacles: ObstacleLite[];
-  /** SVG-element för banan (klonas och rasteriseras). */
-  svgElement: SVGSVGElement | null;
-}
-
-const BRAND = {
-  primary: [26, 107, 60] as [number, number, number],     // #1a6b3c
-  secondary: [200, 93, 30] as [number, number, number],   // #c85d1e
-  ink: [23, 61, 44] as [number, number, number],          // #173d2c
-  muted: [120, 120, 120] as [number, number, number],
-  line: [225, 225, 225] as [number, number, number],
-};
-
-async function svgToPngDataUrl(svg: SVGSVGElement, pxWidth: number): Promise<string | null> {
-  try {
-    const cloned = svg.cloneNode(true) as SVGSVGElement;
-    cloned.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    const xml = new XMLSerializer().serializeToString(cloned);
-    const svg64 = btoa(unescape(encodeURIComponent(xml)));
-    const url = `data:image/svg+xml;base64,${svg64}`;
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error("svg image load failed"));
-      img.src = url;
-    });
-    const ratio = img.height / Math.max(1, img.width);
-    const w = pxWidth;
-    const h = Math.round(w * ratio);
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return null;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, w, h);
-    ctx.drawImage(img, 0, 0, w, h);
-    return canvas.toDataURL("image/png");
-  } catch {
-    return null;
-  }
+  /** Författarens visningsnamn för footer. Tomt → "Skapad i Banplaneraren". */
+  authorName?: string;
+  /** Bakåtkompatibilitet — ignoreras (vi rasteriserar inte längre SVG). */
+  svgElement?: SVGSVGElement | null;
 }
 
 export async function exportJudgePdf(input: JudgePdfInput) {
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
-  const margin = 12;
+  const margin = PDF_PAGE.margin;
+  const pageW = PDF_PAGE.width;
+  const pageH = PDF_PAGE.height;
 
   const tpl = input.classTemplate
     ? CLASS_TEMPLATES.find((t) => t.key === input.classTemplate)
@@ -81,39 +48,19 @@ export async function exportJudgePdf(input: JudgePdfInput) {
     classTemplate: input.classTemplate, obstacles: input.obstacles,
   });
 
-  /* ─── Header-band ─── */
-  doc.setFillColor(...BRAND.primary);
-  doc.rect(0, 0, pageW, 22, "F");
-  doc.setFillColor(...BRAND.secondary);
-  doc.rect(0, 22, pageW, 1.2, "F");
+  /* ─── SIDA 1 ─────────────────────────────── */
+  drawHeaderBand(doc, {
+    title: input.name || "Bana",
+    subtitle: [
+      input.sport === "agility" ? "Agility" : "Hoopers",
+      tpl?.label,
+      `Storleksklass ${sizeDef.label}`,
+      `${input.arenaWidthM} × ${input.arenaHeightM} m`,
+    ].filter(Boolean).join("  ·  "),
+    badge: input.sport === "agility" ? "AGILITY" : "HOOPERS",
+  });
 
-  doc.setTextColor(255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
-  doc.text(input.name || "Bana", margin, 11);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  const headerLine = [
-    input.sport === "agility" ? "Agility" : "Hoopers",
-    tpl?.label,
-    `Storleksklass ${sizeDef.label}`,
-    `${input.arenaWidthM} × ${input.arenaHeightM} m`,
-  ].filter(Boolean).join("  ·  ");
-  doc.text(headerLine, margin, 17);
-
-  // Sport-badge höger
-  const badgeText = input.sport === "agility" ? "AGILITY" : "HOOPERS";
-  doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(255, 255, 255);
-  const badgeW = doc.getTextWidth(badgeText) + 6;
-  doc.roundedRect(pageW - margin - badgeW, 6, badgeW, 8, 2, 2, "F");
-  doc.setTextColor(...BRAND.primary);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.text(badgeText, pageW - margin - badgeW / 2, 11.5, { align: "center" });
-
-  /* ─── Meta-rutor ─── */
-  doc.setTextColor(0);
+  /* Meta-rutor */
   let y = 30;
   const competingCount = input.obstacles.filter((o) => !["start", "finish", "number"].includes(o.type)).length;
   const cols = [
@@ -126,56 +73,54 @@ export async function exportJudgePdf(input: JudgePdfInput) {
   cols.forEach((c, i) => {
     const x = margin + i * colW;
     doc.setFillColor(249, 248, 246);
-    doc.setDrawColor(...BRAND.line);
+    doc.setDrawColor(...PDF_BRAND.line);
     doc.roundedRect(x, y, colW - 2, 18, 1.8, 1.8, "FD");
     doc.setFontSize(7.5);
-    doc.setTextColor(...BRAND.muted);
+    doc.setTextColor(...PDF_BRAND.muted);
     doc.text(c.label.toUpperCase(), x + 3, y + 5);
     doc.setFontSize(13);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...BRAND.ink);
+    doc.setTextColor(...PDF_BRAND.ink);
     doc.text(c.value, x + 3, y + 11.5);
     if (c.sub) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(6.5);
-      doc.setTextColor(...BRAND.muted);
+      doc.setTextColor(...PDF_BRAND.muted);
       doc.text(c.sub, x + 3, y + 15.5);
     }
     doc.setFont("helvetica", "normal");
   });
   y += 24;
 
-  /* ─── Banbild ─── */
-  if (input.svgElement) {
-    const png = await svgToPngDataUrl(input.svgElement, 1400);
-    if (png) {
-      const imgW = pageW - margin * 2;
-      const ratio = input.arenaHeightM / Math.max(1, input.arenaWidthM);
-      const imgH = Math.min(imgW * ratio, pageH - y - 95);
-      doc.setDrawColor(...BRAND.line);
-      doc.roundedRect(margin - 0.5, y - 0.5, imgW + 1, imgH + 1, 1.5, 1.5);
-      doc.addImage(png, "PNG", margin, y, imgW, imgH, undefined, "FAST");
-      y += imgH + 6;
-    }
-  }
+  /* Banbild (vektor) */
+  const arenaResult = drawArenaVector(doc, {
+    x: margin, y,
+    maxWidth: pageW - margin * 2,
+    maxHeight: pageH - y - 95,
+    arenaWidthM: input.arenaWidthM,
+    arenaHeightM: input.arenaHeightM,
+    obstacles: input.obstacles,
+    grid: true,
+    showPath: true,
+  });
+  y += arenaResult.h + 6;
 
-  /* ─── Hinderordning ─── */
+  /* Hinderlista */
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.setTextColor(...BRAND.ink);
+  doc.setTextColor(...PDF_BRAND.ink);
   doc.text("Hinderordning", margin, y);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-  doc.setTextColor(...BRAND.muted);
+  doc.setTextColor(...PDF_BRAND.muted);
   doc.text(`${competingCount} hinder · sortering enligt nummer`, pageW - margin, y, { align: "right" });
   y += 2.5;
-  doc.setDrawColor(...BRAND.primary);
+  doc.setDrawColor(...PDF_BRAND.primary);
   doc.setLineWidth(0.4);
   doc.line(margin, y, pageW - margin, y);
   doc.setLineWidth(0.2);
   y += 4;
 
-  // Tabellhuvud
   const numbered = input.obstacles
     .filter((o) => o.number != null && !["start", "finish", "number"].includes(o.type))
     .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
@@ -183,7 +128,7 @@ export async function exportJudgePdf(input: JudgePdfInput) {
   const listColW = (pageW - margin * 2) / 2;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7);
-  doc.setTextColor(...BRAND.muted);
+  doc.setTextColor(...PDF_BRAND.muted);
   for (let col = 0; col < 2; col++) {
     const x = margin + col * listColW;
     doc.text("#", x, y);
@@ -192,19 +137,19 @@ export async function exportJudgePdf(input: JudgePdfInput) {
     doc.text("Y", x + 60, y);
     doc.text("ROT", x + 70, y);
   }
-  doc.setDrawColor(...BRAND.line);
+  doc.setDrawColor(...PDF_BRAND.line);
   doc.line(margin, y + 1.5, pageW - margin, y + 1.5);
   y += 4;
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.setTextColor(...BRAND.ink);
+  doc.setTextColor(...PDF_BRAND.ink);
   const rowsPerCol = 14;
   numbered.forEach((ob, idx) => {
     const def = getObstacleDefV2(ob.type as ObstacleTypeV2);
     const col = Math.floor(idx / rowsPerCol);
     const row = idx % rowsPerCol;
-    if (col > 1) return; // max 28 i denna PDF
+    if (col > 1) return;
     const lineY = y + row * 5.2;
     if (lineY > pageH - 22) return;
     const x = margin + col * listColW;
@@ -213,49 +158,158 @@ export async function exportJudgePdf(input: JudgePdfInput) {
       doc.rect(x - 1, lineY - 3.5, listColW - 4, 4.8, "F");
     }
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...BRAND.primary);
+    doc.setTextColor(...PDF_BRAND.primary);
     doc.text(`${ob.number}`, x, lineY);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(...BRAND.ink);
+    doc.setTextColor(...PDF_BRAND.ink);
     doc.text(`${def?.label ?? ob.type}`, x + 8, lineY);
-    doc.setTextColor(...BRAND.muted);
+    doc.setTextColor(...PDF_BRAND.muted);
     doc.text(`${ob.x.toFixed(1)}`, x + 50, lineY);
     doc.text(`${ob.y.toFixed(1)}`, x + 60, lineY);
     doc.text(`${Math.round(ob.rotation)}°`, x + 70, lineY);
-    doc.setTextColor(...BRAND.ink);
+    doc.setTextColor(...PDF_BRAND.ink);
   });
 
-  /* ─── Klass-info / valideringsstatus längst ner ─── */
+  /* Valideringsstatus i botten av sida 1 */
   const errs = issues.filter((i) => i.level === "error").length;
   const warns = issues.filter((i) => i.level === "warning").length;
-  const footerY = pageH - 14;
-
-  // accent-band
-  doc.setDrawColor(...BRAND.line);
-  doc.line(margin, footerY - 4, pageW - margin, footerY - 4);
-
+  const statusY = pageH - 18;
   doc.setFontSize(8);
   if (errs > 0) {
-    doc.setTextColor(190, 60, 60);
-    doc.text(`⚠ ${errs} regelfel · ${warns} varningar`, margin, footerY);
+    doc.setTextColor(...PDF_BRAND.error);
+    doc.text(`⚠ ${errs} regelfel · ${warns} varningar`, margin, statusY);
   } else if (warns > 0) {
-    doc.setTextColor(180, 120, 30);
-    doc.text(`${warns} varningar — banan är godkänd att bygga`, margin, footerY);
+    doc.setTextColor(...PDF_BRAND.warning);
+    doc.text(`${warns} varningar — banan är godkänd att bygga`, margin, statusY);
   } else {
-    doc.setTextColor(...BRAND.primary);
-    doc.text(`✓ Banan uppfyller regelverket`, margin, footerY);
+    doc.setTextColor(...PDF_BRAND.primary);
+    doc.text(`✓ Banan uppfyller regelverket`, margin, statusY);
+  }
+  doc.setTextColor(0);
+
+  /* ─── SIDA 2 — Statistik ─────────────────── */
+  doc.addPage();
+  drawHeaderBand(doc, {
+    title: "Statistik",
+    subtitle: input.name || "Bana",
+    badge: input.sport === "agility" ? "AGILITY" : "HOOPERS",
+  });
+
+  let sy = 32;
+  doc.setTextColor(...PDF_BRAND.ink);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.text("Banlängd & tider", margin, sy);
+  sy += 6;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  const lengthM = computeCourseLength(input.obstacles);
+  doc.text(`Total banlängd (mellan numrerade hinder): ${lengthM.toFixed(1)} m`, margin, sy);
+  sy += 5;
+  doc.text(`Antal numrerade hinder: ${numbered.length}`, margin, sy);
+  sy += 8;
+
+  /* SCT per storleksklass */
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.text("Standard Course Time (SCT) per storleksklass", margin, sy);
+  sy += 6;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+
+  // SCT-tabell — använder mallens refSpeedMs som bas och skalfaktorer per storlek
+  const sctScale: Record<SizeClassKey, number> = { XS: 0.65, S: 0.78, M: 0.9, L: 1.0, XL: 1.0 };
+  const baseSpeed = tpl?.refSpeedMs ?? 3.5;
+  const tableX = margin;
+  const tableY = sy;
+  const colWidths = [22, 36, 36, 36, 36, 36];
+  const headers = ["Klass", "Hastighet (m/s)", "Banlängd (m)", "SCT (s)", "Maxtid (s)", "Status"];
+
+  doc.setFillColor(...PDF_BRAND.primary);
+  doc.rect(tableX, tableY, colWidths.reduce((a, b) => a + b, 0), 6, "F");
+  doc.setTextColor(255);
+  doc.setFont("helvetica", "bold");
+  let cx = tableX + 2;
+  headers.forEach((h, i) => { doc.text(h, cx, tableY + 4); cx += colWidths[i]; });
+
+  let ry = tableY + 6;
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...PDF_BRAND.ink);
+  for (const sc of SIZE_CLASSES) {
+    const speed = baseSpeed * sctScale[sc.key];
+    const sct = lengthM > 0 ? Math.round(lengthM / speed) : null;
+    const maxT = sct != null && tpl ? Math.round(sct * tpl.maxTimeFactor) : null;
+    const isCurrent = sc.key === input.sizeClass;
+    if (isCurrent) {
+      doc.setFillColor(245, 240, 230);
+      doc.rect(tableX, ry, colWidths.reduce((a, b) => a + b, 0), 5.5, "F");
+    }
+    cx = tableX + 2;
+    const cells = [
+      sc.label,
+      speed.toFixed(2),
+      lengthM.toFixed(1),
+      sct != null ? `${sct}` : "—",
+      maxT != null ? `${maxT}` : "—",
+      isCurrent ? "← vald" : "",
+    ];
+    if (isCurrent) doc.setFont("helvetica", "bold");
+    cells.forEach((c, i) => { doc.text(c, cx, ry + 4); cx += colWidths[i]; });
+    if (isCurrent) doc.setFont("helvetica", "normal");
+    ry += 5.5;
+  }
+  sy = ry + 8;
+
+  /* Hinderfördelning — stapeldiagram */
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(...PDF_BRAND.ink);
+  doc.text("Hinderfördelning", margin, sy);
+  sy += 6;
+
+  const dist = computeDistribution(input.obstacles);
+  const maxCount = Math.max(1, ...Object.values(dist));
+  const barAreaW = pageW - margin * 2 - 50;
+  const rowH = 7;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  let by = sy;
+  for (const [cat, count] of Object.entries(dist)) {
+    if (count === 0) continue;
+    if (by > pageH - 30) break;
+    doc.setTextColor(...PDF_BRAND.ink);
+    doc.text(cat, margin, by + 4.5);
+    const barW = (count / maxCount) * barAreaW;
+    doc.setFillColor(...PDF_BRAND.primary);
+    doc.rect(margin + 38, by, barW, rowH - 1.5, "F");
+    doc.setTextColor(255);
+    doc.setFont("helvetica", "bold");
+    if (barW > 8) doc.text(String(count), margin + 38 + barW - 4, by + 4, { align: "right" });
+    else {
+      doc.setTextColor(...PDF_BRAND.ink);
+      doc.text(String(count), margin + 38 + barW + 2, by + 4);
+    }
+    doc.setFont("helvetica", "normal");
+    by += rowH;
   }
 
-  doc.setTextColor(...BRAND.muted);
-  doc.text(
-    `${new Date().toLocaleString("sv-SE")} · agilitymanager.lovable.app`,
-    pageW - margin, footerY, { align: "right" },
-  );
+  /* Footer på alla sidor */
+  drawFooterAllPages(doc, { authorName: input.authorName ?? "" });
 
-  // Sidfot - varumärkesrad
-  doc.setFillColor(...BRAND.primary);
-  doc.rect(0, pageH - 4, pageW, 4, "F");
+  doc.save(`${safeFileName(input.name)}_domarbana.pdf`);
+}
 
-  const safeName = (input.name || "bana").replace(/[^a-z0-9åäö_-]+/gi, "_");
-  doc.save(`${safeName}_domarbana.pdf`);
+function computeDistribution(obstacles: ObstacleLite[]): Record<string, number> {
+  const out: Record<string, number> = {
+    "Hopphinder": 0, "Tunnlar": 0, "Slalom": 0, "Balans": 0,
+    "Bord": 0, "Hoopers": 0, "Bankontroll": 0, "Områden": 0,
+  };
+  for (const ob of obstacles) {
+    const def = getObstacleDefV2(ob.type as ObstacleTypeV2);
+    if (!def) continue;
+    out[def.category] = (out[def.category] ?? 0) + 1;
+  }
+  return out;
 }

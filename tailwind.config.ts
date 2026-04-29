@@ -192,6 +192,9 @@ export default {
         md: "var(--radius-button)",
         sm: "var(--radius-sm)",
         pill: "var(--radius-pill)",
+        // Brand foundation: full pill (9999px). Befintlig `pill` (≈40px) lämnas orörd
+        // för att inte ändra utseendet på befintliga komponenter.
+        "pill-full": "9999px",
         "ds-sm": "var(--r-sm)",
         "ds-md": "var(--r-md)",
         "ds-lg": "var(--r-lg)",

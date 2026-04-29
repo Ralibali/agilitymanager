@@ -541,6 +541,18 @@ export function V3FindCompetitions({ preferredSport }: Props) {
 
   return (
     <div className="space-y-4">
+      {/* Datakälla & ansvarsfriskrivning — synligt i alla vyer (in/utloggad) */}
+      <div className="flex items-start gap-2 rounded-v3-base border border-v3-canvas-sunken/60 bg-v3-canvas-sunken/30 px-3 py-2 text-[11px] leading-relaxed text-v3-text-secondary">
+        <Info size={13} strokeWidth={1.8} className="mt-0.5 shrink-0 text-v3-text-tertiary" aria-hidden="true" />
+        <p className="min-w-0">
+          <span className="font-medium text-v3-text-primary">Datakälla:</span> Tävlingsinformationen scrapas automatiskt från publika källor —{" "}
+          <a href="https://agilitydata.se" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline text-v3-brand-500">agilitydata.se</a>{" "}
+          (SAgiK/AGIDA) och{" "}
+          <a href="https://shok.se" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline text-v3-brand-500">SHoK</a>.{" "}
+          AgilityManager.se ansvarar inte för innehållet, har inget samarbete med och är inte godkänd av dessa organisationer. Verifiera alltid hos arrangören innan anmälan.
+        </p>
+      </div>
+
       {/* View-toggle: 4 flikar */}
       <div className="flex items-center gap-1.5 p-1 rounded-v3-base bg-v3-canvas-sunken/40 w-fit flex-wrap">
         {(

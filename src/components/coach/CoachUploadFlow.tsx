@@ -26,13 +26,14 @@ export const COACH_PACKS: {
 const MAX_BYTES = 20 * 1024 * 1024; // 20 MB
 const ALLOWED_TYPES = ["video/mp4", "video/quicktime", "video/webm", "video/x-m4v"];
 type Sport = "agility" | "hoopers" | "freestyle";
+type PrivacyMode = "private" | "private_no_export";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialPack?: CoachPackId;
-  /** Förifyll formuläret efter Stripe-återkomst (sport + fråga). */
-  prefill?: { pack?: CoachPackId; sport?: Sport; question?: string };
+  /** Förifyll formuläret efter Stripe-återkomst (sport + fråga + sekretess). */
+  prefill?: { pack?: CoachPackId; sport?: Sport; question?: string; privacyMode?: PrivacyMode };
   /** Starta direkt på ett visst steg (t.ex. 2 efter Stripe-redirect). */
   initialStep?: Step;
 }

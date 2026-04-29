@@ -201,6 +201,7 @@ export default function V3CompetitionsPage() {
 }
 
 function UpcomingList({ loading, items, onAdd, onReload }: { loading: boolean; items: PlannedCompetition[]; onAdd: () => void; onReload: () => Promise<void> }) {
+  const [reminderTarget, setReminderTarget] = useState<PlannedCompetition | null>(null);
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from("planned_competitions").delete().eq("id", id);
     if (error) { toast.error("Kunde inte ta bort"); return; }
@@ -209,7 +210,37 @@ function UpcomingList({ loading, items, onAdd, onReload }: { loading: boolean; i
   };
   if (loading) return <div className="space-y-2">{[0, 1, 2].map((i) => <div key={i} className="h-24 rounded-v3-lg v3-skeleton" />)}</div>;
   if (items.length === 0) return <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-8 text-center shadow-v3-xs"><div className="mx-auto h-12 w-12 rounded-full bg-v3-brand-500/10 grid place-items-center mb-4"><Calendar size={20} strokeWidth={1.6} className="text-v3-brand-500" /></div><h3 className="font-v3-display text-v3-2xl text-v3-text-primary">Inga planerade tävlingar</h3><p className="text-v3-base text-v3-text-secondary mt-2 max-w-sm mx-auto">Lägg till din nästa start så får du påminnelser inför anmälan och tävlingsdagen.</p><button type="button" onClick={onAdd} className="mt-5 inline-flex items-center gap-2 h-11 px-5 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600 transition-colors shadow-v3-sm"><Plus size={16} strokeWidth={2} /> Planera tävling</button></div>;
-  return <ol className="space-y-2">{items.map((p) => { const days = daysUntil(p.date); return <li key={p.id} className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/25 hover:shadow-v3-xs transition-all group"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-v3-base text-v3-text-primary truncate">{p.event_name}</div><div className="flex flex-wrap items-center gap-3 mt-2 text-v3-xs text-v3-text-tertiary"><span className="inline-flex items-center gap-1 tabular-nums"><Calendar size={11} strokeWidth={1.8} />{formatDate(p.date)}</span>{p.location && <span className="inline-flex items-center gap-1 truncate"><MapPin size={11} strokeWidth={1.8} />{p.location}</span>}{days !== null && days >= 0 && <span className="text-v3-brand-700 font-medium tabular-nums">{days === 0 ? "Idag" : days === 1 ? "Imorgon" : `om ${days} d`}</span>}</div></div><div className="flex items-center gap-1 shrink-0">{p.signup_url && <a href={p.signup_url} target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-full grid place-items-center text-v3-text-tertiary hover:text-v3-text-primary hover:bg-v3-canvas-sunken transition-colors" aria-label="Öppna anmälan"><ExternalLink size={13} strokeWidth={1.8} /></a>}<button type="button" onClick={() => handleDelete(p.id)} className="h-9 w-9 rounded-full grid place-items-center text-v3-text-tertiary hover:text-coral hover:bg-coral/10 transition-colors opacity-0 group-hover:opacity-100" aria-label="Ta bort"><Trash2 size={13} strokeWidth={1.8} /></button></div></div></li>; })}</ol>;
+  return (
+    <>
+      <ol className="space-y-2">{items.map((p) => { const days = daysUntil(p.date); return (
+        <li key={p.id} className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-brand-500/25 hover:shadow-v3-xs transition-all group">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-v3-base text-v3-text-primary truncate">{p.event_name}</div>
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-v3-xs text-v3-text-tertiary">
+                <span className="inline-flex items-center gap-1 tabular-nums"><Calendar size={11} strokeWidth={1.8} />{formatDate(p.date)}</span>
+                {p.location && <span className="inline-flex items-center gap-1 truncate"><MapPin size={11} strokeWidth={1.8} />{p.location}</span>}
+                {days !== null && days >= 0 && <span className="text-v3-brand-700 font-medium tabular-nums">{days === 0 ? "Idag" : days === 1 ? "Imorgon" : `om ${days} d`}</span>}
+              </div>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <button type="button" onClick={() => setReminderTarget(p)} className="h-9 w-9 rounded-full grid place-items-center text-v3-text-tertiary hover:text-v3-brand-700 hover:bg-v3-brand-500/10 transition-colors" aria-label="Påminnelser">
+                <Bell size={13} strokeWidth={1.8} />
+              </button>
+              {p.signup_url && <a href={p.signup_url} target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-full grid place-items-center text-v3-text-tertiary hover:text-v3-text-primary hover:bg-v3-canvas-sunken transition-colors" aria-label="Öppna anmälan"><ExternalLink size={13} strokeWidth={1.8} /></a>}
+              <button type="button" onClick={() => handleDelete(p.id)} className="h-9 w-9 rounded-full grid place-items-center text-v3-text-tertiary hover:text-coral hover:bg-coral/10 transition-colors opacity-0 group-hover:opacity-100" aria-label="Ta bort"><Trash2 size={13} strokeWidth={1.8} /></button>
+            </div>
+          </div>
+        </li>
+      ); })}</ol>
+      <CompetitionRemindersDialog
+        open={!!reminderTarget}
+        onClose={() => setReminderTarget(null)}
+        planned={reminderTarget ? { id: reminderTarget.id, user_id: reminderTarget.user_id, event_name: reminderTarget.event_name, date: reminderTarget.date, location: reminderTarget.location ?? null, signup_url: reminderTarget.signup_url ?? null } : null}
+        onChanged={onReload}
+      />
+    </>
+  );
 }
 
 function ResultsList({ loading, items, onAdd, onReload, isHoopers, onImport }: { loading: boolean; items: CompetitionResult[]; onAdd: () => void; onReload: () => Promise<void>; isHoopers: boolean; onImport: () => void }) {

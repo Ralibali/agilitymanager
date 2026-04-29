@@ -797,6 +797,7 @@ export default function V3CoursePlannerV2Page() {
               onRotate={(deg) => rotateObstacle(selected.id, deg)}
               onDelete={() => deleteObstacle(selected.id)}
               onNumberChange={(n) => setObstacleNumber(selected.id, n)}
+              onTunnelCurve={(p) => setTunnelCurve(selected.id, p)}
             />
           ) : (
             <SummaryPanel course={course} />

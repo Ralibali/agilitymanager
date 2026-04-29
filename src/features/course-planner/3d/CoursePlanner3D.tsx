@@ -199,8 +199,19 @@ export default function CoursePlanner3D(props: CoursePlanner3DProps) {
             const handleSelect = numIdx >= 0
               ? () => { setCurrentIdx(numIdx); setMode("walk"); }
               : undefined;
+            const isNext = mode === "walk" && numIdx >= 0 && numIdx === currentIdx;
             return (
-              <Obstacle3D key={o.id} type={o.type} x={o._x} z={o._z} rotationDeg={o.rotation} number={o.number} color={o.color} onSelect={handleSelect} />
+              <Obstacle3D
+                key={o.id}
+                type={o.type}
+                x={o._x}
+                z={o._z}
+                rotationDeg={o.rotation}
+                number={o.number}
+                color={o.color}
+                onSelect={handleSelect}
+                highlight={isNext}
+              />
             );
           })}
           <PathLine3D paths={paths} widthMeters={widthMeters} heightMeters={heightMeters} />

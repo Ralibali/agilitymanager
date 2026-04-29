@@ -28,45 +28,43 @@ function makeTurfTexture(widthMeters: number, heightMeters: number) {
   const ctx = c.getContext("2d")!;
 
   const grad = ctx.createRadialGradient(384, 384, 80, 384, 384, 520);
-  grad.addColorStop(0, "#76b85c");
-  grad.addColorStop(0.48, "#5fa34b");
-  grad.addColorStop(1, "#3f7334");
+  grad.addColorStop(0, "#72b75c");
+  grad.addColorStop(0.55, "#5ca348");
+  grad.addColorStop(1, "#3f7634");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 768, 768);
 
-  // Subtle lengthwise mowing bands, not a hard checkerboard.
-  for (let x = 0; x < 768; x += 96) {
-    ctx.fillStyle = x % 192 === 0 ? "rgba(255,255,255,0.035)" : "rgba(0,0,0,0.025)";
-    ctx.fillRect(x, 0, 96, 768);
+  // Väldigt mjuka klipp-/fiberriktningar. Inga hårda schackrutor.
+  for (let x = 0; x < 768; x += 128) {
+    ctx.fillStyle = x % 256 === 0 ? "rgba(255,255,255,0.018)" : "rgba(0,0,0,0.014)";
+    ctx.fillRect(x, 0, 128, 768);
   }
 
-  // Turf fibers.
   for (let i = 0; i < 22000; i++) {
     const x = Math.random() * 768;
     const y = Math.random() * 768;
-    const r = 76 + Math.random() * 92;
-    const g = 130 + Math.random() * 88;
-    const b = 55 + Math.random() * 58;
-    const alpha = 0.16 + Math.random() * 0.32;
+    const r = 72 + Math.random() * 88;
+    const g = 126 + Math.random() * 88;
+    const b = 54 + Math.random() * 56;
+    const alpha = 0.14 + Math.random() * 0.25;
     ctx.strokeStyle = `rgba(${r | 0},${g | 0},${b | 0},${alpha})`;
-    ctx.lineWidth = Math.random() < 0.93 ? 1 : 1.4;
+    ctx.lineWidth = Math.random() < 0.94 ? 1 : 1.3;
     ctx.beginPath();
     ctx.moveTo(x, y);
-    ctx.lineTo(x + (Math.random() - 0.5) * 1.2, y - 1 - Math.random() * 2.4);
+    ctx.lineTo(x + (Math.random() - 0.5) * 1.2, y - 1 - Math.random() * 2.2);
     ctx.stroke();
   }
 
-  // Tiny infill/dirt details.
-  for (let i = 0; i < 1500; i++) {
+  for (let i = 0; i < 1300; i++) {
     const x = Math.random() * 768;
     const y = Math.random() * 768;
-    ctx.fillStyle = `rgba(45,34,24,${0.018 + Math.random() * 0.035})`;
+    ctx.fillStyle = `rgba(45,34,24,${0.014 + Math.random() * 0.025})`;
     ctx.fillRect(x, y, 1, 1);
   }
 
   const tex = new THREE.CanvasTexture(c);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(Math.max(2, widthMeters / 3.2), Math.max(2, heightMeters / 3.2));
+  tex.repeat.set(Math.max(2, widthMeters / 3.6), Math.max(2, heightMeters / 3.6));
   tex.anisotropy = 8;
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
@@ -74,10 +72,10 @@ function makeTurfTexture(widthMeters: number, heightMeters: number) {
 
 function WallBanner({ text, sub, position, rotation, width, accent = "green" }: WallAd) {
   const accentColor = accent === "navy" ? NAVY : accent === "orange" ? ORANGE : BRAND_GREEN;
-  const height = 1.08;
+  const height = 1.12;
   return (
     <group position={position} rotation={rotation}>
-      <mesh position={[0, 0, 0]} renderOrder={2} castShadow receiveShadow>
+      <mesh position={[0, 0, 0]} renderOrder={2} receiveShadow>
         <boxGeometry args={[width, height, 0.06]} />
         <meshStandardMaterial color="#fffaf0" roughness={0.58} metalness={0.02} />
       </mesh>
@@ -91,7 +89,7 @@ function WallBanner({ text, sub, position, rotation, width, accent = "green" }: 
       </mesh>
       <Text
         position={[0.14, 0.16, 0.07]}
-        fontSize={Math.min(0.32, width / 11)}
+        fontSize={Math.min(0.34, width / 10.5)}
         color="#102d22"
         anchorX="center"
         anchorY="middle"
@@ -105,8 +103,8 @@ function WallBanner({ text, sub, position, rotation, width, accent = "green" }: 
       </Text>
       {sub && (
         <Text
-          position={[0.14, -0.22, 0.07]}
-          fontSize={Math.min(0.145, width / 21)}
+          position={[0.14, -0.23, 0.07]}
+          fontSize={Math.min(0.15, width / 20)}
           color="#526059"
           anchorX="center"
           anchorY="middle"
@@ -123,7 +121,7 @@ function WallBanner({ text, sub, position, rotation, width, accent = "green" }: 
 
 function DimensionLabel({ text, position, rotation }: { text: string; position: [number, number, number]; rotation: [number, number, number] }) {
   return (
-    <Text position={position} rotation={rotation} fontSize={0.34} color="#ffffff" anchorX="center" anchorY="middle" outlineWidth={0.028} outlineColor="#31542b">
+    <Text position={position} rotation={rotation} fontSize={0.32} color="#ffffff" anchorX="center" anchorY="middle" outlineWidth={0.028} outlineColor="#31542b">
       {text}
     </Text>
   );
@@ -140,12 +138,12 @@ function WallPanelLines({ widthMeters, heightMeters, wallHeight }: { widthMeters
         return (
           <group key={`long-${i}`}>
             <mesh position={[x, wallHeight / 2, -heightMeters / 2 - 0.123]}>
-              <boxGeometry args={[0.025, wallHeight - 0.55, 0.018]} />
-              <meshBasicMaterial color={lineColor} transparent opacity={0.65} />
+              <boxGeometry args={[0.022, wallHeight - 0.55, 0.018]} />
+              <meshBasicMaterial color={lineColor} transparent opacity={0.52} />
             </mesh>
             <mesh position={[x, wallHeight / 2, heightMeters / 2 + 0.123]}>
-              <boxGeometry args={[0.025, wallHeight - 0.55, 0.018]} />
-              <meshBasicMaterial color={lineColor} transparent opacity={0.65} />
+              <boxGeometry args={[0.022, wallHeight - 0.55, 0.018]} />
+              <meshBasicMaterial color={lineColor} transparent opacity={0.52} />
             </mesh>
           </group>
         );
@@ -155,12 +153,12 @@ function WallPanelLines({ widthMeters, heightMeters, wallHeight }: { widthMeters
         return (
           <group key={`short-${i}`}>
             <mesh position={[-widthMeters / 2 - 0.123, wallHeight / 2, z]}>
-              <boxGeometry args={[0.018, wallHeight - 0.55, 0.025]} />
-              <meshBasicMaterial color={lineColor} transparent opacity={0.65} />
+              <boxGeometry args={[0.018, wallHeight - 0.55, 0.022]} />
+              <meshBasicMaterial color={lineColor} transparent opacity={0.52} />
             </mesh>
             <mesh position={[widthMeters / 2 + 0.123, wallHeight / 2, z]}>
-              <boxGeometry args={[0.018, wallHeight - 0.55, 0.025]} />
-              <meshBasicMaterial color={lineColor} transparent opacity={0.65} />
+              <boxGeometry args={[0.018, wallHeight - 0.55, 0.022]} />
+              <meshBasicMaterial color={lineColor} transparent opacity={0.52} />
             </mesh>
           </group>
         );
@@ -169,7 +167,7 @@ function WallPanelLines({ widthMeters, heightMeters, wallHeight }: { widthMeters
   );
 }
 
-export function Arena3D({ widthMeters, heightMeters, wallHeight = 4.15, showGrid = true }: Props) {
+export function Arena3D({ widthMeters, heightMeters, wallHeight = 4.45, showGrid = true }: Props) {
   const turfTexture = useMemo(() => makeTurfTexture(widthMeters, heightMeters), [widthMeters, heightMeters]);
   const perimeterPoints = useMemo(() => {
     const w = widthMeters / 2;
@@ -183,9 +181,9 @@ export function Arena3D({ widthMeters, heightMeters, wallHeight = 4.15, showGrid
   }, [widthMeters, heightMeters]);
 
   const ads = useMemo<WallAd[]>(() => {
-    const longAdW = Math.min(9.2, Math.max(5.8, widthMeters / 3.55));
-    const shortAdW = Math.min(6.4, Math.max(4.3, heightMeters / 4.7));
-    const y = 2.08;
+    const longAdW = Math.min(9.6, Math.max(6.1, widthMeters / 3.45));
+    const shortAdW = Math.min(6.7, Math.max(4.6, heightMeters / 4.55));
+    const y = 2.25;
     const frontZ = -heightMeters / 2 - 0.142;
     const backZ = heightMeters / 2 + 0.142;
     const leftX = -widthMeters / 2 - 0.142;
@@ -207,19 +205,22 @@ export function Arena3D({ widthMeters, heightMeters, wallHeight = 4.15, showGrid
   const roofLongBeams = useMemo(() => [-widthMeters * 0.33, 0, widthMeters * 0.33], [widthMeters]);
   const lightRows = useMemo(() => [-widthMeters * 0.26, widthMeters * 0.26], [widthMeters]);
 
+  const roofY = wallHeight + 1.15;
+  const lightY = wallHeight + 0.94;
+
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[widthMeters, heightMeters]} />
-        <meshStandardMaterial map={turfTexture} roughness={0.88} metalness={0} color="#ffffff" />
+        <meshStandardMaterial map={turfTexture} roughness={0.9} metalness={0} color="#ffffff" />
       </mesh>
 
       {showGrid && (
         <gridHelper
-          args={[Math.max(widthMeters, heightMeters) * 1.03, Math.max(widthMeters, heightMeters), "#ffffff", "#d9edcf"]}
+          args={[Math.max(widthMeters, heightMeters) * 1.03, Math.max(widthMeters, heightMeters), "#ffffff", "#e4f0dc"]}
           position={[0, 0.031, 0]}
         >
-          <meshBasicMaterial transparent opacity={0.12} depthWrite={false} />
+          <meshBasicMaterial transparent opacity={0.07} depthWrite={false} />
         </gridHelper>
       )}
 
@@ -227,7 +228,7 @@ export function Arena3D({ widthMeters, heightMeters, wallHeight = 4.15, showGrid
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[perimeterPoints, 3]} />
         </bufferGeometry>
-        <lineBasicMaterial color="#ffffff" transparent opacity={0.88} />
+        <lineBasicMaterial color="#ffffff" transparent opacity={0.76} />
       </lineSegments>
 
       <DimensionLabel text={`${widthMeters} m`} position={[0, 0.07, -heightMeters / 2 + 0.75]} rotation={[-Math.PI / 2, 0, 0]} />
@@ -244,11 +245,11 @@ export function Arena3D({ widthMeters, heightMeters, wallHeight = 4.15, showGrid
             <boxGeometry args={wall.size} />
             <meshStandardMaterial color={i < 2 ? WALL : WALL_PANEL} roughness={0.76} metalness={0} />
           </mesh>
-          <mesh position={[wall.pos[0], 0.24, wall.pos[2]]} receiveShadow>
-            <boxGeometry args={[wall.size[0] + 0.03, 0.48, wall.size[2] + 0.03]} />
+          <mesh position={[wall.pos[0], 0.25, wall.pos[2]]} receiveShadow>
+            <boxGeometry args={[wall.size[0] + 0.03, 0.5, wall.size[2] + 0.03]} />
             <meshStandardMaterial color={WALL_TRIM} roughness={0.9} />
           </mesh>
-          <mesh position={[wall.pos[0], wallHeight - 0.06, wall.pos[2]]} castShadow>
+          <mesh position={[wall.pos[0], wallHeight - 0.06, wall.pos[2]]}>
             <boxGeometry args={[wall.size[0] + 0.05, 0.12, wall.size[2] + 0.05]} />
             <meshStandardMaterial color="#d2cbbf" roughness={0.7} />
           </mesh>
@@ -258,34 +259,34 @@ export function Arena3D({ widthMeters, heightMeters, wallHeight = 4.15, showGrid
       <WallPanelLines widthMeters={widthMeters} heightMeters={heightMeters} wallHeight={wallHeight} />
       {ads.map((ad) => <WallBanner key={`${ad.text}-${ad.position.join("-")}`} {...ad} />)}
 
-      {/* Open roof structure: enough to read as an indoor hall, without making the scene dark. */}
+      {/* Roof details are intentionally high and light so they read as a hall roof, not obstacles on the course. */}
       {roofBeams.map((z) => (
-        <mesh key={z} position={[0, wallHeight + 0.62, z]} castShadow receiveShadow>
-          <boxGeometry args={[widthMeters + 1.6, 0.12, 0.18]} />
-          <meshStandardMaterial color={ROOF} roughness={0.66} />
+        <mesh key={z} position={[0, roofY, z]}>
+          <boxGeometry args={[widthMeters + 1.6, 0.055, 0.085]} />
+          <meshStandardMaterial color={ROOF} roughness={0.72} transparent opacity={0.72} />
         </mesh>
       ))}
       {roofLongBeams.map((x) => (
-        <mesh key={x} position={[x, wallHeight + 0.5, 0]} castShadow receiveShadow>
-          <boxGeometry args={[0.16, 0.12, heightMeters + 1.3]} />
-          <meshStandardMaterial color="#d8d2c6" roughness={0.7} />
+        <mesh key={x} position={[x, roofY - 0.12, 0]}>
+          <boxGeometry args={[0.075, 0.055, heightMeters + 1.3]} />
+          <meshStandardMaterial color="#d8d2c6" roughness={0.72} transparent opacity={0.62} />
         </mesh>
       ))}
       {lightRows.map((x) => (
-        <group key={x} position={[x, wallHeight + 0.44, 0]}>
+        <group key={x} position={[x, lightY, 0]}>
           <mesh>
-            <boxGeometry args={[0.32, 0.055, heightMeters * 0.84]} />
-            <meshBasicMaterial color="#fff8dc" transparent opacity={0.92} />
+            <boxGeometry args={[0.18, 0.035, heightMeters * 0.76]} />
+            <meshBasicMaterial color="#fff8dc" transparent opacity={0.58} />
           </mesh>
-          <pointLight intensity={0.68} distance={Math.max(widthMeters, heightMeters) * 0.78} color="#fff6dc" />
+          <pointLight intensity={0.48} distance={Math.max(widthMeters, heightMeters) * 0.72} color="#fff6dc" />
         </group>
       ))}
 
-      <ambientLight intensity={1.12} />
-      <hemisphereLight args={["#fff6e7", TURF_DARK, 1.18]} />
-      <directionalLight position={[widthMeters / 2, wallHeight + 7, heightMeters / 2]} intensity={1.08} color="#fff2d6" castShadow />
-      <directionalLight position={[-widthMeters / 2, wallHeight + 5, -heightMeters / 2]} intensity={0.68} color="#eef5ff" />
-      <pointLight position={[0, wallHeight + 2.4, 0]} intensity={0.72} distance={Math.max(widthMeters, heightMeters) * 1.6} color="#ffffff" />
+      <ambientLight intensity={1.2} />
+      <hemisphereLight args={["#fff6e7", TURF_DARK, 1.2]} />
+      <directionalLight position={[widthMeters / 2, wallHeight + 8, heightMeters / 2]} intensity={0.72} color="#fff2d6" castShadow />
+      <directionalLight position={[-widthMeters / 2, wallHeight + 6, -heightMeters / 2]} intensity={0.48} color="#eef5ff" />
+      <pointLight position={[0, wallHeight + 2.8, 0]} intensity={0.62} distance={Math.max(widthMeters, heightMeters) * 1.6} color="#ffffff" />
     </group>
   );
 }

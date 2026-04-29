@@ -141,7 +141,8 @@ const App = () => (
                   <Route path="courses" element={<V3CoursesPage />} />
                   <Route path="coach" element={<V3CoachPage />} />
                   <Route path="coach/status" element={<V3CoachStatusPage />} />
-                  <Route path="course-planner" element={<V3CoursePlannerPage />} />
+                  <Route path="course-planner" element={<Navigate to="/v3/course-planner-v2" replace />} />
+                  <Route path="course-planner-legacy" element={<V3CoursePlannerPage />} />
                   <Route path="course-planner-v2" element={<V3CoursePlannerV2Page />} />
                   <Route path="stopwatch" element={<V3StopwatchPage />} />
                   <Route path="friends" element={<V3FriendsPage />} />
@@ -155,8 +156,8 @@ const App = () => (
                 <Route path="/dashboard" element={<Navigate to="/v3" replace />} />
                 <Route path="/stats" element={<Navigate to="/v3/stats" replace />} />
                 <Route path="/training" element={<Navigate to="/v3/training" replace />} />
-                <Route path="/course-planner" element={<Navigate to="/v3/course-planner" replace />} />
-                <Route path="/course-planner-beta" element={<Navigate to="/v3/course-planner" replace />} />
+                <Route path="/course-planner" element={<Navigate to="/v3/course-planner-v2" replace />} />
+                <Route path="/course-planner-beta" element={<Navigate to="/v3/course-planner-v2" replace />} />
                 <Route path="/stopwatch" element={<Navigate to="/v3/stopwatch" replace />} />
                 <Route path="/goals" element={<Navigate to="/v3/goals" replace />} />
                 <Route path="/app/competition" element={<Navigate to="/v3/competition" replace />} />
@@ -177,7 +178,7 @@ const App = () => (
                 <Route path="/v2" element={<Navigate to="/v3" replace />} />
                 <Route path="/v2/stats" element={<Navigate to="/v3/stats" replace />} />
                 <Route path="/v2/training" element={<Navigate to="/v3/training" replace />} />
-                <Route path="/v2/course-planner" element={<Navigate to="/v3/course-planner" replace />} />
+                <Route path="/v2/course-planner" element={<Navigate to="/v3/course-planner-v2" replace />} />
                 <Route path="/v2/stopwatch" element={<Navigate to="/v3/stopwatch" replace />} />
                 <Route path="/v2/goals" element={<Navigate to="/v3/goals" replace />} />
                 <Route path="/v2/competition" element={<Navigate to="/v3/competition" replace />} />

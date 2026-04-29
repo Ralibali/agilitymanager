@@ -263,6 +263,66 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
     }
   }
 
+  // 5b) SHoK-specifika regler för hoopers
+  if (course.sport === "hoopers") {
+    const hasZone = course.obstacles.some((o) => o.type === "handler_zone");
+    if (competing.length > 0 && !hasZone) {
+      issues.push({
+        level: "warning",
+        code: "missing_handler_zone",
+        message: "Hoopers-bana saknar dirigeringsområde (förarens zon)",
+      });
+    }
+
+    // Min-avstånd mellan på varandra följande hoopers-hinder (SHoK ≥ 3 m)
+    const HOOPERS_MIN_M = 3.0;
+    for (let i = 0; i < competing.length; i++) {
+      for (let j = i + 1; j < competing.length; j++) {
+        const a = competing[i], b = competing[j];
+        if (a.number == null || b.number == null) continue;
+        if (Math.abs(a.number - b.number) !== 1) continue;
+        const d = dist(a, b);
+        if (d < HOOPERS_MIN_M) {
+          issues.push({
+            level: "error",
+            code: "hoopers_too_close",
+            message: `Hinder ${a.number}→${b.number}: ${d.toFixed(1)} m < ${HOOPERS_MIN_M} m (SHoK min-avstånd)`,
+            obstacleId: b.id,
+          });
+        }
+      }
+    }
+
+    // Inga agilityhinder i hoopers
+    for (const ob of course.obstacles) {
+      if (CONTACT_TYPES.includes(ob.type) || ob.type === "table" || ob.type === "weave_8" || ob.type === "weave_10" || ob.type === "weave_12" || ob.type === "jump" || ob.type === "wall" || ob.type === "longjump" || ob.type === "tire" || ob.type === "combo") {
+        const def = getObstacleDefV2(ob.type);
+        issues.push({
+          level: "error",
+          code: "agility_obstacle_in_hoopers",
+          message: `${def?.label ?? ob.type} används inte i hoopers`,
+          obstacleId: ob.id,
+        });
+      }
+    }
+
+    // Föraren får inte komma för nära hindren från sin zon (SHoK ≥ 3 m till närmsta hinder)
+    const zone = course.obstacles.find((o) => o.type === "handler_zone");
+    if (zone) {
+      for (const ob of competing) {
+        const d = dist(zone, ob);
+        if (d < 3) {
+          issues.push({
+            level: "warning",
+            code: "handler_too_close",
+            message: `Hinder ${ob.number ?? "?"} ligger ${d.toFixed(1)} m från dirigeringsområdet (SHoK ≥ 3 m)`,
+            obstacleId: ob.id,
+          });
+        }
+      }
+    }
+  }
+
   // 6) Hinder utanför banytan
   for (const ob of course.obstacles) {
     if (ob.x < 0.2 || ob.x > course.arenaWidthM - 0.2 || ob.y < 0.2 || ob.y > course.arenaHeightM - 0.2) {

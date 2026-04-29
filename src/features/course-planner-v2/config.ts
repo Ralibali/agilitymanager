@@ -183,9 +183,26 @@ export function getTemplatesBySport(sport: Sport): ClassTemplate[] {
    Bana-storlekar (snabbval)
    ───────────────────────────────────────────────────────── */
 
-export const ARENA_PRESETS = [
-  { label: "15 × 30 m", width: 15, height: 30 },
-  { label: "25 × 30 m", width: 25, height: 30 },
-  { label: "30 × 40 m", width: 30, height: 40 },
-  { label: "40 × 30 m", width: 40, height: 30 },
+/* ─────────────────────────────────────────────────────────
+   Bana-storlekar (snabbval) — sport-specifikt
+   ───────────────────────────────────────────────────────── */
+
+export interface ArenaPreset { label: string; width: number; height: number; sport: Sport[] }
+
+export const ARENA_PRESETS: ArenaPreset[] = [
+  // Agility (SAgiK rekommenderar ~30×40 m)
+  { label: "20 × 30 m", width: 20, height: 30, sport: ["agility"] },
+  { label: "25 × 30 m", width: 25, height: 30, sport: ["agility"] },
+  { label: "30 × 40 m", width: 30, height: 40, sport: ["agility"] },
+  { label: "40 × 30 m", width: 40, height: 30, sport: ["agility"] },
+  // Hoopers (SHoK: typiskt 25–35 m, kvadratiskt)
+  { label: "20 × 20 m", width: 20, height: 20, sport: ["hoopers"] },
+  { label: "25 × 25 m", width: 25, height: 25, sport: ["hoopers"] },
+  { label: "30 × 30 m", width: 30, height: 30, sport: ["hoopers"] },
+  { label: "35 × 35 m", width: 35, height: 35, sport: ["hoopers"] },
 ];
+
+export function getArenaPresetsBySport(sport: Sport): ArenaPreset[] {
+  return ARENA_PRESETS.filter((p) => p.sport.includes(sport));
+}
+

@@ -10,9 +10,12 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { V3Layout } from "@/components/v3/V3Layout";
 import { ScrollToTop } from "@/components/motion/ScrollToTop";
 import { captureUtmParams } from "@/lib/utm";
+import { initAnalyticsLoader } from "@/lib/analyticsLoader";
 
 // Capture UTM params on first load
 captureUtmParams();
+// Starta consent-styrd loader (laddar/avlastar Plausible & Meta Pixel utifrån cookie-val)
+initAnalyticsLoader();
 
 // Eager: landing + auth (first paint)
 import LandingPage from "./pages/LandingPage";

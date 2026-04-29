@@ -193,3 +193,94 @@ export default function CoachFeedbackTab() {
     </div>
   );
 }
+
+interface ThreadMsg {
+  id: string;
+  feedback_id: string;
+  sender: 'user' | 'coach';
+  content: string;
+  created_at: string;
+}
+
+function AdminFollowupThread({ feedbackId }: { feedbackId: string }) {
+  const queryClient = useQueryClient();
+  const [reply, setReply] = useState('');
+
+  const { data: messages = [], isLoading } = useQuery({
+    queryKey: ['admin-coach-thread', feedbackId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('coach_feedback_messages' as any)
+        .select('*')
+        .eq('feedback_id', feedbackId)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as unknown as ThreadMsg[];
+    },
+  });
+
+  const sendCoachReply = useMutation({
+    mutationFn: async (content: string) => {
+      const { error } = await supabase
+        .from('coach_feedback_messages' as any)
+        .insert({ feedback_id: feedbackId, sender: 'coach', content } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-coach-thread', feedbackId] });
+      setReply('');
+      toast.success('Följdsvar skickat');
+    },
+    onError: (e: any) => toast.error(e.message || 'Kunde inte skicka svar'),
+  });
+
+  const userFollowup = messages.find(m => m.sender === 'user');
+  const coachFollowup = messages.find(m => m.sender === 'coach');
+
+  if (isLoading) return null;
+  if (!userFollowup && !coachFollowup) {
+    return (
+      <p className="text-xs text-muted-foreground italic">Ingen följdfråga från användaren än.</p>
+    );
+  }
+
+  return (
+    <div className="space-y-2 border-t pt-3 mt-1">
+      <p className="text-xs font-semibold text-muted-foreground">Följdkonversation</p>
+      {userFollowup && (
+        <div className="bg-secondary/50 rounded-lg p-3">
+          <p className="text-xs font-semibold text-muted-foreground mb-1">Användarens följdfråga:</p>
+          <p className="text-sm whitespace-pre-wrap">{userFollowup.content}</p>
+        </div>
+      )}
+      {coachFollowup ? (
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+          <p className="text-xs font-semibold text-primary mb-1">Ditt följdsvar:</p>
+          <p className="text-sm whitespace-pre-wrap">{coachFollowup.content}</p>
+        </div>
+      ) : userFollowup ? (
+        <div className="space-y-2">
+          <Textarea
+            value={reply}
+            onChange={e => setReply(e.target.value)}
+            placeholder="Skriv ett följdsvar till användaren (ingår i paketet)..."
+            rows={3}
+          />
+          <Button
+            onClick={() => {
+              const t = reply.trim();
+              if (!t) return toast.error('Skriv ett följdsvar');
+              sendCoachReply.mutate(t);
+            }}
+            disabled={sendCoachReply.isPending}
+            size="sm"
+            className="gap-2"
+          >
+            {sendCoachReply.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+            Skicka följdsvar
+          </Button>
+        </div>
+      ) : null}
+    </div>
+  );
+}

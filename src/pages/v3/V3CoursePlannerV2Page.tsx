@@ -563,6 +563,14 @@ export default function V3CoursePlannerV2Page() {
         onPick={handlePickFromLibrary}
       />
 
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        commands={paletteCommands}
+      />
+
+      <KeyboardShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} />
+
       {issuesOpen && (
         <div className="bg-white border-b border-black/5 px-4 py-3 max-h-[40vh] overflow-y-auto">
           <IssuesList issues={issues} onSelect={(id) => { if (id) setSelectedId(id); }} />

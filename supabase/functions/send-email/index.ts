@@ -168,6 +168,28 @@ const TEMPLATES: Record<string, (data: any) => TemplateResult> = {
       </div>
     `, data.unsubUrl),
   }),
+  competition_reminder: (data) => ({
+    subject: `🐕 ${data.daysBefore === 0 ? 'Idag' : data.daysBefore === 1 ? 'Imorgon' : `Om ${data.daysBefore} dagar`}: ${data.eventName}`,
+    html: wrap(
+      data.daysBefore === 0 ? 'Tävlingsdag idag!' : data.daysBefore === 1 ? 'Tävling imorgon' : `Tävling om ${data.daysBefore} dagar`,
+      `
+      <p style="color:#333;font-size:15px;line-height:1.6">
+        Hej${data.handlerName ? ` ${data.handlerName}` : ''}! 🎯
+      </p>
+      <p style="color:#555;font-size:14px;line-height:1.6">
+        Det är dags att förbereda er inför <strong>${data.eventName}</strong>${data.dogName ? ` med ${data.dogName}` : ''}.
+      </p>
+      <div style="background:#f8f8f8;border-radius:8px;padding:16px;margin:16px 0">
+        <p style="margin:0 0 6px;color:#333;font-size:14px"><strong>📅 Datum:</strong> ${data.dateLabel}</p>
+        ${data.location ? `<p style="margin:0 0 6px;color:#333;font-size:14px"><strong>📍 Plats:</strong> ${data.location}</p>` : ''}
+        <p style="margin:0;color:#333;font-size:14px"><strong>⏳ Tid kvar:</strong> ${data.daysBefore === 0 ? 'Idag!' : data.daysBefore === 1 ? 'Imorgon' : `${data.daysBefore} dagar`}</p>
+      </div>
+      ${data.signupUrl ? `<div style="text-align:center;margin:24px 0"><a href="${data.signupUrl}" style="background:#1a6b3c;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;display:inline-block">Öppna anmälan →</a></div>` : ''}
+      <div style="text-align:center;margin:24px 0">
+        <a href="${SITE_URL}/v3/tavlingar/kalender" style="color:#1a6b3c;font-size:13px;text-decoration:underline">Visa kalendern</a>
+      </div>
+      `, data.unsubUrl),
+  }),
 }
 // ---------- HANDLER ----------
 Deno.serve(async (req) => {

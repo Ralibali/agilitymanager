@@ -31,9 +31,35 @@ export default function PublicCoachPage() {
   const { user } = useAuth();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [selectedPack, setSelectedPack] = useState<CoachPackId>("1");
+  const [resumePrefill, setResumePrefill] = useState<
+    { pack?: CoachPackId; sport?: "agility" | "hoopers" | "freestyle"; question?: string; privacyMode?: "private" | "private_no_export" } | undefined
+  >(undefined);
+  const [resumeStep, setResumeStep] = useState<1 | 2 | 3 | 4>(1);
+
+  // Återuppta efter Stripe Checkout: läs in sparat val (inkl. sekretess) och öppna flödet på rätt steg
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("coach_paid") !== "true") return;
+    try {
+      const raw = sessionStorage.getItem("coach_pending");
+      if (!raw) return;
+      const pending = JSON.parse(raw) as {
+        pack?: CoachPackId;
+        sport?: "agility" | "hoopers" | "freestyle";
+        question?: string;
+        privacyMode?: "private" | "private_no_export";
+      };
+      setResumePrefill(pending);
+      if (pending.pack) setSelectedPack(pending.pack);
+      setResumeStep(2);
+      setUploadOpen(true);
+    } catch {/* ignore */}
+  }, []);
 
   const startUpload = (pack: CoachPackId) => {
     setSelectedPack(pack);
+    setResumePrefill(undefined);
+    setResumeStep(1);
     setUploadOpen(true);
   };
 

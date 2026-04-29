@@ -10,6 +10,7 @@ export type Obstacle3DProps = {
   number?: number;
   color?: string;
   onSelect?: () => void;
+  highlight?: boolean;
 };
 
 const WHITE = "#ffffff";
@@ -21,26 +22,43 @@ const RUBBER = "#222222";
 const NAVY = "#20245f";
 const EPS = 0.002; // small lift to avoid z-fighting with floor
 
-function NumberPlate({ number, height = 1.2 }: { number?: number; height?: number }) {
+function NumberPlate({ number, height = 1.2, highlight = false }: { number?: number; height?: number; highlight?: boolean }) {
   if (!number) return null;
+  const fill = highlight ? "#f59e0b" : "#1d6f3c";
+  const outline = highlight ? "#7a3d05" : "#0b3a1f";
+  const ring = highlight ? "#fff7c0" : "#ffffff";
+  const radius = highlight ? 0.34 : 0.28;
+  const ringOuter = highlight ? 0.42 : 0.32;
   return (
     <Billboard position={[0, height + 0.55, 0]} renderOrder={999}>
+      {/* Soft drop shadow halo for legibility against any background */}
+      <mesh position={[0, 0, -0.001]} renderOrder={998}>
+        <circleGeometry args={[radius + 0.18, 32]} />
+        <meshBasicMaterial color="#000000" transparent opacity={0.28} depthTest={false} />
+      </mesh>
+      {/* Pulsing outer ring on highlight */}
+      {highlight && (
+        <mesh position={[0, 0, 0.0005]} renderOrder={998}>
+          <ringGeometry args={[ringOuter + 0.06, ringOuter + 0.12, 32]} />
+          <meshBasicMaterial color="#fde68a" depthTest={false} transparent opacity={0.65} />
+        </mesh>
+      )}
       <mesh renderOrder={999}>
-        <circleGeometry args={[0.28, 32]} />
-        <meshBasicMaterial color="#1d6f3c" depthTest={false} transparent />
+        <circleGeometry args={[radius, 32]} />
+        <meshBasicMaterial color={fill} depthTest={false} transparent />
       </mesh>
       <mesh position={[0, 0, 0.001]} renderOrder={999}>
-        <ringGeometry args={[0.28, 0.32, 32]} />
-        <meshBasicMaterial color="#ffffff" depthTest={false} transparent />
+        <ringGeometry args={[radius, ringOuter, 32]} />
+        <meshBasicMaterial color={ring} depthTest={false} transparent />
       </mesh>
       <Text
         position={[0, 0, 0.01]}
-        fontSize={0.32}
+        fontSize={highlight ? 0.4 : 0.32}
         color="white"
         anchorX="center"
         anchorY="middle"
-        outlineWidth={0.02}
-        outlineColor="#0b3a1f"
+        outlineWidth={0.025}
+        outlineColor={outline}
         renderOrder={1000}
       >
         {String(number)}
@@ -317,7 +335,7 @@ function FinishGate() {
   );
 }
 
-export function Obstacle3D({ type, x, z, rotationDeg, number, color, onSelect }: Obstacle3DProps) {
+export function Obstacle3D({ type, x, z, rotationDeg, number, color, onSelect, highlight = false }: Obstacle3DProps) {
   const rotY = useMemo(() => (rotationDeg * Math.PI) / 180, [rotationDeg]);
   const renderModel = () => {
     switch (type) {
@@ -348,12 +366,24 @@ export function Obstacle3D({ type, x, z, rotationDeg, number, color, onSelect }:
     dog_walk: 1.5, balance: 1.5, seesaw: 0.9, weave: 1.2, tire: 1.7, hoop: 1.3,
     hoopers_tunnel: 1.2, barrel: 1.1, gate: 1.0, handler_zone: 0.4, start: 1.4, finish: 1.4,
   };
-  // Invisible click hitbox — generous box around the model so taps register easily.
   const hit = heightMap[type] ?? 1;
   return (
     <group position={[x, 0, z]} rotation={[0, rotY, 0]}>
+      {/* Highlight: glowing ground ring beneath the next obstacle */}
+      {highlight && (
+        <>
+          <mesh position={[0, 0.014, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
+            <ringGeometry args={[0.95, 1.25, 48]} />
+            <meshBasicMaterial color="#fbbf24" transparent opacity={0.85} depthWrite={false} />
+          </mesh>
+          <mesh position={[0, 0.013, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={0}>
+            <ringGeometry args={[1.25, 1.7, 48]} />
+            <meshBasicMaterial color="#fde68a" transparent opacity={0.35} depthWrite={false} />
+          </mesh>
+        </>
+      )}
       {renderModel()}
-      <NumberPlate number={number} height={hit} />
+      <NumberPlate number={number} height={hit} highlight={highlight} />
       {onSelect && (
         <mesh
           position={[0, hit / 2 + 0.1, 0]}

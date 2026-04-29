@@ -140,20 +140,9 @@ export default function V3CoursePlannerV2Page() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [view3D, setView3D] = useState<null | "view" | "walk">(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [hoverM, setHoverM] = useState<{ x: number; y: number } | null>(null);
-  const [spaceDown, setSpaceDown] = useState(false);
-  const [panning, setPanning] = useState(false);
   const fullscreenRootRef = useRef<HTMLDivElement | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
-
-  // Viewport (zoom/pan) — persisteras per moln-id om finns, annars generic.
-  const viewport = useCanvasViewport({
-    storageKey: cloudId ?? "local",
-    arenaWidthM: course.arenaWidthM,
-    arenaHeightM: course.arenaHeightM,
-    paddingM: 1,
-  });
-  const svgRef = viewport.svgRef;
 
   // Persistera Mått-toggle.
   useEffect(() => {
@@ -175,28 +164,8 @@ export default function V3CoursePlannerV2Page() {
       else await el.requestFullscreen();
     } catch (e) { console.error(e); }
   }, []);
-
-  // Mellanslag = panorera-läge.
-  useEffect(() => {
-    const isTyping = (t: EventTarget | null) => {
-      const el = t as HTMLElement | null;
-      if (!el) return false;
-      const tag = el.tagName;
-      return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
-    };
-    const onDown = (e: KeyboardEvent) => {
-      if (e.code === "Space" && !isTyping(e.target) && !e.repeat) {
-        e.preventDefault();
-        setSpaceDown(true);
-      }
-    };
-    const onUp = (e: KeyboardEvent) => {
-      if (e.code === "Space") setSpaceDown(false);
-    };
-    window.addEventListener("keydown", onDown);
-    window.addEventListener("keyup", onUp);
-    return () => { window.removeEventListener("keydown", onDown); window.removeEventListener("keyup", onUp); };
-  }, []);
+  // Stoppa orefererade variabler från att smälla — kommer bindas i nästa pass.
+  void isFullscreen; void toggleFullscreen; void fullscreenRootRef;
 
   // Undo/redo (begränsad till 30 steg)
   const historyRef = useRef<{ past: CourseV2[]; future: CourseV2[] }>({ past: [], future: [] });

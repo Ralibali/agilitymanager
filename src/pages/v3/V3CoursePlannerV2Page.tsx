@@ -356,20 +356,33 @@ export default function V3CoursePlannerV2Page() {
 
         {/* CENTER — banyta */}
         <section className="rounded-2xl bg-white border border-black/6 p-3 min-w-0">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1">
+          <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+            <div className="flex items-center gap-1 flex-wrap">
               <ToolBtn active={tool === "select"} onClick={() => setTool("select")} icon={<MousePointer2 size={14} />}>Välj</ToolBtn>
               <ToolBtn active={tool === "erase"} onClick={() => setTool("erase")} icon={<Eraser size={14} />}>Sudda</ToolBtn>
               <ToolBtn active={tool === "number"} onClick={() => setTool("number")} icon={<Hash size={14} />}>Nummer</ToolBtn>
               <button onClick={autoRenumber} className="h-8 px-2.5 rounded-lg text-[11px] font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200">Auto-numrera</button>
+              <button
+                onClick={() => setShowPath((v) => !v)}
+                className={cn(
+                  "h-8 px-2.5 rounded-lg text-[11px] font-semibold border transition",
+                  showPath ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/8",
+                )}
+                title="Visa banlinjen mellan numrerade hinder"
+              >
+                Banlinje
+              </button>
             </div>
             <div className="text-[11px] text-neutral-500">
-              {course.arenaWidthM} × {course.arenaHeightM} m · {course.obstacles.length} hinder
+              {course.arenaWidthM} × {course.arenaHeightM} m · {times.lengthM.toFixed(1)} m · {course.obstacles.length} hinder
             </div>
           </div>
           <ArenaCanvas
+            svgRef={svgRef}
             course={course}
             selectedId={selectedId}
+            highlightIds={issueIdSet}
+            showPath={showPath}
             onObstacleDown={handlePointerDown}
             onPointerMove={handleSvgPointerMove}
             onPointerUp={handleSvgPointerUp}

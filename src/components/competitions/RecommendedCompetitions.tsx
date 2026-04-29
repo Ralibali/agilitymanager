@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { AgilityDataAttribution } from '@/components/competitions/AgilityDataAttribution';
 import { stripHtml } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,15 +6,18 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { MapPin, ExternalLink, Star, CheckCircle2, Home, TreePine, Navigation, Sparkles } from 'lucide-react';
-import { CITY_COORDS, haversineDistance, type Competition, type CompetitionInterest } from '@/types/competitions';
+import { MapPin, ExternalLink, Star, CheckCircle2, Home, TreePine, Navigation, Sparkles, Flag } from 'lucide-react';
+import { CITY_COORDS, haversineDistance, type Competition } from '@/types/competitions';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useCompetitionInterests, type InterestStatus } from '@/hooks/useCompetitionInterests';
+import { getCountyForLocation } from '@/lib/swedishCityCounty';
 import type { Dog } from '@/types';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+
 
 function formatDateShort(dateStr: string | null): string {
   if (!dateStr) return '';

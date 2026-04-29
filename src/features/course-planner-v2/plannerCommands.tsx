@@ -54,6 +54,13 @@ export interface PlannerCommandHandlers {
   hasSelection: boolean;
   canUndo: boolean;
   canRedo: boolean;
+
+  // Lås & z-order (alla kräver markerat hinder)
+  toggleLockSelected: () => void;
+  bringForward: () => void;
+  sendBackward: () => void;
+  bringToFront: () => void;
+  sendToBack: () => void;
 }
 
 export function buildPlannerCommands(h: PlannerCommandHandlers): PaletteCommand[] {

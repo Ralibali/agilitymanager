@@ -561,6 +561,38 @@ export type Database = {
           },
         ]
       }
+      coach_feedback_messages: {
+        Row: {
+          content: string
+          created_at: string
+          feedback_id: string
+          id: string
+          sender: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          feedback_id: string
+          id?: string
+          sender: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          feedback_id?: string
+          id?: string
+          sender?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_feedback_messages_feedback_id_fkey"
+            columns: ["feedback_id"]
+            isOneToOne: false
+            referencedRelation: "coach_feedback"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       competition_interests: {
         Row: {
           class: string | null

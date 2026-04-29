@@ -14,7 +14,7 @@ type ObstacleSpec = { type: ObstacleType; label: string; icon: string; shape: Sh
 type Obstacle = ObstacleSpec & { id: string; x: number; y: number; rotation: number; number?: number; color?: string };
 type DrawPath = { id: string; points: Point[]; color: string; width: number };
 type FreeNumber = { id: string; x: number; y: number; num: number; color: string };
-type CourseState = { obstacles: Obstacle[]; paths: DrawPath[]; numbers: FreeNumber[]; width: number; height: number; name: string };
+type CourseState = { obstacles: Obstacle[]; paths: DrawPath[]; numbers: FreeNumber[]; width: number; height: number; name: string; location?: string };
 type Courses = Record<PlannerMode, CourseState>;
 type SavedCourse = { id: string; name: string; mode: PlannerMode; savedAt: string; course: CourseState };
 

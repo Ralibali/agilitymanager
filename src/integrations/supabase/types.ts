@@ -866,6 +866,77 @@ export type Database = {
         }
         Relationships: []
       }
+      course_club_shares: {
+        Row: {
+          club_id: string
+          course_id: string
+          created_at: string
+          id: string
+          shared_by: string
+        }
+        Insert: {
+          club_id: string
+          course_id: string
+          created_at?: string
+          id?: string
+          shared_by: string
+        }
+        Update: {
+          club_id?: string
+          course_id?: string
+          created_at?: string
+          id?: string
+          shared_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_club_shares_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_club_shares_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "saved_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_comments: {
+        Row: {
+          content: string
+          course_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          course_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          course_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_comments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "saved_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_purchases: {
         Row: {
           amount_paid_sek: number
@@ -1467,7 +1538,9 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          is_public: boolean
           name: string
+          public_slug: string | null
           updated_at: string
           user_id: string
         }
@@ -1478,7 +1551,9 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          is_public?: boolean
           name: string
+          public_slug?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1489,7 +1564,9 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          is_public?: boolean
           name?: string
+          public_slug?: string | null
           updated_at?: string
           user_id?: string
         }

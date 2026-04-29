@@ -401,6 +401,18 @@ export default function V3CoursePlannerV2Page() {
     }));
   }
 
+  function setTunnelCurve(id: string, patch: { curveDeg?: number; curveSide?: "left" | "right" }) {
+    setCourse((c) => ({
+      ...c,
+      obstacles: c.obstacles.map((o) => {
+        if (o.id !== id) return o;
+        const curveDeg = patch.curveDeg !== undefined ? Math.max(0, Math.min(90, patch.curveDeg)) : o.curveDeg;
+        const curveSide = patch.curveSide ?? o.curveSide;
+        return { ...o, curveDeg, curveSide };
+      }),
+    }));
+  }
+
   function setObstacleNumber(id: string, num: number | undefined) {
     setCourse((c) => ({
       ...c,

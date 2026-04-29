@@ -76,12 +76,41 @@ export default function V3CoursePlannerV2Page() {
   const [tool, setTool] = useState<"select" | "erase" | "number">("select");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [showPath, setShowPath] = useState(true);
+  const [issuesOpen, setIssuesOpen] = useState(false);
+  const svgRef = useRef<SVGSVGElement | null>(null);
 
   // Autospara
   useEffect(() => {
     const t = setTimeout(() => { saveCourse(course); setSavedAt(new Date()); }, 600);
     return () => clearTimeout(t);
   }, [course]);
+
+  // Validering + tider — räknas live
+  const issues = useMemo(() => validateCourse(course), [course]);
+  const issueSummary = useMemo(() => summarizeIssues(issues), [issues]);
+  const issueIdSet = useMemo(() => new Set(issues.filter((i) => i.obstacleId).map((i) => i.obstacleId!)), [issues]);
+  const times = useMemo(() => computeCourseTimes(course), [course]);
+
+  async function handleExportPdf() {
+    try {
+      await exportJudgePdf({
+        name: course.name,
+        sport: course.sport,
+        sizeClass: course.sizeClass,
+        arenaWidthM: course.arenaWidthM,
+        arenaHeightM: course.arenaHeightM,
+        classTemplate: course.classTemplate,
+        obstacles: course.obstacles,
+        svgElement: svgRef.current,
+      });
+      toast.success("Domar-PDF skapad");
+    } catch (e) {
+      console.error(e);
+      toast.error("Kunde inte skapa PDF");
+    }
+  }
+
 
   const selected = course.obstacles.find((o) => o.id === selectedId) ?? null;
 

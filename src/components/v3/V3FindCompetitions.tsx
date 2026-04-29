@@ -704,8 +704,8 @@ export function V3FindCompetitions({ preferredSport }: Props) {
         <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-8 text-center">
           {view === "interested" ? (
             <>
-              <div className="mx-auto h-12 w-12 rounded-full bg-amber-500/10 grid place-items-center mb-4">
-                <Star size={20} strokeWidth={1.6} className="text-amber-600" />
+              <div className="mx-auto h-12 w-12 rounded-full bg-coral/20 grid place-items-center mb-4">
+                <Star size={20} strokeWidth={1.6} className="text-coral" />
               </div>
               <p className="text-v3-base text-v3-text-secondary">Du har inte markerat några tävlingar som intressanta än.</p>
               <p className="text-v3-sm text-v3-text-tertiary mt-1">
@@ -721,7 +721,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
             </>
           ) : view === "registered" ? (
             <>
-              <div className="mx-auto h-12 w-12 rounded-full bg-green-500/10 grid place-items-center mb-4">
+              <div className="mx-auto h-12 w-12 rounded-full bg-moss/45 grid place-items-center mb-4">
                 <Check size={20} strokeWidth={1.6} className="text-green-600" />
               </div>
               <p className="text-v3-base text-v3-text-secondary">Du har inte markerat dig som anmäld på någon tävling än.</p>
@@ -807,7 +807,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                       </span>
                       <span
                         className={cn(
-                          "px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium shrink-0",
+                          "px-1.5 py-0.5 rounded text-[9px] tracking-wider font-medium shrink-0",
                           r.sport === "Hoopers"
                             ? "bg-v3-brand-500/10 text-v3-brand-700"
                             : "bg-v3-canvas-sunken text-v3-text-secondary",
@@ -816,27 +816,27 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                         {r.sport}
                       </span>
                       {status === "interested" && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium bg-amber-500/15 text-amber-700 shrink-0 inline-flex items-center gap-1">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] tracking-wider font-medium bg-coral/20 text-coral shrink-0 inline-flex items-center gap-1">
                           <Star size={9} className="fill-amber-500 text-amber-500" /> Intresserad
                         </span>
                       )}
                       {status === "registered" && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium bg-green-500/15 text-green-700 shrink-0 inline-flex items-center gap-1">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] tracking-wider font-medium bg-moss/45 text-moss-deep shrink-0 inline-flex items-center gap-1">
                           <Check size={9} /> Anmäld
                         </span>
                       )}
                       {past && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium bg-v3-canvas-sunken text-v3-text-tertiary shrink-0">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] tracking-wider font-medium bg-v3-canvas-sunken text-v3-text-tertiary shrink-0">
                           Genomförd
                         </span>
                       )}
                       {!past && deadlineClosed && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium bg-v3-canvas-sunken text-v3-text-tertiary shrink-0">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] tracking-wider font-medium bg-v3-canvas-sunken text-v3-text-tertiary shrink-0">
                           Stängd
                         </span>
                       )}
                       {!past && deadlineSoon && !status && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-medium bg-amber-500/15 text-amber-700 shrink-0">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] tracking-wider font-medium bg-coral/20 text-coral shrink-0">
                           {deadlineDays === 0 ? "Sista dagen" : `${deadlineDays} d kvar`}
                         </span>
                       )}
@@ -892,7 +892,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                         className={cn(
                           "inline-flex items-center gap-1.5 h-8 px-2.5 rounded-v3-base text-v3-xs font-medium transition-colors",
                           status === "interested"
-                            ? "bg-amber-500/15 text-amber-700 border border-amber-500/30"
+                            ? "bg-coral/20 text-coral border border-amber-500/30"
                             : "bg-v3-canvas-sunken/40 text-v3-text-secondary hover:bg-v3-canvas-sunken hover:text-v3-text-primary",
                         )}
                         aria-pressed={status === "interested"}
@@ -910,7 +910,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                         className={cn(
                           "inline-flex items-center gap-1.5 h-8 px-2.5 rounded-v3-base text-v3-xs font-medium transition-colors",
                           status === "registered"
-                            ? "bg-green-500/15 text-green-700 border border-green-500/30"
+                            ? "bg-moss/45 text-moss-deep border border-green-500/30"
                             : "bg-v3-canvas-sunken/40 text-v3-text-secondary hover:bg-v3-canvas-sunken hover:text-v3-text-primary",
                         )}
                         aria-pressed={status === "registered"}
@@ -933,7 +933,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                     <button
                       type="button"
                       onClick={() => toggleInterest(r, status)}
-                      className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-v3-base text-v3-xs font-medium text-v3-text-tertiary hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                      className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-v3-base text-v3-xs font-medium text-v3-text-tertiary hover:text-coral hover:bg-coral/10 transition-colors"
                       title="Avmarkera"
                     >
                       <Trash2 size={12} strokeWidth={1.8} />
@@ -1066,7 +1066,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                     {/* Domare */}
                     {r.judges && r.judges.length > 0 && (
                       <div>
-                        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-1.5 inline-flex items-center gap-1.5">
+                        <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary mb-1.5 inline-flex items-center gap-1.5">
                           <Gavel size={11} strokeWidth={1.8} /> Domare
                         </div>
                         <ul className="text-v3-sm text-v3-text-primary space-y-0.5">
@@ -1080,7 +1080,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                     {/* Extra info / kontakt */}
                     {r.extra_info && (
                       <div>
-                        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-1">
+                        <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary mb-1">
                           Extra info
                         </div>
                         <p className="text-v3-sm text-v3-text-secondary whitespace-pre-line">
@@ -1147,7 +1147,7 @@ function DetailItem({
     <div className="flex items-start gap-2 min-w-0">
       <Icon size={13} strokeWidth={1.8} className="text-v3-text-tertiary mt-0.5 shrink-0" />
       <div className="min-w-0">
-        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
+        <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary">
           {label}
         </div>
         <div className="text-v3-sm text-v3-text-primary break-words">{value}</div>
@@ -1159,7 +1159,7 @@ function DetailItem({
 function ClassGroup({ label, items }: { label: string; items: string[] }) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-1.5">
+      <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary mb-1.5">
         {label} ({items.length})
       </div>
       <div className="flex flex-wrap gap-1">
@@ -1189,7 +1189,7 @@ function FilterSelect({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <label className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary w-20 shrink-0">
+      <label className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary w-20 shrink-0">
         {label}
       </label>
       <select

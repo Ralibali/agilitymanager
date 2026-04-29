@@ -151,7 +151,7 @@ export default function V3DogsPage() {
                           {meta && <p className="text-v3-xs lg:text-v3-sm text-v3-text-secondary mt-0.5 truncate">{meta}</p>}
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          {!dog.is_active_competition_dog && <span className="text-[10px] uppercase tracking-[0.06em] px-2 py-0.5 rounded-full bg-v3-canvas-sunken text-v3-text-tertiary font-medium">Pension</span>}
+                          {!dog.is_active_competition_dog && <span className="text-[11px] tracking-[0.06em] px-2 py-0.5 rounded-full bg-v3-canvas-sunken text-v3-text-tertiary font-medium">Pension</span>}
                           <span className="h-7 w-7 grid place-items-center rounded-full text-v3-text-tertiary group-hover:text-v3-text-primary"><Pencil size={13} /></span>
                         </div>
                       </div>
@@ -180,7 +180,7 @@ export default function V3DogsPage() {
 }
 
 function Badge({ children, tone = "brand" }: { children: React.ReactNode; tone?: "brand" | "muted" | "hoopers" }) {
-  return <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full uppercase tracking-[0.04em]", tone === "brand" && "bg-v3-brand-500/10 text-v3-brand-700", tone === "muted" && "bg-v3-canvas-sunken text-v3-text-secondary", tone === "hoopers" && "bg-v3-accent-prestation/15 text-v3-accent-prestation")}>{children}</span>;
+  return <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full tracking-[0.04em]", tone === "brand" && "bg-v3-brand-500/10 text-v3-brand-700", tone === "muted" && "bg-v3-canvas-sunken text-v3-text-secondary", tone === "hoopers" && "bg-v3-accent-prestation/15 text-v3-accent-prestation")}>{children}</span>;
 }
 
 function Stat({ icon, value, label }: { icon: React.ReactNode; value: number | string; label: string }) {

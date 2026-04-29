@@ -199,7 +199,7 @@ export default function V3StopwatchPage() {
 
       {/* Header */}
       <header className="space-y-2">
-        <p className="text-v3-xs uppercase tracking-[0.18em] text-v3-text-tertiary font-v3-sans">
+        <p className="text-v3-xs tracking-[0.18em] text-v3-text-tertiary font-v3-sans">
           Verktyg
         </p>
         <h1 className="font-v3-display text-v3-4xl lg:text-v3-5xl text-v3-text-primary">
@@ -225,7 +225,7 @@ export default function V3StopwatchPage() {
           {/* Hund-väljare */}
           <div className="flex items-center justify-between gap-3 rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-4">
             <div>
-              <p className="text-v3-2xs uppercase tracking-[0.16em] text-v3-text-tertiary">
+              <p className="text-v3-2xs tracking-[0.16em] text-v3-text-tertiary">
                 Aktiv hund
               </p>
               <p className="text-v3-sm text-v3-text-secondary mt-0.5">
@@ -338,7 +338,7 @@ export default function V3StopwatchPage() {
                 exit={{ opacity: 0, y: -10 }}
                 className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-5"
               >
-                <p className="text-v3-2xs uppercase tracking-[0.16em] text-v3-text-tertiary mb-3">
+                <p className="text-v3-2xs tracking-[0.16em] text-v3-text-tertiary mb-3">
                   Tryck för att registrera fel
                 </p>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
@@ -370,7 +370,7 @@ export default function V3StopwatchPage() {
                 exit={{ opacity: 0 }}
                 className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-5"
               >
-                <p className="text-v3-2xs uppercase tracking-[0.16em] text-v3-text-tertiary mb-3">
+                <p className="text-v3-2xs tracking-[0.16em] text-v3-text-tertiary mb-3">
                   Varv
                 </p>
                 <div className="space-y-2">
@@ -411,7 +411,7 @@ export default function V3StopwatchPage() {
                 <div className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-5 space-y-4">
                   {totalFaults > 0 && (
                     <div>
-                      <p className="text-v3-2xs uppercase tracking-[0.16em] text-v3-text-tertiary mb-2">
+                      <p className="text-v3-2xs tracking-[0.16em] text-v3-text-tertiary mb-2">
                         Felfördelning
                       </p>
                       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
@@ -454,7 +454,7 @@ export default function V3StopwatchPage() {
                     key={h.id}
                     className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-4 animate-v3-fade-up"
                   >
-                    <p className="text-v3-2xs uppercase tracking-[0.14em] text-v3-text-tertiary">
+                    <p className="text-v3-2xs tracking-[0.14em] text-v3-text-tertiary">
                       {new Date(h.date).toLocaleDateString("sv-SE")}
                     </p>
                     <p className="font-v3-display text-v3-2xl text-v3-text-primary tabular-nums mt-1">

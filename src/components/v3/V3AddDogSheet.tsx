@@ -290,7 +290,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.06em] font-medium text-v3-text-tertiary mb-1.5">
+      <label className="flex items-center gap-1.5 text-[11px] tracking-[0.06em] font-medium text-v3-text-tertiary mb-1.5">
         {icon}
         {label}
       </label>

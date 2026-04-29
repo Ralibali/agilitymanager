@@ -81,7 +81,7 @@ export function V3MoreSheet({ open, onClose }: Props) {
           {groups.map((g) => (
             <section key={g.label} aria-label={g.label}>
               <div className="px-2 pb-2">
-                <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary/80">
+                <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary/80">
                   {g.label}
                 </div>
                 {GROUP_HELP[g.label] && (

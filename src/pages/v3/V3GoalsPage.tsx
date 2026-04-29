@@ -157,7 +157,7 @@ export default function V3GoalsPage() {
           <section className="space-y-4 pt-2">
             <div className="flex items-end justify-between">
               <div>
-                <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">Prestationer</div>
+                <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary">Prestationer</div>
                 <h2 className="font-v3-display text-v3-2xl text-v3-text-primary mt-1">Badges</h2>
               </div>
               <span className="text-v3-xs text-v3-text-tertiary tabular-nums">{unlockedCount} / {BADGE_DEFS.length}</span>
@@ -167,11 +167,11 @@ export default function V3GoalsPage() {
                 const unlocked = unlockedBadges.has(b.key);
                 return (
                   <div key={b.key} className={cn("rounded-v3-lg border p-4 flex items-start gap-3 transition-colors", unlocked ? "bg-v3-canvas-elevated border-v3-canvas-sunken/40" : "bg-v3-canvas-elevated/40 border-v3-canvas-sunken/30 opacity-70")}>
-                    <div className={cn("shrink-0 h-11 w-11 rounded-full grid place-items-center text-2xl", unlocked ? "bg-amber-50 dark:bg-amber-950/30" : "bg-v3-canvas-sunken")}>{unlocked ? b.emoji : <Lock size={14} className="text-v3-text-tertiary" />}</div>
+                    <div className={cn("shrink-0 h-11 w-11 rounded-full grid place-items-center text-2xl", unlocked ? "bg-coral/10 " : "bg-v3-canvas-sunken")}>{unlocked ? b.emoji : <Lock size={14} className="text-v3-text-tertiary" />}</div>
                     <div className="min-w-0 flex-1">
                       <div className="text-v3-sm font-medium text-v3-text-primary">{b.title}</div>
                       <div className="text-v3-xs text-v3-text-tertiary mt-0.5">{b.description}</div>
-                      {unlocked && <div className="text-[10px] font-medium text-emerald-600 mt-1.5">✓ Upplåst</div>}
+                      {unlocked && <div className="text-[10px] font-medium text-moss-deep mt-1.5">✓ Upplåst</div>}
                     </div>
                   </div>
                 );
@@ -189,7 +189,7 @@ export default function V3GoalsPage() {
 function StatTile({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4">
-      <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">{label}</div>
+      <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary">{label}</div>
       <div className="font-v3-display text-[28px] leading-none mt-2 text-v3-text-primary tabular-nums truncate">{value}</div>
       <div className="text-v3-xs text-v3-text-tertiary mt-1">{sub}</div>
     </div>
@@ -223,14 +223,14 @@ function GoalsList({ loading, items, onAdd, onToggle, onEdit, onDelete, filter, 
           <li key={g.id} className={cn("rounded-v3-lg bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 hover:border-v3-canvas-sunken transition-colors group", isDone && "opacity-70")}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap"><span className={cn("text-v3-base text-v3-text-primary truncate", isDone && "line-through")}>{g.title}</span><CategoryChip category={g.category} />{isDone && <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"><CheckCircle2 size={10} /> Klart</span>}</div>
+                <div className="flex items-center gap-2 flex-wrap"><span className={cn("text-v3-base text-v3-text-primary truncate", isDone && "line-through")}>{g.title}</span><CategoryChip category={g.category} />{isDone && <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-moss/45 text-moss-deep "><CheckCircle2 size={10} /> Klart</span>}</div>
                 {g.description && <p className="text-v3-sm text-v3-text-secondary mt-1.5 line-clamp-2">{g.description}</p>}
                 {isNumeric && <div className="mt-3 space-y-1.5"><div className="flex items-center justify-between text-v3-xs text-v3-text-tertiary tabular-nums"><span>{g.current_value ?? 0} / {g.target_value}</span><span>{Math.round(progress * 100)}%</span></div><div className="h-1.5 rounded-full bg-v3-canvas-sunken overflow-hidden"><div className="h-full bg-v3-brand-500 transition-all" style={{ width: `${progress * 100}%` }} /></div></div>}
-                {g.target_date && <div className="flex items-center gap-1.5 mt-2.5 text-v3-xs text-v3-text-tertiary tabular-nums"><Calendar size={11} strokeWidth={1.8} /><span>{formatDate(g.target_date)}</span>{!isDone && days !== null && <span className={cn("font-medium", days < 0 ? "text-red-600" : days <= 7 ? "text-amber-600" : "text-v3-brand-700")}>· {days < 0 ? `${Math.abs(days)} d sen` : days === 0 ? "Idag" : days === 1 ? "Imorgon" : `om ${days} d`}</span>}</div>}
+                {g.target_date && <div className="flex items-center gap-1.5 mt-2.5 text-v3-xs text-v3-text-tertiary tabular-nums"><Calendar size={11} strokeWidth={1.8} /><span>{formatDate(g.target_date)}</span>{!isDone && days !== null && <span className={cn("font-medium", days < 0 ? "text-coral" : days <= 7 ? "text-coral" : "text-v3-brand-700")}>· {days < 0 ? `${Math.abs(days)} d sen` : days === 0 ? "Idag" : days === 1 ? "Imorgon" : `om ${days} d`}</span>}</div>}
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild><button type="button" aria-label="Åtgärder" className="h-9 w-9 rounded-full grid place-items-center text-v3-text-tertiary hover:text-v3-text-primary hover:bg-v3-canvas-sunken transition-colors shrink-0"><MoreVertical size={14} strokeWidth={1.8} /></button></DropdownMenuTrigger>
-                <DropdownMenuContent align="end"><DropdownMenuItem onClick={() => onToggle(g)}>{isDone ? <><RotateCcw className="w-4 h-4 mr-2" /> Återställ</> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Markera klart</>}</DropdownMenuItem><DropdownMenuItem onClick={() => onEdit(g)}><Pencil className="w-4 h-4 mr-2" /> Redigera</DropdownMenuItem><DropdownMenuItem onClick={() => onDelete(g.id)} className="text-red-600 focus:text-red-600"><Trash2 className="w-4 h-4 mr-2" /> Ta bort</DropdownMenuItem></DropdownMenuContent>
+                <DropdownMenuContent align="end"><DropdownMenuItem onClick={() => onToggle(g)}>{isDone ? <><RotateCcw className="w-4 h-4 mr-2" /> Återställ</> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Markera klart</>}</DropdownMenuItem><DropdownMenuItem onClick={() => onEdit(g)}><Pencil className="w-4 h-4 mr-2" /> Redigera</DropdownMenuItem><DropdownMenuItem onClick={() => onDelete(g.id)} className="text-coral focus:text-coral"><Trash2 className="w-4 h-4 mr-2" /> Ta bort</DropdownMenuItem></DropdownMenuContent>
               </DropdownMenu>
             </div>
           </li>

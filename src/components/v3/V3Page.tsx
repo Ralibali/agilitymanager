@@ -38,7 +38,7 @@ export function V3PageHero({
       <div className={cn("absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl", dark ? "bg-v3-brand-500/25" : "bg-v3-brand-500/10")} />
       <div className="relative flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
         <div className="min-w-0 max-w-3xl">
-          <div className={cn("inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.08em] font-medium", dark ? "text-white/60" : "text-v3-text-tertiary")}>
+          <div className={cn("inline-flex items-center gap-2 text-[10px] tracking-[0.04em] font-medium", dark ? "text-white/60" : "text-v3-text-tertiary")}>
             {Icon && <Icon size={13} strokeWidth={1.8} />}
             {eyebrow}
           </div>
@@ -118,14 +118,14 @@ export function V3MetricCard({
 }) {
   const toneClass = {
     green: "bg-v3-brand-500/10 text-v3-brand-700",
-    warm: "bg-orange-100 text-orange-700",
+    warm: "bg-coral/20 text-coral",
     neutral: "bg-v3-canvas-sunken/70 text-v3-text-secondary",
   }[tone];
 
   return (
     <V3Card className="p-4">
       <div className="flex items-center justify-between gap-3">
-        <div className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">{label}</div>
+        <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary">{label}</div>
         {Icon && (
           <div className={cn("h-9 w-9 rounded-full grid place-items-center", toneClass)}>
             <Icon size={16} strokeWidth={1.8} />

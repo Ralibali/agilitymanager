@@ -79,7 +79,7 @@ export default function V3CoursesPage() {
     <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-6 lg:py-10 space-y-8 animate-v3-fade-in">
       {/* Header */}
       <div>
-        <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-2">
+        <div className="text-[11px] tracking-[0.04em] font-medium text-v3-text-tertiary mb-2">
           v3 · Banor & utbildning
         </div>
         <div className="flex items-end justify-between gap-4 flex-wrap">
@@ -176,7 +176,7 @@ function StatTile({
     <div className="rounded-v3-xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-4 shadow-v3-xs">
       <div className="flex items-center gap-2 text-v3-text-tertiary mb-1">
         <Icon size={14} />
-        <span className="text-[11px] uppercase tracking-[0.08em] font-medium">{label}</span>
+        <span className="text-[11px] tracking-[0.04em] font-medium">{label}</span>
       </div>
       <div className="font-v3-display text-[28px] leading-none tracking-[-0.01em] text-v3-text-primary">
         {value}
@@ -233,7 +233,7 @@ function CatalogTab({
             <div>
               <div className="flex items-center gap-2 text-v3-text-tertiary mb-1">
                 <Sparkles size={14} />
-                <span className="text-[11px] uppercase tracking-[0.08em] font-medium">
+                <span className="text-[11px] tracking-[0.04em] font-medium">
                   Rekommenderat för dig
                 </span>
               </div>
@@ -401,7 +401,7 @@ function SavedTab({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-0.5">
+          <div className="text-[11px] tracking-[0.04em] font-medium text-v3-text-tertiary mb-0.5">
             Sparade banor
           </div>
           <p className="text-v3-sm text-v3-text-secondary">
@@ -533,7 +533,7 @@ function CourseDetailDialog({
           <Separator />
 
           <div>
-            <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-1">
+            <div className="text-[11px] tracking-[0.04em] font-medium text-v3-text-tertiary mb-1">
               Instruktör
             </div>
             <div className="text-v3-base font-medium text-v3-text-primary">
@@ -548,7 +548,7 @@ function CourseDetailDialog({
 
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-0.5">
+              <div className="text-[11px] tracking-[0.04em] font-medium text-v3-text-tertiary mb-0.5">
                 Kursanordnare
               </div>
               <div className="text-v3-sm font-medium text-v3-text-primary">{course.partner_name}</div>
@@ -569,7 +569,7 @@ function CourseDetailDialog({
 
           <div className="flex items-center justify-between rounded-v3-xl bg-v3-canvas-sunken/50 p-4">
             <div>
-              <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-0.5">
+              <div className="text-[11px] tracking-[0.04em] font-medium text-v3-text-tertiary mb-0.5">
                 Pris
               </div>
               <div className="flex items-center gap-2">

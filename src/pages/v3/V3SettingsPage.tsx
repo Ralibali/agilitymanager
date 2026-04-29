@@ -158,7 +158,7 @@ export default function V3SettingsPage() {
 
       <header className="flex items-end justify-between gap-4 flex-wrap">
         <div className="space-y-2">
-          <p className="text-v3-xs uppercase tracking-[0.18em] text-v3-text-tertiary font-v3-sans">System</p>
+          <p className="text-v3-xs tracking-[0.18em] text-v3-text-tertiary font-v3-sans">System</p>
           <h1 className="font-v3-display text-v3-4xl lg:text-v3-5xl text-v3-text-primary">Inställningar</h1>
           <p className="text-v3-base text-v3-text-secondary max-w-xl">Hantera profil, prenumeration och integritet.</p>
         </div>

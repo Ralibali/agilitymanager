@@ -69,7 +69,7 @@ export function NextMilestoneCard({ primary, others = [] }: NextMilestoneCardPro
           {primary.emoji}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-v3-xs uppercase tracking-[0.08em] font-medium text-v3-text-tertiary">
+          <p className="text-v3-xs tracking-[0.04em] font-medium text-v3-text-tertiary">
             Nästa milstolpe · {primary.category}
           </p>
           <h3 className="font-v3-display text-v3-xl sm:text-v3-2xl text-v3-text-primary leading-tight mt-1">

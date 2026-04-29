@@ -318,7 +318,7 @@ export function FetchMyResultDialog({ open, onOpenChange, target, dogs }: Props)
           {phase === "setup" && (
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary block mb-1.5">
+                <label className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary block mb-1.5">
                   Hund
                 </label>
                 <select
@@ -334,7 +334,7 @@ export function FetchMyResultDialog({ open, onOpenChange, target, dogs }: Props)
                 </select>
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary block mb-1.5">
+                <label className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary block mb-1.5">
                   Ditt namn (förare)
                 </label>
                 <input
@@ -349,7 +349,7 @@ export function FetchMyResultDialog({ open, onOpenChange, target, dogs }: Props)
                 </p>
               </div>
               {error && (
-                <div className="rounded-v3-base bg-amber-500/10 border border-amber-500/30 p-3 text-v3-sm text-amber-700 inline-flex items-start gap-2">
+                <div className="rounded-v3-base bg-coral/20 border border-amber-500/30 p-3 text-v3-sm text-coral inline-flex items-start gap-2">
                   <AlertCircle size={14} strokeWidth={1.8} className="shrink-0 mt-0.5" />
                   <span>{error}</span>
                 </div>
@@ -437,12 +437,12 @@ export function FetchMyResultDialog({ open, onOpenChange, target, dogs }: Props)
                                     </span>
                                   )}
                                   {m.disqualified && (
-                                    <span className="text-[10px] uppercase tracking-wider font-medium px-1.5 py-0.5 rounded bg-v3-canvas-sunken text-v3-text-tertiary">
+                                    <span className="text-[11px] tracking-wider font-medium px-1.5 py-0.5 rounded bg-v3-canvas-sunken text-v3-text-tertiary">
                                       Disk
                                     </span>
                                   )}
                                   {m.passed && !m.disqualified && (
-                                    <span className="text-[10px] uppercase tracking-wider font-medium px-1.5 py-0.5 rounded bg-green-500/15 text-green-700">
+                                    <span className="text-[11px] tracking-wider font-medium px-1.5 py-0.5 rounded bg-moss/45 text-moss-deep">
                                       Godkänd
                                     </span>
                                   )}
@@ -472,8 +472,8 @@ export function FetchMyResultDialog({ open, onOpenChange, target, dogs }: Props)
           {/* DONE */}
           {phase === "done" && (
             <div className="py-12 text-center">
-              <div className="mx-auto h-12 w-12 rounded-full bg-green-500/15 grid place-items-center mb-4">
-                <CheckCircle2 size={22} strokeWidth={1.6} className="text-green-700" />
+              <div className="mx-auto h-12 w-12 rounded-full bg-moss/45 grid place-items-center mb-4">
+                <CheckCircle2 size={22} strokeWidth={1.6} className="text-moss-deep" />
               </div>
               <p className="text-v3-base text-v3-text-primary">Resultat sparade!</p>
               <p className="mt-1 text-v3-sm text-v3-text-tertiary">

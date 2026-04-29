@@ -175,22 +175,11 @@ export default function PublicCompetitionsPage() {
         </div>
       </header>
 
-      {/* Delad komponent — exakt samma flikar, filter och intresse-status som inloggade */}
+      {/* Delad shell — exakt samma TavlingsKalendar som inloggade ser, med statuskedja
+          (Intresse → Anmäld → Genomförd) som funkar för utloggade via cookie/localStorage. */}
       <main className="mx-auto max-w-6xl px-4 py-8 md:py-12">
-        {/* Rekommendationer för gäster: datum + region (fallback Stockholm) */}
-        <section className="mb-10">
-          <div className="mb-4 flex items-end justify-between gap-3">
-            <div>
-              <h2 className="font-display text-2xl font-bold">Rekommenderade tävlingar</h2>
-              <p className="text-sm text-text-secondary mt-1">
-                Närmast i tiden från din ort. Logga in för matchning mot din hunds klass och storlek.
-              </p>
-            </div>
-          </div>
-          <GuestRecommendedCompetitions limit={6} />
-        </section>
+        <TavlingsKalendar dogs={[]} selectedDogId={null} />
 
-        <V3FindCompetitions preferredSport={preferredSport} />
 
         {/* CTA */}
         <section className="mt-16 rounded-2xl bg-gradient-to-br from-primary/10 via-surface to-secondary/10 p-8 text-center md:p-12">

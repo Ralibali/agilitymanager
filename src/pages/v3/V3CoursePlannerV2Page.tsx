@@ -31,6 +31,10 @@ import ClubShareDialog from "@/features/course-planner-v2/ClubShareDialog";
 import CourseCommentsPanel from "@/features/course-planner-v2/CourseCommentsPanel";
 import { instantiatePrebuilt, type PrebuiltCourse } from "@/features/course-planner-v2/templates";
 import type { LibraryCourse } from "@/features/course-planner-v2/library";
+import { CommandPalette } from "@/components/course-planner-v2/CommandPalette";
+import { KeyboardShortcutsHelp } from "@/components/course-planner-v2/KeyboardShortcutsHelp";
+import { buildPlannerCommands } from "@/features/course-planner-v2/plannerCommands";
+import { useCoursePlannerHotkeys } from "@/hooks/useCoursePlannerHotkeys";
 
 const STORAGE_KEY = "am_course_planner_v2";
 

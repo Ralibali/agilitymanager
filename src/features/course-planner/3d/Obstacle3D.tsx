@@ -335,7 +335,7 @@ function FinishGate() {
   );
 }
 
-export function Obstacle3D({ type, x, z, rotationDeg, number, color, onSelect }: Obstacle3DProps) {
+export function Obstacle3D({ type, x, z, rotationDeg, number, color, onSelect, highlight = false }: Obstacle3DProps) {
   const rotY = useMemo(() => (rotationDeg * Math.PI) / 180, [rotationDeg]);
   const renderModel = () => {
     switch (type) {
@@ -366,12 +366,24 @@ export function Obstacle3D({ type, x, z, rotationDeg, number, color, onSelect }:
     dog_walk: 1.5, balance: 1.5, seesaw: 0.9, weave: 1.2, tire: 1.7, hoop: 1.3,
     hoopers_tunnel: 1.2, barrel: 1.1, gate: 1.0, handler_zone: 0.4, start: 1.4, finish: 1.4,
   };
-  // Invisible click hitbox — generous box around the model so taps register easily.
   const hit = heightMap[type] ?? 1;
   return (
     <group position={[x, 0, z]} rotation={[0, rotY, 0]}>
+      {/* Highlight: glowing ground ring beneath the next obstacle */}
+      {highlight && (
+        <>
+          <mesh position={[0, 0.014, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
+            <ringGeometry args={[0.95, 1.25, 48]} />
+            <meshBasicMaterial color="#fbbf24" transparent opacity={0.85} depthWrite={false} />
+          </mesh>
+          <mesh position={[0, 0.013, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={0}>
+            <ringGeometry args={[1.25, 1.7, 48]} />
+            <meshBasicMaterial color="#fde68a" transparent opacity={0.35} depthWrite={false} />
+          </mesh>
+        </>
+      )}
       {renderModel()}
-      <NumberPlate number={number} height={hit} />
+      <NumberPlate number={number} height={hit} highlight={highlight} />
       {onSelect && (
         <mesh
           position={[0, hit / 2 + 0.1, 0]}

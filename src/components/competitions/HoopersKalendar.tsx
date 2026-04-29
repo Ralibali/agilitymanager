@@ -84,7 +84,7 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   // Delad intresse-hook (hanterar både inloggad och gäst via localStorage)
-  const { interests, setInterest } = useCompetitionInterests();
+  const { interests, setInterest, isGuest } = useCompetitionInterests();
 
   // Auto-filter based on selected dog's hoopers level
   const selectedDog = useMemo(() => dogs.find(d => d.id === selectedDogId), [dogs, selectedDogId]);

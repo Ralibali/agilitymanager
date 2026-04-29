@@ -48,6 +48,7 @@ const V3HomePage = React.lazy(() => import("./pages/v3/V3HomePage"));
 const V3TrainingPage = React.lazy(() => import("./pages/v3/V3TrainingPage"));
 const V3DogsPage = React.lazy(() => import("./pages/v3/V3DogsPage"));
 const V3CompetitionsPage = React.lazy(() => import("./pages/v3/V3CompetitionsPage"));
+const V3CompetitionsCalendarPage = React.lazy(() => import("./pages/v3/V3CompetitionsCalendarPage"));
 const V3GoalsPage = React.lazy(() => import("./pages/v3/V3GoalsPage"));
 const V3StatsPage = React.lazy(() => import("./pages/v3/V3StatsPage"));
 const V3HealthPage = React.lazy(() => import("./pages/v3/V3HealthPage"));
@@ -154,6 +155,8 @@ const App = () => (
                 <Route index element={<V3HomePage />} />
                 <Route path="training" element={<V3TrainingPage />} />
                 <Route path="competition" element={<V3CompetitionsPage />} />
+                <Route path="competition/kalender" element={<V3CompetitionsCalendarPage />} />
+                <Route path="tavlingar/kalender" element={<V3CompetitionsCalendarPage />} />
                 <Route path="goals" element={<V3GoalsPage />} />
                 <Route path="stats" element={<V3StatsPage />} />
                 <Route path="dogs" element={<V3DogsPage />} />

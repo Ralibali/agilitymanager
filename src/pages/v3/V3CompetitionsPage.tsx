@@ -156,6 +156,9 @@ export default function V3CompetitionsPage() {
                 <V3SecondaryButton onClick={handleExportPdf} icon={FileText}>PDF</V3SecondaryButton>
               </>
             )}
+            {tab === "upcoming" && (
+              <V3SecondaryButton onClick={() => navigate("/v3/competition/kalender")} icon={Calendar}>Kalender</V3SecondaryButton>
+            )}
             {tab !== "find" && <V3PrimaryButton onClick={onCta} icon={Plus}>{ctaLabel}</V3PrimaryButton>}
           </>
         )}

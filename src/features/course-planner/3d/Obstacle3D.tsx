@@ -84,11 +84,12 @@ function Oxer({ color = WHITE }: { color?: string }) {
   );
 }
 function LongJump() {
+  // 2D: wide (horizontal). Long axis along X. Planks staggered along X.
   return (
-    <group>
+    <group rotation={[0, Math.PI / 2, 0]}>
       {[-0.6, -0.2, 0.2, 0.6].map((z, i) => (
         <mesh key={i} position={[0, 0.12 + i * 0.04 + EPS, z]} castShadow receiveShadow>
-          <boxGeometry args={[1.2, 0.08, 0.16]} />
+          <boxGeometry args={[1.4, 0.08, 0.16]} />
           <meshStandardMaterial color={WHITE} />
         </mesh>
       ))}
@@ -96,17 +97,18 @@ function LongJump() {
   );
 }
 function Wall({ color = RED }: { color?: string }) {
+  // 2D: wide. Long axis along X.
   return (
     <mesh position={[0, 0.4 + EPS, 0]} castShadow receiveShadow>
-      <boxGeometry args={[1.2, 0.8, 0.25]} />
+      <boxGeometry args={[1.4, 0.8, 0.35]} />
       <meshStandardMaterial color={color} />
     </mesh>
   );
 }
 function Tunnel({ color = BLUE, length = 3, radius = 0.4 }: { color?: string; length?: number; radius?: number }) {
-  // Lift by radius so tunnel rests on floor, not buried in it.
+  // 2D: tunnel shape is horizontal (long along X). Rotate so length runs along X.
   return (
-    <group position={[0, radius + EPS, 0]}>
+    <group position={[0, radius + EPS, 0]} rotation={[0, Math.PI / 2, 0]}>
       <mesh rotation={[Math.PI / 2, 0, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[radius, radius, length, 28, 1, true]} />
         <meshStandardMaterial color={color} side={THREE.DoubleSide} roughness={0.7} />
@@ -125,17 +127,16 @@ function HoopersTunnel() {
   return <Tunnel color="#ffb84d" length={2.4} radius={0.45} />;
 }
 function AFrame() {
-  // Two equal panels meeting at apex. Compute hypotenuse so panels touch ground exactly.
+  // 2D: triangle (square footprint). We orient climb axis along X for consistency.
   const apexH = 1.6;
-  const half = 1.4; // ground half-length
+  const half = 1.4;
   const hyp = Math.sqrt(apexH * apexH + half * half);
-  const angle = Math.atan2(apexH, half); // tilt from horizontal
+  const angle = Math.atan2(apexH, half);
   const w = 1.0;
   return (
-    <group>
+    <group rotation={[0, Math.PI / 2, 0]}>
       {[-1, 1].map((side) => (
         <group key={side}>
-          {/* Panel */}
           <mesh
             position={[0, apexH / 2, (side * half) / 2]}
             rotation={[side * (Math.PI / 2 - angle), 0, 0]}
@@ -145,9 +146,8 @@ function AFrame() {
             <boxGeometry args={[w, 0.06, hyp]} />
             <meshStandardMaterial color={YELLOW} />
           </mesh>
-          {/* Contact zone (bottom 0.9 m) painted darker */}
           <mesh
-            position={[0, apexH / 4 - 0.05, (side * half) / 2 + side * (hyp / 2 - 0.45) * Math.cos(angle) - side * 0.0]}
+            position={[0, apexH / 4 - 0.05, (side * half) / 2 + side * (hyp / 2 - 0.45) * Math.cos(angle)]}
             rotation={[side * (Math.PI / 2 - angle), 0, 0]}
           >
             <boxGeometry args={[w, 0.062, 0.9]} />
@@ -155,7 +155,6 @@ function AFrame() {
           </mesh>
         </group>
       ))}
-      {/* apex ridge */}
       <mesh position={[0, apexH + 0.02, 0]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.04, 0.04, w, 12]} />
         <meshStandardMaterial color="#333" />
@@ -164,16 +163,15 @@ function AFrame() {
   );
 }
 function DogWalk() {
+  // 2D: long (very horizontal). Long axis along X.
   const top = 1.1;
-  const horiz = 1.4; // horizontal half-length of top
-  const ramp = 1.6; // ramp length
+  const horiz = 1.6;
+  const ramp = 1.6;
   const w = 0.32;
-  const angle = Math.atan2(top, ramp * Math.cos(Math.atan2(top, ramp)));
-  // simpler: use Math.atan2(top, sqrt(ramp^2 - top^2))
   const rampHoriz = Math.sqrt(Math.max(ramp * ramp - top * top, 0.01));
   const a = Math.atan2(top, rampHoriz);
   return (
-    <group>
+    <group rotation={[0, Math.PI / 2, 0]}>
       <mesh position={[0, top + EPS, 0]} castShadow receiveShadow>
         <boxGeometry args={[w, 0.06, horiz]} />
         <meshStandardMaterial color={WHITE} />
@@ -194,8 +192,9 @@ function DogWalk() {
   );
 }
 function Seesaw() {
+  // 2D: long. Long axis along X.
   return (
-    <group>
+    <group rotation={[0, Math.PI / 2, 0]}>
       <mesh position={[0, 0.4 + EPS, 0]} rotation={[0.06, 0, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.34, 0.06, 3.6]} />
         <meshStandardMaterial color={YELLOW} />
@@ -208,24 +207,28 @@ function Seesaw() {
   );
 }
 function Weave() {
+  // 2D: long. Poles run along X.
   const count = 12;
   const spacing = 0.5;
   return (
-    <group position={[0, 0, -((count - 1) * spacing) / 2]}>
-      <mesh position={[0, 0.02 + EPS, ((count - 1) * spacing) / 2]} receiveShadow>
-        <boxGeometry args={[0.18, 0.04, count * spacing]} />
-        <meshStandardMaterial color="#3a3a3a" />
-      </mesh>
-      {Array.from({ length: count }).map((_, i) => (
-        <mesh key={i} position={[0, 0.55 + EPS, i * spacing]} castShadow>
-          <cylinderGeometry args={[0.028, 0.028, 1, 12]} />
-          <meshStandardMaterial color={i % 2 === 0 ? WHITE : RED} />
+    <group rotation={[0, Math.PI / 2, 0]} position={[0, 0, 0]}>
+      <group position={[0, 0, -((count - 1) * spacing) / 2]}>
+        <mesh position={[0, 0.02 + EPS, ((count - 1) * spacing) / 2]} receiveShadow>
+          <boxGeometry args={[0.18, 0.04, count * spacing]} />
+          <meshStandardMaterial color="#3a3a3a" />
         </mesh>
-      ))}
+        {Array.from({ length: count }).map((_, i) => (
+          <mesh key={i} position={[0, 0.55 + EPS, i * spacing]} castShadow>
+            <cylinderGeometry args={[0.028, 0.028, 1, 12]} />
+            <meshStandardMaterial color={i % 2 === 0 ? WHITE : RED} />
+          </mesh>
+        ))}
+      </group>
     </group>
   );
 }
 function Tire() {
+  // 2D: circle (square footprint). Symmetric.
   return (
     <group>
       {[-0.65, 0.65].map((x) => (
@@ -242,8 +245,9 @@ function Tire() {
   );
 }
 function Hoop() {
+  // 2D: wide. Passage axis along X (dog jumps through along X).
   return (
-    <group>
+    <group rotation={[0, Math.PI / 2, 0]}>
       <mesh position={[0, 0.7 + EPS, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
         <torusGeometry args={[0.55, 0.05, 12, 32]} />
         <meshStandardMaterial color="#ff6b3d" />

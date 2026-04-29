@@ -1108,6 +1108,33 @@ function SelectedPanel({ obstacle, size, onRotate, onDelete, onNumberChange, onT
           className="h-9 w-20 px-2 rounded-lg border border-black/10 text-[12px]"
         />
       </div>
+      {isTunnel && onTunnelCurve && (
+        <div className="mt-3 rounded-xl border border-black/8 p-3 bg-white space-y-2">
+          <div className="flex items-baseline justify-between">
+            <div className="text-[11px] font-semibold text-neutral-700">Tunnelböjning</div>
+            <div className="text-[11px] text-neutral-500">{curveDeg}°</div>
+          </div>
+          <input
+            type="range" min={0} max={90} step={5} value={curveDeg}
+            onChange={(e) => onTunnelCurve({ curveDeg: Number(e.target.value) })}
+            className="w-full accent-[#1a6b3c]"
+          />
+          <div className="grid grid-cols-2 gap-1.5">
+            <button
+              onClick={() => onTunnelCurve({ curveSide: "left" })}
+              className={cn("h-8 rounded-lg text-[11px] font-semibold border", curveSide === "left" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/10")}
+            >Vänster</button>
+            <button
+              onClick={() => onTunnelCurve({ curveSide: "right" })}
+              className={cn("h-8 rounded-lg text-[11px] font-semibold border", curveSide === "right" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/10")}
+            >Höger</button>
+          </div>
+          <button
+            onClick={() => onTunnelCurve({ curveDeg: 0 })}
+            className="w-full h-8 rounded-lg text-[11px] font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+          >Återställ till rak</button>
+        </div>
+      )}
       <button onClick={onDelete} className="mt-3 w-full h-9 rounded-lg bg-red-50 text-red-700 border border-red-200 text-[12px] font-semibold inline-flex items-center justify-center gap-1.5">
         <Trash2 size={13} /> Ta bort hinder
       </button>

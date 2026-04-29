@@ -281,26 +281,37 @@ export function RecommendedCompetitions({ dogs }: RecommendedCompetitionsProps) 
       ) : (
         <div className="space-y-3">
           {recommendations.map(({ comp, score, distance, reasons }) => {
-            const interest = interests.get(comp.id);
+            const status = interests[comp.id];
+            const isPast = !!comp.date_end && new Date(comp.date_end + 'T23:59:59') < new Date();
             return (
               <div key={comp.id} className="bg-card rounded-xl border border-border p-4 relative">
-                {/* Interest buttons */}
+                {/* Statuskedja: Intresse / Anmäld / Genomförd (efter datum) */}
                 <div className="absolute top-3 right-3 flex gap-1">
                   <button
-                    onClick={() => toggleInterest(comp.id, 'interested')}
+                    onClick={() => toggleInterest(comp, 'interested')}
                     className="p-1 rounded-full hover:bg-secondary transition-colors"
                     title="Intresserad"
                   >
-                    <Star size={18} className={interest?.status === 'interested' || interest?.status === 'registered' ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'} />
+                    <Star size={18} className={status === 'interested' || status === 'registered' ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'} />
                   </button>
                   <button
-                    onClick={() => toggleInterest(comp.id, 'registered')}
+                    onClick={() => toggleInterest(comp, 'registered')}
                     className="p-1 rounded-full hover:bg-secondary transition-colors"
                     title="Anmäld"
                   >
-                    <CheckCircle2 size={18} className={interest?.status === 'registered' ? 'fill-green-500 text-green-500' : 'text-muted-foreground'} />
+                    <CheckCircle2 size={18} className={status === 'registered' ? 'fill-green-500 text-green-500' : 'text-muted-foreground'} />
                   </button>
+                  {(isPast || status === 'done') && (
+                    <button
+                      onClick={() => toggleInterest(comp, 'done')}
+                      className="p-1 rounded-full hover:bg-secondary transition-colors"
+                      title="Genomförd"
+                    >
+                      <Flag size={18} className={status === 'done' ? 'fill-primary text-primary' : 'text-muted-foreground'} />
+                    </button>
+                  )}
                 </div>
+
 
                 {/* Match badge */}
                 <div className="flex items-center gap-2 mb-2">

@@ -331,7 +331,7 @@ export default function V3CoursePlannerPageFixed() {
         </div>
       </section>
 
-      {rightOpen && !isMobile && <RightPanel selected={selected} toolMode={toolMode} setToolMode={setToolMode} setRightOpen={setRightOpen} setGuide={setGuide} moveSelected={moveSelected} rotateSelected={rotateSelected} renumberSelected={renumberSelected} deleteSelected={deleteSelected} setColor={setColor} recolorSelected={recolorSelected} course={course} updateCourse={updateCourse} exportJson={exportJson} exportPdf={exportPdf} reset={reset} setPaths={setPaths} />}
+      {rightOpen && !isMobile && <RightPanel selected={selected} toolMode={toolMode} setToolMode={setToolMode} setRightOpen={setRightOpen} setGuide={setGuide} moveSelected={moveSelected} rotateSelected={rotateSelected} renumberSelected={renumberSelected} autoRenumberAll={autoRenumberAll} deleteSelected={deleteSelected} setColor={setColor} recolorSelected={recolorSelected} course={course} updateCourse={updateCourse} exportJson={exportJson} exportPdf={exportPdf} reset={reset} setPaths={setPaths} />}
     </main>
 
     {/* === MOBILE FAB BAR === */}

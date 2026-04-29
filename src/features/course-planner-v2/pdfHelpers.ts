@@ -48,6 +48,8 @@ export interface ArenaRenderOpts {
   showPath?: boolean;
   /** Skala på nummer-brickor (i mm). Default ~3. */
   numberBadgeMm?: number;
+  /** Visa banmått (yttre linjaler med tickmarks). Default true. */
+  showDimensions?: boolean;
 }
 
 /** Returnerar de faktiska arena-måtten (mm) som ritades — användbart för layout. */
@@ -74,6 +76,11 @@ export function drawArenaVector(doc: jsPDF, opts: ArenaRenderOpts): { w: number;
   doc.setDrawColor(...PDF_BRAND.arenaBorder);
   doc.setLineWidth(0.5);
   doc.rect(x, y, w, h, "FD");
+
+  // Banmått (linjaler med tickmarks) — alltid med i PDF om inte explicit avstängt.
+  if (opts.showDimensions !== false) {
+    drawArenaDimensions(doc, x, y, w, h, arenaWidthM, arenaHeightM);
+  }
 
   // Rutnät
   if (grid) {

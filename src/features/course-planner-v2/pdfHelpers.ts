@@ -105,8 +105,14 @@ export function drawArenaVector(doc: jsPDF, opts: ArenaRenderOpts): { w: number;
     }
   }
 
-  // Hinder + nummer
-  for (const ob of obstacles) {
+  // Hinder + nummer — sortera på zIndex stigande, id som tiebreaker
+  const sortedObstacles = [...obstacles].sort((a, b) => {
+    const za = a.zIndex ?? 0;
+    const zb = b.zIndex ?? 0;
+    if (za !== zb) return za - zb;
+    return a.id.localeCompare(b.id);
+  });
+  for (const ob of sortedObstacles) {
     drawObstacleVector(doc, ob, m2x, m2y, mmPerM);
   }
 

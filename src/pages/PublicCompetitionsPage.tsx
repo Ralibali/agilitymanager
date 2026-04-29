@@ -5,8 +5,7 @@ import { ArrowRight, Info, Trophy } from 'lucide-react';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingFooterV2 } from '@/components/landing/LandingFooterV2';
 import { Disclaimer } from '@/components/Disclaimer';
-import { V3FindCompetitions } from '@/components/v3/V3FindCompetitions';
-import { GuestRecommendedCompetitions } from '@/components/competitions/GuestRecommendedCompetitions';
+import { TavlingsKalendar } from '@/components/competitions/TavlingsKalendar';
 
 /**
  * Region-slug → display-namn för svenska län (används bara för SEO-titel/H1).

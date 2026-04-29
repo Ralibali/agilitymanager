@@ -897,6 +897,11 @@ export default function V3CoursePlannerV2Page() {
               onDelete={() => deleteObstacle(selected.id)}
               onNumberChange={(n) => setObstacleNumber(selected.id, n)}
               onTunnelCurve={(p) => setTunnelCurve(selected.id, p)}
+              onToggleLock={() => toggleLock(selected.id)}
+              onBringForward={() => bringForward(selected.id)}
+              onSendBackward={() => sendBackward(selected.id)}
+              onBringToFront={() => bringToFront(selected.id)}
+              onSendToBack={() => sendToBack(selected.id)}
             />
           ) : (
             <SummaryPanel course={course} />

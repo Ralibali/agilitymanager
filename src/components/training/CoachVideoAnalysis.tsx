@@ -351,7 +351,28 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
             </div>
           </div>
 
-          <Button onClick={handleSubmit} className="w-full gap-2" disabled={!file || !question.trim() || isSubmitting}>
+          <div className="rounded-lg border-2 border-primary/30 bg-primary/[0.04] p-3">
+            <div className="text-[11px] font-semibold text-primary mb-1.5">Bekräfta sekretess</div>
+            <p className="text-[11px] text-foreground leading-snug mb-2">
+              {privacyMode === 'private_no_export'
+                ? 'Endast jag, exportera ej — coachen kan inte ladda ner eller dela videon.'
+                : 'Endast jag och coachen — videon visas aldrig för andra användare.'}
+            </p>
+            <label className="flex items-start gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={privacyAcknowledged}
+                onChange={(e) => setPrivacyAcknowledged(e.target.checked)}
+                className="mt-0.5 w-3.5 h-3.5 accent-primary cursor-pointer"
+                disabled={isSubmitting}
+              />
+              <span className="text-[11px] text-muted-foreground leading-snug">
+                Jag godkänner sekretessinställningen. Den kan inte ändras efter uppladdning.
+              </span>
+            </label>
+          </div>
+
+          <Button onClick={handleSubmit} className="w-full gap-2" disabled={!file || !question.trim() || isSubmitting || !privacyAcknowledged}>
             {isSubmitting ? (
               <><Loader2 size={14} className="animate-spin" /> Bearbetar...</>
             ) : (

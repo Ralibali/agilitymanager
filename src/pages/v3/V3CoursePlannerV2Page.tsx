@@ -12,7 +12,7 @@
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
 import { useEffect, useMemo, useRef, useState, useCallback, type PointerEvent } from "react";
-import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff, Library, Undo2, Redo2, Copy, Magnet, Box, Footprints } from "lucide-react";
+import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff, Library, Undo2, Redo2, Copy, Magnet, Box, Footprints, Lock, Unlock, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -56,6 +56,10 @@ interface ObstacleV2 {
   curveDeg?: number;
   /** Vilken sida tunneln böjer åt. Default "right". */
   curveSide?: "left" | "right";
+  /** Låst hinder kan inte flyttas, roteras, dupliceras eller raderas. */
+  locked?: boolean;
+  /** Z-order för render-sortering. Default 0. */
+  zIndex?: number;
 }
 
 interface CourseV2 {
@@ -91,6 +95,20 @@ function saveCourse(c: CourseV2) {
 }
 
 function uid() { return Math.random().toString(36).slice(2, 10); }
+
+/** Bounding-rektangel (AABB) i meter för ett hinder, med rotation. */
+function obstacleBox(o: { x: number; y: number; rotation: number }, w: number, d: number) {
+  const rad = (o.rotation * Math.PI) / 180;
+  const cos = Math.abs(Math.cos(rad));
+  const sin = Math.abs(Math.sin(rad));
+  const halfW = (w * cos + d * sin) / 2;
+  const halfH = (w * sin + d * cos) / 2;
+  return { minX: o.x - halfW, maxX: o.x + halfW, minY: o.y - halfH, maxY: o.y + halfH };
+}
+
+function rectsOverlap(a: { minX: number; maxX: number; minY: number; maxY: number }, b: typeof a) {
+  return !(a.maxX < b.minX || b.maxX < a.minX || a.maxY < b.minY || b.maxY < a.minY);
+}
 
 export default function V3CoursePlannerV2Page() {
   const navigate = useNavigate();
@@ -363,7 +381,8 @@ export default function V3CoursePlannerV2Page() {
     const ob = course.obstacles.find((o) => o.id === id);
     if (!ob) return;
     const newId = uid();
-    const copy: ObstacleV2 = { ...ob, id: newId, x: snapM(ob.x + 1), y: snapM(ob.y + 1), number: undefined };
+    // Duplikat ärver INTE locked — användaren vill kunna flytta kopian direkt.
+    const copy: ObstacleV2 = { ...ob, id: newId, x: snapM(ob.x + 1), y: snapM(ob.y + 1), number: undefined, locked: false };
     setCourse((c) => ({ ...c, obstacles: [...c.obstacles, copy] }));
     setSelectedId(newId);
   }
@@ -390,6 +409,11 @@ export default function V3CoursePlannerV2Page() {
   }
 
   function deleteObstacle(id: string) {
+    const ob = course.obstacles.find((o) => o.id === id);
+    if (ob?.locked) {
+      toast.error("Hindret är låst — lås upp först");
+      return;
+    }
     setCourse((c) => ({ ...c, obstacles: c.obstacles.filter((o) => o.id !== id) }));
     setSelectedId(null);
   }
@@ -397,7 +421,11 @@ export default function V3CoursePlannerV2Page() {
   function rotateObstacle(id: string, deg: number) {
     setCourse((c) => ({
       ...c,
-      obstacles: c.obstacles.map((o) => o.id === id ? { ...o, rotation: (o.rotation + deg) % 360 } : o),
+      obstacles: c.obstacles.map((o) => {
+        if (o.id !== id) return o;
+        if (o.locked) return o;
+        return { ...o, rotation: (o.rotation + deg + 360) % 360 };
+      }),
     }));
   }
 
@@ -406,11 +434,80 @@ export default function V3CoursePlannerV2Page() {
       ...c,
       obstacles: c.obstacles.map((o) => {
         if (o.id !== id) return o;
+        if (o.locked) return o;
         const curveDeg = patch.curveDeg !== undefined ? Math.max(0, Math.min(90, patch.curveDeg)) : o.curveDeg;
         const curveSide = patch.curveSide ?? o.curveSide;
         return { ...o, curveDeg, curveSide };
       }),
     }));
+  }
+
+  function toggleLock(id: string) {
+    let nowLocked = false;
+    setCourse((c) => ({
+      ...c,
+      obstacles: c.obstacles.map((o) => {
+        if (o.id !== id) return o;
+        nowLocked = !o.locked;
+        return { ...o, locked: nowLocked };
+      }),
+    }));
+    // Toast efter setState — använd setTimeout för att läsa nowLocked korrekt
+    setTimeout(() => toast.success(nowLocked ? "Hinder låst" : "Hinder upplåst"), 0);
+  }
+
+  /** Returnerar hinder vars bounding-rektangel överlappar givet hinder. */
+  function getOverlappingObstacles(target: ObstacleV2, all: ObstacleV2[]): ObstacleV2[] {
+    const def = getObstacleDefV2(target.type);
+    if (!def) return [];
+    const ra = obstacleBox(target, def.sizeM.w, def.sizeM.d);
+    return all.filter((o) => {
+      if (o.id === target.id) return false;
+      const od = getObstacleDefV2(o.type);
+      if (!od) return false;
+      const rb = obstacleBox(o, od.sizeM.w, od.sizeM.d);
+      return rectsOverlap(ra, rb);
+    });
+  }
+
+  function bringForward(id: string) {
+    setCourse((c) => {
+      const target = c.obstacles.find((o) => o.id === id);
+      if (!target) return c;
+      const overlap = getOverlappingObstacles(target, c.obstacles);
+      const max = overlap.reduce((m, o) => Math.max(m, o.zIndex ?? 0), target.zIndex ?? 0);
+      const next = max + 1;
+      return { ...c, obstacles: c.obstacles.map((o) => o.id === id ? { ...o, zIndex: next } : o) };
+    });
+    toast.success("Flyttad framåt");
+  }
+
+  function sendBackward(id: string) {
+    setCourse((c) => {
+      const target = c.obstacles.find((o) => o.id === id);
+      if (!target) return c;
+      const overlap = getOverlappingObstacles(target, c.obstacles);
+      const min = overlap.reduce((m, o) => Math.min(m, o.zIndex ?? 0), target.zIndex ?? 0);
+      const next = min - 1;
+      return { ...c, obstacles: c.obstacles.map((o) => o.id === id ? { ...o, zIndex: next } : o) };
+    });
+    toast.success("Flyttad bakåt");
+  }
+
+  function bringToFront(id: string) {
+    setCourse((c) => {
+      const max = c.obstacles.reduce((m, o) => Math.max(m, o.zIndex ?? 0), 0);
+      return { ...c, obstacles: c.obstacles.map((o) => o.id === id ? { ...o, zIndex: max + 1 } : o) };
+    });
+    toast.success("Flyttad längst fram");
+  }
+
+  function sendToBack(id: string) {
+    setCourse((c) => {
+      const min = c.obstacles.reduce((m, o) => Math.min(m, o.zIndex ?? 0), 0);
+      return { ...c, obstacles: c.obstacles.map((o) => o.id === id ? { ...o, zIndex: min - 1 } : o) };
+    });
+    toast.success("Flyttad längst bak");
   }
 
   function setObstacleNumber(id: string, num: number | undefined) {
@@ -430,14 +527,16 @@ export default function V3CoursePlannerV2Page() {
 
   function handlePointerDown(e: PointerEvent<SVGGElement>, id: string) {
     e.stopPropagation();
+    const ob = course.obstacles.find((o) => o.id === id);
     if (tool === "erase") { deleteObstacle(id); return; }
     if (tool === "number") {
-      const ob = course.obstacles.find((o) => o.id === id);
+      if (ob?.locked) { toast.error("Hindret är låst"); return; }
       const next = ob?.number ? undefined : ((Math.max(0, ...course.obstacles.map((x) => x.number ?? 0))) + 1);
       setObstacleNumber(id, next);
       return;
     }
     setSelectedId(id);
+    if (ob?.locked) return; // Markera men dra inte
     setDraggingId(id);
     (e.target as Element).setPointerCapture?.(e.pointerId);
   }
@@ -501,6 +600,11 @@ export default function V3CoursePlannerV2Page() {
     togglePath: () => setShowPath((v) => !v),
     deselect: () => setSelectedId(null),
     hasSelection: () => selectedId != null,
+    bringForward: () => { if (selectedId) bringForward(selectedId); },
+    sendBackward: () => { if (selectedId) sendBackward(selectedId); },
+    bringToFront: () => { if (selectedId) bringToFront(selectedId); },
+    sendToBack: () => { if (selectedId) sendToBack(selectedId); },
+    toggleLockSelected: () => { if (selectedId) toggleLock(selectedId); },
   });
 
   // Bygger kommandolistan för paletten.
@@ -534,6 +638,11 @@ export default function V3CoursePlannerV2Page() {
     hasSelection: selectedId != null,
     canUndo: historyRef.current.past.length > 0,
     canRedo: historyRef.current.future.length > 0,
+    toggleLockSelected: () => { if (selectedId) toggleLock(selectedId); },
+    bringForward: () => { if (selectedId) bringForward(selectedId); },
+    sendBackward: () => { if (selectedId) sendBackward(selectedId); },
+    bringToFront: () => { if (selectedId) bringToFront(selectedId); },
+    sendToBack: () => { if (selectedId) sendToBack(selectedId); },
   }), [course, selectedId, handleSaveAll, undo, redo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -798,6 +907,11 @@ export default function V3CoursePlannerV2Page() {
               onDelete={() => deleteObstacle(selected.id)}
               onNumberChange={(n) => setObstacleNumber(selected.id, n)}
               onTunnelCurve={(p) => setTunnelCurve(selected.id, p)}
+              onToggleLock={() => toggleLock(selected.id)}
+              onBringForward={() => bringForward(selected.id)}
+              onSendBackward={() => sendBackward(selected.id)}
+              onBringToFront={() => bringToFront(selected.id)}
+              onSendToBack={() => sendToBack(selected.id)}
             />
           ) : (
             <SummaryPanel course={course} />
@@ -889,15 +1003,22 @@ function ArenaCanvas({
         {showPath && pathD && (
           <path d={pathD} fill="none" stroke="#c85d1e" strokeWidth={0.18} strokeDasharray="0.5 0.3" strokeLinecap="round" opacity={0.85} />
         )}
-        {course.obstacles.map((ob) => (
-          <ObstacleSvg
-            key={ob.id}
-            obstacle={ob}
-            selected={selectedId === ob.id}
-            hasIssue={highlightIds.has(ob.id)}
-            onPointerDown={(e) => onObstacleDown(e, ob.id)}
-          />
-        ))}
+        {[...course.obstacles]
+          .sort((a, b) => {
+            const za = a.zIndex ?? 0;
+            const zb = b.zIndex ?? 0;
+            if (za !== zb) return za - zb;
+            return a.id.localeCompare(b.id);
+          })
+          .map((ob) => (
+            <ObstacleSvg
+              key={ob.id}
+              obstacle={ob}
+              selected={selectedId === ob.id}
+              hasIssue={highlightIds.has(ob.id)}
+              onPointerDown={(e) => onObstacleDown(e, ob.id)}
+            />
+          ))}
       </svg>
     </div>
   );
@@ -912,12 +1033,13 @@ function ObstacleSvg({ obstacle, selected, hasIssue, onPointerDown }: {
   const def = getObstacleDefV2(obstacle.type);
   if (!def) return null;
   const { w, d } = def.sizeM;
+  const locked = !!obstacle.locked;
   return (
     <g
       transform={`translate(${obstacle.x} ${obstacle.y}) rotate(${obstacle.rotation})`}
       onPointerDown={onPointerDown}
       onClick={(e) => e.stopPropagation()}
-      style={{ cursor: "grab" }}
+      style={{ cursor: locked ? "not-allowed" : "grab" }}
     >
       {hasIssue && !selected && (
         <circle r={Math.max(w, d) / 2 + 0.35} fill="#ef4444" opacity={0.18} />
@@ -925,6 +1047,16 @@ function ObstacleSvg({ obstacle, selected, hasIssue, onPointerDown }: {
       <ObstacleShape def={def} selected={selected} obstacle={obstacle} />
       {selected && (
         <circle r={Math.max(w, d) / 2 + 0.4} fill="none" stroke="#1a6b3c" strokeWidth={0.12} strokeDasharray="0.3 0.2" />
+      )}
+      {locked && (
+        // Hänglås-glyf uppe till vänster på hindret. Roteras tillbaka så det alltid står upp.
+        <g transform={`translate(${-w / 2 - 0.25} ${-d / 2 - 0.25}) rotate(${-obstacle.rotation})`}>
+          <circle r={0.36} fill="#fff" stroke="#173d2c" strokeWidth={0.05} />
+          <g transform="translate(-0.22 -0.22) scale(0.018)" fill="none" stroke="#173d2c" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" fill="#fff" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </g>
+        </g>
       )}
       {obstacle.number != null && (
         <g transform={`translate(${w / 2 + 0.3} ${-d / 2 - 0.3})`}>
@@ -1041,14 +1173,23 @@ function ObstacleShape({ def, selected, obstacle }: { def: ObstacleDefV2; select
   }
 }
 
-function SelectedPanel({ obstacle, size, onRotate, onDelete, onNumberChange, onTunnelCurve }: {
+function SelectedPanel({
+  obstacle, size, onRotate, onDelete, onNumberChange, onTunnelCurve,
+  onToggleLock, onBringForward, onSendBackward, onBringToFront, onSendToBack,
+}: {
   obstacle: ObstacleV2;
   size: SizeClassKey;
   onRotate: (deg: number) => void;
   onDelete: () => void;
   onNumberChange: (n: number | undefined) => void;
   onTunnelCurve?: (patch: { curveDeg?: number; curveSide?: "left" | "right" }) => void;
+  onToggleLock: () => void;
+  onBringForward: () => void;
+  onSendBackward: () => void;
+  onBringToFront: () => void;
+  onSendToBack: () => void;
 }) {
+  const locked = !!obstacle.locked;
   const def = getObstacleDefV2(obstacle.type)!;
   const sizeDef = SIZE_CLASSES.find((s) => s.key === size)!;
   const showJumpHeight = ["jump", "wall", "combo", "longjump"].includes(def.type);
@@ -1088,13 +1229,38 @@ function SelectedPanel({ obstacle, size, onRotate, onDelete, onNumberChange, onT
       </div>
 
       <div className="grid grid-cols-2 gap-1.5 mt-3">
-        <button onClick={() => onRotate(15)} className="h-9 rounded-lg bg-white border border-black/10 text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 hover:border-neutral-400">
+        <button onClick={() => onRotate(15)} disabled={locked} className="h-9 rounded-lg bg-white border border-black/10 text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed">
           <RotateCw size={13} /> Rotera 15°
         </button>
-        <button onClick={() => onRotate(90)} className="h-9 rounded-lg bg-white border border-black/10 text-[12px] font-semibold hover:border-neutral-400">
+        <button onClick={() => onRotate(90)} disabled={locked} className="h-9 rounded-lg bg-white border border-black/10 text-[12px] font-semibold hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed">
           Rotera 90°
         </button>
       </div>
+
+      <button
+        onClick={onToggleLock}
+        className={cn(
+          "mt-2 w-full h-9 rounded-lg text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 border transition",
+          locked
+            ? "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
+            : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
+        )}
+        title="Lås/lås upp hindret (förhindrar drag, rotation och radering)"
+      >
+        {locked ? <><Lock size={13} /> Låst — klicka för att låsa upp</> : <><Unlock size={13} /> Lås hinder</>}
+      </button>
+
+      <div className="mt-3">
+        <div className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-1">Stapelordning</div>
+        <div className="grid grid-cols-4 gap-1">
+          <button onClick={onSendToBack} title="Längst bak (Ctrl+Shift+[)" className="h-8 rounded-lg bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowDownToLine size={13} /></button>
+          <button onClick={onSendBackward} title="Bakåt ett steg (Ctrl+[)" className="h-8 rounded-lg bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowDown size={13} /></button>
+          <button onClick={onBringForward} title="Framåt ett steg (Ctrl+])" className="h-8 rounded-lg bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowUp size={13} /></button>
+          <button onClick={onBringToFront} title="Längst fram (Ctrl+Shift+])" className="h-8 rounded-lg bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowUpToLine size={13} /></button>
+        </div>
+        <div className="text-[10px] text-neutral-500 mt-1">Lager: {obstacle.zIndex ?? 0}</div>
+      </div>
+
       <div className="mt-2 flex items-center gap-2">
         <label className="text-[11px] text-neutral-600">Nummer</label>
         <input
@@ -1105,7 +1271,8 @@ function SelectedPanel({ obstacle, size, onRotate, onDelete, onNumberChange, onT
             onNumberChange(v === "" ? undefined : Number(v));
           }}
           min={1}
-          className="h-9 w-20 px-2 rounded-lg border border-black/10 text-[12px]"
+          disabled={locked}
+          className="h-9 w-20 px-2 rounded-lg border border-black/10 text-[12px] disabled:opacity-50"
         />
       </div>
       {isTunnel && onTunnelCurve && (
@@ -1116,26 +1283,35 @@ function SelectedPanel({ obstacle, size, onRotate, onDelete, onNumberChange, onT
           </div>
           <input
             type="range" min={0} max={90} step={5} value={curveDeg}
+            disabled={locked}
             onChange={(e) => onTunnelCurve({ curveDeg: Number(e.target.value) })}
-            className="w-full accent-[#1a6b3c]"
+            className="w-full accent-[#1a6b3c] disabled:opacity-50"
           />
           <div className="grid grid-cols-2 gap-1.5">
             <button
               onClick={() => onTunnelCurve({ curveSide: "left" })}
-              className={cn("h-8 rounded-lg text-[11px] font-semibold border", curveSide === "left" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/10")}
+              disabled={locked}
+              className={cn("h-8 rounded-lg text-[11px] font-semibold border disabled:opacity-40", curveSide === "left" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/10")}
             >Vänster</button>
             <button
               onClick={() => onTunnelCurve({ curveSide: "right" })}
-              className={cn("h-8 rounded-lg text-[11px] font-semibold border", curveSide === "right" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/10")}
+              disabled={locked}
+              className={cn("h-8 rounded-lg text-[11px] font-semibold border disabled:opacity-40", curveSide === "right" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/10")}
             >Höger</button>
           </div>
           <button
             onClick={() => onTunnelCurve({ curveDeg: 0 })}
-            className="w-full h-8 rounded-lg text-[11px] font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+            disabled={locked}
+            className="w-full h-8 rounded-lg text-[11px] font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200 disabled:opacity-40"
           >Återställ till rak</button>
         </div>
       )}
-      <button onClick={onDelete} className="mt-3 w-full h-9 rounded-lg bg-red-50 text-red-700 border border-red-200 text-[12px] font-semibold inline-flex items-center justify-center gap-1.5">
+      <button
+        onClick={onDelete}
+        disabled={locked}
+        title={locked ? "Lås upp först för att ta bort" : "Ta bort hinder"}
+        className="mt-3 w-full h-9 rounded-lg bg-red-50 text-red-700 border border-red-200 text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+      >
         <Trash2 size={13} /> Ta bort hinder
       </button>
     </section>

@@ -22,6 +22,13 @@ export interface CoursePlannerHotkeyHandlers {
   deselect: () => void;
   /** Returns true if there is a selected obstacle (for selection-only hotkeys). */
   hasSelection: () => boolean;
+  /** Z-order på markerat hinder. */
+  bringForward: () => void;
+  sendBackward: () => void;
+  bringToFront: () => void;
+  sendToBack: () => void;
+  /** Lås/lås upp markerat hinder. */
+  toggleLockSelected: () => void;
 }
 
 function isTypingTarget(t: EventTarget | null): boolean {
@@ -86,6 +93,18 @@ export function useCoursePlannerHotkeys(handlers: CoursePlannerHotkeyHandlers): 
         }
         return;
       }
+      // Z-order: Ctrl/Cmd + ] / [ (med Shift = längst fram/bak)
+      if (meta && (e.key === "]" || e.key === "[")) {
+        if (handlers.hasSelection()) {
+          e.preventDefault();
+          if (e.key === "]") {
+            e.shiftKey ? handlers.bringToFront() : handlers.bringForward();
+          } else {
+            e.shiftKey ? handlers.sendToBack() : handlers.sendBackward();
+          }
+        }
+        return;
+      }
       if (e.key === "Delete" || e.key === "Backspace") {
         if (handlers.hasSelection()) {
           e.preventDefault();
@@ -106,6 +125,11 @@ export function useCoursePlannerHotkeys(handlers: CoursePlannerHotkeyHandlers): 
         if (e.key === "e" || e.key === "E") { handlers.setToolErase(); return; }
         if (e.key === "n" || e.key === "N") { handlers.setToolNumber(); return; }
         if (e.key === "g" || e.key === "G") { handlers.togglePath(); return; }
+        if ((e.key === "l" || e.key === "L") && handlers.hasSelection()) {
+          e.preventDefault();
+          handlers.toggleLockSelected();
+          return;
+        }
       }
     }
     window.addEventListener("keydown", onKey);

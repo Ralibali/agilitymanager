@@ -9,6 +9,7 @@ import {
   Plus, Activity, Flag, FileDown,
   Undo2, Redo2, Copy, Trash2,
   Box, Footprints,
+  Lock, ArrowUp, ArrowDown, ArrowUpToLine, ArrowDownToLine,
 } from "lucide-react";
 import type { PaletteCommand } from "@/components/course-planner-v2/CommandPalette";
 import type { Sport, ObstacleTypeV2 } from "@/features/course-planner-v2/config";
@@ -53,6 +54,13 @@ export interface PlannerCommandHandlers {
   hasSelection: boolean;
   canUndo: boolean;
   canRedo: boolean;
+
+  // Lås & z-order (alla kräver markerat hinder)
+  toggleLockSelected: () => void;
+  bringForward: () => void;
+  sendBackward: () => void;
+  bringToFront: () => void;
+  sendToBack: () => void;
 }
 
 export function buildPlannerCommands(h: PlannerCommandHandlers): PaletteCommand[] {
@@ -221,6 +229,31 @@ export function buildPlannerCommands(h: PlannerCommandHandlers): PaletteCommand[
         id: "edit.delete", group: "Redigering", label: "Ta bort markerat hinder",
         shortcut: ["Delete"], keywords: ["ta bort", "delete", "radera"],
         icon: <Trash2 size={14} />, run: h.deleteSelected,
+      },
+      {
+        id: "edit.lock", group: "Redigering", label: "Lås / lås upp markerat hinder",
+        shortcut: ["L"], keywords: ["lås", "låsa", "lock", "fäst"],
+        icon: <Lock size={14} />, run: h.toggleLockSelected,
+      },
+      {
+        id: "edit.bringForward", group: "Redigering", label: "Flytta framåt",
+        shortcut: ["Ctrl", "]"], keywords: ["framåt", "fram", "stapel", "z-order"],
+        icon: <ArrowUp size={14} />, run: h.bringForward,
+      },
+      {
+        id: "edit.sendBackward", group: "Redigering", label: "Flytta bakåt",
+        shortcut: ["Ctrl", "["], keywords: ["bakåt", "bak", "stapel", "z-order"],
+        icon: <ArrowDown size={14} />, run: h.sendBackward,
+      },
+      {
+        id: "edit.bringToFront", group: "Redigering", label: "Längst fram",
+        shortcut: ["Ctrl", "Shift", "]"], keywords: ["längst fram", "topp"],
+        icon: <ArrowUpToLine size={14} />, run: h.bringToFront,
+      },
+      {
+        id: "edit.sendToBack", group: "Redigering", label: "Längst bak",
+        shortcut: ["Ctrl", "Shift", "["], keywords: ["längst bak", "botten"],
+        icon: <ArrowDownToLine size={14} />, run: h.sendToBack,
       },
     );
   }

@@ -10,7 +10,15 @@ import { DogHero } from "@/components/v3/DogHero";
 import { ActivityTimeline } from "@/components/v3/ActivityTimeline";
 import { V3EmptyState } from "@/components/v3/V3EmptyState";
 import { V3OnboardingWizard } from "@/components/v3/V3OnboardingWizard";
+import { BrandPill } from "@/components/brand/BrandPill";
+import { CoursePath } from "@/components/brand/CoursePath";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+function capitalizeFirst(s: string): string {
+  if (!s) return s;
+  return s.charAt(0).toLocaleUpperCase("sv-SE") + s.slice(1);
+}
 
 function getTimeGreeting(date: Date = new Date()): string {
   const h = date.getHours();

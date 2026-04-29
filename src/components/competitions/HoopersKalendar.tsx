@@ -104,6 +104,17 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
 
     if (wasActive) {
       toast.success(targetStatus === 'interested' ? 'Intresse borttaget' : 'Anmälan borttagen');
+    } else if (targetStatus === 'registered' && isGuest) {
+      toast.success('✅ Markerad som anmäld', {
+        description: 'Logga in för att slutföra anmälan och spara mellan enheter.',
+        action: {
+          label: 'Logga in',
+          onClick: () => {
+            window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+          },
+        },
+        duration: 8000,
+      });
     } else {
       toast.success(targetStatus === 'interested' ? '⭐ Markerad som intresserad' : '✅ Markerad som anmäld');
     }

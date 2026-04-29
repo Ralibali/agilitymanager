@@ -5,10 +5,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { getAndClearUtmData } from '@/lib/utm';
+import { readGuestInterestItems } from '@/lib/guestInterestsStorage';
 
 function safeRedirectPath(value: string | null): string {
   if (!value) return '/v3';

@@ -44,6 +44,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
   const [dogId, setDogId] = useState(dogs[0]?.id || '');
   const [sport, setSport] = useState('Agility');
   const [pack, setPack] = useState<'1' | '3' | '5'>('1');
+  const [privacyMode, setPrivacyMode] = useState<PrivacyMode>('private');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 

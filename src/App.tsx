@@ -40,6 +40,7 @@ const HoopersCompetitionDetailPage = React.lazy(() => import("./pages/HoopersCom
 const BreedsIndexPage = React.lazy(() => import("./pages/BreedsIndexPage"));
 const BreedDetailPage = React.lazy(() => import("./pages/BreedDetailPage"));
 const HelpResultImportPage = React.lazy(() => import("./pages/HelpResultImportPage"));
+const PublicCoachPage = React.lazy(() => import("./pages/PublicCoachPage"));
 
 // v2-shellen är pensionerad – alla skyddade rutter går nu via v3.
 
@@ -149,6 +150,7 @@ const App = () => (
               <Route path="/club-invite/:code" element={<ClubInvitePage />} />
               <Route path="/design-demo" element={<DesignDemoPage />} />
               <Route path="/hjalp/resultathamtning" element={<HelpResultImportPage />} />
+              <Route path="/coach" element={<PublicCoachPage />} />
 
               {/* v3 – Addiction Update (Fas 3: skyddad bakom V3Guard som renderar V3Layout) */}
               <Route path="/v3" element={<V3Guard />}>

@@ -306,16 +306,31 @@ export default function LandingPage() {
             — Coachen bakom AgilityManager
           </motion.p>
 
+          <motion.div {...inViewFadeUp(0.3)} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a
+              href="/coach"
+              className="font-body inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-white text-[#0f1411] text-[14px] font-medium hover:bg-white/90 transition-colors"
+            >
+              Skicka in en video från 79 kr →
+            </a>
+            <a
+              href="/coach"
+              className="font-body inline-flex items-center justify-center h-11 px-5 rounded-full border border-white/20 text-white text-[14px] hover:bg-white/5 transition-colors"
+            >
+              Läs mer om coachen
+            </a>
+          </motion.div>
+
           <motion.p
-            {...inViewFadeUp(0.3)}
+            {...inViewFadeUp(0.35)}
             className="font-body"
             style={{
               fontSize: '13px',
               color: 'rgba(232,237,232,0.55)',
-              marginTop: '28px',
+              marginTop: '20px',
             }}
           >
-            Tillgänglig via Pro · Svarsgaranti 48h · Ingår i abonnemanget
+            Öppet för alla · Inget medlemskap krävs · 50% rabatt för Pro
           </motion.p>
 
           <motion.div {...inViewFadeUp(0.35)} className="mt-8">

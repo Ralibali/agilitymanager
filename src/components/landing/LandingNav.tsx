@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 const NAV_LINKS = [
   { href: "#features", label: "Funktioner" },
   { href: "/banplanerare", label: "Gratis banplanerare", external: true },
-  { href: "#coach", label: "Coach" },
+  { href: "/coach", label: "Coach", external: true },
   { href: "#hoopers", label: "Hoopers" },
   { href: "#pricing", label: "Priser" },
   { href: "/blogg", label: "Blogg", external: true },

@@ -87,8 +87,8 @@ export default function CoachUploadFlow({ open, onOpenChange, initialPack = "1" 
     if (f) handleFileChosen(f);
   };
 
-  const goNext = () => setStep((s) => (Math.min(4, (s + 1) as Step)));
-  const goBack = () => setStep((s) => (Math.max(1, (s - 1) as Step)));
+  const goNext = () => setStep((s) => Math.min(4, s + 1) as Step);
+  const goBack = () => setStep((s) => Math.max(1, s - 1) as Step);
 
   const handleConfirmAndSubmit = async () => {
     if (!file || !question.trim()) {

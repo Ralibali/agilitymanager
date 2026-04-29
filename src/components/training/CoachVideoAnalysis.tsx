@@ -339,7 +339,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
                     </button>
 
                     <AnimatePresence>
-                      {isExpanded && fb.coach_response && (
+                      {isExpanded && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
@@ -348,20 +348,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
                           className="overflow-hidden"
                         >
                           <div className="px-3 pb-3 border-t border-border/50 pt-2">
-                            <p className="text-[10px] font-semibold text-primary mb-1">Coachens svar:</p>
-                            <p className="text-xs whitespace-pre-wrap">{fb.coach_response}</p>
-                          </div>
-                        </motion.div>
-                      )}
-                      {isExpanded && isPending && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="px-3 pb-3 border-t border-border/50 pt-2">
-                            <p className="text-xs text-muted-foreground italic">Coachen har ännu inte svarat. Du får besked här när svaret är klart.</p>
+                            <ConversationThread feedback={fb} />
                           </div>
                         </motion.div>
                       )}

@@ -119,7 +119,7 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
   const [lastFetched, setLastFetched] = useState<string | null>(null);
   const [manualFilters, setManualFilters] = useState<Set<string>>(new Set());
   const [selectedCounties, setSelectedCounties] = useState<Set<string>>(new Set());
-  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; compId: string }>({ open: false, compId: '' });
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; compId: string; targetType: InterestStatus | null; comp?: Competition }>({ open: false, compId: '', targetType: null });
   const [shareComp, setShareComp] = useState<{ open: boolean; comp: Competition | null }>({ open: false, comp: null });
   const [expandedResults, setExpandedResults] = useState<string | null>(null);
   const [friendNames, setFriendNames] = useState<string[]>([]);
@@ -211,6 +211,8 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
     setRefreshing(false);
   };
 
+  const STATUS_RANK: Record<string, number> = { interested: 1, registered: 2, done: 3 };
+
   const toggleInterest = async (compId: string, type: InterestStatus, comp?: Competition) => {
     const current = interests[compId];
     const dogName = selectedDog?.name || null;
@@ -226,9 +228,12 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
       return;
     }
 
-    // Skydd: kräv bekräftelse om man försöker degradera från "anmäld" till "intresserad"
-    if (type === 'interested' && current === 'registered') {
-      setConfirmDialog({ open: true, compId });
+    // Bekräftelse vid nedstegning från en högre status (inkl. att toggla bort
+    // samma höga status). interested → null lämnas fritt (låg insats).
+    const isToggleOff = current === type && current !== 'interested';
+    const isDowngrade = current && STATUS_RANK[current] > STATUS_RANK[type];
+    if (isToggleOff || isDowngrade) {
+      setConfirmDialog({ open: true, compId, targetType: isToggleOff ? null : type, comp });
       return;
     }
 
@@ -241,13 +246,21 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
   };
 
   const handleConfirmDowngrade = async () => {
-    const compId = confirmDialog.compId;
-    await setInterest(compId, 'interested', {
-      dogName: selectedDog?.name || null,
-      dogClass: selectedDog?.competition_level || null,
-      sport: 'Agility',
-    });
-    setConfirmDialog({ open: false, compId: '' });
+    const { compId, targetType, comp } = confirmDialog;
+    const dogName = selectedDog?.name || null;
+    const dogClass = selectedDog?.competition_level || null;
+    const region = comp?.location ? getCountyForLocation(comp.location) : null;
+
+    if (targetType === null) {
+      // Toggle av samma status — kalla setInterest med nuvarande status så hooken raderar
+      const current = interests[compId];
+      if (current) {
+        await setInterest(compId, current, { dogName, dogClass, sport: 'Agility', region });
+      }
+    } else {
+      await setInterest(compId, targetType, { dogName, dogClass, sport: 'Agility', region });
+    }
+    setConfirmDialog({ open: false, compId: '', targetType: null });
   };
 
 
@@ -525,12 +538,31 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
 
       
 
-      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ open: false, compId: '' })}>
+      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ open: false, compId: '', targetType: null })}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Ta bort anmälan?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {(() => {
+                const cur = interests[confirmDialog.compId];
+                const tgt = confirmDialog.targetType;
+                if (tgt === null) {
+                  return cur === 'done' ? 'Ta bort genomförd?' : 'Ta bort anmälan?';
+                }
+                if (cur === 'done') return 'Ändra från genomförd?';
+                return 'Ta bort anmälan?';
+              })()}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Du är markerad som anmäld till denna tävling. Vill du ändra tillbaka till intresserad?
+              {(() => {
+                const cur = interests[confirmDialog.compId];
+                const tgt = confirmDialog.targetType;
+                const curLabel = cur === 'done' ? 'genomförd' : cur === 'registered' ? 'anmäld' : 'intresserad';
+                if (tgt === null) {
+                  return `Du är markerad som ${curLabel} på denna tävling. Vill du ta bort markeringen helt?`;
+                }
+                const tgtLabel = tgt === 'registered' ? 'anmäld' : 'intresserad';
+                return `Du är markerad som ${curLabel}. Vill du ändra tillbaka till ${tgtLabel}?`;
+              })()}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

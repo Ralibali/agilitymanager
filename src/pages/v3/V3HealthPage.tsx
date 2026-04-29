@@ -223,7 +223,7 @@ function ReminderCard({ log, overdue }: { log: V3HealthLog; overdue?: boolean })
   const days = daysUntil(log.next_date);
   return (
     <div className={cn("rounded-v3-lg border p-4 flex items-start gap-3", overdue ? "bg-coral/10 border-coral/30 " : "bg-coral/10 border-coral/25 ")}>
-      <div className="shrink-0 h-10 w-10 rounded-full grid place-items-center bg-white/70 dark:bg-black/30 text-xl">
+      <div className="shrink-0 h-10 w-10 rounded-full grid place-items-center bg-white/70 text-xl">
         {overdue ? <AlertTriangle className="text-coral" size={18} /> : <Bell className="text-coral" size={18} />}
       </div>
       <div className="min-w-0 flex-1">

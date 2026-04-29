@@ -5,10 +5,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { getAndClearUtmData } from '@/lib/utm';
+import { readGuestInterestItems } from '@/lib/guestInterestsStorage';
 
 function safeRedirectPath(value: string | null): string {
   if (!value) return '/v3';
@@ -33,6 +34,16 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const { toast } = useToast();
+
+  // Visa pending gäst-markeringar om användaren kommer från tävlingskalendern
+  const guestInterestCount = useMemo(() => {
+    if (source !== 'competitions') return 0;
+    try {
+      return readGuestInterestItems().length;
+    } catch {
+      return 0;
+    }
+  }, [source]);
 
   useEffect(() => {
     if (mode === 'signup') setIsLogin(false);
@@ -173,6 +184,16 @@ export default function AuthPage() {
           <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 text-sm text-muted-foreground">
             <strong className="block text-foreground mb-1">Fortsätt från banplaneraren</strong>
             Skapa konto så kan du ta nästa steg: spara banor, logga träningspass och se statistik över utvecklingen.
+          </div>
+        )}
+
+        {source === 'competitions' && guestInterestCount > 0 && !resetMode && (
+          <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 text-sm text-muted-foreground">
+            <strong className="flex items-center gap-2 text-foreground mb-1">
+              <CheckCircle2 size={16} className="text-primary" />
+              Vi har sparat dina {guestInterestCount} markering{guestInterestCount === 1 ? '' : 'ar'}
+            </strong>
+            De kopplas automatiskt till ditt konto när du loggat in — ingenting går förlorat.
           </div>
         )}
 

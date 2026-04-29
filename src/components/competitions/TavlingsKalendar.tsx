@@ -13,6 +13,9 @@ import { SWEDISH_COUNTIES, type Competition } from '@/types/competitions';
 import { getCountyForLocation } from '@/lib/swedishCityCounty';
 import { useToast } from '@/hooks/use-toast';
 import { useCompetitionInterests, type InterestStatus } from '@/hooks/useCompetitionInterests';
+import { GuestConversionBanner } from './GuestConversionBanner';
+import { GuestSignupModal } from './GuestSignupModal';
+import { useExitIntent } from '@/hooks/useExitIntent';
 import type { Dog } from '@/types';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -122,7 +125,20 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
   const [friendNames, setFriendNames] = useState<string[]>([]);
 
   // Delad intresse-hook — hanterar både inloggad (DB) och gäst (cookie/localStorage)
-  const { interests, setInterest } = useCompetitionInterests();
+  const { interests, setInterest, isGuest } = useCompetitionInterests();
+
+  // Konverterings-modal-state
+  const [signupModal, setSignupModal] = useState<{ open: boolean; title?: string; description?: string }>({ open: false });
+  const markedCount = useMemo(() => Object.keys(interests).length, [interests]);
+
+  useExitIntent({
+    enabled: isGuest && markedCount >= 2,
+    onTrigger: () => setSignupModal({
+      open: true,
+      title: 'Spara dina markeringar innan du går',
+      description: `Du har ${markedCount} markeringar — skapa konto på 30 sekunder så är de kvar nästa gång.`,
+    }),
+  });
 
   // Fetch friend names for result highlighting
   useEffect(() => {
@@ -200,6 +216,16 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
     const dogName = selectedDog?.name || null;
     const dogClass = selectedDog?.competition_level || null;
 
+    // Hard-wall: gäst får inte markera "Anmäld" — öppna signup-modal
+    if (type === 'registered' && isGuest && current !== 'registered') {
+      setSignupModal({
+        open: true,
+        title: 'Anmälan kräver konto',
+        description: 'Anmälningar sparas på ditt konto så du har dem på alla enheter och får påminnelser. Intresse (⭐) kan du markera utan konto.',
+      });
+      return;
+    }
+
     // Skydd: kräv bekräftelse om man försöker degradera från "anmäld" till "intresserad"
     if (type === 'interested' && current === 'registered') {
       setConfirmDialog({ open: true, compId });
@@ -270,6 +296,14 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
 
   return (
     <div className="space-y-4">
+      {isGuest && <GuestConversionBanner markedCount={markedCount} />}
+      <GuestSignupModal
+        open={signupModal.open}
+        onOpenChange={(o) => setSignupModal((s) => ({ ...s, open: o }))}
+        title={signupModal.title}
+        description={signupModal.description}
+        markedCount={markedCount}
+      />
       {/* Dog filter description */}
       {selectedDog && (
         <div className="bg-primary/5 rounded-lg px-3 py-2 text-xs text-primary font-medium">

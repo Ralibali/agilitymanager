@@ -6,6 +6,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Calendar as CalendarIcon, Filter, Star, CheckCircle2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompetitionInterests } from '@/hooks/useCompetitionInterests';
+import { GuestConversionBanner } from './GuestConversionBanner';
+import { GuestSignupModal } from './GuestSignupModal';
+import { useExitIntent } from '@/hooks/useExitIntent';
 import type { Dog } from '@/types';
 import type { Competition } from '@/types/competitions';
 
@@ -52,10 +55,33 @@ export function AgilityKalendar({ competitions, dogs, selectedDogId }: Props) {
   const [showFilters, setShowFilters] = useState(false);
   const { interests, loading, setInterest, isGuest } = useCompetitionInterests();
 
+  const [signupModal, setSignupModal] = useState<{ open: boolean; title?: string; description?: string }>({ open: false });
+  const markedCount = useMemo(() => Object.keys(interests).length, [interests]);
+
+  useExitIntent({
+    enabled: isGuest && markedCount >= 2,
+    onTrigger: () => setSignupModal({
+      open: true,
+      title: 'Spara dina markeringar innan du går',
+      description: `Du har ${markedCount} markeringar — skapa konto på 30 sekunder så är de kvar nästa gång.`,
+    }),
+  });
+
   const selectedDog = useMemo(() => dogs.find(d => d.id === selectedDogId), [dogs, selectedDogId]);
 
   const toggleInterest = async (comp: Competition, targetStatus: 'interested' | 'registered') => {
     const current = interests[comp.id];
+
+    // Hard-wall: gäst får inte markera "Anmäld"
+    if (targetStatus === 'registered' && isGuest && current !== 'registered') {
+      setSignupModal({
+        open: true,
+        title: 'Anmälan kräver konto',
+        description: 'Anmälningar sparas på ditt konto så du har dem på alla enheter och får påminnelser. Intresse (⭐) kan du markera utan konto.',
+      });
+      return;
+    }
+
     const dog = selectedDog || dogs.find(d => d.sport === 'Agility' || d.sport === 'Båda');
     const dogName = dog?.name || null;
     const dogClass = dog?.competition_level || null;
@@ -67,12 +93,8 @@ export function AgilityKalendar({ competitions, dogs, selectedDogId }: Props) {
     } else {
       toast.success(
         targetStatus === 'interested'
-          ? isGuest
-            ? '⭐ Sparad lokalt — logga in för att synka mellan enheter'
-            : '⭐ Markerad som intresserad'
-          : isGuest
-            ? '✅ Sparad lokalt — logga in för att synka mellan enheter'
-            : '✅ Markerad som anmäld',
+          ? '⭐ Markerad som intresserad'
+          : '✅ Markerad som anmäld',
       );
     }
   };
@@ -124,6 +146,14 @@ export function AgilityKalendar({ competitions, dogs, selectedDogId }: Props) {
 
   return (
     <div>
+      {isGuest && <GuestConversionBanner markedCount={markedCount} />}
+      <GuestSignupModal
+        open={signupModal.open}
+        onOpenChange={(o) => setSignupModal((s) => ({ ...s, open: o }))}
+        title={signupModal.title}
+        description={signupModal.description}
+        markedCount={markedCount}
+      />
       {/* Header row */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">

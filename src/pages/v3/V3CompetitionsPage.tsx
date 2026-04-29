@@ -11,6 +11,7 @@ import {
   Trash2,
   Download,
   FileText,
+  Bell,
   type LucideIcon,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -28,6 +29,7 @@ import { downloadCsv } from "@/lib/csv";
 import { downloadPdf } from "@/lib/pdf";
 import type { CompetitionResult, PlannedCompetition } from "@/types";
 import { V3MetricCard, V3Page, V3PageHero, V3PrimaryButton, V3SecondaryButton } from "@/components/v3/V3Page";
+import { CompetitionRemindersDialog } from "@/components/v3/CompetitionRemindersDialog";
 
 type Tab = "upcoming" | "results" | "find";
 

@@ -1,49 +1,25 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  readGuestInterestItems,
+  setGuestInterest as setGuestInterestStorage,
+  clearGuestInterestItems,
+  subscribeGuestInterests,
+  type GuestInterestItem,
+  type GuestInterestStatus,
+  type GuestSport,
+} from '@/lib/guestInterestsStorage';
 
-export type InterestStatus = 'interested' | 'registered' | 'done';
+export type InterestStatus = GuestInterestStatus;
 
-interface GuestInterest {
-  competition_id: string;
-  status: InterestStatus;
-  dog_name: string | null;
-  class: string | null;
-  created_at: string;
-}
-
-const GUEST_KEY = 'am.guest.interests.v1';
-
-function readGuest(): GuestInterest[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = window.localStorage.getItem(GUEST_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeGuest(items: GuestInterest[]): void {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.setItem(GUEST_KEY, JSON.stringify(items));
-    window.dispatchEvent(new CustomEvent('am:guest-interests-changed'));
-  } catch {
-    /* ignore quota errors */
-  }
-}
-
-export function readGuestInterests(): GuestInterest[] {
-  return readGuest();
+// Bakåtkompatibla re-exports — gamla callsites importerar dessa från useCompetitionInterests.
+export function readGuestInterests(): GuestInterestItem[] {
+  return readGuestInterestItems();
 }
 
 export function clearGuestInterests(): void {
-  if (typeof window === 'undefined') return;
-  window.localStorage.removeItem(GUEST_KEY);
-  window.dispatchEvent(new CustomEvent('am:guest-interests-changed'));
+  clearGuestInterestItems();
 }
 
 interface UseCompetitionInterestsResult {
@@ -52,7 +28,7 @@ interface UseCompetitionInterestsResult {
   setInterest: (
     competitionId: string,
     status: InterestStatus,
-    meta?: { dogName?: string | null; dogClass?: string | null },
+    meta?: { dogName?: string | null; dogClass?: string | null; sport?: GuestSport; region?: string | null },
   ) => Promise<void>;
   isGuest: boolean;
   refresh: () => Promise<void>;
@@ -65,7 +41,7 @@ export function useCompetitionInterests(): UseCompetitionInterestsResult {
   const isGuest = !user;
 
   const loadFromGuest = useCallback(() => {
-    const items = readGuest();
+    const items = readGuestInterestItems();
     const map: Record<string, InterestStatus> = {};
     for (const it of items) map[it.competition_id] = it.status;
     setInterests(map);
@@ -96,18 +72,10 @@ export function useCompetitionInterests(): UseCompetitionInterestsResult {
     void refresh();
   }, [refresh]);
 
+  // Lyssna på storage-ändringar (andra flikar, samma flik, fokus, visibility) för gäster.
   useEffect(() => {
     if (user) return;
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === GUEST_KEY) loadFromGuest();
-    };
-    const onCustom = () => loadFromGuest();
-    window.addEventListener('storage', onStorage);
-    window.addEventListener('am:guest-interests-changed', onCustom);
-    return () => {
-      window.removeEventListener('storage', onStorage);
-      window.removeEventListener('am:guest-interests-changed', onCustom);
-    };
+    return subscribeGuestInterests(loadFromGuest);
   }, [user, loadFromGuest]);
 
   const setInterest = useCallback<UseCompetitionInterestsResult['setInterest']>(
@@ -116,31 +84,21 @@ export function useCompetitionInterests(): UseCompetitionInterestsResult {
       const dogClass = meta?.dogClass ?? null;
 
       if (!user) {
-        const items = readGuest();
-        const existing = items.findIndex((i) => i.competition_id === competitionId);
-        let next: GuestInterest[];
-        if (existing >= 0 && items[existing].status === status) {
-          next = items.filter((_, idx) => idx !== existing);
-        } else if (existing >= 0) {
-          next = items.map((it, idx) =>
-            idx === existing ? { ...it, status, dog_name: dogName, class: dogClass } : it,
-          );
-        } else {
-          next = [
-            ...items,
-            {
-              competition_id: competitionId,
-              status,
-              dog_name: dogName,
-              class: dogClass,
-              created_at: new Date().toISOString(),
-            },
-          ];
-        }
-        writeGuest(next);
-        const map: Record<string, InterestStatus> = {};
-        for (const it of next) map[it.competition_id] = it.status;
-        setInterests(map);
+        const result = setGuestInterestStorage({
+          competition_id: competitionId,
+          status,
+          sport: meta?.sport,
+          region: meta?.region,
+          class: dogClass,
+          dog_name: dogName,
+        });
+        // Optimistisk uppdatering — subscribe-handlaren kommer också uppdatera men direktstate är snabbare
+        setInterests((prev) => {
+          const next = { ...prev };
+          if (result === null) delete next[competitionId];
+          else next[competitionId] = result;
+          return next;
+        });
         return;
       }
 

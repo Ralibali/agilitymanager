@@ -276,6 +276,8 @@ export default function V3CoursePlannerV2Page() {
     return snap ? Math.round(v * 2) / 2 : v;
   }
 
+  const selected = course.obstacles.find((o) => o.id === selectedId) ?? null;
+
 
   function update(patch: Partial<CourseV2>) {
     setCourse((c) => ({ ...c, ...patch }));

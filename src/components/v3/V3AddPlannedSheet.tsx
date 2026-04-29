@@ -58,7 +58,7 @@ export function V3AddPlannedSheet({ open, onClose, dog, onSaved }: Props) {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("planned_competitions").insert({
+    const { data: inserted, error } = await supabase.from("planned_competitions").insert({
       user_id: user.id,
       dog_id: dog.id,
       event_name: parsed.data.event_name,
@@ -67,12 +67,22 @@ export function V3AddPlannedSheet({ open, onClose, dog, onSaved }: Props) {
       signup_url: parsed.data.signup_url ?? "",
       reminder_days_before: parsed.data.reminder_days_before,
       status: "sparad",
-    });
-    setSaving(false);
-    if (error) {
+    }).select("id").single();
+    if (error || !inserted) {
+      setSaving(false);
       toast.error("Kunde inte spara");
       return;
     }
+    // Skapa även en post i competition_reminders så cron-jobbet kan skicka mejl
+    if (parsed.data.reminder_days_before > 0) {
+      await supabase.from("competition_reminders").insert({
+        user_id: user.id,
+        planned_competition_id: inserted.id,
+        days_before: parsed.data.reminder_days_before,
+        channel: "email",
+      });
+    }
+    setSaving(false);
     toast.success("Tävling sparad");
     onSaved?.();
     onClose();

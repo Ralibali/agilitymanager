@@ -615,6 +615,23 @@ export default function V3CoursePlannerV2Page() {
 
       <KeyboardShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} />
 
+      {view3D && (
+        <LazyCoursePlanner3D
+          obstacles={mapAllToObstacle3D(
+            course.obstacles,
+            course.arenaWidthM,
+            course.arenaHeightM,
+            (t) => getObstacleDefV2(t)?.label,
+          )}
+          paths={[]}
+          widthMeters={course.arenaWidthM}
+          heightMeters={course.arenaHeightM}
+          courseName={course.name}
+          initialMode={view3D}
+          onClose={() => setView3D(null)}
+        />
+      )}
+
       {issuesOpen && (
         <div className="bg-white border-b border-black/5 px-4 py-3 max-h-[40vh] overflow-y-auto">
           <IssuesList issues={issues} onSelect={(id) => { if (id) setSelectedId(id); }} />

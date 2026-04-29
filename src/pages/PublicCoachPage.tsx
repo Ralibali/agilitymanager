@@ -305,6 +305,8 @@ export default function PublicCoachPage() {
       </section>
 
       <LandingFooterV2 />
+
+      <CoachUploadFlow open={uploadOpen} onOpenChange={setUploadOpen} initialPack={selectedPack} />
     </div>
   );
 }

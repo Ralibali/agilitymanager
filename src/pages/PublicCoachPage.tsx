@@ -332,7 +332,13 @@ export default function PublicCoachPage() {
 
       <LandingFooterV2 />
 
-      <CoachUploadFlow open={uploadOpen} onOpenChange={setUploadOpen} initialPack={selectedPack} />
+      <CoachUploadFlow
+        open={uploadOpen}
+        onOpenChange={setUploadOpen}
+        initialPack={selectedPack}
+        prefill={resumePrefill}
+        initialStep={resumeStep}
+      />
     </div>
   );
 }

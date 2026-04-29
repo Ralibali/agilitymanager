@@ -12,7 +12,7 @@
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
 import { useEffect, useMemo, useRef, useState, useCallback, type PointerEvent } from "react";
-import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff, Library, Undo2, Redo2, Copy, Magnet, Box, Footprints, Lock, Unlock, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown, Ruler, Crosshair } from "lucide-react";
+import { Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Undo2, Redo2, Copy, Magnet, Box, Footprints, Lock, Unlock, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown, Ruler, Crosshair } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,7 @@ import type { LibraryCourse } from "@/features/course-planner-v2/library";
 import { CommandPalette } from "@/components/course-planner-v2/CommandPalette";
 import { KeyboardShortcutsHelp } from "@/components/course-planner-v2/KeyboardShortcutsHelp";
 import { ExportMenu } from "@/components/course-planner-v2/ExportMenu";
+import { PlannerTopbar } from "@/components/course-planner-v2/PlannerTopbar";
 import { CanvasRulers } from "@/components/course-planner-v2/CanvasRulers";
 import { ViewportControls } from "@/components/course-planner-v2/ViewportControls";
 import { useCanvasViewport } from "@/features/course-planner-v2/useCanvasViewport";
@@ -728,44 +729,16 @@ export default function V3CoursePlannerV2Page() {
 
   return (
     <div className="min-h-[100dvh] bg-[#f9f8f6] text-neutral-900">
-      {/* TOPBAR */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-black/5 px-4 py-2.5 flex items-center gap-3">
-        <Link to="/v3/courses" className="h-9 w-9 grid place-items-center rounded-full bg-neutral-100 text-neutral-700" aria-label="Tillbaka">
-          <ArrowLeft size={16} />
-        </Link>
-        <input
-          value={course.name}
-          onChange={(e) => update({ name: e.target.value })}
-          className="h-9 min-w-0 flex-1 max-w-[320px] px-3 rounded-full border border-black/10 bg-white text-sm font-semibold outline-none focus:ring-2 focus:ring-[#1a6b3c]/25"
-        />
-        <span className="hidden md:inline text-[11px] text-neutral-500">
-          {savedAt ? `Autosparad ${savedAt.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}` : "Sparas…"}
-        </span>
-        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-          <SegmentedSport value={course.sport} onChange={switchSport} />
+      {/* TOPBAR — strukturerad med funktionell gruppering, kebab-overflow på mobil */}
+      <PlannerTopbar
+        courseName={course.name}
+        onCourseNameChange={(name) => update({ name })}
+        savedAt={savedAt}
+        sportToggle={<SegmentedSport value={course.sport} onChange={switchSport} />}
+        validationBadge={
           <ValidationBadge summary={issueSummary} onClick={() => setIssuesOpen((v) => !v)} active={issuesOpen} />
-          <button
-            onClick={() => setLibraryOpen(true)}
-            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400"
-            title="Öppna banbibliotek"
-          >
-            <Library size={14} /> <span className="hidden sm:inline">Bibliotek</span>
-          </button>
-          <button
-            onClick={handleTrainThis}
-            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400"
-            title="Skapa träningspass från denna bana"
-          >
-            <Dumbbell size={14} /> <span className="hidden sm:inline">Träna</span>
-          </button>
-          <button
-            onClick={handleShare}
-            disabled={!user}
-            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400 disabled:opacity-40"
-            title={user ? "Dela banan (klubb / publik länk)" : "Logga in för att dela"}
-          >
-            <Share2 size={14} /> <span className="hidden sm:inline">Dela</span>
-          </button>
+        }
+        exportMenu={
           <ExportMenu
             onJudge={() => { void handleExportPdf(); }}
             onTraining={() => { void handleExportTrainingPdf(); }}
@@ -780,22 +753,20 @@ export default function V3CoursePlannerV2Page() {
             on3DView={() => setView3D("view")}
             on3DWalk={() => setView3D("walk")}
           />
-          <button
-            onClick={async () => {
-              saveCourse(course);
-              if (user) await saveToCloud();
-              else toast.success("Bana sparad lokalt");
-            }}
-            disabled={savingCloud}
-            className="h-9 px-3 rounded-full bg-[#1a6b3c] text-white text-[12px] font-semibold inline-flex items-center gap-1.5 disabled:opacity-60"
-            title={user ? "Spara i molnet" : "Sparas lokalt — logga in för molnsynk"}
-          >
-            {user ? <Cloud size={14} /> : <CloudOff size={14} />}
-            <span className="hidden xs:inline">Spara</span>
-            <Save size={14} className="xs:hidden" />
-          </button>
-        </div>
-      </header>
+        }
+        onLibrary={() => setLibraryOpen(true)}
+        onTrain={handleTrainThis}
+        onShare={handleShare}
+        shareDisabled={!user}
+        shareTitle={user ? "Dela banan (klubb / publik länk)" : "Logga in för att dela"}
+        onSave={async () => {
+          saveCourse(course);
+          if (user) await saveToCloud();
+          else toast.success("Bana sparad lokalt");
+        }}
+        saveDisabled={savingCloud}
+        isAuthenticated={!!user}
+      />
 
       {/* Dold input för JSON-import. Triggas via ExportMenu eller kommandopaletten. */}
       <input
@@ -927,27 +898,93 @@ export default function V3CoursePlannerV2Page() {
         {/* CENTER — banyta */}
         <section className="rounded-2xl bg-white border border-black/6 p-3 min-w-0">
           <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-            <div className="flex items-center gap-1 flex-wrap">
-              <ToolBtn active={tool === "select"} onClick={() => setTool("select")} icon={<MousePointer2 size={14} />}>Välj</ToolBtn>
-              <ToolBtn active={tool === "erase"} onClick={() => setTool("erase")} icon={<Eraser size={14} />}>Sudda</ToolBtn>
-              <ToolBtn active={tool === "number"} onClick={() => setTool("number")} icon={<Hash size={14} />}>Nummer</ToolBtn>
-              <button onClick={autoRenumber} className="h-8 px-2.5 rounded-lg text-[11px] font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200">Auto-numrera</button>
-              <button onClick={undo} disabled={historyRef.current.past.length === 0} title="Ångra (Ctrl+Z)" className="h-8 w-8 grid place-items-center rounded-lg bg-white border border-black/8 hover:border-neutral-400 disabled:opacity-30"><Undo2 size={13} /></button>
-              <button onClick={redo} disabled={historyRef.current.future.length === 0} title="Gör om (Ctrl+Shift+Z)" className="h-8 w-8 grid place-items-center rounded-lg bg-white border border-black/8 hover:border-neutral-400 disabled:opacity-30"><Redo2 size={13} /></button>
-              <button onClick={() => selected && duplicateObstacle(selected.id)} disabled={!selected} title="Duplicera (Ctrl+D)" className="h-8 w-8 grid place-items-center rounded-lg bg-white border border-black/8 hover:border-neutral-400 disabled:opacity-30"><Copy size={13} /></button>
-              <button onClick={() => setSnap((v) => !v)} title="Snap-to-grid (0,5 m)" className={cn("h-8 px-2.5 rounded-lg text-[11px] font-semibold border inline-flex items-center gap-1", snap ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/8")}><Magnet size={12} /> Snap</button>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Grupp: ritverktyg */}
+              <ToolBtn active={tool === "select"} onClick={() => setTool("select")} icon={<MousePointer2 size={14} />} title="Välj och flytta hinder">Välj</ToolBtn>
+              <ToolBtn active={tool === "erase"} onClick={() => setTool("erase")} icon={<Eraser size={14} />} title="Sudda hinder genom att klicka">Sudda</ToolBtn>
+              <ToolBtn active={tool === "number"} onClick={() => setTool("number")} icon={<Hash size={14} />} title="Sätt nummer på hinder genom att klicka i ordning">Nummer</ToolBtn>
+
+              <span className="h-6 w-px bg-black/10 mx-0.5" aria-hidden />
+              {/* Grupp: numrering */}
               <button
-                onClick={() => setShowPath((v) => !v)}
+                type="button"
+                onClick={autoRenumber}
+                title="Auto-numrera hinder utifrån positionsordning"
+                aria-label="Auto-numrera"
+                className="h-9 px-3 rounded-full text-[12px] font-semibold bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 transition"
+              >
+                Auto-numrera
+              </button>
+
+              <span className="h-6 w-px bg-black/10 mx-0.5" aria-hidden />
+
+              {/* Grupp: historik */}
+              <button
+                type="button"
+                onClick={undo}
+                disabled={historyRef.current.past.length === 0}
+                title="Ångra (Ctrl+Z)"
+                aria-label="Ångra"
+                className="h-9 w-9 grid place-items-center rounded-full bg-white border border-black/10 hover:border-neutral-400 disabled:opacity-30 transition"
+              >
+                <Undo2 size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={redo}
+                disabled={historyRef.current.future.length === 0}
+                title="Gör om (Ctrl+Shift+Z)"
+                aria-label="Gör om"
+                className="h-9 w-9 grid place-items-center rounded-full bg-white border border-black/10 hover:border-neutral-400 disabled:opacity-30 transition"
+              >
+                <Redo2 size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => selected && duplicateObstacle(selected.id)}
+                disabled={!selected}
+                title="Duplicera markerat hinder (Ctrl+D)"
+                aria-label="Duplicera"
+                className="h-9 w-9 grid place-items-center rounded-full bg-white border border-black/10 hover:border-neutral-400 disabled:opacity-30 transition"
+              >
+                <Copy size={14} />
+              </button>
+
+              <span className="h-6 w-px bg-black/10 mx-0.5" aria-hidden />
+
+              {/* Grupp: hjälpmedel */}
+              <button
+                type="button"
+                onClick={() => setSnap((v) => !v)}
+                title="Snap till rutnät (0,5 m)"
+                aria-label="Snap-to-grid"
+                aria-pressed={snap}
                 className={cn(
-                  "h-8 px-2.5 rounded-lg text-[11px] font-semibold border transition",
-                  showPath ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/8",
+                  "h-9 px-3 rounded-full text-[12px] font-semibold border inline-flex items-center gap-1.5 transition",
+                  snap
+                    ? "bg-[#1a6b3c] text-white border-[#1a6b3c]"
+                    : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
                 )}
+              >
+                <Magnet size={13} /> Snap
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPath((v) => !v)}
                 title="Visa banlinjen mellan numrerade hinder"
+                aria-label="Visa banlinje"
+                aria-pressed={showPath}
+                className={cn(
+                  "h-9 px-3 rounded-full text-[12px] font-semibold border inline-flex items-center transition",
+                  showPath
+                    ? "bg-[#1a6b3c] text-white border-[#1a6b3c]"
+                    : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
+                )}
               >
                 Banlinje
               </button>
             </div>
-            <div className="text-[11px] text-neutral-500">
+            <div className="text-[11px] text-neutral-500 shrink-0">
               {course.arenaWidthM} × {course.arenaHeightM} m · {times.lengthM.toFixed(1)} m · {course.obstacles.length} hinder
             </div>
           </div>
@@ -1040,19 +1077,29 @@ function SegmentedSport({ value, onChange }: { value: Sport; onChange: (s: Sport
   );
 }
 
-function ToolBtn({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon: React.ReactNode; children: React.ReactNode }) {
+function ToolBtn({ active, onClick, icon, children, title }: { active: boolean; onClick: () => void; icon: React.ReactNode; children: React.ReactNode; title?: string }) {
+  // Stilen matchar topbar-knapparna: h-9 rounded-full, samma border-tjocklek.
+  // Aktivt verktyg får svart "selected"-look så det inte blandas ihop med
+  // gröna toggle-knappar (Snap, Banlinje) som signalerar på/av-läge.
   return (
     <button
+      type="button"
       onClick={onClick}
+      title={title}
+      aria-label={title}
+      aria-pressed={active}
       className={cn(
-        "h-8 px-2.5 rounded-lg text-[11px] font-semibold inline-flex items-center gap-1.5 transition border",
-        active ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-black/8 hover:border-neutral-400",
+        "h-9 px-3 rounded-full text-[12px] font-semibold inline-flex items-center gap-1.5 transition border",
+        active
+          ? "bg-neutral-900 text-white border-neutral-900"
+          : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
       )}
     >
       {icon}{children}
     </button>
   );
 }
+
 
 function ArenaCanvas({
   svgRef, course, selectedId, highlightIds, showPath,

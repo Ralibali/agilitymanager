@@ -24,12 +24,14 @@ export function ExportMenu({ onJudge, onTraining, onBuild, onStartlist, onJson, 
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="h-9 px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400"
+          type="button"
+          className="h-9 w-9 sm:w-auto sm:px-3 inline-flex items-center justify-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a6b3c]/30"
           title="Exportera bana"
+          aria-label="Exportera bana"
         >
           <FileDown size={14} />
           <span className="hidden sm:inline">Export</span>
-          <ChevronDown size={12} className="opacity-70" />
+          <ChevronDown size={12} className="opacity-70 hidden sm:inline" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

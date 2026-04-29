@@ -32,6 +32,10 @@ export interface ObstacleLite {
   curveDeg?: number;
   /** Riktning på böjningen. Default "right". */
   curveSide?: "left" | "right";
+  /** Låst hinder kan inte flyttas, roteras eller raderas förrän upplåst. */
+  locked?: boolean;
+  /** Z-order för render-sortering (default 0). Sorteras stigande. */
+  zIndex?: number;
 }
 
 export interface CourseLite {

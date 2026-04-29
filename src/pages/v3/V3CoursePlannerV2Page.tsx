@@ -11,8 +11,8 @@
  * Data sparas i localStorage under egen nyckel — påverkar INTE v1.
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
-import { useEffect, useMemo, useState, type PointerEvent } from "react";
-import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, FileDown, AlertTriangle, AlertCircle, Info, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,8 @@ import {
   getObstacleDefV2, getTemplatesBySport,
   type Sport, type SizeClassKey, type ObstacleTypeV2, type ClassTemplateKey, type ObstacleDefV2,
 } from "@/features/course-planner-v2/config";
+import { validateCourse, computeCourseTimes, summarizeIssues, type ValidationIssue } from "@/features/course-planner-v2/validation";
+import { exportJudgePdf } from "@/features/course-planner-v2/judgePdf";
 
 const STORAGE_KEY = "am_course_planner_v2";
 
@@ -74,12 +76,41 @@ export default function V3CoursePlannerV2Page() {
   const [tool, setTool] = useState<"select" | "erase" | "number">("select");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [showPath, setShowPath] = useState(true);
+  const [issuesOpen, setIssuesOpen] = useState(false);
+  const svgRef = useRef<SVGSVGElement | null>(null);
 
   // Autospara
   useEffect(() => {
     const t = setTimeout(() => { saveCourse(course); setSavedAt(new Date()); }, 600);
     return () => clearTimeout(t);
   }, [course]);
+
+  // Validering + tider — räknas live
+  const issues = useMemo(() => validateCourse(course), [course]);
+  const issueSummary = useMemo(() => summarizeIssues(issues), [issues]);
+  const issueIdSet = useMemo(() => new Set(issues.filter((i) => i.obstacleId).map((i) => i.obstacleId!)), [issues]);
+  const times = useMemo(() => computeCourseTimes(course), [course]);
+
+  async function handleExportPdf() {
+    try {
+      await exportJudgePdf({
+        name: course.name,
+        sport: course.sport,
+        sizeClass: course.sizeClass,
+        arenaWidthM: course.arenaWidthM,
+        arenaHeightM: course.arenaHeightM,
+        classTemplate: course.classTemplate,
+        obstacles: course.obstacles,
+        svgElement: svgRef.current,
+      });
+      toast.success("Domar-PDF skapad");
+    } catch (e) {
+      console.error(e);
+      toast.error("Kunde inte skapa PDF");
+    }
+  }
+
 
   const selected = course.obstacles.find((o) => o.id === selectedId) ?? null;
 
@@ -231,7 +262,14 @@ export default function V3CoursePlannerV2Page() {
         </span>
         <div className="ml-auto flex items-center gap-2">
           <SegmentedSport value={course.sport} onChange={switchSport} />
-          <span className="hidden md:inline-flex text-[10px] uppercase tracking-wider px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">v2 beta</span>
+          <ValidationBadge summary={issueSummary} onClick={() => setIssuesOpen((v) => !v)} active={issuesOpen} />
+          <button
+            onClick={handleExportPdf}
+            className="hidden sm:inline-flex h-9 px-3 rounded-full bg-white border border-black/10 text-[12px] font-semibold items-center gap-1.5 hover:border-neutral-400"
+            title="Exportera domar-PDF"
+          >
+            <FileDown size={14} /> PDF
+          </button>
           <button
             onClick={() => { saveCourse(course); toast.success("Bana sparad"); }}
             className="h-9 px-3 rounded-full bg-[#1a6b3c] text-white text-[12px] font-semibold inline-flex items-center gap-1.5"
@@ -240,6 +278,12 @@ export default function V3CoursePlannerV2Page() {
           </button>
         </div>
       </header>
+
+      {issuesOpen && (
+        <div className="bg-white border-b border-black/5 px-4 py-3 max-h-[40vh] overflow-y-auto">
+          <IssuesList issues={issues} onSelect={(id) => { if (id) setSelectedId(id); }} />
+        </div>
+      )}
 
       {/* MAIN GRID */}
       <main className="grid gap-3 p-3 lg:p-4 lg:grid-cols-[280px_minmax(0,1fr)_320px]">
@@ -312,20 +356,33 @@ export default function V3CoursePlannerV2Page() {
 
         {/* CENTER — banyta */}
         <section className="rounded-2xl bg-white border border-black/6 p-3 min-w-0">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1">
+          <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+            <div className="flex items-center gap-1 flex-wrap">
               <ToolBtn active={tool === "select"} onClick={() => setTool("select")} icon={<MousePointer2 size={14} />}>Välj</ToolBtn>
               <ToolBtn active={tool === "erase"} onClick={() => setTool("erase")} icon={<Eraser size={14} />}>Sudda</ToolBtn>
               <ToolBtn active={tool === "number"} onClick={() => setTool("number")} icon={<Hash size={14} />}>Nummer</ToolBtn>
               <button onClick={autoRenumber} className="h-8 px-2.5 rounded-lg text-[11px] font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200">Auto-numrera</button>
+              <button
+                onClick={() => setShowPath((v) => !v)}
+                className={cn(
+                  "h-8 px-2.5 rounded-lg text-[11px] font-semibold border transition",
+                  showPath ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/8",
+                )}
+                title="Visa banlinjen mellan numrerade hinder"
+              >
+                Banlinje
+              </button>
             </div>
             <div className="text-[11px] text-neutral-500">
-              {course.arenaWidthM} × {course.arenaHeightM} m · {course.obstacles.length} hinder
+              {course.arenaWidthM} × {course.arenaHeightM} m · {times.lengthM.toFixed(1)} m · {course.obstacles.length} hinder
             </div>
           </div>
           <ArenaCanvas
+            svgRef={svgRef}
             course={course}
             selectedId={selectedId}
+            highlightIds={issueIdSet}
+            showPath={showPath}
             onObstacleDown={handlePointerDown}
             onPointerMove={handleSvgPointerMove}
             onPointerUp={handleSvgPointerUp}
@@ -417,10 +474,14 @@ function ToolBtn({ active, onClick, icon, children }: { active: boolean; onClick
 }
 
 function ArenaCanvas({
-  course, selectedId, onObstacleDown, onPointerMove, onPointerUp, onBackgroundClick,
+  svgRef, course, selectedId, highlightIds, showPath,
+  onObstacleDown, onPointerMove, onPointerUp, onBackgroundClick,
 }: {
+  svgRef: React.MutableRefObject<SVGSVGElement | null>;
   course: CourseV2;
   selectedId: string | null;
+  highlightIds: Set<string>;
+  showPath: boolean;
   onObstacleDown: (e: PointerEvent<SVGGElement>, id: string) => void;
   onPointerMove: (e: PointerEvent<SVGSVGElement>) => void;
   onPointerUp: () => void;
@@ -428,11 +489,17 @@ function ArenaCanvas({
 }) {
   const w = course.arenaWidthM;
   const h = course.arenaHeightM;
-  // visa banan med margin
   const padding = 1;
+  const numbered = course.obstacles
+    .filter((o) => o.number != null)
+    .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+  const pathD = numbered.length > 1
+    ? numbered.map((o, i) => `${i === 0 ? "M" : "L"} ${o.x} ${o.y}`).join(" ")
+    : "";
   return (
     <div className="rounded-xl bg-[#e8efe0] p-2 overflow-auto">
       <svg
+        ref={svgRef}
         viewBox={`${-padding} ${-padding} ${w + padding * 2} ${h + padding * 2}`}
         className="w-full h-auto max-h-[calc(100dvh-200px)] touch-none select-none"
         onPointerMove={onPointerMove}
@@ -441,21 +508,22 @@ function ArenaCanvas({
         onClick={onBackgroundClick}
         style={{ cursor: "default" }}
       >
-        {/* Underlag */}
         <rect x={0} y={0} width={w} height={h} fill="#dce5cf" stroke="#173d2c" strokeWidth={0.05} />
-        {/* Rutnät 1 m */}
         {Array.from({ length: w + 1 }).map((_, i) => (
           <line key={`vx${i}`} x1={i} y1={0} x2={i} y2={h} stroke="#173d2c" strokeWidth={i % 5 === 0 ? 0.04 : 0.015} opacity={i % 5 === 0 ? 0.45 : 0.25} />
         ))}
         {Array.from({ length: h + 1 }).map((_, i) => (
           <line key={`hz${i}`} x1={0} y1={i} x2={w} y2={i} stroke="#173d2c" strokeWidth={i % 5 === 0 ? 0.04 : 0.015} opacity={i % 5 === 0 ? 0.45 : 0.25} />
         ))}
-        {/* Hinder */}
+        {showPath && pathD && (
+          <path d={pathD} fill="none" stroke="#c85d1e" strokeWidth={0.18} strokeDasharray="0.5 0.3" strokeLinecap="round" opacity={0.85} />
+        )}
         {course.obstacles.map((ob) => (
           <ObstacleSvg
             key={ob.id}
             obstacle={ob}
             selected={selectedId === ob.id}
+            hasIssue={highlightIds.has(ob.id)}
             onPointerDown={(e) => onObstacleDown(e, ob.id)}
           />
         ))}
@@ -464,9 +532,10 @@ function ArenaCanvas({
   );
 }
 
-function ObstacleSvg({ obstacle, selected, onPointerDown }: {
+function ObstacleSvg({ obstacle, selected, hasIssue, onPointerDown }: {
   obstacle: ObstacleV2;
   selected: boolean;
+  hasIssue?: boolean;
   onPointerDown: (e: PointerEvent<SVGGElement>) => void;
 }) {
   const def = getObstacleDefV2(obstacle.type);
@@ -479,8 +548,10 @@ function ObstacleSvg({ obstacle, selected, onPointerDown }: {
       onClick={(e) => e.stopPropagation()}
       style={{ cursor: "grab" }}
     >
+      {hasIssue && !selected && (
+        <circle r={Math.max(w, d) / 2 + 0.35} fill="#ef4444" opacity={0.18} />
+      )}
       <ObstacleShape def={def} selected={selected} />
-      {/* selection ring */}
       {selected && (
         <circle r={Math.max(w, d) / 2 + 0.4} fill="none" stroke="#1a6b3c" strokeWidth={0.12} strokeDasharray="0.3 0.2" />
       )}
@@ -670,7 +741,7 @@ function SummaryPanel({ course }: { course: CourseV2 }) {
         {maxTime != null && <Row label="Maxtid" value={`${maxTime} s`} />}
       </div>
       <p className="mt-2 text-[10px] text-neutral-500 leading-snug">
-        Realtidsvalidering, säkerhetsvarningar och domar-PDF kommer i Sprint 2.
+        Banlängden räknas mellan numrerade hinder. Referens- och maxtid kommer från klassmallen.
       </p>
     </section>
   );
@@ -714,3 +785,83 @@ function ObstacleGlyph({ type }: { type: ObstacleTypeV2 }) {
     default: return null;
   }
 }
+
+/* ───────────── Validering UI ───────────── */
+
+function ValidationBadge({ summary, onClick, active }: {
+  summary: { errors: number; warnings: number; info: number };
+  onClick: () => void;
+  active: boolean;
+}) {
+  const total = summary.errors + summary.warnings + summary.info;
+  const ok = total === 0;
+  const tone = summary.errors > 0
+    ? "bg-red-50 text-red-700 border-red-200"
+    : summary.warnings > 0
+      ? "bg-amber-50 text-amber-700 border-amber-200"
+      : ok
+        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+        : "bg-blue-50 text-blue-700 border-blue-200";
+  return (
+    <button
+      onClick={onClick}
+      title="Visa valideringsdetaljer"
+      className={cn(
+        "h-9 px-2.5 rounded-full border text-[11px] font-semibold inline-flex items-center gap-1.5 transition",
+        tone,
+        active && "ring-2 ring-offset-1",
+      )}
+    >
+      {ok ? <CheckCircle2 size={13} /> : summary.errors > 0 ? <AlertCircle size={13} /> : <AlertTriangle size={13} />}
+      {ok ? "OK" : (
+        <>
+          {summary.errors > 0 && <span>{summary.errors} fel</span>}
+          {summary.warnings > 0 && <span>{summary.warnings} varn</span>}
+          {summary.errors === 0 && summary.warnings === 0 && summary.info > 0 && <span>{summary.info} info</span>}
+        </>
+      )}
+    </button>
+  );
+}
+
+function IssuesList({ issues, onSelect }: {
+  issues: ValidationIssue[];
+  onSelect: (id: string | undefined) => void;
+}) {
+  if (issues.length === 0) {
+    return (
+      <div className="flex items-center gap-2 text-emerald-700 text-[12px] font-medium">
+        <CheckCircle2 size={14} /> Inga regelproblem hittades. Banan ser bra ut.
+      </div>
+    );
+  }
+  const order: Record<ValidationIssue["level"], number> = { error: 0, warning: 1, info: 2 };
+  const sorted = [...issues].sort((a, b) => order[a.level] - order[b.level]);
+  return (
+    <ul className="space-y-1">
+      {sorted.map((iss, idx) => {
+        const tone = iss.level === "error"
+          ? "text-red-700 bg-red-50 border-red-100"
+          : iss.level === "warning"
+            ? "text-amber-700 bg-amber-50 border-amber-100"
+            : "text-blue-700 bg-blue-50 border-blue-100";
+        const Icon = iss.level === "error" ? AlertCircle : iss.level === "warning" ? AlertTriangle : Info;
+        return (
+          <li key={idx}>
+            <button
+              onClick={() => onSelect(iss.obstacleId)}
+              className={cn(
+                "w-full text-left px-2.5 py-1.5 rounded-lg border text-[12px] inline-flex items-start gap-2 hover:brightness-95 transition",
+                tone,
+              )}
+            >
+              <Icon size={13} className="mt-0.5 shrink-0" />
+              <span>{iss.message}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+

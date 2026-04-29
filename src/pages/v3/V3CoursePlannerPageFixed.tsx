@@ -97,6 +97,7 @@ export default function V3CoursePlannerPageFixed() {
   const [savedOpen, setSavedOpen] = useState(false);
   const [guide, setGuide] = useState(false);
   const [saved, setSaved] = useState<SavedCourse[]>(() => { try { return JSON.parse(window.localStorage.getItem(LIBRARY_KEY) ?? "[]") as SavedCourse[]; } catch { return []; } });
+  const [view3DMode, setView3DMode] = useState<null | "view" | "walk">(null);
 
   const course = courses[mode];
   const selected = useMemo(() => course.obstacles.find(o => o.id === selectedId) ?? null, [course.obstacles, selectedId]);

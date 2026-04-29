@@ -225,6 +225,8 @@ export default function CoachUploadFlow({
               setQuestion={setQuestion}
               sport={sport}
               setSport={setSport}
+              privacyMode={privacyMode}
+              setPrivacyMode={setPrivacyMode}
             />
           )}
 

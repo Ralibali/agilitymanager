@@ -899,9 +899,12 @@ export default function V3CoursePlannerV2Page() {
         <section className="rounded-2xl bg-white border border-black/6 p-3 min-w-0">
           <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <ToolBtn active={tool === "select"} onClick={() => setTool("select")} icon={<MousePointer2 size={14} />}>Välj</ToolBtn>
-              <ToolBtn active={tool === "erase"} onClick={() => setTool("erase")} icon={<Eraser size={14} />}>Sudda</ToolBtn>
-              <ToolBtn active={tool === "number"} onClick={() => setTool("number")} icon={<Hash size={14} />}>Nummer</ToolBtn>
+              {/* Grupp: ritverktyg */}
+              <ToolBtn active={tool === "select"} onClick={() => setTool("select")} icon={<MousePointer2 size={14} />} title="Välj och flytta hinder">Välj</ToolBtn>
+              <ToolBtn active={tool === "erase"} onClick={() => setTool("erase")} icon={<Eraser size={14} />} title="Sudda hinder genom att klicka">Sudda</ToolBtn>
+              <ToolBtn active={tool === "number"} onClick={() => setTool("number")} icon={<Hash size={14} />} title="Sätt nummer på hinder genom att klicka i ordning">Nummer</ToolBtn>
+
+              <span className="h-6 w-px bg-black/10 mx-0.5" aria-hidden />
               <button onClick={autoRenumber} className="h-8 px-2.5 rounded-lg text-[11px] font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200">Auto-numrera</button>
               <button onClick={undo} disabled={historyRef.current.past.length === 0} title="Ångra (Ctrl+Z)" className="h-8 w-8 grid place-items-center rounded-lg bg-white border border-black/8 hover:border-neutral-400 disabled:opacity-30"><Undo2 size={13} /></button>
               <button onClick={redo} disabled={historyRef.current.future.length === 0} title="Gör om (Ctrl+Shift+Z)" className="h-8 w-8 grid place-items-center rounded-lg bg-white border border-black/8 hover:border-neutral-400 disabled:opacity-30"><Redo2 size={13} /></button>

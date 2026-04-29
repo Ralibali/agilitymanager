@@ -74,6 +74,13 @@ function coursePlannerBugfixPlugin() {
         "    if (drawing && currentPath) { const last = currentPath.points[currentPath.points.length - 1]; if (!last || distanceMeters(course, last, p) >= 0.18) setCurrentPath({ ...currentPath, points: [...currentPath.points, p] }); }",
       );
 
+      // Desktop shortcuts: Delete/Backspace removes selected, R rotates, Esc deselects.
+      // Skip shortcuts when typing in inputs or when overlays like saved-library/3D are active.
+      next = next.replace(
+        "  useEffect(() => {\n    if (!fullscreen) return;\n    const prev = document.body.style.overflow;\n    document.body.style.overflow = \"hidden\";\n    const onKey = (e: KeyboardEvent) => e.key === \"Escape\" && setFullscreen(false);\n    window.addEventListener(\"keydown\", onKey);\n    return () => { document.body.style.overflow = prev; window.removeEventListener(\"keydown\", onKey); };\n  }, [fullscreen]);",
+        "  useEffect(() => {\n    if (!fullscreen) return;\n    const prev = document.body.style.overflow;\n    document.body.style.overflow = \"hidden\";\n    const onKey = (e: KeyboardEvent) => e.key === \"Escape\" && setFullscreen(false);\n    window.addEventListener(\"keydown\", onKey);\n    return () => { document.body.style.overflow = prev; window.removeEventListener(\"keydown\", onKey); };\n  }, [fullscreen]);\n\n  useEffect(() => {\n    const onKey = (e: KeyboardEvent) => {\n      const target = e.target as HTMLElement | null;\n      const tag = target?.tagName?.toLowerCase();\n      if (tag === \"input\" || tag === \"textarea\" || tag === \"select\" || target?.isContentEditable) return;\n      if (view3DMode || savedOpen || guide) return;\n      if ((e.key === \"Delete\" || e.key === \"Backspace\") && selectedId) { e.preventDefault(); deleteSelected(); return; }\n      if (e.key.toLowerCase() === \"r\" && selectedId) { e.preventDefault(); rotateSelected(e.shiftKey ? -15 : 15); return; }\n      if (e.key === \"Escape\" && selectedId) { e.preventDefault(); setSelectedId(null); setDraggingId(null); }\n    };\n    window.addEventListener(\"keydown\", onKey);\n    return () => window.removeEventListener(\"keydown\", onKey);\n  });",
+      );
+
       // PDF: preserve correct aspect ratio within the available box, including portrait fields.
       next = next.replace(
         "const marginX = 18, top = 33, fieldW = 262, fieldH = Math.min(150, fieldW * (course.height / course.width));",

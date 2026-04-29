@@ -182,6 +182,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
           video_url: filePath,
           question: question.trim(),
           sport,
+          privacy_mode: privacyMode,
           status: 'pending',
         } as any);
       if (insertError) throw insertError;

@@ -96,6 +96,20 @@ function saveCourse(c: CourseV2) {
 
 function uid() { return Math.random().toString(36).slice(2, 10); }
 
+/** Bounding-rektangel (AABB) i meter för ett hinder, med rotation. */
+function obstacleBox(o: { x: number; y: number; rotation: number }, w: number, d: number) {
+  const rad = (o.rotation * Math.PI) / 180;
+  const cos = Math.abs(Math.cos(rad));
+  const sin = Math.abs(Math.sin(rad));
+  const halfW = (w * cos + d * sin) / 2;
+  const halfH = (w * sin + d * cos) / 2;
+  return { minX: o.x - halfW, maxX: o.x + halfW, minY: o.y - halfH, maxY: o.y + halfH };
+}
+
+function rectsOverlap(a: { minX: number; maxX: number; minY: number; maxY: number }, b: typeof a) {
+  return !(a.maxX < b.minX || b.maxX < a.minX || a.maxY < b.minY || b.maxY < a.minY);
+}
+
 export default function V3CoursePlannerV2Page() {
   const navigate = useNavigate();
   const { user } = useAuth();

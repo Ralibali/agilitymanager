@@ -143,6 +143,7 @@ export default function V3CoursePlannerPageFixed() {
   const moveSelected = (dx: number, dy: number) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, x: clamp(o.x + dx, 0, 100), y: clamp(o.y + dy, 0, 100) } : o));
   const recolorSelected = (nextColor: string) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, color: nextColor } : o));
   const renumberSelected = () => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, number: nextNumber } : o));
+  const setNumberSelected = (n: number | undefined) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, number: n && n > 0 ? Math.floor(n) : undefined } : o));
   const eraseNear = (x: number, y: number) => {
     const p = { x, y };
     const hit = course.obstacles.find(o => distance(p, o) < 4.5);

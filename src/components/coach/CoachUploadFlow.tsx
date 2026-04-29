@@ -134,7 +134,7 @@ export default function CoachUploadFlow({
 
       if (!hasPaid) {
         sessionStorage.setItem("coach_pending", JSON.stringify({
-          pack, sport, question: question.trim(), fileName: file.name,
+          pack, sport, privacyMode, question: question.trim(), fileName: file.name,
         }));
         const { data, error } = await supabase.functions.invoke("create-coach-payment", {
           body: { pack },

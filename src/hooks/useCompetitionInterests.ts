@@ -113,6 +113,18 @@ export function useCompetitionInterests(): UseCompetitionInterestsResult {
     return subscribeGuestInterests(loadFromGuest);
   }, [user, loadFromGuest]);
 
+  // Live-synk mellan flikar för inloggade — annan flik skriver en signal,
+  // denna flik kör refresh() så HoopersKalendar och övriga vyer uppdateras.
+  useEffect(() => {
+    if (!user) return;
+    const KEY = `competition_interests_signal:${user.id}`;
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === KEY) void refresh();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [user, refresh]);
+
   const setInterest = useCallback<UseCompetitionInterestsResult['setInterest']>(
     async (competitionId, status, meta) => {
       const dogName = meta?.dogName ?? null;
@@ -149,6 +161,7 @@ export function useCompetitionInterests(): UseCompetitionInterestsResult {
           delete next[competitionId];
           return next;
         });
+        broadcastInterestChange(user.id);
         return;
       }
       if (current) {
@@ -167,9 +180,18 @@ export function useCompetitionInterests(): UseCompetitionInterestsResult {
         });
       }
       setInterests((prev) => ({ ...prev, [competitionId]: status }));
+      broadcastInterestChange(user.id);
     },
     [user, interests],
   );
 
   return { interests, loading, setInterest, isGuest, refresh };
+}
+
+function broadcastInterestChange(userId: string) {
+  try {
+    localStorage.setItem(`competition_interests_signal:${userId}`, String(Date.now()));
+  } catch {
+    // ignore (private mode etc.)
+  }
 }

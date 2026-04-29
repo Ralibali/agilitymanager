@@ -46,6 +46,13 @@ function coursePlannerBugfixPlugin() {
         'const obstacle: Obstacle = { ...spec, id: uid(spec.type), x: 16 + ((course.obstacles.length * 12) % 68), y: 18 + ((course.obstacles.length * 9) % 64), rotation: spec.type.includes("tunnel") ? 18 : 0, number: numbered ? nextNumber : undefined, color: "#ffffff", ...(spec.type.includes("tunnel") ? { curveDeg: 0, curveSide: "left" as const } : {}) };',
       );
 
+      // Keep the obstacle menu open after adding an obstacle, especially on mobile/tablet.
+      // The old behavior closed the menu after every add, which made repeated course building painful.
+      next = next.replace(
+        "    if (isMobile) setLeftOpen(false);",
+        "    if (isMobile) setLeftOpen(true);",
+      );
+
       // Eraser radius should be metric, not anisotropic percent distance.
       next = next.replace(
         "const hit = course.obstacles.find(o => distance(p, o) < 4.5);",

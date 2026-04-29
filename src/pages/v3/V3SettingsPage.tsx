@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import {
   Crown, LogOut, ExternalLink, Check, Loader2, Sparkles, Eye, EyeOff,
-  User as UserIcon, Shield, MessageCircle,
+  User as UserIcon, Shield, MessageCircle, RefreshCw, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Helmet } from "react-helmet-async";
@@ -15,6 +15,16 @@ import SupportForm from "@/components/SupportForm";
 import { useIsAdmin } from "@/components/layout/useIsAdmin";
 import { V3ProValueCard } from "@/components/v3/V3ProValueCard";
 import { cn } from "@/lib/utils";
+import {
+  getGuestInterestsSyncEnabled,
+  setGuestInterestsSyncEnabled,
+  subscribeGuestInterestsSyncPref,
+} from "@/lib/guestInterestsSyncPref";
+import {
+  readGuestInterestItems,
+  clearGuestInterestItems,
+  subscribeGuestInterests,
+} from "@/lib/guestInterestsStorage";
 
 const PREMIUM_FEATURES = [
   "Avancerad statistik & felanalys",

@@ -1014,19 +1014,29 @@ function SegmentedSport({ value, onChange }: { value: Sport; onChange: (s: Sport
   );
 }
 
-function ToolBtn({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon: React.ReactNode; children: React.ReactNode }) {
+function ToolBtn({ active, onClick, icon, children, title }: { active: boolean; onClick: () => void; icon: React.ReactNode; children: React.ReactNode; title?: string }) {
+  // Stilen matchar topbar-knapparna: h-9 rounded-full, samma border-tjocklek.
+  // Aktivt verktyg får svart "selected"-look så det inte blandas ihop med
+  // gröna toggle-knappar (Snap, Banlinje) som signalerar på/av-läge.
   return (
     <button
+      type="button"
       onClick={onClick}
+      title={title}
+      aria-label={title}
+      aria-pressed={active}
       className={cn(
-        "h-8 px-2.5 rounded-lg text-[11px] font-semibold inline-flex items-center gap-1.5 transition border",
-        active ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-black/8 hover:border-neutral-400",
+        "h-9 px-3 rounded-full text-[12px] font-semibold inline-flex items-center gap-1.5 transition border",
+        active
+          ? "bg-neutral-900 text-white border-neutral-900"
+          : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
       )}
     >
       {icon}{children}
     </button>
   );
 }
+
 
 function ArenaCanvas({
   svgRef, course, selectedId, highlightIds, showPath,

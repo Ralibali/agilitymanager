@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type PointerEvent, type ReactNode } from "react";
-import jsPDF from "jspdf";
+
 import { ArrowLeft, Download, Eraser, FileText, FolderOpen, Grid3X3, Hash, HelpCircle, Maximize2, Minimize2, MapPin, MousePointer2, Move, PanelLeftClose, PanelLeftOpen, Pencil, RotateCcw, Save, Settings2, Trash2, Undo2, X, ZoomIn, ZoomOut } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";

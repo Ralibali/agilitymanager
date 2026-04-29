@@ -647,6 +647,44 @@ export type Database = {
         }
         Relationships: []
       }
+      competition_reminders: {
+        Row: {
+          channel: string
+          created_at: string
+          days_before: number
+          id: string
+          planned_competition_id: string
+          sent_at: string | null
+          user_id: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          days_before: number
+          id?: string
+          planned_competition_id: string
+          sent_at?: string | null
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          days_before?: number
+          id?: string
+          planned_competition_id?: string
+          sent_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competition_reminders_planned_competition_id_fkey"
+            columns: ["planned_competition_id"]
+            isOneToOne: false
+            referencedRelation: "planned_competitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       competition_results: {
         Row: {
           competition_level: Database["public"]["Enums"]["competition_level"]

@@ -230,7 +230,52 @@ export default function V3CoursePlannerV2Page() {
   }
 
 
-  const selected = course.obstacles.find((o) => o.id === selectedId) ?? null;
+  function handlePickFromLibrary(kind: "prebuilt" | "saved", payload: PrebuiltCourse | LibraryCourse) {
+    if (course.obstacles.length > 0) {
+      const ok = window.confirm("Att ladda en ny bana ersätter nuvarande bana. Fortsätt?");
+      if (!ok) return;
+    }
+    if (kind === "prebuilt") {
+      const p = payload as PrebuiltCourse;
+      setCourse({
+        name: p.label, sport: p.sport, sizeClass: p.defaultSize,
+        arenaWidthM: p.arenaWidthM, arenaHeightM: p.arenaHeightM,
+        classTemplate: p.classTemplate, obstacles: instantiatePrebuilt(p),
+      });
+      setCloudId(null);
+      try { localStorage.removeItem(STORAGE_KEY + "_cloud_id"); } catch { /* ignore */ }
+      toast.success(`${p.label} laddad`);
+    } else {
+      const c = payload as LibraryCourse;
+      const data = c.course_data as any;
+      if (!data?.obstacles) { toast.error("Banan har ett okänt format"); return; }
+      setCourse({
+        name: c.name,
+        sport: data.sport ?? "agility",
+        sizeClass: data.sizeClass ?? "L",
+        arenaWidthM: data.arenaWidthM ?? 30,
+        arenaHeightM: data.arenaHeightM ?? 40,
+        classTemplate: data.classTemplate ?? null,
+        obstacles: data.obstacles,
+      });
+      // Bara aktivera moln-länk om det är ägarens egna bana
+      if (user?.id === c.user_id) {
+        setCloudId(c.id);
+        try { localStorage.setItem(STORAGE_KEY + "_cloud_id", c.id); } catch { /* ignore */ }
+      } else {
+        setCloudId(null);
+        try { localStorage.removeItem(STORAGE_KEY + "_cloud_id"); } catch { /* ignore */ }
+      }
+      setSelectedId(null);
+      toast.success(`${c.name} laddad`);
+    }
+  }
+
+  // Snap-to-grid: 0.5 m steg
+  function snapM(v: number): number {
+    return snap ? Math.round(v * 2) / 2 : v;
+  }
+
 
   function update(patch: Partial<CourseV2>) {
     setCourse((c) => ({ ...c, ...patch }));

@@ -12,7 +12,7 @@
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
 import { useEffect, useMemo, useRef, useState, useCallback, type PointerEvent } from "react";
-import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff, Library, Undo2, Redo2, Copy, Magnet, Box, Footprints } from "lucide-react";
+import { ArrowLeft, Save, Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Share2, Dumbbell, Cloud, CloudOff, Library, Undo2, Redo2, Copy, Magnet, Box, Footprints, Lock, Unlock, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -56,6 +56,10 @@ interface ObstacleV2 {
   curveDeg?: number;
   /** Vilken sida tunneln böjer åt. Default "right". */
   curveSide?: "left" | "right";
+  /** Låst hinder kan inte flyttas, roteras, dupliceras eller raderas. */
+  locked?: boolean;
+  /** Z-order för render-sortering. Default 0. */
+  zIndex?: number;
 }
 
 interface CourseV2 {

@@ -230,7 +230,11 @@ export default function PublicCoachPage() {
                     Pro: <strong className="text-forest">{p.pro} kr</strong>
                   </div>
                 </div>
-                <Button variant={p.popular ? "brand" : "outline"} onClick={goToCoach} className="mt-6 h-11">
+                <Button
+                  variant={p.popular ? "brand" : "outline"}
+                  onClick={() => startUpload(p.id)}
+                  className="mt-6 h-11"
+                >
                   Välj {p.title.toLowerCase()}
                 </Button>
               </div>

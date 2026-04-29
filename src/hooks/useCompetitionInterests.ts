@@ -161,6 +161,7 @@ export function useCompetitionInterests(): UseCompetitionInterestsResult {
           delete next[competitionId];
           return next;
         });
+        broadcastInterestChange(user.id);
         return;
       }
       if (current) {
@@ -179,9 +180,18 @@ export function useCompetitionInterests(): UseCompetitionInterestsResult {
         });
       }
       setInterests((prev) => ({ ...prev, [competitionId]: status }));
+      broadcastInterestChange(user.id);
     },
     [user, interests],
   );
 
   return { interests, loading, setInterest, isGuest, refresh };
+}
+
+function broadcastInterestChange(userId: string) {
+  try {
+    localStorage.setItem(`competition_interests_signal:${userId}`, String(Date.now()));
+  } catch {
+    // ignore (private mode etc.)
+  }
 }

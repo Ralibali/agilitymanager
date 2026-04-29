@@ -705,7 +705,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
           {view === "interested" ? (
             <>
               <div className="mx-auto h-12 w-12 rounded-full bg-coral/20 grid place-items-center mb-4">
-                <Star size={20} strokeWidth={1.6} className="text-amber-600" />
+                <Star size={20} strokeWidth={1.6} className="text-coral" />
               </div>
               <p className="text-v3-base text-v3-text-secondary">Du har inte markerat några tävlingar som intressanta än.</p>
               <p className="text-v3-sm text-v3-text-tertiary mt-1">
@@ -933,7 +933,7 @@ export function V3FindCompetitions({ preferredSport }: Props) {
                     <button
                       type="button"
                       onClick={() => toggleInterest(r, status)}
-                      className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-v3-base text-v3-xs font-medium text-v3-text-tertiary hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                      className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-v3-base text-v3-xs font-medium text-v3-text-tertiary hover:text-coral hover:bg-coral/10 transition-colors"
                       title="Avmarkera"
                     >
                       <Trash2 size={12} strokeWidth={1.8} />

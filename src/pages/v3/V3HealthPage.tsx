@@ -202,12 +202,12 @@ export default function V3HealthPage() {
 
 function StatTile({ label, value, sub, trend, accent }: { label: string; value: string; sub: string; trend?: number | null; accent?: "warning" | "danger" }) {
   return (
-    <div className={cn("rounded-v3-xl border p-4", accent === "danger" ? "bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:border-rose-900" : accent === "warning" ? "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900" : "bg-v3-canvas-elevated border-v3-canvas-sunken/40")}>
+    <div className={cn("rounded-v3-xl border p-4", accent === "danger" ? "bg-coral/10 border-coral/30 " : accent === "warning" ? "bg-coral/10 border-coral/25 " : "bg-v3-canvas-elevated border-v3-canvas-sunken/40")}>
       <div className="text-[10px] tracking-[0.04em] font-medium text-v3-text-tertiary">{label}</div>
       <div className="font-v3-display text-[28px] leading-none mt-2 text-v3-text-primary tabular-nums truncate flex items-baseline gap-1.5">
         {value}
         {trend !== null && trend !== undefined && (
-          <span className={cn("text-v3-xs font-sans inline-flex items-center gap-0.5", trend > 0 ? "text-rose-600" : trend < 0 ? "text-emerald-600" : "text-v3-text-tertiary")}>
+          <span className={cn("text-v3-xs font-sans inline-flex items-center gap-0.5", trend > 0 ? "text-coral" : trend < 0 ? "text-moss-deep" : "text-v3-text-tertiary")}>
             {trend > 0 ? <TrendingUp size={12} /> : trend < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
             {trend !== 0 && `${trend > 0 ? "+" : ""}${trend.toFixed(1)}`}
           </span>
@@ -222,9 +222,9 @@ function ReminderCard({ log, overdue }: { log: V3HealthLog; overdue?: boolean })
   const meta = healthTypeMeta(log.type);
   const days = daysUntil(log.next_date);
   return (
-    <div className={cn("rounded-v3-lg border p-4 flex items-start gap-3", overdue ? "bg-rose-50 border-rose-200 dark:bg-rose-950/20 dark:border-rose-900" : "bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900")}>
+    <div className={cn("rounded-v3-lg border p-4 flex items-start gap-3", overdue ? "bg-coral/10 border-coral/30 " : "bg-coral/10 border-coral/25 ")}>
       <div className="shrink-0 h-10 w-10 rounded-full grid place-items-center bg-white/70 dark:bg-black/30 text-xl">
-        {overdue ? <AlertTriangle className="text-rose-600" size={18} /> : <Bell className="text-amber-600" size={18} />}
+        {overdue ? <AlertTriangle className="text-coral" size={18} /> : <Bell className="text-coral" size={18} />}
       </div>
       <div className="min-w-0 flex-1">
         <div className="text-v3-sm font-medium text-v3-text-primary truncate">{meta.emoji} {log.title}</div>
@@ -290,7 +290,7 @@ function LogRow({ log, onEdit, onDelete }: { log: V3HealthLog; onEdit: (log: V3H
         <DropdownMenuTrigger asChild><button type="button" className="p-2 rounded-full text-v3-text-tertiary hover:text-v3-text-primary hover:bg-v3-canvas transition shrink-0" aria-label="Alternativ"><MoreVertical size={16} /></button></DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
           <DropdownMenuItem onClick={() => onEdit(log)}><Pencil size={14} className="mr-2" /> Redigera</DropdownMenuItem>
-          <DropdownMenuItem className="text-rose-600 focus:text-rose-600" onClick={() => { if (confirm("Ta bort denna logg?")) onDelete(log.id); }}><Trash2 size={14} className="mr-2" /> Ta bort</DropdownMenuItem>
+          <DropdownMenuItem className="text-coral focus:text-coral" onClick={() => { if (confirm("Ta bort denna logg?")) onDelete(log.id); }}><Trash2 size={14} className="mr-2" /> Ta bort</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

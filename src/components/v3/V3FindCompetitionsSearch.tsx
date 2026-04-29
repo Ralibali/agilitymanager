@@ -253,7 +253,7 @@ export function V3FindCompetitions({ preferredSport }: { preferredSport: Sport }
         <button type="button" onClick={() => setDebouncedQuery(query)} className="inline-flex items-center gap-1 hover:text-v3-text-primary"><RefreshCw size={12} /> Uppdatera</button>
       </div>
 
-      {error && <div className="rounded-v3-lg border border-red-200 bg-red-50 px-4 py-3 text-v3-sm text-coral">{error}</div>}
+      {error && <div className="rounded-v3-lg border border-coral/30 bg-coral/10 px-4 py-3 text-v3-sm text-coral">{error}</div>}
       {loading ? <SkeletonList /> : filtered.length === 0 ? <EmptyState query={debouncedQuery} /> : <div className="space-y-2">{filtered.map((row) => <CompetitionCard key={`${row.sport}-${row.id}`} row={row} />)}</div>}
     </div>
   );

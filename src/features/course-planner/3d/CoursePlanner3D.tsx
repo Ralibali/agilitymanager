@@ -69,7 +69,9 @@ export default function CoursePlanner3D(props: CoursePlanner3DProps) {
   // Walk control inputs (refs so they don't trigger re-renders)
   const joystickRef = useRef({ x: 0, y: 0 });
   const lookDeltaRef = useRef({ x: 0, y: 0 });
+  const sprintRef = useRef(false);
   const [knob, setKnob] = useState({ x: 0, y: 0 });
+  const [sprinting, setSprinting] = useState(false);
 
   // ESC handler
   useEffect(() => {

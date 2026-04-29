@@ -898,7 +898,7 @@ export default function V3CoursePlannerV2Page() {
         {/* CENTER — banyta */}
         <section className="rounded-2xl bg-white border border-black/6 p-3 min-w-0">
           <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-            <div className="flex items-center gap-1 flex-wrap">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <ToolBtn active={tool === "select"} onClick={() => setTool("select")} icon={<MousePointer2 size={14} />}>Välj</ToolBtn>
               <ToolBtn active={tool === "erase"} onClick={() => setTool("erase")} icon={<Eraser size={14} />}>Sudda</ToolBtn>
               <ToolBtn active={tool === "number"} onClick={() => setTool("number")} icon={<Hash size={14} />}>Nummer</ToolBtn>

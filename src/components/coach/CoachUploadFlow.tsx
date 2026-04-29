@@ -57,6 +57,7 @@ export default function CoachUploadFlow({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [question, setQuestion] = useState(prefill?.question ?? "");
   const [sport, setSport] = useState<Sport>(prefill?.sport ?? "agility");
+  const [privacyMode, setPrivacyMode] = useState<PrivacyMode>(prefill?.privacyMode ?? "private");
   const [submitting, setSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -67,9 +68,10 @@ export default function CoachUploadFlow({
     setPack(prefill?.pack ?? initialPack);
     if (prefill?.question !== undefined) setQuestion(prefill.question);
     if (prefill?.sport !== undefined) setSport(prefill.sport);
+    if (prefill?.privacyMode !== undefined) setPrivacyMode(prefill.privacyMode);
     setProgress(0);
     setSubmitting(false);
-  }, [open, initialPack, initialStep, prefill?.pack, prefill?.question, prefill?.sport]);
+  }, [open, initialPack, initialStep, prefill?.pack, prefill?.question, prefill?.sport, prefill?.privacyMode]);
 
   // Object URL cleanup
   useEffect(() => {

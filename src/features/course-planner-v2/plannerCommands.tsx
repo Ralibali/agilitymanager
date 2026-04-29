@@ -41,6 +41,10 @@ export interface PlannerCommandHandlers {
   exportBuildPdf: () => void;
   exportStartlist: () => void;
 
+  // 3D
+  open3DView: () => void;
+  open3DWalk: () => void;
+
   // Redigering
   undo: () => void;
   redo: () => void;

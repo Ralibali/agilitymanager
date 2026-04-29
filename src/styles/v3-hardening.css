@@ -1,6 +1,7 @@
 /*
-  V3 hardening + course planner UX polish.
-  Den här filen används för små, säkra visuella förstärkningar ovanpå v3-komponenterna.
+  V3 hardening
+  Små men viktiga stabilitetsregler som gör att specialflöden inte tappar
+  premiumkänslan när de ligger utanför de vanliga V3Page-komponenterna.
 */
 
 .mobile-tool-btn {
@@ -24,222 +25,156 @@
 .mobile-tool-btn:disabled { opacity: 0.42; cursor: not-allowed; box-shadow: none; }
 .mobile-tool-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px hsl(var(--v3-canvas)), 0 0 0 4px hsl(var(--v3-brand-500)); }
 
-main input, main select, main textarea, button { -webkit-tap-highlight-color: transparent; }
 @media (min-width: 1280px) { main > div[class*="max-w-[1380px]"] { max-width: min(1480px, calc(100vw - 112px)); } }
 @media (min-width: 1536px) { main > div[class*="2xl:max-w-[1540px]"] { max-width: min(1580px, calc(100vw - 144px)); } }
 
-/* === V3 course planner UX layer ===
-   Målet: banan först, kompakta hinder, flytande verktygspanel och bättre mobil.
-   Selector-strategin är avsiktligt kopplad till banplanerarens unika maxbredd + grid.
-*/
-main[class*="max-w-[1760px]"][class*="grid"] {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 0.75rem !important;
-  max-width: min(1840px, calc(100vw - 0.75rem)) !important;
-  padding: 0.5rem !important;
-}
+main .rounded-v3-2xl.bg-v3-canvas-elevated,
+main .rounded-v3-xl.bg-v3-canvas-elevated { border-color: hsl(var(--v3-canvas-sunken) / 0.68); }
+main input, main select, main textarea, button { -webkit-tap-highlight-color: transparent; }
 
-/* Hinderpanelen blir en kompakt horisontell verktygslåda ovanför banan. */
-main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child {
-  order: 1 !important;
-  width: 100% !important;
-  max-height: none !important;
-  overflow: hidden !important;
-  padding: 0.75rem !important;
-  border-radius: 1.25rem !important;
-  background: rgba(255,255,255,0.94) !important;
-  backdrop-filter: blur(16px);
+/* === Full banplanerare, v3-design utan att ta bort gamla funktioner === */
+.v3-course-planner-shell {
+  --planner-topbar-height: 72px;
+  background: radial-gradient(circle at 18% 0%, hsl(var(--v3-brand-500) / 0.07), transparent 26%), hsl(var(--v3-canvas));
 }
-main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child > div:first-child {
-  margin-bottom: 0.5rem !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child > div:first-child h2 {
-  font-size: 1.25rem !important;
-  line-height: 1.05 !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child > div:first-child p {
-  font-size: 0.78rem !important;
-  max-width: none !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child section {
-  display: inline-block !important;
-  vertical-align: top !important;
-  margin: 0 0.6rem 0 0 !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child {
-  white-space: nowrap !important;
-  overflow-x: auto !important;
-  scrollbar-width: thin;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child section h3 {
-  font-size: 0.62rem !important;
-  margin: 0 0 0.35rem 0 !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child section > div {
-  display: flex !important;
-  gap: 0.45rem !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child section button {
-  width: 5.25rem !important;
-  min-width: 5.25rem !important;
-  min-height: 3.25rem !important;
-  height: 3.25rem !important;
-  padding: 0.35rem !important;
-  border-radius: 0.95rem !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child section button span:first-child {
-  font-size: 1.15rem !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child section button span:last-child {
-  margin-top: 0.2rem !important;
-  font-size: 0.66rem !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
+.v3-course-planner-topbar { position: relative; z-index: 45; }
+.v3-course-planner-frame { position: relative; padding: 0.75rem 0.75rem 1.25rem; }
+.v3-course-planner-frame > div { max-width: min(1500px, calc(100vw - 24px)); margin-left: auto; margin-right: auto; }
 
-/* Banområdet får störst plats och mindre marginaler. */
-main[class*="max-w-[1760px]"][class*="grid"] > section {
-  order: 2 !important;
-  padding: 0.45rem !important;
-  border-radius: 1.35rem !important;
-  min-width: 0 !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > section > div {
-  padding: 0.55rem !important;
-  border-radius: 1.1rem !important;
-  background: rgba(23, 53, 31, 0.08) !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > section > div > div {
-  min-width: 720px !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > section [style*="aspect-ratio"] {
-  min-height: min(70vh, 760px) !important;
-  border-radius: 1.15rem !important;
-}
-
-/* Högerpanelen blir en flytande, kontextuell inspector i stället för en tung kolumn. */
-main[class*="max-w-[1760px]"][class*="grid"] > aside:last-child:not(:first-child) {
-  position: fixed !important;
-  right: 1rem !important;
-  top: 8.5rem !important;
-  z-index: 55 !important;
-  width: min(320px, calc(100vw - 2rem)) !important;
-  max-height: calc(100vh - 10rem) !important;
-  overflow-y: auto !important;
-  padding: 0 !important;
-  border-radius: 1.4rem !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > aside:last-child:not(:first-child) > section {
-  border-radius: 1.15rem !important;
-  background: rgba(255,255,255,0.96) !important;
-  backdrop-filter: blur(18px) !important;
-  box-shadow: 0 18px 45px rgba(26, 29, 27, 0.14) !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > aside:last-child:not(:first-child) > section:not(:first-child) {
-  margin-top: 0.55rem !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > aside:last-child:not(:first-child) > section:first-child p {
-  display: none !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > aside:last-child:not(:first-child) > section:first-child .grid {
-  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-  gap: 0.35rem !important;
-}
-main[class*="max-w-[1760px]"][class*="grid"] > aside:last-child:not(:first-child) > section:first-child button {
-  min-height: 2.65rem !important;
-  border-radius: 0.85rem !important;
-  font-size: 0.64rem !important;
-}
-
-/* Topbaren blir mer kompakt och fungerar bättre på små skärmar. */
-header[class*="sticky"][class*="top-0"] .flex.flex-wrap {
-  gap: 0.4rem !important;
-}
-header[class*="sticky"][class*="top-0"] button,
-header[class*="sticky"][class*="top-0"] a,
-header[class*="sticky"][class*="top-0"] input {
+.v3-course-planner-control {
   min-height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  border: 1px solid hsl(var(--v3-canvas-sunken) / 0.72);
+  background: hsl(var(--v3-canvas-elevated));
+  color: hsl(var(--v3-text-secondary));
+  padding: 0 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  box-shadow: 0 1px 2px rgba(26, 29, 27, 0.04);
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+.v3-course-planner-control:hover { transform: translateY(-1px); background: hsl(var(--v3-canvas)); color: hsl(var(--v3-text-primary)); box-shadow: 0 8px 22px rgba(26, 29, 27, 0.06); }
+.v3-course-planner-control-primary { background: hsl(var(--v3-text-primary)); border-color: hsl(var(--v3-text-primary)); color: hsl(var(--v3-text-inverse)); }
+.v3-course-planner-control-primary:hover { background: hsl(var(--v3-brand-600)); color: hsl(var(--v3-text-inverse)); }
+
+.v3-course-planner-tip {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  max-width: 780px;
+  border-radius: 1rem;
+  border: 1px solid hsl(var(--v3-brand-500) / 0.18);
+  background: hsl(var(--v3-brand-500) / 0.08);
+  color: hsl(var(--v3-text-secondary));
+  padding: 0.75rem 0.85rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  box-shadow: 0 8px 26px rgba(26, 29, 27, 0.045);
+}
+.v3-course-planner-tip strong { color: hsl(var(--v3-text-primary)); }
+.v3-course-planner-tip button { margin-left: auto; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 999px; color: hsl(var(--v3-text-tertiary)); }
+.v3-course-planner-tip button:hover { background: hsl(var(--v3-canvas-elevated) / 0.8); color: hsl(var(--v3-text-primary)); }
+
+/* V3-skin på fulla banplaneraren: gräsplan + ljus premium-UI, men samma DOM/funktioner. */
+.v3-course-planner-frame {
+  --planner-grass: #7bad5e;
+  --planner-grass-dark: #5f9745;
+  --planner-grass-line: rgba(255, 255, 255, 0.22);
+  --planner-panel: hsl(var(--v3-canvas-elevated));
+  --planner-panel-soft: hsl(var(--v3-canvas));
+  --planner-border: hsl(var(--v3-canvas-sunken) / 0.72);
+  --planner-text: hsl(var(--v3-text-primary));
+  --planner-muted: hsl(var(--v3-text-secondary));
 }
 
-@media (max-width: 900px) {
-  main[class*="max-w-[1760px]"][class*="grid"] {
-    max-width: 100vw !important;
-    padding: 0.35rem !important;
-    gap: 0.5rem !important;
-  }
-  main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child {
-    border-radius: 1rem !important;
-    padding: 0.6rem !important;
-  }
-  main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child > div:first-child h2 {
-    font-size: 1.05rem !important;
-  }
-  main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child > div:first-child p {
-    font-size: 0.72rem !important;
-  }
-  main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child section button {
-    width: 4.8rem !important;
-    min-width: 4.8rem !important;
-  }
-  main[class*="max-w-[1760px]"][class*="grid"] > section {
-    padding: 0.3rem !important;
-    border-radius: 1rem !important;
-  }
-  main[class*="max-w-[1760px]"][class*="grid"] > section > div {
-    padding: 0.35rem !important;
-  }
-  main[class*="max-w-[1760px]"][class*="grid"] > section > div > div {
-    min-width: 680px !important;
-  }
-  main[class*="max-w-[1760px]"][class*="grid"] > section [style*="aspect-ratio"] {
-    min-height: 58vh !important;
-  }
-  main[class*="max-w-[1760px]"][class*="grid"] > aside:last-child:not(:first-child) {
-    top: auto !important;
-    right: 0.5rem !important;
-    left: 0.5rem !important;
-    bottom: 0.5rem !important;
-    width: auto !important;
-    max-height: 44dvh !important;
-    border-radius: 1.25rem !important;
-  }
-  main[class*="max-w-[1760px]"][class*="grid"] > aside:last-child:not(:first-child) > section {
-    padding: 0.75rem !important;
-  }
-  main[class*="max-w-[1760px]"][class*="grid"] > aside:last-child:not(:first-child) > section:first-child .grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  }
-  header[class*="sticky"][class*="top-0"] {
-    padding: 0.45rem !important;
-  }
-  header[class*="sticky"][class*="top-0"] > div > div:first-child,
-  header[class*="sticky"][class*="top-0"] > div > div:last-child {
-    overflow-x: auto !important;
-    flex-wrap: nowrap !important;
-    padding-bottom: 0.15rem !important;
-  }
-  header[class*="sticky"][class*="top-0"] input {
-    width: 11rem !important;
-    min-width: 11rem !important;
-  }
-  header[class*="sticky"][class*="top-0"] button,
-  header[class*="sticky"][class*="top-0"] a {
-    white-space: nowrap !important;
-  }
+/* Gör den mörka arbetsytan till gräsbakgrund. */
+.v3-course-planner-frame [class*="bg-slate-950"],
+.v3-course-planner-frame [class*="bg-slate-900"],
+.v3-course-planner-frame [class*="bg-zinc-950"],
+.v3-course-planner-frame [class*="bg-zinc-900"],
+.v3-course-planner-frame [class*="bg-gray-950"],
+.v3-course-planner-frame [class*="bg-gray-900"],
+.v3-course-planner-frame [class*="bg-neutral-950"],
+.v3-course-planner-frame [class*="bg-neutral-900"],
+.v3-course-planner-frame [class*="bg-[#0"],
+.v3-course-planner-frame [class*="bg-[#1"] {
+  background-color: var(--planner-panel) !important;
+  color: var(--planner-text) !important;
 }
 
-@media (max-width: 560px) {
-  main[class*="max-w-[1760px]"][class*="grid"] > section > div > div {
-    min-width: 620px !important;
-  }
-  main[class*="max-w-[1760px]"][class*="grid"] > aside:first-child section button {
-    width: 4.45rem !important;
-    min-width: 4.45rem !important;
-    height: 3rem !important;
-    min-height: 3rem !important;
-  }
+/* Själva rit-/banområdet ska se ut som grönt gräs, inte vitt rutpapper. */
+.v3-course-planner-frame [class*="bg-white"][class*="overflow-hidden"],
+.v3-course-planner-frame [class*="bg-white"][class*="relative"],
+.v3-course-planner-frame [class*="bg-background"][class*="overflow-hidden"],
+.v3-course-planner-frame [class*="bg-background"][class*="relative"] {
+  background-color: var(--planner-grass) !important;
+  background-image:
+    radial-gradient(circle at 18px 18px, rgba(255,255,255,.10) 1px, transparent 1.8px),
+    linear-gradient(var(--planner-grass-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--planner-grass-line) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(255,255,255,.10), rgba(28,80,38,.16)) !important;
+  background-size: 20px 20px, 68px 68px, 68px 68px, 100% 100% !important;
+  border: 1px solid rgba(255,255,255,.32) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), 0 18px 44px rgba(40, 70, 40, 0.18) !important;
+}
+
+/* Om banan renderas som SVG/canvas med vit bakgrund hjälper detta utan att röra funktionerna. */
+.v3-course-planner-frame svg,
+.v3-course-planner-frame canvas {
+  background-color: var(--planner-grass) !important;
+  border-radius: 0.5rem;
+}
+
+/* Paneler, toppbar, kort och kontroller i ljus v3-stil. */
+.v3-course-planner-frame :is(.bg-background, .bg-card, .bg-white) { background-color: var(--planner-panel) !important; color: var(--planner-text) !important; }
+.v3-course-planner-frame :is(.text-white, .text-slate-100, .text-slate-200, .text-gray-100, .text-gray-200) { color: var(--planner-text) !important; }
+.v3-course-planner-frame :is(.text-slate-300, .text-slate-400, .text-gray-300, .text-gray-400, .text-muted-foreground) { color: var(--planner-muted) !important; }
+.v3-course-planner-frame :is(.border, .border-border, .border-input, .border-slate-700, .border-slate-800, .border-gray-700, .border-gray-800) { border-color: var(--planner-border) !important; }
+.v3-course-planner-frame :is(.rounded-lg, .rounded-xl, .rounded-2xl) { border-radius: 1rem; }
+.v3-course-planner-frame button:not([data-radix-collection-item]) { border-radius: 0.875rem; }
+.v3-course-planner-frame :is(input, select, textarea, [role="combobox"]) { border-radius: 0.875rem !important; border-color: var(--planner-border) !important; background-color: var(--planner-panel-soft) !important; color: var(--planner-text) !important; }
+.v3-course-planner-frame :is(.shadow, .shadow-sm, .shadow-md, .shadow-lg) { box-shadow: 0 12px 30px rgba(26, 29, 27, 0.055) !important; }
+
+/* Hinderkort ska kännas som de gröna v3-korten, inte mörka panelkort. */
+.v3-course-planner-frame button[class*="border"]:not(.v3-course-planner-control) {
+  background-color: hsl(var(--v3-canvas-elevated)) !important;
+  color: hsl(var(--v3-text-primary)) !important;
+}
+.v3-course-planner-frame button[class*="border"]:not(.v3-course-planner-control):hover {
+  background-color: hsl(var(--v3-brand-500) / 0.10) !important;
+  border-color: hsl(var(--v3-brand-500) / 0.32) !important;
+}
+
+@media (min-width: 1024px) {
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame aside:first-of-type,
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="w-64"]:first-child,
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="w-72"]:first-child,
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="w-80"]:first-child,
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="basis-64"]:first-child,
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="basis-72"]:first-child,
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame [class*="basis-80"]:first-child { display: none !important; }
+  .v3-course-planner-sidebar-collapsed .v3-course-planner-frame > div { max-width: min(1760px, calc(100vw - 32px)); }
+}
+
+.v3-course-planner-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  min-height: 100dvh;
+  overflow: auto;
+  background: radial-gradient(circle at 18% 0%, hsl(var(--v3-brand-500) / 0.08), transparent 28%), hsl(var(--v3-canvas));
+}
+.v3-course-planner-fullscreen .v3-course-planner-topbar { position: sticky; top: 0; padding-bottom: 0.75rem; background: hsl(var(--v3-canvas) / 0.92); backdrop-filter: blur(18px); border-bottom: 1px solid hsl(var(--v3-canvas-sunken) / 0.52); }
+.v3-course-planner-fullscreen .v3-course-planner-frame { padding: 0.75rem; }
+.v3-course-planner-fullscreen .v3-course-planner-frame > div { max-width: none; width: 100%; }
+.v3-course-planner-fullscreen .v3-course-planner-frame :is(canvas, svg) { max-width: none; }
+
+@media (max-width: 767px) {
+  .v3-course-planner-frame { padding-left: 0.5rem; padding-right: 0.5rem; }
+  .v3-course-planner-tip { font-size: 0.75rem; }
 }

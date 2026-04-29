@@ -1,15 +1,9 @@
 import * as THREE from "three";
 import { useMemo } from "react";
 
-type Props = {
-  widthMeters: number;
-  heightMeters: number;
-  wallHeight?: number;
-  showGrid?: boolean;
-};
+type Props = { widthMeters: number; heightMeters: number; wallHeight?: number; showGrid?: boolean };
 
 export function Arena3D({ widthMeters, heightMeters, wallHeight = 3, showGrid = true }: Props) {
-  // procedural turf texture (canvas) memoized
   const turfTexture = useMemo(() => {
     const c = document.createElement("canvas");
     c.width = c.height = 256;
@@ -25,35 +19,22 @@ export function Arena3D({ widthMeters, heightMeters, wallHeight = 3, showGrid = 
     }
     const tex = new THREE.CanvasTexture(c);
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(widthMeters / 2, heightMeters / 2);
+    tex.repeat.set(Math.max(2, widthMeters / 2), Math.max(2, heightMeters / 2));
     return tex;
   }, [widthMeters, heightMeters]);
 
   return (
     <group>
-      {/* floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[widthMeters, heightMeters]} />
         <meshStandardMaterial map={turfTexture} />
       </mesh>
-
-      {/* white field boundary lines */}
-      <lineSegments position={[0, 0.02, 0]}>
-        <edgesGeometry
-          args={[new THREE.PlaneGeometry(widthMeters, heightMeters)]}
-        />
-        <lineBasicMaterial color="#ffffff" />
-      </lineSegments>
-
-      {/* grid */}
       {showGrid && (
         <gridHelper
           args={[Math.max(widthMeters, heightMeters), Math.max(widthMeters, heightMeters), "#ffffff", "#a8c79a"]}
           position={[0, 0.01, 0]}
         />
       )}
-
-      {/* walls */}
       {[
         { pos: [0, wallHeight / 2, -heightMeters / 2 - 0.05] as [number, number, number], size: [widthMeters + 1, wallHeight, 0.1] as [number, number, number] },
         { pos: [0, wallHeight / 2, heightMeters / 2 + 0.05] as [number, number, number], size: [widthMeters + 1, wallHeight, 0.1] as [number, number, number] },
@@ -65,26 +46,10 @@ export function Arena3D({ widthMeters, heightMeters, wallHeight = 3, showGrid = 
           <meshStandardMaterial color="#f0ece2" />
         </mesh>
       ))}
-
-      {/* ceiling beams (decoration) */}
-      {[-1, 0, 1].map((i) => (
-        <mesh key={`beam${i}`} position={[(widthMeters / 4) * i, wallHeight - 0.1, 0]}>
-          <boxGeometry args={[0.15, 0.15, heightMeters]} />
-          <meshStandardMaterial color="#3a3a3a" />
-        </mesh>
-      ))}
-
-      {/* lighting */}
-      <ambientLight intensity={0.55} />
+      <ambientLight intensity={0.6} />
       <hemisphereLight args={["#ffffff", "#3d6a2a", 0.6]} />
-      <directionalLight
-        position={[widthMeters / 2, wallHeight + 5, heightMeters / 2]}
-        intensity={1.1}
-        castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
-      />
-      <directionalLight position={[-widthMeters / 2, wallHeight + 5, -heightMeters / 2]} intensity={0.6} />
+      <directionalLight position={[widthMeters / 2, wallHeight + 5, heightMeters / 2]} intensity={1.1} />
+      <directionalLight position={[-widthMeters / 2, wallHeight + 5, -heightMeters / 2]} intensity={0.5} />
     </group>
   );
 }

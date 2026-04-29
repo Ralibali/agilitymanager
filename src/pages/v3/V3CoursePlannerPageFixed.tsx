@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type PointerEvent, type ReactNode } from "react";
 import jsPDF from "jspdf";
-import { ArrowLeft, Box, Download, Eraser, FileText, FolderOpen, Footprints, Grid3X3, Hash, HelpCircle, Maximize2, Minimize2, MousePointer2, Move, PanelLeftClose, PanelLeftOpen, Pencil, RotateCcw, Save, Settings2, Trash2, Undo2, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowLeft, Box, Download, Eraser, FileText, FolderOpen, Footprints, Grid3X3, Hash, HelpCircle, Maximize2, MenuIcon, Minimize2, MousePointer2, Move, PanelLeftClose, PanelLeftOpen, Pencil, Plus, RotateCcw, Save, Settings2, Trash2, Undo2, X, ZoomIn, ZoomOut } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
@@ -78,6 +78,17 @@ function downloadFile(filename: string, content: string, type = "application/jso
   URL.revokeObjectURL(url);
 }
 
+function useIsMobile() {
+  const [mobile, setMobile] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const onChange = () => setMobile(mq.matches);
+    mq.addEventListener?.("change", onChange);
+    return () => mq.removeEventListener?.("change", onChange);
+  }, []);
+  return mobile;
+}
+
 export default function V3CoursePlannerPageFixed() {
   const [mode, setMode] = useState<PlannerMode>("Agility");
   const [courses, setCourses] = useState<Courses>(() => loadInitial());
@@ -91,13 +102,26 @@ export default function V3CoursePlannerPageFixed() {
   const [zoom, setZoom] = useState(100);
   const [snap, setSnap] = useState(true);
   const [grid, setGrid] = useState(true);
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
+  const isMobile = useIsMobile();
+  const [leftOpen, setLeftOpen] = useState(!isMobile);
+  const [rightOpen, setRightOpen] = useState(!isMobile);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [savedOpen, setSavedOpen] = useState(false);
   const [guide, setGuide] = useState(false);
-  const [saved, setSaved] = useState<SavedCourse[]>(() => { try { return JSON.parse(window.localStorage.getItem(LIBRARY_KEY) ?? "[]") as SavedCourse[]; } catch { return []; } });
   const [view3DMode, setView3DMode] = useState<null | "view" | "walk">(null);
+  const [saved, setSaved] = useState<SavedCourse[]>(() => { try { return JSON.parse(window.localStorage.getItem(LIBRARY_KEY) ?? "[]") as SavedCourse[]; } catch { return []; } });
+
+  // Keep panels closed when entering mobile
+  useEffect(() => {
+    if (isMobile) {
+      setLeftOpen(false);
+      setRightOpen(false);
+    } else {
+      setLeftOpen(true);
+      setRightOpen(true);
+    }
+  }, [isMobile]);
 
   const course = courses[mode];
   const selected = useMemo(() => course.obstacles.find(o => o.id === selectedId) ?? null, [course.obstacles, selectedId]);
@@ -138,6 +162,7 @@ export default function V3CoursePlannerPageFixed() {
     setObstacles(prev => [...prev, obstacle]);
     setSelectedId(obstacle.id);
     setToolMode("select");
+    if (isMobile) setLeftOpen(false);
   };
   const switchMode = (next: PlannerMode) => { setMode(next); setSelectedTool(defaultTool(next)); setSelectedId(null); setDraggingId(null); setToolMode("select"); };
   const deleteSelected = () => { if (!selectedId) return; setObstacles(prev => prev.filter(o => o.id !== selectedId)); setNumbers(prev => prev.filter(n => n.id !== selectedId)); setSelectedId(null); };
@@ -145,7 +170,6 @@ export default function V3CoursePlannerPageFixed() {
   const moveSelected = (dx: number, dy: number) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, x: clamp(o.x + dx, 0, 100), y: clamp(o.y + dy, 0, 100) } : o));
   const recolorSelected = (nextColor: string) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, color: nextColor } : o));
   const renumberSelected = () => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, number: nextNumber } : o));
-  const setNumberSelected = (n: number | undefined) => selectedId && setObstacles(prev => prev.map(o => o.id === selectedId ? { ...o, number: n && n > 0 ? Math.floor(n) : undefined } : o));
   const eraseNear = (x: number, y: number) => {
     const p = { x, y };
     const hit = course.obstacles.find(o => distance(p, o) < 4.5);
@@ -193,20 +217,234 @@ export default function V3CoursePlannerPageFixed() {
   };
   const closeGuide = () => { window.localStorage.setItem(GUIDE_KEY, "1"); setGuide(false); };
 
-  return <div className={cn("min-h-[100dvh] bg-[#f7f6f0] text-v3-text-primary animate-v3-fade-in", fullscreen && "fixed inset-0 z-[1000] overflow-auto")}> 
-    <header className="sticky top-0 z-40 bg-[#f7f6f0]/92 backdrop-blur-xl border-b border-black/5 px-3 lg:px-6 py-3"><div className="max-w-[1760px] mx-auto flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between"><div className="flex items-center gap-2 min-w-0"><button type="button" onClick={() => { window.location.href = "/v3/courses"; }} className="h-10 w-10 rounded-v3-base bg-white border border-black/8 shadow-v3-xs grid place-items-center text-v3-text-secondary shrink-0" aria-label="Tillbaka"><ArrowLeft size={18} /></button><input value={course.name} onChange={(e) => updateCourse(prev => ({ ...prev, name: e.target.value }))} className="h-10 min-w-0 w-[190px] lg:w-[260px] rounded-v3-base border border-black/8 bg-white px-3 text-v3-sm font-semibold shadow-v3-xs outline-none focus:ring-2 focus:ring-v3-brand-500/25" /><span className="hidden sm:inline-flex text-v3-xs text-v3-text-tertiary">Autosparad · PDF stöds</span></div><div className="flex flex-wrap items-center gap-2"><Segmented value={mode} onChange={switchMode} options={["Agility", "Hoopers"]} /><ToolbarButton onClick={() => setLeftOpen(v => !v)} active={!leftOpen} icon={leftOpen ? <PanelLeftClose size={15} /> : <PanelLeftOpen size={15} />}>{leftOpen ? "Stäng meny" : "Visa meny"}</ToolbarButton><ToolbarButton onClick={() => setZoom(z => clamp(z - 10, 50, 160))} icon={<ZoomOut size={15} />} /><span className="h-10 min-w-[66px] rounded-v3-base bg-white border border-black/8 grid place-items-center text-v3-xs font-semibold shadow-v3-xs">{zoom}%</span><ToolbarButton onClick={() => setZoom(z => clamp(z + 10, 50, 160))} icon={<ZoomIn size={15} />} /><ToolbarButton onClick={() => setGrid(v => !v)} active={grid} icon={<Grid3X3 size={15} />}>Rutnät</ToolbarButton><ToolbarButton onClick={() => setSnap(v => !v)} active={snap}>Snap</ToolbarButton><ToolbarButton onClick={() => setView3DMode("view")} icon={<Box size={15} />}>3D</ToolbarButton><ToolbarButton onClick={() => setView3DMode("walk")} icon={<Footprints size={15} />}>Gå banan</ToolbarButton><ToolbarButton onClick={saveToLibrary} icon={<Save size={15} />}>Spara</ToolbarButton><ToolbarButton onClick={() => setSavedOpen(true)} icon={<FolderOpen size={15} />}>Öppna</ToolbarButton><ToolbarButton onClick={exportPdf} icon={<FileText size={15} />}>Exportera PDF</ToolbarButton><ToolbarButton onClick={() => setFullscreen(v => !v)} active={fullscreen} icon={fullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}>{fullscreen ? "Avsluta" : "Storbild"}</ToolbarButton></div></div></header>
-    <main className={cn("max-w-[1760px] mx-auto px-3 lg:px-6 py-4 grid gap-4", leftOpen && rightOpen ? "xl:grid-cols-[300px_minmax(0,1fr)_330px]" : leftOpen ? "xl:grid-cols-[300px_minmax(0,1fr)]" : rightOpen ? "xl:grid-cols-[minmax(0,1fr)_330px]" : "xl:grid-cols-1")}>{leftOpen && <LeftPanel grouped={grouped} selectedTool={selectedTool} setSelectedTool={setSelectedTool} addObstacle={addObstacle} mode={mode} />}<section className="rounded-[24px] bg-white border border-black/6 shadow-v3-sm p-2 lg:p-4 min-w-0"><div className="relative overflow-auto rounded-[20px] bg-[#17351f]/10 p-3 lg:p-5"><div className="origin-top-left transition-transform" style={{ transform: `scale(${zoom / 100})`, transformOrigin: "top left", width: "760px", height: `${760 * (course.height / course.width)}px`, marginRight: `${760 * (zoom / 100 - 1)}px`, marginBottom: `${760 * (course.height / course.width) * (zoom / 100 - 1)}px` }}><GrassField course={course} selectedId={selectedId} draggingId={draggingId} grid={grid} toolMode={toolMode} currentPath={currentPath} onFieldDown={fieldDown} onFieldMove={fieldMove} onFieldUp={fieldUp} onObstacleDown={(event, obstacle) => { event.preventDefault(); event.stopPropagation(); if (toolMode === "erase") { eraseNear(obstacle.x, obstacle.y); return; } setSelectedId(obstacle.id); setToolMode("select"); setDraggingId(obstacle.id); event.currentTarget.setPointerCapture(event.pointerId); }} onSelect={setSelectedId} /></div></div></section>{rightOpen && <RightPanel selected={selected} toolMode={toolMode} setToolMode={setToolMode} setRightOpen={setRightOpen} setGuide={setGuide} moveSelected={moveSelected} rotateSelected={rotateSelected} renumberSelected={renumberSelected} setNumberSelected={setNumberSelected} deleteSelected={deleteSelected} setColor={setColor} recolorSelected={recolorSelected} course={course} updateCourse={updateCourse} exportJson={exportJson} exportPdf={exportPdf} reset={reset} setPaths={setPaths} />}</main>
-    {!rightOpen && <button type="button" onClick={() => setRightOpen(true)} className="fixed right-4 bottom-4 z-40 h-12 px-4 rounded-full bg-v3-text-primary text-white shadow-v3-lg text-v3-sm font-semibold inline-flex items-center gap-2"><Settings2 size={16} /> Verktyg</button>}{savedOpen && <SavedDialog saved={saved} onClose={() => setSavedOpen(false)} onOpen={openSaved} />}{guide && <Guide onClose={closeGuide} />}{view3DMode && <LazyCoursePlanner3D obstacles={course.obstacles.map(o => ({ id: o.id, type: o.type, x: o.x, y: o.y, rotation: o.rotation, number: o.number, color: o.color, label: o.label }))} paths={course.paths.map(p => ({ id: p.id, points: p.points, color: p.color }))} widthMeters={course.width} heightMeters={course.height} initialMode={view3DMode} courseName={course.name} onClose={() => setView3DMode(null)} />}</div>;
+  return <div className={cn("min-h-[100dvh] bg-[#f7f6f0] text-v3-text-primary animate-v3-fade-in", fullscreen && "fixed inset-0 z-[1000] overflow-auto")}>
+    {/* === MOBILE HEADER === */}
+    <header className="lg:hidden sticky top-0 z-40 bg-[#f7f6f0]/95 backdrop-blur-xl border-b border-black/5 px-3 py-2.5 flex items-center gap-2">
+      <button type="button" onClick={() => { window.location.href = "/v3/courses"; }} className="h-10 w-10 rounded-full bg-white border border-black/8 grid place-items-center text-v3-text-secondary shrink-0" aria-label="Tillbaka"><ArrowLeft size={18} /></button>
+      <input value={course.name} onChange={(e) => updateCourse(prev => ({ ...prev, name: e.target.value }))} className="h-10 min-w-0 flex-1 rounded-full border border-black/8 bg-white px-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-v3-brand-500/25" />
+      <button type="button" onClick={() => setMoreOpen(true)} className="h-10 w-10 rounded-full bg-white border border-black/8 grid place-items-center" aria-label="Meny"><MenuIcon size={18} /></button>
+    </header>
+
+    {/* === DESKTOP HEADER === */}
+    <header className="hidden lg:block sticky top-0 z-40 bg-[#f7f6f0]/92 backdrop-blur-xl border-b border-black/5 px-3 lg:px-6 py-3">
+      <div className="max-w-[1760px] mx-auto flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <button type="button" onClick={() => { window.location.href = "/v3/courses"; }} className="h-10 w-10 rounded-v3-base bg-white border border-black/8 shadow-v3-xs grid place-items-center text-v3-text-secondary shrink-0" aria-label="Tillbaka"><ArrowLeft size={18} /></button>
+          <input value={course.name} onChange={(e) => updateCourse(prev => ({ ...prev, name: e.target.value }))} className="h-10 min-w-0 w-[260px] rounded-v3-base border border-black/8 bg-white px-3 text-v3-sm font-semibold shadow-v3-xs outline-none focus:ring-2 focus:ring-v3-brand-500/25" />
+          <span className="hidden xl:inline-flex text-v3-xs text-v3-text-tertiary">Autosparad</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 justify-end">
+          <Segmented value={mode} onChange={switchMode} options={["Agility", "Hoopers"]} />
+          <ToolbarButton onClick={() => setLeftOpen(v => !v)} active={!leftOpen} icon={leftOpen ? <PanelLeftClose size={15} /> : <PanelLeftOpen size={15} />}>{leftOpen ? "Stäng" : "Hinder"}</ToolbarButton>
+          <ToolbarButton onClick={() => setZoom(z => clamp(z - 10, 50, 160))} icon={<ZoomOut size={15} />} />
+          <span className="h-10 min-w-[58px] rounded-v3-base bg-white border border-black/8 grid place-items-center text-v3-xs font-semibold shadow-v3-xs">{zoom}%</span>
+          <ToolbarButton onClick={() => setZoom(z => clamp(z + 10, 50, 160))} icon={<ZoomIn size={15} />} />
+          <ToolbarButton onClick={() => setGrid(v => !v)} active={grid} icon={<Grid3X3 size={15} />}>Rutnät</ToolbarButton>
+          <ToolbarButton onClick={() => setView3DMode("view")} icon={<Box size={15} />}>3D</ToolbarButton>
+          <ToolbarButton onClick={() => setView3DMode("walk")} icon={<Footprints size={15} />}>Gå banan</ToolbarButton>
+          <ToolbarButton onClick={saveToLibrary} icon={<Save size={15} />}>Spara</ToolbarButton>
+          <ToolbarButton onClick={() => setSavedOpen(true)} icon={<FolderOpen size={15} />}>Öppna</ToolbarButton>
+          <ToolbarButton onClick={exportPdf} icon={<FileText size={15} />}>PDF</ToolbarButton>
+          <ToolbarButton onClick={() => setFullscreen(v => !v)} active={fullscreen} icon={fullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />} />
+        </div>
+      </div>
+    </header>
+
+    {/* === MOBILE MODE TABS === */}
+    <div className="lg:hidden px-3 pt-2">
+      <Segmented value={mode} onChange={switchMode} options={["Agility", "Hoopers"]} />
+    </div>
+
+    <main className={cn("max-w-[1760px] mx-auto px-3 lg:px-6 py-3 lg:py-4 grid gap-3 lg:gap-4", "lg:" + (leftOpen && rightOpen ? "grid-cols-[300px_minmax(0,1fr)_330px]" : leftOpen ? "grid-cols-[300px_minmax(0,1fr)]" : rightOpen ? "grid-cols-[minmax(0,1fr)_330px]" : "grid-cols-1"))}>
+      {/* Hidden on mobile, shown as drawer */}
+      {leftOpen && !isMobile && <LeftPanel grouped={grouped} selectedTool={selectedTool} setSelectedTool={setSelectedTool} addObstacle={addObstacle} mode={mode} />}
+
+      <section className="rounded-[20px] lg:rounded-[24px] bg-white border border-black/6 shadow-v3-sm p-1.5 lg:p-4 min-w-0">
+        <div className="relative overflow-hidden lg:overflow-auto rounded-[16px] lg:rounded-[20px] bg-[#17351f]/10 p-1.5 lg:p-5">
+          <div className="origin-top-left transition-transform" style={{ width: isMobile ? "100%" : `${zoom}%`, minWidth: isMobile ? "100%" : "760px" }}>
+            <GrassField course={course} selectedId={selectedId} draggingId={draggingId} grid={grid} toolMode={toolMode} currentPath={currentPath} onFieldDown={fieldDown} onFieldMove={fieldMove} onFieldUp={fieldUp} onObstacleDown={(event, obstacle) => { event.preventDefault(); event.stopPropagation(); if (toolMode === "erase") { eraseNear(obstacle.x, obstacle.y); return; } setSelectedId(obstacle.id); setToolMode("select"); setDraggingId(obstacle.id); event.currentTarget.setPointerCapture(event.pointerId); }} onSelect={setSelectedId} />
+          </div>
+        </div>
+      </section>
+
+      {rightOpen && !isMobile && <RightPanel selected={selected} toolMode={toolMode} setToolMode={setToolMode} setRightOpen={setRightOpen} setGuide={setGuide} moveSelected={moveSelected} rotateSelected={rotateSelected} renumberSelected={renumberSelected} deleteSelected={deleteSelected} setColor={setColor} recolorSelected={recolorSelected} course={course} updateCourse={updateCourse} exportJson={exportJson} exportPdf={exportPdf} reset={reset} setPaths={setPaths} />}
+    </main>
+
+    {/* === MOBILE FAB BAR === */}
+    {isMobile && !view3DMode && (
+      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-2 py-2 rounded-full bg-v3-text-primary/95 backdrop-blur shadow-v3-lg text-white" style={{ paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))" }}>
+        <FabBtn onClick={() => setLeftOpen(true)} icon={<Plus size={18} />} label="Hinder" />
+        <FabBtn onClick={() => setRightOpen(true)} icon={<Settings2 size={18} />} label="Verktyg" />
+        <FabBtn onClick={() => setView3DMode("view")} icon={<Box size={18} />} label="3D" />
+        <FabBtn onClick={() => setView3DMode("walk")} icon={<Footprints size={18} />} label="Gå" />
+      </div>
+    )}
+
+    {/* === MOBILE LEFT DRAWER === */}
+    {isMobile && leftOpen && (
+      <MobileSheet title={`${mode}-hinder`} onClose={() => setLeftOpen(false)}>
+        <LeftPanelContent grouped={grouped} selectedTool={selectedTool} setSelectedTool={setSelectedTool} addObstacle={addObstacle} />
+      </MobileSheet>
+    )}
+
+    {/* === MOBILE RIGHT DRAWER === */}
+    {isMobile && rightOpen && (
+      <MobileSheet title="Verktyg" onClose={() => setRightOpen(false)}>
+        <RightPanelContent selected={selected} toolMode={toolMode} setToolMode={setToolMode} setGuide={setGuide} moveSelected={moveSelected} rotateSelected={rotateSelected} renumberSelected={renumberSelected} deleteSelected={deleteSelected} setColor={setColor} recolorSelected={recolorSelected} course={course} updateCourse={updateCourse} exportJson={exportJson} exportPdf={exportPdf} reset={reset} setPaths={setPaths} />
+      </MobileSheet>
+    )}
+
+    {/* === MOBILE MORE MENU === */}
+    {isMobile && moreOpen && (
+      <MobileSheet title="Mer" onClose={() => setMoreOpen(false)}>
+        <div className="grid grid-cols-2 gap-2">
+          <SheetBtn onClick={() => { saveToLibrary(); setMoreOpen(false); }} icon={<Save size={16} />} label="Spara" />
+          <SheetBtn onClick={() => { setSavedOpen(true); setMoreOpen(false); }} icon={<FolderOpen size={16} />} label="Öppna" />
+          <SheetBtn onClick={() => { exportPdf(); setMoreOpen(false); }} icon={<FileText size={16} />} label="PDF" />
+          <SheetBtn onClick={() => { exportJson(); setMoreOpen(false); }} icon={<Download size={16} />} label="JSON" />
+          <SheetBtn onClick={() => { setGrid(v => !v); }} icon={<Grid3X3 size={16} />} label={grid ? "Dölj rutnät" : "Visa rutnät"} />
+          <SheetBtn onClick={() => { setSnap(v => !v); }} icon={<Move size={16} />} label={snap ? "Snap av" : "Snap på"} />
+          <SheetBtn onClick={() => { setGuide(true); setMoreOpen(false); }} icon={<HelpCircle size={16} />} label="Guide" />
+          <SheetBtn onClick={() => { reset(); setMoreOpen(false); }} icon={<RotateCcw size={16} />} label="Återställ" />
+        </div>
+      </MobileSheet>
+    )}
+
+    {savedOpen && <SavedDialog saved={saved} onClose={() => setSavedOpen(false)} onOpen={openSaved} />}
+    {guide && <Guide onClose={closeGuide} />}
+    {view3DMode && (
+      <LazyCoursePlanner3D
+        obstacles={course.obstacles.map(o => ({ id: o.id, type: o.type, x: o.x, y: o.y, rotation: o.rotation, number: o.number, color: o.color, label: o.label }))}
+        paths={course.paths.map(p => ({ id: p.id, points: p.points, color: p.color }))}
+        widthMeters={course.width}
+        heightMeters={course.height}
+        initialMode={view3DMode}
+        courseName={course.name}
+        onClose={() => setView3DMode(null)}
+      />
+    )}
+  </div>;
 }
 
 function drawPdfObstacle(pdf: jsPDF, obstacle: Obstacle, p: Point) { const [r, g, b] = hexToRgb(obstacle.color ?? "#ffffff"); pdf.setFillColor(r, g, b); pdf.setDrawColor(60, 80, 70); pdf.setLineWidth(0.55); if (obstacle.shape === "long") pdf.roundedRect(p.x - 7, p.y - 1.2, 14, 2.4, 0.8, 0.8, "FD"); else if (obstacle.shape === "wide" || obstacle.shape === "tunnel") pdf.roundedRect(p.x - 5, p.y - 2, 10, 4, 1, 1, "FD"); else if (obstacle.shape === "triangle") pdf.triangle(p.x, p.y - 5, p.x - 4, p.y + 5, p.x + 4, p.y + 5, "FD"); else if (obstacle.shape === "circle") pdf.circle(p.x, p.y, 3.5, "FD"); else pdf.roundedRect(p.x - 3, p.y - 3, 6, 6, 0.8, 0.8, "FD"); if (obstacle.number) { pdf.setFillColor(34, 93, 52); pdf.circle(p.x + 4.5, p.y - 4.5, 2.3, "F"); pdf.setTextColor(255, 255, 255); pdf.setFontSize(5); pdf.text(String(obstacle.number), p.x + 4.5, p.y - 3.2, { align: "center" }); } }
-function Segmented({ value, onChange, options }: { value: PlannerMode; onChange: (v: PlannerMode) => void; options: PlannerMode[] }) { return <div className="grid grid-cols-2 rounded-v3-base bg-white border border-black/8 p-1 shadow-v3-xs w-[220px]">{options.map(o => <button key={o} type="button" onClick={() => onChange(o)} className={cn("h-9 rounded-v3-sm text-v3-sm font-semibold", value === o ? "bg-v3-brand-600 text-white" : "text-v3-text-secondary hover:bg-v3-canvas")}>{o}</button>)}</div>; }
+
+function Segmented({ value, onChange, options }: { value: PlannerMode; onChange: (v: PlannerMode) => void; options: PlannerMode[] }) { return <div className="grid grid-cols-2 rounded-full bg-white border border-black/8 p-1 shadow-v3-xs w-full lg:w-[220px]">{options.map(o => <button key={o} type="button" onClick={() => onChange(o)} className={cn("h-9 rounded-full text-sm font-semibold transition-colors", value === o ? "bg-v3-brand-600 text-white" : "text-v3-text-secondary hover:bg-v3-canvas")}>{o}</button>)}</div>; }
 function ToolbarButton({ children, icon, onClick, active }: { children?: ReactNode; icon?: ReactNode; onClick: () => void; active?: boolean }) { return <button type="button" onClick={onClick} className={cn("h-10 px-3 rounded-v3-base border border-black/8 shadow-v3-xs inline-flex items-center gap-2 text-v3-sm font-medium", active ? "bg-v3-brand-600 text-white" : "bg-white text-v3-text-secondary hover:bg-v3-canvas")}>{icon}{children}</button>; }
-function ToolButton({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: ReactNode; label: string }) { return <button type="button" onClick={onClick} className={cn("min-h-[66px] rounded-v3-xl border p-2 text-v3-xs font-semibold flex flex-col items-center justify-center gap-1", active ? "bg-v3-brand-600 text-white border-v3-brand-600" : "bg-v3-canvas border-v3-canvas-sunken text-v3-text-secondary hover:bg-v3-canvas-sunken")}>{icon}{label}</button>; }
-function LeftPanel({ grouped, selectedTool, setSelectedTool, addObstacle, mode }: { grouped: [string, ObstacleSpec[]][]; selectedTool: ObstacleType; setSelectedTool: (t: ObstacleType) => void; addObstacle: (t: ObstacleType) => void; mode: PlannerMode }) { return <aside className="rounded-[22px] bg-white border border-black/6 shadow-v3-sm p-4 max-h-[calc(100vh-120px)] overflow-y-auto"><div className="mb-4"><h2 className="font-v3-display text-v3-2xl">{mode}-hinder</h2><p className="text-v3-sm text-v3-text-secondary mt-1">Klicka för att lägga till. Dra sedan på gräset.</p></div>{grouped.map(([category, items]) => <section key={category} className="mb-4"><h3 className="text-[10px] uppercase tracking-[0.08em] font-semibold text-v3-text-tertiary mb-2">{category}</h3><div className="grid grid-cols-2 gap-2">{items.map(item => <button key={item.type} type="button" onClick={() => { setSelectedTool(item.type); addObstacle(item.type); }} className={cn("min-h-[74px] rounded-v3-xl border p-2 text-center transition-all", selectedTool === item.type ? "bg-v3-brand-500/10 border-v3-brand-500/30 text-v3-brand-800" : "bg-v3-canvas border-v3-canvas-sunken/60 text-v3-text-secondary hover:border-v3-brand-500/30")}><span className="block text-[22px] leading-none">{item.icon}</span><span className="block mt-2 text-[11px] font-semibold leading-tight">{item.label}</span></button>)}</div></section>)}</aside>; }
-function RightPanel({ selected, toolMode, setToolMode, setRightOpen, setGuide, moveSelected, rotateSelected, renumberSelected, setNumberSelected, deleteSelected, setColor, recolorSelected, course, updateCourse, exportJson, exportPdf, reset, setPaths }: { selected: Obstacle | null; toolMode: ToolMode; setToolMode: (t: ToolMode) => void; setRightOpen: (v: boolean) => void; setGuide: (v: boolean) => void; moveSelected: (dx: number, dy: number) => void; rotateSelected: (deg?: number) => void; renumberSelected: () => void; setNumberSelected: (n: number | undefined) => void; deleteSelected: () => void; setColor: (c: string) => void; recolorSelected: (c: string) => void; course: CourseState; updateCourse: (updater: CourseState | ((prev: CourseState) => CourseState)) => void; exportJson: () => void; exportPdf: () => void; reset: () => void; setPaths: (updater: DrawPath[] | ((prev: DrawPath[]) => DrawPath[])) => void }) { return <aside className="space-y-3"><section className="rounded-[22px] bg-white border border-black/6 shadow-v3-sm p-4"><div className="flex items-center justify-between gap-3 mb-3"><div><h2 className="font-v3-display text-v3-xl">Verktyg</h2><p className="text-v3-xs text-v3-text-tertiary">Rita, mät, sudda hinder och exportera PDF.</p></div><button type="button" onClick={() => setRightOpen(false)} className="h-8 w-8 rounded-full hover:bg-v3-canvas-sunken grid place-items-center text-v3-text-tertiary"><X size={15} /></button></div><div className="grid grid-cols-3 gap-2"><ToolButton active={toolMode === "select"} onClick={() => setToolMode("select")} icon={<MousePointer2 size={15} />} label="Välj" /><ToolButton active={toolMode === "draw"} onClick={() => setToolMode("draw")} icon={<Pencil size={15} />} label="Rita" /><ToolButton active={toolMode === "erase"} onClick={() => setToolMode("erase")} icon={<Eraser size={15} />} label="Sudda" /><ToolButton active={toolMode === "measure"} onClick={() => setToolMode("measure")} icon={<Move size={15} />} label="Mät" /><ToolButton active={false} onClick={() => setGuide(true)} icon={<HelpCircle size={15} />} label="Guide" /></div></section><section className="rounded-[22px] bg-white border border-black/6 shadow-v3-sm p-4 space-y-3"><h2 className="font-v3-display text-v3-xl">Valt objekt</h2>{selected ? <><div className="rounded-v3-xl bg-v3-canvas p-3"><div className="text-v3-sm font-semibold">{selected.label}</div><div className="text-v3-xs text-v3-text-tertiary mt-1">{selected.number ? `Nummer ${selected.number}` : "Ingen nummerskylt"}</div></div><div className="grid grid-cols-4 gap-2"><button className="mobile-tool-btn" onClick={() => moveSelected(0, -2)}>↑</button><button className="mobile-tool-btn" onClick={() => moveSelected(-2, 0)}>←</button><button className="mobile-tool-btn" onClick={() => moveSelected(2, 0)}>→</button><button className="mobile-tool-btn" onClick={() => moveSelected(0, 2)}>↓</button></div><div className="grid grid-cols-2 gap-2"><button className="mobile-tool-btn" onClick={() => rotateSelected(-15)}><Undo2 size={14} /> -15°</button><button className="mobile-tool-btn" onClick={() => rotateSelected(15)}><RotateCcw size={14} /> +15°</button><button className="mobile-tool-btn text-red-600 col-span-2" onClick={deleteSelected}><Trash2 size={14} /> Ta bort</button></div><div className="rounded-v3-xl bg-v3-canvas p-3 space-y-2"><div className="flex items-center gap-2 text-v3-xs font-medium text-v3-text-secondary"><Hash size={13} /> Nummer på hindret</div><div className="flex items-center gap-2"><input type="number" min={0} value={selected.number ?? ""} onChange={(e) => { const v = e.target.value; setNumberSelected(v === "" ? undefined : Number(v)); }} placeholder="–" className="flex-1 h-10 rounded-v3-base border border-v3-canvas-sunken bg-white px-3 text-v3-sm" /><button type="button" onClick={renumberSelected} className="mobile-tool-btn shrink-0" title="Sätt nästa lediga nummer">Auto</button></div><p className="text-[11px] text-v3-text-tertiary">Lämna tomt för att dölja nummerskylten.</p></div><div><div className="text-[11px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-2">Färg</div><div className="flex flex-wrap gap-2">{COLORS.map(c => <button key={c} type="button" onClick={() => { setColor(c); recolorSelected(c); }} className="h-8 w-8 rounded-full border border-black/10 shadow-v3-xs" style={{ background: c }} aria-label={c} />)}</div></div></> : <div className="rounded-v3-xl bg-v3-canvas p-4 text-v3-sm text-v3-text-secondary">Välj ett hinder för att ändra nummer, rotation, färg eller ta bort det.</div>}</section><section className="rounded-[22px] bg-white border border-black/6 shadow-v3-sm p-4 space-y-3"><h2 className="font-v3-display text-v3-xl">Banstorlek & PDF</h2><select value={`${course.width}x${course.height}`} onChange={(e) => { const s = SIZES.find(item => `${item.width}x${item.height}` === e.target.value); if (s) updateCourse(prev => ({ ...prev, width: s.width, height: s.height })); }} className="w-full h-11 rounded-v3-base border border-v3-canvas-sunken bg-v3-canvas px-3 text-v3-sm">{SIZES.map(s => <option key={s.label} value={`${s.width}x${s.height}`}>{s.label}</option>)}</select><div className="grid grid-cols-2 gap-2"><button className="mobile-tool-btn" onClick={exportJson}><Download size={14} /> JSON</button><button className="mobile-tool-btn" onClick={exportPdf}><FileText size={14} /> PDF</button><button className="mobile-tool-btn" onClick={reset}><RotateCcw size={14} /> Återställ</button><button className="mobile-tool-btn" onClick={() => setPaths(prev => prev.slice(0, -1))}><Undo2 size={14} /> Ångra ritning</button></div></section></aside>; }
-function GrassField({ course, selectedId, draggingId, grid, toolMode, currentPath, onFieldDown, onFieldMove, onFieldUp, onObstacleDown, onSelect }: { course: CourseState; selectedId: string | null; draggingId: string | null; grid: boolean; toolMode: ToolMode; currentPath: DrawPath | null; onFieldDown: (event: PointerEvent<HTMLDivElement>) => void; onFieldMove: (event: PointerEvent<HTMLDivElement>) => void; onFieldUp: () => void; onObstacleDown: (event: PointerEvent<HTMLButtonElement>, obstacle: Obstacle) => void; onSelect: (id: string) => void }) { const cursor = toolMode === "draw" ? "cursor-crosshair" : toolMode === "erase" ? "cursor-cell" : toolMode === "number" ? "cursor-copy" : draggingId ? "cursor-grabbing" : "cursor-default"; return <div onPointerDown={onFieldDown} onPointerMove={onFieldMove} onPointerUp={onFieldUp} onPointerCancel={onFieldUp} className={cn("relative rounded-[22px] overflow-hidden border border-[#d7e3ca] shadow-inner select-none min-h-[620px]", cursor)} style={{ backgroundColor: "#78a957", backgroundImage: grid ? "radial-gradient(circle at 18px 18px, rgba(255,255,255,.08) 1px, transparent 1.8px), linear-gradient(rgba(255,255,255,.32) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.32) 1px, transparent 1px), linear-gradient(135deg, rgba(255,255,255,.09), rgba(25,77,36,.10))" : "linear-gradient(135deg, rgba(255,255,255,.09), rgba(25,77,36,.10))", backgroundSize: "20px 20px, 68px 68px, 68px 68px, 100% 100%", touchAction: "none", aspectRatio: `${course.width} / ${course.height}` }}><div className="absolute left-3 top-3 rounded-full bg-white/20 border border-white/25 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-sm pointer-events-none">{course.width} × {course.height} m · 1 ruta = 1 meter</div><svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">{course.paths.map(path => <polyline key={path.id} points={path.points.map(p => `${p.x},${p.y}`).join(" ")} fill="none" stroke={path.color} strokeWidth={path.width / 3} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1.3 1" />)}{currentPath && <polyline points={currentPath.points.map(p => `${p.x},${p.y}`).join(" ")} fill="none" stroke={currentPath.color} strokeWidth={currentPath.width / 3} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1.3 1" />}</svg>{course.numbers.map(n => <button key={n.id} type="button" onClick={(e) => { e.stopPropagation(); onSelect(n.id); }} className={cn("absolute h-7 w-7 rounded-full grid place-items-center text-[12px] font-bold shadow-v3-sm border border-white/70", selectedId === n.id ? "ring-4 ring-white/40" : "")} style={{ left: `${n.x}%`, top: `${n.y}%`, transform: "translate(-50%, -50%)", background: n.color, color: n.color === "#ffffff" ? "#1d2b20" : "white" }}>{n.num}</button>)}{course.obstacles.map(obstacle => <ObstacleButton key={obstacle.id} obstacle={obstacle} selected={selectedId === obstacle.id} dragging={draggingId === obstacle.id} erasing={toolMode === "erase"} onDown={(event) => onObstacleDown(event, obstacle)} onSelect={() => onSelect(obstacle.id)} />)}<div className="absolute left-3 bottom-3 right-3 flex items-end justify-between text-white/90 text-[11px] font-semibold pointer-events-none"><span>0 m</span><span className="inline-flex items-center gap-2"><span className="h-px w-16 bg-white/80" />5 m</span></div></div>; }
-function ObstacleButton({ obstacle, selected, dragging, erasing, onDown, onSelect }: { obstacle: Obstacle; selected: boolean; dragging: boolean; erasing: boolean; onDown: (event: PointerEvent<HTMLButtonElement>) => void; onSelect: () => void }) { const bg = obstacle.color ?? "#ffffff"; return <button type="button" onClick={(e) => { e.stopPropagation(); onSelect(); }} onPointerDown={onDown} className={cn("absolute grid place-items-center border shadow-[0_8px_16px_rgba(24,64,33,.20)] transition-transform touch-none", erasing ? "cursor-cell" : "cursor-grab active:cursor-grabbing", selected ? "border-white ring-4 ring-white/40 scale-105 z-20" : "border-white/70 z-10", dragging && "scale-110 shadow-[0_16px_26px_rgba(24,64,33,.28)]", obstacleSize(obstacle.shape))} style={{ left: `${obstacle.x}%`, top: `${obstacle.y}%`, transform: `translate(-50%, -50%) rotate(${obstacle.rotation}deg)`, background: bg }} aria-label={obstacle.label}><span className="leading-none font-bold pointer-events-none text-[18px] text-v3-brand-900">{obstacle.icon}</span>{obstacle.number && <span className="absolute -right-1.5 -top-1.5 h-5 w-5 rounded-full bg-v3-brand-600 text-white text-[10px] font-bold grid place-items-center shadow-v3-xs pointer-events-none">{obstacle.number}</span>}</button>; }
-function obstacleSize(shape: Shape) { if (shape === "long") return "h-8 w-24 lg:h-9 lg:w-28 rounded-full"; if (shape === "wide") return "h-8 w-16 lg:h-9 lg:w-20 rounded-lg"; if (shape === "tunnel") return "h-9 w-16 lg:h-10 lg:w-20 rounded-full"; if (shape === "circle") return "h-10 w-10 lg:h-11 lg:w-11 rounded-full"; if (shape === "zone") return "h-16 w-16 lg:h-20 lg:w-20 rounded-lg bg-white/40 border-dashed"; if (shape === "triangle") return "h-10 w-10 lg:h-11 lg:w-11 rounded-lg"; return "h-9 w-9 lg:h-10 lg:w-10 rounded-lg"; }
+function ToolButton({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: ReactNode; label: string }) { return <button type="button" onClick={onClick} className={cn("min-h-[64px] rounded-v3-xl border p-2 text-v3-xs font-semibold flex flex-col items-center justify-center gap-1", active ? "bg-v3-brand-600 text-white border-v3-brand-600" : "bg-v3-canvas border-v3-canvas-sunken text-v3-text-secondary hover:bg-v3-canvas-sunken")}>{icon}{label}</button>; }
+function FabBtn({ onClick, icon, label }: { onClick: () => void; icon: ReactNode; label: string }) { return <button type="button" onClick={onClick} className="h-12 px-3 rounded-full hover:bg-white/15 inline-flex items-center gap-1.5 text-xs font-semibold">{icon}<span>{label}</span></button>; }
+function SheetBtn({ onClick, icon, label }: { onClick: () => void; icon: ReactNode; label: string }) { return <button type="button" onClick={onClick} className="h-12 rounded-v3-xl bg-v3-canvas border border-v3-canvas-sunken inline-flex items-center justify-center gap-2 text-sm font-semibold">{icon}{label}</button>; }
+
+function MobileSheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-[1050] lg:hidden">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="absolute left-0 right-0 bottom-0 max-h-[82vh] bg-white rounded-t-[24px] shadow-v3-xl border-t border-black/10 flex flex-col" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+        <div className="px-5 pt-3 pb-2 flex items-center justify-between border-b border-black/5">
+          <div className="flex-1 flex justify-center"><div className="h-1 w-10 rounded-full bg-black/15" /></div>
+        </div>
+        <div className="px-5 py-3 flex items-center justify-between">
+          <h3 className="font-v3-display text-xl">{title}</h3>
+          <button onClick={onClose} className="h-9 w-9 rounded-full bg-v3-canvas grid place-items-center"><X size={16} /></button>
+        </div>
+        <div className="px-5 pb-5 overflow-y-auto">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function LeftPanelContent({ grouped, selectedTool, setSelectedTool, addObstacle }: { grouped: [string, ObstacleSpec[]][]; selectedTool: ObstacleType; setSelectedTool: (t: ObstacleType) => void; addObstacle: (t: ObstacleType) => void }) {
+  return <>{grouped.map(([category, items]) => (
+    <section key={category} className="mb-4">
+      <h3 className="text-[10px] uppercase tracking-[0.08em] font-semibold text-v3-text-tertiary mb-2">{category}</h3>
+      <div className="grid grid-cols-3 lg:grid-cols-2 gap-2">
+        {items.map(item => (
+          <button key={item.type} type="button" onClick={() => { setSelectedTool(item.type); addObstacle(item.type); }} className={cn("min-h-[72px] rounded-v3-xl border p-2 text-center transition-all", selectedTool === item.type ? "bg-v3-brand-500/10 border-v3-brand-500/30 text-v3-brand-800" : "bg-v3-canvas border-v3-canvas-sunken/60 text-v3-text-secondary hover:border-v3-brand-500/30")}>
+            <span className="block text-[22px] leading-none">{item.icon}</span>
+            <span className="block mt-2 text-[11px] font-semibold leading-tight">{item.label}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  ))}</>;
+}
+function LeftPanel({ grouped, selectedTool, setSelectedTool, addObstacle, mode }: { grouped: [string, ObstacleSpec[]][]; selectedTool: ObstacleType; setSelectedTool: (t: ObstacleType) => void; addObstacle: (t: ObstacleType) => void; mode: PlannerMode }) {
+  return <aside className="rounded-[22px] bg-white border border-black/6 shadow-v3-sm p-4 max-h-[calc(100vh-120px)] overflow-y-auto">
+    <div className="mb-4"><h2 className="font-v3-display text-v3-2xl">{mode}-hinder</h2><p className="text-v3-sm text-v3-text-secondary mt-1">Klicka för att lägga till. Dra sedan på gräset.</p></div>
+    <LeftPanelContent grouped={grouped} selectedTool={selectedTool} setSelectedTool={setSelectedTool} addObstacle={addObstacle} />
+  </aside>;
+}
+
+function RightPanelContent({ selected, toolMode, setToolMode, setGuide, moveSelected, rotateSelected, renumberSelected, deleteSelected, setColor, recolorSelected, course, updateCourse, exportJson, exportPdf, reset, setPaths }: { selected: Obstacle | null; toolMode: ToolMode; setToolMode: (t: ToolMode) => void; setGuide: (v: boolean) => void; moveSelected: (dx: number, dy: number) => void; rotateSelected: (deg?: number) => void; renumberSelected: () => void; deleteSelected: () => void; setColor: (c: string) => void; recolorSelected: (c: string) => void; course: CourseState; updateCourse: (updater: CourseState | ((prev: CourseState) => CourseState)) => void; exportJson: () => void; exportPdf: () => void; reset: () => void; setPaths: (updater: DrawPath[] | ((prev: DrawPath[]) => DrawPath[])) => void }) {
+  return <>
+    <section className="mb-4">
+      <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-v3-text-tertiary mb-2">Verktyg</div>
+      <div className="grid grid-cols-3 gap-2">
+        <ToolButton active={toolMode === "select"} onClick={() => setToolMode("select")} icon={<MousePointer2 size={15} />} label="Välj" />
+        <ToolButton active={toolMode === "draw"} onClick={() => setToolMode("draw")} icon={<Pencil size={15} />} label="Rita" />
+        <ToolButton active={toolMode === "erase"} onClick={() => setToolMode("erase")} icon={<Eraser size={15} />} label="Sudda" />
+        <ToolButton active={toolMode === "number"} onClick={() => setToolMode("number")} icon={<Hash size={15} />} label="Nummer" />
+        <ToolButton active={toolMode === "measure"} onClick={() => setToolMode("measure")} icon={<Move size={15} />} label="Mät" />
+        <ToolButton active={false} onClick={() => setGuide(true)} icon={<HelpCircle size={15} />} label="Guide" />
+      </div>
+    </section>
+    <section className="mb-4 space-y-2">
+      <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-v3-text-tertiary">Valt objekt</div>
+      {selected ? <>
+        <div className="rounded-v3-xl bg-v3-canvas p-3"><div className="text-v3-sm font-semibold">{selected.label}</div><div className="text-v3-xs text-v3-text-tertiary mt-1">{selected.number ? `Nummer ${selected.number}` : "Ingen nummerskylt"}</div></div>
+        <div className="grid grid-cols-4 gap-2">
+          <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-base" onClick={() => moveSelected(0, -2)}>↑</button>
+          <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-base" onClick={() => moveSelected(-2, 0)}>←</button>
+          <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-base" onClick={() => moveSelected(2, 0)}>→</button>
+          <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-base" onClick={() => moveSelected(0, 2)}>↓</button>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={() => rotateSelected(-15)}><Undo2 size={14} /> -15°</button>
+          <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={() => rotateSelected(15)}><RotateCcw size={14} /> +15°</button>
+          <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={renumberSelected}><Hash size={14} /> Nummer</button>
+          <button className="h-11 rounded-v3-base bg-red-50 border border-red-200 text-red-600 text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={deleteSelected}><Trash2 size={14} /> Ta bort</button>
+        </div>
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-2 mt-3">Färg</div>
+          <div className="flex flex-wrap gap-2">{COLORS.map(c => <button key={c} type="button" onClick={() => { setColor(c); recolorSelected(c); }} className="h-9 w-9 rounded-full border border-black/10 shadow-v3-xs" style={{ background: c }} aria-label={c} />)}</div>
+        </div>
+      </> : <div className="rounded-v3-xl bg-v3-canvas p-4 text-v3-sm text-v3-text-secondary">Tryck på ett hinder för att ändra det.</div>}
+    </section>
+    <section className="space-y-2">
+      <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-v3-text-tertiary">Banstorlek & PDF</div>
+      <select value={`${course.width}x${course.height}`} onChange={(e) => { const s = SIZES.find(item => `${item.width}x${item.height}` === e.target.value); if (s) updateCourse(prev => ({ ...prev, width: s.width, height: s.height })); }} className="w-full h-11 rounded-v3-base border border-v3-canvas-sunken bg-v3-canvas px-3 text-v3-sm">{SIZES.map(s => <option key={s.label} value={`${s.width}x${s.height}`}>{s.label}</option>)}</select>
+      <div className="grid grid-cols-2 gap-2">
+        <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={exportJson}><Download size={14} /> JSON</button>
+        <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={exportPdf}><FileText size={14} /> PDF</button>
+        <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={reset}><RotateCcw size={14} /> Återställ</button>
+        <button className="h-11 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken text-sm font-semibold inline-flex items-center justify-center gap-1.5" onClick={() => setPaths(prev => prev.slice(0, -1))}><Undo2 size={14} /> Ångra</button>
+      </div>
+    </section>
+  </>;
+}
+function RightPanel(props: { selected: Obstacle | null; toolMode: ToolMode; setToolMode: (t: ToolMode) => void; setRightOpen: (v: boolean) => void; setGuide: (v: boolean) => void; moveSelected: (dx: number, dy: number) => void; rotateSelected: (deg?: number) => void; renumberSelected: () => void; deleteSelected: () => void; setColor: (c: string) => void; recolorSelected: (c: string) => void; course: CourseState; updateCourse: (updater: CourseState | ((prev: CourseState) => CourseState)) => void; exportJson: () => void; exportPdf: () => void; reset: () => void; setPaths: (updater: DrawPath[] | ((prev: DrawPath[]) => DrawPath[])) => void }) {
+  return <aside className="space-y-3"><section className="rounded-[22px] bg-white border border-black/6 shadow-v3-sm p-4">
+    <div className="flex items-center justify-between gap-3 mb-3">
+      <div><h2 className="font-v3-display text-v3-xl">Verktyg</h2><p className="text-v3-xs text-v3-text-tertiary">Rita, numrera, sudda och exportera.</p></div>
+      <button type="button" onClick={() => props.setRightOpen(false)} className="h-8 w-8 rounded-full hover:bg-v3-canvas-sunken grid place-items-center text-v3-text-tertiary"><X size={15} /></button>
+    </div>
+    <RightPanelContent {...props} />
+  </section></aside>;
+}
+
+function GrassField({ course, selectedId, draggingId, grid, toolMode, currentPath, onFieldDown, onFieldMove, onFieldUp, onObstacleDown, onSelect }: { course: CourseState; selectedId: string | null; draggingId: string | null; grid: boolean; toolMode: ToolMode; currentPath: DrawPath | null; onFieldDown: (event: PointerEvent<HTMLDivElement>) => void; onFieldMove: (event: PointerEvent<HTMLDivElement>) => void; onFieldUp: () => void; onObstacleDown: (event: PointerEvent<HTMLButtonElement>, obstacle: Obstacle) => void; onSelect: (id: string) => void }) {
+  const cursor = toolMode === "draw" ? "cursor-crosshair" : toolMode === "erase" ? "cursor-cell" : toolMode === "number" ? "cursor-copy" : draggingId ? "cursor-grabbing" : "cursor-default";
+  return <div onPointerDown={onFieldDown} onPointerMove={onFieldMove} onPointerUp={onFieldUp} onPointerCancel={onFieldUp} className={cn("relative rounded-[16px] lg:rounded-[22px] overflow-hidden border border-[#d7e3ca] shadow-inner select-none", cursor)} style={{ backgroundColor: "#78a957", backgroundImage: grid ? "radial-gradient(circle at 18px 18px, rgba(255,255,255,.08) 1px, transparent 1.8px), linear-gradient(rgba(255,255,255,.32) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.32) 1px, transparent 1px), linear-gradient(135deg, rgba(255,255,255,.09), rgba(25,77,36,.10))" : "linear-gradient(135deg, rgba(255,255,255,.09), rgba(25,77,36,.10))", backgroundSize: "20px 20px, 68px 68px, 68px 68px, 100% 100%", touchAction: "none", aspectRatio: `${course.width} / ${course.height}` }}>
+    <div className="absolute left-2 top-2 lg:left-3 lg:top-3 rounded-full bg-white/20 border border-white/25 px-2.5 py-1 text-[10px] lg:text-[11px] font-semibold text-white backdrop-blur-sm pointer-events-none">{course.width} × {course.height} m</div>
+    <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+      {course.paths.map(path => <polyline key={path.id} points={path.points.map(p => `${p.x},${p.y}`).join(" ")} fill="none" stroke={path.color} strokeWidth={path.width / 3} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1.3 1" />)}
+      {currentPath && <polyline points={currentPath.points.map(p => `${p.x},${p.y}`).join(" ")} fill="none" stroke={currentPath.color} strokeWidth={currentPath.width / 3} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1.3 1" />}
+    </svg>
+    {course.numbers.map(n => <button key={n.id} type="button" onClick={(e) => { e.stopPropagation(); onSelect(n.id); }} className={cn("absolute h-7 w-7 rounded-full grid place-items-center text-[12px] font-bold shadow-v3-sm border border-white/70", selectedId === n.id ? "ring-4 ring-white/40" : "")} style={{ left: `${n.x}%`, top: `${n.y}%`, transform: "translate(-50%, -50%)", background: n.color, color: n.color === "#ffffff" ? "#1d2b20" : "white" }}>{n.num}</button>)}
+    {course.obstacles.map(obstacle => <ObstacleButton key={obstacle.id} obstacle={obstacle} selected={selectedId === obstacle.id} dragging={draggingId === obstacle.id} erasing={toolMode === "erase"} onDown={(event) => onObstacleDown(event, obstacle)} onSelect={() => onSelect(obstacle.id)} />)}
+  </div>;
+}
+function ObstacleButton({ obstacle, selected, dragging, erasing, onDown, onSelect }: { obstacle: Obstacle; selected: boolean; dragging: boolean; erasing: boolean; onDown: (event: PointerEvent<HTMLButtonElement>) => void; onSelect: () => void }) { const bg = obstacle.color ?? "#ffffff"; return <button type="button" onClick={(e) => { e.stopPropagation(); onSelect(); }} onPointerDown={onDown} className={cn("absolute grid place-items-center border shadow-[0_8px_16px_rgba(24,64,33,.20)] transition-transform touch-none", erasing ? "cursor-cell" : "cursor-grab active:cursor-grabbing", selected ? "border-white ring-4 ring-white/40 scale-105 z-20" : "border-white/70 z-10", dragging && "scale-110 shadow-[0_16px_26px_rgba(24,64,33,.28)]", obstacleSize(obstacle.shape))} style={{ left: `${obstacle.x}%`, top: `${obstacle.y}%`, transform: `translate(-50%, -50%) rotate(${obstacle.rotation}deg)`, background: bg }} aria-label={obstacle.label}><span className="leading-none font-bold pointer-events-none text-[16px] lg:text-[18px] text-v3-brand-900">{obstacle.icon}</span>{obstacle.number && <span className="absolute -right-1.5 -top-1.5 h-5 w-5 rounded-full bg-v3-brand-600 text-white text-[10px] font-bold grid place-items-center shadow-v3-xs pointer-events-none">{obstacle.number}</span>}</button>; }
+function obstacleSize(shape: Shape) { if (shape === "long") return "h-7 w-20 lg:h-9 lg:w-28 rounded-full"; if (shape === "wide") return "h-7 w-14 lg:h-9 lg:w-20 rounded-lg"; if (shape === "tunnel") return "h-8 w-14 lg:h-10 lg:w-20 rounded-full"; if (shape === "circle") return "h-9 w-9 lg:h-11 lg:w-11 rounded-full"; if (shape === "zone") return "h-14 w-14 lg:h-20 lg:w-20 rounded-lg bg-white/40 border-dashed"; if (shape === "triangle") return "h-9 w-9 lg:h-11 lg:w-11 rounded-lg"; return "h-8 w-8 lg:h-10 lg:w-10 rounded-lg"; }
+
 function SavedDialog({ saved, onClose, onOpen }: { saved: SavedCourse[]; onClose: () => void; onOpen: (entry: SavedCourse) => void }) { return <div className="fixed inset-0 z-[1100] bg-v3-text-primary/45 backdrop-blur-sm px-4 py-6 flex items-center justify-center"><section className="w-full max-w-lg rounded-[26px] bg-white shadow-v3-xl border border-black/10 overflow-hidden"><div className="p-5 border-b border-black/5 flex justify-between"><div><div className="text-[10px] uppercase tracking-[0.1em] font-semibold text-v3-text-tertiary">Bibliotek</div><h2 className="font-v3-display text-[28px]">Sparade banor</h2></div><button onClick={onClose} className="h-10 w-10 rounded-full bg-v3-canvas grid place-items-center"><X size={18} /></button></div><div className="p-5 space-y-2 max-h-[55vh] overflow-y-auto">{saved.length === 0 ? <p className="text-v3-sm text-v3-text-secondary">Inga sparade banor än.</p> : saved.map(entry => <button key={entry.id} onClick={() => onOpen(entry)} className="w-full text-left rounded-v3-xl border border-v3-canvas-sunken/60 bg-v3-canvas p-4 hover:bg-v3-canvas-sunken/40"><div className="font-semibold text-v3-text-primary">{entry.name}</div><div className="text-v3-xs text-v3-text-tertiary mt-1">{entry.mode} · {new Date(entry.savedAt).toLocaleString("sv-SE")}</div></button>)}</div></section></div>; }
-function Guide({ onClose }: { onClose: () => void }) { return <div className="fixed inset-0 z-[1100] bg-v3-text-primary/45 backdrop-blur-sm px-4 py-6 flex items-center justify-center"><section className="w-full max-w-md rounded-[26px] bg-white shadow-v3-xl border border-black/10 overflow-hidden"><div className="p-5 border-b border-black/5 flex justify-between"><div><div className="text-[10px] uppercase tracking-[0.1em] font-semibold text-v3-text-tertiary">Snabbguide</div><h2 className="font-v3-display text-[28px]">Ny grön banplanerare</h2></div><button onClick={onClose} className="h-10 w-10 rounded-full bg-v3-canvas grid place-items-center"><X size={18} /></button></div><div className="p-5 space-y-3 text-v3-sm text-v3-text-secondary"><p><strong className="text-v3-text-primary">Välj hinder</strong> i vänsterpanelen och dra dem på gräset.</p><p><strong className="text-v3-text-primary">Rita med röd streckad linje</strong> i samma stil som PDF-exporten.</p><p><strong className="text-v3-text-primary">Sudda</strong> tar bort hinder, nummer och ritningar.</p><p><strong className="text-v3-text-primary">Exportera PDF</strong> skapar en liggande A4 med rubrik, baninfo, rutnät och footer.</p></div><div className="p-5 pt-0"><button onClick={onClose} className="w-full h-12 rounded-v3-base bg-v3-brand-600 text-white text-v3-sm font-semibold">Jag fattar – börja rita</button></div></section></div>; }
+function Guide({ onClose }: { onClose: () => void }) { return <div className="fixed inset-0 z-[1100] bg-v3-text-primary/45 backdrop-blur-sm px-4 py-6 flex items-center justify-center"><section className="w-full max-w-md rounded-[26px] bg-white shadow-v3-xl border border-black/10 overflow-hidden"><div className="p-5 border-b border-black/5 flex justify-between"><div><div className="text-[10px] uppercase tracking-[0.1em] font-semibold text-v3-text-tertiary">Snabbguide</div><h2 className="font-v3-display text-[28px]">Banplaneraren</h2></div><button onClick={onClose} className="h-10 w-10 rounded-full bg-v3-canvas grid place-items-center"><X size={18} /></button></div><div className="p-5 space-y-3 text-v3-sm text-v3-text-secondary"><p><strong className="text-v3-text-primary">Lägg till hinder</strong> via plus-knappen i botten på mobil eller vänsterpanelen på desktop.</p><p><strong className="text-v3-text-primary">3D-läge</strong> visar din bana i en realistisk hundhall.</p><p><strong className="text-v3-text-primary">Gå banan</strong> låter dig gå banan i förstapersonsperspektiv.</p><p><strong className="text-v3-text-primary">Exportera PDF</strong> skapar en utskriftsklar A4.</p></div><div className="p-5 pt-0"><button onClick={onClose} className="w-full h-12 rounded-v3-base bg-v3-brand-600 text-white text-v3-sm font-semibold">Kom igång</button></div></section></div>; }

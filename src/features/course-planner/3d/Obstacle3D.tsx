@@ -4,8 +4,8 @@ import * as THREE from "three";
 
 export type Obstacle3DProps = {
   type: string;
-  x: number; // meters
-  z: number; // meters
+  x: number;
+  z: number;
   rotationDeg: number;
   number?: number;
   color?: string;
@@ -22,44 +22,31 @@ const NAVY = "#20245f";
 function NumberPlate({ number, height = 1.2 }: { number?: number; height?: number }) {
   if (!number) return null;
   return (
-    <group position={[0, height + 0.4, 0]}>
+    <group position={[0, height + 0.5, 0]}>
       <mesh>
-        <cylinderGeometry args={[0.18, 0.18, 0.04, 24]} />
+        <cylinderGeometry args={[0.2, 0.2, 0.04, 24]} />
         <meshStandardMaterial color="#1d6f3c" />
       </mesh>
-      <Text
-        position={[0, 0.03, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        fontSize={0.22}
-        color="white"
-        anchorX="center"
-        anchorY="middle"
-      >
+      <Text position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.24} color="white" anchorX="center" anchorY="middle">
         {String(number)}
       </Text>
     </group>
   );
 }
 
-// === Obstacle models ===
-
 function Jump({ color = WHITE }: { color?: string }) {
   return (
     <group>
-      {/* uprights */}
       {[-0.6, 0.6].map((x) => (
-        <mesh key={x} position={[x, 0.45, 0]} castShadow>
+        <mesh key={x} position={[x, 0.45, 0]}>
           <boxGeometry args={[0.05, 0.9, 0.05]} />
           <meshStandardMaterial color={WHITE} />
         </mesh>
       ))}
-      {/* bar */}
-      <mesh position={[0, 0.55, 0]} castShadow>
+      <mesh position={[0, 0.55, 0]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.035, 0.035, 1.2, 12]} />
         <meshStandardMaterial color={color} />
-        <group rotation={[0, 0, Math.PI / 2]} />
       </mesh>
-      {/* feet */}
       {[-0.6, 0.6].map((x) => (
         <mesh key={`f${x}`} position={[x, 0.025, 0]}>
           <boxGeometry args={[0.3, 0.05, 0.4]} />
@@ -69,25 +56,19 @@ function Jump({ color = WHITE }: { color?: string }) {
     </group>
   );
 }
-
 function Oxer({ color = WHITE }: { color?: string }) {
   return (
     <group>
-      <group position={[0, 0, -0.2]}>
-        <Jump color={color} />
-      </group>
-      <group position={[0, 0, 0.2]}>
-        <Jump color={color} />
-      </group>
+      <group position={[0, 0, -0.2]}><Jump color={color} /></group>
+      <group position={[0, 0, 0.2]}><Jump color={color} /></group>
     </group>
   );
 }
-
 function LongJump() {
   return (
     <group>
       {[-0.8, -0.3, 0.2, 0.7].map((z, i) => (
-        <mesh key={i} position={[0, 0.15 + i * 0.04, z]} castShadow>
+        <mesh key={i} position={[0, 0.15 + i * 0.04, z]}>
           <boxGeometry args={[1.2, 0.06, 0.18]} />
           <meshStandardMaterial color={WHITE} />
         </mesh>
@@ -95,53 +76,36 @@ function LongJump() {
     </group>
   );
 }
-
 function Wall({ color = RED }: { color?: string }) {
   return (
-    <group>
-      <mesh position={[0, 0.4, 0]} castShadow>
-        <boxGeometry args={[1.2, 0.8, 0.25]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-    </group>
+    <mesh position={[0, 0.4, 0]}>
+      <boxGeometry args={[1.2, 0.8, 0.25]} />
+      <meshStandardMaterial color={color} />
+    </mesh>
   );
 }
-
 function Tunnel() {
-  // Tunnel oriented along Z axis (length)
-  const length = 4;
-  const radius = 0.4;
   return (
-    <group>
-      <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <cylinderGeometry args={[radius, radius, length, 24, 1, true]} />
-        <meshStandardMaterial color={BLUE} side={THREE.DoubleSide} />
-      </mesh>
-    </group>
+    <mesh rotation={[Math.PI / 2, 0, 0]}>
+      <cylinderGeometry args={[0.4, 0.4, 4, 24, 1, true]} />
+      <meshStandardMaterial color={BLUE} side={THREE.DoubleSide} />
+    </mesh>
   );
 }
-
 function HoopersTunnel() {
   return (
-    <group>
-      <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.45, 0.45, 3, 24, 1, true]} />
-        <meshStandardMaterial color="#ffb84d" side={THREE.DoubleSide} />
-      </mesh>
-    </group>
+    <mesh rotation={[Math.PI / 2, 0, 0]}>
+      <cylinderGeometry args={[0.45, 0.45, 3, 24, 1, true]} />
+      <meshStandardMaterial color="#ffb84d" side={THREE.DoubleSide} />
+    </mesh>
   );
 }
-
 function AFrame() {
-  // Two ramps meeting at apex
-  const w = 0.9;
-  const len = 2.7;
-  const apexH = 1.7;
-  const angle = Math.atan2(apexH, len / 2);
+  const w = 0.9, len = 2.7, apexH = 1.7, angle = Math.atan2(apexH, len / 2);
   return (
     <group>
       {[-1, 1].map((side) => (
-        <mesh key={side} position={[0, apexH / 2, side * (len / 4)]} rotation={[side * angle, 0, 0]} castShadow>
+        <mesh key={side} position={[0, apexH / 2, side * (len / 4)]} rotation={[side * angle, 0, 0]}>
           <boxGeometry args={[w, 0.05, len / 2 + 0.2]} />
           <meshStandardMaterial color={YELLOW} />
         </mesh>
@@ -149,26 +113,16 @@ function AFrame() {
     </group>
   );
 }
-
 function DogWalk() {
-  const len = 3.6;
-  const w = 0.3;
-  const h = 1.1;
+  const len = 3.6, w = 0.3, h = 1.1;
   return (
     <group>
-      {/* center plank */}
-      <mesh position={[0, h, 0]} castShadow>
+      <mesh position={[0, h, 0]}>
         <boxGeometry args={[w, 0.05, len * 0.4]} />
         <meshStandardMaterial color={WHITE} />
       </mesh>
-      {/* ramps */}
       {[-1, 1].map((side) => (
-        <mesh
-          key={side}
-          position={[0, h / 2, side * (len * 0.35)]}
-          rotation={[side * Math.atan2(h, len * 0.4), 0, 0]}
-          castShadow
-        >
+        <mesh key={side} position={[0, h / 2, side * (len * 0.35)]} rotation={[side * Math.atan2(h, len * 0.4), 0, 0]}>
           <boxGeometry args={[w, 0.05, len * 0.45]} />
           <meshStandardMaterial color={YELLOW} />
         </mesh>
@@ -176,11 +130,10 @@ function DogWalk() {
     </group>
   );
 }
-
 function Seesaw() {
   return (
     <group>
-      <mesh position={[0, 0.35, 0]} rotation={[0.08, 0, 0]} castShadow>
+      <mesh position={[0, 0.35, 0]} rotation={[0.08, 0, 0]}>
         <boxGeometry args={[0.32, 0.05, 3.6]} />
         <meshStandardMaterial color={YELLOW} />
       </mesh>
@@ -191,15 +144,13 @@ function Seesaw() {
     </group>
   );
 }
-
 function Weave() {
-  // 12 poles
   const poles = Array.from({ length: 12 }, (_, i) => i);
   const spacing = 0.55;
   return (
     <group position={[0, 0, -((poles.length - 1) * spacing) / 2]}>
       {poles.map((i) => (
-        <mesh key={i} position={[0, 0.5, i * spacing]} castShadow>
+        <mesh key={i} position={[0, 0.5, i * spacing]}>
           <cylinderGeometry args={[0.025, 0.025, 1, 10]} />
           <meshStandardMaterial color={i % 2 === 0 ? WHITE : RED} />
         </mesh>
@@ -207,34 +158,29 @@ function Weave() {
     </group>
   );
 }
-
 function Tire() {
   return (
     <group>
-      {/* frame uprights */}
       {[-0.65, 0.65].map((x) => (
         <mesh key={x} position={[x, 0.7, 0]}>
           <boxGeometry args={[0.06, 1.4, 0.06]} />
           <meshStandardMaterial color={WHITE} />
         </mesh>
       ))}
-      {/* tire ring */}
-      <mesh position={[0, 0.85, 0]} rotation={[0, 0, 0]} castShadow>
+      <mesh position={[0, 0.85, 0]}>
         <torusGeometry args={[0.45, 0.08, 12, 32]} />
         <meshStandardMaterial color={RUBBER} />
       </mesh>
     </group>
   );
 }
-
 function Hoop() {
   return (
     <group>
-      <mesh position={[0, 0.65, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+      <mesh position={[0, 0.65, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[0.5, 0.04, 10, 28]} />
         <meshStandardMaterial color="#ff6b3d" />
       </mesh>
-      {/* base */}
       <mesh position={[0, 0.05, 0]}>
         <boxGeometry args={[1, 0.08, 0.3]} />
         <meshStandardMaterial color="#444" />
@@ -242,21 +188,19 @@ function Hoop() {
     </group>
   );
 }
-
 function Barrel() {
   return (
-    <mesh position={[0, 0.45, 0]} castShadow>
+    <mesh position={[0, 0.45, 0]}>
       <cylinderGeometry args={[0.32, 0.32, 0.9, 24]} />
       <meshStandardMaterial color={WOOD} />
     </mesh>
   );
 }
-
 function Gate({ color = WHITE }: { color?: string }) {
   return (
     <group>
       {[-0.6, 0.6].map((x) => (
-        <mesh key={x} position={[x, 0.42, 0]} castShadow>
+        <mesh key={x} position={[x, 0.42, 0]}>
           <boxGeometry args={[0.05, 0.85, 0.05]} />
           <meshStandardMaterial color={color} />
         </mesh>
@@ -268,7 +212,6 @@ function Gate({ color = WHITE }: { color?: string }) {
     </group>
   );
 }
-
 function HandlerZone() {
   return (
     <mesh position={[0, 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -277,22 +220,18 @@ function HandlerZone() {
     </mesh>
   );
 }
-
 function StartGate() {
   return (
     <group>
       <Gate color="#22c55e" />
-      <Text position={[0, 1.05, 0]} fontSize={0.18} color="white" anchorX="center">
-        START
-      </Text>
       <mesh position={[0, 1.0, 0]}>
         <boxGeometry args={[0.7, 0.22, 0.04]} />
         <meshStandardMaterial color="#22c55e" />
       </mesh>
+      <Text position={[0, 1.0, 0.025]} fontSize={0.16} color="white" anchorX="center">START</Text>
     </group>
   );
 }
-
 function FinishGate() {
   return (
     <group>
@@ -301,80 +240,41 @@ function FinishGate() {
         <boxGeometry args={[0.7, 0.22, 0.04]} />
         <meshStandardMaterial color={NAVY} />
       </mesh>
-      <Text position={[0, 1.0, 0.025]} fontSize={0.16} color="white" anchorX="center">
-        MÅL
-      </Text>
+      <Text position={[0, 1.0, 0.025]} fontSize={0.16} color="white" anchorX="center">MÅL</Text>
     </group>
   );
 }
 
 export function Obstacle3D({ type, x, z, rotationDeg, number, color }: Obstacle3DProps) {
   const rotY = useMemo(() => (rotationDeg * Math.PI) / 180, [rotationDeg]);
-
   const renderModel = () => {
     switch (type) {
-      case "jump":
-        return <Jump color={color} />;
-      case "oxer":
-        return <Oxer color={color} />;
-      case "long_jump":
-        return <LongJump />;
-      case "wall":
-        return <Wall color={color || RED} />;
-      case "tunnel":
-        return <Tunnel />;
-      case "a_frame":
-        return <AFrame />;
+      case "jump": return <Jump color={color} />;
+      case "oxer": return <Oxer color={color} />;
+      case "long_jump": return <LongJump />;
+      case "wall": return <Wall color={color || RED} />;
+      case "tunnel": return <Tunnel />;
+      case "a_frame": return <AFrame />;
       case "dog_walk":
-      case "balance":
-        return <DogWalk />;
-      case "seesaw":
-        return <Seesaw />;
-      case "weave":
-        return <Weave />;
-      case "tire":
-        return <Tire />;
-      case "hoop":
-        return <Hoop />;
-      case "hoopers_tunnel":
-        return <HoopersTunnel />;
-      case "barrel":
-        return <Barrel />;
-      case "gate":
-        return <Gate color={color} />;
-      case "handler_zone":
-        return <HandlerZone />;
-      case "start":
-        return <StartGate />;
-      case "finish":
-        return <FinishGate />;
-      default:
-        return <Jump color={color} />;
+      case "balance": return <DogWalk />;
+      case "seesaw": return <Seesaw />;
+      case "weave": return <Weave />;
+      case "tire": return <Tire />;
+      case "hoop": return <Hoop />;
+      case "hoopers_tunnel": return <HoopersTunnel />;
+      case "barrel": return <Barrel />;
+      case "gate": return <Gate color={color} />;
+      case "handler_zone": return <HandlerZone />;
+      case "start": return <StartGate />;
+      case "finish": return <FinishGate />;
+      default: return <Jump color={color} />;
     }
   };
-
-  // Approximate height for number plate placement
   const heightMap: Record<string, number> = {
-    jump: 0.9,
-    oxer: 0.9,
-    long_jump: 0.4,
-    wall: 0.9,
-    tunnel: 0.9,
-    a_frame: 1.7,
-    dog_walk: 1.3,
-    balance: 1.3,
-    seesaw: 0.8,
-    weave: 1.1,
-    tire: 1.5,
-    hoop: 1.2,
-    hoopers_tunnel: 1.0,
-    barrel: 1.0,
-    gate: 0.95,
-    handler_zone: 0.2,
-    start: 1.2,
-    finish: 1.2,
+    jump: 0.9, oxer: 0.9, long_jump: 0.4, wall: 0.9, tunnel: 0.9, a_frame: 1.7,
+    dog_walk: 1.3, balance: 1.3, seesaw: 0.8, weave: 1.1, tire: 1.5, hoop: 1.2,
+    hoopers_tunnel: 1.0, barrel: 1.0, gate: 0.95, handler_zone: 0.2, start: 1.2, finish: 1.2,
   };
-
   return (
     <group position={[x, 0, z]} rotation={[0, rotY, 0]}>
       {renderModel()}

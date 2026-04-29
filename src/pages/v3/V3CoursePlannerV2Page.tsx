@@ -763,6 +763,20 @@ export default function V3CoursePlannerV2Page() {
         </div>
       </header>
 
+      {/* Dold input för JSON-import. Triggas via ExportMenu eller kommandopaletten. */}
+      <input
+        ref={importInputRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void handleImportJsonFile(file);
+          // Nollställ värdet så samma fil kan importeras igen
+          e.target.value = "";
+        }}
+      />
+
       <ClubShareDialog
         open={shareOpen}
         onOpenChange={setShareOpen}

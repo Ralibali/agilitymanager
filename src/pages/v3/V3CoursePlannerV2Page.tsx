@@ -401,7 +401,11 @@ export default function V3CoursePlannerV2Page() {
   function rotateObstacle(id: string, deg: number) {
     setCourse((c) => ({
       ...c,
-      obstacles: c.obstacles.map((o) => o.id === id ? { ...o, rotation: (o.rotation + deg) % 360 } : o),
+      obstacles: c.obstacles.map((o) => {
+        if (o.id !== id) return o;
+        if (o.locked) return o;
+        return { ...o, rotation: (o.rotation + deg + 360) % 360 };
+      }),
     }));
   }
 
@@ -410,11 +414,80 @@ export default function V3CoursePlannerV2Page() {
       ...c,
       obstacles: c.obstacles.map((o) => {
         if (o.id !== id) return o;
+        if (o.locked) return o;
         const curveDeg = patch.curveDeg !== undefined ? Math.max(0, Math.min(90, patch.curveDeg)) : o.curveDeg;
         const curveSide = patch.curveSide ?? o.curveSide;
         return { ...o, curveDeg, curveSide };
       }),
     }));
+  }
+
+  function toggleLock(id: string) {
+    let nowLocked = false;
+    setCourse((c) => ({
+      ...c,
+      obstacles: c.obstacles.map((o) => {
+        if (o.id !== id) return o;
+        nowLocked = !o.locked;
+        return { ...o, locked: nowLocked };
+      }),
+    }));
+    // Toast efter setState — använd setTimeout för att läsa nowLocked korrekt
+    setTimeout(() => toast.success(nowLocked ? "Hinder låst" : "Hinder upplåst"), 0);
+  }
+
+  /** Returnerar hinder vars bounding-rektangel överlappar givet hinder. */
+  function getOverlappingObstacles(target: ObstacleV2, all: ObstacleV2[]): ObstacleV2[] {
+    const def = getObstacleDefV2(target.type);
+    if (!def) return [];
+    const ra = obstacleBox(target, def.sizeM.w, def.sizeM.d);
+    return all.filter((o) => {
+      if (o.id === target.id) return false;
+      const od = getObstacleDefV2(o.type);
+      if (!od) return false;
+      const rb = obstacleBox(o, od.sizeM.w, od.sizeM.d);
+      return rectsOverlap(ra, rb);
+    });
+  }
+
+  function bringForward(id: string) {
+    setCourse((c) => {
+      const target = c.obstacles.find((o) => o.id === id);
+      if (!target) return c;
+      const overlap = getOverlappingObstacles(target, c.obstacles);
+      const max = overlap.reduce((m, o) => Math.max(m, o.zIndex ?? 0), target.zIndex ?? 0);
+      const next = max + 1;
+      return { ...c, obstacles: c.obstacles.map((o) => o.id === id ? { ...o, zIndex: next } : o) };
+    });
+    toast.success("Flyttad framåt");
+  }
+
+  function sendBackward(id: string) {
+    setCourse((c) => {
+      const target = c.obstacles.find((o) => o.id === id);
+      if (!target) return c;
+      const overlap = getOverlappingObstacles(target, c.obstacles);
+      const min = overlap.reduce((m, o) => Math.min(m, o.zIndex ?? 0), target.zIndex ?? 0);
+      const next = min - 1;
+      return { ...c, obstacles: c.obstacles.map((o) => o.id === id ? { ...o, zIndex: next } : o) };
+    });
+    toast.success("Flyttad bakåt");
+  }
+
+  function bringToFront(id: string) {
+    setCourse((c) => {
+      const max = c.obstacles.reduce((m, o) => Math.max(m, o.zIndex ?? 0), 0);
+      return { ...c, obstacles: c.obstacles.map((o) => o.id === id ? { ...o, zIndex: max + 1 } : o) };
+    });
+    toast.success("Flyttad längst fram");
+  }
+
+  function sendToBack(id: string) {
+    setCourse((c) => {
+      const min = c.obstacles.reduce((m, o) => Math.min(m, o.zIndex ?? 0), 0);
+      return { ...c, obstacles: c.obstacles.map((o) => o.id === id ? { ...o, zIndex: min - 1 } : o) };
+    });
+    toast.success("Flyttad längst bak");
   }
 
   function setObstacleNumber(id: string, num: number | undefined) {

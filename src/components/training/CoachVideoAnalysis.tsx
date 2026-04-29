@@ -45,6 +45,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resumedFromStripe, setResumedFromStripe] = useState(false);
+  const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
   const uploadCardRef = useRef<HTMLDivElement>(null);
 
   // Återuppta efter Stripe Checkout: återställ formuläret och be användaren välja videon igen

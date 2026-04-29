@@ -40,6 +40,7 @@ import { useProfileName } from "@/hooks/useProfileName";
 import { exportTrainingPdf } from "@/features/course-planner-v2/trainingPdf";
 import { exportBuildPdf } from "@/features/course-planner-v2/buildPdf";
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
+import { parseCourseJson } from "@/features/course-planner-v2/importJson";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
 
 const STORAGE_KEY = "am_course_planner_v2";
@@ -131,6 +132,7 @@ export default function V3CoursePlannerV2Page() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [view3D, setView3D] = useState<null | "view" | "walk">(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
 
   // Undo/redo (begränsad till 30 steg)
   const historyRef = useRef<{ past: CourseV2[]; future: CourseV2[] }>({ past: [], future: [] });
@@ -223,7 +225,52 @@ export default function V3CoursePlannerV2Page() {
     } catch { toast.error("Kunde inte exportera JSON"); }
   }
 
-  /** Sparar/uppdaterar banan i molnet (saved_courses). Returnerar id eller null. */
+  function handleImportJsonClick() {
+    importInputRef.current?.click();
+  }
+
+  async function handleImportJsonFile(file: File) {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Filen är för stor (max 5 MB).");
+      return;
+    }
+    let text: string;
+    try {
+      text = await file.text();
+    } catch {
+      toast.error("Kunde inte läsa filen.");
+      return;
+    }
+    const result = parseCourseJson(text);
+    if (result.ok !== true) {
+      toast.error(result.error);
+      return;
+    }
+    if (course.obstacles.length > 0) {
+      const ok = window.confirm(
+        `Importera "${result.course.name}"?\nDen ersätter den nuvarande banan (${course.obstacles.length} hinder).`,
+      );
+      if (!ok) return;
+    }
+    setCourse({
+      name: result.course.name,
+      sport: result.course.sport,
+      sizeClass: result.course.sizeClass,
+      arenaWidthM: result.course.arenaWidthM,
+      arenaHeightM: result.course.arenaHeightM,
+      classTemplate: result.course.classTemplate,
+      obstacles: result.course.obstacles,
+    });
+    setSelectedId(null);
+    // Lokal moln-länk gäller inte längre — nästa molnspar skapar ny rad.
+    setCloudId(null);
+    try { localStorage.removeItem(STORAGE_KEY + "_cloud_id"); } catch { /* ignore */ }
+    if (result.warnings.length > 0) {
+      toast.success(`Banan importerad — ${result.warnings.join(" ")}`);
+    } else {
+      toast.success(`"${result.course.name}" importerad`);
+    }
+  }
   async function saveToCloud(opts?: { silent?: boolean }): Promise<string | null> {
     if (!user?.id) {
       if (!opts?.silent) toast.error("Logga in för att spara i molnet");
@@ -613,6 +660,7 @@ export default function V3CoursePlannerV2Page() {
     openLibrary: () => setLibraryOpen(true),
     openShare: () => { void handleShare(); },
     trainThis: handleTrainThis,
+    importJson: handleImportJsonClick,
     setToolSelect: () => setTool("select"),
     setToolErase: () => setTool("erase"),
     setToolNumber: () => setTool("number"),
@@ -695,6 +743,7 @@ export default function V3CoursePlannerV2Page() {
               obstacles: course.obstacles,
             })}
             onJson={handleExportJson}
+            onImportJson={handleImportJsonClick}
             on3DView={() => setView3D("view")}
             on3DWalk={() => setView3D("walk")}
           />
@@ -714,6 +763,20 @@ export default function V3CoursePlannerV2Page() {
           </button>
         </div>
       </header>
+
+      {/* Dold input för JSON-import. Triggas via ExportMenu eller kommandopaletten. */}
+      <input
+        ref={importInputRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void handleImportJsonFile(file);
+          // Nollställ värdet så samma fil kan importeras igen
+          e.target.value = "";
+        }}
+      />
 
       <ClubShareDialog
         open={shareOpen}

@@ -72,6 +72,7 @@ export default function CoachUploadFlow({
     if (prefill?.privacyMode !== undefined) setPrivacyMode(prefill.privacyMode);
     setProgress(0);
     setSubmitting(false);
+    setPrivacyAcknowledged(false);
   }, [open, initialPack, initialStep, prefill?.pack, prefill?.question, prefill?.sport, prefill?.privacyMode]);
 
   // Object URL cleanup

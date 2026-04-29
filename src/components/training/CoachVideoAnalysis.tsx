@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { DogAvatar } from '@/components/DogAvatar';
-import { Video, Upload, Loader2, MessageSquare, Trash2, ChevronDown, ChevronUp, GraduationCap, Clock, CheckCircle2, Sparkles } from 'lucide-react';
+import { Video, Upload, Loader2, MessageSquare, Trash2, ChevronDown, ChevronUp, GraduationCap, Clock, CheckCircle2, Sparkles, Send, User as UserIcon, Lock as LockIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';

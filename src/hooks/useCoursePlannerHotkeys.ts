@@ -22,6 +22,13 @@ export interface CoursePlannerHotkeyHandlers {
   deselect: () => void;
   /** Returns true if there is a selected obstacle (for selection-only hotkeys). */
   hasSelection: () => boolean;
+  /** Z-order på markerat hinder. */
+  bringForward: () => void;
+  sendBackward: () => void;
+  bringToFront: () => void;
+  sendToBack: () => void;
+  /** Lås/lås upp markerat hinder. */
+  toggleLockSelected: () => void;
 }
 
 function isTypingTarget(t: EventTarget | null): boolean {

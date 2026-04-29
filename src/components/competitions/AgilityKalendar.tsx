@@ -6,6 +6,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Calendar as CalendarIcon, Filter, Star, CheckCircle2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompetitionInterests } from '@/hooks/useCompetitionInterests';
+import { GuestConversionBanner } from './GuestConversionBanner';
+import { GuestSignupModal } from './GuestSignupModal';
+import { useExitIntent } from '@/hooks/useExitIntent';
 import type { Dog } from '@/types';
 import type { Competition } from '@/types/competitions';
 

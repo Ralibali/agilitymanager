@@ -13,7 +13,7 @@
  * Sticky med skugga som trigger:as när sidan scrollas.
  * Mellanrum mellan grupper markeras med 1px vertikala separatorer.
  */
-import { ArrowLeft, Library, Dumbbell, Share2, Cloud, CloudOff, MoreHorizontal, Save } from "lucide-react";
+import { ArrowLeft, Library, Dumbbell, Share2, Cloud, CloudOff, MoreHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";

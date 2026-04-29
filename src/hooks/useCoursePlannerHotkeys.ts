@@ -125,6 +125,11 @@ export function useCoursePlannerHotkeys(handlers: CoursePlannerHotkeyHandlers): 
         if (e.key === "e" || e.key === "E") { handlers.setToolErase(); return; }
         if (e.key === "n" || e.key === "N") { handlers.setToolNumber(); return; }
         if (e.key === "g" || e.key === "G") { handlers.togglePath(); return; }
+        if ((e.key === "l" || e.key === "L") && handlers.hasSelection()) {
+          e.preventDefault();
+          handlers.toggleLockSelected();
+          return;
+        }
       }
     }
     window.addEventListener("keydown", onKey);

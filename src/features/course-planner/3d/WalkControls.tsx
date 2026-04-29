@@ -7,6 +7,7 @@ type RefObj<T> = { current: T };
 export function WalkControls({
   joystickRef,
   lookDeltaRef,
+  sprintRef,
   isMobile,
   speed = 2.4,
   sprintMul = 1.7,
@@ -14,6 +15,7 @@ export function WalkControls({
 }: {
   joystickRef: RefObj<{ x: number; y: number }>;
   lookDeltaRef: RefObj<{ x: number; y: number }>;
+  sprintRef?: RefObj<boolean>;
   isMobile: boolean;
   speed?: number;
   sprintMul?: number;

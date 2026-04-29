@@ -13,6 +13,9 @@ import { SWEDISH_COUNTIES, type Competition } from '@/types/competitions';
 import { getCountyForLocation } from '@/lib/swedishCityCounty';
 import { useToast } from '@/hooks/use-toast';
 import { useCompetitionInterests, type InterestStatus } from '@/hooks/useCompetitionInterests';
+import { GuestConversionBanner } from './GuestConversionBanner';
+import { GuestSignupModal } from './GuestSignupModal';
+import { useExitIntent } from '@/hooks/useExitIntent';
 import type { Dog } from '@/types';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,

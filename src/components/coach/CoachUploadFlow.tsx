@@ -60,6 +60,7 @@ export default function CoachUploadFlow({
   const [privacyMode, setPrivacyMode] = useState<PrivacyMode>(prefill?.privacyMode ?? "private");
   const [submitting, setSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
 
   // Reset on open / pack change
   useEffect(() => {

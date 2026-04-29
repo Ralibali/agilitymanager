@@ -905,23 +905,86 @@ export default function V3CoursePlannerV2Page() {
               <ToolBtn active={tool === "number"} onClick={() => setTool("number")} icon={<Hash size={14} />} title="Sätt nummer på hinder genom att klicka i ordning">Nummer</ToolBtn>
 
               <span className="h-6 w-px bg-black/10 mx-0.5" aria-hidden />
-              <button onClick={autoRenumber} className="h-8 px-2.5 rounded-lg text-[11px] font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200">Auto-numrera</button>
-              <button onClick={undo} disabled={historyRef.current.past.length === 0} title="Ångra (Ctrl+Z)" className="h-8 w-8 grid place-items-center rounded-lg bg-white border border-black/8 hover:border-neutral-400 disabled:opacity-30"><Undo2 size={13} /></button>
-              <button onClick={redo} disabled={historyRef.current.future.length === 0} title="Gör om (Ctrl+Shift+Z)" className="h-8 w-8 grid place-items-center rounded-lg bg-white border border-black/8 hover:border-neutral-400 disabled:opacity-30"><Redo2 size={13} /></button>
-              <button onClick={() => selected && duplicateObstacle(selected.id)} disabled={!selected} title="Duplicera (Ctrl+D)" className="h-8 w-8 grid place-items-center rounded-lg bg-white border border-black/8 hover:border-neutral-400 disabled:opacity-30"><Copy size={13} /></button>
-              <button onClick={() => setSnap((v) => !v)} title="Snap-to-grid (0,5 m)" className={cn("h-8 px-2.5 rounded-lg text-[11px] font-semibold border inline-flex items-center gap-1", snap ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/8")}><Magnet size={12} /> Snap</button>
+              {/* Grupp: numrering */}
               <button
-                onClick={() => setShowPath((v) => !v)}
+                type="button"
+                onClick={autoRenumber}
+                title="Auto-numrera hinder utifrån positionsordning"
+                aria-label="Auto-numrera"
+                className="h-9 px-3 rounded-full text-[12px] font-semibold bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 transition"
+              >
+                Auto-numrera
+              </button>
+
+              <span className="h-6 w-px bg-black/10 mx-0.5" aria-hidden />
+
+              {/* Grupp: historik */}
+              <button
+                type="button"
+                onClick={undo}
+                disabled={historyRef.current.past.length === 0}
+                title="Ångra (Ctrl+Z)"
+                aria-label="Ångra"
+                className="h-9 w-9 grid place-items-center rounded-full bg-white border border-black/10 hover:border-neutral-400 disabled:opacity-30 transition"
+              >
+                <Undo2 size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={redo}
+                disabled={historyRef.current.future.length === 0}
+                title="Gör om (Ctrl+Shift+Z)"
+                aria-label="Gör om"
+                className="h-9 w-9 grid place-items-center rounded-full bg-white border border-black/10 hover:border-neutral-400 disabled:opacity-30 transition"
+              >
+                <Redo2 size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => selected && duplicateObstacle(selected.id)}
+                disabled={!selected}
+                title="Duplicera markerat hinder (Ctrl+D)"
+                aria-label="Duplicera"
+                className="h-9 w-9 grid place-items-center rounded-full bg-white border border-black/10 hover:border-neutral-400 disabled:opacity-30 transition"
+              >
+                <Copy size={14} />
+              </button>
+
+              <span className="h-6 w-px bg-black/10 mx-0.5" aria-hidden />
+
+              {/* Grupp: hjälpmedel */}
+              <button
+                type="button"
+                onClick={() => setSnap((v) => !v)}
+                title="Snap till rutnät (0,5 m)"
+                aria-label="Snap-to-grid"
+                aria-pressed={snap}
                 className={cn(
-                  "h-8 px-2.5 rounded-lg text-[11px] font-semibold border transition",
-                  showPath ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/8",
+                  "h-9 px-3 rounded-full text-[12px] font-semibold border inline-flex items-center gap-1.5 transition",
+                  snap
+                    ? "bg-[#1a6b3c] text-white border-[#1a6b3c]"
+                    : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
                 )}
+              >
+                <Magnet size={13} /> Snap
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPath((v) => !v)}
                 title="Visa banlinjen mellan numrerade hinder"
+                aria-label="Visa banlinje"
+                aria-pressed={showPath}
+                className={cn(
+                  "h-9 px-3 rounded-full text-[12px] font-semibold border inline-flex items-center transition",
+                  showPath
+                    ? "bg-[#1a6b3c] text-white border-[#1a6b3c]"
+                    : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
+                )}
               >
                 Banlinje
               </button>
             </div>
-            <div className="text-[11px] text-neutral-500">
+            <div className="text-[11px] text-neutral-500 shrink-0">
               {course.arenaWidthM} × {course.arenaHeightM} m · {times.lengthM.toFixed(1)} m · {course.obstacles.length} hinder
             </div>
           </div>

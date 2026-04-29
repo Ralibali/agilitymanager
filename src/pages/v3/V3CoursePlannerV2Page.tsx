@@ -345,25 +345,25 @@ export default function V3CoursePlannerV2Page() {
           <ValidationBadge summary={issueSummary} onClick={() => setIssuesOpen((v) => !v)} active={issuesOpen} />
           <button
             onClick={handleTrainThis}
-            className="hidden md:inline-flex h-9 px-3 rounded-full bg-white border border-black/10 text-[12px] font-semibold items-center gap-1.5 hover:border-neutral-400"
+            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400"
             title="Skapa träningspass från denna bana"
           >
-            <Dumbbell size={14} /> Träna
+            <Dumbbell size={14} /> <span className="hidden sm:inline">Träna</span>
           </button>
           <button
             onClick={handleShare}
             disabled={!user}
-            className="hidden md:inline-flex h-9 px-3 rounded-full bg-white border border-black/10 text-[12px] font-semibold items-center gap-1.5 hover:border-neutral-400 disabled:opacity-40"
+            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400 disabled:opacity-40"
             title={user ? "Dela banan med en kompis" : "Logga in för att dela"}
           >
-            <Share2 size={14} /> Dela
+            <Share2 size={14} /> <span className="hidden sm:inline">Dela</span>
           </button>
           <button
             onClick={handleExportPdf}
-            className="hidden sm:inline-flex h-9 px-3 rounded-full bg-white border border-black/10 text-[12px] font-semibold items-center gap-1.5 hover:border-neutral-400"
+            className="h-9 w-9 sm:w-auto sm:px-3 grid sm:inline-flex place-items-center sm:items-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400"
             title="Exportera domar-PDF"
           >
-            <FileDown size={14} /> PDF
+            <FileDown size={14} /> <span className="hidden sm:inline">PDF</span>
           </button>
           <button
             onClick={async () => {

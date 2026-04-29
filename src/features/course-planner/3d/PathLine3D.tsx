@@ -32,11 +32,7 @@ export function PathLine3D({
   return (
     <group>
       {lines.map((l) => (
-        <line key={l.id}>
-          {/* @ts-expect-error drei/three primitive child */}
-          <bufferGeometry attach="geometry" {...l.geometry} />
-          <lineBasicMaterial color={l.color} linewidth={3} />
-        </line>
+        <primitive key={l.id} object={new THREE.Line(l.geometry, new THREE.LineBasicMaterial({ color: l.color, linewidth: 3 }))} />
       ))}
     </group>
   );

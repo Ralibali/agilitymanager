@@ -81,19 +81,53 @@ function uid() { return Math.random().toString(36).slice(2, 10); }
 export default function V3CoursePlannerV2Page() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [course, setCourse] = useState<CourseV2>(() => loadCourse());
+  const [course, setCourseRaw] = useState<CourseV2>(() => loadCourse());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tool, setTool] = useState<"select" | "erase" | "number">("select");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [showPath, setShowPath] = useState(true);
   const [issuesOpen, setIssuesOpen] = useState(false);
+  const [snap, setSnap] = useState(true);
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const [cloudId, setCloudId] = useState<string | null>(() => {
     try { return localStorage.getItem(STORAGE_KEY + "_cloud_id"); } catch { return null; }
   });
   const [savingCloud, setSavingCloud] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
+
+  // Undo/redo (begränsad till 30 steg)
+  const historyRef = useRef<{ past: CourseV2[]; future: CourseV2[] }>({ past: [], future: [] });
+  const skipHistoryRef = useRef(false);
+
+  const setCourse = useCallback((updater: CourseV2 | ((c: CourseV2) => CourseV2)) => {
+    setCourseRaw((prev) => {
+      const next = typeof updater === "function" ? (updater as (c: CourseV2) => CourseV2)(prev) : updater;
+      if (!skipHistoryRef.current && next !== prev) {
+        historyRef.current.past.push(prev);
+        if (historyRef.current.past.length > 30) historyRef.current.past.shift();
+        historyRef.current.future = [];
+      }
+      skipHistoryRef.current = false;
+      return next;
+    });
+  }, []);
+
+  const undo = useCallback(() => {
+    const h = historyRef.current;
+    if (h.past.length === 0) return;
+    const prev = h.past.pop()!;
+    setCourseRaw((cur) => { h.future.unshift(cur); return prev; });
+    skipHistoryRef.current = true;
+  }, []);
+  const redo = useCallback(() => {
+    const h = historyRef.current;
+    if (h.future.length === 0) return;
+    const next = h.future.shift()!;
+    setCourseRaw((cur) => { h.past.push(cur); return next; });
+    skipHistoryRef.current = true;
+  }, []);
 
   // Autospara lokalt
   useEffect(() => {

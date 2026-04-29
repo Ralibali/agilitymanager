@@ -123,25 +123,25 @@ export function DogHero({ dogs, active, activeId, onSelect, onAddDog }: Props) {
                 className={cn(
                   "flex items-center gap-2 h-9 pl-1 pr-3 rounded-full transition-all",
                   isActive
-                    ? "bg-v3-brand-500/10 ring-1 ring-v3-brand-500/30"
-                    : "bg-v3-canvas-elevated hover:bg-v3-canvas-secondary border border-v3-canvas-sunken/40",
+                    ? "bg-forest text-bone"
+                    : "bg-white border border-forest/12 hover:bg-bone-2",
                 )}
               >
                 <span
                   className={cn(
                     "h-7 w-7 rounded-full overflow-hidden grid place-items-center shrink-0",
-                    isActive ? "bg-v3-brand-500/20" : "bg-v3-canvas-sunken",
+                    isActive ? "bg-lime" : "bg-bone-2",
                   )}
                 >
                   {d.photo_url ? (
                     <img src={d.photo_url} alt="" className="h-full w-full object-cover" />
                   ) : (
-                    <span className={cn("text-[11px] font-medium", isActive ? "text-v3-brand-700" : "text-v3-text-secondary")}>
+                    <span className={cn("text-[11px] font-medium", isActive ? "text-forest" : "text-stone")}>
                       {initialsOf(d.name)}
                     </span>
                   )}
                 </span>
-                <span className={cn("text-v3-sm font-medium", isActive ? "text-v3-brand-700" : "text-v3-text-primary")}>
+                <span className={cn("text-sm font-medium", isActive ? "text-bone" : "text-forest")}>
                   {d.name}
                 </span>
               </button>

@@ -152,7 +152,7 @@ export function DogHero({ dogs, active, activeId, onSelect, onAddDog }: Props) {
               type="button"
               onClick={onAddDog}
               aria-label="Lägg till hund"
-              className="h-9 w-9 rounded-full bg-v3-canvas-elevated border border-v3-canvas-sunken/40 grid place-items-center text-v3-text-tertiary hover:text-v3-text-primary hover:bg-v3-canvas-secondary transition-colors"
+              className="h-9 w-9 rounded-full bg-white border border-forest/12 grid place-items-center text-stone hover:text-forest hover:bg-bone-2 transition-colors"
             >
               <Plus size={16} strokeWidth={1.6} />
             </button>

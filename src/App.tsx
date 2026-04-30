@@ -93,7 +93,7 @@ const LazyFallback = () => <div className="min-h-screen flex items-center justif
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
       <TooltipProvider>
         <Toaster />
         <Sonner />

@@ -1151,7 +1151,7 @@ function ToolBtn({ active, onClick, icon, children, title }: { active: boolean; 
 
 
 function ArenaCanvas({
-  svgRef, course, selectedId, highlightIds, showPath,
+  svgRef, course, selectedId, highlightIds, showPath, showDimensions = false,
   onObstacleDown, onPointerMove, onPointerUp, onBackgroundClick,
   playbackActive = false, playbackT = 0,
 }: {
@@ -1160,6 +1160,7 @@ function ArenaCanvas({
   selectedId: string | null;
   highlightIds: Set<string>;
   showPath: boolean;
+  showDimensions?: boolean;
   onObstacleDown: (e: PointerEvent<SVGGElement>, id: string) => void;
   onPointerMove: (e: PointerEvent<SVGSVGElement>) => void;
   onPointerUp: () => void;
@@ -1176,11 +1177,49 @@ function ArenaCanvas({
   const pathD = numbered.length > 1
     ? numbered.map((o, i) => `${i === 0 ? "M" : "L"} ${o.x} ${o.y}`).join(" ")
     : "";
+
+  // Mät SVG:ns rendered px-storlek för linjalerna.
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const [svgPx, setSvgPx] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
+  useEffect(() => {
+    if (!showDimensions) return;
+    const el = svgRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const r = entries[0]?.contentRect;
+      if (r) setSvgPx({ w: r.width, h: r.height });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [showDimensions, svgRef]);
+
+  // Total viewBox-bredd/höjd i meter (inkl. padding).
+  const vbW = w + padding * 2;
+  const vbH = h + padding * 2;
+  // Px per meter när hela viewBox är synlig.
+  const pxPerMx = svgPx.w / vbW;
+  const pxPerMy = svgPx.h / vbH;
+  // Synligt fönster i meterkoordinater (matchar viewBox: -padding → w+padding).
+  const visibleWidthM = vbW;
+  const visibleHeightM = vbH;
+  const viewMinXM = -padding;
+  const viewMinYM = -padding;
+  // Banytan i px-koordinater (offset från SVG-kanten till arena-rektangeln).
+  const arenaOffsetXPx = padding * pxPerMx;
+  const arenaOffsetYPx = padding * pxPerMy;
+  const arenaWidthPx = w * pxPerMx;
+  const arenaHeightPx = h * pxPerMy;
+
+  // Adaptiv tickmark-täthet: 1 m för små banor, 5 m för stora.
+  const maxArenaM = Math.max(w, h);
+  const tickStepM = maxArenaM <= 20 ? 1 : maxArenaM <= 40 ? 5 : 10;
+  const showFineTicks = maxArenaM <= 25;
+
   return (
-    <div className="rounded-xl bg-[#e8efe0] p-2 overflow-auto">
+    <div ref={wrapRef} className="relative rounded-xl bg-[#e8efe0] p-2 overflow-auto">
       <svg
         ref={svgRef}
-        viewBox={`${-padding} ${-padding} ${w + padding * 2} ${h + padding * 2}`}
+        viewBox={`${-padding} ${-padding} ${vbW} ${vbH}`}
         className="w-full h-auto max-h-[calc(100dvh-200px)] touch-none select-none"
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -1214,8 +1253,61 @@ function ArenaCanvas({
               onPointerDown={(e) => onObstacleDown(e, ob.id)}
             />
           ))}
+        {/* Diskreta måttetiketter på arenakanterna (i meter-koord) */}
+        {showDimensions && (
+          <g pointerEvents="none">
+            <text x={w / 2} y={-0.25} textAnchor="middle" fontSize={0.55} fontWeight={700} fill="#173d2c" opacity={0.7}>
+              {w} m
+            </text>
+            <text
+              x={-0.25} y={h / 2} textAnchor="middle" fontSize={0.55} fontWeight={700} fill="#173d2c" opacity={0.7}
+              transform={`rotate(-90 -0.25 ${h / 2})`}
+            >
+              {h} m
+            </text>
+          </g>
+        )}
         <CoursePlaybackOverlay course={course} active={playbackActive} t={playbackT} />
       </svg>
+
+      {/* Sticky linjaler — overlay ovanpå SVG */}
+      {showDimensions && svgPx.w > 0 && svgPx.h > 0 && (
+        <div
+          className="pointer-events-none absolute"
+          style={{ top: 8, left: 8, width: svgPx.w, height: svgPx.h }}
+        >
+          {/* Linjalerna mäter hela viewBox; vi förskjuter inåt så 0-tick hamnar vid arena-kanten */}
+          <div className="pointer-events-auto absolute" style={{ top: 0, left: 0 }}>
+            <CanvasRulers
+              viewportWidthPx={arenaWidthPx}
+              viewportHeightPx={arenaHeightPx}
+              viewMinXM={0}
+              viewMinYM={0}
+              visibleWidthM={w}
+              visibleHeightM={h}
+              arenaWidthM={w}
+              arenaHeightM={h}
+              tickStepM={tickStepM}
+              showFineTicks={showFineTicks}
+              zoom={1}
+            />
+          </div>
+          {/* Offsetwrapper för att placera linjalerna vid arenakanten */}
+          <style>{`
+            /* Förflyttning av linjalerna görs genom att pos:absolute ovan får offset */
+          `}</style>
+          {/* Faktisk offset: vi placerar wrappern relativt arenakanten */}
+          <div
+            className="absolute"
+            style={{
+              top: arenaOffsetYPx,
+              left: arenaOffsetXPx,
+              width: arenaWidthPx,
+              height: arenaHeightPx,
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

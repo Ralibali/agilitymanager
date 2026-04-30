@@ -12,7 +12,8 @@
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
 import { useEffect, useMemo, useRef, useState, useCallback, type PointerEvent } from "react";
-import { Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Undo2, Redo2, Copy, Magnet, Box, Footprints, Lock, Unlock, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown, Ruler, Crosshair } from "lucide-react";
+import { Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Undo2, Redo2, Copy, Magnet, Box, Footprints, Lock, Unlock, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown, Ruler, Crosshair, Smartphone } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -125,6 +126,7 @@ function rectsOverlap(a: { minX: number; maxX: number; minY: number; maxY: numbe
 export default function V3CoursePlannerV2Page() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [course, setCourseRaw] = useState<CourseV2>(() => loadCourse());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tool, setTool] = useState<"select" | "erase" | "number" | "measure">("select");
@@ -627,6 +629,11 @@ export default function V3CoursePlannerV2Page() {
 
   function handlePointerDown(e: PointerEvent<SVGGElement>, id: string) {
     e.stopPropagation();
+    // Mobil = visningsläge: tillåt markering men ingen drag/redigering
+    if (isMobile) {
+      setSelectedId(id);
+      return;
+    }
     const ob = course.obstacles.find((o) => o.id === id);
     if (tool === "erase") { deleteObstacle(id); return; }
     if (tool === "number") {
@@ -748,7 +755,7 @@ export default function V3CoursePlannerV2Page() {
   }), [course, selectedId, handleSaveAll, undo, redo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="min-h-[100dvh] bg-[#f9f8f6] text-neutral-900">
+    <div className="min-h-[100dvh] bg-[#f9f8f6] text-neutral-900 pb-[max(env(safe-area-inset-bottom),5rem)] lg:pb-0">
       {/* TOPBAR — strukturerad med funktionell gruppering, kebab-overflow på mobil */}
       <PlannerTopbar
         courseName={course.name}
@@ -846,10 +853,21 @@ export default function V3CoursePlannerV2Page() {
         </div>
       )}
 
+      {/* Mobil-banner: visningsläge */}
+      {isMobile && (
+        <div className="mx-3 mt-3 rounded-xl bg-[#1a6b3c]/8 border border-[#1a6b3c]/20 px-3 py-2 flex items-start gap-2 text-[12px] text-[#1a6b3c]">
+          <Smartphone size={16} className="shrink-0 mt-0.5" />
+          <div className="leading-snug">
+            <strong>Visningsläge.</strong> Banplaneraren är optimerad för dator eller surfplatta.
+            Här kan du titta på banan, växla 3D, exportera och spara — men inte redigera hinder.
+          </div>
+        </div>
+      )}
+
       {/* MAIN GRID */}
       <main className="grid gap-3 p-3 lg:p-4 lg:grid-cols-[280px_minmax(0,1fr)_320px]">
-        {/* LEFT */}
-        <aside className="rounded-2xl bg-white border border-black/6 p-3 space-y-4 max-h-[calc(100dvh-90px)] overflow-y-auto">
+        {/* LEFT — gömd på mobil (visningsläge) */}
+        <aside className="hidden lg:block rounded-2xl bg-white border border-black/6 p-3 space-y-4 max-h-[calc(100dvh-90px)] overflow-y-auto">
           <section>
             <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Hinder</h3>
             <div className="space-y-3">
@@ -918,7 +936,7 @@ export default function V3CoursePlannerV2Page() {
         {/* CENTER — banyta */}
         <section className="rounded-2xl bg-white border border-black/6 p-3 min-w-0">
           <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-            <div className="flex items-center gap-1.5 flex-wrap">
+            <div className={cn("flex items-center gap-1.5 flex-wrap", isMobile && "hidden")}>
               {/* Grupp: ritverktyg */}
               <ToolBtn active={tool === "select"} onClick={() => setTool("select")} icon={<MousePointer2 size={14} />} title="Välj och flytta hinder">Välj</ToolBtn>
               <ToolBtn active={tool === "erase"} onClick={() => setTool("erase")} icon={<Eraser size={14} />} title="Sudda hinder genom att klicka">Sudda</ToolBtn>
@@ -1051,7 +1069,7 @@ export default function V3CoursePlannerV2Page() {
         </section>
 
         {/* RIGHT */}
-        <aside className="rounded-2xl bg-white border border-black/6 p-3 space-y-4 max-h-[calc(100dvh-90px)] overflow-y-auto">
+        <aside className="hidden lg:block rounded-2xl bg-white border border-black/6 p-3 space-y-4 max-h-[calc(100dvh-90px)] overflow-y-auto">
           {/* Storleksklass — alltid synlig */}
           <section>
             <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Storleksklass</h3>

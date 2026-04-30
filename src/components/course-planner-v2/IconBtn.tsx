@@ -28,7 +28,7 @@ const baseClass =
   "h-9 rounded-full inline-flex items-center justify-center gap-1.5 text-[12px] font-semibold border transition disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a6b3c]/30";
 
 const variantClass: Record<Variant, string> = {
-  ghost: "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
+  ghost: "bg-card text-neutral-700 border-border hover:border-neutral-400",
   primary: "bg-[#1a6b3c] text-white border-[#1a6b3c] hover:bg-[#155730]",
   active: "bg-neutral-900 text-white border-neutral-900",
 };

@@ -48,7 +48,7 @@ export function V3ProValueCard({
           <button
             type="button"
             onClick={onClick}
-            className="shrink-0 inline-flex min-h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-v3-base bg-white px-5 text-v3-sm font-medium text-v3-text-primary hover:bg-white/90 transition-colors"
+            className="shrink-0 inline-flex min-h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-v3-base bg-card px-5 text-v3-sm font-medium text-v3-text-primary hover:bg-card/90 transition-colors"
           >
             {ctaLabel} <ArrowRight size={15} />
           </button>
@@ -59,8 +59,8 @@ export function V3ProValueCard({
           {values.map((item) => {
             const Icon = item.icon;
             return (
-              <div key={item.title} className="rounded-v3-xl border border-white/10 bg-white/[0.06] p-4 min-w-0">
-                <div className="h-9 w-9 rounded-full bg-white/10 grid place-items-center mb-3 text-v3-brand-300">
+              <div key={item.title} className="rounded-v3-xl border border-white/10 bg-card/[0.06] p-4 min-w-0">
+                <div className="h-9 w-9 rounded-full bg-card/10 grid place-items-center mb-3 text-v3-brand-300">
                   <Icon size={16} strokeWidth={1.8} />
                 </div>
                 <h3 className="text-v3-sm font-medium text-white break-words">{item.title}</h3>

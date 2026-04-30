@@ -49,7 +49,7 @@ export function CoursePlannerShell({
       <div className="flex h-full flex-col bg-[#f4f3ee]">
         {/* ── Topbar (52px) ── */}
         <div
-          className="flex h-[52px] items-center gap-3 border-b border-black/[0.06] bg-white px-4 shrink-0"
+          className="flex h-[52px] items-center gap-3 border-b border-border/[0.06] bg-card px-4 shrink-0"
           style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
         >
           {topbar}
@@ -59,7 +59,7 @@ export function CoursePlannerShell({
         <div className="flex flex-1 min-h-0">
           {/* Tools (vänster, 72px) */}
           <aside
-            className="w-[72px] shrink-0 border-r bg-[#fafaf7] overflow-y-auto"
+            className="w-[72px] shrink-0 border-r bg-background overflow-y-auto"
             style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
           >
             {tools}
@@ -73,7 +73,7 @@ export function CoursePlannerShell({
           {/* Properties (höger, 280px – kollapsbar) */}
           {propertiesOpen ? (
             <aside
-              className="w-[280px] shrink-0 border-l bg-white overflow-y-auto relative"
+              className="w-[280px] shrink-0 border-l bg-card overflow-y-auto relative"
               style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
             >
               {/* Stäng-knapp */}
@@ -91,7 +91,7 @@ export function CoursePlannerShell({
             /* Kollapsad strip (24px) med expand-pil */
             <button
               onClick={() => setPropertiesOpen(true)}
-              className="w-6 shrink-0 border-l bg-white hover:bg-neutral-50 flex items-center justify-center transition-colors"
+              className="w-6 shrink-0 border-l bg-card hover:bg-neutral-50 flex items-center justify-center transition-colors"
               style={{ borderColor: 'rgba(15, 23, 18, 0.08)' }}
               aria-label="Öppna panel"
               title="Öppna panel"

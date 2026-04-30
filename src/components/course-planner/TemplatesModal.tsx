@@ -137,7 +137,7 @@ export function TemplatesModal({ open, onClose, onApply, currentObstacles }: Pro
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col"
+        className="bg-card rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -167,7 +167,7 @@ export function TemplatesModal({ open, onClose, onApply, currentObstacles }: Pro
                 <button
                   key={tpl.id}
                   onClick={() => { onApply(tpl); onClose(); }}
-                  className="group text-left bg-neutral-50 hover:bg-white hover:border-[#1a6b3c]/30 border border-transparent rounded-lg p-3 transition-all"
+                  className="group text-left bg-neutral-50 hover:bg-card hover:border-[#1a6b3c]/30 border border-transparent rounded-lg p-3 transition-all"
                 >
                   <div className="text-[13px] font-medium text-neutral-900 mb-0.5">
                     {tpl.name}
@@ -231,7 +231,7 @@ export function TemplatesModal({ open, onClose, onApply, currentObstacles }: Pro
                 {customTemplates.map((tpl) => (
                   <div
                     key={tpl.id}
-                    className="flex items-center gap-2 bg-neutral-50 hover:bg-white border border-transparent hover:border-neutral-200 rounded-lg px-3 py-2 transition-all"
+                    className="flex items-center gap-2 bg-neutral-50 hover:bg-card border border-transparent hover:border-neutral-200 rounded-lg px-3 py-2 transition-all"
                   >
                     <button
                       onClick={() => { onApply(tpl); onClose(); }}

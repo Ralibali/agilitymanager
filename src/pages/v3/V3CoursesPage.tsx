@@ -153,8 +153,8 @@ function CourseDetailDialog({ course, onClose, isPremium, purchased, priceFor }:
               {course.image_url ? <img src={course.image_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45" /> : <div className="absolute inset-0 bg-gradient-to-br from-v3-text-primary via-v3-text-secondary to-v3-brand-700" />}
               <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-black/20" />
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-5">
-                <div className="w-16 h-16 rounded-full bg-white/95 grid place-items-center shadow-v3-sm group-hover:scale-105 transition-transform"><Play size={26} className="text-v3-text-primary ml-1" fill="currentColor" /></div>
-                <div className="mt-3 rounded-full bg-white/95 px-4 py-1.5 text-v3-sm font-medium text-v3-text-primary inline-flex items-center gap-1.5">Titta på trailer <ExternalLink size={13} /></div>
+                <div className="w-16 h-16 rounded-full bg-card/95 grid place-items-center shadow-v3-sm group-hover:scale-105 transition-transform"><Play size={26} className="text-v3-text-primary ml-1" fill="currentColor" /></div>
+                <div className="mt-3 rounded-full bg-card/95 px-4 py-1.5 text-v3-sm font-medium text-v3-text-primary inline-flex items-center gap-1.5">Titta på trailer <ExternalLink size={13} /></div>
               </div>
             </a>
           </div>

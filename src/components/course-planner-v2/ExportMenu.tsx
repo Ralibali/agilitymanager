@@ -25,7 +25,7 @@ export function ExportMenu({ onJudge, onTraining, onBuild, onStartlist, onJson, 
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="h-9 w-9 sm:w-auto sm:px-3 inline-flex items-center justify-center rounded-full bg-white border border-black/10 text-[12px] font-semibold gap-1.5 hover:border-neutral-400 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a6b3c]/30"
+          className="h-9 w-9 sm:w-auto sm:px-3 inline-flex items-center justify-center rounded-full bg-card border border-border text-[12px] font-semibold gap-1.5 hover:border-neutral-400 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a6b3c]/30"
           title="Exportera bana"
           aria-label="Exportera bana"
         >

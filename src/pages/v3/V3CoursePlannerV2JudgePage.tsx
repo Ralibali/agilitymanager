@@ -45,11 +45,11 @@ export default function V3CoursePlannerV2JudgePage() {
   }, [slug]);
 
   if (loading) {
-    return <div className="min-h-[100dvh] grid place-items-center bg-[#f9f8f6]"><Loader2 className="animate-spin text-[#1a6b3c]" /></div>;
+    return <div className="min-h-[100dvh] grid place-items-center bg-background"><Loader2 className="animate-spin text-[#1a6b3c]" /></div>;
   }
   if (error || !course) {
     return (
-      <div className="min-h-[100dvh] grid place-items-center bg-[#f9f8f6] p-6 text-center">
+      <div className="min-h-[100dvh] grid place-items-center bg-background p-6 text-center">
         <div>
           <h1 className="text-xl font-semibold text-neutral-800 mb-2">Banan kunde inte visas</h1>
           <p className="text-sm text-neutral-500 mb-4">{error}</p>
@@ -61,7 +61,7 @@ export default function V3CoursePlannerV2JudgePage() {
 
   const data = course.course_data as PublicCourseData;
   if (!data?.obstacles) {
-    return <div className="min-h-[100dvh] grid place-items-center bg-[#f9f8f6] p-6 text-sm text-neutral-500">Banan har ett okänt format.</div>;
+    return <div className="min-h-[100dvh] grid place-items-center bg-background p-6 text-sm text-neutral-500">Banan har ett okänt format.</div>;
   }
 
   const issues = validateCourse({
@@ -96,14 +96,14 @@ export default function V3CoursePlannerV2JudgePage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#f9f8f6] text-neutral-900">
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-black/5 px-4 py-2.5 flex items-center gap-3">
+    <div className="min-h-[100dvh] bg-background text-neutral-900">
+      <header className="sticky top-0 z-40 bg-card/95 backdrop-blur border-b border-border px-4 py-2.5 flex items-center gap-3">
         <Link to="/v3" className="h-9 w-9 grid place-items-center rounded-full bg-neutral-100"><ArrowLeft size={16} /></Link>
         <div className="flex-1 min-w-0">
           <div className="text-[10px] uppercase tracking-wide text-neutral-400">Domarvy · skrivskyddad</div>
           <h1 className="text-sm font-semibold truncate">{course.name}</h1>
         </div>
-        <button onClick={handleStartlist} className="h-9 px-3 rounded-full bg-white border border-black/10 text-[12px] font-semibold inline-flex items-center gap-1.5 hover:border-neutral-400">
+        <button onClick={handleStartlist} className="h-9 px-3 rounded-full bg-card border border-border text-[12px] font-semibold inline-flex items-center gap-1.5 hover:border-neutral-400">
           <ListOrdered size={14} /> <span className="hidden sm:inline">Startlista</span>
         </button>
         <button onClick={handlePdf} className="h-9 px-3 rounded-full bg-[#1a6b3c] text-white text-[12px] font-semibold inline-flex items-center gap-1.5">
@@ -112,7 +112,7 @@ export default function V3CoursePlannerV2JudgePage() {
       </header>
 
       <main className="grid gap-3 p-3 lg:p-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <section className="rounded-2xl bg-white border border-black/6 p-3">
+        <section className="rounded-2xl bg-card border border-border p-3">
           <ReadOnlyArena svgRef={svgRef} data={data} />
           <div className="mt-2 text-[11px] text-neutral-500 flex flex-wrap gap-x-3 gap-y-1">
             <span>{data.arenaWidthM} × {data.arenaHeightM} m</span>
@@ -124,7 +124,7 @@ export default function V3CoursePlannerV2JudgePage() {
         </section>
 
         <aside className="space-y-3">
-          <section className="rounded-2xl bg-white border border-black/6 p-3 text-[12px] space-y-1.5">
+          <section className="rounded-2xl bg-card border border-border p-3 text-[12px] space-y-1.5">
             <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-1">Översikt</h3>
             <Row label="Sport" value={data.sport === "agility" ? "Agility" : "Hoopers"} />
             <Row label="Klass" value={tpl?.label ?? "—"} />
@@ -134,7 +134,7 @@ export default function V3CoursePlannerV2JudgePage() {
             {times.maxTimeS != null && <Row label="Maxtid" value={`${times.maxTimeS} s`} />}
           </section>
 
-          <section className="rounded-2xl bg-white border border-black/6 p-3">
+          <section className="rounded-2xl bg-card border border-border p-3">
             <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Numrerad ordning</h3>
             <ol className="text-[12px] space-y-0.5">
               {numbered.length === 0 ? <li className="text-neutral-400">Inga numrerade hinder</li>

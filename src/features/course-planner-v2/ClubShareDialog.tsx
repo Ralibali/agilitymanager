@@ -83,8 +83,8 @@ export default function ClubShareDialog({ open, onOpenChange, courseId, courseNa
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[60] bg-black/40 grid place-items-center p-4" onClick={() => onOpenChange(false)}>
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-2xl shadow-xl">
-        <header className="flex items-center justify-between px-5 py-4 border-b border-black/5">
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-card rounded-2xl shadow-xl">
+        <header className="flex items-center justify-between px-5 py-4 border-b border-border">
           <h2 className="text-base font-semibold">Dela "{courseName}"</h2>
           <button onClick={() => onOpenChange(false)} className="h-8 w-8 grid place-items-center rounded-full hover:bg-neutral-100"><X size={16} /></button>
         </header>
@@ -99,9 +99,9 @@ export default function ClubShareDialog({ open, onOpenChange, courseId, courseNa
               {working ? "Arbetar..." : publicSlug ? "Stäng publik länk" : "Skapa publik länk"}
             </button>
             {publicSlug && (
-              <div className="mt-2 flex items-center gap-1.5 p-2 bg-neutral-50 rounded-lg border border-black/5">
+              <div className="mt-2 flex items-center gap-1.5 p-2 bg-neutral-50 rounded-lg border border-border">
                 <code className="flex-1 text-[11px] truncate text-neutral-700">{publicUrl()}</code>
-                <button onClick={copy} className="h-7 w-7 grid place-items-center rounded-md hover:bg-white">{copied ? <Check size={14} className="text-[#1a6b3c]" /> : <Copy size={14} />}</button>
+                <button onClick={copy} className="h-7 w-7 grid place-items-center rounded-md hover:bg-card">{copied ? <Check size={14} className="text-[#1a6b3c]" /> : <Copy size={14} />}</button>
               </div>
             )}
           </section>
@@ -116,7 +116,7 @@ export default function ClubShareDialog({ open, onOpenChange, courseId, courseNa
                   return (
                     <button key={c.id} onClick={() => toggleClub(c.id)} disabled={working}
                       className={`flex items-center justify-between p-2.5 rounded-lg border text-[13px] transition ${
-                        on ? "bg-[#1a6b3c]/10 border-[#1a6b3c]/40 text-[#1a6b3c]" : "bg-white border-black/8 hover:border-neutral-400"
+                        on ? "bg-[#1a6b3c]/10 border-[#1a6b3c]/40 text-[#1a6b3c]" : "bg-card border-border hover:border-neutral-400"
                       } disabled:opacity-50`}>
                       <span className="font-medium">{c.name}</span>
                       <span className="text-[10px] font-semibold uppercase">{on ? "Delad" : "Dela"}</span>

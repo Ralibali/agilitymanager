@@ -108,8 +108,8 @@ main input, main select, main textarea, button { -webkit-tap-highlight-color: tr
 }
 
 /* Själva rit-/banområdet ska se ut som grönt gräs, inte vitt rutpapper. */
-.v3-course-planner-frame [class*="bg-white"][class*="overflow-hidden"],
-.v3-course-planner-frame [class*="bg-white"][class*="relative"],
+.v3-course-planner-frame [class*="bg-card"][class*="overflow-hidden"],
+.v3-course-planner-frame [class*="bg-card"][class*="relative"],
 .v3-course-planner-frame [class*="bg-background"][class*="overflow-hidden"],
 .v3-course-planner-frame [class*="bg-background"][class*="relative"] {
   background-color: var(--planner-grass) !important;
@@ -131,7 +131,7 @@ main input, main select, main textarea, button { -webkit-tap-highlight-color: tr
 }
 
 /* Paneler, toppbar, kort och kontroller i ljus v3-stil. */
-.v3-course-planner-frame :is(.bg-background, .bg-card, .bg-white) { background-color: var(--planner-panel) !important; color: var(--planner-text) !important; }
+.v3-course-planner-frame :is(.bg-background, .bg-card, .bg-card) { background-color: var(--planner-panel) !important; color: var(--planner-text) !important; }
 .v3-course-planner-frame :is(.text-white, .text-slate-100, .text-slate-200, .text-gray-100, .text-gray-200) { color: var(--planner-text) !important; }
 .v3-course-planner-frame :is(.text-slate-300, .text-slate-400, .text-gray-300, .text-gray-400, .text-muted-foreground) { color: var(--planner-muted) !important; }
 .v3-course-planner-frame :is(.border, .border-border, .border-input, .border-slate-700, .border-slate-800, .border-gray-700, .border-gray-800) { border-color: var(--planner-border) !important; }

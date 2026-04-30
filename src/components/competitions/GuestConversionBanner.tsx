@@ -30,7 +30,7 @@ export function GuestConversionBanner({ markedCount = 0 }: GuestConversionBanner
     : 'Skapa konto — gratis';
 
   return (
-    <div className="relative mb-6 rounded-2xl bg-white p-5 ring-1 ring-bone-deep">
+    <div className="relative mb-6 rounded-2xl bg-card p-5 ring-1 ring-bone-deep">
       <button
         type="button"
         onClick={() => {

@@ -56,7 +56,7 @@ export function Sidebar() {
       <div className="px-3 py-3 border-t-[0.5px] border-text-on-inverse/10">
         <button
           type="button"
-          className="w-full flex items-center gap-2.5 px-1.5 py-1.5 rounded-ds-sm hover:bg-white/[0.06] transition-colors"
+          className="w-full flex items-center gap-2.5 px-1.5 py-1.5 rounded-ds-sm hover:bg-card/[0.06] transition-colors"
           aria-label="Användarmeny"
         >
           <div className="h-7 w-7 rounded-full bg-brand-500 flex items-center justify-center text-[12px] font-medium text-white shrink-0">
@@ -96,14 +96,14 @@ function NavGroupBlock({ label, items }: { label: string; items: typeof NAV_GROU
                     "flex items-center gap-2.5 px-2.5 py-1.5 rounded-[7px] text-[13px] transition-colors",
                     isActive
                       ? "bg-brand-500/15 text-text-on-inverse"
-                      : "text-text-on-inverse/70 hover:bg-white/[0.06] hover:text-text-on-inverse",
+                      : "text-text-on-inverse/70 hover:bg-card/[0.06] hover:text-text-on-inverse",
                   )
                 }
               >
                 <Icon size={14} strokeWidth={1.5} className="shrink-0" />
                 <span className="flex-1 truncate">{item.label}</span>
                 {item.badge === "pro" && (
-                  <StatusBadge variant="pro" label="Pro" className="bg-white/10 text-text-on-inverse" />
+                  <StatusBadge variant="pro" label="Pro" className="bg-card/10 text-text-on-inverse" />
                 )}
                 {item.badge === "intern" && (
                   <StatusBadge variant="intern" label="Intern" />

@@ -353,27 +353,27 @@ export default function V3CoursePlannerPageFixed() {
   };
   const closeGuide = () => { window.localStorage.setItem(GUIDE_KEY, "1"); setGuide(false); };
 
-  return <div className={cn("min-h-[100dvh] bg-[#f7f6f0] text-v3-text-primary animate-v3-fade-in", fullscreen && "fixed inset-0 z-[1000] overflow-auto")}>
+  return <div className={cn("min-h-[100dvh] bg-background text-v3-text-primary animate-v3-fade-in", fullscreen && "fixed inset-0 z-[1000] overflow-auto")}>
     {/* === MOBILE HEADER === */}
-    <header className="lg:hidden sticky top-0 z-40 bg-[#f7f6f0]/95 backdrop-blur-xl border-b border-black/5 px-2 py-1.5 flex items-center gap-1.5">
-      <button type="button" onClick={() => { window.location.href = "/v3/courses"; }} className="h-9 w-9 rounded-full bg-white border border-black/8 grid place-items-center text-v3-text-secondary shrink-0" aria-label="Tillbaka"><ArrowLeft size={16} /></button>
-      <input value={course.name} onChange={(e) => updateCourse(prev => ({ ...prev, name: e.target.value }))} className="h-9 min-w-0 flex-1 rounded-full border border-black/8 bg-white px-3 text-[13px] font-semibold outline-none focus:ring-2 focus:ring-v3-brand-500/25" />
+    <header className="lg:hidden sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border px-2 py-1.5 flex items-center gap-1.5">
+      <button type="button" onClick={() => { window.location.href = "/v3/courses"; }} className="h-9 w-9 rounded-full bg-card border border-border grid place-items-center text-v3-text-secondary shrink-0" aria-label="Tillbaka"><ArrowLeft size={16} /></button>
+      <input value={course.name} onChange={(e) => updateCourse(prev => ({ ...prev, name: e.target.value }))} className="h-9 min-w-0 flex-1 rounded-full border border-border bg-card px-3 text-[13px] font-semibold outline-none focus:ring-2 focus:ring-v3-brand-500/25" />
       <button type="button" onClick={() => switchMode(mode === "Agility" ? "Hoopers" : "Agility")} className="h-9 px-2.5 rounded-full bg-v3-brand-600 text-white text-[11px] font-bold shrink-0" aria-label="Byt sport">{mode === "Agility" ? "A" : "H"}</button>
     </header>
 
     {/* === DESKTOP HEADER === */}
-    <header className="hidden lg:block sticky top-0 z-40 bg-[#f7f6f0]/92 backdrop-blur-xl border-b border-black/5 px-3 lg:px-6 py-3">
+    <header className="hidden lg:block sticky top-0 z-40 bg-background/92 backdrop-blur-xl border-b border-border px-3 lg:px-6 py-3">
       <div className="max-w-[1760px] mx-auto flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
-          <button type="button" onClick={() => { window.location.href = "/v3/courses"; }} className="h-10 w-10 rounded-v3-base bg-white border border-black/8 shadow-v3-xs grid place-items-center text-v3-text-secondary shrink-0" aria-label="Tillbaka"><ArrowLeft size={18} /></button>
-          <input value={course.name} onChange={(e) => updateCourse(prev => ({ ...prev, name: e.target.value }))} className="h-10 min-w-0 w-[260px] rounded-v3-base border border-black/8 bg-white px-3 text-v3-sm font-semibold shadow-v3-xs outline-none focus:ring-2 focus:ring-v3-brand-500/25" />
+          <button type="button" onClick={() => { window.location.href = "/v3/courses"; }} className="h-10 w-10 rounded-v3-base bg-card border border-border shadow-v3-xs grid place-items-center text-v3-text-secondary shrink-0" aria-label="Tillbaka"><ArrowLeft size={18} /></button>
+          <input value={course.name} onChange={(e) => updateCourse(prev => ({ ...prev, name: e.target.value }))} className="h-10 min-w-0 w-[260px] rounded-v3-base border border-border bg-card px-3 text-v3-sm font-semibold shadow-v3-xs outline-none focus:ring-2 focus:ring-v3-brand-500/25" />
           <span className="hidden xl:inline-flex text-v3-xs text-v3-text-tertiary">Autosparad</span>
         </div>
         <div className="flex flex-wrap items-center gap-2 justify-end">
           <Segmented value={mode} onChange={switchMode} options={["Agility", "Hoopers"]} />
           <ToolbarButton onClick={() => setLeftOpen(v => !v)} active={!leftOpen} icon={leftOpen ? <PanelLeftClose size={15} /> : <PanelLeftOpen size={15} />}>{leftOpen ? "Stäng" : "Hinder"}</ToolbarButton>
           <ToolbarButton onClick={() => setZoom(z => clamp(z - 10, 50, 160))} icon={<ZoomOut size={15} />} />
-          <span className="h-10 min-w-[58px] rounded-v3-base bg-white border border-black/8 grid place-items-center text-v3-xs font-semibold shadow-v3-xs">{zoom}%</span>
+          <span className="h-10 min-w-[58px] rounded-v3-base bg-card border border-border grid place-items-center text-v3-xs font-semibold shadow-v3-xs">{zoom}%</span>
           <ToolbarButton onClick={() => setZoom(z => clamp(z + 10, 50, 160))} icon={<ZoomIn size={15} />} />
           <ToolbarButton onClick={() => setGrid(v => !v)} active={grid} icon={<Grid3X3 size={15} />}>Rutnät</ToolbarButton>
           {/* 3D-vy och Gå banan dolda — kod finns kvar i src/features/course-planner/3d/ */}
@@ -389,7 +389,7 @@ export default function V3CoursePlannerPageFixed() {
       {/* Hidden on mobile, shown as drawer */}
       {leftOpen && !isMobile && <LeftPanel grouped={grouped} selectedTool={selectedTool} setSelectedTool={setSelectedTool} addObstacle={addObstacle} mode={mode} />}
 
-      <section className="rounded-[14px] lg:rounded-[24px] bg-white border border-black/6 shadow-v3-sm p-1 lg:p-4 min-w-0">
+      <section className="rounded-[14px] lg:rounded-[24px] bg-card border border-border shadow-v3-sm p-1 lg:p-4 min-w-0">
         <div className="relative overflow-hidden lg:overflow-auto rounded-[12px] lg:rounded-[20px] bg-[#17351f]/10 p-0.5 lg:p-5">
           <div className="origin-top-left transition-transform" style={{ width: isMobile ? "100%" : `${zoom}%`, minWidth: isMobile ? "100%" : "760px" }}>
             <GrassField course={course} selectedId={selectedId} draggingId={draggingId} grid={grid} toolMode={toolMode} currentPath={currentPath} onFieldDown={fieldDown} onFieldMove={fieldMove} onFieldUp={fieldUp} onObstacleDown={(event, obstacle) => { event.preventDefault(); event.stopPropagation(); if (toolMode === "erase") { eraseNear(obstacle.x, obstacle.y); return; } setSelectedId(obstacle.id); setToolMode("select"); setDraggingId(obstacle.id); event.currentTarget.setPointerCapture(event.pointerId); }} onSelect={setSelectedId} />
@@ -486,18 +486,18 @@ export default function V3CoursePlannerPageFixed() {
 
 function drawPdfObstacle(pdf: jsPDF, obstacle: Obstacle, p: Point) { const [r, g, b] = hexToRgb(obstacle.color ?? "#ffffff"); pdf.setFillColor(r, g, b); pdf.setDrawColor(60, 80, 70); pdf.setLineWidth(0.55); if (obstacle.shape === "long") pdf.roundedRect(p.x - 7, p.y - 1.2, 14, 2.4, 0.8, 0.8, "FD"); else if (obstacle.shape === "wide" || obstacle.shape === "tunnel") pdf.roundedRect(p.x - 5, p.y - 2, 10, 4, 1, 1, "FD"); else if (obstacle.shape === "triangle") pdf.triangle(p.x, p.y - 5, p.x - 4, p.y + 5, p.x + 4, p.y + 5, "FD"); else if (obstacle.shape === "circle") pdf.circle(p.x, p.y, 3.5, "FD"); else pdf.roundedRect(p.x - 3, p.y - 3, 6, 6, 0.8, 0.8, "FD"); if (obstacle.number) { pdf.setFillColor(34, 93, 52); pdf.circle(p.x + 4.5, p.y - 4.5, 2.3, "F"); pdf.setTextColor(255, 255, 255); pdf.setFontSize(5); pdf.text(String(obstacle.number), p.x + 4.5, p.y - 3.2, { align: "center" }); } }
 
-function Segmented({ value, onChange, options }: { value: PlannerMode; onChange: (v: PlannerMode) => void; options: PlannerMode[] }) { return <div className="grid grid-cols-2 rounded-full bg-white border border-black/8 p-1 shadow-v3-xs w-full lg:w-[220px]">{options.map(o => <button key={o} type="button" onClick={() => onChange(o)} className={cn("h-9 rounded-full text-sm font-semibold transition-colors", value === o ? "bg-v3-brand-600 text-white" : "text-v3-text-secondary hover:bg-v3-canvas")}>{o}</button>)}</div>; }
-function ToolbarButton({ children, icon, onClick, active }: { children?: ReactNode; icon?: ReactNode; onClick: () => void; active?: boolean }) { return <button type="button" onClick={onClick} className={cn("h-10 px-3 rounded-v3-base border border-black/8 shadow-v3-xs inline-flex items-center gap-2 text-v3-sm font-medium", active ? "bg-v3-brand-600 text-white" : "bg-white text-v3-text-secondary hover:bg-v3-canvas")}>{icon}{children}</button>; }
+function Segmented({ value, onChange, options }: { value: PlannerMode; onChange: (v: PlannerMode) => void; options: PlannerMode[] }) { return <div className="grid grid-cols-2 rounded-full bg-card border border-border p-1 shadow-v3-xs w-full lg:w-[220px]">{options.map(o => <button key={o} type="button" onClick={() => onChange(o)} className={cn("h-9 rounded-full text-sm font-semibold transition-colors", value === o ? "bg-v3-brand-600 text-white" : "text-v3-text-secondary hover:bg-v3-canvas")}>{o}</button>)}</div>; }
+function ToolbarButton({ children, icon, onClick, active }: { children?: ReactNode; icon?: ReactNode; onClick: () => void; active?: boolean }) { return <button type="button" onClick={onClick} className={cn("h-10 px-3 rounded-v3-base border border-border shadow-v3-xs inline-flex items-center gap-2 text-v3-sm font-medium", active ? "bg-v3-brand-600 text-white" : "bg-card text-v3-text-secondary hover:bg-v3-canvas")}>{icon}{children}</button>; }
 function ToolButton({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: ReactNode; label: string }) { return <button type="button" onClick={onClick} className={cn("min-h-[64px] rounded-v3-xl border p-2 text-v3-xs font-semibold flex flex-col items-center justify-center gap-1", active ? "bg-v3-brand-600 text-white border-v3-brand-600" : "bg-v3-canvas border-v3-canvas-sunken text-v3-text-secondary hover:bg-v3-canvas-sunken")}>{icon}{label}</button>; }
-function FabBtn({ onClick, icon, label }: { onClick: () => void; icon: ReactNode; label: string }) { return <button type="button" onClick={onClick} className="h-12 px-3 rounded-full hover:bg-white/15 inline-flex items-center gap-1.5 text-xs font-semibold">{icon}<span>{label}</span></button>; }
+function FabBtn({ onClick, icon, label }: { onClick: () => void; icon: ReactNode; label: string }) { return <button type="button" onClick={onClick} className="h-12 px-3 rounded-full hover:bg-card/15 inline-flex items-center gap-1.5 text-xs font-semibold">{icon}<span>{label}</span></button>; }
 function SheetBtn({ onClick, icon, label }: { onClick: () => void; icon: ReactNode; label: string }) { return <button type="button" onClick={onClick} className="h-12 rounded-v3-xl bg-v3-canvas border border-v3-canvas-sunken inline-flex items-center justify-center gap-2 text-sm font-semibold">{icon}{label}</button>; }
 
 function MobileSheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div className="fixed inset-0 z-[1050] lg:hidden">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="absolute left-0 right-0 bottom-0 max-h-[82vh] bg-white rounded-t-[24px] shadow-v3-xl border-t border-black/10 flex flex-col" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-        <div className="px-5 pt-3 pb-2 flex items-center justify-between border-b border-black/5">
+      <div className="absolute left-0 right-0 bottom-0 max-h-[82vh] bg-card rounded-t-[24px] shadow-v3-xl border-t border-border flex flex-col" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+        <div className="px-5 pt-3 pb-2 flex items-center justify-between border-b border-border">
           <div className="flex-1 flex justify-center"><div className="h-1 w-10 rounded-full bg-black/15" /></div>
         </div>
         <div className="px-5 py-3 flex items-center justify-between">
@@ -532,7 +532,7 @@ function MobileBottomBar({ toolMode, setToolMode, onOpenObstacles, onOpenMore, o
   );
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 backdrop-blur-xl border-t border-black/8 shadow-[0_-6px_24px_rgba(0,0,0,0.08)]"
+      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-card/95 backdrop-blur-xl border-t border-border shadow-[0_-6px_24px_rgba(0,0,0,0.08)]"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="flex items-stretch gap-0.5 px-1.5 py-1.5">
@@ -576,7 +576,7 @@ function MobileObstaclesStrip({ specs, selectedTool, onPick, onClose }: {
   const swipe = useSwipeDownToClose(onClose);
   return (
     <div
-      className="fixed left-0 right-0 z-40 lg:hidden bg-white/97 backdrop-blur-xl border-t border-black/8 shadow-[0_-4px_18px_rgba(0,0,0,0.06)]"
+      className="fixed left-0 right-0 z-40 lg:hidden bg-card/97 backdrop-blur-xl border-t border-border shadow-[0_-4px_18px_rgba(0,0,0,0.06)]"
       style={{ bottom: "calc(70px + env(safe-area-inset-bottom))" }}
     >
       <div
@@ -629,12 +629,12 @@ function MobileEditPopover({ selected, rotateSelected, deleteSelected, renumberS
       <div className="flex-1 min-w-0 px-2">
         <div className="text-[12px] font-semibold truncate">{selected.label}{selected.number ? ` · #${selected.number}` : ""}</div>
       </div>
-      <button onClick={() => rotateSelected(-15)} className="h-9 w-9 rounded-lg grid place-items-center hover:bg-white/10" aria-label="Rotera vänster"><RotateCcw size={15} /></button>
-      <button onClick={() => rotateSelected(15)} className="h-9 w-9 rounded-lg grid place-items-center hover:bg-white/10" aria-label="Rotera höger"><RotateCcw size={15} className="-scale-x-100" /></button>
-      <button onClick={renumberSelected} className="h-9 px-2 rounded-lg grid place-items-center hover:bg-white/10" aria-label="Numrera"><Hash size={15} /></button>
+      <button onClick={() => rotateSelected(-15)} className="h-9 w-9 rounded-lg grid place-items-center hover:bg-card/10" aria-label="Rotera vänster"><RotateCcw size={15} /></button>
+      <button onClick={() => rotateSelected(15)} className="h-9 w-9 rounded-lg grid place-items-center hover:bg-card/10" aria-label="Rotera höger"><RotateCcw size={15} className="-scale-x-100" /></button>
+      <button onClick={renumberSelected} className="h-9 px-2 rounded-lg grid place-items-center hover:bg-card/10" aria-label="Numrera"><Hash size={15} /></button>
       <button onClick={deleteSelected} className="h-9 w-9 rounded-lg grid place-items-center text-red-300 hover:bg-red-500/20" aria-label="Ta bort"><Trash2 size={15} /></button>
-      <button onClick={onMore} className="h-9 w-9 rounded-lg grid place-items-center hover:bg-white/10" aria-label="Mer"><Settings2 size={15} /></button>
-      <button onClick={onClose} className="h-9 w-9 rounded-lg grid place-items-center hover:bg-white/10" aria-label="Stäng"><X size={15} /></button>
+      <button onClick={onMore} className="h-9 w-9 rounded-lg grid place-items-center hover:bg-card/10" aria-label="Mer"><Settings2 size={15} /></button>
+      <button onClick={onClose} className="h-9 w-9 rounded-lg grid place-items-center hover:bg-card/10" aria-label="Stäng"><X size={15} /></button>
     </div>
   );
 }
@@ -671,7 +671,7 @@ function MobileMoreSheet({ onClose, actions, grid, snap, zoom }: {
     <div className="fixed inset-0 z-[1050] lg:hidden">
       <div className="absolute inset-0 bg-black/35" onClick={onClose} />
       <div
-        className="absolute left-0 right-0 bottom-0 max-h-[45vh] bg-white rounded-t-[22px] shadow-v3-xl border-t border-black/10 flex flex-col"
+        className="absolute left-0 right-0 bottom-0 max-h-[45vh] bg-card rounded-t-[22px] shadow-v3-xl border-t border-border flex flex-col"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         <button
@@ -728,7 +728,7 @@ function LeftPanelContent({ grouped, selectedTool, setSelectedTool, addObstacle 
   ))}</>;
 }
 function LeftPanel({ grouped, selectedTool, setSelectedTool, addObstacle, mode }: { grouped: [string, ObstacleSpec[]][]; selectedTool: ObstacleType; setSelectedTool: (t: ObstacleType) => void; addObstacle: (t: ObstacleType) => void; mode: PlannerMode }) {
-  return <aside className="rounded-[22px] bg-white border border-black/6 shadow-v3-sm p-4 max-h-[calc(100vh-120px)] overflow-y-auto">
+  return <aside className="rounded-[22px] bg-card border border-border shadow-v3-sm p-4 max-h-[calc(100vh-120px)] overflow-y-auto">
     <div className="mb-4"><h2 className="font-v3-display text-v3-2xl">{mode}-hinder</h2><p className="text-v3-sm text-v3-text-secondary mt-1">Klicka för att lägga till. Dra sedan på gräset.</p></div>
     <LeftPanelContent grouped={grouped} selectedTool={selectedTool} setSelectedTool={setSelectedTool} addObstacle={addObstacle} />
   </aside>;
@@ -765,7 +765,7 @@ function RightPanelContent({ selected, toolMode, setToolMode, setGuide, moveSele
         </div>
         <div>
           <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-v3-text-tertiary mb-2 mt-3">Färg</div>
-          <div className="flex flex-wrap gap-2">{COLORS.map(c => <button key={c} type="button" onClick={() => { setColor(c); recolorSelected(c); }} className="h-9 w-9 rounded-full border border-black/10 shadow-v3-xs" style={{ background: c }} aria-label={c} />)}</div>
+          <div className="flex flex-wrap gap-2">{COLORS.map(c => <button key={c} type="button" onClick={() => { setColor(c); recolorSelected(c); }} className="h-9 w-9 rounded-full border border-border shadow-v3-xs" style={{ background: c }} aria-label={c} />)}</div>
         </div>
       </> : <div className="rounded-v3-xl bg-v3-canvas p-4 text-v3-sm text-v3-text-secondary">Tryck på ett hinder för att ändra det.</div>}
     </section>
@@ -790,7 +790,7 @@ function RightPanelContent({ selected, toolMode, setToolMode, setGuide, moveSele
   </>;
 }
 function RightPanel(props: { selected: Obstacle | null; toolMode: ToolMode; setToolMode: (t: ToolMode) => void; setRightOpen: (v: boolean) => void; setGuide: (v: boolean) => void; moveSelected: (dx: number, dy: number) => void; rotateSelected: (deg?: number) => void; renumberSelected: () => void; autoRenumberAll: () => void; deleteSelected: () => void; setColor: (c: string) => void; recolorSelected: (c: string) => void; course: CourseState; updateCourse: (updater: CourseState | ((prev: CourseState) => CourseState)) => void; exportJson: () => void; exportPdf: () => void; reset: () => void; setPaths: (updater: DrawPath[] | ((prev: DrawPath[]) => DrawPath[])) => void }) {
-  return <aside className="space-y-3"><section className="rounded-[22px] bg-white border border-black/6 shadow-v3-sm p-4">
+  return <aside className="space-y-3"><section className="rounded-[22px] bg-card border border-border shadow-v3-sm p-4">
     <div className="flex items-center justify-between gap-3 mb-3">
       <div><h2 className="font-v3-display text-v3-xl">Verktyg</h2><p className="text-v3-xs text-v3-text-tertiary">Rita, numrera, sudda och exportera.</p></div>
       <button type="button" onClick={() => props.setRightOpen(false)} className="h-8 w-8 rounded-full hover:bg-v3-canvas-sunken grid place-items-center text-v3-text-tertiary"><X size={15} /></button>
@@ -802,7 +802,7 @@ function RightPanel(props: { selected: Obstacle | null; toolMode: ToolMode; setT
 function GrassField({ course, selectedId, draggingId, grid, toolMode, currentPath, onFieldDown, onFieldMove, onFieldUp, onObstacleDown, onSelect }: { course: CourseState; selectedId: string | null; draggingId: string | null; grid: boolean; toolMode: ToolMode; currentPath: DrawPath | null; onFieldDown: (event: PointerEvent<HTMLDivElement>) => void; onFieldMove: (event: PointerEvent<HTMLDivElement>) => void; onFieldUp: () => void; onObstacleDown: (event: PointerEvent<HTMLButtonElement>, obstacle: Obstacle) => void; onSelect: (id: string) => void }) {
   const cursor = toolMode === "draw" ? "cursor-crosshair" : toolMode === "erase" ? "cursor-cell" : toolMode === "number" ? "cursor-copy" : draggingId ? "cursor-grabbing" : "cursor-default";
   return <div onPointerDown={onFieldDown} onPointerMove={onFieldMove} onPointerUp={onFieldUp} onPointerCancel={onFieldUp} className={cn("relative rounded-[16px] lg:rounded-[22px] overflow-hidden border border-[#d7e3ca] shadow-inner select-none", cursor)} style={{ backgroundColor: "#78a957", backgroundImage: grid ? "radial-gradient(circle at 18px 18px, rgba(255,255,255,.08) 1px, transparent 1.8px), linear-gradient(rgba(255,255,255,.32) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.32) 1px, transparent 1px), linear-gradient(135deg, rgba(255,255,255,.09), rgba(25,77,36,.10))" : "linear-gradient(135deg, rgba(255,255,255,.09), rgba(25,77,36,.10))", backgroundSize: "20px 20px, 68px 68px, 68px 68px, 100% 100%", touchAction: "none", aspectRatio: `${course.width} / ${course.height}` }}>
-    <div className="absolute left-2 top-2 lg:left-3 lg:top-3 rounded-full bg-white/20 border border-white/25 px-2.5 py-1 text-[10px] lg:text-[11px] font-semibold text-white backdrop-blur-sm pointer-events-none">{course.width} × {course.height} m</div>
+    <div className="absolute left-2 top-2 lg:left-3 lg:top-3 rounded-full bg-card/20 border border-white/25 px-2.5 py-1 text-[10px] lg:text-[11px] font-semibold text-white backdrop-blur-sm pointer-events-none">{course.width} × {course.height} m</div>
     <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
       {course.paths.map(path => <polyline key={path.id} points={path.points.map(p => `${p.x},${p.y}`).join(" ")} fill="none" stroke={path.color} strokeWidth={path.width / 3} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1.3 1" />)}
       {currentPath && <polyline points={currentPath.points.map(p => `${p.x},${p.y}`).join(" ")} fill="none" stroke={currentPath.color} strokeWidth={currentPath.width / 3} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1.3 1" />}
@@ -852,7 +852,7 @@ function ObstacleButton({ obstacle, selected, dragging, erasing, onDown, onSelec
     </button>
   );
 }
-function obstacleSize(shape: Shape) { if (shape === "long") return "h-7 w-20 lg:h-9 lg:w-28 rounded-full"; if (shape === "wide") return "h-7 w-14 lg:h-9 lg:w-20 rounded-lg"; if (shape === "tunnel") return "h-8 w-14 lg:h-10 lg:w-20 rounded-full"; if (shape === "circle") return "h-9 w-9 lg:h-11 lg:w-11 rounded-full"; if (shape === "zone") return "h-14 w-14 lg:h-20 lg:w-20 rounded-lg bg-white/40 border-dashed"; if (shape === "triangle") return "h-9 w-9 lg:h-11 lg:w-11 rounded-lg"; return "h-8 w-8 lg:h-10 lg:w-10 rounded-lg"; }
+function obstacleSize(shape: Shape) { if (shape === "long") return "h-7 w-20 lg:h-9 lg:w-28 rounded-full"; if (shape === "wide") return "h-7 w-14 lg:h-9 lg:w-20 rounded-lg"; if (shape === "tunnel") return "h-8 w-14 lg:h-10 lg:w-20 rounded-full"; if (shape === "circle") return "h-9 w-9 lg:h-11 lg:w-11 rounded-full"; if (shape === "zone") return "h-14 w-14 lg:h-20 lg:w-20 rounded-lg bg-card/40 border-dashed"; if (shape === "triangle") return "h-9 w-9 lg:h-11 lg:w-11 rounded-lg"; return "h-8 w-8 lg:h-10 lg:w-10 rounded-lg"; }
 
-function SavedDialog({ saved, onClose, onOpen }: { saved: SavedCourse[]; onClose: () => void; onOpen: (entry: SavedCourse) => void }) { return <div className="fixed inset-0 z-[1100] bg-v3-text-primary/45 backdrop-blur-sm px-4 py-6 flex items-center justify-center"><section className="w-full max-w-lg rounded-[26px] bg-white shadow-v3-xl border border-black/10 overflow-hidden"><div className="p-5 border-b border-black/5 flex justify-between"><div><div className="text-[10px] uppercase tracking-[0.1em] font-semibold text-v3-text-tertiary">Bibliotek</div><h2 className="font-v3-display text-[28px]">Sparade banor</h2></div><button onClick={onClose} className="h-10 w-10 rounded-full bg-v3-canvas grid place-items-center"><X size={18} /></button></div><div className="p-5 space-y-2 max-h-[55vh] overflow-y-auto">{saved.length === 0 ? <p className="text-v3-sm text-v3-text-secondary">Inga sparade banor än.</p> : saved.map(entry => <button key={entry.id} onClick={() => onOpen(entry)} className="w-full text-left rounded-v3-xl border border-v3-canvas-sunken/60 bg-v3-canvas p-4 hover:bg-v3-canvas-sunken/40"><div className="font-semibold text-v3-text-primary">{entry.name}</div><div className="text-v3-xs text-v3-text-tertiary mt-1">{entry.mode} · {new Date(entry.savedAt).toLocaleString("sv-SE")}</div></button>)}</div></section></div>; }
-function Guide({ onClose }: { onClose: () => void }) { return <div className="fixed inset-0 z-[1100] bg-v3-text-primary/45 backdrop-blur-sm px-4 py-6 flex items-center justify-center"><section className="w-full max-w-md rounded-[26px] bg-white shadow-v3-xl border border-black/10 overflow-hidden"><div className="p-5 border-b border-black/5 flex justify-between"><div><div className="text-[10px] uppercase tracking-[0.1em] font-semibold text-v3-text-tertiary">Snabbguide</div><h2 className="font-v3-display text-[28px]">Banplaneraren</h2></div><button onClick={onClose} className="h-10 w-10 rounded-full bg-v3-canvas grid place-items-center"><X size={18} /></button></div><div className="p-5 space-y-3 text-v3-sm text-v3-text-secondary"><p><strong className="text-v3-text-primary">Lägg till hinder</strong> via plus-knappen i botten på mobil eller vänsterpanelen på desktop.</p><p><strong className="text-v3-text-primary">Exportera PDF</strong> skapar en utskriftsklar A4.</p></div><div className="p-5 pt-0"><button onClick={onClose} className="w-full h-12 rounded-v3-base bg-v3-brand-600 text-white text-v3-sm font-semibold">Kom igång</button></div></section></div>; }
+function SavedDialog({ saved, onClose, onOpen }: { saved: SavedCourse[]; onClose: () => void; onOpen: (entry: SavedCourse) => void }) { return <div className="fixed inset-0 z-[1100] bg-v3-text-primary/45 backdrop-blur-sm px-4 py-6 flex items-center justify-center"><section className="w-full max-w-lg rounded-[26px] bg-card shadow-v3-xl border border-border overflow-hidden"><div className="p-5 border-b border-border flex justify-between"><div><div className="text-[10px] uppercase tracking-[0.1em] font-semibold text-v3-text-tertiary">Bibliotek</div><h2 className="font-v3-display text-[28px]">Sparade banor</h2></div><button onClick={onClose} className="h-10 w-10 rounded-full bg-v3-canvas grid place-items-center"><X size={18} /></button></div><div className="p-5 space-y-2 max-h-[55vh] overflow-y-auto">{saved.length === 0 ? <p className="text-v3-sm text-v3-text-secondary">Inga sparade banor än.</p> : saved.map(entry => <button key={entry.id} onClick={() => onOpen(entry)} className="w-full text-left rounded-v3-xl border border-v3-canvas-sunken/60 bg-v3-canvas p-4 hover:bg-v3-canvas-sunken/40"><div className="font-semibold text-v3-text-primary">{entry.name}</div><div className="text-v3-xs text-v3-text-tertiary mt-1">{entry.mode} · {new Date(entry.savedAt).toLocaleString("sv-SE")}</div></button>)}</div></section></div>; }
+function Guide({ onClose }: { onClose: () => void }) { return <div className="fixed inset-0 z-[1100] bg-v3-text-primary/45 backdrop-blur-sm px-4 py-6 flex items-center justify-center"><section className="w-full max-w-md rounded-[26px] bg-card shadow-v3-xl border border-border overflow-hidden"><div className="p-5 border-b border-border flex justify-between"><div><div className="text-[10px] uppercase tracking-[0.1em] font-semibold text-v3-text-tertiary">Snabbguide</div><h2 className="font-v3-display text-[28px]">Banplaneraren</h2></div><button onClick={onClose} className="h-10 w-10 rounded-full bg-v3-canvas grid place-items-center"><X size={18} /></button></div><div className="p-5 space-y-3 text-v3-sm text-v3-text-secondary"><p><strong className="text-v3-text-primary">Lägg till hinder</strong> via plus-knappen i botten på mobil eller vänsterpanelen på desktop.</p><p><strong className="text-v3-text-primary">Exportera PDF</strong> skapar en utskriftsklar A4.</p></div><div className="p-5 pt-0"><button onClick={onClose} className="w-full h-12 rounded-v3-base bg-v3-brand-600 text-white text-v3-sm font-semibold">Kom igång</button></div></section></div>; }

@@ -54,12 +54,12 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[60] bg-black/40 grid place-items-center p-4" onClick={() => onOpenChange(false)}>
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl max-h-[85vh] bg-white rounded-2xl shadow-xl flex flex-col">
-        <header className="flex items-center justify-between px-5 py-4 border-b border-black/5">
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl max-h-[85vh] bg-card rounded-2xl shadow-xl flex flex-col">
+        <header className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div className="flex items-center gap-2"><BookOpen size={18} className="text-[#1a6b3c]" /><h2 className="text-base font-semibold">Banbibliotek</h2></div>
           <button onClick={() => onOpenChange(false)} className="h-8 w-8 grid place-items-center rounded-full hover:bg-neutral-100"><X size={16} /></button>
         </header>
-        <div className="flex border-b border-black/5">
+        <div className="flex border-b border-border">
           {([
             { key: "prebuilt", label: "Färdiga banor", icon: BookOpen },
             { key: "mine",     label: "Mina banor",   icon: Cloud },
@@ -82,7 +82,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
             <div className="grid gap-2">
               {PREBUILT_COURSES.map((p) => (
                 <button key={p.key} onClick={() => { onPick("prebuilt", p); onOpenChange(false); }}
-                  className="text-left p-3 rounded-xl border border-black/8 hover:border-[#1a6b3c]/40 hover:bg-[#1a6b3c]/5 transition">
+                  className="text-left p-3 rounded-xl border border-border hover:border-[#1a6b3c]/40 hover:bg-[#1a6b3c]/5 transition">
                   <div className="flex items-center justify-between">
                     <div className="font-semibold text-[14px]">{p.label}</div>
                     <span className="text-[10px] uppercase tracking-wide font-semibold text-[#c85d1e]">{p.sport}</span>
@@ -100,7 +100,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
               : mine.length === 0 ? <div className="text-center p-8 text-sm text-neutral-500">Du har inga sparade banor än.</div>
               : <div className="grid gap-2">
                   {mine.map((c) => (
-                    <div key={c.id} className="flex items-center gap-2 p-3 rounded-xl border border-black/8 hover:border-[#1a6b3c]/40 transition">
+                    <div key={c.id} className="flex items-center gap-2 p-3 rounded-xl border border-border hover:border-[#1a6b3c]/40 transition">
                       <button onClick={() => { onPick("saved", c); onOpenChange(false); }} className="flex-1 text-left">
                         <div className="font-semibold text-[14px]">{c.name}</div>
                         <div className="text-[11px] text-neutral-400 mt-0.5">Senast ändrad {new Date(c.updated_at).toLocaleDateString("sv-SE")}</div>
@@ -120,7 +120,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
                   {clubs.map((c) => (
                     <button key={c.id} onClick={() => setActiveClub(c.id)}
                       className={`h-8 px-3 rounded-full text-[12px] font-semibold border ${
-                        activeClub === c.id ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white border-black/10 hover:border-neutral-400"
+                        activeClub === c.id ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-card border-border hover:border-neutral-400"
                       }`}>{c.name}</button>
                   ))}
                 </div>
@@ -128,7 +128,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
                 : <div className="grid gap-2">
                   {clubCourses.map((c) => (
                     <button key={c.id} onClick={() => { onPick("saved", c); onOpenChange(false); }}
-                      className="text-left p-3 rounded-xl border border-black/8 hover:border-[#1a6b3c]/40 hover:bg-[#1a6b3c]/5 transition">
+                      className="text-left p-3 rounded-xl border border-border hover:border-[#1a6b3c]/40 hover:bg-[#1a6b3c]/5 transition">
                       <div className="font-semibold text-[14px]">{c.name}</div>
                       <div className="text-[11px] text-neutral-400 mt-0.5">Delad {new Date(c.created_at).toLocaleDateString("sv-SE")}</div>
                     </button>

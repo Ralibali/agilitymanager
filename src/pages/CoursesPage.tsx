@@ -142,13 +142,13 @@ export default function CoursesPage() {
                   <div className="h-32 bg-gradient-to-br from-primary/20 to-accent/20 relative flex items-center justify-center">
                     {course.trailer_url && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-t-xl">
-                        <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                        <div className="w-12 h-12 rounded-full bg-card/90 flex items-center justify-center shadow-lg">
                           <Play size={20} className="text-primary ml-0.5" />
                         </div>
                       </div>
                     )}
                     <div className="absolute top-3 left-3 flex gap-2">
-                      <Badge variant="secondary" className="text-xs bg-white/90 text-foreground">
+                      <Badge variant="secondary" className="text-xs bg-card/90 text-foreground">
                         {categoryLabels[course.category] || course.category}
                       </Badge>
                       {purchased && (
@@ -158,7 +158,7 @@ export default function CoursesPage() {
                       )}
                     </div>
                     <div className="absolute bottom-3 right-3">
-                      <Badge variant="outline" className="text-xs bg-white/90 dark:bg-black/60 font-semibold">
+                      <Badge variant="outline" className="text-xs bg-card/90 dark:bg-black/60 font-semibold">
                         {course.partner_name}
                       </Badge>
                     </div>

@@ -8,7 +8,7 @@
  * in den punktlistan istället för numbered-list.
  */
 
-import type { CourseV2 } from "./types";
+import type { CourseV2 } from "./config";
 
 export interface PathPoint {
   x: number;

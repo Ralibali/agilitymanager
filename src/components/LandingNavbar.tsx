@@ -39,7 +39,7 @@ export function LandingNavbar() {
       transition={{ duration: 0.4 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-white/90 backdrop-blur-md border-b border-border shadow-sm'
+          ? 'bg-card/90 backdrop-blur-md border-b border-border shadow-sm'
           : 'bg-transparent'
       }`}
     >
@@ -49,7 +49,7 @@ export function LandingNavbar() {
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center" role="img" aria-label="AgilityManager logotyp – träningsapp för agility">
             <Zap size={18} className="text-primary-foreground" />
           </div>
-          <span className={`font-display font-bold text-lg ${scrolled ? 'text-foreground' : 'text-white'}`}>
+          <span className={`font-display font-bold text-lg ${scrolled ? 'text-foreground' : 'text-foreground'}`}>
             AgilityManager
           </span>
         </button>
@@ -61,7 +61,7 @@ export function LandingNavbar() {
               key={link.label}
               onClick={() => handleNavClick(link)}
               className={`text-sm font-medium transition-colors hover:text-primary ${
-                scrolled ? 'text-muted-foreground' : 'text-white/80 hover:text-white'
+                scrolled ? 'text-muted-foreground' : 'text-foreground/80 hover:text-foreground'
               }`}
             >
               {link.label}
@@ -83,9 +83,9 @@ export function LandingNavbar() {
           aria-label={menuOpen ? 'Stäng meny' : 'Öppna meny'}
         >
           {menuOpen ? (
-            <X size={24} className={scrolled ? 'text-foreground' : 'text-white'} />
+            <X size={24} className={scrolled ? 'text-foreground' : 'text-foreground'} />
           ) : (
-            <Menu size={24} className={scrolled ? 'text-foreground' : 'text-white'} />
+            <Menu size={24} className={scrolled ? 'text-foreground' : 'text-foreground'} />
           )}
         </button>
       </div>
@@ -98,7 +98,7 @@ export function LandingNavbar() {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="md:hidden bg-white/95 backdrop-blur-md border-b border-border overflow-hidden"
+            className="md:hidden bg-card/95 backdrop-blur-md border-b border-border overflow-hidden"
           >
             <div className="px-4 py-4 flex flex-col gap-3">
               {navLinks.map((link) => (

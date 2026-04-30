@@ -8,7 +8,12 @@
  * in den punktlistan istället för numbered-list.
  */
 
-import type { CourseV2 } from "./config";
+import type { ObstacleV2 } from "./config";
+
+/** Minimal subset av CourseV2 vi behöver — undviker cirkulär import. */
+export interface CoursePathInput {
+  obstacles: ObstacleV2[];
+}
 
 export interface PathPoint {
   x: number;
@@ -31,7 +36,7 @@ export interface SampledPath {
  * Bygger rutt från en bana. Använder handler-path om finns, annars
  * raklinje mellan numrerade hinder (1 → 2 → 3 …).
  */
-export function buildCoursePath(course: CourseV2): SampledPath {
+export function buildCoursePath(course: CoursePathInput): SampledPath {
   // Plats för framtida handler-path:
   // const handlerPath = (course as any).handlerPath as PathPoint[] | undefined;
   // if (handlerPath && handlerPath.length > 1) return buildFromPoints(handlerPath);

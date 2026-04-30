@@ -144,7 +144,7 @@ export default function PublicCoachPage() {
       </section>
 
       {/* Coach-presentation */}
-      <section className="py-16 px-4 bg-white">
+      <section className="py-16 px-4 bg-card">
         <div className="max-w-4xl mx-auto">
           <div className="rounded-3xl border border-stone/10 bg-cream p-8 md:p-12">
             <div className="flex items-start gap-4 mb-6">
@@ -179,7 +179,7 @@ export default function PublicCoachPage() {
                 { Icon: Award, line1: "Utbildad instruktör", line2: "flera discipliner" },
                 { Icon: Heart, line1: "Aktiv tävlingsförare", line2: "med två egna hundar" },
               ].map(({ Icon, line1, line2 }) => (
-                <div key={line1} className="rounded-xl bg-white p-4 flex items-center gap-3 border border-stone/10">
+                <div key={line1} className="rounded-xl bg-card p-4 flex items-center gap-3 border border-border">
                   <Icon size={18} className="text-forest shrink-0" strokeWidth={1.8} />
                   <div className="text-[13px] text-text-primary leading-tight">
                     {line1}
@@ -207,7 +207,7 @@ export default function PublicCoachPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.08 }}
-                className="rounded-2xl bg-white border border-stone/10 p-6"
+                className="rounded-2xl bg-card border border-border p-6"
               >
                 <div className="w-10 h-10 rounded-full bg-forest/10 flex items-center justify-center mb-4">
                   <s.icon size={18} className="text-forest" strokeWidth={1.8} />
@@ -222,7 +222,7 @@ export default function PublicCoachPage() {
       </section>
 
       {/* Paket */}
-      <section id="paket" className="py-16 px-4 bg-white">
+      <section id="paket" className="py-16 px-4 bg-card">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="font-display text-[32px] md:text-[44px] leading-tight tracking-[-0.01em] text-forest">
@@ -296,7 +296,7 @@ export default function PublicCoachPage() {
                 a: "Vi återbetalar paketet om Malin av någon anledning inte kan ge feedback på din video.",
               },
             ].map((f) => (
-              <details key={f.q} className="group rounded-xl border border-stone/15 bg-white p-5 open:bg-cream transition-colors">
+              <details key={f.q} className="group rounded-xl border border-border bg-card p-5 open:bg-muted transition-colors">
                 <summary className="cursor-pointer list-none flex items-center justify-between gap-4">
                   <span className="font-display text-[17px] text-forest">{f.q}</span>
                   <span className="text-stone group-open:rotate-180 transition-transform">▾</span>

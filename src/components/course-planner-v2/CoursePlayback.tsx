@@ -60,7 +60,7 @@ export function CoursePlaybackOverlay({
       <path
         d={fullD}
         fill="none"
-        stroke="#1a6b3c"
+        stroke="hsl(var(--primary))"
         strokeWidth={0.12}
         strokeDasharray="0.4 0.3"
         strokeLinecap="round"
@@ -70,7 +70,7 @@ export function CoursePlaybackOverlay({
       <path
         d={traveledD}
         fill="none"
-        stroke="#c85d1e"
+        stroke="hsl(var(--accent))"
         strokeWidth={0.22}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -78,7 +78,7 @@ export function CoursePlaybackOverlay({
       />
       {/* Markör: cirkel-bakgrund + roterande hund-ikon */}
       <g transform={`translate(${pose.x} ${pose.y}) rotate(${headingDeg})`}>
-        <circle r={iconSizeM * 0.55} fill="#ffffff" stroke="#c85d1e" strokeWidth={0.08} />
+        <circle r={iconSizeM * 0.55} fill="hsl(var(--card))" stroke="hsl(var(--accent))" strokeWidth={0.08} />
         {/* Footprints SVG path (Lucide), centrerad och skalad */}
         <g
           transform={`translate(${-iconSizeM / 2} ${-iconSizeM / 2}) scale(${iconSizeM / 24})`}
@@ -86,7 +86,7 @@ export function CoursePlaybackOverlay({
           <path
             d="M4 16v-2.38c0-.97.32-1.71 1.34-2.99 1.04-1.32 1.32-2.04 1.32-3.12 0-1.85-1.25-3.5-3.16-3.5C2.34 4.01 2 5.7 2 7.5c0 .92.32 1.83.66 2.5"
             fill="none"
-            stroke="#1a6b3c"
+            stroke="hsl(var(--primary))"
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -94,7 +94,7 @@ export function CoursePlaybackOverlay({
           <path
             d="M14 20v-2.38c0-.97.32-1.71 1.34-2.99 1.04-1.32 1.32-2.04 1.32-3.12 0-1.85-1.25-3.5-3.16-3.5-1.16 0-1.5 1.69-1.5 3.5 0 .92.32 1.83.66 2.5"
             fill="none"
-            stroke="#1a6b3c"
+            stroke="hsl(var(--primary))"
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -102,7 +102,7 @@ export function CoursePlaybackOverlay({
           <path
             d="M2 21c0-3 1.85-5.36 5.08-5.36 2.5 0 4.92 1.86 4.92 5.36"
             fill="none"
-            stroke="#1a6b3c"
+            stroke="hsl(var(--primary))"
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -110,7 +110,7 @@ export function CoursePlaybackOverlay({
           <path
             d="M12 21c0-3 1.85-5.36 5.08-5.36 2.5 0 4.92 1.86 4.92 5.36"
             fill="none"
-            stroke="#1a6b3c"
+            stroke="hsl(var(--primary))"
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -149,16 +149,16 @@ export function CoursePlaybackControls({
   const noPath = path.points.length < 2;
 
   return (
-    <div className="mb-2 flex flex-wrap items-center gap-2 rounded-xl border border-black/10 bg-white px-3 py-2 shadow-sm">
-      <Footprints size={16} className="text-[#1a6b3c]" />
-      <span className="text-sm font-medium text-neutral-800">Spela upp banan</span>
-      <div className="mx-1 h-5 w-px bg-black/10" />
+    <div className="mb-2 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 shadow-sm">
+      <Footprints size={16} className="text-primary" />
+      <span className="text-sm font-medium text-foreground">Spela upp banan</span>
+      <div className="mx-1 h-5 w-px bg-border" />
 
       <button
         type="button"
         onClick={() => setPlaying(!playing)}
         disabled={noPath}
-        className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[#1a6b3c] px-3 text-xs font-medium text-white hover:bg-[#155330] disabled:opacity-40"
+        className="inline-flex h-8 items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
         aria-label={playing ? "Pausa uppspelning" : "Starta uppspelning"}
       >
         {playing ? <Pause size={14} /> : <Play size={14} />}
@@ -169,23 +169,23 @@ export function CoursePlaybackControls({
         type="button"
         onClick={() => { setT(0); setPlaying(true); }}
         disabled={noPath}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-black/10 bg-white text-neutral-700 hover:bg-neutral-50 disabled:opacity-40"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:bg-muted disabled:opacity-40"
         aria-label="Börja om"
         title="Börja om"
       >
         <RotateCcw size={14} />
       </button>
 
-      <div className="mx-1 h-5 w-px bg-black/10" />
+      <div className="mx-1 h-5 w-px bg-border" />
 
-      <div className="inline-flex h-8 items-center rounded-full border border-black/10 bg-white p-0.5 text-xs">
+      <div className="inline-flex h-8 items-center rounded-full border border-border bg-card p-0.5 text-xs">
         {SPEEDS.map((s) => (
           <button
             key={s}
             type="button"
             onClick={() => setSpeed(s)}
             className={`h-7 rounded-full px-2.5 transition ${
-              speed === s ? "bg-[#1a6b3c] text-white" : "text-neutral-700 hover:bg-neutral-50"
+              speed === s ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
             }`}
             aria-pressed={speed === s}
           >
@@ -201,18 +201,18 @@ export function CoursePlaybackControls({
         value={Math.round(t * 1000)}
         disabled={noPath}
         onChange={(e) => { setPlaying(false); setT(Number(e.target.value) / 1000); }}
-        className="h-1.5 min-w-[120px] flex-1 cursor-pointer accent-[#c85d1e]"
+        className="h-1.5 min-w-[120px] flex-1 cursor-pointer accent-primary"
         aria-label="Position i banan"
       />
 
-      <span className="tabular-nums text-xs text-neutral-500">
+      <span className="tabular-nums text-xs text-muted-foreground">
         {Math.round(t * path.total)} / {Math.round(path.total)} m
       </span>
 
       <button
         type="button"
         onClick={onClose}
-        className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full border border-black/10 bg-white text-neutral-700 hover:bg-neutral-50"
+        className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:bg-muted"
         aria-label="Stäng uppspelning"
         title="Stäng (Esc)"
       >
@@ -220,7 +220,7 @@ export function CoursePlaybackControls({
       </button>
 
       {noPath && (
-        <p className="basis-full text-xs text-neutral-500">
+        <p className="basis-full text-xs text-muted-foreground">
           Numrera minst två hinder för att kunna spela upp banan.
         </p>
       )}

@@ -31,7 +31,7 @@ export function ViewportControls(props: ViewportControlsProps) {
     return () => document.removeEventListener("mousedown", onDoc);
   }, [menuOpen]);
 
-  const btn = "w-10 h-10 grid place-items-center bg-[#f5f3ee] hover:bg-white border border-[#173d2c]/12 text-[#173d2c]/80 hover:text-[#173d2c] transition";
+  const btn = "w-10 h-10 grid place-items-center bg-card hover:bg-muted border border-border text-foreground/80 hover:text-foreground transition";
 
   return (
     <div ref={ref} className="absolute bottom-4 right-4 z-30 flex flex-col rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.08)] overflow-hidden">
@@ -48,28 +48,28 @@ export function ViewportControls(props: ViewportControlsProps) {
           {Math.round(props.zoom * 100)}%
         </button>
         {menuOpen && (
-          <div className="absolute right-full mr-2 bottom-0 bg-white border border-black/10 rounded-lg shadow-lg overflow-hidden min-w-[180px]">
+          <div className="absolute right-full mr-2 bottom-0 bg-card border border-border rounded-lg shadow-lg overflow-hidden min-w-[180px]">
             <button
               type="button"
               onClick={() => { props.onFitToScreen(); setMenuOpen(false); }}
-              className="w-full px-3 py-2 text-left text-[12px] hover:bg-neutral-50 flex justify-between items-center gap-3"
+              className="w-full px-3 py-2 text-left text-[12px] hover:bg-muted flex justify-between items-center gap-3"
             >
               <span>Anpassa till skärm</span>
-              <span className="text-[10px] text-neutral-400 font-mono">Ctrl+1</span>
+              <span className="text-[10px] text-muted-foreground font-mono">Ctrl+1</span>
             </button>
-            <div className="border-t border-black/5" />
+            <div className="border-t border-border" />
             {ZOOM_STEPS.map((z) => (
               <button
                 key={z}
                 type="button"
                 onClick={() => { props.onZoomTo(z); setMenuOpen(false); }}
                 className={cn(
-                  "w-full px-3 py-2 text-left text-[12px] hover:bg-neutral-50 flex justify-between items-center gap-3",
-                  Math.abs(z - props.zoom) < 0.01 && "bg-[#1a6b3c]/8 text-[#1a6b3c] font-semibold",
+                  "w-full px-3 py-2 text-left text-[12px] hover:bg-muted flex justify-between items-center gap-3",
+                  Math.abs(z - props.zoom) < 0.01 && "bg-primary/10 text-primary font-semibold",
                 )}
               >
                 <span>{Math.round(z * 100)}%</span>
-                {z === 1 && <span className="text-[10px] text-neutral-400 font-mono">Ctrl+0</span>}
+                {z === 1 && <span className="text-[10px] text-muted-foreground font-mono">Ctrl+0</span>}
               </button>
             ))}
           </div>

@@ -46,7 +46,7 @@ interface Props {
 }
 
 function Separator() {
-  return <span className="h-6 w-px bg-black/10 mx-0.5 hidden sm:block" aria-hidden />;
+  return <span className="h-6 w-px bg-border mx-0.5 hidden sm:block" aria-hidden />;
 }
 
 export function PlannerTopbar({

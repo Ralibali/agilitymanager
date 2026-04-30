@@ -261,7 +261,7 @@ function SmartTipsPanel({ tips, onLog, onNavigate }: { tips: SmartTip[]; onLog: 
     return onNavigate("/v3/stats");
   };
   return (
-    <section className="rounded-2xl bg-white border border-forest/8 p-5">
+    <section className="rounded-2xl bg-card border border-border p-5">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex flex-col gap-2">
           <BrandPill color="lime" dot>
@@ -358,7 +358,7 @@ function DashboardHero({ greeting, name, heroCopy }: { greeting: string; name: s
         accent="both"
         className="absolute right-0 top-1/2 -translate-y-1/2 w-[400px] opacity-50"
       />
-      <div className="absolute right-12 bottom-6 h-14 w-14 rounded-full bg-white border-2 border-moss grid place-items-center shadow-sm" aria-hidden="true">
+      <div className="absolute right-12 bottom-6 h-14 w-14 rounded-full bg-card border-2 border-moss grid place-items-center shadow-sm" aria-hidden="true">
         <DogIcon size={26} strokeWidth={1.5} className="text-forest" />
       </div>
       <div className="relative max-w-2xl">
@@ -387,7 +387,7 @@ function ActionCard({ icon: Icon, title, description, accent, onClick }: { icon:
       type="button"
       onClick={onClick}
       className={cn(
-        "group text-left bg-white border border-forest/12 rounded-xl p-4 border-l-4 transition-all",
+        "group text-left bg-card border border-border rounded-xl p-4 border-l-4 transition-all",
         "hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest/20",
         styles.border,
       )}
@@ -408,7 +408,7 @@ function ActionCard({ icon: Icon, title, description, accent, onClick }: { icon:
 function NextUpSoftCard({ loading, hasNext, nextCopy, onOpen, onLog }: { loading: boolean; hasNext: boolean; nextCopy: { title: string; body: string }; onOpen: () => void; onLog: () => void }) {
   if (loading) return <div className="h-[164px] rounded-2xl v3-skeleton" />;
   return (
-    <section className="rounded-xl bg-white border border-forest/12 p-5 min-h-[164px]">
+    <section className="rounded-xl bg-card border border-border p-5 min-h-[164px]">
       <div className="flex items-center justify-between gap-3 mb-4">
         <h2 className="font-brand-display text-2xl text-forest">Nästa upp</h2>
         <button
@@ -465,7 +465,7 @@ function MetricCard({ icon: Icon, label, value, suffix, note, tone }: { icon: Lu
 function WeeklyOverviewCard({ hasActivity }: { hasActivity: boolean }) {
   const days = getCurrentWeekDays();
   return (
-    <section className="rounded-xl bg-white border border-forest/12 p-5">
+    <section className="rounded-xl bg-card border border-border p-5">
       <div className="flex items-center justify-between gap-3 mb-5">
         <h2 className="font-brand-display text-2xl text-forest">Veckans översikt</h2>
         <span className="text-[11px] text-stone">Automatisk översikt</span>

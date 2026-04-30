@@ -46,7 +46,7 @@ interface Props {
 }
 
 function Separator() {
-  return <span className="h-6 w-px bg-black/10 mx-0.5 hidden sm:block" aria-hidden />;
+  return <span className="h-6 w-px bg-border mx-0.5 hidden sm:block" aria-hidden />;
 }
 
 export function PlannerTopbar({
@@ -68,7 +68,7 @@ export function PlannerTopbar({
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-black/5 px-3 sm:px-4 py-2.5 flex items-center gap-2 sm:gap-3 transition-shadow",
+        "sticky top-0 z-40 bg-card/95 backdrop-blur border-b border-border px-3 sm:px-4 py-2.5 flex items-center gap-2 sm:gap-3 transition-shadow",
         scrolled && "shadow-[0_4px_12px_-6px_rgba(0,0,0,0.08)]",
       )}
     >
@@ -86,7 +86,7 @@ export function PlannerTopbar({
         onChange={(e) => onCourseNameChange(e.target.value)}
         aria-label="Banans namn"
         placeholder="Banans namn"
-        className="h-9 min-w-0 flex-1 max-w-[140px] sm:max-w-[280px] lg:max-w-[320px] px-3 rounded-full border border-black/10 bg-white text-sm font-semibold outline-none focus:ring-2 focus:ring-[#1a6b3c]/25"
+        className="h-9 min-w-0 flex-1 max-w-[140px] sm:max-w-[280px] lg:max-w-[320px] px-3 rounded-full border border-border bg-card text-sm font-semibold outline-none focus:ring-2 focus:ring-ring/40 text-foreground"
       />
       <span className="hidden lg:inline text-[11px] text-neutral-500 shrink-0" aria-live="polite">
         {savedAt
@@ -137,7 +137,7 @@ export function PlannerTopbar({
                 type="button"
                 aria-label="Fler åtgärder"
                 title="Fler åtgärder"
-                className="h-9 w-9 grid place-items-center rounded-full bg-white border border-black/10 text-neutral-700 hover:border-neutral-400"
+                className="h-9 w-9 grid place-items-center rounded-full bg-card border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40"
               >
                 <MoreHorizontal size={16} />
               </button>

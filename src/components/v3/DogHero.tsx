@@ -50,7 +50,7 @@ export function DogHero({ dogs, active, activeId, onSelect, onAddDog }: Props) {
 
   if (!active) {
     return (
-      <div className="rounded-2xl bg-white border border-forest/12 p-6 lg:p-8">
+      <div className="rounded-2xl bg-card border border-border p-6 lg:p-8">
         <p className="text-base text-stone mb-3">
           Lägg till din första hund för att börja logga pass och resultat.
         </p>
@@ -68,7 +68,7 @@ export function DogHero({ dogs, active, activeId, onSelect, onAddDog }: Props) {
 
   return (
     <section aria-label="Aktiv hund" className="space-y-3">
-      <div className="rounded-2xl bg-white border border-forest/12 p-5 mb-2">
+      <div className="rounded-2xl bg-card border border-border p-5 mb-2">
         <div className="flex items-center gap-4">
           <div
             className={cn(
@@ -124,7 +124,7 @@ export function DogHero({ dogs, active, activeId, onSelect, onAddDog }: Props) {
                   "flex items-center gap-2 h-9 pl-1 pr-3 rounded-full transition-all",
                   isActive
                     ? "bg-forest text-bone"
-                    : "bg-white border border-forest/12 hover:bg-bone-2",
+                    : "bg-card border border-border hover:bg-bone-2",
                 )}
               >
                 <span
@@ -152,7 +152,7 @@ export function DogHero({ dogs, active, activeId, onSelect, onAddDog }: Props) {
               type="button"
               onClick={onAddDog}
               aria-label="Lägg till hund"
-              className="h-9 w-9 rounded-full bg-white border border-forest/12 grid place-items-center text-stone hover:text-forest hover:bg-bone-2 transition-colors"
+              className="h-9 w-9 rounded-full bg-card border border-border grid place-items-center text-stone hover:text-forest hover:bg-bone-2 transition-colors"
             >
               <Plus size={16} strokeWidth={1.6} />
             </button>

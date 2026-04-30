@@ -33,6 +33,15 @@ jobs:
         run: npx tsc --noEmit
         continue-on-error: true # Typecheck skärps stegvis. Vi vill se rapporten utan att stoppa CI initialt.
 
+      - name: Hardcoded color scan
+        # Varnar om nya hårdkodade hex-/Tailwind-färger smyger in i UI-komponenter.
+        # Tröskel sätts via HARDCODED_COLOR_THRESHOLD så vi kan migrera stegvis
+        # utan att stoppa CI. Skärp tröskeln i takt med att vi tokenar mer.
+        env:
+          HARDCODED_COLOR_THRESHOLD: '280'
+        run: npm run check:colors:strict
+        continue-on-error: true
+
       - name: Test
         env:
           # Tester använder mockad Supabase-klient men Vite kräver att envs definieras.

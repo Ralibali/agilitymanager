@@ -1008,6 +1008,17 @@ export default function V3CoursePlannerV2Page() {
               {course.arenaWidthM} × {course.arenaHeightM} m · {times.lengthM.toFixed(1)} m · {course.obstacles.length} hinder
             </div>
           </div>
+          <CoursePlaybackControls
+            course={course}
+            active={playback2D}
+            onClose={() => setPlayback2D(false)}
+            t={playback.t}
+            setT={playback.setT}
+            playing={playback.playing}
+            setPlaying={playback.setPlaying}
+            speed={playback.speed}
+            setSpeed={playback.setSpeed}
+          />
           <ArenaCanvas
             svgRef={svgRef}
             course={course}
@@ -1018,6 +1029,8 @@ export default function V3CoursePlannerV2Page() {
             onPointerMove={handleSvgPointerMove}
             onPointerUp={handleSvgPointerUp}
             onBackgroundClick={() => setSelectedId(null)}
+            playbackActive={playback2D}
+            playbackT={playback.t}
           />
         </section>
 

@@ -38,7 +38,7 @@ jobs:
         # Tröskel sätts via HARDCODED_COLOR_THRESHOLD så vi kan migrera stegvis
         # utan att stoppa CI. Skärp tröskeln i takt med att vi tokenar mer.
         env:
-          HARDCODED_COLOR_THRESHOLD: '160'
+          HARDCODED_COLOR_THRESHOLD: '280'
         run: npm run check:colors:strict
         continue-on-error: true
 

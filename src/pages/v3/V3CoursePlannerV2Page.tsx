@@ -755,7 +755,7 @@ export default function V3CoursePlannerV2Page() {
   }), [course, selectedId, handleSaveAll, undo, redo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="min-h-[100dvh] bg-[#f9f8f6] text-neutral-900">
+    <div className="min-h-[100dvh] bg-[#f9f8f6] text-neutral-900 pb-[max(env(safe-area-inset-bottom),5rem)] lg:pb-0">
       {/* TOPBAR — strukturerad med funktionell gruppering, kebab-overflow på mobil */}
       <PlannerTopbar
         courseName={course.name}

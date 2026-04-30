@@ -358,7 +358,7 @@ function DashboardHero({ greeting, name, heroCopy }: { greeting: string; name: s
         accent="both"
         className="absolute right-0 top-1/2 -translate-y-1/2 w-[400px] opacity-50"
       />
-      <div className="absolute right-12 bottom-6 h-14 w-14 rounded-full bg-white border-2 border-moss grid place-items-center shadow-sm" aria-hidden="true">
+      <div className="absolute right-12 bottom-6 h-14 w-14 rounded-full bg-card border-2 border-moss grid place-items-center shadow-sm" aria-hidden="true">
         <DogIcon size={26} strokeWidth={1.5} className="text-forest" />
       </div>
       <div className="relative max-w-2xl">

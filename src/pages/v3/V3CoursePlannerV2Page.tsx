@@ -1003,6 +1003,21 @@ export default function V3CoursePlannerV2Page() {
               >
                 Banlinje
               </button>
+              <button
+                type="button"
+                onClick={() => setShowDimensions((v) => !v)}
+                title="Visa banmått (linjaler i meter)"
+                aria-label="Visa mått"
+                aria-pressed={showDimensions}
+                className={cn(
+                  "h-9 px-3 rounded-full text-[12px] font-semibold border inline-flex items-center gap-1.5 transition",
+                  showDimensions
+                    ? "bg-[#1a6b3c] text-white border-[#1a6b3c]"
+                    : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
+                )}
+              >
+                <Ruler size={13} /> Mått
+              </button>
             </div>
             <div className="text-[11px] text-neutral-500 shrink-0">
               {course.arenaWidthM} × {course.arenaHeightM} m · {times.lengthM.toFixed(1)} m · {course.obstacles.length} hinder

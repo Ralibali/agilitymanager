@@ -1179,7 +1179,7 @@ function ArenaCanvas({
         {Array.from({ length: h + 1 }).map((_, i) => (
           <line key={`hz${i}`} x1={0} y1={i} x2={w} y2={i} stroke="#173d2c" strokeWidth={i % 5 === 0 ? 0.04 : 0.015} opacity={i % 5 === 0 ? 0.45 : 0.25} />
         ))}
-        {showPath && pathD && (
+        {showPath && pathD && !playbackActive && (
           <path d={pathD} fill="none" stroke="#c85d1e" strokeWidth={0.18} strokeDasharray="0.5 0.3" strokeLinecap="round" opacity={0.85} />
         )}
         {[...course.obstacles]
@@ -1198,6 +1198,7 @@ function ArenaCanvas({
               onPointerDown={(e) => onObstacleDown(e, ob.id)}
             />
           ))}
+        <CoursePlaybackOverlay course={course} active={playbackActive} t={playbackT} />
       </svg>
     </div>
   );

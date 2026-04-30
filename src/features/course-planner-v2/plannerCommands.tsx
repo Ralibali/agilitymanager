@@ -44,9 +44,10 @@ export interface PlannerCommandHandlers {
   exportBuildPdf: () => void;
   exportStartlist: () => void;
 
-  // 3D
+  // 3D / Uppspelning
   open3DView: () => void;
   open3DWalk: () => void;
+  play2D: () => void;
 
   // Redigering
   undo: () => void;
@@ -193,8 +194,14 @@ export function buildPlannerCommands(h: PlannerCommandHandlers): PaletteCommand[
     },
   );
 
-  // ───────── 3D ─────────
+  // ───────── 3D & Uppspelning ─────────
   cmds.push(
+    {
+      id: "view.play2d", group: "Uppspelning", label: "Spela upp banan (2D)",
+      hint: "Animerad rutt mellan numrerade hinder",
+      keywords: ["spela", "play", "uppspelning", "rutt", "animation", "2d"],
+      icon: <Footprints size={14} />, run: h.play2D,
+    },
     {
       id: "view.3d", group: "3D", label: "Visa 3D-vy",
       hint: "Öppnar banan i 3D",

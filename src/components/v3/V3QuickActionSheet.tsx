@@ -57,11 +57,11 @@ export function V3QuickActionSheet({ open, onClose, onLogTraining }: Props) {
         <div className="relative bg-v3-text-primary text-v3-text-inverse px-5 pt-4 pb-5">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-v3-brand-500/20" />
           <div className="relative flex justify-center pb-3">
-            <span className="h-1 w-9 rounded-full bg-white/25" />
+            <span className="h-1 w-9 rounded-full bg-card/25" />
           </div>
           <div className="relative flex items-start justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] tracking-[0.04em] text-white/70 mb-3">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-card/10 px-2.5 py-1 text-[10px] tracking-[0.04em] text-white/70 mb-3">
                 <Heart size={12} /> Teamets nästa steg
               </div>
               <h2 className="font-v3-display text-[26px] leading-tight text-white">Vad vill du fånga nu?</h2>
@@ -73,7 +73,7 @@ export function V3QuickActionSheet({ open, onClose, onLogTraining }: Props) {
               type="button"
               onClick={onClose}
               aria-label="Stäng"
-              className="h-8 w-8 grid place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white transition-colors shrink-0"
+              className="h-8 w-8 grid place-items-center rounded-full text-white/70 hover:bg-card/10 hover:text-white transition-colors shrink-0"
             >
               <X size={16} strokeWidth={1.6} />
             </button>

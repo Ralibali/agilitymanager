@@ -755,7 +755,7 @@ export default function V3CoursePlannerV2Page() {
   }), [course, selectedId, handleSaveAll, undo, redo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="min-h-[100dvh] bg-[#f9f8f6] text-neutral-900 pb-[max(env(safe-area-inset-bottom),5rem)] lg:pb-0">
+    <div className="min-h-[100dvh] bg-background text-neutral-900 pb-[max(env(safe-area-inset-bottom),5rem)] lg:pb-0">
       {/* TOPBAR — strukturerad med funktionell gruppering, kebab-overflow på mobil */}
       <PlannerTopbar
         courseName={course.name}
@@ -848,7 +848,7 @@ export default function V3CoursePlannerV2Page() {
       )}
 
       {issuesOpen && (
-        <div className="bg-white border-b border-black/5 px-4 py-3 max-h-[40vh] overflow-y-auto">
+        <div className="bg-card border-b border-border px-4 py-3 max-h-[40vh] overflow-y-auto">
           <IssuesList issues={issues} onSelect={(id) => { if (id) setSelectedId(id); }} />
         </div>
       )}
@@ -867,7 +867,7 @@ export default function V3CoursePlannerV2Page() {
       {/* MAIN GRID */}
       <main className="grid gap-3 p-3 lg:p-4 lg:grid-cols-[280px_minmax(0,1fr)_320px]">
         {/* LEFT — gömd på mobil (visningsläge) */}
-        <aside className="hidden lg:block rounded-2xl bg-white border border-black/6 p-3 space-y-4 max-h-[calc(100dvh-90px)] overflow-y-auto">
+        <aside className="hidden lg:block rounded-2xl bg-card border border-border p-3 space-y-4 max-h-[calc(100dvh-90px)] overflow-y-auto">
           <section>
             <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Hinder</h3>
             <div className="space-y-3">
@@ -880,7 +880,7 @@ export default function V3CoursePlannerV2Page() {
                         key={def.type}
                         onClick={() => placeObstacle(def.type)}
                         title={`${def.label} — ${def.description}`}
-                        className="aspect-square rounded-lg border border-black/8 bg-neutral-50 hover:bg-[#1a6b3c]/5 hover:border-[#1a6b3c]/30 grid place-items-center text-[10px] font-medium text-neutral-700 leading-tight px-1 text-center transition"
+                        className="aspect-square rounded-lg border border-border bg-neutral-50 hover:bg-[#1a6b3c]/5 hover:border-[#1a6b3c]/30 grid place-items-center text-[10px] font-medium text-neutral-700 leading-tight px-1 text-center transition"
                       >
                         <ObstacleGlyph type={def.type} />
                         <span className="mt-1 line-clamp-1">{def.label}</span>
@@ -903,7 +903,7 @@ export default function V3CoursePlannerV2Page() {
                     "h-9 px-2.5 rounded-lg text-left text-[12px] font-medium border transition",
                     course.classTemplate === t.key
                       ? "bg-[#1a6b3c] text-white border-[#1a6b3c]"
-                      : "bg-white text-neutral-700 border-black/8 hover:border-[#1a6b3c]/30",
+                      : "bg-card text-neutral-700 border-border hover:border-[#1a6b3c]/30",
                   )}
                 >
                   {t.label}
@@ -923,7 +923,7 @@ export default function V3CoursePlannerV2Page() {
                     "h-8 rounded-lg text-[11px] font-semibold border transition",
                     course.arenaWidthM === p.width && course.arenaHeightM === p.height
                       ? "bg-neutral-900 text-white border-neutral-900"
-                      : "bg-white text-neutral-700 border-black/8 hover:border-neutral-400",
+                      : "bg-card text-neutral-700 border-border hover:border-neutral-400",
                   )}
                 >
                   {p.label}
@@ -934,7 +934,7 @@ export default function V3CoursePlannerV2Page() {
         </aside>
 
         {/* CENTER — banyta */}
-        <section className="rounded-2xl bg-white border border-black/6 p-3 min-w-0">
+        <section className="rounded-2xl bg-card border border-border p-3 min-w-0">
           <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
             <div className={cn("flex items-center gap-1.5 flex-wrap", isMobile && "hidden")}>
               {/* Grupp: ritverktyg */}
@@ -949,7 +949,7 @@ export default function V3CoursePlannerV2Page() {
                 onClick={autoRenumber}
                 title="Auto-numrera hinder utifrån positionsordning"
                 aria-label="Auto-numrera"
-                className="h-9 px-3 rounded-full text-[12px] font-semibold bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 transition"
+                className="h-9 px-3 rounded-full text-[12px] font-semibold bg-card border border-border text-neutral-700 hover:border-neutral-400 transition"
               >
                 Auto-numrera
               </button>
@@ -963,7 +963,7 @@ export default function V3CoursePlannerV2Page() {
                 disabled={historyRef.current.past.length === 0}
                 title="Ångra (Ctrl+Z)"
                 aria-label="Ångra"
-                className="h-9 w-9 grid place-items-center rounded-full bg-white border border-black/10 hover:border-neutral-400 disabled:opacity-30 transition"
+                className="h-9 w-9 grid place-items-center rounded-full bg-card border border-border hover:border-neutral-400 disabled:opacity-30 transition"
               >
                 <Undo2 size={14} />
               </button>
@@ -973,7 +973,7 @@ export default function V3CoursePlannerV2Page() {
                 disabled={historyRef.current.future.length === 0}
                 title="Gör om (Ctrl+Shift+Z)"
                 aria-label="Gör om"
-                className="h-9 w-9 grid place-items-center rounded-full bg-white border border-black/10 hover:border-neutral-400 disabled:opacity-30 transition"
+                className="h-9 w-9 grid place-items-center rounded-full bg-card border border-border hover:border-neutral-400 disabled:opacity-30 transition"
               >
                 <Redo2 size={14} />
               </button>
@@ -983,7 +983,7 @@ export default function V3CoursePlannerV2Page() {
                 disabled={!selected}
                 title="Duplicera markerat hinder (Ctrl+D)"
                 aria-label="Duplicera"
-                className="h-9 w-9 grid place-items-center rounded-full bg-white border border-black/10 hover:border-neutral-400 disabled:opacity-30 transition"
+                className="h-9 w-9 grid place-items-center rounded-full bg-card border border-border hover:border-neutral-400 disabled:opacity-30 transition"
               >
                 <Copy size={14} />
               </button>
@@ -1001,7 +1001,7 @@ export default function V3CoursePlannerV2Page() {
                   "h-9 px-3 rounded-full text-[12px] font-semibold border inline-flex items-center gap-1.5 transition",
                   snap
                     ? "bg-[#1a6b3c] text-white border-[#1a6b3c]"
-                    : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
+                    : "bg-card text-neutral-700 border-border hover:border-neutral-400",
                 )}
               >
                 <Magnet size={13} /> Snap
@@ -1016,7 +1016,7 @@ export default function V3CoursePlannerV2Page() {
                   "h-9 px-3 rounded-full text-[12px] font-semibold border inline-flex items-center transition",
                   showPath
                     ? "bg-[#1a6b3c] text-white border-[#1a6b3c]"
-                    : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
+                    : "bg-card text-neutral-700 border-border hover:border-neutral-400",
                 )}
               >
                 Banlinje
@@ -1031,7 +1031,7 @@ export default function V3CoursePlannerV2Page() {
                   "h-9 px-3 rounded-full text-[12px] font-semibold border inline-flex items-center gap-1.5 transition",
                   showDimensions
                     ? "bg-[#1a6b3c] text-white border-[#1a6b3c]"
-                    : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
+                    : "bg-card text-neutral-700 border-border hover:border-neutral-400",
                 )}
               >
                 <Ruler size={13} /> Mått
@@ -1069,7 +1069,7 @@ export default function V3CoursePlannerV2Page() {
         </section>
 
         {/* RIGHT */}
-        <aside className="hidden lg:block rounded-2xl bg-white border border-black/6 p-3 space-y-4 max-h-[calc(100dvh-90px)] overflow-y-auto">
+        <aside className="hidden lg:block rounded-2xl bg-card border border-border p-3 space-y-4 max-h-[calc(100dvh-90px)] overflow-y-auto">
           {/* Storleksklass — alltid synlig */}
           <section>
             <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Storleksklass</h3>
@@ -1082,7 +1082,7 @@ export default function V3CoursePlannerV2Page() {
                     "h-9 rounded-lg text-[12px] font-bold border transition",
                     course.sizeClass === s.key
                       ? "bg-[#c85d1e] text-white border-[#c85d1e]"
-                      : "bg-white text-neutral-700 border-black/8 hover:border-[#c85d1e]/40",
+                      : "bg-card text-neutral-700 border-border hover:border-[#c85d1e]/40",
                   )}
                 >
                   {s.label}
@@ -1134,7 +1134,7 @@ function SegmentedSport({ value, onChange }: { value: Sport; onChange: (s: Sport
           onClick={() => onChange(s)}
           className={cn(
             "h-8 px-3 rounded-full text-[11px] font-semibold uppercase tracking-wide transition",
-            value === s ? "bg-white text-[#1a6b3c] shadow-sm" : "text-neutral-500",
+            value === s ? "bg-card text-[#1a6b3c] shadow-sm" : "text-neutral-500",
           )}
         >
           {s === "agility" ? "Agility" : "Hoopers"}
@@ -1159,7 +1159,7 @@ function ToolBtn({ active, onClick, icon, children, title }: { active: boolean; 
         "h-9 px-3 rounded-full text-[12px] font-semibold inline-flex items-center gap-1.5 transition border",
         active
           ? "bg-neutral-900 text-white border-neutral-900"
-          : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
+          : "bg-card text-neutral-700 border-border hover:border-neutral-400",
       )}
     >
       {icon}{children}
@@ -1465,7 +1465,7 @@ function SelectedPanel({
   return (
     <section>
       <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Valt hinder</h3>
-      <div className="rounded-xl border border-black/8 p-3 bg-neutral-50 space-y-2">
+      <div className="rounded-xl border border-border p-3 bg-neutral-50 space-y-2">
         <div className="flex items-baseline justify-between">
           <div className="font-semibold text-sm">{def.label}</div>
           <div className="text-[10px] text-neutral-500">{def.category}</div>
@@ -1494,10 +1494,10 @@ function SelectedPanel({
       </div>
 
       <div className="grid grid-cols-2 gap-1.5 mt-3">
-        <button onClick={() => onRotate(15)} disabled={locked} className="h-9 rounded-lg bg-white border border-black/10 text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed">
+        <button onClick={() => onRotate(15)} disabled={locked} className="h-9 rounded-lg bg-card border border-border text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed">
           <RotateCw size={13} /> Rotera 15°
         </button>
-        <button onClick={() => onRotate(90)} disabled={locked} className="h-9 rounded-lg bg-white border border-black/10 text-[12px] font-semibold hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed">
+        <button onClick={() => onRotate(90)} disabled={locked} className="h-9 rounded-lg bg-card border border-border text-[12px] font-semibold hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed">
           Rotera 90°
         </button>
       </div>
@@ -1508,7 +1508,7 @@ function SelectedPanel({
           "mt-2 w-full h-9 rounded-lg text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 border transition",
           locked
             ? "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
-            : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
+            : "bg-card text-neutral-700 border-border hover:border-neutral-400",
         )}
         title="Lås/lås upp hindret (förhindrar drag, rotation och radering)"
       >
@@ -1518,10 +1518,10 @@ function SelectedPanel({
       <div className="mt-3">
         <div className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-1">Stapelordning</div>
         <div className="grid grid-cols-4 gap-1">
-          <button onClick={onSendToBack} title="Längst bak (Ctrl+Shift+[)" className="h-8 rounded-lg bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowDownToLine size={13} /></button>
-          <button onClick={onSendBackward} title="Bakåt ett steg (Ctrl+[)" className="h-8 rounded-lg bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowDown size={13} /></button>
-          <button onClick={onBringForward} title="Framåt ett steg (Ctrl+])" className="h-8 rounded-lg bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowUp size={13} /></button>
-          <button onClick={onBringToFront} title="Längst fram (Ctrl+Shift+])" className="h-8 rounded-lg bg-white border border-black/10 text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowUpToLine size={13} /></button>
+          <button onClick={onSendToBack} title="Längst bak (Ctrl+Shift+[)" className="h-8 rounded-lg bg-card border border-border text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowDownToLine size={13} /></button>
+          <button onClick={onSendBackward} title="Bakåt ett steg (Ctrl+[)" className="h-8 rounded-lg bg-card border border-border text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowDown size={13} /></button>
+          <button onClick={onBringForward} title="Framåt ett steg (Ctrl+])" className="h-8 rounded-lg bg-card border border-border text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowUp size={13} /></button>
+          <button onClick={onBringToFront} title="Längst fram (Ctrl+Shift+])" className="h-8 rounded-lg bg-card border border-border text-neutral-700 hover:border-neutral-400 grid place-items-center"><ArrowUpToLine size={13} /></button>
         </div>
         <div className="text-[10px] text-neutral-500 mt-1">Lager: {obstacle.zIndex ?? 0}</div>
       </div>
@@ -1537,11 +1537,11 @@ function SelectedPanel({
           }}
           min={1}
           disabled={locked}
-          className="h-9 w-20 px-2 rounded-lg border border-black/10 text-[12px] disabled:opacity-50"
+          className="h-9 w-20 px-2 rounded-lg border border-border text-[12px] disabled:opacity-50"
         />
       </div>
       {isTunnel && onTunnelCurve && (
-        <div className="mt-3 rounded-xl border border-black/8 p-3 bg-white space-y-2">
+        <div className="mt-3 rounded-xl border border-border p-3 bg-card space-y-2">
           <div className="flex items-baseline justify-between">
             <div className="text-[11px] font-semibold text-neutral-700">Tunnelböjning</div>
             <div className="text-[11px] text-neutral-500">{curveDeg}°</div>
@@ -1556,12 +1556,12 @@ function SelectedPanel({
             <button
               onClick={() => onTunnelCurve({ curveSide: "left" })}
               disabled={locked}
-              className={cn("h-8 rounded-lg text-[11px] font-semibold border disabled:opacity-40", curveSide === "left" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/10")}
+              className={cn("h-8 rounded-lg text-[11px] font-semibold border disabled:opacity-40", curveSide === "left" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-card text-neutral-700 border-border")}
             >Vänster</button>
             <button
               onClick={() => onTunnelCurve({ curveSide: "right" })}
               disabled={locked}
-              className={cn("h-8 rounded-lg text-[11px] font-semibold border disabled:opacity-40", curveSide === "right" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-white text-neutral-700 border-black/10")}
+              className={cn("h-8 rounded-lg text-[11px] font-semibold border disabled:opacity-40", curveSide === "right" ? "bg-[#1a6b3c] text-white border-[#1a6b3c]" : "bg-card text-neutral-700 border-border")}
             >Höger</button>
           </div>
           <button
@@ -1596,7 +1596,7 @@ function SummaryPanel({ course }: { course: CourseV2 }) {
   return (
     <section>
       <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Översikt</h3>
-      <div className="rounded-xl border border-black/8 p-3 bg-neutral-50 space-y-1.5 text-[12px]">
+      <div className="rounded-xl border border-border p-3 bg-neutral-50 space-y-1.5 text-[12px]">
         <Row label="Sport" value={course.sport === "agility" ? "Agility" : "Hoopers"} />
         <Row label="Klass" value={tpl?.label ?? "Ingen mall"} />
         <Row label="Banstorlek" value={`${course.arenaWidthM} × ${course.arenaHeightM} m`} />

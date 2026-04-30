@@ -57,7 +57,7 @@ export default function CookieBanner() {
       aria-labelledby="cookie-banner-title"
       className="fixed inset-x-0 bottom-0 z-[9999] px-3 pb-3 sm:px-4 sm:pb-4 pointer-events-none"
     >
-      <div className="mx-auto max-w-3xl rounded-3xl bg-white shadow-2xl border border-black/10 pointer-events-auto overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+      <div className="mx-auto max-w-3xl rounded-3xl bg-card shadow-2xl border border-border pointer-events-auto overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
         <div className="p-5 sm:p-6">
           <div className="flex items-start gap-3">
             <div className="shrink-0 w-10 h-10 rounded-full bg-[#1a6b3c]/10 flex items-center justify-center">
@@ -71,7 +71,7 @@ export default function CookieBanner() {
               >
                 Vi använder cookies
               </h2>
-              <p className="text-sm text-black/65 mt-1 leading-relaxed">
+              <p className="text-sm text-foreground/65 mt-1 leading-relaxed">
                 Vi använder cookies för att appen ska fungera, mäta hur den används och förbättra
                 upplevelsen. Du bestämmer själv vilka kategorier du tillåter.{" "}
                 <Link to="/cookiepolicy" className="underline text-[#1a6b3c] hover:text-[#c85d1e]">
@@ -85,7 +85,7 @@ export default function CookieBanner() {
                 type="button"
                 aria-label="Stäng"
                 onClick={() => setOpen(false)}
-                className="shrink-0 -mr-1 -mt-1 p-1.5 rounded-full hover:bg-black/5 text-black/50"
+                className="shrink-0 -mr-1 -mt-1 p-1.5 rounded-full hover:bg-black/5 text-foreground/50"
               >
                 <X size={16} />
               </button>
@@ -124,7 +124,7 @@ export default function CookieBanner() {
             <button
               type="button"
               onClick={() => setShowDetails((v) => !v)}
-              className="inline-flex items-center justify-center gap-1.5 h-10 px-3 text-sm font-medium text-black/70 hover:text-black"
+              className="inline-flex items-center justify-center gap-1.5 h-10 px-3 text-sm font-medium text-foreground/70 hover:text-foreground"
             >
               {showDetails ? (
                 <>
@@ -141,7 +141,7 @@ export default function CookieBanner() {
               <button
                 type="button"
                 onClick={handleRejectAll}
-                className="h-10 px-4 rounded-full text-sm font-medium border border-black/15 bg-white text-black/80 hover:bg-black/[0.03]"
+                className="h-10 px-4 rounded-full text-sm font-medium border border-border bg-card text-foreground/80 hover:bg-black/[0.03]"
               >
                 Avböj alla
               </button>
@@ -186,8 +186,8 @@ function CategoryRow({
   onChange?: (v: boolean) => void;
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-black/10 bg-[#f9f8f6] p-3">
-      <div className="shrink-0 w-8 h-8 rounded-full bg-white border border-black/5 flex items-center justify-center text-[#1a6b3c]">
+    <div className="flex items-start gap-3 rounded-2xl border border-border bg-background p-3">
+      <div className="shrink-0 w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-[#1a6b3c]">
         {icon}
       </div>
       <div className="flex-1 min-w-0">
@@ -195,7 +195,7 @@ function CategoryRow({
           <div className="font-medium text-sm text-[#172016]">{title}</div>
           <Toggle checked={checked} disabled={disabled} onChange={onChange} />
         </div>
-        <p className="text-xs text-black/60 mt-0.5 leading-relaxed">{description}</p>
+        <p className="text-xs text-foreground/60 mt-0.5 leading-relaxed">{description}</p>
       </div>
     </div>
   );
@@ -222,7 +222,7 @@ function Toggle({
       } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
     >
       <span
-        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+        className={`inline-block h-5 w-5 transform rounded-full bg-card shadow transition-transform ${
           checked ? "translate-x-5" : "translate-x-0.5"
         }`}
       />

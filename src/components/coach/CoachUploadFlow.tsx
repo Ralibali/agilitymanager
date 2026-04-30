@@ -194,9 +194,9 @@ export default function CoachUploadFlow({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !submitting && onOpenChange(o)}>
-      <DialogContent className="max-w-lg p-0 overflow-hidden bg-white">
+      <DialogContent className="max-w-lg p-0 overflow-hidden bg-card">
         {/* Header med stegindikator */}
-        <DialogHeader className="px-6 pt-6 pb-3 border-b border-black/5">
+        <DialogHeader className="px-6 pt-6 pb-3 border-b border-border">
           <DialogTitle className="font-display text-[20px] text-forest">
             {step === 1 && "Välj paket"}
             {step === 2 && "Ladda upp din video"}
@@ -251,7 +251,7 @@ export default function CoachUploadFlow({
 
         {/* Footer-knappar */}
         {step !== 4 && (
-          <div className="px-6 py-4 border-t border-black/5 bg-cream/40 flex items-center justify-between gap-3">
+          <div className="px-6 py-4 border-t border-border bg-cream/40 flex items-center justify-between gap-3">
             <Button
               variant="ghost"
               onClick={step === 1 ? () => onOpenChange(false) : goBack}
@@ -319,7 +319,7 @@ function PackPicker({ pack, onChange }: { pack: CoachPackId; onChange: (p: Coach
             key={p.id}
             htmlFor={`pack-${p.id}`}
             className={`flex items-center gap-3 rounded-2xl border p-4 cursor-pointer transition ${
-              checked ? "border-forest bg-forest/[0.04] ring-1 ring-forest/30" : "border-stone/15 bg-white hover:bg-cream/60"
+              checked ? "border-forest bg-forest/[0.04] ring-1 ring-forest/30" : "border-stone/15 bg-card hover:bg-cream/60"
             }`}
           >
             <RadioGroupItem id={`pack-${p.id}`} value={p.id} className="mt-0.5" />
@@ -389,7 +389,7 @@ function VideoPicker({
           <div className="text-[12px] text-stone">MP4, MOV, WEBM eller M4V · Max 20 MB</div>
         </label>
       ) : (
-        <div className="rounded-2xl border border-stone/15 bg-white p-3">
+        <div className="rounded-2xl border border-stone/15 bg-card p-3">
           <div className="flex items-start gap-3">
             <div className="w-12 h-12 rounded-xl bg-forest/10 flex items-center justify-center shrink-0">
               <Video size={18} className="text-forest" />
@@ -426,7 +426,7 @@ function VideoPicker({
               type="button"
               onClick={() => setSport(s)}
               className={`px-3 h-9 rounded-full text-[13px] capitalize border transition ${
-                sport === s ? "bg-forest text-white border-forest" : "bg-white text-text-secondary border-stone/20 hover:bg-cream/60"
+                sport === s ? "bg-forest text-white border-forest" : "bg-card text-text-secondary border-stone/20 hover:bg-cream/60"
               }`}
             >
               {s}
@@ -451,7 +451,7 @@ function VideoPicker({
                 type="button"
                 onClick={() => setPrivacyMode(opt.id)}
                 className={`text-left rounded-2xl border p-3 transition ${
-                  checked ? "border-forest bg-forest/[0.04] ring-1 ring-forest/30" : "border-stone/15 bg-white hover:bg-cream/60"
+                  checked ? "border-forest bg-forest/[0.04] ring-1 ring-forest/30" : "border-stone/15 bg-card hover:bg-cream/60"
                 }`}
               >
                 <div className="text-[13px] font-medium text-text-primary">{opt.title}</div>

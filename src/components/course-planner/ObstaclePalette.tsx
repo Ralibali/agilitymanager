@@ -62,7 +62,7 @@ function SportToggle({
             className={[
               'h-7 w-full rounded-[4px] text-[10px] font-medium uppercase tracking-[0.06em] transition-colors',
               active
-                ? 'bg-white text-[#1a6b3c] shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+                ? 'bg-card text-[#1a6b3c] shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
                 : 'text-neutral-500 hover:text-neutral-800',
             ].join(' ')}
             title={s === 'agility' ? 'Agility (A)' : 'Hoopers (H)'}
@@ -115,7 +115,7 @@ function PaletteItem({
               'cursor-grab active:cursor-grabbing',
               armed
                 ? 'bg-[#1a6b3c] border-[#1a6b3c] text-white shadow-[0_0_0_2px_rgba(26,107,60,0.2)]'
-                : 'bg-white border-black/[0.06] text-neutral-700 hover:border-black/[0.16] hover:text-[#1a6b3c]',
+                : 'bg-card border-border/[0.06] text-neutral-700 hover:border-border/[0.16] hover:text-[#1a6b3c]',
               isDragging ? 'opacity-30' : '',
             ].join(' ')}
             aria-label={`${def.label} – klicka för att placera, dra för att placera direkt`}
@@ -130,7 +130,7 @@ function PaletteItem({
           className="bg-neutral-900 text-white border-neutral-900 text-[11px] py-1 px-2"
         >
           <span>{def.label}</span>
-          <kbd className="ml-2 inline-flex h-4 min-w-[16px] items-center justify-center rounded bg-white/20 px-1 text-[9px] font-mono">
+          <kbd className="ml-2 inline-flex h-4 min-w-[16px] items-center justify-center rounded bg-card/20 px-1 text-[9px] font-mono">
             {def.shortcut}
           </kbd>
           {armed && (

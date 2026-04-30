@@ -73,7 +73,7 @@ export function HeroCard({
               className={cn(
                 "w-9 h-9 rounded-ds-md flex items-center justify-center",
                 variant === "inverse"
-                  ? "bg-white/8 text-text-on-inverse"
+                  ? "bg-card/8 text-text-on-inverse"
                   : "bg-subtle text-text-primary",
               )}
             >

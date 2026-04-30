@@ -51,7 +51,7 @@ export default function CourseCommentsPanel({ courseId, enabled }: Props) {
 
   if (!enabled || !courseId) return null;
   return (
-    <section className="rounded-2xl bg-white border border-black/6 p-3">
+    <section className="rounded-2xl bg-card border border-border p-3">
       <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2 inline-flex items-center gap-1.5">
         <MessageSquare size={12} /> Kommentarer {items.length > 0 && <span className="text-neutral-400">· {items.length}</span>}
       </h3>
@@ -59,7 +59,7 @@ export default function CourseCommentsPanel({ courseId, enabled }: Props) {
         <div className="flex items-start gap-1.5 mb-3">
           <textarea value={text} onChange={(e) => setText(e.target.value)} rows={2} maxLength={2000}
             placeholder="Skriv en kommentar..."
-            className="flex-1 text-[12px] rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:ring-2 focus:ring-[#1a6b3c]/25 resize-none" />
+            className="flex-1 text-[12px] rounded-lg border border-border px-2 py-1.5 outline-none focus:ring-2 focus:ring-[#1a6b3c]/25 resize-none" />
           <button onClick={submit} disabled={posting || !text.trim()}
             className="h-8 w-8 grid place-items-center rounded-lg bg-[#1a6b3c] text-white disabled:opacity-40">
             {posting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}

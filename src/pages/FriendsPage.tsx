@@ -361,7 +361,7 @@ export default function FriendsPage() {
         <DialogContent className="max-w-xs text-center">
           <DialogHeader><DialogTitle>Min QR-kod</DialogTitle></DialogHeader>
           <div className="flex flex-col items-center gap-4 py-4">
-            <div className="bg-white p-4 rounded-xl">
+            <div className="bg-card p-4 rounded-xl">
               <QRCodeSVG value={`${window.location.origin}/invite/${myProfile?.referral_code || ''}`} size={200} />
             </div>
             <p className="text-sm text-muted-foreground">Visa för din kompis att scanna!</p>

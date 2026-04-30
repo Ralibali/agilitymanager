@@ -53,7 +53,7 @@ export function ObstacleContextMenu({
   return (
     <div
       ref={ref}
-      className="fixed z-50 bg-white border border-black/[0.08] rounded-md shadow-lg py-1 min-w-[180px]"
+      className="fixed z-50 bg-card border border-border/[0.08] rounded-md shadow-lg py-1 min-w-[180px]"
       style={{ left: adjX, top: adjY }}
       onContextMenu={(e) => e.preventDefault()}
     >

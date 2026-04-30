@@ -311,7 +311,7 @@ export function V3EditDogSheet({ open, dog, onClose, onSaved }: Props) {
               </div>
             </div>
             <span className={cn("h-5 w-9 rounded-full relative transition-colors", form.is_active_competition_dog ? "bg-v3-brand-500" : "bg-v3-canvas-sunken")}>
-              <span className={cn("absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform", form.is_active_competition_dog ? "translate-x-[18px]" : "translate-x-0.5")} />
+              <span className={cn("absolute top-0.5 h-4 w-4 rounded-full bg-card transition-transform", form.is_active_competition_dog ? "translate-x-[18px]" : "translate-x-0.5")} />
             </span>
           </button>
 

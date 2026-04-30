@@ -814,7 +814,7 @@ function CompCard({
           {date}
         </span>
         {daysLeft !== null && (
-          <span className="text-[10px] font-medium px-2 py-0.5 bg-white/20 text-white" style={{ borderRadius: 'var(--radius-pill)' }}>
+          <span className="text-[10px] font-medium px-2 py-0.5 bg-card/20 text-white" style={{ borderRadius: 'var(--radius-pill)' }}>
             {daysLeft} dagar kvar
           </span>
         )}

@@ -68,7 +68,7 @@ export function PlannerTopbar({
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-black/5 px-3 sm:px-4 py-2.5 flex items-center gap-2 sm:gap-3 transition-shadow",
+        "sticky top-0 z-40 bg-card/95 backdrop-blur border-b border-border px-3 sm:px-4 py-2.5 flex items-center gap-2 sm:gap-3 transition-shadow",
         scrolled && "shadow-[0_4px_12px_-6px_rgba(0,0,0,0.08)]",
       )}
     >

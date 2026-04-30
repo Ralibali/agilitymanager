@@ -6,6 +6,49 @@
 
 @layer base {
   :root {
+    /* === Slate / Amber / Cyan-skala (rebrand v5 — alltid tillgänglig som rå skala) === */
+    --slate-950: 213 32% 6%;     /* #0A0E13 */
+    --slate-900: 213 27% 9%;     /* #11161D */
+    --slate-800: 213 21% 13%;    /* #1A2129 */
+    --slate-700: 213 19% 18%;    /* #252E38 */
+    --slate-600: 213 17% 28%;    /* #3A4552 */
+    --slate-500: 213 15% 36%;    /* #4F5C6B */
+    --slate-400: 213 9% 59%;     /* #8B95A1 */
+    --slate-300: 213 11% 74%;    /* #B4BCC7 */
+    --slate-200: 213 14% 86%;    /* #D4DAE2 */
+    --slate-100: 213 19% 93%;    /* #E8ECF1 */
+    --slate-50:  213 22% 97%;    /* #F5F7FA */
+
+    --amber-50:  48 100% 96%;
+    --amber-100: 48 96% 89%;
+    --amber-300: 45 97% 65%;     /* #FCD34D */
+    --amber-500: 38 92% 50%;     /* #F59E0B  PRIMÄR ACCENT */
+    --amber-600: 32 95% 44%;     /* #D97706 */
+    --amber-700: 26 90% 37%;     /* #B45309 */
+
+    --cyan-300: 187 85% 69%;     /* #67E8F9 */
+    --cyan-500: 189 94% 43%;     /* #06B6D4 */
+    --cyan-600: 192 91% 36%;     /* #0891B2 */
+
+    --coral-400: 351 95% 71%;
+    --coral-500: 350 89% 60%;
+    --emerald-500: 160 84% 39%;
+
+    /* === Brand foundation CSS-vars (light = original "Varm Sand"-värden) === */
+    --bf-bone: 42 39% 94%;       /* #F5F1E8 */
+    --bf-bone-2: 41 28% 89%;     /* #ECE7DA */
+    --bf-cream: 42 51% 96%;      /* #FAF6EE */
+    --bf-forest: 153 38% 9%;     /* #0E1F18 */
+    --bf-forest-soft: 150 25% 16%;
+    --bf-moss: 108 22% 75%;      /* #B8C9B2 */
+    --bf-moss-deep: 144 19% 21%; /* #2C4135 */
+    --bf-lime: 82 94% 64%;       /* #B5F94A */
+    --bf-coral: 12 76% 62%;      /* #E76F51 */
+    --bf-stone: 60 5% 39%;       /* #6B6B5F */
+
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Figtree', sans-serif;
+
     --font-display: 'Outfit', sans-serif;
     --font-body: 'Figtree', sans-serif;
 

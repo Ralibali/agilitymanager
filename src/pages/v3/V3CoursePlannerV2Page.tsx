@@ -629,6 +629,11 @@ export default function V3CoursePlannerV2Page() {
 
   function handlePointerDown(e: PointerEvent<SVGGElement>, id: string) {
     e.stopPropagation();
+    // Mobil = visningsläge: tillåt markering men ingen drag/redigering
+    if (isMobile) {
+      setSelectedId(id);
+      return;
+    }
     const ob = course.obstacles.find((o) => o.id === id);
     if (tool === "erase") { deleteObstacle(id); return; }
     if (tool === "number") {

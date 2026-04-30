@@ -174,6 +174,19 @@ export default function V3CoursePlannerV2Page() {
   // Stoppa orefererade variabler från att smälla — kommer bindas i nästa pass.
   void isFullscreen; void toggleFullscreen; void fullscreenRootRef;
 
+  // 2D-uppspelning ("Spela upp banan").
+  const playback = useCoursePlayback(course, playback2D);
+
+  // Esc stänger uppspelningen.
+  useEffect(() => {
+    if (!playback2D) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPlayback2D(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [playback2D]);
+
   // Undo/redo (begränsad till 30 steg)
   const historyRef = useRef<{ past: CourseV2[]; future: CourseV2[] }>({ past: [], future: [] });
   const skipHistoryRef = useRef(false);

@@ -34,7 +34,7 @@ export function TrustBar() {
                   key={point.label}
                   distance={6}
                   duration="smooth"
-                  className="rounded-2xl border border-border-subtle bg-white/70 px-3 py-3 text-center"
+                  className="rounded-2xl border border-border bg-card/70 px-3 py-3 text-center"
                 >
                   <div className="font-display text-[22px] leading-none text-text-primary">{point.value}</div>
                   <div className="text-[11px] leading-tight text-text-tertiary mt-1">{point.label}</div>

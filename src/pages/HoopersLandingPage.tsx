@@ -58,7 +58,7 @@ export default function HoopersLandingPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <Helmet>
         <title>Hoopers app – Träningslogg, poängtracker & banplanerare | AgilityManager</title>
         <meta name="description" content="AgilityManager för hoopers – logga träningspass, spåra SHoK-poäng, planera banor och se tävlingskalendern. Anpassat för alla hoopers-klasser." />

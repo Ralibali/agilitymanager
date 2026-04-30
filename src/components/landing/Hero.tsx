@@ -51,7 +51,7 @@ export function Hero() {
               ].map(([emoji, title, text]) => (
                 <div
                   key={title}
-                  className="rounded-2xl border border-forest/12 bg-white px-4 py-3"
+                  className="rounded-2xl border border-border bg-card px-4 py-3"
                 >
                   <div className="text-lg">{emoji}</div>
                   <div className="text-[13px] font-medium text-forest mt-1">{title}</div>

@@ -1064,7 +1064,7 @@ export default function V3CoursePlannerV2Page() {
         </section>
 
         {/* RIGHT */}
-        <aside className="rounded-2xl bg-white border border-black/6 p-3 space-y-4 max-h-[calc(100dvh-90px)] overflow-y-auto">
+        <aside className="hidden lg:block rounded-2xl bg-white border border-black/6 p-3 space-y-4 max-h-[calc(100dvh-90px)] overflow-y-auto">
           {/* Storleksklass — alltid synlig */}
           <section>
             <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Storleksklass</h3>

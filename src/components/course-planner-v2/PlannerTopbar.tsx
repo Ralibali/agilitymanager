@@ -86,7 +86,7 @@ export function PlannerTopbar({
         onChange={(e) => onCourseNameChange(e.target.value)}
         aria-label="Banans namn"
         placeholder="Banans namn"
-        className="h-9 min-w-0 flex-1 max-w-[140px] sm:max-w-[280px] lg:max-w-[320px] px-3 rounded-full border border-black/10 bg-white text-sm font-semibold outline-none focus:ring-2 focus:ring-[#1a6b3c]/25"
+        className="h-9 min-w-0 flex-1 max-w-[140px] sm:max-w-[280px] lg:max-w-[320px] px-3 rounded-full border border-border bg-card text-sm font-semibold outline-none focus:ring-2 focus:ring-ring/40 text-foreground"
       />
       <span className="hidden lg:inline text-[11px] text-neutral-500 shrink-0" aria-live="polite">
         {savedAt

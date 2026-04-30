@@ -46,6 +46,11 @@ import { exportBuildPdf } from "@/features/course-planner-v2/buildPdf";
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
 import { parseCourseJson } from "@/features/course-planner-v2/importJson";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
+import {
+  CoursePlaybackOverlay,
+  CoursePlaybackControls,
+  useCoursePlayback,
+} from "@/components/course-planner-v2/CoursePlayback";
 
 const DIM_STORAGE_KEY = "am_planner_show_dimensions";
 
@@ -140,6 +145,7 @@ export default function V3CoursePlannerV2Page() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [view3D, setView3D] = useState<null | "view" | "walk">(null);
+  const [playback2D, setPlayback2D] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const fullscreenRootRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -167,6 +173,19 @@ export default function V3CoursePlannerV2Page() {
   }, []);
   // Stoppa orefererade variabler från att smälla — kommer bindas i nästa pass.
   void isFullscreen; void toggleFullscreen; void fullscreenRootRef;
+
+  // 2D-uppspelning ("Spela upp banan").
+  const playback = useCoursePlayback(course, playback2D);
+
+  // Esc stänger uppspelningen.
+  useEffect(() => {
+    if (!playback2D) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPlayback2D(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [playback2D]);
 
   // Undo/redo (begränsad till 30 steg)
   const historyRef = useRef<{ past: CourseV2[]; future: CourseV2[] }>({ past: [], future: [] });
@@ -714,6 +733,7 @@ export default function V3CoursePlannerV2Page() {
     }),
     open3DView: () => setView3D("view"),
     open3DWalk: () => setView3D("walk"),
+    play2D: () => setPlayback2D(true),
     undo, redo,
     duplicateSelected: () => { if (selectedId) duplicateObstacle(selectedId); },
     deleteSelected: () => { if (selectedId) deleteObstacle(selectedId); },
@@ -988,6 +1008,17 @@ export default function V3CoursePlannerV2Page() {
               {course.arenaWidthM} × {course.arenaHeightM} m · {times.lengthM.toFixed(1)} m · {course.obstacles.length} hinder
             </div>
           </div>
+          <CoursePlaybackControls
+            course={course}
+            active={playback2D}
+            onClose={() => setPlayback2D(false)}
+            t={playback.t}
+            setT={playback.setT}
+            playing={playback.playing}
+            setPlaying={playback.setPlaying}
+            speed={playback.speed}
+            setSpeed={playback.setSpeed}
+          />
           <ArenaCanvas
             svgRef={svgRef}
             course={course}
@@ -998,6 +1029,8 @@ export default function V3CoursePlannerV2Page() {
             onPointerMove={handleSvgPointerMove}
             onPointerUp={handleSvgPointerUp}
             onBackgroundClick={() => setSelectedId(null)}
+            playbackActive={playback2D}
+            playbackT={playback.t}
           />
         </section>
 
@@ -1104,6 +1137,7 @@ function ToolBtn({ active, onClick, icon, children, title }: { active: boolean; 
 function ArenaCanvas({
   svgRef, course, selectedId, highlightIds, showPath,
   onObstacleDown, onPointerMove, onPointerUp, onBackgroundClick,
+  playbackActive = false, playbackT = 0,
 }: {
   svgRef: React.MutableRefObject<SVGSVGElement | null>;
   course: CourseV2;
@@ -1114,6 +1148,8 @@ function ArenaCanvas({
   onPointerMove: (e: PointerEvent<SVGSVGElement>) => void;
   onPointerUp: () => void;
   onBackgroundClick: () => void;
+  playbackActive?: boolean;
+  playbackT?: number;
 }) {
   const w = course.arenaWidthM;
   const h = course.arenaHeightM;
@@ -1143,7 +1179,7 @@ function ArenaCanvas({
         {Array.from({ length: h + 1 }).map((_, i) => (
           <line key={`hz${i}`} x1={0} y1={i} x2={w} y2={i} stroke="#173d2c" strokeWidth={i % 5 === 0 ? 0.04 : 0.015} opacity={i % 5 === 0 ? 0.45 : 0.25} />
         ))}
-        {showPath && pathD && (
+        {showPath && pathD && !playbackActive && (
           <path d={pathD} fill="none" stroke="#c85d1e" strokeWidth={0.18} strokeDasharray="0.5 0.3" strokeLinecap="round" opacity={0.85} />
         )}
         {[...course.obstacles]
@@ -1162,6 +1198,7 @@ function ArenaCanvas({
               onPointerDown={(e) => onObstacleDown(e, ob.id)}
             />
           ))}
+        <CoursePlaybackOverlay course={course} active={playbackActive} t={playbackT} />
       </svg>
     </div>
   );

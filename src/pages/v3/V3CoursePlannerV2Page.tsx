@@ -848,10 +848,21 @@ export default function V3CoursePlannerV2Page() {
         </div>
       )}
 
+      {/* Mobil-banner: visningsläge */}
+      {isMobile && (
+        <div className="mx-3 mt-3 rounded-xl bg-[#1a6b3c]/8 border border-[#1a6b3c]/20 px-3 py-2 flex items-start gap-2 text-[12px] text-[#1a6b3c]">
+          <Smartphone size={16} className="shrink-0 mt-0.5" />
+          <div className="leading-snug">
+            <strong>Visningsläge.</strong> Banplaneraren är optimerad för dator eller surfplatta.
+            Här kan du titta på banan, växla 3D, exportera och spara — men inte redigera hinder.
+          </div>
+        </div>
+      )}
+
       {/* MAIN GRID */}
       <main className="grid gap-3 p-3 lg:p-4 lg:grid-cols-[280px_minmax(0,1fr)_320px]">
-        {/* LEFT */}
-        <aside className="rounded-2xl bg-white border border-black/6 p-3 space-y-4 max-h-[calc(100dvh-90px)] overflow-y-auto">
+        {/* LEFT — gömd på mobil (visningsläge) */}
+        <aside className="hidden lg:block rounded-2xl bg-white border border-black/6 p-3 space-y-4 max-h-[calc(100dvh-90px)] overflow-y-auto">
           <section>
             <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Hinder</h3>
             <div className="space-y-3">

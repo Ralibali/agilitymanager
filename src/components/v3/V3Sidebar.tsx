@@ -143,8 +143,8 @@ function V3NavGroupBlock({ label, items, collapsed }: { label: string; items: V3
                     "h-9 px-3",
                     collapsed && "justify-center px-0",
                     isActive
-                      ? "text-forest font-medium"
-                      : "text-forest hover:bg-bone-2",
+                      ? "text-forest font-medium dark:text-amber-300 dark:bg-gradient-to-r dark:from-amber-500/8 dark:to-transparent"
+                      : "text-forest hover:bg-bone-2 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800",
                   )
                 }
               >

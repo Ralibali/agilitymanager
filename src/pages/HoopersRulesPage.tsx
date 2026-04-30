@@ -34,7 +34,7 @@ export default function HoopersRulesPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <Helmet>
         <title>Hoopers regler – SHoK:s regelverk för hoopers med hund | AgilityManager</title>
         <meta name="description" content="Komplett guide till hoopers-regler i Sverige. SHoK:s klasser (Startklass–Klass 3), hinder, poängberäkning, dirigeringsområden och uppflyttningskrav." />

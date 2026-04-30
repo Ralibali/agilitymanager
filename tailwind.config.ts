@@ -212,6 +212,9 @@ export default {
         "amber-300": "hsl(var(--amber-300))",
         "amber-600": "hsl(var(--amber-600))",
         "amber-700": "hsl(var(--amber-700))",
+        "coral-400": "hsl(var(--coral-400))",
+        "coral-500": "hsl(var(--coral-500))",
+        "emerald-500": "hsl(var(--emerald-500))",
       },
       borderRadius: {
         lg: "var(--radius-card)",

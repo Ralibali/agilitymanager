@@ -137,7 +137,7 @@ export function PlannerTopbar({
                 type="button"
                 aria-label="Fler åtgärder"
                 title="Fler åtgärder"
-                className="h-9 w-9 grid place-items-center rounded-full bg-white border border-black/10 text-neutral-700 hover:border-neutral-400"
+                className="h-9 w-9 grid place-items-center rounded-full bg-card border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40"
               >
                 <MoreHorizontal size={16} />
               </button>

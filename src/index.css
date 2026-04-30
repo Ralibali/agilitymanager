@@ -573,3 +573,72 @@
   pointer-events: none;
 }
 
+/* ============================================================
+   Slate + Amber rebrand — globala dark-mode-effekter
+   ============================================================ */
+
+/* Subtle ambient gradient overlay (Whoop/Linear-känsla) */
+.dark body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at top, hsl(var(--amber-500) / 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at bottom right, hsl(var(--cyan-500) / 0.03) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+.dark body > * { position: relative; z-index: 1; }
+
+/* Selection */
+.dark ::selection {
+  background: hsl(var(--amber-500));
+  color: hsl(var(--slate-950));
+}
+
+/* Globala focus-rings — amber */
+.dark *:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--amber-500) / 0.45);
+  border-radius: inherit;
+}
+
+/* Scrollbar (Webkit) */
+.dark ::-webkit-scrollbar { width: 12px; height: 12px; }
+.dark ::-webkit-scrollbar-track { background: hsl(var(--slate-900)); }
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(var(--slate-700));
+  border-radius: 6px;
+  border: 3px solid hsl(var(--slate-900));
+}
+.dark ::-webkit-scrollbar-thumb:hover { background: hsl(var(--slate-600)); }
+
+/* Metric display — KPI-tal i Whoop-stil */
+.metric-display {
+  font-family: 'Geist', system-ui, sans-serif;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.metric-display.large  { font-size: 3rem; }
+.metric-display.xlarge { font-size: 4rem; letter-spacing: -0.04em; }
+
+/* Shimmer-skeleton för dark mode */
+.dark .skeleton,
+.dark .v3-skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--slate-800)) 0%,
+    hsl(var(--slate-700)) 50%,
+    hsl(var(--slate-800)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dark body::before { background: none; }
+  .dark .skeleton, .dark .v3-skeleton { animation: none; }
+}

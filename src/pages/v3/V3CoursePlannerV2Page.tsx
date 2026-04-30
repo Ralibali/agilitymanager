@@ -1003,6 +1003,21 @@ export default function V3CoursePlannerV2Page() {
               >
                 Banlinje
               </button>
+              <button
+                type="button"
+                onClick={() => setShowDimensions((v) => !v)}
+                title="Visa banmått (linjaler i meter)"
+                aria-label="Visa mått"
+                aria-pressed={showDimensions}
+                className={cn(
+                  "h-9 px-3 rounded-full text-[12px] font-semibold border inline-flex items-center gap-1.5 transition",
+                  showDimensions
+                    ? "bg-[#1a6b3c] text-white border-[#1a6b3c]"
+                    : "bg-white text-neutral-700 border-black/10 hover:border-neutral-400",
+                )}
+              >
+                <Ruler size={13} /> Mått
+              </button>
             </div>
             <div className="text-[11px] text-neutral-500 shrink-0">
               {course.arenaWidthM} × {course.arenaHeightM} m · {times.lengthM.toFixed(1)} m · {course.obstacles.length} hinder
@@ -1025,6 +1040,7 @@ export default function V3CoursePlannerV2Page() {
             selectedId={selectedId}
             highlightIds={issueIdSet}
             showPath={showPath}
+            showDimensions={showDimensions}
             onObstacleDown={handlePointerDown}
             onPointerMove={handleSvgPointerMove}
             onPointerUp={handleSvgPointerUp}
@@ -1135,7 +1151,7 @@ function ToolBtn({ active, onClick, icon, children, title }: { active: boolean; 
 
 
 function ArenaCanvas({
-  svgRef, course, selectedId, highlightIds, showPath,
+  svgRef, course, selectedId, highlightIds, showPath, showDimensions = false,
   onObstacleDown, onPointerMove, onPointerUp, onBackgroundClick,
   playbackActive = false, playbackT = 0,
 }: {
@@ -1144,6 +1160,7 @@ function ArenaCanvas({
   selectedId: string | null;
   highlightIds: Set<string>;
   showPath: boolean;
+  showDimensions?: boolean;
   onObstacleDown: (e: PointerEvent<SVGGElement>, id: string) => void;
   onPointerMove: (e: PointerEvent<SVGSVGElement>) => void;
   onPointerUp: () => void;
@@ -1153,15 +1170,20 @@ function ArenaCanvas({
 }) {
   const w = course.arenaWidthM;
   const h = course.arenaHeightM;
-  const padding = 1;
+  const padding = showDimensions ? 1.8 : 1;
   const numbered = course.obstacles
     .filter((o) => o.number != null)
     .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
   const pathD = numbered.length > 1
     ? numbered.map((o, i) => `${i === 0 ? "M" : "L"} ${o.x} ${o.y}`).join(" ")
     : "";
+
+  // Adaptiv tickmark-täthet i meter beroende på arenastorlek.
+  const maxArenaM = Math.max(w, h);
+  const tickStepM = maxArenaM <= 20 ? 1 : maxArenaM <= 40 ? 5 : 10;
+
   return (
-    <div className="rounded-xl bg-[#e8efe0] p-2 overflow-auto">
+    <div className="relative rounded-xl bg-[#e8efe0] p-2 overflow-auto">
       <svg
         ref={svgRef}
         viewBox={`${-padding} ${-padding} ${w + padding * 2} ${h + padding * 2}`}
@@ -1198,6 +1220,51 @@ function ArenaCanvas({
               onPointerDown={(e) => onObstacleDown(e, ob.id)}
             />
           ))}
+
+        {/* Banmått — sticky linjaler i meter, ritade direkt i SVG så de skalar med viewBox */}
+        {showDimensions && (
+          <g pointerEvents="none">
+            {/* Tickmarks topp (x-axel) */}
+            {Array.from({ length: Math.floor(w / tickStepM) + 1 }).map((_, i) => {
+              const m = i * tickStepM;
+              if (m === 0 || m === w) return null;
+              return (
+                <g key={`tx-${m}`}>
+                  <line x1={m} y1={-0.55} x2={m} y2={-0.15} stroke="#173d2c" strokeWidth={0.03} opacity={0.55} />
+                  <text x={m} y={-0.72} textAnchor="middle" fontSize={0.42} fill="#173d2c" opacity={0.75}>
+                    {m}
+                  </text>
+                </g>
+              );
+            })}
+            {/* Tickmarks vänster (y-axel) */}
+            {Array.from({ length: Math.floor(h / tickStepM) + 1 }).map((_, i) => {
+              const m = i * tickStepM;
+              if (m === 0 || m === h) return null;
+              return (
+                <g key={`ty-${m}`}>
+                  <line x1={-0.55} y1={m} x2={-0.15} y2={m} stroke="#173d2c" strokeWidth={0.03} opacity={0.55} />
+                  <text x={-0.72} y={m + 0.15} textAnchor="end" fontSize={0.42} fill="#173d2c" opacity={0.75}>
+                    {m}
+                  </text>
+                </g>
+              );
+            })}
+            {/* Banmått — totala bredd/höjd centrerat utanför arenan */}
+            <text x={w / 2} y={-0.92} textAnchor="middle" fontSize={0.55} fontWeight={700} fill="#173d2c" opacity={0.9}>
+              {w} m
+            </text>
+            <text
+              x={-0.92} y={h / 2} textAnchor="middle" fontSize={0.55} fontWeight={700} fill="#173d2c" opacity={0.9}
+              transform={`rotate(-90 -0.92 ${h / 2})`}
+            >
+              {h} m
+            </text>
+            {/* Hörnmarkörer (0,0) */}
+            <text x={-0.55} y={-0.2} textAnchor="end" fontSize={0.35} fill="#173d2c" opacity={0.55}>0</text>
+          </g>
+        )}
+
         <CoursePlaybackOverlay course={course} active={playbackActive} t={playbackT} />
       </svg>
     </div>

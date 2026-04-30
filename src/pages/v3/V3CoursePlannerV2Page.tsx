@@ -46,6 +46,11 @@ import { exportBuildPdf } from "@/features/course-planner-v2/buildPdf";
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
 import { parseCourseJson } from "@/features/course-planner-v2/importJson";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
+import {
+  CoursePlaybackOverlay,
+  CoursePlaybackControls,
+  useCoursePlayback,
+} from "@/components/course-planner-v2/CoursePlayback";
 
 const DIM_STORAGE_KEY = "am_planner_show_dimensions";
 
@@ -140,6 +145,7 @@ export default function V3CoursePlannerV2Page() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [view3D, setView3D] = useState<null | "view" | "walk">(null);
+  const [playback2D, setPlayback2D] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const fullscreenRootRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);

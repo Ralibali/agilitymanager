@@ -21,10 +21,12 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         // === Brand foundation (opt-in via variant="brand" / "brand-outline") ===
+        // I dark mode: forest=slate-100 (ljus) och bone=slate-900 (mörk) via cascade,
+        // vilket skulle ge "vit knapp på mörk bg". Override:a med amber direkt här.
         brand:
-          "bg-forest text-bone hover:bg-forest-soft rounded-pill-full px-5 py-2.5 text-sm font-medium",
+          "bg-forest text-bone hover:bg-forest-soft rounded-pill-full px-5 py-2.5 text-sm font-medium dark:bg-amber-500 dark:text-slate-950 dark:hover:bg-amber-600 dark:shadow-[0_0_0_1px_hsl(var(--amber-600)),0_0_20px_-2px_hsl(var(--amber-500)/0.3)]",
         "brand-outline":
-          "border border-forest text-forest bg-transparent hover:bg-forest hover:text-bone rounded-pill-full px-5 py-2.5 text-sm font-medium",
+          "border border-forest text-forest bg-transparent hover:bg-forest hover:text-bone rounded-pill-full px-5 py-2.5 text-sm font-medium dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800 dark:hover:text-amber-300 dark:hover:border-amber-500",
       },
       size: {
         default: "h-10 px-4 py-2",

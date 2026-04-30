@@ -60,13 +60,13 @@ export default function CookieBanner() {
       <div className="mx-auto max-w-3xl rounded-3xl bg-card shadow-2xl border border-border pointer-events-auto overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
         <div className="p-5 sm:p-6">
           <div className="flex items-start gap-3">
-            <div className="shrink-0 w-10 h-10 rounded-full bg-[#1a6b3c]/10 flex items-center justify-center">
-              <Cookie size={20} className="text-[#1a6b3c]" />
+            <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Cookie size={20} className="text-primary" />
             </div>
             <div className="flex-1 min-w-0">
               <h2
                 id="cookie-banner-title"
-                className="font-semibold text-[#172016] text-base sm:text-lg"
+                className="font-semibold text-foreground text-base sm:text-lg"
                 style={{ fontFamily: "Outfit, sans-serif" }}
               >
                 Vi använder cookies
@@ -74,7 +74,7 @@ export default function CookieBanner() {
               <p className="text-sm text-foreground/65 mt-1 leading-relaxed">
                 Vi använder cookies för att appen ska fungera, mäta hur den används och förbättra
                 upplevelsen. Du bestämmer själv vilka kategorier du tillåter.{" "}
-                <Link to="/cookiepolicy" className="underline text-[#1a6b3c] hover:text-[#c85d1e]">
+                <Link to="/cookiepolicy" className="underline text-primary hover:text-secondary">
                   Läs mer i cookiepolicyn
                 </Link>
                 .
@@ -85,7 +85,7 @@ export default function CookieBanner() {
                 type="button"
                 aria-label="Stäng"
                 onClick={() => setOpen(false)}
-                className="shrink-0 -mr-1 -mt-1 p-1.5 rounded-full hover:bg-black/5 text-foreground/50"
+                className="shrink-0 -mr-1 -mt-1 p-1.5 rounded-full hover:bg-foreground/5 text-foreground/50"
               >
                 <X size={16} />
               </button>

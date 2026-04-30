@@ -89,7 +89,7 @@ function AuthGuard() {
   return <Outlet />;
 }
 
-const LazyFallback = () => <div className="min-h-screen flex items-center justify-center bg-background"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#1a6b3c' }} /><div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#1a6b3c', animationDelay: '0.15s' }} /><div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#1a6b3c', animationDelay: '0.3s' }} /></div></div>;
+const LazyFallback = () => <div className="min-h-screen flex items-center justify-center bg-background"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full animate-pulse bg-primary" /><div className="w-2 h-2 rounded-full animate-pulse bg-primary" style={{ animationDelay: '0.15s' }} /><div className="w-2 h-2 rounded-full animate-pulse bg-primary" style={{ animationDelay: '0.3s' }} /></div></div>;
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

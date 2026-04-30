@@ -126,6 +126,7 @@ function rectsOverlap(a: { minX: number; maxX: number; minY: number; maxY: numbe
 export default function V3CoursePlannerV2Page() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [course, setCourseRaw] = useState<CourseV2>(() => loadCourse());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tool, setTool] = useState<"select" | "erase" | "number" | "measure">("select");

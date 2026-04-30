@@ -1178,20 +1178,13 @@ function ArenaCanvas({
     ? numbered.map((o, i) => `${i === 0 ? "M" : "L"} ${o.x} ${o.y}`).join(" ")
     : "";
 
-  // Mät SVG:ns rendered px-storlek för linjalerna.
+  // Mät SVG:ns rendered px-storlek (sparat för framtida zoom/pan-overlay).
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  const [svgPx, setSvgPx] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
-  useEffect(() => {
-    if (!showDimensions) return;
-    const el = svgRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      const r = entries[0]?.contentRect;
-      if (r) setSvgPx({ w: r.width, h: r.height });
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [showDimensions, svgRef]);
+  void wrapRef;
+
+  // Adaptiv tickmark-täthet i meter på linjalen.
+  const maxArenaM = Math.max(w, h);
+  const tickStepM = maxArenaM <= 20 ? 1 : maxArenaM <= 40 ? 5 : 10;
 
   // Total viewBox-bredd/höjd i meter (inkl. padding).
   const vbW = w + padding * 2;

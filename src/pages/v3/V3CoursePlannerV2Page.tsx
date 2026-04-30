@@ -855,7 +855,7 @@ export default function V3CoursePlannerV2Page() {
 
       {/* Mobil-banner: visningsläge */}
       {isMobile && (
-        <div className="mx-3 mt-3 rounded-xl bg-[#1a6b3c]/8 border border-[#1a6b3c]/20 px-3 py-2 flex items-start gap-2 text-[12px] text-[#1a6b3c]">
+        <div className="mx-3 mt-3 rounded-xl bg-primary/10 border border-primary/20 px-3 py-2 flex items-start gap-2 text-[12px] text-primary">
           <Smartphone size={16} className="shrink-0 mt-0.5" />
           <div className="leading-snug">
             <strong>Visningsläge.</strong> Banplaneraren är optimerad för dator eller surfplatta.
@@ -880,7 +880,7 @@ export default function V3CoursePlannerV2Page() {
                         key={def.type}
                         onClick={() => placeObstacle(def.type)}
                         title={`${def.label} — ${def.description}`}
-                        className="aspect-square rounded-lg border border-border bg-neutral-50 hover:bg-[#1a6b3c]/5 hover:border-[#1a6b3c]/30 grid place-items-center text-[10px] font-medium text-neutral-700 leading-tight px-1 text-center transition"
+                        className="aspect-square rounded-lg border border-border bg-muted/40 hover:bg-primary/5 hover:border-primary/30 grid place-items-center text-[10px] font-medium text-foreground/80 leading-tight px-1 text-center transition"
                       >
                         <ObstacleGlyph type={def.type} />
                         <span className="mt-1 line-clamp-1">{def.label}</span>
@@ -902,8 +902,8 @@ export default function V3CoursePlannerV2Page() {
                   className={cn(
                     "h-9 px-2.5 rounded-lg text-left text-[12px] font-medium border transition",
                     course.classTemplate === t.key
-                      ? "bg-[#1a6b3c] text-white border-[#1a6b3c]"
-                      : "bg-card text-neutral-700 border-border hover:border-[#1a6b3c]/30",
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-foreground/80 border-border hover:border-primary/30",
                   )}
                 >
                   {t.label}
@@ -1000,8 +1000,8 @@ export default function V3CoursePlannerV2Page() {
                 className={cn(
                   "h-9 px-3 rounded-full text-[12px] font-semibold border inline-flex items-center gap-1.5 transition",
                   snap
-                    ? "bg-[#1a6b3c] text-white border-[#1a6b3c]"
-                    : "bg-card text-neutral-700 border-border hover:border-neutral-400",
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-foreground/80 border-border hover:border-foreground/40",
                 )}
               >
                 <Magnet size={13} /> Snap
@@ -1015,8 +1015,8 @@ export default function V3CoursePlannerV2Page() {
                 className={cn(
                   "h-9 px-3 rounded-full text-[12px] font-semibold border inline-flex items-center transition",
                   showPath
-                    ? "bg-[#1a6b3c] text-white border-[#1a6b3c]"
-                    : "bg-card text-neutral-700 border-border hover:border-neutral-400",
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-foreground/80 border-border hover:border-foreground/40",
                 )}
               >
                 Banlinje
@@ -1030,14 +1030,14 @@ export default function V3CoursePlannerV2Page() {
                 className={cn(
                   "h-9 px-3 rounded-full text-[12px] font-semibold border inline-flex items-center gap-1.5 transition",
                   showDimensions
-                    ? "bg-[#1a6b3c] text-white border-[#1a6b3c]"
-                    : "bg-card text-neutral-700 border-border hover:border-neutral-400",
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-foreground/80 border-border hover:border-foreground/40",
                 )}
               >
                 <Ruler size={13} /> Mått
               </button>
             </div>
-            <div className="text-[11px] text-neutral-500 shrink-0">
+            <div className="text-[11px] text-muted-foreground shrink-0">
               {course.arenaWidthM} × {course.arenaHeightM} m · {times.lengthM.toFixed(1)} m · {course.obstacles.length} hinder
             </div>
           </div>
@@ -1080,16 +1080,16 @@ export default function V3CoursePlannerV2Page() {
                   onClick={() => update({ sizeClass: s.key })}
                   className={cn(
                     "h-9 rounded-lg text-[12px] font-bold border transition",
-                    course.sizeClass === s.key
-                      ? "bg-[#c85d1e] text-white border-[#c85d1e]"
-                      : "bg-card text-neutral-700 border-border hover:border-[#c85d1e]/40",
+                  course.sizeClass === s.key
+                      ? "bg-coral-500 text-white border-coral-500"
+                      : "bg-card text-foreground/80 border-border hover:border-coral-500/40",
                   )}
                 >
                   {s.label}
                 </button>
               ))}
             </div>
-            <div className="mt-2 text-[11px] text-neutral-600 leading-snug">
+            <div className="mt-2 text-[11px] text-muted-foreground leading-snug">
               Hopphöjd <strong>{sizeDef.jumpHeightCm[0]}–{sizeDef.jumpHeightCm[1]} cm</strong> ·
               {" "}däck <strong>{sizeDef.tireHeightCm[0]}–{sizeDef.tireHeightCm[1]} cm</strong>
               <br />
@@ -1127,14 +1127,14 @@ export default function V3CoursePlannerV2Page() {
 
 function SegmentedSport({ value, onChange }: { value: Sport; onChange: (s: Sport) => void }) {
   return (
-    <div className="inline-flex h-9 rounded-full bg-neutral-100 p-0.5">
+    <div className="inline-flex h-9 rounded-full bg-muted p-0.5">
       {(["agility", "hoopers"] as Sport[]).map((s) => (
         <button
           key={s}
           onClick={() => onChange(s)}
           className={cn(
             "h-8 px-3 rounded-full text-[11px] font-semibold uppercase tracking-wide transition",
-            value === s ? "bg-card text-[#1a6b3c] shadow-sm" : "text-neutral-500",
+            value === s ? "bg-card text-primary shadow-sm" : "text-muted-foreground",
           )}
         >
           {s === "agility" ? "Agility" : "Hoopers"}

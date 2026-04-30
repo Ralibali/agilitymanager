@@ -45,7 +45,7 @@ export default function V3CoursePlannerV2JudgePage() {
   }, [slug]);
 
   if (loading) {
-    return <div className="min-h-[100dvh] grid place-items-center bg-background"><Loader2 className="animate-spin text-[#1a6b3c]" /></div>;
+    return <div className="min-h-[100dvh] grid place-items-center bg-background"><Loader2 className="animate-spin text-primary" /></div>;
   }
   if (error || !course) {
     return (
@@ -53,7 +53,7 @@ export default function V3CoursePlannerV2JudgePage() {
         <div>
           <h1 className="text-xl font-semibold text-neutral-800 mb-2">Banan kunde inte visas</h1>
           <p className="text-sm text-neutral-500 mb-4">{error}</p>
-          <Link to="/v3" className="text-[#1a6b3c] underline text-sm">Till startsidan</Link>
+          <Link to="/v3" className="text-primary underline text-sm">Till startsidan</Link>
         </div>
       </div>
     );
@@ -106,7 +106,7 @@ export default function V3CoursePlannerV2JudgePage() {
         <button onClick={handleStartlist} className="h-9 px-3 rounded-full bg-card border border-border text-[12px] font-semibold inline-flex items-center gap-1.5 hover:border-neutral-400">
           <ListOrdered size={14} /> <span className="hidden sm:inline">Startlista</span>
         </button>
-        <button onClick={handlePdf} className="h-9 px-3 rounded-full bg-[#1a6b3c] text-white text-[12px] font-semibold inline-flex items-center gap-1.5">
+        <button onClick={handlePdf} className="h-9 px-3 rounded-full bg-primary text-primary-foreground text-[12px] font-semibold inline-flex items-center gap-1.5">
           <FileDown size={14} /> <span className="hidden sm:inline">PDF</span>
         </button>
       </header>

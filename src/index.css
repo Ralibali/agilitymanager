@@ -6,6 +6,49 @@
 
 @layer base {
   :root {
+    /* === Slate / Amber / Cyan-skala (rebrand v5 — alltid tillgänglig som rå skala) === */
+    --slate-950: 213 32% 6%;     /* #0A0E13 */
+    --slate-900: 213 27% 9%;     /* #11161D */
+    --slate-800: 213 21% 13%;    /* #1A2129 */
+    --slate-700: 213 19% 18%;    /* #252E38 */
+    --slate-600: 213 17% 28%;    /* #3A4552 */
+    --slate-500: 213 15% 36%;    /* #4F5C6B */
+    --slate-400: 213 9% 59%;     /* #8B95A1 */
+    --slate-300: 213 11% 74%;    /* #B4BCC7 */
+    --slate-200: 213 14% 86%;    /* #D4DAE2 */
+    --slate-100: 213 19% 93%;    /* #E8ECF1 */
+    --slate-50:  213 22% 97%;    /* #F5F7FA */
+
+    --amber-50:  48 100% 96%;
+    --amber-100: 48 96% 89%;
+    --amber-300: 45 97% 65%;     /* #FCD34D */
+    --amber-500: 38 92% 50%;     /* #F59E0B  PRIMÄR ACCENT */
+    --amber-600: 32 95% 44%;     /* #D97706 */
+    --amber-700: 26 90% 37%;     /* #B45309 */
+
+    --cyan-300: 187 85% 69%;     /* #67E8F9 */
+    --cyan-500: 189 94% 43%;     /* #06B6D4 */
+    --cyan-600: 192 91% 36%;     /* #0891B2 */
+
+    --coral-400: 351 95% 71%;
+    --coral-500: 350 89% 60%;
+    --emerald-500: 160 84% 39%;
+
+    /* === Brand foundation CSS-vars (light = original "Varm Sand"-värden) === */
+    --bf-bone: 42 39% 94%;       /* #F5F1E8 */
+    --bf-bone-2: 41 28% 89%;     /* #ECE7DA */
+    --bf-cream: 42 51% 96%;      /* #FAF6EE */
+    --bf-forest: 153 38% 9%;     /* #0E1F18 */
+    --bf-forest-soft: 150 25% 16%;
+    --bf-moss: 108 22% 75%;      /* #B8C9B2 */
+    --bf-moss-deep: 144 19% 21%; /* #2C4135 */
+    --bf-lime: 82 94% 64%;       /* #B5F94A */
+    --bf-coral: 12 76% 62%;      /* #E76F51 */
+    --bf-stone: 60 5% 39%;       /* #6B6B5F */
+
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Figtree', sans-serif;
+
     --font-display: 'Outfit', sans-serif;
     --font-body: 'Figtree', sans-serif;
 
@@ -176,70 +219,136 @@
     --v3-accent-halsa-text:    12 76% 28%;
   }
 
+  /* ===========================================================
+     DARK MODE — Slate + Amber rebrand (v5)
+     Dark är default-tema. Hela appen flippas till slate/amber via
+     denna cascade. Komponenter som använder semantiska tokens
+     (bg-background, text-foreground, brand-foundation-klasser
+     bg-forest, text-lime, bg-bone osv.) får nya värden gratis.
+     =========================================================== */
   .dark {
-    --background: 0 0% 7%;
-    --foreground: 40 14% 95%;
-    --card: 0 0% 11%;
-    --card-foreground: 40 14% 95%;
-    --popover: 0 0% 11%;
-    --popover-foreground: 40 14% 95%;
-    --primary: 148 55% 35%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 70%;
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 55%;
-    --accent: 22 75% 50%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 55% 35%;
-    --destructive-foreground: 40 14% 97%;
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 148 55% 35%;
-    --sidebar-background: 0 0% 9%;
-    --sidebar-foreground: 40 14% 90%;
-    --sidebar-primary: 148 55% 35%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 40 14% 90%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 148 55% 35%;
-    --success: 148 55% 35%;
-    --success-foreground: 0 0% 100%;
-    --surface: 0 0% 11%;
-    --surface-elevated: 0 0% 15%;
-    --shadow-card: 0 1px 3px rgba(0,0,0,0.2);
-    --shadow-elevated: 0 4px 16px rgba(0,0,0,0.3);
+    /* shadcn semantic tokens → slate + amber */
+    --background: var(--slate-900);
+    --foreground: var(--slate-100);
+    --card: var(--slate-800);
+    --card-foreground: var(--slate-100);
+    --popover: var(--slate-700);
+    --popover-foreground: var(--slate-100);
+    --primary: var(--amber-500);
+    --primary-foreground: var(--slate-950);
+    --secondary: var(--slate-800);
+    --secondary-foreground: var(--slate-200);
+    --muted: var(--slate-800);
+    --muted-foreground: var(--slate-400);
+    --accent: var(--amber-500);
+    --accent-foreground: var(--slate-950);
+    --destructive: var(--coral-500);
+    --destructive-foreground: var(--slate-50);
+    --border: var(--slate-700);
+    --input: var(--slate-700);
+    --ring: var(--amber-500);
+
+    --sidebar-background: var(--slate-900);
+    --sidebar-foreground: var(--slate-300);
+    --sidebar-primary: var(--amber-500);
+    --sidebar-primary-foreground: var(--slate-950);
+    --sidebar-accent: var(--slate-800);
+    --sidebar-accent-foreground: var(--slate-100);
+    --sidebar-border: var(--slate-800);
+    --sidebar-ring: var(--amber-500);
+
+    --success: var(--emerald-500);
+    --success-foreground: var(--slate-50);
+    --warning: var(--amber-500);
+    --warning-foreground: var(--slate-950);
+    --surface: var(--slate-800);
+    --surface-elevated: var(--slate-700);
+    --surface-2: var(--slate-800);
+    --accent-green-light: var(--slate-800);
+    --accent-orange-light: var(--slate-800);
+    --shadow-card: 0 1px 0 0 rgba(255,255,255,0.04) inset, 0 4px 12px -4px rgba(0,0,0,0.5);
+    --shadow-elevated: 0 1px 0 0 rgba(255,255,255,0.05) inset, 0 8px 24px -8px rgba(0,0,0,0.6);
+    --shadow-focus: 0 0 0 3px hsl(var(--amber-500) / 0.4);
     --border-rgba: rgba(255,255,255,0.08);
 
-    /* Fas 1 dark tokens */
-    --bg-page: 150 16% 5%;
-    --bg-surface: 150 14% 9%;
-    --bg-subtle: 150 10% 12%;
-    --bg-inverse: 120 11% 92%;
-    --text-primary: 120 11% 92%;
-    --text-secondary: 140 5% 63%;
-    --text-tertiary: 150 3% 43%;
-    --text-on-inverse: 150 21% 7%;
-    --ds-border-subtle: 120 11% 92%;
-    --ds-border-default: 120 11% 92%;
-    --ds-border-strong: 120 11% 92%;
+    /* Fas 1 designsystem → slate */
+    --bg-page: var(--slate-900);
+    --bg-surface: var(--slate-800);
+    --bg-subtle: var(--slate-700);
+    --bg-inverse: var(--slate-100);
+    --text-primary: var(--slate-100);
+    --text-secondary: var(--slate-300);
+    --text-tertiary: var(--slate-400);
+    --text-on-inverse: var(--slate-950);
+    --ds-border-subtle: var(--slate-100);
+    --ds-border-default: var(--slate-100);
+    --ds-border-strong: var(--slate-100);
 
-    /* v3 darkmode */
-    --v3-canvas: 132 6% 11%;
-    --v3-canvas-secondary: 140 6% 16%;
-    --v3-canvas-elevated: 132 6% 19%;
-    --v3-canvas-sunken: 140 8% 9%;
-    --v3-text-primary: 60 18% 97%;
-    --v3-text-secondary: 132 3% 67%;
-    --v3-text-tertiary: 132 3% 42%;
-    --v3-text-inverse: 132 6% 11%;
+    /* Brand-skala (Fas 1) → amber */
+    --brand-50: var(--amber-50);
+    --brand-100: var(--amber-100);
+    --brand-500: var(--amber-500);
+    --brand-600: var(--amber-600);
+    --brand-900: var(--amber-700);
+    --accent-50-new: var(--amber-50);
+    --accent-500-new: var(--amber-500);
+    --accent-900-new: var(--amber-700);
+    --semantic-success: var(--emerald-500);
+    --semantic-warning: var(--amber-500);
+    --semantic-danger: var(--coral-500);
+    --semantic-info: var(--cyan-500);
 
-    /* Domänaccent-texter: ljusare i mörkt läge för kontrast mot accent/10-bakgrund */
-    --v3-accent-tavlings-text: 262 83% 78%;
-    --v3-accent-traning-text:  188 91% 68%;
-    --v3-accent-prestation-text: 28 92% 72%;
-    --v3-accent-halsa-text:    0 73% 70%;
+    /* === BRAND FOUNDATION CASCADE — kärnan i rebranden ===
+       Forest/Lime/Moss/Bone-tokens får nya värden så att alla
+       komponenter som skriver bg-forest / text-lime / bg-bone
+       automatiskt blir slate+amber utan kodändring. */
+    --bf-bone: var(--slate-900);
+    --bf-bone-2: var(--slate-800);
+    --bf-cream: var(--slate-800);
+    --bf-forest: var(--slate-100);
+    --bf-forest-soft: var(--slate-200);
+    --bf-moss: var(--cyan-500);
+    --bf-moss-deep: var(--cyan-600);
+    --bf-lime: var(--amber-500);              /* ⚡ Lime → Amber */
+    --bf-coral: var(--coral-500);
+    --bf-stone: var(--slate-400);
+
+    /* v3 canvas/text → slate */
+    --v3-canvas: var(--slate-900);
+    --v3-canvas-secondary: var(--slate-800);
+    --v3-canvas-elevated: var(--slate-800);
+    --v3-canvas-sunken: var(--slate-950);
+    --v3-text-primary: var(--slate-100);
+    --v3-text-secondary: var(--slate-300);
+    --v3-text-tertiary: var(--slate-400);
+    --v3-text-inverse: var(--slate-950);
+
+    /* v3 brand-skala → amber/slate */
+    --v3-brand-50:  var(--amber-50);
+    --v3-brand-100: var(--amber-100);
+    --v3-brand-200: var(--amber-300);
+    --v3-brand-300: var(--amber-300);
+    --v3-brand-400: var(--amber-500);
+    --v3-brand-500: var(--amber-500);
+    --v3-brand-600: var(--amber-600);
+    --v3-brand-700: var(--amber-700);
+    --v3-brand-800: var(--slate-100);
+    --v3-brand-900: var(--slate-100);
+
+    /* v3 domänaccenter */
+    --v3-accent-tavlings: var(--cyan-500);
+    --v3-accent-traning: var(--amber-500);
+    --v3-accent-prestation: var(--coral-500);
+    --v3-accent-halsa: var(--emerald-500);
+    --v3-success: var(--emerald-500);
+    --v3-warning: var(--amber-500);
+    --v3-error: var(--coral-500);
+    --v3-info: var(--cyan-500);
+
+    --v3-accent-tavlings-text: var(--cyan-300);
+    --v3-accent-traning-text:  var(--amber-300);
+    --v3-accent-prestation-text: var(--coral-400);
+    --v3-accent-halsa-text:    160 70% 70%;
   }
 }
 
@@ -464,3 +573,72 @@
   pointer-events: none;
 }
 
+/* ============================================================
+   Slate + Amber rebrand — globala dark-mode-effekter
+   ============================================================ */
+
+/* Subtle ambient gradient overlay (Whoop/Linear-känsla) */
+.dark body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at top, hsl(var(--amber-500) / 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at bottom right, hsl(var(--cyan-500) / 0.03) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+.dark body > * { position: relative; z-index: 1; }
+
+/* Selection */
+.dark ::selection {
+  background: hsl(var(--amber-500));
+  color: hsl(var(--slate-950));
+}
+
+/* Globala focus-rings — amber */
+.dark *:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--amber-500) / 0.45);
+  border-radius: inherit;
+}
+
+/* Scrollbar (Webkit) */
+.dark ::-webkit-scrollbar { width: 12px; height: 12px; }
+.dark ::-webkit-scrollbar-track { background: hsl(var(--slate-900)); }
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(var(--slate-700));
+  border-radius: 6px;
+  border: 3px solid hsl(var(--slate-900));
+}
+.dark ::-webkit-scrollbar-thumb:hover { background: hsl(var(--slate-600)); }
+
+/* Metric display — KPI-tal i Whoop-stil */
+.metric-display {
+  font-family: 'Geist', system-ui, sans-serif;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.metric-display.large  { font-size: 3rem; }
+.metric-display.xlarge { font-size: 4rem; letter-spacing: -0.04em; }
+
+/* Shimmer-skeleton för dark mode */
+.dark .skeleton,
+.dark .v3-skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--slate-800)) 0%,
+    hsl(var(--slate-700)) 50%,
+    hsl(var(--slate-800)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dark body::before { background: none; }
+  .dark .skeleton, .dark .v3-skeleton { animation: none; }
+}

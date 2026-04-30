@@ -15,6 +15,15 @@ import { initAnalyticsLoader } from "@/lib/analyticsLoader";
 captureUtmParams();
 initAnalyticsLoader();
 
+// Slate+Amber rebrand v5: engångs-reset av tidigare next-themes-val så att
+// alla användare flippas till nya mörka standarden vid första load efter rebrand.
+try {
+  if (typeof window !== "undefined" && !window.localStorage.getItem("theme-rebrand-v5")) {
+    window.localStorage.removeItem("theme");
+    window.localStorage.setItem("theme-rebrand-v5", "1");
+  }
+} catch { /* ignore — privata lägen kan kasta */ }
+
 import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
 
@@ -84,7 +93,7 @@ const LazyFallback = () => <div className="min-h-screen flex items-center justif
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
       <TooltipProvider>
         <Toaster />
         <Sonner />

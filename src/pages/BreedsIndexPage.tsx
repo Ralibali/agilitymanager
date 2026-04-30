@@ -213,7 +213,7 @@ function SizeFilterBar({
               <motion.span
                 layoutId="size-pill-active"
                 className="absolute inset-0 rounded-full"
-                style={{ background: "#1a6b3c", zIndex: 0 }}
+                style={{ background: "hsl(var(--primary))", zIndex: 0 }}
                 transition={{
                   type: "spring",
                   stiffness: 380,
@@ -295,7 +295,7 @@ function BreedCard({ breed, index }: { breed: Breed; index: number }) {
           {breed.popular_in_sweden && (
             <span
               className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium font-body"
-              style={{ background: "#1a6b3c", color: "#fff" }}
+              style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}
             >
               Populär i Sverige
             </span>
@@ -342,7 +342,7 @@ function StarsRow({ score }: { score: number }) {
       <Star
         size={13}
         strokeWidth={1.5}
-        style={{ color: "#c85d1e", fill: "#c85d1e" }}
+        style={{ color: "hsl(var(--secondary))", fill: "hsl(var(--secondary))" }}
       />
       <span className="text-xs font-medium text-foreground">
         {value}

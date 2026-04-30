@@ -1137,6 +1137,7 @@ function ToolBtn({ active, onClick, icon, children, title }: { active: boolean; 
 function ArenaCanvas({
   svgRef, course, selectedId, highlightIds, showPath,
   onObstacleDown, onPointerMove, onPointerUp, onBackgroundClick,
+  playbackActive = false, playbackT = 0,
 }: {
   svgRef: React.MutableRefObject<SVGSVGElement | null>;
   course: CourseV2;
@@ -1147,6 +1148,8 @@ function ArenaCanvas({
   onPointerMove: (e: PointerEvent<SVGSVGElement>) => void;
   onPointerUp: () => void;
   onBackgroundClick: () => void;
+  playbackActive?: boolean;
+  playbackT?: number;
 }) {
   const w = course.arenaWidthM;
   const h = course.arenaHeightM;

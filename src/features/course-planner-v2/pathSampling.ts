@@ -8,11 +8,9 @@
  * in den punktlistan istället för numbered-list.
  */
 
-import type { ObstacleV2 } from "./config";
-
-/** Minimal subset av CourseV2 vi behöver — undviker cirkulär import. */
+/** Minimal subset av en bana vi behöver — undviker cirkulär import. */
 export interface CoursePathInput {
-  obstacles: ObstacleV2[];
+  obstacles: Array<{ x: number; y: number; number?: number | null }>;
 }
 
 export interface PathPoint {

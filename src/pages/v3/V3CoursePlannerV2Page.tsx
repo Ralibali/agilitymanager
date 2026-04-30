@@ -1170,7 +1170,7 @@ function ArenaCanvas({
 }) {
   const w = course.arenaWidthM;
   const h = course.arenaHeightM;
-  const padding = 1;
+  const padding = showDimensions ? 1.8 : 1;
   const numbered = course.obstacles
     .filter((o) => o.number != null)
     .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));

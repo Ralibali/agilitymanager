@@ -13,7 +13,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check:blog": "node scripts/check-blog-content-match.mjs",
-    "check:blog:strict": "node scripts/check-blog-content-match.mjs --strict"
+    "check:blog:strict": "node scripts/check-blog-content-match.mjs --strict",
+    "check:colors": "node scripts/check-hardcoded-colors.mjs",
+    "check:colors:strict": "node scripts/check-hardcoded-colors.mjs --strict"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

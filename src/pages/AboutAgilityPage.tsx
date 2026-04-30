@@ -10,7 +10,7 @@ export default function AboutAgilityPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <Helmet>
         <title>Vad är Agility? – Guide till sporten | AgilityManager</title>
         <meta name="description" content="Lär dig allt om agility i Sverige. Klasser, pinnar, hindertyper, SAgiK-regler och hur du kommer igång. Komplett guide för nybörjare." />

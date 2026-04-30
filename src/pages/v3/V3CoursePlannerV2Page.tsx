@@ -733,6 +733,7 @@ export default function V3CoursePlannerV2Page() {
     }),
     open3DView: () => setView3D("view"),
     open3DWalk: () => setView3D("walk"),
+    play2D: () => setPlayback2D(true),
     undo, redo,
     duplicateSelected: () => { if (selectedId) duplicateObstacle(selectedId); },
     deleteSelected: () => { if (selectedId) deleteObstacle(selectedId); },

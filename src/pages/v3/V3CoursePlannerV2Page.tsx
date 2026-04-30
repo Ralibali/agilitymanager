@@ -1040,6 +1040,7 @@ export default function V3CoursePlannerV2Page() {
             selectedId={selectedId}
             highlightIds={issueIdSet}
             showPath={showPath}
+            showDimensions={showDimensions}
             onObstacleDown={handlePointerDown}
             onPointerMove={handleSvgPointerMove}
             onPointerUp={handleSvgPointerUp}

@@ -1,8 +1,8 @@
 /**
- * Banplaneraren v2 — Sprint 6 (DEL 3)
- * Export-meny: dropdown med fyra PDF-val + JSON export/import.
+ * Banplaneraren v2 — Export-meny.
+ * Mobile-first: tydlig knapp med text så användaren ser att banan kan laddas ner/importeras.
  */
-import { ChevronDown, FileDown, Upload } from "lucide-react";
+import { ChevronDown, FileDown, Upload, FileText, Box, Footprints } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,
@@ -25,29 +25,41 @@ export function ExportMenu({ onJudge, onTraining, onBuild, onStartlist, onJson, 
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="h-9 w-9 sm:w-auto sm:px-3 inline-flex items-center justify-center rounded-full bg-card border border-border text-[12px] font-semibold gap-1.5 hover:border-neutral-400 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a6b3c]/30"
-          title="Exportera bana"
-          aria-label="Exportera bana"
+          className="course-planner-export-trigger inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-3.5 text-sm font-black text-slate-100 transition hover:bg-white/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/40 sm:h-9 sm:rounded-full sm:border-border sm:bg-card sm:px-3 sm:text-[12px] sm:font-semibold sm:text-foreground sm:hover:border-neutral-400"
+          title="Ladda ner eller exportera bana"
+          aria-label="Ladda ner eller exportera bana"
         >
-          <FileDown size={14} />
-          <span className="hidden sm:inline">Export</span>
-          <ChevronDown size={12} className="opacity-70 hidden sm:inline" />
+          <FileDown size={16} />
+          <span>Ladda ner</span>
+          <ChevronDown size={13} className="opacity-70" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Exportera som PDF</DropdownMenuLabel>
-        <DropdownMenuItem onSelect={onJudge}>Domar-PDF</DropdownMenuItem>
-        <DropdownMenuItem onSelect={onTraining}>Tränings-PDF</DropdownMenuItem>
-        <DropdownMenuItem onSelect={onBuild}>Bygg-PDF</DropdownMenuItem>
-        <DropdownMenuItem onSelect={onStartlist}>Startlista</DropdownMenuItem>
+      <DropdownMenuContent align="end" className="w-64">
+        <DropdownMenuLabel>Ladda ner som PDF</DropdownMenuLabel>
+        <DropdownMenuItem onSelect={onJudge}>
+          <FileText size={14} className="mr-2" /> Domar-PDF
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onTraining}>
+          <FileText size={14} className="mr-2" /> Tränings-PDF
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onBuild}>
+          <FileText size={14} className="mr-2" /> Bygg-PDF
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onStartlist}>
+          <FileText size={14} className="mr-2" /> Startlista
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={onJson}>Exportera JSON</DropdownMenuItem>
+        <DropdownMenuLabel>Backup och import</DropdownMenuLabel>
+        <DropdownMenuItem onSelect={onJson}>
+          <FileDown size={14} className="mr-2" /> Exportera JSON
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={onImportJson}>
-          <Upload size={13} className="mr-1.5" /> Importera JSON…
+          <Upload size={14} className="mr-2" /> Importera JSON…
         </DropdownMenuItem>
         {(on3DView || on3DWalk) && <DropdownMenuSeparator />}
-        {on3DView && <DropdownMenuItem onSelect={on3DView}>Visa 3D-vy</DropdownMenuItem>}
-        {on3DWalk && <DropdownMenuItem onSelect={on3DWalk}>Gå banan (3D)</DropdownMenuItem>}
+        {(on3DView || on3DWalk) && <DropdownMenuLabel>Visa bana</DropdownMenuLabel>}
+        {on3DView && <DropdownMenuItem onSelect={on3DView}><Box size={14} className="mr-2" /> Visa 3D-vy</DropdownMenuItem>}
+        {on3DWalk && <DropdownMenuItem onSelect={on3DWalk}><Footprints size={14} className="mr-2" /> Gå banan i 3D</DropdownMenuItem>}
       </DropdownMenuContent>
     </DropdownMenu>
   );

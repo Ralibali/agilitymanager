@@ -1,7 +1,8 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "agilitymanager",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "AgilityManager är en svensk webbapp för agility- och hoopersförare: träningslogg, banplanerare, tävlingskalender, statistik och coachning.",
   "type": "module",
   "scripts": {
     "dev": "vite",

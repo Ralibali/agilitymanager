@@ -167,6 +167,122 @@ textarea:focus-visible,
     padding: 1rem;
   }
 
+  /* Course planner: real mobile app treatment. */
+  .course-planner-topbar {
+    padding-top: max(0.75rem, env(safe-area-inset-top)) !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    background: rgba(15, 22, 29, 0.98) !important;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28) !important;
+  }
+
+  .course-planner-topbar input {
+    max-width: none !important;
+    height: 3rem !important;
+    border-radius: 1rem !important;
+    font-size: 1rem !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  .course-planner-mobile-actions {
+    width: 100% !important;
+  }
+
+  .course-planner-mobile-chip,
+  .course-planner-mobile-actions > button,
+  .course-planner-mobile-export > button,
+  .course-planner-export-trigger {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 2.9rem !important;
+    border-radius: 1rem !important;
+    padding-left: 0.35rem !important;
+    padding-right: 0.35rem !important;
+    font-size: 0.76rem !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+  }
+
+  .course-planner-mobile-chip svg,
+  .course-planner-export-trigger svg,
+  .course-planner-mobile-actions > button svg {
+    width: 1rem !important;
+    height: 1rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  .course-planner-export-trigger span {
+    display: inline-block !important;
+    max-width: 4.4rem !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .course-planner-sport-toggle,
+  .course-planner-desktop-actions {
+    display: none !important;
+  }
+
+  .course-planner-validation {
+    width: 100% !important;
+  }
+
+  .course-planner-validation > * {
+    width: 100% !important;
+    justify-content: flex-start !important;
+    min-height: 2.75rem !important;
+    border-radius: 1rem !important;
+    font-size: 0.88rem !important;
+    line-height: 1.25 !important;
+    padding-left: 0.85rem !important;
+    padding-right: 0.85rem !important;
+  }
+
+  /* Course planner dialogs should feel like bottom sheets on mobile. */
+  [role="dialog"] {
+    max-width: calc(100vw - 1.25rem) !important;
+  }
+
+  [role="dialog"]:has([aria-label="Stäng"]),
+  [role="dialog"]:has(button[aria-label="Stäng"]),
+  [role="dialog"]:has(button[aria-label="Close"]) {
+    max-height: calc(100dvh - 7.5rem) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  [role="dialog"] input,
+  [role="dialog"] textarea,
+  [role="dialog"] select {
+    min-height: 3rem !important;
+    border-radius: 1rem !important;
+  }
+
+  [role="dialog"] button {
+    min-height: 2.75rem;
+  }
+
+  /* Keep planner canvas readable and not hidden behind bottom nav. */
+  main:has(.course-planner-topbar) {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important;
+  }
+
+  main:has(.course-planner-topbar) .rounded-\[2rem\],
+  main:has(.course-planner-topbar) .rounded-\[28px\] {
+    border-radius: 1.25rem !important;
+  }
+
+  main:has(.course-planner-topbar) svg {
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+
+  main:has(.course-planner-topbar) .text-yellow-500,
+  main:has(.course-planner-topbar) .text-amber-500 {
+    line-height: 1.35 !important;
+  }
+
   /* Public landing: tighter first impression, safer hero, larger CTAs. */
   .bg-bone.pt-28 {
     padding-top: 5.25rem !important;
@@ -392,6 +508,18 @@ textarea:focus-visible,
 @media (max-width: 380px) {
   .v3-mobile-chart {
     min-width: 520px;
+  }
+
+  .course-planner-mobile-chip,
+  .course-planner-mobile-actions > button,
+  .course-planner-mobile-export > button,
+  .course-planner-export-trigger {
+    font-size: 0.7rem !important;
+    gap: 0.2rem !important;
+  }
+
+  .course-planner-export-trigger span {
+    max-width: 3.6rem !important;
   }
 
   .bg-bone .grid.grid-cols-1.sm\:grid-cols-3 {

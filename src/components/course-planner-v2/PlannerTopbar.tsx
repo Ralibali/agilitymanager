@@ -1,12 +1,12 @@
 /**
  * PlannerTopbar — mobile-first action bar för Course Planner V2.
  *
- * Mobilprioritet:
- *  - Rad 1: tillbaka, bannamn, sparstatus/spara.
- *  - Rad 2: horisontellt scrollbara actions: sport, validering, bibliotek, träna, dela, export.
+ * Mobil:
+ *  - Rad 1: tillbaka, bannamn, spara.
+ *  - Rad 2: exakt fyra tydliga actions: Banor, Dela, Ladda ner, Mer.
  *
  * Desktop:
- *  - Samma kontroller ligger i en mer kompakt topbar utan att tryckytor blir för små.
+ *  - Samma kontroller i kompakt topbar.
  */
 import { ArrowLeft, Library, Dumbbell, Share2, Cloud, CloudOff, MoreHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -37,29 +37,17 @@ interface Props {
   isAuthenticated: boolean;
 }
 
-function ActionChip({
-  icon,
-  label,
-  onClick,
-  disabled,
-  title,
-}: {
-  icon: ReactNode;
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-  title?: string;
-}) {
+function MobileChip({ icon, label, onClick, disabled, title }: { icon: ReactNode; label: string; onClick: () => void; disabled?: boolean; title?: string }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
       title={title ?? label}
-      className="course-planner-mobile-chip inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-3.5 text-sm font-bold text-slate-100 transition hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-45 sm:h-9 sm:rounded-full sm:border-border sm:bg-card sm:px-3 sm:text-[12px] sm:text-foreground sm:hover:border-neutral-400"
+      className="course-planner-mobile-chip inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.07] px-2 text-[13px] font-black text-slate-100 transition hover:bg-white/[0.11] disabled:cursor-not-allowed disabled:opacity-45"
     >
-      {icon}
-      <span>{label}</span>
+      <span className="grid h-5 w-5 shrink-0 place-items-center">{icon}</span>
+      <span className="truncate">{label}</span>
     </button>
   );
 }
@@ -124,53 +112,52 @@ export function PlannerTopbar({
         </button>
       </div>
 
-      <div className="course-planner-action-strip mt-3 flex w-full items-center gap-2 overflow-x-auto pb-1 sm:mt-2 sm:pb-0">
-        <div className="course-planner-sport-toggle shrink-0">{sportToggle}</div>
-        <div className="course-planner-validation shrink-0">{validationBadge}</div>
+      <div className="course-planner-mobile-status mt-3 sm:hidden">
+        <div className="course-planner-validation">{validationBadge}</div>
+      </div>
 
-        <div className="hidden sm:flex items-center gap-1.5">
+      <div className="course-planner-mobile-actions mt-3 grid grid-cols-4 gap-2 sm:hidden">
+        <MobileChip icon={<Library size={15} />} label="Banor" onClick={onLibrary} title="Öppna banbibliotek" />
+        <MobileChip icon={<Share2 size={15} />} label="Dela" onClick={onShare} disabled={shareDisabled} title={shareTitle} />
+        <div className="course-planner-mobile-export min-w-0">{exportMenu}</div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              aria-label="Fler åtgärder"
+              title="Fler åtgärder"
+              className="inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.07] px-2 text-[13px] font-black text-slate-100 hover:bg-white/[0.11]"
+            >
+              <MoreHorizontal size={17} />
+              <span>Mer</span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-60">
+            <DropdownMenuLabel>Mer</DropdownMenuLabel>
+            <DropdownMenuItem onSelect={onTrain}>
+              <Dumbbell size={14} className="mr-2" /> Skapa träningspass
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={onLibrary}>
+              <Library size={14} className="mr-2" /> Öppna banbibliotek
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={onShare} disabled={shareDisabled}>
+              <Share2 size={14} className="mr-2" /> Dela bana
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <div className="course-planner-desktop-actions mt-2 hidden w-full items-center gap-2 sm:flex">
+        <div className="shrink-0">{sportToggle}</div>
+        <div className="shrink-0">{validationBadge}</div>
+        <div className="ml-auto flex items-center gap-1.5">
           <IconBtn icon={<Library size={14} />} label="Bibliotek" title="Öppna banbibliotek" onClick={onLibrary} />
           <IconBtn icon={<Dumbbell size={14} />} label="Träna" title="Skapa träningspass från denna bana" onClick={onTrain} />
           <IconBtn icon={<Share2 size={14} />} label="Dela" title={shareTitle} onClick={onShare} disabled={shareDisabled} />
+          {exportMenu}
         </div>
-
-        <div className="flex sm:hidden items-center gap-2">
-          <ActionChip icon={<Library size={15} />} label="Banor" onClick={onLibrary} title="Öppna banbibliotek" />
-          <ActionChip icon={<Share2 size={15} />} label="Dela" onClick={onShare} disabled={shareDisabled} title={shareTitle} />
-          <ActionChip icon={<Dumbbell size={15} />} label="Träna" onClick={onTrain} title="Skapa träningspass från denna bana" />
-        </div>
-
-        <div className="shrink-0">{exportMenu}</div>
-
-        <div className="sm:hidden">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                aria-label="Fler åtgärder"
-                title="Fler åtgärder"
-                className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[0.06] text-slate-100 hover:bg-white/[0.1]"
-              >
-                <MoreHorizontal size={18} />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Fler åtgärder</DropdownMenuLabel>
-              <DropdownMenuItem onSelect={onLibrary}>
-                <Library size={14} className="mr-2" /> Öppna bibliotek
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={onTrain}>
-                <Dumbbell size={14} className="mr-2" /> Skapa träningspass
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={onShare} disabled={shareDisabled}>
-                <Share2 size={14} className="mr-2" /> Dela bana
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        <span className="hidden lg:inline ml-auto shrink-0 text-[11px] text-neutral-500" aria-live="polite">
+        <span className="hidden lg:inline shrink-0 text-[11px] text-neutral-500" aria-live="polite">
           {savedAt ? `Autosparad ${savedAt.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}` : "Sparas…"}
         </span>
       </div>

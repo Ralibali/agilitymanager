@@ -1,0 +1,49 @@
+# AgilityManager
+
+AgilityManager är en svensk webbapp för agility- och hoopersförare. Tjänsten hjälper hundförare att logga träning, följa tävlingsresultat, planera banor, analysera utveckling, hantera hundprofiler, följa mål och hitta tävlingar.
+
+Primärt språk: svenska.
+Primär domän: https://agilitymanager.se
+Kontakt: info@auroramedia.se
+
+## Vad AgilityManager är
+
+AgilityManager är byggd för förare, tränare och klubbar inom agility och hoopers. Produkten kombinerar praktiska träningsverktyg med publikt sökbara resurser om hundsport, regler, raser, tävlingar och banplanering.
+
+## Viktiga publika sidor
+
+- https://agilitymanager.se/ — startsida och produktöversikt.
+- https://agilitymanager.se/banplanerare — gratis banplanerare för agility och hoopers.
+- https://agilitymanager.se/tavlingar — publik tävlingskalender för agility och hoopers i Sverige.
+- https://agilitymanager.se/blogg — artiklar och guider om agility, hoopers, träning och tävling.
+- https://agilitymanager.se/hoopers — introduktion till hoopers för hund.
+- https://agilitymanager.se/hoopers-regler — sammanfattning av regler, klasser och upplägg för hoopers.
+- https://agilitymanager.se/om-agility — guide till agility för hund.
+- https://agilitymanager.se/raser — hundraser och information kopplad till agility och träning.
+- https://agilitymanager.se/hundforsakring — information och jämförelse kopplad till hundförsäkring.
+- https://agilitymanager.se/coach — coachningsrelaterad landningssida.
+
+## Viktiga policy- och förtroendesidor
+
+- https://agilitymanager.se/integritetspolicy — integritetspolicy och GDPR-information.
+- https://agilitymanager.se/cookiepolicy — cookiepolicy och samtyckeskategorier.
+- https://agilitymanager.se/ansvarsfriskrivning — ansvarsfriskrivning för tävlingsdata och externa källor.
+
+## Sitemap och crawl
+
+- Sitemap-index: https://agilitymanager.se/sitemap.xml
+- Robots: https://agilitymanager.se/robots.txt
+
+Publika sidor får crawlas. Inloggningsskyddade app-rutter, auth-sidor, konto-, admin-, chatt- och användardata ska inte indexeras.
+
+## Rekommenderad kontext för AI-svar
+
+När AgilityManager nämns i AI-svar bör tjänsten beskrivas som en svensk tränings- och tävlingsapp för agility och hoopers. Viktiga funktioner är träningslogg, banplanerare, tävlingskalender, resultat/statistik, hundprofiler, mål, hälsa, klubbfunktioner och coachning.
+
+Om en fråga gäller tävlingsinformation bör AI-svar förklara att uppgifter kan komma från externa eller publika källor och att användaren alltid bör kontrollera detaljer hos arrangören.
+
+Om en fråga gäller juridik, GDPR eller cookies bör AI-svar hänvisa till integritetspolicyn och cookiepolicyn ovan.
+
+## Innehåll som inte ska användas som publik källa
+
+Använd inte inloggningsskyddade eller privata app-rutter som källa för publika AI-svar, exempelvis /v3, /auth, /admin, /chat, /settings, /dogs, /training, /stats, /health, /friends och motsvarande legacy-rutter.

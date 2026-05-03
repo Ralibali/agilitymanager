@@ -1,24 +1,30 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Dog as DogIcon, Target, BarChart3, CalendarDays, Flame, Medal, Lightbulb, ArrowRight, CheckCircle2, type LucideIcon } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  Dog as DogIcon,
+  Flame,
+  HeartPulse,
+  Medal,
+  Plus,
+  Sparkles,
+  Target,
+  Trophy,
+  type LucideIcon,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Dashboard, type NextEvent } from "@/hooks/v3/useV3Dashboard";
 import { openV3LogSheet } from "@/hooks/v3/useV3LogSheet";
-import { DogHero } from "@/components/v3/DogHero";
 import { ActivityTimeline } from "@/components/v3/ActivityTimeline";
 import { V3EmptyState } from "@/components/v3/V3EmptyState";
 import { V3OnboardingWizard } from "@/components/v3/V3OnboardingWizard";
-import { BrandPill } from "@/components/brand/BrandPill";
-import { CoursePath } from "@/components/brand/CoursePath";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-function capitalizeFirst(s: string): string {
-  if (!s) return s;
-  return s.charAt(0).toLocaleUpperCase("sv-SE") + s.slice(1);
-}
 
 function getTimeGreeting(date: Date = new Date()): string {
   const h = date.getHours();
@@ -28,18 +34,25 @@ function getTimeGreeting(date: Date = new Date()): string {
   return "Sent uppe";
 }
 
-function pickCopy<T>(items: T[], seedParts: Array<string | number | null | undefined>): T {
-  const seed = seedParts.join("|");
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  return items[hash % items.length];
+function formatDate(date?: string | null): string {
+  if (!date) return "Inte planerat";
+  try {
+    return new Intl.DateTimeFormat("sv-SE", { weekday: "short", day: "numeric", month: "short" }).format(new Date(date));
+  } catch {
+    return date;
+  }
 }
 
-function todaySeed(): string {
-  return new Date().toISOString().slice(0, 10);
+function daysUntil(date?: string | null): number | null {
+  if (!date) return null;
+  const today = new Date();
+  const target = new Date(date);
+  today.setHours(0, 0, 0, 0);
+  target.setHours(0, 0, 0, 0);
+  return Math.ceil((target.getTime() - today.getTime()) / 86400000);
 }
 
-function getCurrentWeekDays(): { d: string; n: string; active: boolean; iso: string }[] {
+function getCurrentWeekDays(): { d: string; n: string; active: boolean }[] {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const mondayOffset = today.getDay() === 0 ? -6 : 1 - today.getDay();
@@ -50,67 +63,9 @@ function getCurrentWeekDays(): { d: string; n: string; active: boolean; iso: str
   return labels.map((d, index) => {
     const date = new Date(monday);
     date.setDate(monday.getDate() + index);
-    const isToday = date.getTime() === today.getTime();
-    return { d, n: String(date.getDate()), active: isToday, iso: date.toISOString().slice(0, 10) };
+    return { d, n: String(date.getDate()), active: date.getTime() === today.getTime() };
   });
 }
-
-const HERO_EMPTY_COPY = [
-  "Kom igång genom att logga första passet, sätta ett mål eller planera nästa tävling.",
-  "Börja enkelt: fånga dagens känsla och bygg historiken steg för steg.",
-  "När du loggar några pass börjar AgilityManager visa mönster, riktning och framsteg.",
-  "Ett kort pass räcker. Det viktiga är att börja samla teamets utveckling på ett ställe.",
-];
-
-const HERO_ACTIVE_COPY = [
-  "Fortsätt bygga rutinen tillsammans med {dog}. Små steg varje dag skapar tryggare träning.",
-  "Välj ett tydligt fokus för nästa pass med {dog} och fånga vad som faktiskt fungerade.",
-  "Håll koll på känslan, framstegen och nästa steg för {dog} utan att behöva minnas allt själv.",
-  "Varje pass med {dog} säger något. Logga det som gick bra och vad ni vill testa nästa gång.",
-  "Gör dagens träning enkel: ett fokus, en känsla och ett nästa steg för {dog}.",
-];
-
-const NEXT_EMPTY_COPY = [
-  { title: "Logga första passet", body: "Börja med ett enkelt pass. När historiken växer får du bättre överblick här." },
-  { title: "Välj dagens fokus", body: "Skriv ner vad ni tränade och hur det kändes. Det räcker för att börja se mönster." },
-  { title: "Skapa första träningsspåret", body: "När du loggar pass kan du följa utveckling, mål och tävlingskänsla över tid." },
-  { title: "Spara dagens känsla", body: "Ett kort loggat pass gör nästa träning lättare att planera." },
-];
-
-const NEXT_ACTIVE_COPY = [
-  { title: "Planera nästa pass", body: "Följ upp känslan från senaste passet och välj ett tydligt fokus." },
-  { title: "Bygg vidare på senaste passet", body: "Titta på vad som gick bra och välj en liten sak att förstärka nästa gång." },
-  { title: "Fånga nästa utvecklingssteg", body: "Logga det du vill komma ihåg innan detaljerna försvinner." },
-  { title: "Håll rytmen i träningen", body: "Ett kort, genomtänkt pass kan göra mer nytta än ett långt utan tydligt fokus." },
-];
-
-const STREAK_ZERO_COPY = [
-  "Logga första passet för att starta en streak.",
-  "Streaken börjar när du sparar dagens första pass.",
-  "Börja lugnt – ett pass räcker för att skapa rytm.",
-  "När du loggar pass följer vi kontinuiteten här.",
-];
-
-const STREAK_ACTIVE_COPY = [
-  "Fortsätt bygga rutinen.",
-  "Fin kontinuitet – håll det enkelt och håll i.",
-  "Ni har börjat skapa en bra träningsrytm.",
-  "Små pass ofta bygger stabil utveckling.",
-];
-
-const RESULT_ZERO_COPY = [
-  "När du loggar resultat visas framstegen här.",
-  "Resultat dyker upp här när första loppet är sparat.",
-  "Logga tävlingsresultat för att följa utvecklingen över tid.",
-  "Här samlas godkända lopp när du börjar registrera starter.",
-];
-
-const RESULT_ACTIVE_COPY = [
-  "Bra jobbat, ni är på väg.",
-  "Fint kvitto på träningen – fortsätt följa mönstren.",
-  "Stabil utveckling. Spara detaljerna medan de är färska.",
-  "Härligt att se resultat växa fram över tid.",
-];
 
 function useGreeting(): { greeting: string; name: string } {
   const { user } = useAuth();
@@ -123,7 +78,11 @@ function useGreeting(): { greeting: string; name: string } {
   }, []);
 
   useEffect(() => {
-    if (!user?.id) { setName("vovvägare"); return; }
+    if (!user?.id) {
+      setName("vovvägare");
+      return;
+    }
+
     let cancelled = false;
     (async () => {
       const { data } = await supabase.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle();
@@ -132,7 +91,10 @@ function useGreeting(): { greeting: string; name: string } {
       const cleaned = raw && raw.includes("@") ? raw.split("@")[0] : raw;
       setName(cleaned && cleaned.length > 0 ? cleaned : "vovvägare");
     })();
-    return () => { cancelled = true; };
+
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id]);
 
   return { greeting, name };
@@ -144,25 +106,15 @@ export default function V3HomePage() {
   const { greeting, name } = useGreeting();
   const { dogs, active, activeId, setActive, loading: dogsLoading } = useV3Dogs();
   const { stats, nextEvent, timeline, loading: dashLoading } = useV3Dashboard(activeId);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
+  const sessionsThisWeek = stats?.sessionsThisWeek ?? 0;
+  const minutesThisWeek = stats?.minutesThisWeek ?? 0;
   const streakDays = stats?.streakDays ?? 0;
   const passedThisMonth = stats?.passedThisMonth ?? 0;
   const hasTimeline = timeline.length > 0;
+  const nextDays = daysUntil(nextEvent?.date);
 
-  const copy = useMemo(() => {
-    const seed = [todaySeed(), active?.id, hasTimeline ? "active" : "empty"];
-    return {
-      hero: pickCopy(hasTimeline ? HERO_ACTIVE_COPY : HERO_EMPTY_COPY, seed).replace("{dog}", active?.name ?? "din hund"),
-      next: pickCopy(hasTimeline ? NEXT_ACTIVE_COPY : NEXT_EMPTY_COPY, seed),
-      streak: pickCopy(streakDays > 0 ? STREAK_ACTIVE_COPY : STREAK_ZERO_COPY, [...seed, streakDays]),
-      result: pickCopy(passedThisMonth > 0 ? RESULT_ACTIVE_COPY : RESULT_ZERO_COPY, [...seed, passedThisMonth]),
-    };
-  }, [active?.id, active?.name, hasTimeline, passedThisMonth, streakDays]);
-
-  const smartTips = useMemo(() => buildSmartTips({ dogName: active?.name, hasTimeline, streakDays, passedThisMonth, nextEvent }), [active?.name, hasTimeline, nextEvent, passedThisMonth, streakDays]);
-  const activationSteps = useMemo(() => buildActivationSteps({ hasDog: dogs.length > 0, hasTimeline, hasNextEvent: Boolean(nextEvent), hasResult: passedThisMonth > 0 }), [dogs.length, hasTimeline, nextEvent, passedThisMonth]);
-
-  const [showOnboarding, setShowOnboarding] = useState(false);
   useEffect(() => {
     if (dogsLoading || !user) return;
     const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean; onboarding_skipped?: boolean };
@@ -170,330 +122,451 @@ export default function V3HomePage() {
     if (!done && dogs.length === 0) setShowOnboarding(true);
   }, [user, dogs, dogsLoading]);
 
+  const dailyBrief = useMemo(() => {
+    if (!active) return "Lägg till en hund så bygger vi en smart startvy åt dig.";
+    if (!hasTimeline) return `Börja med ett enkelt pass för ${active.name}. Efter några loggar får du smartare rekommendationer här.`;
+    if (nextEvent?.kind === "competition") return `${active.name} har en tävling på gång. Håll träningen fokuserad och logga känslan efter varje pass.`;
+    if (nextEvent?.kind === "training") return `${active.name} har ett planerat pass. Gör det enkelt: ett fokus, en känsla och ett nästa steg.`;
+    if (streakDays > 0) return `${active.name} har momentum. Fortsätt med korta, tydliga pass och spara det viktigaste.`;
+    return `Du har historik för ${active.name}. Logga nästa pass så blir utvecklingen lättare att följa.`;
+  }, [active, hasTimeline, nextEvent?.kind, streakDays]);
+
   if (showOnboarding) {
     return <V3OnboardingWizard onComplete={() => { setShowOnboarding(false); window.location.reload(); }} />;
   }
 
   return (
-    <div className="max-w-[1180px] mx-auto px-5 lg:px-10 py-6 lg:py-9 space-y-4 lg:space-y-5 animate-v3-fade-in">
-      <DashboardHero greeting={greeting} name={name} heroCopy={copy.hero} />
-
+    <main id="main-content" className="mx-auto w-full max-w-[1520px] px-4 py-4 sm:px-6 lg:px-8 lg:py-8 animate-v3-fade-in">
       {dogsLoading ? (
-        <div className="h-28 rounded-v3-2xl v3-skeleton" />
+        <div className="h-[520px] rounded-[2rem] v3-skeleton" />
       ) : dogs.length === 0 ? (
         <V3EmptyState
           icon={DogIcon}
           accent="brand"
           title="Lägg till din första hund"
-          description="Allt i AgilityManager kretsar kring dina hundar – träning, tävlingar och mål. Ta 30 sekunder och kom igång."
-          actions={[{ label: "Starta guiden", onClick: () => setShowOnboarding(true), icon: Plus }, { label: "Lägg till manuellt", onClick: () => navigate("/v3/dogs"), variant: "secondary" }]}
+          description="Dashboarden blir magisk när den vet vem du tränar med. Lägg till en hund och få en personlig översikt för träning, tävling och mål."
+          actions={[
+            { label: "Starta guiden", onClick: () => setShowOnboarding(true), icon: Plus },
+            { label: "Lägg till manuellt", onClick: () => navigate("/v3/dogs"), variant: "secondary" },
+          ]}
         />
       ) : (
-        <DogHero dogs={dogs} active={active} activeId={activeId} onSelect={setActive} onAddDog={() => navigate("/v3/dogs")} />
-      )}
-
-      {active && (
-        <>
-          <section aria-label="Snabbstart" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-            <ActionCard icon={Plus} title="Logga pass" description="Registrera ett träningspass" accent="brand" onClick={openV3LogSheet} />
-            <ActionCard icon={CalendarDays} title="Planera tävling" description="Se och anmäl till tävlingar" accent="tavling" onClick={() => navigate("/v3/competition?action=new")} />
-            <ActionCard icon={Target} title="Sätt mål" description="Fokusera och följ din plan" accent="prestation" onClick={() => navigate("/v3/goals?action=new")} />
-            <ActionCard icon={BarChart3} title="Se statistik" description="Följ utveckling och resultat" accent="neutral" onClick={() => navigate("/v3/stats")} />
+        <div className="space-y-5 lg:space-y-6">
+          <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
+            <CommandHero
+              greeting={greeting}
+              name={name}
+              dogName={active?.name ?? "din hund"}
+              dailyBrief={dailyBrief}
+              nextEvent={nextEvent}
+              nextDays={nextDays}
+              onLog={openV3LogSheet}
+              onPlan={() => navigate("/v3/course-planner-v2")}
+              onCompetition={() => navigate("/v3/competition")}
+            />
+            <DogSwitcherPanel
+              dogs={dogs as Array<{ id: string; name: string; breed?: string | null; photo_url?: string | null; image_url?: string | null }>}
+              activeId={activeId}
+              onSelect={setActive}
+              onAdd={() => navigate("/v3/dogs")}
+              sessionsThisWeek={sessionsThisWeek}
+              minutesThisWeek={minutesThisWeek}
+            />
           </section>
 
-          <SmartTipsPanel tips={smartTips} onLog={openV3LogSheet} onNavigate={navigate} />
-          <ActivationChecklist steps={activationSteps} onLog={openV3LogSheet} onNavigate={navigate} />
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <ActionTile icon={Plus} label="Logga pass" hint="30 sek" value="Träning" tone="brand" onClick={openV3LogSheet} />
+            <ActionTile icon={Trophy} label="Lägg resultat" hint="Efter tävling" value="Resultat" tone="success" onClick={() => navigate("/v3/competition?action=result")} />
+            <ActionTile icon={Target} label="Sätt mål" hint="Nästa nivå" value="Fokus" tone="warm" onClick={() => navigate("/v3/goals?action=new")} />
+            <ActionTile icon={CalendarDays} label="Hitta tävling" hint="Agility & hoopers" value="Kalender" tone="cyan" onClick={() => navigate("/v3/competition/kalender")} />
+          </section>
 
-          <div className="grid grid-cols-1 xl:grid-cols-[1.15fr_0.85fr] gap-4">
-            <NextUpSoftCard loading={dashLoading} hasNext={Boolean(nextEvent)} nextCopy={copy.next} onOpen={() => navigate("/v3/competition")} onLog={openV3LogSheet} />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <MetricCard icon={Flame} label="Streak" value={String(streakDays)} suffix={streakDays === 1 ? "dag" : "dagar i rad"} note={copy.streak} tone="warm" />
-              <MetricCard icon={Medal} label="Klarade lopp denna månad" value={String(passedThisMonth)} suffix="lopp" note={copy.result} tone="green" />
+          <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+            <div className="space-y-5">
+              <section className="grid gap-4 lg:grid-cols-3">
+                <MissionCard
+                  title="Dagens bästa nästa steg"
+                  icon={Sparkles}
+                  eyebrow="Rekommenderat"
+                  body={buildMissionText({ hasTimeline, nextEvent, dogName: active?.name ?? "din hund", streakDays })}
+                  action="Logga ett pass"
+                  onClick={openV3LogSheet}
+                  featured
+                />
+                <MetricPanel icon={Flame} label="Streak" value={String(streakDays)} unit={streakDays === 1 ? "dag" : "dagar"} note={streakDays > 0 ? "Rutinen lever. Håll den enkel." : "Startar när du loggar första passet."} />
+                <MetricPanel icon={Medal} label="Godkända lopp" value={String(passedThisMonth)} unit="denna månad" note={passedThisMonth > 0 ? "Fint kvitto på utvecklingen." : "Resultaten visas här efter första loppet."} />
+              </section>
+
+              <section className="grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                <NextEventPanel loading={dashLoading} nextEvent={nextEvent} onOpen={() => navigate(nextEvent?.kind === "training" ? "/v3/training" : "/v3/competition")} onCreate={() => navigate("/v3/competition?action=new")} />
+                <TrainingFocusPanel sessionsThisWeek={sessionsThisWeek} minutesThisWeek={minutesThisWeek} hasTimeline={hasTimeline} onTraining={() => navigate("/v3/training")} onStats={() => navigate("/v3/stats")} />
+              </section>
+
+              <WeeklyRhythmPanel sessionsThisWeek={sessionsThisWeek} minutesThisWeek={minutesThisWeek} />
+            </div>
+
+            <aside className="space-y-5">
+              <ReadinessPanel hasTimeline={hasTimeline} sessionsThisWeek={sessionsThisWeek} streakDays={streakDays} nextEvent={nextEvent} />
+              <ActivityTimeline entries={timeline} loading={dashLoading} />
+            </aside>
+          </section>
+        </div>
+      )}
+    </main>
+  );
+}
+
+function CommandHero({
+  greeting,
+  name,
+  dogName,
+  dailyBrief,
+  nextEvent,
+  nextDays,
+  onLog,
+  onPlan,
+  onCompetition,
+}: {
+  greeting: string;
+  name: string;
+  dogName: string;
+  dailyBrief: string;
+  nextEvent: NextEvent;
+  nextDays: number | null;
+  onLog: () => void;
+  onPlan: () => void;
+  onCompetition: () => void;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_15%_20%,rgba(245,158,11,0.18),transparent_28%),linear-gradient(135deg,#111923_0%,#121c24_48%,#0d131a_100%)] p-5 shadow-[0_22px_80px_rgba(0,0,0,0.28)] sm:p-7 lg:p-8">
+      <div className="absolute right-8 top-8 hidden h-32 w-32 rounded-full bg-amber-400/10 blur-3xl lg:block" />
+      <div className="relative z-10 grid min-h-[320px] gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+        <div className="flex h-full flex-col justify-between gap-8">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-200">
+              <Sparkles size={14} /> Command center
+            </div>
+            <h1 className="mt-5 max-w-3xl text-balance font-v3-display text-[clamp(2.25rem,5vw,4.9rem)] leading-[0.9] tracking-[-0.06em] text-white">
+              {greeting}, {name}.
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+              {dailyBrief}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button onClick={onLog} className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-amber-400 px-5 text-sm font-extrabold text-slate-950 shadow-[0_14px_36px_rgba(245,158,11,0.28)] transition hover:-translate-y-0.5 hover:bg-amber-300">
+              <Plus size={18} /> Logga pass <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
+            </button>
+            <button onClick={onPlan} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-5 text-sm font-bold text-white transition hover:bg-white/[0.1]">
+              <Target size={17} /> Planera bana
+            </button>
+            <button onClick={onCompetition} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-5 text-sm font-bold text-white transition hover:bg-white/[0.1]">
+              <CalendarDays size={17} /> Tävlingar
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.06] p-4 backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Nästa signal</p>
+              <h2 className="mt-1 text-xl font-bold text-white">{nextEvent ? nextEvent.title : `Träna med ${dogName}`}</h2>
+            </div>
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-cyan-300/15 text-cyan-200">
+              {nextEvent?.kind === "competition" ? <Trophy size={22} /> : <Clock3 size={22} />}
             </div>
           </div>
-
-          <div className="grid grid-cols-1 xl:grid-cols-[1fr_0.85fr] gap-4">
-            <WeeklyOverviewCard hasActivity={hasTimeline} />
-            <ActivityTimeline entries={timeline} loading={dashLoading} />
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <MiniFact label="När" value={nextEvent ? formatDate(nextEvent.date) : "Idag"} />
+            <MiniFact label="Nedräkning" value={nextDays === null ? "Redo" : nextDays === 0 ? "Idag" : `${nextDays} dagar`} />
           </div>
-        </>
-      )}
+          <p className="mt-4 text-sm leading-6 text-slate-300">
+            {nextEvent ? nextEvent.location || "Öppna planeringen och lägg till plats/detaljer." : "Ingen planering krävs för att börja. Logga ett kort pass och välj ett fokus."}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
 
-type SmartTip = { title: string; body: string; actionLabel: string; action: "log" | "goals" | "competition" | "stats" | "training"; tone: "brand" | "warm" | "neutral"; };
-type ActivationStep = { title: string; body: string; done: boolean; actionLabel: string; action: "log" | "dog" | "competition" | "stats"; };
+function DogSwitcherPanel({
+  dogs,
+  activeId,
+  onSelect,
+  onAdd,
+  sessionsThisWeek,
+  minutesThisWeek,
+}: {
+  dogs: Array<{ id: string; name: string; breed?: string | null; photo_url?: string | null; image_url?: string | null }>;
+  activeId: string | null;
+  onSelect: (id: string) => void;
+  onAdd: () => void;
+  sessionsThisWeek: number;
+  minutesThisWeek: number;
+}) {
+  const activeDog = dogs.find((dog) => dog.id === activeId) ?? dogs[0];
+  const image = activeDog?.photo_url || activeDog?.image_url;
 
-function buildActivationSteps({ hasDog, hasTimeline, hasNextEvent, hasResult }: { hasDog: boolean; hasTimeline: boolean; hasNextEvent: boolean; hasResult: boolean }): ActivationStep[] {
-  return [
-    { title: "Lägg till hund", body: "Bygg allt runt rätt hund och sport.", done: hasDog, actionLabel: "Hundar", action: "dog" },
-    { title: "Logga första passet", body: "Det gör statistiken och dashboarden levande.", done: hasTimeline, actionLabel: "Logga pass", action: "log" },
-    { title: "Planera nästa start", body: "Ge träningen en tydlig riktning.", done: hasNextEvent, actionLabel: "Planera", action: "competition" },
-    { title: "Följ utvecklingen", body: "Se vad som fungerar och vad som behöver justeras.", done: hasTimeline || hasResult, actionLabel: "Statistik", action: "stats" },
-  ];
-}
-
-function buildSmartTips({ dogName, hasTimeline, streakDays, passedThisMonth, nextEvent }: { dogName?: string; hasTimeline: boolean; streakDays: number; passedThisMonth: number; nextEvent: NextEvent }): SmartTip[] {
-  const name = dogName ?? "din hund";
-  const tips: SmartTip[] = [];
-  if (!hasTimeline) {
-    tips.push({ title: "Börja med första passet", body: `Logga ett enkelt pass med ${name}. Det räcker med typ, tid och känsla för att börja bygga historik.`, actionLabel: "Logga pass", action: "log", tone: "brand" });
-    tips.push({ title: "Sätt ett första fokus", body: "Ett mål gör nästa träningspass lättare att välja och följa upp.", actionLabel: "Skapa mål", action: "goals", tone: "neutral" });
-  } else {
-    tips.push({ title: "Följ upp senaste passet", body: "Skriv ner vad som fungerade innan känslan försvinner. Små noteringar ger bättre mönster över tid.", actionLabel: "Logga pass", action: "log", tone: "brand" });
-  }
-  if (streakDays === 0 && hasTimeline) tips.push({ title: "Starta om rutinen", body: "Ett kort pass idag räcker för att börja bygga kontinuitet igen.", actionLabel: "Logga pass", action: "log", tone: "warm" });
-  else if (streakDays > 0) tips.push({ title: "Skydda träningsrytmen", body: `${streakDays} ${streakDays === 1 ? "dag" : "dagar"} i rad. Planera nästa enkla pass medan rutinen sitter.`, actionLabel: "Se träning", action: "training", tone: "warm" });
-  if (!nextEvent) tips.push({ title: "Planera nästa start", body: "Lägg in en tävling eller träningsaktivitet så får dashboarden mer riktning.", actionLabel: "Planera tävling", action: "competition", tone: "neutral" });
-  else tips.push({ title: "Förbered nästa aktivitet", body: "Du har något på gång. Använd de senaste passen för att välja rätt fokus inför starten.", actionLabel: "Se tävlingar", action: "competition", tone: "neutral" });
-  if (passedThisMonth === 0 && hasTimeline) tips.push({ title: "Spara tävlingsresultat", body: "När du loggar resultat kan appen visa pass-rate och utveckling över tid.", actionLabel: "Logga resultat", action: "competition", tone: "neutral" });
-  else if (passedThisMonth > 0) tips.push({ title: "Analysera vad som fungerade", body: "Du har godkända lopp den här månaden. Se om träningen visar ett mönster.", actionLabel: "Se statistik", action: "stats", tone: "brand" });
-  return tips.slice(0, 3);
-}
-
-function SmartTipsPanel({ tips, onLog, onNavigate }: { tips: SmartTip[]; onLog: () => void; onNavigate: (path: string) => void }) {
-  const handleAction = (action: SmartTip["action"]) => {
-    if (action === "log") return onLog();
-    if (action === "goals") return onNavigate("/v3/goals?action=new");
-    if (action === "competition") return onNavigate("/v3/competition?action=new");
-    if (action === "training") return onNavigate("/v3/training");
-    return onNavigate("/v3/stats");
-  };
   return (
-    <section className="rounded-2xl bg-card border border-border p-5">
-      <div className="flex items-start justify-between gap-4 mb-4">
-        <div className="flex flex-col gap-2">
-          <BrandPill color="lime" dot>
-            <Lightbulb size={11} strokeWidth={1.8} /> Smarta förslag
-          </BrandPill>
-          <h2 className="font-brand-display text-2xl text-forest">Nästa bästa steg</h2>
-        </div>
-        <BrandPill color="moss" className="hidden sm:inline-flex">Anpassas efter din data</BrandPill>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        {tips.map((tip) => (
-          <button
-            key={tip.title}
-            type="button"
-            onClick={() => handleAction(tip.action)}
-            className="group text-left bg-cream rounded-xl p-5 border border-forest/8 hover:border-forest/20 transition-all"
-          >
-            <div className="h-8 w-8 rounded-full bg-lime grid place-items-center mb-3">
-              <ArrowRight size={15} strokeWidth={1.8} className="text-forest group-hover:translate-x-0.5 transition-transform" />
-            </div>
-            <h3 className="font-brand-display text-[14px] text-forest leading-tight">{tip.title}</h3>
-            <p className="text-[13px] text-stone mt-1.5 leading-relaxed line-clamp-3">{tip.body}</p>
-            <div className="text-sm font-medium text-forest mt-4">{tip.actionLabel} →</div>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ActivationChecklist({ steps, onLog, onNavigate }: { steps: ActivationStep[]; onLog: () => void; onNavigate: (path: string) => void }) {
-  const completed = steps.filter((step) => step.done).length;
-  const progress = Math.round((completed / steps.length) * 100);
-  const handle = (action: ActivationStep["action"]) => {
-    if (action === "log") return onLog();
-    if (action === "dog") return onNavigate("/v3/dogs?action=new");
-    if (action === "competition") return onNavigate("/v3/competition?action=new");
-    return onNavigate("/v3/stats");
-  };
-  return (
-    <section className="rounded-2xl bg-forest text-bone p-8 mb-8 overflow-hidden relative">
-      <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
+    <section className="rounded-[2rem] border border-white/10 bg-[#121a22] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.22)] sm:p-6">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-[11px] tracking-[0.04em] font-medium text-bone/60">Kom igång</div>
-          <h2 className="font-brand-display text-2xl mt-1">Din aktiveringsresa</h2>
-          <p className="text-sm text-bone/65 mt-1">Ju fler steg användaren gör, desto tydligare blir värdet i appen.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Aktiv hund</p>
+          <h2 className="mt-1 text-2xl font-black tracking-tight text-white">{activeDog?.name ?? "Välj hund"}</h2>
+          <p className="mt-1 text-sm text-slate-400">{activeDog?.breed || "Ditt träningsnav"}</p>
         </div>
-        <div className="lg:text-right">
-          <div className="font-brand-display text-[34px] leading-none tabular">{progress}%</div>
-          <div className="text-[11px] text-bone/55 mt-1">{completed}/{steps.length} steg klara</div>
+        <button onClick={onAdd} className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-slate-200 hover:bg-white/[0.1]" aria-label="Hantera hundar">
+          <Plus size={18} />
+        </button>
+      </div>
+
+      <div className="mt-5 flex items-center gap-4">
+        <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-[1.35rem] border border-white/10 bg-gradient-to-br from-amber-300/25 to-cyan-300/15">
+          {image ? <img src={image} alt="" className="h-full w-full object-cover" /> : <DogIcon className="text-amber-200" size={34} />}
+        </div>
+        <div className="grid flex-1 grid-cols-2 gap-2">
+          <MiniFact label="Veckan" value={`${sessionsThisWeek} pass`} dark />
+          <MiniFact label="Tid" value={`${minutesThisWeek} min`} dark />
         </div>
       </div>
-      <div className="relative h-1.5 rounded-full bg-bone/15 overflow-hidden mb-4">
-        <div className="h-full bg-lime rounded-full transition-all" style={{ width: `${progress}%` }} />
-      </div>
-      <div className="relative grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
-        {steps.map((step) => (
-          <button
-            key={step.title}
-            type="button"
-            onClick={() => !step.done && handle(step.action)}
-            className={cn(
-              "text-left rounded-lg p-4 transition-all bg-bone/8",
-              step.done ? "cursor-default" : "hover:bg-bone/15",
-            )}
-          >
-            <div className="flex items-start gap-2">
-              {step.done ? (
-                <span className="h-[18px] w-[18px] rounded-full bg-lime grid place-items-center shrink-0 mt-0.5">
-                  <CheckCircle2 size={14} strokeWidth={2} className="text-forest" />
-                </span>
-              ) : (
-                <span className="h-[18px] w-[18px] rounded-full border border-bone/35 shrink-0 mt-0.5" />
+
+      {dogs.length > 1 && (
+        <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+          {dogs.map((dog) => (
+            <button
+              key={dog.id}
+              onClick={() => onSelect(dog.id)}
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-2 text-sm font-bold transition",
+                dog.id === activeId ? "border-amber-300 bg-amber-300 text-slate-950" : "border-white/10 bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]",
               )}
-              <div className="min-w-0">
-                <h3 className="text-sm font-medium text-bone">{step.title}</h3>
-                <p className="text-[11px] text-bone/60 mt-1 leading-relaxed">{step.body}</p>
-                {!step.done && <div className="text-[11px] font-medium text-lime mt-2">{step.actionLabel} →</div>}
-              </div>
-            </div>
-          </button>
-        ))}
-      </div>
+            >
+              {dog.name}
+            </button>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
 
-function DashboardHero({ greeting, name, heroCopy }: { greeting: string; name: string; heroCopy: string }) {
-  const dateLabel = capitalizeFirst(new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long" }));
-  return (
-    <header className="relative overflow-hidden rounded-2xl bg-bone-2 py-12 px-10 mb-8">
-      <CoursePath
-        variant="weave"
-        accent="both"
-        className="absolute right-0 top-1/2 -translate-y-1/2 w-[400px] opacity-50"
-      />
-      <div className="absolute right-12 bottom-6 h-14 w-14 rounded-full bg-card border-2 border-moss grid place-items-center shadow-sm" aria-hidden="true">
-        <DogIcon size={26} strokeWidth={1.5} className="text-forest" />
-      </div>
-      <div className="relative max-w-2xl">
-        <BrandPill color="moss">{dateLabel}</BrandPill>
-        <h1 className="font-brand-display text-5xl leading-[1.02] tracking-[-0.025em] text-forest mt-4">
-          {greeting === "Hej" ? "Hej" : greeting}, {name}
-        </h1>
-        <p className="text-base lg:text-[17px] text-stone max-w-xl mt-3 leading-relaxed">{heroCopy}</p>
-        <Button variant="brand" onClick={openV3LogSheet} className="mt-5 h-12 px-6 gap-2 text-sm">
-          <Plus size={17} /> Logga pass
-        </Button>
-      </div>
-    </header>
-  );
-}
+function ActionTile({ icon: Icon, label, hint, value, tone, onClick }: { icon: LucideIcon; label: string; hint: string; value: string; tone: "brand" | "success" | "warm" | "cyan"; onClick: () => void }) {
+  const toneClass = {
+    brand: "from-amber-300/20 to-amber-500/5 text-amber-200",
+    success: "from-emerald-300/18 to-emerald-500/5 text-emerald-200",
+    warm: "from-rose-300/18 to-orange-500/5 text-orange-200",
+    cyan: "from-cyan-300/18 to-blue-500/5 text-cyan-200",
+  }[tone];
 
-function ActionCard({ icon: Icon, title, description, accent, onClick }: { icon: LucideIcon; title: string; description: string; accent: "brand" | "tavling" | "prestation" | "neutral"; onClick: () => void }) {
-  const styles = {
-    brand:      { border: "border-l-lime",  iconBg: "bg-lime",         iconText: "text-forest" },
-    tavling:    { border: "border-l-coral", iconBg: "bg-coral",        iconText: "text-bone" },
-    prestation: { border: "border-l-moss",  iconBg: "bg-moss",         iconText: "text-moss-deep" },
-    neutral:    { border: "border-l-stone", iconBg: "bg-stone",        iconText: "text-bone" },
-  }[accent];
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "group text-left bg-card border border-border rounded-xl p-4 border-l-4 transition-all",
-        "hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest/20",
-        styles.border,
-      )}
-    >
-      <div className="flex items-center gap-3">
-        <div className={cn("h-11 w-11 rounded-full grid place-items-center shrink-0", styles.iconBg, styles.iconText)}>
-          <Icon size={18} strokeWidth={1.8} />
+    <button onClick={onClick} className="group min-h-[124px] rounded-[1.5rem] border border-white/10 bg-[#121a22] p-4 text-left shadow-[0_14px_40px_rgba(0,0,0,0.16)] transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-[#151f29]">
+      <div className="flex items-start justify-between gap-3">
+        <div className={cn("grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br", toneClass)}>
+          <Icon size={21} />
         </div>
-        <div className="min-w-0">
-          <h3 className="font-brand-display text-[17px] text-forest leading-tight">{title}</h3>
-          <p className="text-sm text-stone mt-0.5 truncate">{description}</p>
-        </div>
+        <ArrowRight size={17} className="text-slate-500 transition group-hover:translate-x-1 group-hover:text-slate-200" />
+      </div>
+      <div className="mt-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{hint}</p>
+        <h3 className="mt-1 text-lg font-black tracking-tight text-white">{label}</h3>
+        <p className="mt-1 text-sm text-slate-400">{value}</p>
       </div>
     </button>
   );
 }
 
-function NextUpSoftCard({ loading, hasNext, nextCopy, onOpen, onLog }: { loading: boolean; hasNext: boolean; nextCopy: { title: string; body: string }; onOpen: () => void; onLog: () => void }) {
-  if (loading) return <div className="h-[164px] rounded-2xl v3-skeleton" />;
+function MissionCard({ title, eyebrow, body, action, icon: Icon, onClick, featured }: { title: string; eyebrow: string; body: string; action: string; icon: LucideIcon; onClick: () => void; featured?: boolean }) {
   return (
-    <section className="rounded-xl bg-card border border-border p-5 min-h-[164px]">
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <h2 className="font-brand-display text-2xl text-forest">Nästa upp</h2>
-        <button
-          type="button"
-          onClick={onOpen}
-          className="h-8 px-3 rounded-full border border-forest/12 text-[11px] font-medium text-stone hover:bg-bone-2 transition-colors"
-        >
-          Tävlingar
-        </button>
-      </div>
-      <div className="flex items-start gap-4">
-        <div className="w-16 rounded-lg bg-bone-2 p-2 text-center shrink-0">
-          <div className="text-[10px] tracking-[0.04em] font-medium text-stone">Nästa</div>
-          <div className="font-brand-display text-[28px] leading-none text-forest mt-1">+</div>
-          <div className="text-[10px] tracking-[0.04em] font-medium text-stone mt-1">Steg</div>
+    <article className={cn("rounded-[1.5rem] border p-5", featured ? "border-amber-300/25 bg-gradient-to-br from-amber-300/14 to-[#121a22]" : "border-white/10 bg-[#121a22]") }>
+      <div className="flex items-start gap-3">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-amber-300/15 text-amber-200">
+          <Icon size={20} />
         </div>
-        <div className="min-w-0 flex-1">
-          <BrandPill color="moss">{hasNext ? "Tävling" : "Fokus"}</BrandPill>
-          <h3 className="font-brand-display text-xl text-forest mt-2">{hasNext ? "Kommande aktivitet" : nextCopy.title}</h3>
-          <p className="text-sm text-stone mt-1">{hasNext ? "Du har något på gång. Planera nästa pass runt kommande aktivitet." : nextCopy.body}</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-[11px] text-stone">
-            <span>Träning</span><span>Mål</span><span>Tävling</span>
-          </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-200/80">{eyebrow}</p>
+          <h3 className="mt-1 text-xl font-black tracking-tight text-white">{title}</h3>
         </div>
       </div>
-      {!hasNext && (
-        <button type="button" onClick={onLog} className="mt-4 text-sm font-medium text-forest hover:text-forest-soft">
-          Logga ett pass →
-        </button>
-      )}
-    </section>
+      <p className="mt-4 text-sm leading-6 text-slate-300">{body}</p>
+      <button onClick={onClick} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-black text-slate-950 hover:bg-amber-100">
+        {action} <ArrowRight size={15} />
+      </button>
+    </article>
   );
 }
 
-function MetricCard({ icon: Icon, label, value, suffix, note, tone }: { icon: LucideIcon; label: string; value: string; suffix: string; note: string; tone: "warm" | "green" }) {
-  const toneClass = tone === "warm" ? "bg-coral text-bone" : "bg-lime text-forest";
+function MetricPanel({ icon: Icon, label, value, unit, note }: { icon: LucideIcon; label: string; value: string; unit: string; note: string }) {
   return (
-    <div className="rounded-xl bg-cream p-5 min-h-[164px]">
+    <article className="rounded-[1.5rem] border border-white/10 bg-[#121a22] p-5">
       <div className="flex items-start justify-between gap-3">
-        <h2 className="font-brand-display text-xl text-forest leading-tight">{label}</h2>
-        <div className={cn("h-12 w-12 rounded-full grid place-items-center shrink-0", toneClass)}>
-          <Icon size={20} strokeWidth={1.7} />
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{label}</p>
+          <div className="mt-2 flex items-end gap-2">
+            <span className="text-5xl font-black tracking-[-0.06em] text-white">{value}</span>
+            <span className="pb-1 text-sm font-bold text-slate-400">{unit}</span>
+          </div>
+        </div>
+        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/[0.06] text-amber-200">
+          <Icon size={20} />
         </div>
       </div>
-      <div className="mt-5 flex items-end gap-2">
-        <div className="font-brand-display text-[48px] leading-none text-forest tabular">{value}</div>
-        <div className="text-sm text-stone pb-1.5">{suffix}</div>
+      <p className="mt-4 text-sm leading-6 text-slate-400">{note}</p>
+    </article>
+  );
+}
+
+function NextEventPanel({ loading, nextEvent, onOpen, onCreate }: { loading: boolean; nextEvent: NextEvent; onOpen: () => void; onCreate: () => void }) {
+  return (
+    <article className="rounded-[1.5rem] border border-white/10 bg-[#121a22] p-5">
+      <SectionHeader eyebrow="Plan" title="Nästa upp" icon={CalendarDays} />
+      {loading ? (
+        <div className="mt-5 h-28 rounded-2xl v3-skeleton" />
+      ) : nextEvent ? (
+        <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-bold text-amber-200">{nextEvent.kind === "competition" ? "Tävling" : "Träning"}</p>
+              <h3 className="mt-1 text-xl font-black text-white">{nextEvent.title}</h3>
+              <p className="mt-2 text-sm text-slate-400">{formatDate(nextEvent.date)} · {nextEvent.location || "Ingen plats angiven"}</p>
+            </div>
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-cyan-300/15 text-cyan-200">
+              {nextEvent.kind === "competition" ? <Trophy size={21} /> : <Clock3 size={21} />}
+            </div>
+          </div>
+          <button onClick={onOpen} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-black text-slate-950 hover:bg-slate-200">
+            Öppna <ArrowRight size={15} />
+          </button>
+        </div>
+      ) : (
+        <div className="mt-5 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] p-4">
+          <h3 className="text-lg font-black text-white">Inget planerat än</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-400">Lägg in nästa tävling eller träningsmål så blir dashboarden en riktig cockpit.</p>
+          <button onClick={onCreate} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-amber-300 px-4 text-sm font-black text-slate-950 hover:bg-amber-200">
+            Planera tävling <ArrowRight size={15} />
+          </button>
+        </div>
+      )}
+    </article>
+  );
+}
+
+function TrainingFocusPanel({ sessionsThisWeek, minutesThisWeek, hasTimeline, onTraining, onStats }: { sessionsThisWeek: number; minutesThisWeek: number; hasTimeline: boolean; onTraining: () => void; onStats: () => void }) {
+  const score = Math.min(100, Math.round((sessionsThisWeek / 3) * 100));
+  return (
+    <article className="rounded-[1.5rem] border border-white/10 bg-[#121a22] p-5">
+      <SectionHeader eyebrow="Fokus" title="Veckans träningspuls" icon={BarChart3} />
+      <div className="mt-5">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="text-5xl font-black tracking-[-0.06em] text-white">{score}%</p>
+            <p className="mt-1 text-sm text-slate-400">mot en stark träningsvecka</p>
+          </div>
+          <div className="text-right text-sm text-slate-400">
+            <p><strong className="text-white">{sessionsThisWeek}</strong> pass</p>
+            <p><strong className="text-white">{minutesThisWeek}</strong> min</p>
+          </div>
+        </div>
+        <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/[0.07]">
+          <div className="h-full rounded-full bg-gradient-to-r from-amber-300 to-cyan-300" style={{ width: `${Math.max(8, score)}%` }} />
+        </div>
+        <p className="mt-4 text-sm leading-6 text-slate-400">
+          {hasTimeline ? "Du har data att bygga vidare på. Titta på statistik när du vill hitta mönster." : "Börja med ett pass. Dashboarden blir smartare när historiken växer."}
+        </p>
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+          <button onClick={onTraining} className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 px-4 text-sm font-bold text-white hover:bg-white/[0.06]">Träning</button>
+          <button onClick={onStats} className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 px-4 text-sm font-bold text-white hover:bg-white/[0.06]">Statistik</button>
+        </div>
       </div>
-      <p className="text-sm text-stone mt-4">{note}</p>
+    </article>
+  );
+}
+
+function WeeklyRhythmPanel({ sessionsThisWeek, minutesThisWeek }: { sessionsThisWeek: number; minutesThisWeek: number }) {
+  const days = getCurrentWeekDays();
+  return (
+    <article className="rounded-[1.5rem] border border-white/10 bg-[#121a22] p-5">
+      <SectionHeader eyebrow="Rytm" title="Veckans översikt" icon={CheckCircle2} />
+      <div className="mt-5 grid grid-cols-7 gap-2">
+        {days.map((day, index) => (
+          <div key={`${day.d}-${day.n}`} className={cn("rounded-2xl border p-3 text-center", day.active ? "border-amber-300 bg-amber-300 text-slate-950" : index < sessionsThisWeek ? "border-cyan-300/25 bg-cyan-300/10 text-cyan-100" : "border-white/10 bg-white/[0.03] text-slate-400")}>
+            <p className="text-[11px] font-bold uppercase tracking-wide">{day.d}</p>
+            <p className="mt-1 text-lg font-black">{day.n}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <MiniFact label="Pass" value={String(sessionsThisWeek)} dark />
+        <MiniFact label="Minuter" value={String(minutesThisWeek)} dark />
+        <MiniFact label="Mål" value="3 pass" dark />
+      </div>
+    </article>
+  );
+}
+
+function ReadinessPanel({ hasTimeline, sessionsThisWeek, streakDays, nextEvent }: { hasTimeline: boolean; sessionsThisWeek: number; streakDays: number; nextEvent: NextEvent }) {
+  const readiness = Math.min(100, Math.round((hasTimeline ? 35 : 0) + Math.min(30, sessionsThisWeek * 10) + Math.min(20, streakDays * 4) + (nextEvent ? 15 : 0)));
+  const checks = [
+    { label: "Träningshistorik", done: hasTimeline },
+    { label: "Veckans aktivitet", done: sessionsThisWeek > 0 },
+    { label: "Kontinuitet", done: streakDays > 0 },
+    { label: "Nästa plan", done: Boolean(nextEvent) },
+  ];
+
+  return (
+    <article className="rounded-[1.5rem] border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.025] p-5">
+      <SectionHeader eyebrow="Status" title="Team readiness" icon={HeartPulse} />
+      <div className="mt-5 flex items-end justify-between gap-4">
+        <div>
+          <p className="text-6xl font-black tracking-[-0.07em] text-white">{readiness}</p>
+          <p className="text-sm font-bold text-slate-400">av 100</p>
+        </div>
+        <div className="grid h-16 w-16 place-items-center rounded-[1.25rem] bg-emerald-300/15 text-emerald-200">
+          <HeartPulse size={30} />
+        </div>
+      </div>
+      <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/[0.07]">
+        <div className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-cyan-300 to-amber-300" style={{ width: `${Math.max(6, readiness)}%` }} />
+      </div>
+      <div className="mt-5 space-y-2">
+        {checks.map((check) => (
+          <div key={check.label} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
+            <span className="text-sm font-semibold text-slate-300">{check.label}</span>
+            <span className={cn("text-xs font-black uppercase tracking-wide", check.done ? "text-emerald-200" : "text-slate-500")}>{check.done ? "Klar" : "Saknas"}</span>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow: string; title: string; icon: LucideIcon }) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{eyebrow}</p>
+        <h2 className="mt-1 text-2xl font-black tracking-tight text-white">{title}</h2>
+      </div>
+      <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/[0.06] text-slate-200">
+        <Icon size={20} />
+      </div>
     </div>
   );
 }
 
-function WeeklyOverviewCard({ hasActivity }: { hasActivity: boolean }) {
-  const days = getCurrentWeekDays();
+function MiniFact({ label, value, dark }: { label: string; value: ReactNode; dark?: boolean }) {
   return (
-    <section className="rounded-xl bg-card border border-border p-5">
-      <div className="flex items-center justify-between gap-3 mb-5">
-        <h2 className="font-brand-display text-2xl text-forest">Veckans översikt</h2>
-        <span className="text-[11px] text-stone">Automatisk översikt</span>
-      </div>
-      <div className="grid grid-cols-7 gap-2">
-        {days.map((day) => (
-          <div
-            key={day.iso}
-            className={cn(
-              "rounded-lg px-2 py-3 text-center border",
-              day.active ? "border-forest bg-bone-2" : "border-transparent bg-bone-2/50",
-            )}
-          >
-            <div className="text-[10px] tracking-[0.04em] font-medium text-stone">{day.d}</div>
-            <div className="font-brand-display text-xl text-forest mt-1">{day.n}</div>
-            <div className="text-forest text-sm mt-1">•</div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-5">
-        <div className="flex justify-between text-sm text-stone mb-2">
-          <span>{hasActivity ? "Följ veckans pass här" : "Inga pass loggade denna vecka"}</span>
-          <span>{hasActivity ? "—" : "0%"}</span>
-        </div>
-        <div className="h-1.5 rounded-full bg-bone-2 overflow-hidden">
-          <div className={cn("h-full rounded-full bg-lime", hasActivity ? "w-[20%]" : "w-0")} />
-        </div>
-      </div>
-    </section>
+    <div className={cn("rounded-2xl border p-3", dark ? "border-white/10 bg-white/[0.04]" : "border-white/10 bg-white/[0.06]") }>
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">{label}</p>
+      <p className="mt-1 text-sm font-black text-white">{value}</p>
+    </div>
   );
+}
+
+function buildMissionText({ hasTimeline, nextEvent, dogName, streakDays }: { hasTimeline: boolean; nextEvent: NextEvent; dogName: string; streakDays: number }) {
+  if (!hasTimeline) return `Logga första passet för ${dogName}. Välj ett fokus, skriv 1–2 rader och låt appen börja bygga er träningsbild.`;
+  if (nextEvent?.kind === "competition") return `Ni har tävling på gång. Kör ett kort, tryggt pass med fokus på självförtroende och logga känslan efteråt.`;
+  if (nextEvent?.kind === "training") return `Följ upp det planerade passet. Sätt ett enda fokus och avsluta med ett tydligt nästa steg.`;
+  if (streakDays > 0) return `Behåll rytmen. Logga ett kort pass eller en reflektion innan dagen är slut.`;
+  return `Välj ett träningsfokus för ${dogName} och skapa nästa datapunkt i utvecklingen.`;
 }

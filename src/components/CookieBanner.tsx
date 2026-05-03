@@ -4,8 +4,8 @@ import { Cookie, ChevronDown, ChevronUp, Shield, BarChart3, Megaphone, X } from 
 import { useCookieConsent } from "@/hooks/useCookieConsent";
 
 /**
- * Cookie-banner med kategorier (nödvändiga, analys, marknadsföring).
- * Visas tills användaren gjort ett val. Valet sparas i en cookie i ett år.
+ * GDPR/LEK-anpassad cookie-banner med separata kategorier.
+ * Nödvändiga cookies är alltid aktiva. Analys och marknadsföring kräver aktivt samtycke.
  */
 export default function CookieBanner() {
   const { consent, hasDecided, acceptAll, rejectAll, update } = useCookieConsent();
@@ -16,14 +16,12 @@ export default function CookieBanner() {
 
   useEffect(() => {
     if (!hasDecided) {
-      // Visa efter en kort delay för att inte krocka med initial render
       const t = setTimeout(() => setOpen(true), 600);
       return () => clearTimeout(t);
     }
     setOpen(false);
   }, [hasDecided]);
 
-  // Lyssna efter "öppna inställningar" (t.ex. från footer)
   useEffect(() => {
     const handler = () => {
       setAnalytics(consent?.analytics ?? false);
@@ -55,13 +53,14 @@ export default function CookieBanner() {
       role="dialog"
       aria-modal="false"
       aria-labelledby="cookie-banner-title"
+      aria-describedby="cookie-banner-description"
       className="fixed inset-x-0 bottom-0 z-[9999] px-3 pb-3 sm:px-4 sm:pb-4 pointer-events-none"
     >
       <div className="mx-auto max-w-3xl rounded-3xl bg-card shadow-2xl border border-border pointer-events-auto overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
         <div className="p-5 sm:p-6">
           <div className="flex items-start gap-3">
             <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Cookie size={20} className="text-primary" />
+              <Cookie size={20} className="text-primary" aria-hidden="true" />
             </div>
             <div className="flex-1 min-w-0">
               <h2
@@ -69,11 +68,11 @@ export default function CookieBanner() {
                 className="font-semibold text-foreground text-base sm:text-lg"
                 style={{ fontFamily: "Outfit, sans-serif" }}
               >
-                Vi använder cookies
+                Dina cookie-val
               </h2>
-              <p className="text-sm text-foreground/65 mt-1 leading-relaxed">
-                Vi använder cookies för att appen ska fungera, mäta hur den används och förbättra
-                upplevelsen. Du bestämmer själv vilka kategorier du tillåter.{" "}
+              <p id="cookie-banner-description" className="text-sm text-foreground/65 mt-1 leading-relaxed">
+                Vi använder nödvändiga cookies för att tjänsten ska fungera. Analys och
+                marknadsföring används bara om du aktivt samtycker. Du kan ändra dina val när som helst.{' '}
                 <Link to="/cookiepolicy" className="underline text-primary hover:text-secondary">
                   Läs mer i cookiepolicyn
                 </Link>
@@ -83,85 +82,80 @@ export default function CookieBanner() {
             {hasDecided && (
               <button
                 type="button"
-                aria-label="Stäng"
+                aria-label="Stäng cookieinställningar"
                 onClick={() => setOpen(false)}
                 className="shrink-0 -mr-1 -mt-1 p-1.5 rounded-full hover:bg-foreground/5 text-foreground/50"
               >
-                <X size={16} />
+                <X size={16} aria-hidden="true" />
               </button>
             )}
           </div>
 
-          {/* Kategorier */}
           {showDetails && (
             <div className="mt-4 space-y-2">
               <CategoryRow
                 icon={<Shield size={16} />}
                 title="Nödvändiga"
-                description="Krävs för inloggning, säkerhet och grundläggande funktioner. Kan inte stängas av."
+                description="Krävs för inloggning, säkerhet, cookieval och grundläggande funktioner. Kan inte stängas av."
                 checked
                 disabled
               />
               <CategoryRow
                 icon={<BarChart3 size={16} />}
                 title="Analys"
-                description="Hjälper oss förstå hur appen används så att vi kan förbättra den (t.ex. Plausible, Supabase Analytics)."
+                description="Hjälper oss förstå hur tjänsten används så att vi kan förbättra den. Laddas inte före samtycke."
                 checked={analytics}
                 onChange={setAnalytics}
               />
               <CategoryRow
                 icon={<Megaphone size={16} />}
                 title="Marknadsföring"
-                description="Används för att mäta kampanjer och visa relevanta erbjudanden (t.ex. Meta Pixel, Google Ads)."
+                description="Används för kampanjmätning, t.ex. UTM/referrer-lagring och eventuella annonspixlar. Laddas inte före samtycke."
                 checked={marketing}
                 onChange={setMarketing}
               />
             </div>
           )}
 
-          {/* Knappar */}
-          <div className="mt-5 flex flex-col-reverse sm:flex-row sm:items-center gap-2">
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
             <button
               type="button"
               onClick={() => setShowDetails((v) => !v)}
-              className="inline-flex items-center justify-center gap-1.5 h-10 px-3 text-sm font-medium text-foreground/70 hover:text-foreground"
+              className="inline-flex items-center justify-center gap-1.5 h-11 px-3 text-sm font-medium text-foreground/70 hover:text-foreground sm:h-10"
             >
               {showDetails ? (
                 <>
-                  Dölj inställningar <ChevronUp size={14} />
+                  Dölj inställningar <ChevronUp size={14} aria-hidden="true" />
                 </>
               ) : (
                 <>
-                  Visa inställningar <ChevronDown size={14} />
+                  Anpassa val <ChevronDown size={14} aria-hidden="true" />
                 </>
               )}
             </button>
             <div className="flex-1" />
-            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:items-center">
               <button
                 type="button"
                 onClick={handleRejectAll}
-                className="h-10 px-4 rounded-full text-sm font-medium border border-border bg-card text-foreground/80 hover:bg-black/[0.03]"
+                className="h-11 px-4 rounded-full text-sm font-medium border border-border bg-card text-foreground/80 hover:bg-black/[0.03] sm:h-10"
               >
-                Avböj alla
+                Avböj valfria
               </button>
-              {showDetails ? (
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  className="h-10 px-4 rounded-full text-sm font-medium bg-[#172016] text-white hover:bg-black"
-                >
-                  Spara val
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleAcceptAll}
-                  className="h-10 px-4 rounded-full text-sm font-semibold bg-[#1a6b3c] text-white hover:bg-[#155a32] shadow-sm"
-                >
-                  Acceptera alla
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleSave}
+                className="h-11 px-4 rounded-full text-sm font-medium border border-border bg-card text-foreground/80 hover:bg-black/[0.03] sm:h-10"
+              >
+                Spara val
+              </button>
+              <button
+                type="button"
+                onClick={handleAcceptAll}
+                className="h-11 px-4 rounded-full text-sm font-semibold bg-[#1a6b3c] text-white hover:bg-[#155a32] shadow-sm sm:h-10"
+              >
+                Acceptera alla
+              </button>
             </div>
           </div>
         </div>
@@ -187,13 +181,13 @@ function CategoryRow({
 }) {
   return (
     <div className="flex items-start gap-3 rounded-2xl border border-border bg-background p-3">
-      <div className="shrink-0 w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-[#1a6b3c]">
+      <div className="shrink-0 w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-[#1a6b3c]" aria-hidden="true">
         {icon}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <div className="font-medium text-sm text-[#172016]">{title}</div>
-          <Toggle checked={checked} disabled={disabled} onChange={onChange} />
+          <Toggle checked={checked} disabled={disabled} onChange={onChange} label={title} />
         </div>
         <p className="text-xs text-foreground/60 mt-0.5 leading-relaxed">{description}</p>
       </div>
@@ -205,15 +199,18 @@ function Toggle({
   checked,
   disabled,
   onChange,
+  label,
 }: {
   checked: boolean;
   disabled?: boolean;
   onChange?: (v: boolean) => void;
+  label: string;
 }) {
   return (
     <button
       type="button"
       role="switch"
+      aria-label={`${label}: ${checked ? 'på' : 'av'}`}
       aria-checked={checked}
       disabled={disabled}
       onClick={() => !disabled && onChange?.(!checked)}

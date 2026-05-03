@@ -1,17 +1,12 @@
 /**
- * PlannerTopbar — strukturerad topbar för Course Planner V2.
+ * PlannerTopbar — mobile-first action bar för Course Planner V2.
  *
- * Funktionell gruppering (vänster → höger):
- *   1. Tillbaka + bana-namn + autosparad-tid
- *   2. Sport-toggle (alltid synlig)
- *   3. Validering (alltid synlig om det finns problem)
- *   4. Sekundära åtgärder: Bibliotek · Träna · Dela
- *      → kollapsas till en ⋯ Mer-meny under sm-brytpunkten
- *   5. Export (PDF + JSON + 3D, behåller existerande ExportMenu)
- *   6. Spara (primär)
+ * Mobilprioritet:
+ *  - Rad 1: tillbaka, bannamn, sparstatus/spara.
+ *  - Rad 2: horisontellt scrollbara actions: sport, validering, bibliotek, träna, dela, export.
  *
- * Sticky med skugga som trigger:as när sidan scrollas.
- * Mellanrum mellan grupper markeras med 1px vertikala separatorer.
+ * Desktop:
+ *  - Samma kontroller ligger i en mer kompakt topbar utan att tryckytor blir för små.
  */
 import { ArrowLeft, Library, Dumbbell, Share2, Cloud, CloudOff, MoreHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -27,11 +22,8 @@ interface Props {
   courseName: string;
   onCourseNameChange: (name: string) => void;
   savedAt: Date | null;
-  /** Slot för sport-segmented control */
   sportToggle: ReactNode;
-  /** Slot för validation-badge */
   validationBadge: ReactNode;
-  /** Slot för Export-menyn (befintlig ExportMenu) */
   exportMenu: ReactNode;
 
   onLibrary: () => void;
@@ -45,8 +37,31 @@ interface Props {
   isAuthenticated: boolean;
 }
 
-function Separator() {
-  return <span className="h-6 w-px bg-border mx-0.5 hidden sm:block" aria-hidden />;
+function ActionChip({
+  icon,
+  label,
+  onClick,
+  disabled,
+  title,
+}: {
+  icon: ReactNode;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  title?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={title ?? label}
+      className="course-planner-mobile-chip inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-3.5 text-sm font-bold text-slate-100 transition hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-45 sm:h-9 sm:rounded-full sm:border-border sm:bg-card sm:px-3 sm:text-[12px] sm:text-foreground sm:hover:border-neutral-400"
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
+  );
 }
 
 export function PlannerTopbar({
@@ -57,7 +72,6 @@ export function PlannerTopbar({
 }: Props) {
   const [scrolled, setScrolled] = useState(false);
 
-  // Sticky shadow: visa skugga först när sidan scrollats förbi top.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 4);
     onScroll();
@@ -68,68 +82,66 @@ export function PlannerTopbar({
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 bg-card/95 backdrop-blur border-b border-border px-3 sm:px-4 py-2.5 flex items-center gap-2 sm:gap-3 transition-shadow",
-        scrolled && "shadow-[0_4px_12px_-6px_rgba(0,0,0,0.08)]",
+        "course-planner-topbar sticky top-0 z-40 border-b border-white/10 bg-[#0f161d]/95 px-3 py-3 text-white backdrop-blur-xl transition-shadow sm:border-border sm:bg-card/95 sm:text-foreground lg:px-4",
+        scrolled && "shadow-[0_12px_32px_-22px_rgba(0,0,0,0.55)]",
       )}
     >
-      {/* GRUPP 1 — navigering + namn */}
-      <Link
-        to="/v3/courses"
-        className="h-9 w-9 grid place-items-center rounded-full bg-neutral-100 text-neutral-700 hover:bg-neutral-200 transition shrink-0"
-        aria-label="Tillbaka till banor"
-        title="Tillbaka till banor"
-      >
-        <ArrowLeft size={16} />
-      </Link>
-      <input
-        value={courseName}
-        onChange={(e) => onCourseNameChange(e.target.value)}
-        aria-label="Banans namn"
-        placeholder="Banans namn"
-        className="h-9 min-w-0 flex-1 max-w-[140px] sm:max-w-[280px] lg:max-w-[320px] px-3 rounded-full border border-border bg-card text-sm font-semibold outline-none focus:ring-2 focus:ring-ring/40 text-foreground"
-      />
-      <span className="hidden lg:inline text-[11px] text-neutral-500 shrink-0" aria-live="polite">
-        {savedAt
-          ? `Autosparad ${savedAt.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`
-          : "Sparas…"}
-      </span>
+      <div className="flex w-full items-center gap-2">
+        <Link
+          to="/v3/courses"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white text-slate-950 shadow-sm transition hover:bg-slate-200 sm:h-9 sm:w-9 sm:rounded-full sm:bg-neutral-100 sm:text-neutral-700 sm:hover:bg-neutral-200"
+          aria-label="Tillbaka till banor"
+          title="Tillbaka till banor"
+        >
+          <ArrowLeft size={18} />
+        </Link>
 
-      {/* GRUPPER 2–6 — höger sida */}
-      <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-        {/* Grupp 2: sport */}
-        {sportToggle}
-
-        <Separator />
-
-        {/* Grupp 3: validering */}
-        {validationBadge}
-
-        <Separator />
-
-        {/* Grupp 4: sekundära åtgärder — synliga från sm och uppåt */}
-        <div className="hidden sm:flex items-center gap-1.5">
-          <IconBtn
-            icon={<Library size={14} />}
-            label="Bibliotek"
-            title="Öppna banbibliotek"
-            onClick={onLibrary}
+        <div className="min-w-0 flex-1">
+          <label className="sr-only" htmlFor="course-name-input">Banans namn</label>
+          <input
+            id="course-name-input"
+            value={courseName}
+            onChange={(e) => onCourseNameChange(e.target.value)}
+            aria-label="Banans namn"
+            placeholder="Banans namn"
+            className="h-11 w-full min-w-0 rounded-2xl border border-white/10 bg-white/[0.06] px-3 text-base font-black text-white outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-amber-300/40 sm:h-9 sm:max-w-[360px] sm:rounded-full sm:border-border sm:bg-card sm:text-sm sm:font-semibold sm:text-foreground"
           />
-          <IconBtn
-            icon={<Dumbbell size={14} />}
-            label="Träna"
-            title="Skapa träningspass från denna bana"
-            onClick={onTrain}
-          />
-          <IconBtn
-            icon={<Share2 size={14} />}
-            label="Dela"
-            title={shareTitle}
-            onClick={onShare}
-            disabled={shareDisabled}
-          />
+          <span className="mt-1 block text-[11px] font-semibold text-slate-500 sm:hidden" aria-live="polite">
+            {savedAt ? `Autosparad ${savedAt.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}` : "Sparas lokalt…"}
+          </span>
         </div>
 
-        {/* Grupp 4 (mobil): Mer-meny som rymmer sekundära åtgärder */}
+        <button
+          type="button"
+          onClick={() => { void onSave(); }}
+          disabled={saveDisabled}
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-3.5 text-sm font-black text-white shadow-[0_12px_28px_rgba(16,185,129,0.22)] transition hover:bg-emerald-400 disabled:opacity-60 sm:h-9 sm:rounded-full sm:bg-[#1a6b3c] sm:px-3 sm:text-[12px] sm:font-semibold sm:hover:bg-[#155730]"
+          title={isAuthenticated ? "Spara i molnet" : "Sparas lokalt — logga in för molnsynk"}
+          aria-label={isAuthenticated ? "Spara bana i molnet" : "Spara bana lokalt"}
+        >
+          {isAuthenticated ? <Cloud size={16} /> : <CloudOff size={16} />}
+          <span className="hidden min-[380px]:inline">Spara</span>
+        </button>
+      </div>
+
+      <div className="course-planner-action-strip mt-3 flex w-full items-center gap-2 overflow-x-auto pb-1 sm:mt-2 sm:pb-0">
+        <div className="course-planner-sport-toggle shrink-0">{sportToggle}</div>
+        <div className="course-planner-validation shrink-0">{validationBadge}</div>
+
+        <div className="hidden sm:flex items-center gap-1.5">
+          <IconBtn icon={<Library size={14} />} label="Bibliotek" title="Öppna banbibliotek" onClick={onLibrary} />
+          <IconBtn icon={<Dumbbell size={14} />} label="Träna" title="Skapa träningspass från denna bana" onClick={onTrain} />
+          <IconBtn icon={<Share2 size={14} />} label="Dela" title={shareTitle} onClick={onShare} disabled={shareDisabled} />
+        </div>
+
+        <div className="flex sm:hidden items-center gap-2">
+          <ActionChip icon={<Library size={15} />} label="Banor" onClick={onLibrary} title="Öppna banbibliotek" />
+          <ActionChip icon={<Share2 size={15} />} label="Dela" onClick={onShare} disabled={shareDisabled} title={shareTitle} />
+          <ActionChip icon={<Dumbbell size={15} />} label="Träna" onClick={onTrain} title="Skapa träningspass från denna bana" />
+        </div>
+
+        <div className="shrink-0">{exportMenu}</div>
+
         <div className="sm:hidden">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -137,15 +149,15 @@ export function PlannerTopbar({
                 type="button"
                 aria-label="Fler åtgärder"
                 title="Fler åtgärder"
-                className="h-9 w-9 grid place-items-center rounded-full bg-card border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40"
+                className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[0.06] text-slate-100 hover:bg-white/[0.1]"
               >
-                <MoreHorizontal size={16} />
+                <MoreHorizontal size={18} />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Fler åtgärder</DropdownMenuLabel>
               <DropdownMenuItem onSelect={onLibrary}>
-                <Library size={14} className="mr-2" /> Bibliotek
+                <Library size={14} className="mr-2" /> Öppna bibliotek
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={onTrain}>
                 <Dumbbell size={14} className="mr-2" /> Skapa träningspass
@@ -158,23 +170,9 @@ export function PlannerTopbar({
           </DropdownMenu>
         </div>
 
-        <Separator />
-
-        {/* Grupp 5: export */}
-        {exportMenu}
-
-        {/* Grupp 6: spara (primär). Ikon-bara på mobil, ikon+text från sm. */}
-        <button
-          type="button"
-          onClick={() => { void onSave(); }}
-          disabled={saveDisabled}
-          className="h-9 w-9 sm:w-auto sm:px-3 inline-flex items-center justify-center rounded-full bg-[#1a6b3c] text-white text-[12px] font-semibold gap-1.5 hover:bg-[#155730] disabled:opacity-60 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a6b3c]/40 shrink-0"
-          title={isAuthenticated ? "Spara i molnet" : "Sparas lokalt — logga in för molnsynk"}
-          aria-label="Spara bana"
-        >
-          {isAuthenticated ? <Cloud size={14} /> : <CloudOff size={14} />}
-          <span className="hidden sm:inline">Spara</span>
-        </button>
+        <span className="hidden lg:inline ml-auto shrink-0 text-[11px] text-neutral-500" aria-live="polite">
+          {savedAt ? `Autosparad ${savedAt.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}` : "Sparas…"}
+        </span>
       </div>
     </header>
   );

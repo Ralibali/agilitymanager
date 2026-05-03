@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 
 interface ArticleMeta {
-  publishedTime?: string; // ISO 8601
+  publishedTime?: string;
   modifiedTime?: string;
   author?: string;
   section?: string;
@@ -9,17 +9,19 @@ interface ArticleMeta {
 }
 
 interface SEOProps {
-  /** Sidans titel (max 60 tecken). Suffix " | AgilityManager" läggs till automatiskt om den inte redan finns. */
+  /** Sidans titel. Suffix " | AgilityManager" läggs till automatiskt om den inte redan finns. */
   title: string;
-  /** Meta description (max 160 tecken). */
+  /** Meta description, helst 120–160 tecken. */
   description: string;
   /** Kanonisk URL relativt domänen (t.ex. /blogg/hoopers-hund) eller absolut URL. */
   canonical?: string;
-  /** OG image URL. Default: /og-default.png */
+  /** OG image URL. Default: /og-image.png */
   ogImage?: string;
+  /** Alt-text för social bild. */
+  ogImageAlt?: string;
   /** Sidtyp för Open Graph. Default: website */
   ogType?: "website" | "article" | "profile";
-  /** Sätt till true om sidan inte ska indexeras (admin, kvitto, m.m.). */
+  /** Sätt till true om sidan inte ska indexeras. */
   noIndex?: boolean;
   /** Article-specifik metadata för Open Graph + JSON-LD. */
   article?: ArticleMeta;
@@ -27,56 +29,68 @@ interface SEOProps {
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
-const SITE_URL = "https://agilitymanager.se";
-const SITE_NAME = "AgilityManager";
-const DEFAULT_OG = `${SITE_URL}/og-default.png`;
+export const SITE_URL = "https://agilitymanager.se";
+export const SITE_NAME = "AgilityManager";
+export const DEFAULT_OG = `${SITE_URL}/og-image.png`;
+const DEFAULT_OG_ALT = "AgilityManager – träningsapp för agility och hoopers";
+
+function stripTrailingSlash(path: string): string {
+  if (path === "/") return path;
+  return path.replace(/\/+$/, "");
+}
 
 function buildCanonical(canonical?: string): string {
   if (!canonical) {
     if (typeof window !== "undefined") {
-      return `${SITE_URL}${window.location.pathname}`;
+      return `${SITE_URL}${stripTrailingSlash(window.location.pathname)}`;
     }
     return SITE_URL;
   }
-  if (canonical.startsWith("http")) return canonical;
-  return `${SITE_URL}${canonical.startsWith("/") ? "" : "/"}${canonical}`;
+
+  if (canonical.startsWith("http")) {
+    try {
+      const url = new URL(canonical);
+      url.pathname = stripTrailingSlash(url.pathname);
+      url.hash = "";
+      return url.toString();
+    } catch {
+      return canonical;
+    }
+  }
+
+  const path = canonical.startsWith("/") ? canonical : `/${canonical}`;
+  return `${SITE_URL}${stripTrailingSlash(path)}`;
 }
 
 function buildTitle(title: string): string {
   const suffix = ` | ${SITE_NAME}`;
   if (title.endsWith(suffix)) return title;
-  // Lämna utrymme – om titeln redan är >60 tecken, lägg inte till suffix
-  if (title.length + suffix.length > 65) return title;
   return `${title}${suffix}`;
 }
 
+function clampMetaDescription(description: string): string {
+  const clean = description.replace(/\s+/g, " ").trim();
+  if (clean.length <= 160) return clean;
+  return `${clean.slice(0, 157).trimEnd()}…`;
+}
+
 /**
- * SEO-komponent: hanterar title, meta description, canonical, Open Graph,
- * Twitter Cards och valfri JSON-LD.
- *
- * Använd på alla publika sidor (landing, blogg, hoopers, om-agility, etc.).
- * Renderas via react-helmet-async och uppdaterar <head> klient-sidan.
- *
- * Exempel:
- *   <SEO
- *     title="Hoopers för hund – allt du behöver veta"
- *     description="Lär dig allt om hoopers..."
- *     canonical="/blogg/hoopers-hund"
- *     ogType="article"
- *     article={{ publishedTime: "2025-04-01", author: "AgilityManager" }}
- *   />
+ * Gemensam SEO-komponent för publika sidor.
+ * Hanterar title, description, canonical, robots, Open Graph, Twitter Cards och JSON-LD.
  */
 export function SEO({
   title,
   description,
   canonical,
   ogImage = DEFAULT_OG,
+  ogImageAlt = DEFAULT_OG_ALT,
   ogType = "website",
   noIndex = false,
   article,
   jsonLd,
 }: SEOProps) {
   const fullTitle = buildTitle(title);
+  const metaDescription = clampMetaDescription(description);
   const fullCanonical = buildCanonical(canonical);
   const fullOgImage = ogImage.startsWith("http") ? ogImage : `${SITE_URL}${ogImage}`;
 
@@ -88,21 +102,30 @@ export function SEO({
 
   return (
     <Helmet prioritizeSeoTags>
+      <html lang="sv" />
       <title>{fullTitle}</title>
-      <meta name="description" content={description} />
+      <meta name="description" content={metaDescription} />
       <link rel="canonical" href={fullCanonical} />
-      {noIndex && <meta name="robots" content="noindex, nofollow" />}
+      <meta
+        name="robots"
+        content={
+          noIndex
+            ? "noindex, nofollow"
+            : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        }
+      />
 
-      {/* Open Graph */}
       <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
+      <meta property="og:description" content={metaDescription} />
       <meta property="og:url" content={fullCanonical} />
       <meta property="og:type" content={ogType} />
       <meta property="og:image" content={fullOgImage} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:image:alt" content={ogImageAlt} />
       <meta property="og:site_name" content={SITE_NAME} />
       <meta property="og:locale" content="sv_SE" />
 
-      {/* Article-specifika OG-taggar */}
       {ogType === "article" && article?.publishedTime && (
         <meta property="article:published_time" content={article.publishedTime} />
       )}
@@ -120,13 +143,12 @@ export function SEO({
           <meta key={tag} property="article:tag" content={tag} />
         ))}
 
-      {/* Twitter Cards */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
+      <meta name="twitter:description" content={metaDescription} />
       <meta name="twitter:image" content={fullOgImage} />
+      <meta name="twitter:image:alt" content={ogImageAlt} />
 
-      {/* JSON-LD */}
       {jsonLdArray.map((schema, idx) => (
         <script key={idx} type="application/ld+json">
           {JSON.stringify(schema)}
@@ -136,8 +158,7 @@ export function SEO({
   );
 }
 
-/** Hjälpare för Article/BlogPosting-schema (JSON-LD).
- *  Sätt `type: "BlogPosting"` för blogginlägg — ger rikare sökresultat i Google. */
+/** Hjälpare för Article/BlogPosting-schema (JSON-LD). */
 export function buildArticleSchema(opts: {
   title: string;
   description: string;
@@ -158,13 +179,13 @@ export function buildArticleSchema(opts: {
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": opts.type ?? "Article",
-    headline: opts.title.slice(0, 110), // Google rekommenderar <110 tecken
+    headline: opts.title.slice(0, 110),
     description: opts.description,
     image: [fullImage],
     datePublished: opts.publishedTime,
     dateModified: opts.modifiedTime ?? opts.publishedTime,
     author: {
-      "@type": "Person",
+      "@type": "Organization",
       name: opts.author ?? SITE_NAME,
     },
     publisher: {

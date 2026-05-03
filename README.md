@@ -1,73 +1,112 @@
-# Welcome to your Lovable project
+# AgilityManager
 
-## Project info
+AgilityManager är en svensk webbapp för agility- och hoopersförare. Produkten samlar träningslogg, banplanerare, mål, tävlingskalender, resultat, hundprofiler, hälsa, klubbar och coachning i ett mobilanpassat gränssnitt.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Målet med repot är att kännas som en riktig produkt: snabbt, stabilt, SEO-vänligt, lätt att vidareutveckla och tydligt för både användare och utvecklare.
 
-## How can I edit this code?
+## Produktfokus
 
-There are several ways of editing your application.
+- **Mobil först:** alla viktiga flöden ska vara läsbara, tryckvänliga och utan horisontell scroll på små skärmar.
+- **Publik SEO:** startsida, blogg, raser, hoopers, agilityinformation, banplanerare och tävlingssidor ska kunna indexeras korrekt.
+- **Appupplevelse:** inloggade användare ska snabbt kunna logga pass, följa hundar, planera banor och analysera utveckling.
+- **Trovärdighet:** tydlig metadata, canonical, sitemap, robots, 404, datakällor och ansvarsfriskrivningar.
+- **Prestanda:** Vite-baserad build, lazy loading av tunga app-sidor och cache headers för statiska assets.
 
-**Use Lovable**
+## Teknik
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- React 18
+- TypeScript
+- Vite
+- React Router
+- Tailwind CSS
+- shadcn/ui + Radix UI
+- Supabase
+- TanStack Query
+- react-helmet-async för SEO-metadata
+- Vitest för tester
+- Vercel-konfiguration för headers, rewrites och redirects
 
-Changes made via Lovable will be committed automatically to this repo.
+## Kom igång lokalt
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Öppna sedan den lokala Vite-adressen som visas i terminalen.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Viktiga scripts
 
-**Use GitHub Codespaces**
+```bash
+npm run dev          # Startar lokal utvecklingsserver
+npm run build        # Produktionsbuild + statiska sidor + sitemap
+npm run build:no-snap # Endast Vite-build
+npm run lint         # ESLint
+npm run test         # Vitest
+npm run preview      # Förhandsgranska produktionsbuild lokalt
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Struktur på hög nivå
 
-## What technologies are used for this project?
+```text
+src/
+  components/        Återanvändbara UI-, landing-, app- och SEO-komponenter
+  contexts/          Autentisering och global app-state
+  lib/               Hjälpfunktioner, analytics, motion, utilities
+  pages/             Publika sidor, auth-sidor och app-sidor
+  pages/v3/          Inloggad produktupplevelse
+  styles/            Globala polish- och hardening-lager
+scripts/             Build-, sitemap- och innehållskontroller
+public/              Robots, manifest, ikoner, OG-assets och genererade sitemaps
+```
 
-This project is built with:
+## Routing och SEO
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Publika routes hanteras i React Router och viktiga legacy-URL:er fångas även i `vercel.json` så att gamla länkar kan redirectas innan React laddas. Gemensam SEO-logik finns i `src/components/SEO.tsx` och ska användas för publika sidor som behöver title, meta description, canonical, Open Graph, Twitter Cards och JSON-LD.
 
-## How can I deploy this project?
+Sitemap genereras via:
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+```bash
+node scripts/generate-sitemap.mjs
+```
 
-## Can I connect a custom domain to my Lovable project?
+Robots-regler finns i `public/robots.txt`.
 
-Yes, you can!
+## Kvalitetskrav innan deploy
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Kör minst:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```bash
+npm run lint
+npm run test
+npm run build
+```
+
+Kontrollera därefter manuellt:
+
+- startsidan på mobil och desktop
+- auth-flöde
+- 404-sida
+- publika SEO-sidor, särskilt `/`, `/blogg`, `/banplanerare`, `/tavlingar`, `/raser` och `/hoopers`
+- att sitemap och robots exponeras korrekt i produktion
+- att viktiga redirects fungerar via Vercel
+
+## Deployment
+
+Projektet är förberett för Vercel med `vercel.json`:
+
+- `npm run build` som build-kommando
+- `dist` som output
+- SPA-rewrite till `index.html`
+- cache headers för assets och sitemap
+- security headers
+- legacy redirects för SEO och gamla app-routes
+
+## Kodprinciper
+
+- Skriv mobile-first CSS och undvik horisontell overflow.
+- Använd gemensamma komponenter och tokens innan nya engångslösningar skapas.
+- Lägg inte publik SEO direkt i många separata Helmet-block om `SEO`-komponenten täcker behovet.
+- Behåll befintliga användarflöden vid refaktorering.
+- Undvik TODO-kommentarer som ersätter riktig implementation.
+- Gör små, tydliga commits med verifierbara ändringar.

@@ -1,5 +1,5 @@
 /* Mobile polish layer
-   Small, safe overrides that reduce horizontal overflow and improve touch UX. */
+   Safe overrides that reduce horizontal overflow and improve touch UX. */
 
 html,
 body,
@@ -11,6 +11,12 @@ body,
 
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 img,
@@ -32,6 +38,22 @@ input,
 select,
 textarea {
   font-size: 16px;
+}
+
+button,
+[role="button"],
+a[href] {
+  text-underline-offset: 0.18em;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 3px;
 }
 
 .tool-btn,
@@ -87,6 +109,34 @@ textarea {
     font-size: 15px;
   }
 
+  main,
+  section,
+  article,
+  header,
+  footer,
+  nav {
+    min-width: 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  p,
+  li,
+  a,
+  button {
+    overflow-wrap: anywhere;
+  }
+
+  h1 {
+    text-wrap: balance;
+  }
+
+  p,
+  li {
+    text-wrap: pretty;
+  }
+
   .prose {
     max-width: 100%;
   }
@@ -115,6 +165,82 @@ textarea {
 
   .v3-mobile-card-padding {
     padding: 1rem;
+  }
+
+  /* Public landing: tighter first impression, safer hero, larger CTAs. */
+  .bg-bone.pt-28 {
+    padding-top: 5.25rem !important;
+    padding-bottom: 3rem !important;
+  }
+
+  .bg-bone.pt-28 > div {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    gap: 2rem !important;
+  }
+
+  .bg-bone h1 {
+    font-size: clamp(2.75rem, 15vw, 4.4rem) !important;
+    letter-spacing: -0.045em !important;
+  }
+
+  .bg-bone h1 + p,
+  .bg-bone p.max-w-prose {
+    font-size: 1rem !important;
+    line-height: 1.65 !important;
+  }
+
+  .bg-bone .grid.grid-cols-1.sm\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 0.45rem !important;
+  }
+
+  .bg-bone .grid.grid-cols-1.sm\:grid-cols-3 > div {
+    padding: 0.7rem 0.55rem !important;
+    border-radius: 1rem !important;
+  }
+
+  .bg-bone .grid.grid-cols-1.sm\:grid-cols-3 > div > div:last-child {
+    display: none !important;
+  }
+
+  .bg-bone .flex.flex-col.sm\:flex-row button,
+  .bg-bone .flex.flex-col.sm\:flex-row a {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  header.fixed + main section[id],
+  header.fixed + main [id] {
+    scroll-margin-top: 5rem;
+  }
+
+  /* Public cards/sections: reduce desktop whitespace on mobile. */
+  section[id="features"],
+  section[id="coach"],
+  section[id="pricing"],
+  section[id="faq"] {
+    padding-top: 3.5rem !important;
+    padding-bottom: 3.5rem !important;
+  }
+
+  section[id="features"] .grid,
+  section[id="pricing"] .grid {
+    gap: 0.85rem !important;
+  }
+
+  section[id="features"] [role="link"] {
+    min-height: 44px;
+  }
+
+  /* Tables and data-heavy areas should scroll instead of breaking viewport. */
+  table {
+    min-width: 560px;
+  }
+
+  .overflow-x-auto,
+  [data-radix-scroll-area-viewport] {
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Dashboard mobile calm-down */
@@ -266,5 +392,13 @@ textarea {
 @media (max-width: 380px) {
   .v3-mobile-chart {
     min-width: 520px;
+  }
+
+  .bg-bone .grid.grid-cols-1.sm\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .bg-bone .grid.grid-cols-1.sm\:grid-cols-3 > div > div:last-child {
+    display: block !important;
   }
 }

@@ -103,7 +103,7 @@ export function V3MoreSheet({ open, onClose }: Props) {
                         cn(
                           "flex flex-col items-center gap-2 p-3 rounded-v3-lg transition-colors min-h-[92px]",
                           isActive
-                            ? "bg-v3-brand-500/10"
+                            ? "bg-v3-canvas-sunken/40"
                             : "hover:bg-v3-canvas-secondary active:bg-v3-canvas-sunken/50",
                         )
                       }
@@ -114,7 +114,7 @@ export function V3MoreSheet({ open, onClose }: Props) {
                             className={cn(
                               "h-11 w-11 rounded-v3-lg grid place-items-center transition-colors",
                               isActive
-                                ? "bg-v3-brand-500/15 text-v3-brand-700"
+                                ? "bg-v3-brand-500/12 text-v3-brand-600"
                                 : "bg-v3-canvas-sunken/60 text-v3-text-secondary",
                             )}
                           >

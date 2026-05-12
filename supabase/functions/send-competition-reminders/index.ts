@@ -95,6 +95,7 @@ Deno.serve(async (req) => {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${serviceKey}`,
+            "x-internal-secret": serviceKey,
           },
           body: JSON.stringify({
             templateName: "competition_reminder",

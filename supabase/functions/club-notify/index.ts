@@ -40,6 +40,22 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Caller must be an admin of the target club
+    const { data: isAdmin } = await supabase.rpc('is_club_admin', { _user_id: user.id, _club_id: club_id });
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: 'Forbidden: club admin only' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // HTML-escape user-supplied fields before passing to the email template
+    const escape = (s: unknown) => String(s ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const safeTitle = escape(title);
+    const safeMessage = escape(message);
+    const safeContent = escape(content);
+
     // Get club info
     const { data: club } = await supabase.from('clubs').select('name').eq('id', club_id).single();
     if (!club) {
@@ -81,7 +97,7 @@ Deno.serve(async (req) => {
     // Send emails via send-email function
     let sent = 0;
     const sendEmailUrl = `${supabaseUrl}/functions/v1/send-email`;
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
     for (const [userId, email] of emailMap) {
       try {
@@ -89,17 +105,18 @@ Deno.serve(async (req) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${anonKey}`,
+            'Authorization': `Bearer ${serviceKey}`,
+            'x-internal-secret': serviceKey,
           },
           body: JSON.stringify({
             templateName: 'club_activity',
             recipientEmail: email,
             data: {
-              name: nameMap.get(userId) || '',
-              club_name: club.name,
-              title,
-              message,
-              content,
+              name: escape(nameMap.get(userId) || ''),
+              club_name: escape(club.name),
+              title: safeTitle,
+              message: safeMessage,
+              content: safeContent,
             },
           }),
         });

@@ -378,18 +378,18 @@ function ActionTile({ icon: Icon, label, hint, value, tone, onClick }: { icon: L
 
 function MissionCard({ title, eyebrow, body, action, icon: Icon, onClick, featured }: { title: string; eyebrow: string; body: string; action: string; icon: LucideIcon; onClick: () => void; featured?: boolean }) {
   return (
-    <article className={cn("rounded-[1.5rem] border p-5", featured ? "border-amber-300/25 bg-gradient-to-br from-amber-300/14 to-[#121a22]" : "border-white/10 bg-[#121a22]") }>
+    <article className={cn("rounded-[1.5rem] border p-5 shadow-v3-sm", featured ? "border-v3-brand-500/25 bg-gradient-to-br from-v3-brand-500/10 to-v3-canvas-elevated" : "border-v3-canvas-sunken/60 bg-v3-canvas-elevated") }>
       <div className="flex items-start gap-3">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-amber-300/15 text-amber-200">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-v3-brand-500/12 text-v3-brand-700">
           <Icon size={20} />
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-200/80">{eyebrow}</p>
-          <h3 className="mt-1 text-xl font-black tracking-tight text-white">{title}</h3>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-brand-700/80">{eyebrow}</p>
+          <h3 className="mt-1 text-xl font-black tracking-tight text-v3-text-primary">{title}</h3>
         </div>
       </div>
-      <p className="mt-4 text-sm leading-6 text-slate-300">{body}</p>
-      <button onClick={onClick} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-black text-slate-950 hover:bg-amber-100">
+      <p className="mt-4 text-sm leading-6 text-v3-text-secondary">{body}</p>
+      <button onClick={onClick} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-v3-text-primary px-4 text-sm font-black text-v3-text-inverse hover:bg-v3-brand-600">
         {action} <ArrowRight size={15} />
       </button>
     </article>

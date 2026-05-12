@@ -398,20 +398,20 @@ function MissionCard({ title, eyebrow, body, action, icon: Icon, onClick, featur
 
 function MetricPanel({ icon: Icon, label, value, unit, note }: { icon: LucideIcon; label: string; value: string; unit: string; note: string }) {
   return (
-    <article className="rounded-[1.5rem] border border-white/10 bg-[#121a22] p-5">
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-5 shadow-v3-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{label}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-text-tertiary">{label}</p>
           <div className="mt-2 flex items-end gap-2">
-            <span className="text-5xl font-black tracking-[-0.06em] text-white">{value}</span>
-            <span className="pb-1 text-sm font-bold text-slate-400">{unit}</span>
+            <span className="text-5xl font-black tracking-[-0.06em] text-v3-text-primary">{value}</span>
+            <span className="pb-1 text-sm font-bold text-v3-text-secondary">{unit}</span>
           </div>
         </div>
-        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/[0.06] text-amber-200">
+        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-v3-brand-500/10 text-v3-brand-700">
           <Icon size={20} />
         </div>
       </div>
-      <p className="mt-4 text-sm leading-6 text-slate-400">{note}</p>
+      <p className="mt-4 text-sm leading-6 text-v3-text-secondary">{note}</p>
     </article>
   );
 }

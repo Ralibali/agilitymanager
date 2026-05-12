@@ -238,42 +238,42 @@ function CommandHero({
   onCompetition: () => void;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_15%_20%,rgba(245,158,11,0.18),transparent_28%),linear-gradient(135deg,#111923_0%,#121c24_48%,#0d131a_100%)] p-5 shadow-[0_22px_80px_rgba(0,0,0,0.28)] sm:p-7 lg:p-8">
-      <div className="absolute right-8 top-8 hidden h-32 w-32 rounded-full bg-amber-400/10 blur-3xl lg:block" />
+    <div className="relative overflow-hidden rounded-[2rem] border border-v3-canvas-sunken/60 bg-[radial-gradient(circle_at_15%_20%,hsl(var(--v3-brand-500)/0.10),transparent_30%),linear-gradient(135deg,hsl(var(--v3-canvas-elevated))_0%,hsl(var(--v3-canvas))_55%,hsl(var(--v3-canvas-secondary))_100%)] p-5 shadow-v3-lg sm:p-7 lg:p-8">
+      <div className="absolute right-8 top-8 hidden h-32 w-32 rounded-full bg-v3-brand-500/10 blur-3xl lg:block" />
       <div className="relative z-10 grid min-h-[320px] gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
         <div className="flex h-full flex-col justify-between gap-8">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-200">
+            <div className="inline-flex items-center gap-2 rounded-full border border-v3-brand-500/20 bg-v3-brand-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-v3-brand-700">
               <Sparkles size={14} /> Command center
             </div>
-            <h1 className="mt-5 max-w-3xl text-balance font-v3-display text-[clamp(2.25rem,5vw,4.9rem)] leading-[0.9] tracking-[-0.06em] text-white">
+            <h1 className="mt-5 max-w-3xl text-balance font-v3-display text-[clamp(2.25rem,5vw,4.9rem)] leading-[0.9] tracking-[-0.06em] text-v3-text-primary">
               {greeting}, {name}.
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+            <p className="mt-5 max-w-2xl text-base leading-7 text-v3-text-secondary sm:text-lg">
               {dailyBrief}
             </p>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row">
-            <button onClick={onLog} className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-amber-400 px-5 text-sm font-extrabold text-slate-950 shadow-[0_14px_36px_rgba(245,158,11,0.28)] transition hover:-translate-y-0.5 hover:bg-amber-300">
+            <button onClick={onLog} className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-v3-brand-500 px-5 text-sm font-extrabold text-v3-text-inverse shadow-v3-brand transition hover:-translate-y-0.5 hover:bg-v3-brand-600">
               <Plus size={18} /> Logga pass <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
             </button>
-            <button onClick={onPlan} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-5 text-sm font-bold text-white transition hover:bg-white/[0.1]">
+            <button onClick={onPlan} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-v3-canvas-sunken/70 bg-v3-canvas-elevated px-5 text-sm font-bold text-v3-text-primary transition hover:bg-v3-canvas-sunken/40">
               <Target size={17} /> Planera bana
             </button>
-            <button onClick={onCompetition} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-5 text-sm font-bold text-white transition hover:bg-white/[0.1]">
+            <button onClick={onCompetition} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-v3-canvas-sunken/70 bg-v3-canvas-elevated px-5 text-sm font-bold text-v3-text-primary transition hover:bg-v3-canvas-sunken/40">
               <CalendarDays size={17} /> Tävlingar
             </button>
           </div>
         </div>
 
-        <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.06] p-4 backdrop-blur-xl">
+        <div className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-4 shadow-v3-sm">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Nästa signal</p>
-              <h2 className="mt-1 text-xl font-bold text-white">{nextEvent ? nextEvent.title : `Träna med ${dogName}`}</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-text-tertiary">Nästa signal</p>
+              <h2 className="mt-1 text-xl font-bold text-v3-text-primary">{nextEvent ? nextEvent.title : `Träna med ${dogName}`}</h2>
             </div>
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-cyan-300/15 text-cyan-200">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-v3-accent-traning/12 text-v3-accent-traning">
               {nextEvent?.kind === "competition" ? <Trophy size={22} /> : <Clock3 size={22} />}
             </div>
           </div>
@@ -281,7 +281,7 @@ function CommandHero({
             <MiniFact label="När" value={nextEvent ? formatDate(nextEvent.date) : "Idag"} />
             <MiniFact label="Nedräkning" value={nextDays === null ? "Redo" : nextDays === 0 ? "Idag" : `${nextDays} dagar`} />
           </div>
-          <p className="mt-4 text-sm leading-6 text-slate-300">
+          <p className="mt-4 text-sm leading-6 text-v3-text-secondary">
             {nextEvent ? nextEvent.location || "Öppna planeringen och lägg till plats/detaljer." : "Ingen planering krävs för att börja. Logga ett kort pass och välj ett fokus."}
           </p>
         </div>
@@ -309,25 +309,25 @@ function DogSwitcherPanel({
   const image = activeDog?.photo_url || activeDog?.image_url;
 
   return (
-    <section className="rounded-[2rem] border border-white/10 bg-[#121a22] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.22)] sm:p-6">
+    <section className="rounded-[2rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-5 shadow-v3-sm sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Aktiv hund</p>
-          <h2 className="mt-1 text-2xl font-black tracking-tight text-white">{activeDog?.name ?? "Välj hund"}</h2>
-          <p className="mt-1 text-sm text-slate-400">{activeDog?.breed || "Ditt träningsnav"}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-text-tertiary">Aktiv hund</p>
+          <h2 className="mt-1 text-2xl font-black tracking-tight text-v3-text-primary">{activeDog?.name ?? "Välj hund"}</h2>
+          <p className="mt-1 text-sm text-v3-text-secondary">{activeDog?.breed || "Ditt träningsnav"}</p>
         </div>
-        <button onClick={onAdd} className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-slate-200 hover:bg-white/[0.1]" aria-label="Hantera hundar">
+        <button onClick={onAdd} className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-v3-canvas-sunken/70 bg-v3-canvas text-v3-text-secondary hover:bg-v3-canvas-sunken/50" aria-label="Hantera hundar">
           <Plus size={18} />
         </button>
       </div>
 
       <div className="mt-5 flex items-center gap-4">
-        <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-[1.35rem] border border-white/10 bg-gradient-to-br from-amber-300/25 to-cyan-300/15">
-          {image ? <img src={image} alt="" className="h-full w-full object-cover" /> : <DogIcon className="text-amber-200" size={34} />}
+        <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-[1.35rem] border border-v3-canvas-sunken/60 bg-gradient-to-br from-v3-brand-500/15 to-v3-accent-traning/10">
+          {image ? <img src={image} alt="" className="h-full w-full object-cover" /> : <DogIcon className="text-v3-brand-600" size={34} />}
         </div>
         <div className="grid flex-1 grid-cols-2 gap-2">
-          <MiniFact label="Veckan" value={`${sessionsThisWeek} pass`} dark />
-          <MiniFact label="Tid" value={`${minutesThisWeek} min`} dark />
+          <MiniFact label="Veckan" value={`${sessionsThisWeek} pass`} />
+          <MiniFact label="Tid" value={`${minutesThisWeek} min`} />
         </div>
       </div>
 
@@ -339,7 +339,7 @@ function DogSwitcherPanel({
               onClick={() => onSelect(dog.id)}
               className={cn(
                 "shrink-0 rounded-full border px-3 py-2 text-sm font-bold transition",
-                dog.id === activeId ? "border-amber-300 bg-amber-300 text-slate-950" : "border-white/10 bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]",
+                dog.id === activeId ? "border-v3-brand-500 bg-v3-brand-500 text-v3-text-inverse" : "border-v3-canvas-sunken/70 bg-v3-canvas text-v3-text-secondary hover:bg-v3-canvas-sunken/50",
               )}
             >
               {dog.name}
@@ -353,24 +353,24 @@ function DogSwitcherPanel({
 
 function ActionTile({ icon: Icon, label, hint, value, tone, onClick }: { icon: LucideIcon; label: string; hint: string; value: string; tone: "brand" | "success" | "warm" | "cyan"; onClick: () => void }) {
   const toneClass = {
-    brand: "from-amber-300/20 to-amber-500/5 text-amber-200",
-    success: "from-emerald-300/18 to-emerald-500/5 text-emerald-200",
-    warm: "from-rose-300/18 to-orange-500/5 text-orange-200",
-    cyan: "from-cyan-300/18 to-blue-500/5 text-cyan-200",
+    brand: "from-v3-brand-500/18 to-v3-brand-500/5 text-v3-brand-700",
+    success: "from-v3-brand-300/30 to-v3-brand-500/5 text-v3-brand-700",
+    warm: "from-v3-accent-prestation/20 to-v3-accent-prestation/5 text-v3-accent-prestation-text",
+    cyan: "from-v3-accent-traning/20 to-v3-accent-traning/5 text-v3-accent-traning-text",
   }[tone];
 
   return (
-    <button onClick={onClick} className="group min-h-[124px] rounded-[1.5rem] border border-white/10 bg-[#121a22] p-4 text-left shadow-[0_14px_40px_rgba(0,0,0,0.16)] transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-[#151f29]">
+    <button onClick={onClick} className="group min-h-[124px] rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-4 text-left shadow-v3-sm transition hover:-translate-y-0.5 hover:border-v3-brand-500/30 hover:bg-v3-canvas">
       <div className="flex items-start justify-between gap-3">
         <div className={cn("grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br", toneClass)}>
           <Icon size={21} />
         </div>
-        <ArrowRight size={17} className="text-slate-500 transition group-hover:translate-x-1 group-hover:text-slate-200" />
+        <ArrowRight size={17} className="text-v3-text-tertiary transition group-hover:translate-x-1 group-hover:text-v3-text-primary" />
       </div>
       <div className="mt-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{hint}</p>
-        <h3 className="mt-1 text-lg font-black tracking-tight text-white">{label}</h3>
-        <p className="mt-1 text-sm text-slate-400">{value}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-text-tertiary">{hint}</p>
+        <h3 className="mt-1 text-lg font-black tracking-tight text-v3-text-primary">{label}</h3>
+        <p className="mt-1 text-sm text-v3-text-secondary">{value}</p>
       </div>
     </button>
   );
@@ -378,18 +378,18 @@ function ActionTile({ icon: Icon, label, hint, value, tone, onClick }: { icon: L
 
 function MissionCard({ title, eyebrow, body, action, icon: Icon, onClick, featured }: { title: string; eyebrow: string; body: string; action: string; icon: LucideIcon; onClick: () => void; featured?: boolean }) {
   return (
-    <article className={cn("rounded-[1.5rem] border p-5", featured ? "border-amber-300/25 bg-gradient-to-br from-amber-300/14 to-[#121a22]" : "border-white/10 bg-[#121a22]") }>
+    <article className={cn("rounded-[1.5rem] border p-5 shadow-v3-sm", featured ? "border-v3-brand-500/25 bg-gradient-to-br from-v3-brand-500/10 to-v3-canvas-elevated" : "border-v3-canvas-sunken/60 bg-v3-canvas-elevated") }>
       <div className="flex items-start gap-3">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-amber-300/15 text-amber-200">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-v3-brand-500/12 text-v3-brand-700">
           <Icon size={20} />
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-200/80">{eyebrow}</p>
-          <h3 className="mt-1 text-xl font-black tracking-tight text-white">{title}</h3>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-brand-700/80">{eyebrow}</p>
+          <h3 className="mt-1 text-xl font-black tracking-tight text-v3-text-primary">{title}</h3>
         </div>
       </div>
-      <p className="mt-4 text-sm leading-6 text-slate-300">{body}</p>
-      <button onClick={onClick} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-black text-slate-950 hover:bg-amber-100">
+      <p className="mt-4 text-sm leading-6 text-v3-text-secondary">{body}</p>
+      <button onClick={onClick} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-v3-text-primary px-4 text-sm font-black text-v3-text-inverse hover:bg-v3-brand-600">
         {action} <ArrowRight size={15} />
       </button>
     </article>
@@ -398,51 +398,51 @@ function MissionCard({ title, eyebrow, body, action, icon: Icon, onClick, featur
 
 function MetricPanel({ icon: Icon, label, value, unit, note }: { icon: LucideIcon; label: string; value: string; unit: string; note: string }) {
   return (
-    <article className="rounded-[1.5rem] border border-white/10 bg-[#121a22] p-5">
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-5 shadow-v3-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{label}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-text-tertiary">{label}</p>
           <div className="mt-2 flex items-end gap-2">
-            <span className="text-5xl font-black tracking-[-0.06em] text-white">{value}</span>
-            <span className="pb-1 text-sm font-bold text-slate-400">{unit}</span>
+            <span className="text-5xl font-black tracking-[-0.06em] text-v3-text-primary">{value}</span>
+            <span className="pb-1 text-sm font-bold text-v3-text-secondary">{unit}</span>
           </div>
         </div>
-        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/[0.06] text-amber-200">
+        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-v3-brand-500/10 text-v3-brand-700">
           <Icon size={20} />
         </div>
       </div>
-      <p className="mt-4 text-sm leading-6 text-slate-400">{note}</p>
+      <p className="mt-4 text-sm leading-6 text-v3-text-secondary">{note}</p>
     </article>
   );
 }
 
 function NextEventPanel({ loading, nextEvent, onOpen, onCreate }: { loading: boolean; nextEvent: NextEvent; onOpen: () => void; onCreate: () => void }) {
   return (
-    <article className="rounded-[1.5rem] border border-white/10 bg-[#121a22] p-5">
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-5 shadow-v3-sm">
       <SectionHeader eyebrow="Plan" title="Nästa upp" icon={CalendarDays} />
       {loading ? (
         <div className="mt-5 h-28 rounded-2xl v3-skeleton" />
       ) : nextEvent ? (
-        <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+        <div className="mt-5 rounded-2xl border border-v3-canvas-sunken/60 bg-v3-canvas p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-bold text-amber-200">{nextEvent.kind === "competition" ? "Tävling" : "Träning"}</p>
-              <h3 className="mt-1 text-xl font-black text-white">{nextEvent.title}</h3>
-              <p className="mt-2 text-sm text-slate-400">{formatDate(nextEvent.date)} · {nextEvent.location || "Ingen plats angiven"}</p>
+              <p className="text-sm font-bold text-v3-brand-700">{nextEvent.kind === "competition" ? "Tävling" : "Träning"}</p>
+              <h3 className="mt-1 text-xl font-black text-v3-text-primary">{nextEvent.title}</h3>
+              <p className="mt-2 text-sm text-v3-text-secondary">{formatDate(nextEvent.date)} · {nextEvent.location || "Ingen plats angiven"}</p>
             </div>
-            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-cyan-300/15 text-cyan-200">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-v3-accent-traning/12 text-v3-accent-traning">
               {nextEvent.kind === "competition" ? <Trophy size={21} /> : <Clock3 size={21} />}
             </div>
           </div>
-          <button onClick={onOpen} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-black text-slate-950 hover:bg-slate-200">
+          <button onClick={onOpen} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-v3-text-primary px-4 text-sm font-black text-v3-text-inverse hover:bg-v3-brand-600">
             Öppna <ArrowRight size={15} />
           </button>
         </div>
       ) : (
-        <div className="mt-5 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] p-4">
-          <h3 className="text-lg font-black text-white">Inget planerat än</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-400">Lägg in nästa tävling eller träningsmål så blir dashboarden en riktig cockpit.</p>
-          <button onClick={onCreate} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-amber-300 px-4 text-sm font-black text-slate-950 hover:bg-amber-200">
+        <div className="mt-5 rounded-2xl border border-dashed border-v3-canvas-sunken bg-v3-canvas/60 p-4">
+          <h3 className="text-lg font-black text-v3-text-primary">Inget planerat än</h3>
+          <p className="mt-2 text-sm leading-6 text-v3-text-secondary">Lägg in nästa tävling eller träningsmål så blir dashboarden en riktig cockpit.</p>
+          <button onClick={onCreate} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-v3-brand-500 px-4 text-sm font-black text-v3-text-inverse hover:bg-v3-brand-600">
             Planera tävling <ArrowRight size={15} />
           </button>
         </div>
@@ -454,28 +454,28 @@ function NextEventPanel({ loading, nextEvent, onOpen, onCreate }: { loading: boo
 function TrainingFocusPanel({ sessionsThisWeek, minutesThisWeek, hasTimeline, onTraining, onStats }: { sessionsThisWeek: number; minutesThisWeek: number; hasTimeline: boolean; onTraining: () => void; onStats: () => void }) {
   const score = Math.min(100, Math.round((sessionsThisWeek / 3) * 100));
   return (
-    <article className="rounded-[1.5rem] border border-white/10 bg-[#121a22] p-5">
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-5 shadow-v3-sm">
       <SectionHeader eyebrow="Fokus" title="Veckans träningspuls" icon={BarChart3} />
       <div className="mt-5">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-5xl font-black tracking-[-0.06em] text-white">{score}%</p>
-            <p className="mt-1 text-sm text-slate-400">mot en stark träningsvecka</p>
+            <p className="text-5xl font-black tracking-[-0.06em] text-v3-text-primary">{score}%</p>
+            <p className="mt-1 text-sm text-v3-text-secondary">mot en stark träningsvecka</p>
           </div>
-          <div className="text-right text-sm text-slate-400">
-            <p><strong className="text-white">{sessionsThisWeek}</strong> pass</p>
-            <p><strong className="text-white">{minutesThisWeek}</strong> min</p>
+          <div className="text-right text-sm text-v3-text-secondary">
+            <p><strong className="text-v3-text-primary">{sessionsThisWeek}</strong> pass</p>
+            <p><strong className="text-v3-text-primary">{minutesThisWeek}</strong> min</p>
           </div>
         </div>
-        <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/[0.07]">
-          <div className="h-full rounded-full bg-gradient-to-r from-amber-300 to-cyan-300" style={{ width: `${Math.max(8, score)}%` }} />
+        <div className="mt-5 h-3 overflow-hidden rounded-full bg-v3-canvas-sunken/60">
+          <div className="h-full rounded-full bg-gradient-to-r from-v3-brand-500 to-v3-accent-traning" style={{ width: `${Math.max(8, score)}%` }} />
         </div>
-        <p className="mt-4 text-sm leading-6 text-slate-400">
+        <p className="mt-4 text-sm leading-6 text-v3-text-secondary">
           {hasTimeline ? "Du har data att bygga vidare på. Titta på statistik när du vill hitta mönster." : "Börja med ett pass. Dashboarden blir smartare när historiken växer."}
         </p>
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-          <button onClick={onTraining} className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 px-4 text-sm font-bold text-white hover:bg-white/[0.06]">Träning</button>
-          <button onClick={onStats} className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 px-4 text-sm font-bold text-white hover:bg-white/[0.06]">Statistik</button>
+          <button onClick={onTraining} className="inline-flex h-10 items-center justify-center rounded-full border border-v3-canvas-sunken/70 bg-v3-canvas px-4 text-sm font-bold text-v3-text-primary hover:bg-v3-canvas-sunken/40">Träning</button>
+          <button onClick={onStats} className="inline-flex h-10 items-center justify-center rounded-full border border-v3-canvas-sunken/70 bg-v3-canvas px-4 text-sm font-bold text-v3-text-primary hover:bg-v3-canvas-sunken/40">Statistik</button>
         </div>
       </div>
     </article>
@@ -485,20 +485,20 @@ function TrainingFocusPanel({ sessionsThisWeek, minutesThisWeek, hasTimeline, on
 function WeeklyRhythmPanel({ sessionsThisWeek, minutesThisWeek }: { sessionsThisWeek: number; minutesThisWeek: number }) {
   const days = getCurrentWeekDays();
   return (
-    <article className="rounded-[1.5rem] border border-white/10 bg-[#121a22] p-5">
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-5 shadow-v3-sm">
       <SectionHeader eyebrow="Rytm" title="Veckans översikt" icon={CheckCircle2} />
       <div className="mt-5 grid grid-cols-7 gap-2">
         {days.map((day, index) => (
-          <div key={`${day.d}-${day.n}`} className={cn("rounded-2xl border p-3 text-center", day.active ? "border-amber-300 bg-amber-300 text-slate-950" : index < sessionsThisWeek ? "border-cyan-300/25 bg-cyan-300/10 text-cyan-100" : "border-white/10 bg-white/[0.03] text-slate-400")}>
+          <div key={`${day.d}-${day.n}`} className={cn("rounded-2xl border p-3 text-center", day.active ? "border-v3-brand-500 bg-v3-brand-500 text-v3-text-inverse" : index < sessionsThisWeek ? "border-v3-accent-traning/30 bg-v3-accent-traning/10 text-v3-accent-traning-text" : "border-v3-canvas-sunken/60 bg-v3-canvas text-v3-text-secondary")}>
             <p className="text-[11px] font-bold uppercase tracking-wide">{day.d}</p>
             <p className="mt-1 text-lg font-black">{day.n}</p>
           </div>
         ))}
       </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        <MiniFact label="Pass" value={String(sessionsThisWeek)} dark />
-        <MiniFact label="Minuter" value={String(minutesThisWeek)} dark />
-        <MiniFact label="Mål" value="3 pass" dark />
+        <MiniFact label="Pass" value={String(sessionsThisWeek)} />
+        <MiniFact label="Minuter" value={String(minutesThisWeek)} />
+        <MiniFact label="Mål" value="3 pass" />
       </div>
     </article>
   );
@@ -514,25 +514,25 @@ function ReadinessPanel({ hasTimeline, sessionsThisWeek, streakDays, nextEvent }
   ];
 
   return (
-    <article className="rounded-[1.5rem] border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.025] p-5">
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-gradient-to-br from-v3-canvas-elevated to-v3-canvas p-5 shadow-v3-sm">
       <SectionHeader eyebrow="Status" title="Team readiness" icon={HeartPulse} />
       <div className="mt-5 flex items-end justify-between gap-4">
         <div>
-          <p className="text-6xl font-black tracking-[-0.07em] text-white">{readiness}</p>
-          <p className="text-sm font-bold text-slate-400">av 100</p>
+          <p className="text-6xl font-black tracking-[-0.07em] text-v3-text-primary">{readiness}</p>
+          <p className="text-sm font-bold text-v3-text-secondary">av 100</p>
         </div>
-        <div className="grid h-16 w-16 place-items-center rounded-[1.25rem] bg-emerald-300/15 text-emerald-200">
+        <div className="grid h-16 w-16 place-items-center rounded-[1.25rem] bg-v3-brand-500/12 text-v3-brand-700">
           <HeartPulse size={30} />
         </div>
       </div>
-      <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/[0.07]">
-        <div className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-cyan-300 to-amber-300" style={{ width: `${Math.max(6, readiness)}%` }} />
+      <div className="mt-5 h-3 overflow-hidden rounded-full bg-v3-canvas-sunken/60">
+        <div className="h-full rounded-full bg-gradient-to-r from-v3-brand-500 via-v3-accent-traning to-v3-accent-prestation" style={{ width: `${Math.max(6, readiness)}%` }} />
       </div>
       <div className="mt-5 space-y-2">
         {checks.map((check) => (
-          <div key={check.label} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
-            <span className="text-sm font-semibold text-slate-300">{check.label}</span>
-            <span className={cn("text-xs font-black uppercase tracking-wide", check.done ? "text-emerald-200" : "text-slate-500")}>{check.done ? "Klar" : "Saknas"}</span>
+          <div key={check.label} className="flex items-center justify-between gap-3 rounded-2xl border border-v3-canvas-sunken/60 bg-v3-canvas px-3 py-2">
+            <span className="text-sm font-semibold text-v3-text-primary">{check.label}</span>
+            <span className={cn("text-xs font-black uppercase tracking-wide", check.done ? "text-v3-brand-700" : "text-v3-text-tertiary")}>{check.done ? "Klar" : "Saknas"}</span>
           </div>
         ))}
       </div>
@@ -544,21 +544,21 @@ function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow: string; title:
   return (
     <div className="flex items-start justify-between gap-3">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{eyebrow}</p>
-        <h2 className="mt-1 text-2xl font-black tracking-tight text-white">{title}</h2>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-text-tertiary">{eyebrow}</p>
+        <h2 className="mt-1 text-2xl font-black tracking-tight text-v3-text-primary">{title}</h2>
       </div>
-      <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/[0.06] text-slate-200">
+      <div className="grid h-10 w-10 place-items-center rounded-2xl bg-v3-canvas text-v3-text-secondary border border-v3-canvas-sunken/60">
         <Icon size={20} />
       </div>
     </div>
   );
 }
 
-function MiniFact({ label, value, dark }: { label: string; value: ReactNode; dark?: boolean }) {
+function MiniFact({ label, value, dark: _dark }: { label: string; value: ReactNode; dark?: boolean }) {
   return (
-    <div className={cn("rounded-2xl border p-3", dark ? "border-white/10 bg-white/[0.04]" : "border-white/10 bg-white/[0.06]") }>
-      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">{label}</p>
-      <p className="mt-1 text-sm font-black text-white">{value}</p>
+    <div className="rounded-2xl border border-v3-canvas-sunken/60 bg-v3-canvas p-3">
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-v3-text-tertiary">{label}</p>
+      <p className="mt-1 text-sm font-black text-v3-text-primary">{value}</p>
     </div>
   );
 }

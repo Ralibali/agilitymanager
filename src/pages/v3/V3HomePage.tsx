@@ -514,25 +514,25 @@ function ReadinessPanel({ hasTimeline, sessionsThisWeek, streakDays, nextEvent }
   ];
 
   return (
-    <article className="rounded-[1.5rem] border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.025] p-5">
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-gradient-to-br from-v3-canvas-elevated to-v3-canvas p-5 shadow-v3-sm">
       <SectionHeader eyebrow="Status" title="Team readiness" icon={HeartPulse} />
       <div className="mt-5 flex items-end justify-between gap-4">
         <div>
-          <p className="text-6xl font-black tracking-[-0.07em] text-white">{readiness}</p>
-          <p className="text-sm font-bold text-slate-400">av 100</p>
+          <p className="text-6xl font-black tracking-[-0.07em] text-v3-text-primary">{readiness}</p>
+          <p className="text-sm font-bold text-v3-text-secondary">av 100</p>
         </div>
-        <div className="grid h-16 w-16 place-items-center rounded-[1.25rem] bg-emerald-300/15 text-emerald-200">
+        <div className="grid h-16 w-16 place-items-center rounded-[1.25rem] bg-v3-brand-500/12 text-v3-brand-700">
           <HeartPulse size={30} />
         </div>
       </div>
-      <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/[0.07]">
-        <div className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-cyan-300 to-amber-300" style={{ width: `${Math.max(6, readiness)}%` }} />
+      <div className="mt-5 h-3 overflow-hidden rounded-full bg-v3-canvas-sunken/60">
+        <div className="h-full rounded-full bg-gradient-to-r from-v3-brand-500 via-v3-accent-traning to-v3-accent-prestation" style={{ width: `${Math.max(6, readiness)}%` }} />
       </div>
       <div className="mt-5 space-y-2">
         {checks.map((check) => (
-          <div key={check.label} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
-            <span className="text-sm font-semibold text-slate-300">{check.label}</span>
-            <span className={cn("text-xs font-black uppercase tracking-wide", check.done ? "text-emerald-200" : "text-slate-500")}>{check.done ? "Klar" : "Saknas"}</span>
+          <div key={check.label} className="flex items-center justify-between gap-3 rounded-2xl border border-v3-canvas-sunken/60 bg-v3-canvas px-3 py-2">
+            <span className="text-sm font-semibold text-v3-text-primary">{check.label}</span>
+            <span className={cn("text-xs font-black uppercase tracking-wide", check.done ? "text-v3-brand-700" : "text-v3-text-tertiary")}>{check.done ? "Klar" : "Saknas"}</span>
           </div>
         ))}
       </div>
@@ -544,21 +544,21 @@ function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow: string; title:
   return (
     <div className="flex items-start justify-between gap-3">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{eyebrow}</p>
-        <h2 className="mt-1 text-2xl font-black tracking-tight text-white">{title}</h2>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-text-tertiary">{eyebrow}</p>
+        <h2 className="mt-1 text-2xl font-black tracking-tight text-v3-text-primary">{title}</h2>
       </div>
-      <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/[0.06] text-slate-200">
+      <div className="grid h-10 w-10 place-items-center rounded-2xl bg-v3-canvas text-v3-text-secondary border border-v3-canvas-sunken/60">
         <Icon size={20} />
       </div>
     </div>
   );
 }
 
-function MiniFact({ label, value, dark }: { label: string; value: ReactNode; dark?: boolean }) {
+function MiniFact({ label, value, dark: _dark }: { label: string; value: ReactNode; dark?: boolean }) {
   return (
-    <div className={cn("rounded-2xl border p-3", dark ? "border-white/10 bg-white/[0.04]" : "border-white/10 bg-white/[0.06]") }>
-      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">{label}</p>
-      <p className="mt-1 text-sm font-black text-white">{value}</p>
+    <div className="rounded-2xl border border-v3-canvas-sunken/60 bg-v3-canvas p-3">
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-v3-text-tertiary">{label}</p>
+      <p className="mt-1 text-sm font-black text-v3-text-primary">{value}</p>
     </div>
   );
 }

@@ -353,24 +353,24 @@ function DogSwitcherPanel({
 
 function ActionTile({ icon: Icon, label, hint, value, tone, onClick }: { icon: LucideIcon; label: string; hint: string; value: string; tone: "brand" | "success" | "warm" | "cyan"; onClick: () => void }) {
   const toneClass = {
-    brand: "from-amber-300/20 to-amber-500/5 text-amber-200",
-    success: "from-emerald-300/18 to-emerald-500/5 text-emerald-200",
-    warm: "from-rose-300/18 to-orange-500/5 text-orange-200",
-    cyan: "from-cyan-300/18 to-blue-500/5 text-cyan-200",
+    brand: "from-v3-brand-500/18 to-v3-brand-500/5 text-v3-brand-700",
+    success: "from-v3-brand-300/30 to-v3-brand-500/5 text-v3-brand-700",
+    warm: "from-v3-accent-prestation/20 to-v3-accent-prestation/5 text-v3-accent-prestation-text",
+    cyan: "from-v3-accent-traning/20 to-v3-accent-traning/5 text-v3-accent-traning-text",
   }[tone];
 
   return (
-    <button onClick={onClick} className="group min-h-[124px] rounded-[1.5rem] border border-white/10 bg-[#121a22] p-4 text-left shadow-[0_14px_40px_rgba(0,0,0,0.16)] transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-[#151f29]">
+    <button onClick={onClick} className="group min-h-[124px] rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-4 text-left shadow-v3-sm transition hover:-translate-y-0.5 hover:border-v3-brand-500/30 hover:bg-v3-canvas">
       <div className="flex items-start justify-between gap-3">
         <div className={cn("grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br", toneClass)}>
           <Icon size={21} />
         </div>
-        <ArrowRight size={17} className="text-slate-500 transition group-hover:translate-x-1 group-hover:text-slate-200" />
+        <ArrowRight size={17} className="text-v3-text-tertiary transition group-hover:translate-x-1 group-hover:text-v3-text-primary" />
       </div>
       <div className="mt-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{hint}</p>
-        <h3 className="mt-1 text-lg font-black tracking-tight text-white">{label}</h3>
-        <p className="mt-1 text-sm text-slate-400">{value}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-text-tertiary">{hint}</p>
+        <h3 className="mt-1 text-lg font-black tracking-tight text-v3-text-primary">{label}</h3>
+        <p className="mt-1 text-sm text-v3-text-secondary">{value}</p>
       </div>
     </button>
   );

@@ -307,6 +307,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [newPost, setNewPost] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [adminInviteCode, setAdminInviteCode] = useState<string | null>(null);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
   const [editingTags, setEditingTags] = useState(false);
   const [tagDraft, setTagDraft] = useState<string[]>(club.quick_tags || []);
@@ -337,7 +338,14 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     setGroups(g || []);
 
     const me = (m || []).find(mb => mb.user_id === userId);
-    setIsAdmin(me?.role === 'admin');
+    const admin = me?.role === 'admin';
+    setIsAdmin(admin);
+    if (admin) {
+      const { data: code } = await supabase.rpc('get_my_club_invite_code', { p_club_id: club.id });
+      setAdminInviteCode((code as string) || null);
+    } else {
+      setAdminInviteCode(null);
+    }
 
     // Fetch user's group memberships
     if (g && g.length > 0) {
@@ -367,7 +375,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     // Fetch display names
     const userIds = [...new Set([...(m || []).map(mb => mb.user_id), ...(p || []).map(pp => pp.user_id)])];
     if (userIds.length > 0) {
-      const { data: profs } = await supabase.from('profiles').select('user_id, display_name').in('user_id', userIds);
+      const { data: profs } = await supabase.from('profiles_club_public' as any).select('user_id, display_name').in('user_id', userIds);
       const map: Record<string, string> = {};
       (profs || []).forEach(pr => { map[pr.user_id] = pr.display_name || 'Anonym'; });
       setProfiles(map);

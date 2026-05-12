@@ -309,25 +309,25 @@ function DogSwitcherPanel({
   const image = activeDog?.photo_url || activeDog?.image_url;
 
   return (
-    <section className="rounded-[2rem] border border-white/10 bg-[#121a22] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.22)] sm:p-6">
+    <section className="rounded-[2rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-5 shadow-v3-sm sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Aktiv hund</p>
-          <h2 className="mt-1 text-2xl font-black tracking-tight text-white">{activeDog?.name ?? "Välj hund"}</h2>
-          <p className="mt-1 text-sm text-slate-400">{activeDog?.breed || "Ditt träningsnav"}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-text-tertiary">Aktiv hund</p>
+          <h2 className="mt-1 text-2xl font-black tracking-tight text-v3-text-primary">{activeDog?.name ?? "Välj hund"}</h2>
+          <p className="mt-1 text-sm text-v3-text-secondary">{activeDog?.breed || "Ditt träningsnav"}</p>
         </div>
-        <button onClick={onAdd} className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-slate-200 hover:bg-white/[0.1]" aria-label="Hantera hundar">
+        <button onClick={onAdd} className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-v3-canvas-sunken/70 bg-v3-canvas text-v3-text-secondary hover:bg-v3-canvas-sunken/50" aria-label="Hantera hundar">
           <Plus size={18} />
         </button>
       </div>
 
       <div className="mt-5 flex items-center gap-4">
-        <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-[1.35rem] border border-white/10 bg-gradient-to-br from-amber-300/25 to-cyan-300/15">
-          {image ? <img src={image} alt="" className="h-full w-full object-cover" /> : <DogIcon className="text-amber-200" size={34} />}
+        <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-[1.35rem] border border-v3-canvas-sunken/60 bg-gradient-to-br from-v3-brand-500/15 to-v3-accent-traning/10">
+          {image ? <img src={image} alt="" className="h-full w-full object-cover" /> : <DogIcon className="text-v3-brand-600" size={34} />}
         </div>
         <div className="grid flex-1 grid-cols-2 gap-2">
-          <MiniFact label="Veckan" value={`${sessionsThisWeek} pass`} dark />
-          <MiniFact label="Tid" value={`${minutesThisWeek} min`} dark />
+          <MiniFact label="Veckan" value={`${sessionsThisWeek} pass`} />
+          <MiniFact label="Tid" value={`${minutesThisWeek} min`} />
         </div>
       </div>
 
@@ -339,7 +339,7 @@ function DogSwitcherPanel({
               onClick={() => onSelect(dog.id)}
               className={cn(
                 "shrink-0 rounded-full border px-3 py-2 text-sm font-bold transition",
-                dog.id === activeId ? "border-amber-300 bg-amber-300 text-slate-950" : "border-white/10 bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]",
+                dog.id === activeId ? "border-v3-brand-500 bg-v3-brand-500 text-v3-text-inverse" : "border-v3-canvas-sunken/70 bg-v3-canvas text-v3-text-secondary hover:bg-v3-canvas-sunken/50",
               )}
             >
               {dog.name}

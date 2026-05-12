@@ -39,11 +39,9 @@ export default function SettingsPage() {
           data: { email: user?.email, plan: 'Premium' },
         },
       });
-      // Process referral reward (fire-and-forget)
+      // Process referral reward (fire-and-forget). User is derived server-side from JWT.
       if (user?.id) {
-        supabase.functions.invoke('process-referral-reward', {
-          body: { userId: user.id },
-        });
+        supabase.functions.invoke('process-referral-reward', { body: {} });
       }
       // Poll up to 10 times with 2s delay until subscription is confirmed
       let cancelled = false;

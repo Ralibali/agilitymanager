@@ -485,20 +485,20 @@ function TrainingFocusPanel({ sessionsThisWeek, minutesThisWeek, hasTimeline, on
 function WeeklyRhythmPanel({ sessionsThisWeek, minutesThisWeek }: { sessionsThisWeek: number; minutesThisWeek: number }) {
   const days = getCurrentWeekDays();
   return (
-    <article className="rounded-[1.5rem] border border-white/10 bg-[#121a22] p-5">
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-5 shadow-v3-sm">
       <SectionHeader eyebrow="Rytm" title="Veckans översikt" icon={CheckCircle2} />
       <div className="mt-5 grid grid-cols-7 gap-2">
         {days.map((day, index) => (
-          <div key={`${day.d}-${day.n}`} className={cn("rounded-2xl border p-3 text-center", day.active ? "border-amber-300 bg-amber-300 text-slate-950" : index < sessionsThisWeek ? "border-cyan-300/25 bg-cyan-300/10 text-cyan-100" : "border-white/10 bg-white/[0.03] text-slate-400")}>
+          <div key={`${day.d}-${day.n}`} className={cn("rounded-2xl border p-3 text-center", day.active ? "border-v3-brand-500 bg-v3-brand-500 text-v3-text-inverse" : index < sessionsThisWeek ? "border-v3-accent-traning/30 bg-v3-accent-traning/10 text-v3-accent-traning-text" : "border-v3-canvas-sunken/60 bg-v3-canvas text-v3-text-secondary")}>
             <p className="text-[11px] font-bold uppercase tracking-wide">{day.d}</p>
             <p className="mt-1 text-lg font-black">{day.n}</p>
           </div>
         ))}
       </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        <MiniFact label="Pass" value={String(sessionsThisWeek)} dark />
-        <MiniFact label="Minuter" value={String(minutesThisWeek)} dark />
-        <MiniFact label="Mål" value="3 pass" dark />
+        <MiniFact label="Pass" value={String(sessionsThisWeek)} />
+        <MiniFact label="Minuter" value={String(minutesThisWeek)} />
+        <MiniFact label="Mål" value="3 pass" />
       </div>
     </article>
   );

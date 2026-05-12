@@ -1996,8 +1996,43 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles_club_public: {
+        Row: {
+          avatar_url: string | null
+          display_name: string | null
+          handler_first_name: string | null
+          handler_last_name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          display_name?: string | null
+          handler_first_name?: string | null
+          handler_last_name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          display_name?: string | null
+          handler_first_name?: string | null
+          handler_last_name?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      get_club_by_invite_code: {
+        Args: { p_code: string }
+        Returns: {
+          city: string
+          description: string
+          id: string
+          logo_url: string
+          name: string
+        }[]
+      }
+      get_my_club_invite_code: { Args: { p_club_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

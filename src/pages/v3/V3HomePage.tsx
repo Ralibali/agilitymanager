@@ -454,28 +454,28 @@ function NextEventPanel({ loading, nextEvent, onOpen, onCreate }: { loading: boo
 function TrainingFocusPanel({ sessionsThisWeek, minutesThisWeek, hasTimeline, onTraining, onStats }: { sessionsThisWeek: number; minutesThisWeek: number; hasTimeline: boolean; onTraining: () => void; onStats: () => void }) {
   const score = Math.min(100, Math.round((sessionsThisWeek / 3) * 100));
   return (
-    <article className="rounded-[1.5rem] border border-white/10 bg-[#121a22] p-5">
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-5 shadow-v3-sm">
       <SectionHeader eyebrow="Fokus" title="Veckans träningspuls" icon={BarChart3} />
       <div className="mt-5">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-5xl font-black tracking-[-0.06em] text-white">{score}%</p>
-            <p className="mt-1 text-sm text-slate-400">mot en stark träningsvecka</p>
+            <p className="text-5xl font-black tracking-[-0.06em] text-v3-text-primary">{score}%</p>
+            <p className="mt-1 text-sm text-v3-text-secondary">mot en stark träningsvecka</p>
           </div>
-          <div className="text-right text-sm text-slate-400">
-            <p><strong className="text-white">{sessionsThisWeek}</strong> pass</p>
-            <p><strong className="text-white">{minutesThisWeek}</strong> min</p>
+          <div className="text-right text-sm text-v3-text-secondary">
+            <p><strong className="text-v3-text-primary">{sessionsThisWeek}</strong> pass</p>
+            <p><strong className="text-v3-text-primary">{minutesThisWeek}</strong> min</p>
           </div>
         </div>
-        <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/[0.07]">
-          <div className="h-full rounded-full bg-gradient-to-r from-amber-300 to-cyan-300" style={{ width: `${Math.max(8, score)}%` }} />
+        <div className="mt-5 h-3 overflow-hidden rounded-full bg-v3-canvas-sunken/60">
+          <div className="h-full rounded-full bg-gradient-to-r from-v3-brand-500 to-v3-accent-traning" style={{ width: `${Math.max(8, score)}%` }} />
         </div>
-        <p className="mt-4 text-sm leading-6 text-slate-400">
+        <p className="mt-4 text-sm leading-6 text-v3-text-secondary">
           {hasTimeline ? "Du har data att bygga vidare på. Titta på statistik när du vill hitta mönster." : "Börja med ett pass. Dashboarden blir smartare när historiken växer."}
         </p>
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-          <button onClick={onTraining} className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 px-4 text-sm font-bold text-white hover:bg-white/[0.06]">Träning</button>
-          <button onClick={onStats} className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 px-4 text-sm font-bold text-white hover:bg-white/[0.06]">Statistik</button>
+          <button onClick={onTraining} className="inline-flex h-10 items-center justify-center rounded-full border border-v3-canvas-sunken/70 bg-v3-canvas px-4 text-sm font-bold text-v3-text-primary hover:bg-v3-canvas-sunken/40">Träning</button>
+          <button onClick={onStats} className="inline-flex h-10 items-center justify-center rounded-full border border-v3-canvas-sunken/70 bg-v3-canvas px-4 text-sm font-bold text-v3-text-primary hover:bg-v3-canvas-sunken/40">Statistik</button>
         </div>
       </div>
     </article>

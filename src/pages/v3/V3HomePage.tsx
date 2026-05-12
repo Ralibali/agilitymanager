@@ -238,42 +238,42 @@ function CommandHero({
   onCompetition: () => void;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_15%_20%,rgba(245,158,11,0.18),transparent_28%),linear-gradient(135deg,#111923_0%,#121c24_48%,#0d131a_100%)] p-5 shadow-[0_22px_80px_rgba(0,0,0,0.28)] sm:p-7 lg:p-8">
-      <div className="absolute right-8 top-8 hidden h-32 w-32 rounded-full bg-amber-400/10 blur-3xl lg:block" />
+    <div className="relative overflow-hidden rounded-[2rem] border border-v3-canvas-sunken/60 bg-[radial-gradient(circle_at_15%_20%,hsl(var(--v3-brand-500)/0.10),transparent_30%),linear-gradient(135deg,hsl(var(--v3-canvas-elevated))_0%,hsl(var(--v3-canvas))_55%,hsl(var(--v3-canvas-secondary))_100%)] p-5 shadow-v3-lg sm:p-7 lg:p-8">
+      <div className="absolute right-8 top-8 hidden h-32 w-32 rounded-full bg-v3-brand-500/10 blur-3xl lg:block" />
       <div className="relative z-10 grid min-h-[320px] gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
         <div className="flex h-full flex-col justify-between gap-8">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-200">
+            <div className="inline-flex items-center gap-2 rounded-full border border-v3-brand-500/20 bg-v3-brand-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-v3-brand-700">
               <Sparkles size={14} /> Command center
             </div>
-            <h1 className="mt-5 max-w-3xl text-balance font-v3-display text-[clamp(2.25rem,5vw,4.9rem)] leading-[0.9] tracking-[-0.06em] text-white">
+            <h1 className="mt-5 max-w-3xl text-balance font-v3-display text-[clamp(2.25rem,5vw,4.9rem)] leading-[0.9] tracking-[-0.06em] text-v3-text-primary">
               {greeting}, {name}.
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+            <p className="mt-5 max-w-2xl text-base leading-7 text-v3-text-secondary sm:text-lg">
               {dailyBrief}
             </p>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row">
-            <button onClick={onLog} className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-amber-400 px-5 text-sm font-extrabold text-slate-950 shadow-[0_14px_36px_rgba(245,158,11,0.28)] transition hover:-translate-y-0.5 hover:bg-amber-300">
+            <button onClick={onLog} className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-v3-brand-500 px-5 text-sm font-extrabold text-v3-text-inverse shadow-v3-brand transition hover:-translate-y-0.5 hover:bg-v3-brand-600">
               <Plus size={18} /> Logga pass <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
             </button>
-            <button onClick={onPlan} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-5 text-sm font-bold text-white transition hover:bg-white/[0.1]">
+            <button onClick={onPlan} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-v3-canvas-sunken/70 bg-v3-canvas-elevated px-5 text-sm font-bold text-v3-text-primary transition hover:bg-v3-canvas-sunken/40">
               <Target size={17} /> Planera bana
             </button>
-            <button onClick={onCompetition} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-5 text-sm font-bold text-white transition hover:bg-white/[0.1]">
+            <button onClick={onCompetition} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-v3-canvas-sunken/70 bg-v3-canvas-elevated px-5 text-sm font-bold text-v3-text-primary transition hover:bg-v3-canvas-sunken/40">
               <CalendarDays size={17} /> Tävlingar
             </button>
           </div>
         </div>
 
-        <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.06] p-4 backdrop-blur-xl">
+        <div className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-4 shadow-v3-sm">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Nästa signal</p>
-              <h2 className="mt-1 text-xl font-bold text-white">{nextEvent ? nextEvent.title : `Träna med ${dogName}`}</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-text-tertiary">Nästa signal</p>
+              <h2 className="mt-1 text-xl font-bold text-v3-text-primary">{nextEvent ? nextEvent.title : `Träna med ${dogName}`}</h2>
             </div>
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-cyan-300/15 text-cyan-200">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-v3-accent-traning/12 text-v3-accent-traning">
               {nextEvent?.kind === "competition" ? <Trophy size={22} /> : <Clock3 size={22} />}
             </div>
           </div>
@@ -281,7 +281,7 @@ function CommandHero({
             <MiniFact label="När" value={nextEvent ? formatDate(nextEvent.date) : "Idag"} />
             <MiniFact label="Nedräkning" value={nextDays === null ? "Redo" : nextDays === 0 ? "Idag" : `${nextDays} dagar`} />
           </div>
-          <p className="mt-4 text-sm leading-6 text-slate-300">
+          <p className="mt-4 text-sm leading-6 text-v3-text-secondary">
             {nextEvent ? nextEvent.location || "Öppna planeringen och lägg till plats/detaljer." : "Ingen planering krävs för att börja. Logga ett kort pass och välj ett fokus."}
           </p>
         </div>

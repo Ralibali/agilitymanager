@@ -151,11 +151,8 @@ export default function ClubPage() {
 
   const handleJoinByCode = async () => {
     if (!inviteCode.trim() || !user) return;
-    const { data: club } = await supabase
-      .from('clubs')
-      .select('id, name')
-      .eq('invite_code', inviteCode.trim())
-      .single();
+    const { data } = await supabase.rpc('get_club_by_invite_code', { p_code: inviteCode.trim() });
+    const club = Array.isArray(data) ? data[0] : data;
     if (!club) { toast.error('Ingen klubb hittades med den koden'); return; }
     // Check if already member
     const existing = myMemberships.find(m => m.club_id === club.id);

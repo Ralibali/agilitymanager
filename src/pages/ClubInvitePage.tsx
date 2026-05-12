@@ -26,12 +26,10 @@ export default function ClubInvitePage() {
   useEffect(() => {
     if (!code) return;
     supabase
-      .from('clubs')
-      .select('id, name, description, city')
-      .eq('invite_code', code)
-      .single()
+      .rpc('get_club_by_invite_code', { p_code: code })
       .then(({ data }) => {
-        setClub(data);
+        const row = Array.isArray(data) ? data[0] : data;
+        setClub(row ?? null);
         setLoading(false);
       });
   }, [code]);

@@ -11,17 +11,40 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-  );
-
   try {
-    const { userId } = await req.json();
-    if (!userId) throw new Error("userId is required");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const serviceClient = createClient(
+      supabaseUrl,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    // Require an authenticated caller and derive the user from the JWT.
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userClient = createClient(
+      supabaseUrl,
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(
+      authHeader.replace("Bearer ", "")
+    );
+    if (claimsErr || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userId = claimsData.claims.sub as string;
 
     // Check if this user was referred (has friend_invite in signup_sources)
-    const { data: source } = await supabase
+    const { data: source } = await serviceClient
       .from("signup_sources")
       .select("*")
       .eq("user_id", userId)
@@ -37,7 +60,7 @@ serve(async (req) => {
     const referrerCode = source.referrer;
 
     // Find referrer by referral_code
-    const { data: referrerProfile } = await supabase
+    const { data: referrerProfile } = await serviceClient
       .from("profiles")
       .select("user_id, display_name")
       .eq("referral_code", referrerCode)
@@ -49,8 +72,15 @@ serve(async (req) => {
       });
     }
 
+    // Prevent self-referral abuse
+    if (referrerProfile.user_id === userId) {
+      return new Response(JSON.stringify({ rewarded: false, reason: "self_referral" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Check if already rewarded
-    const { data: existing } = await supabase
+    const { data: existing } = await serviceClient
       .from("referral_rewards")
       .select("id")
       .eq("referrer_id", referrerProfile.user_id)
@@ -64,7 +94,7 @@ serve(async (req) => {
     }
 
     // Create reward entry
-    await supabase.from("referral_rewards").insert({
+    await serviceClient.from("referral_rewards").insert({
       referrer_id: referrerProfile.user_id,
       referred_id: userId,
       referrer_rewarded_at: new Date().toISOString(),
@@ -73,13 +103,13 @@ serve(async (req) => {
     });
 
     // Notify referrer
-    const { data: referredProfile } = await supabase
+    const { data: referredProfile } = await serviceClient
       .from("profiles")
       .select("display_name")
       .eq("user_id", userId)
       .single();
 
-    await supabase.from("notifications").insert({
+    await serviceClient.from("notifications").insert({
       user_id: referrerProfile.user_id,
       message: `🎉 ${referredProfile?.display_name || "Din kompis"} gick upp till premium! Du fick 7 dagars gratis premium som tack!`,
     });

@@ -192,12 +192,33 @@ const TEMPLATES: Record<string, (data: any) => TemplateResult> = {
   }),
 }
 // ---------- HANDLER ----------
+import { requireAuth, hasInternalSecret, escapeHtml } from '../_shared/auth.ts'
+
+function sanitizeData(data: Record<string, unknown> | null | undefined): Record<string, string> {
+  const out: Record<string, string> = {}
+  if (!data) return out
+  for (const [k, v] of Object.entries(data)) {
+    out[k] = escapeHtml(v)
+  }
+  return out
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    // Authorization: either an internal service-role secret OR a logged-in user
+    // sending to their own email address.
+    const internal = hasInternalSecret(req)
+    const userId = internal ? null : await requireAuth(req)
+    if (!internal && !userId) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY')
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured')
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
@@ -211,6 +232,21 @@ Deno.serve(async (req) => {
       })
     }
 
+    // For client (non-internal) calls, recipientEmail must match the authenticated user's email.
+    if (!internal && userId) {
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.57.2')
+      const admin = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      )
+      const { data: u } = await admin.auth.admin.getUserById(userId)
+      if (!u?.user?.email || u.user.email.toLowerCase() !== String(recipientEmail).toLowerCase()) {
+        return new Response(JSON.stringify({ error: 'Forbidden' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+    }
+
     const templateFn = TEMPLATES[templateName]
     if (!templateFn) {
       return new Response(JSON.stringify({ error: `Unknown template: ${templateName}` }), {
@@ -220,7 +256,8 @@ Deno.serve(async (req) => {
 
     // Build unsubscribe URL
     const unsubUrl = `${SITE_URL}/avregistrera?email=${encodeURIComponent(recipientEmail)}`
-    const { subject, html } = templateFn({ ...templateData, unsubUrl })
+    const safeData = sanitizeData(templateData)
+    const { subject, html } = templateFn({ ...safeData, unsubUrl })
 
     const response = await fetch(`${GATEWAY_URL}/emails`, {
       method: 'POST',

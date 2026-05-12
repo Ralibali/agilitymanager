@@ -1,3 +1,5 @@
+import { requireAuth } from "../_shared/auth.ts";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
@@ -51,6 +53,14 @@ function parsePlacement(text: string): number | null {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
+  }
+
+  const userId = await requireAuth(req);
+  if (!userId) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 
   try {

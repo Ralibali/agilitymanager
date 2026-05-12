@@ -151,11 +151,8 @@ export default function ClubPage() {
 
   const handleJoinByCode = async () => {
     if (!inviteCode.trim() || !user) return;
-    const { data: club } = await supabase
-      .from('clubs')
-      .select('id, name')
-      .eq('invite_code', inviteCode.trim())
-      .single();
+    const { data } = await supabase.rpc('get_club_by_invite_code', { p_code: inviteCode.trim() });
+    const club = Array.isArray(data) ? data[0] : data;
     if (!club) { toast.error('Ingen klubb hittades med den koden'); return; }
     // Check if already member
     const existing = myMemberships.find(m => m.club_id === club.id);
@@ -310,6 +307,7 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
   const [newPost, setNewPost] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [adminInviteCode, setAdminInviteCode] = useState<string | null>(null);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
   const [editingTags, setEditingTags] = useState(false);
   const [tagDraft, setTagDraft] = useState<string[]>(club.quick_tags || []);
@@ -340,7 +338,14 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     setGroups(g || []);
 
     const me = (m || []).find(mb => mb.user_id === userId);
-    setIsAdmin(me?.role === 'admin');
+    const admin = me?.role === 'admin';
+    setIsAdmin(admin);
+    if (admin) {
+      const { data: code } = await supabase.rpc('get_my_club_invite_code', { p_club_id: club.id });
+      setAdminInviteCode((code as string) || null);
+    } else {
+      setAdminInviteCode(null);
+    }
 
     // Fetch user's group memberships
     if (g && g.length > 0) {
@@ -370,9 +375,9 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     // Fetch display names
     const userIds = [...new Set([...(m || []).map(mb => mb.user_id), ...(p || []).map(pp => pp.user_id)])];
     if (userIds.length > 0) {
-      const { data: profs } = await supabase.from('profiles').select('user_id, display_name').in('user_id', userIds);
+      const { data: profs } = await (supabase as any).from('profiles_club_public').select('user_id, display_name').in('user_id', userIds);
       const map: Record<string, string> = {};
-      (profs || []).forEach(pr => { map[pr.user_id] = pr.display_name || 'Anonym'; });
+      ((profs || []) as Array<{ user_id: string; display_name: string | null }>).forEach(pr => { map[pr.user_id] = pr.display_name || 'Anonym'; });
       setProfiles(map);
     }
   };
@@ -512,14 +517,15 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Inbjudningskod</span>
-              <p className="text-sm font-mono font-semibold text-foreground">{club.invite_code}</p>
+              <p className="text-sm font-mono font-semibold text-foreground">{adminInviteCode ?? '—'}</p>
             </div>
             <Button
               variant="outline"
               size="sm"
               className="gap-1 shrink-0"
               onClick={() => {
-                navigator.clipboard.writeText(club.invite_code);
+                if (!adminInviteCode) return;
+                navigator.clipboard.writeText(adminInviteCode);
                 setCodeCopied(true);
                 toast.success('Kod kopierad!');
                 setTimeout(() => setCodeCopied(false), 2000);
@@ -534,7 +540,8 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
             size="sm"
             className="w-full gap-1 text-xs"
             onClick={() => {
-              const url = `${window.location.origin}/club-invite/${club.invite_code}`;
+              if (!adminInviteCode) return;
+              const url = `${window.location.origin}/club-invite/${adminInviteCode}`;
               navigator.clipboard.writeText(url);
               toast.success('Inbjudningslänk kopierad!');
             }}

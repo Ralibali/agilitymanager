@@ -517,14 +517,15 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Inbjudningskod</span>
-              <p className="text-sm font-mono font-semibold text-foreground">{club.invite_code}</p>
+              <p className="text-sm font-mono font-semibold text-foreground">{adminInviteCode ?? '—'}</p>
             </div>
             <Button
               variant="outline"
               size="sm"
               className="gap-1 shrink-0"
               onClick={() => {
-                navigator.clipboard.writeText(club.invite_code);
+                if (!adminInviteCode) return;
+                navigator.clipboard.writeText(adminInviteCode);
                 setCodeCopied(true);
                 toast.success('Kod kopierad!');
                 setTimeout(() => setCodeCopied(false), 2000);
@@ -539,7 +540,8 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
             size="sm"
             className="w-full gap-1 text-xs"
             onClick={() => {
-              const url = `${window.location.origin}/club-invite/${club.invite_code}`;
+              if (!adminInviteCode) return;
+              const url = `${window.location.origin}/club-invite/${adminInviteCode}`;
               navigator.clipboard.writeText(url);
               toast.success('Inbjudningslänk kopierad!');
             }}

@@ -375,9 +375,9 @@ function ClubDetail({ club, userId, onBack }: { club: Club; userId: string; onBa
     // Fetch display names
     const userIds = [...new Set([...(m || []).map(mb => mb.user_id), ...(p || []).map(pp => pp.user_id)])];
     if (userIds.length > 0) {
-      const { data: profs } = await supabase.from('profiles_club_public' as any).select('user_id, display_name').in('user_id', userIds);
+      const { data: profs } = await (supabase as any).from('profiles_club_public').select('user_id, display_name').in('user_id', userIds);
       const map: Record<string, string> = {};
-      (profs || []).forEach(pr => { map[pr.user_id] = pr.display_name || 'Anonym'; });
+      ((profs || []) as Array<{ user_id: string; display_name: string | null }>).forEach(pr => { map[pr.user_id] = pr.display_name || 'Anonym'; });
       setProfiles(map);
     }
   };

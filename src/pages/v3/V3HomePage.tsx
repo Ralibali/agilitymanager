@@ -418,31 +418,31 @@ function MetricPanel({ icon: Icon, label, value, unit, note }: { icon: LucideIco
 
 function NextEventPanel({ loading, nextEvent, onOpen, onCreate }: { loading: boolean; nextEvent: NextEvent; onOpen: () => void; onCreate: () => void }) {
   return (
-    <article className="rounded-[1.5rem] border border-white/10 bg-[#121a22] p-5">
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-5 shadow-v3-sm">
       <SectionHeader eyebrow="Plan" title="Nästa upp" icon={CalendarDays} />
       {loading ? (
         <div className="mt-5 h-28 rounded-2xl v3-skeleton" />
       ) : nextEvent ? (
-        <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+        <div className="mt-5 rounded-2xl border border-v3-canvas-sunken/60 bg-v3-canvas p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-bold text-amber-200">{nextEvent.kind === "competition" ? "Tävling" : "Träning"}</p>
-              <h3 className="mt-1 text-xl font-black text-white">{nextEvent.title}</h3>
-              <p className="mt-2 text-sm text-slate-400">{formatDate(nextEvent.date)} · {nextEvent.location || "Ingen plats angiven"}</p>
+              <p className="text-sm font-bold text-v3-brand-700">{nextEvent.kind === "competition" ? "Tävling" : "Träning"}</p>
+              <h3 className="mt-1 text-xl font-black text-v3-text-primary">{nextEvent.title}</h3>
+              <p className="mt-2 text-sm text-v3-text-secondary">{formatDate(nextEvent.date)} · {nextEvent.location || "Ingen plats angiven"}</p>
             </div>
-            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-cyan-300/15 text-cyan-200">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-v3-accent-traning/12 text-v3-accent-traning">
               {nextEvent.kind === "competition" ? <Trophy size={21} /> : <Clock3 size={21} />}
             </div>
           </div>
-          <button onClick={onOpen} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-black text-slate-950 hover:bg-slate-200">
+          <button onClick={onOpen} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-v3-text-primary px-4 text-sm font-black text-v3-text-inverse hover:bg-v3-brand-600">
             Öppna <ArrowRight size={15} />
           </button>
         </div>
       ) : (
-        <div className="mt-5 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] p-4">
-          <h3 className="text-lg font-black text-white">Inget planerat än</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-400">Lägg in nästa tävling eller träningsmål så blir dashboarden en riktig cockpit.</p>
-          <button onClick={onCreate} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-amber-300 px-4 text-sm font-black text-slate-950 hover:bg-amber-200">
+        <div className="mt-5 rounded-2xl border border-dashed border-v3-canvas-sunken bg-v3-canvas/60 p-4">
+          <h3 className="text-lg font-black text-v3-text-primary">Inget planerat än</h3>
+          <p className="mt-2 text-sm leading-6 text-v3-text-secondary">Lägg in nästa tävling eller träningsmål så blir dashboarden en riktig cockpit.</p>
+          <button onClick={onCreate} className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-v3-brand-500 px-4 text-sm font-black text-v3-text-inverse hover:bg-v3-brand-600">
             Planera tävling <ArrowRight size={15} />
           </button>
         </div>

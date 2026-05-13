@@ -10,8 +10,6 @@ Kontakt: info@auroramedia.se
 
 AgilityManager är byggd för förare, tränare och klubbar inom agility och hoopers. Produkten kombinerar praktiska träningsverktyg med publikt sökbara resurser om hundsport, regler, raser, tävlingar och banplanering.
 
-## Viktiga publika sidor
-
 ## Pages
 
 - [Startsida](/): produktöversikt och översikt av funktioner.

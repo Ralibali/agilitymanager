@@ -362,7 +362,7 @@ export default function BlogPostPage() {
             <MagneticButton
               strength={8}
               radius={120}
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/auth?mode=signup&source=blog')}
               className="inline-flex items-center justify-center gap-2 rounded-md gradient-primary text-primary-foreground font-semibold px-4 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Kom igång gratis <ArrowRight size={16} />

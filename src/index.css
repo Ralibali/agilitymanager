@@ -195,10 +195,10 @@
     --v3-brand-800: 153 38% 9%;
     --v3-brand-900: 153 38% 9%;
 
-    /* Text-färger: forest / stone */
+    /* Text-färger: forest / stone — bumpat för WCAG AA */
     --v3-text-primary: 153 38% 9%;      /* forest #0E1F18 */
-    --v3-text-secondary: 60 5% 39%;     /* stone  #6B6B5F */
-    --v3-text-tertiary: 60 5% 49%;      /* stone (ljusare) */
+    --v3-text-secondary: 60 5% 28%;     /* stone mörkare */
+    --v3-text-tertiary: 60 5% 38%;      /* stone mörkare */
     --v3-text-inverse: 40 32% 93%;      /* bone */
 
     /* Accent-domäner mappade till brand-paletten */

@@ -482,7 +482,7 @@ export function HoopersKalendar({ dogs, selectedDogId }: Props) {
       )}
 
       {/* Attribution */}
-      <div className="mt-4 text-center text-[10px] text-muted-foreground/60">
+      <div className="mt-4 text-center text-[10px] text-muted-foreground">
         Tävlingsdata från <a href="https://shoktavling.se" target="_blank" rel="noopener noreferrer" className="underline">shoktavling.se</a> — Svenska Hoopersklubben (SHoK)
       </div>
     </div>

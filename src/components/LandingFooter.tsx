@@ -41,11 +41,11 @@ export function LandingFooter() {
               </div>
               <span className="font-display font-bold text-lg text-white">AgilityManager</span>
             </div>
-            <p className="text-sm text-white/60 mb-3">Träna smartare. Tävla bättre.</p>
-            <p className="text-xs text-white/50 mb-4">Frågor eller feedback? Hör av dig till{' '}
+            <p className="text-sm text-white/80 mb-3">Träna smartare. Tävla bättre.</p>
+            <p className="text-xs text-white/75 mb-4">Frågor eller feedback? Hör av dig till{' '}
               <a href="mailto:info@auroramedia.se" className="underline hover:text-white transition-colors">info@auroramedia.se</a>
             </p>
-            <p className="text-xs text-white/40">© 2025 AgilityManager</p>
+            <p className="text-xs text-white/70">© 2025 AgilityManager</p>
           </div>
 
           {/* Product */}
@@ -56,7 +56,7 @@ export function LandingFooter() {
                 <li key={l.label}>
                   <button
                     onClick={() => navigate(l.href)}
-                    className="text-sm text-white/60 hover:text-white transition-colors"
+                    className="text-sm text-white/80 hover:text-white transition-colors"
                   >
                     {l.label}
                   </button>
@@ -72,13 +72,13 @@ export function LandingFooter() {
               {supportLinks.map((l) => (
                 <li key={l.label}>
                   {l.href.startsWith('mailto:') ? (
-                    <a href={l.href} className="text-sm text-white/60 hover:text-white transition-colors">
+                    <a href={l.href} className="text-sm text-white/80 hover:text-white transition-colors">
                       {l.label}
                     </a>
                   ) : (
                     <button
                       onClick={() => navigate(l.href)}
-                      className="text-sm text-white/60 hover:text-white transition-colors"
+                      className="text-sm text-white/80 hover:text-white transition-colors"
                     >
                       {l.label}
                     </button>
@@ -99,14 +99,14 @@ export function LandingFooter() {
                       href={l.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-white/60 hover:text-white transition-colors"
+                      className="text-sm text-white/80 hover:text-white transition-colors"
                     >
                       {l.label}
                     </a>
                   ) : (
                     <button
                       onClick={() => navigate(l.href)}
-                      className="text-sm text-white/60 hover:text-white transition-colors"
+                      className="text-sm text-white/80 hover:text-white transition-colors"
                     >
                       {l.label}
                     </button>

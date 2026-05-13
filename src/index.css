@@ -142,10 +142,10 @@
     --bg-subtle: 45 17% 95%;
     --bg-inverse: 150 21% 7%;
 
-    /* Text */
+    /* Text — bumpat för WCAG AA */
     --text-primary: 150 21% 7%;
-    --text-secondary: 45 4% 37%;
-    --text-tertiary: 48 5% 51%;
+    --text-secondary: 45 6% 28%;
+    --text-tertiary: 48 5% 38%;
     --text-on-inverse: 120 11% 92%;
 
     /* Borders (HSL alpha-ready) */

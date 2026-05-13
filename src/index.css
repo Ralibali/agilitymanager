@@ -70,11 +70,11 @@
 
     /* Surface 2 */
     --secondary: 36 16% 95%;
-    --secondary-foreground: 0 0% 35%;
+    --secondary-foreground: 0 0% 22%;
 
-    /* Muted */
+    /* Muted — bumpat för WCAG AA-kontrast (≥4.5:1 mot bg) */
     --muted: 36 16% 95%;
-    --muted-foreground: 0 0% 55%;
+    --muted-foreground: 0 0% 38%;
 
     /* Accent orange */
     --accent: 22 75% 45%;

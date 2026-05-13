@@ -112,6 +112,27 @@ export default function BreedDetailPage() {
           content={`Allt om ${breed.name}: storlek, temperament, träningstips och lämplighet för agility och hoopers.`}
         />
         <link rel="canonical" href={`https://agilitymanager.se/raser/${breed.slug}`} />
+        <meta property="og:title" content={`${breed.name} – ras för agility & hoopers`} />
+        <meta property="og:description" content={`Allt om ${breed.name}: storlek, temperament, träningstips och lämplighet för agility och hoopers.`} />
+        <meta property="og:url" content={`https://agilitymanager.se/raser/${breed.slug}`} />
+        <meta property="og:type" content="article" />
+        {breed.image_url && <meta property="og:image" content={breed.image_url} />}
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": `${breed.name} – ras för agility & hoopers`,
+          "description": `Allt om ${breed.name}: storlek, temperament, träningstips och lämplighet för agility och hoopers.`,
+          "image": breed.image_url ? [breed.image_url] : undefined,
+          "author": { "@type": "Organization", "name": "AgilityManager" },
+          "publisher": { "@type": "Organization", "name": "AgilityManager", "url": "https://agilitymanager.se" },
+          "mainEntityOfPage": { "@type": "WebPage", "@id": `https://agilitymanager.se/raser/${breed.slug}` },
+          "inLanguage": "sv",
+          "about": {
+            "@type": "Thing",
+            "name": breed.name,
+            "description": breed.description,
+          },
+        })}</script>
       </Helmet>
 
       <ScrollProgress />

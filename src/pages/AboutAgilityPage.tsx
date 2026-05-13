@@ -15,6 +15,10 @@ export default function AboutAgilityPage() {
         <title>Vad är Agility? – Guide till sporten | AgilityManager</title>
         <meta name="description" content="Lär dig allt om agility i Sverige. Klasser, pinnar, hindertyper, SAgiK-regler och hur du kommer igång. Komplett guide för nybörjare." />
         <link rel="canonical" href="https://agilitymanager.se/om-agility" />
+        <meta property="og:title" content="Vad är Agility? – Guide till sporten" />
+        <meta property="og:description" content="Lär dig allt om agility i Sverige. Klasser, pinnar, hindertyper, SAgiK-regler och hur du kommer igång." />
+        <meta property="og:url" content="https://agilitymanager.se/om-agility" />
+        <meta property="og:type" content="article" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",

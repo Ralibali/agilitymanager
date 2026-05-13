@@ -64,12 +64,35 @@ export default function BreedsIndexPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Helmet>
-        <title>Hundraser för agility & hoopers – guide till alla raser | AgilityManager</title>
+        <title>Hundraser för agility & hoopers | AgilityManager</title>
         <meta
           name="description"
-          content="Utforska hundraser och hitta vilka som passar agility eller hoopers. Storleksklass, temperament, träningstips och mer för varje ras."
+          content="Utforska hundraser och hitta vilka som passar bäst för agility eller hoopers. Storleksklass, temperament och träningstips för varje ras."
         />
         <link rel="canonical" href="https://agilitymanager.se/raser" />
+        <meta property="og:title" content="Hundraser för agility & hoopers | AgilityManager" />
+        <meta property="og:description" content="Utforska hundraser och hitta vilka som passar bäst för agility eller hoopers." />
+        <meta property="og:url" content="https://agilitymanager.se/raser" />
+        <meta property="og:type" content="website" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": "Hundraser för agility & hoopers",
+          "description": "Guide till hundraser och deras lämplighet för agility och hoopers.",
+          "url": "https://agilitymanager.se/raser",
+          "inLanguage": "sv",
+          "isPartOf": { "@type": "WebSite", "name": "AgilityManager", "url": "https://agilitymanager.se" },
+          "mainEntity": {
+            "@type": "ItemList",
+            "numberOfItems": filtered.length,
+            "itemListElement": filtered.slice(0, 25).map((b, i) => ({
+              "@type": "ListItem",
+              "position": i + 1,
+              "url": `https://agilitymanager.se/raser/${b.slug}`,
+              "name": b.name,
+            })),
+          },
+        })}</script>
       </Helmet>
 
       <LandingNav />

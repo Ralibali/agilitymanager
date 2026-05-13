@@ -124,6 +124,19 @@ export default function LandingPage() {
         <title>AgilityManager – Träningsapp för agility och hoopers</title>
         <meta name="description" content="Logga träningspass, följ framsteg och analysera din hund i agility och hoopers. Anpassat för svenska regler och SHoK:s officiella klasser." />
         <link rel="canonical" href="https://agilitymanager.se/" />
+        <meta property="og:title" content="AgilityManager – Träningsapp för agility och hoopers" />
+        <meta property="og:description" content="Logga träningspass, följ framsteg och analysera din hund i agility och hoopers." />
+        <meta property="og:url" content="https://agilitymanager.se/" />
+        <meta property="og:type" content="website" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": faqs.map((f) => ({
+            "@type": "Question",
+            "name": f.q,
+            "acceptedAnswer": { "@type": "Answer", "text": f.a },
+          })),
+        })}</script>
       </Helmet>
 
       <LandingNav />

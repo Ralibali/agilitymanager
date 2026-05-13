@@ -69,7 +69,15 @@ export default function FreeCoursePlannerPage() {
 
   return (
     <div className="light min-h-screen bg-background text-foreground">
-      <Helmet><title>Gratis banplanerare för agility | AgilityManager.se</title><meta name="description" content="Rita en enkel agilitybana gratis online. Testa AgilityManagers begränsade banplanerare med hopp, tunnel, slalom, start och mål." /><link rel="canonical" href="https://agilitymanager.se/banplanerare" /></Helmet>
+      <Helmet>
+        <title>Gratis banplanerare för agility | AgilityManager</title>
+        <meta name="description" content="Rita en enkel agilitybana gratis online. Testa AgilityManagers begränsade banplanerare med hopp, tunnel, slalom, start och mål." />
+        <link rel="canonical" href="https://agilitymanager.se/banplanerare" />
+        <meta property="og:title" content="Gratis banplanerare för agility" />
+        <meta property="og:description" content="Rita en enkel agilitybana gratis online direkt i webbläsaren." />
+        <meta property="og:url" content="https://agilitymanager.se/banplanerare" />
+        <meta property="og:type" content="website" />
+      </Helmet>
 
       <header className="border-b border-border bg-card/80 backdrop-blur-xl sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-5 py-3 sm:py-4 flex items-center justify-between gap-3">

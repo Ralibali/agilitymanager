@@ -10,18 +10,18 @@ Kontakt: info@auroramedia.se
 
 AgilityManager är byggd för förare, tränare och klubbar inom agility och hoopers. Produkten kombinerar praktiska träningsverktyg med publikt sökbara resurser om hundsport, regler, raser, tävlingar och banplanering.
 
-## Viktiga publika sidor
+## Pages
 
-- https://agilitymanager.se/ — startsida och produktöversikt.
-- https://agilitymanager.se/banplanerare — gratis banplanerare för agility och hoopers.
-- https://agilitymanager.se/tavlingar — publik tävlingskalender för agility och hoopers i Sverige.
-- https://agilitymanager.se/blogg — artiklar och guider om agility, hoopers, träning och tävling.
-- https://agilitymanager.se/hoopers — introduktion till hoopers för hund.
-- https://agilitymanager.se/hoopers-regler — sammanfattning av regler, klasser och upplägg för hoopers.
-- https://agilitymanager.se/om-agility — guide till agility för hund.
-- https://agilitymanager.se/raser — hundraser och information kopplad till agility och träning.
-- https://agilitymanager.se/hundforsakring — information och jämförelse kopplad till hundförsäkring.
-- https://agilitymanager.se/coach — coachningsrelaterad landningssida.
+- [Startsida](/): produktöversikt och översikt av funktioner.
+- [Banplanerare](/banplanerare): gratis banplanerare för agility och hoopers.
+- [Tävlingar](/tavlingar): publik tävlingskalender för agility och hoopers i Sverige.
+- [Blogg](/blogg): artiklar och guider om agility, hoopers, träning och tävling.
+- [Hoopers](/hoopers): introduktion till hoopers för hund.
+- [Hoopers-regler](/hoopers-regler): sammanfattning av regler, klasser och upplägg för hoopers.
+- [Om agility](/om-agility): guide till agility för hund.
+- [Hundraser](/raser): hundraser och information kopplad till agility och träning.
+- [Hundförsäkring](/hundforsakring): information och jämförelse kopplad till hundförsäkring.
+- [Coach](/coach): coachningsrelaterad landningssida.
 
 ## Viktiga policy- och förtroendesidor
 

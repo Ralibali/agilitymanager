@@ -30,8 +30,9 @@ export function Hero() {
 
           <FadeIn delay={0.08} duration="slow">
             <h1 className="font-display font-medium text-5xl md:text-7xl leading-[1.0] tracking-[-0.035em]">
-              <span className="text-forest block">Bli teamet</span>
-              <span className="text-brand-600 block">ni tränar för.</span>
+              <span className="sr-only">AgilityManager – träningsapp för agility och hoopers. </span>
+              <span className="text-forest block" aria-hidden="true">Bli teamet</span>
+              <span className="text-brand-600 block" aria-hidden="true">ni tränar för.</span>
             </h1>
           </FadeIn>
 

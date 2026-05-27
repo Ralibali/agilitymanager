@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { fetchBlogPosts, type BlogPost } from '@/lib/blogData';
 import { MagneticButton } from '@/components/motion';
+import { SoroBlogEmbed } from '@/components/SoroBlogEmbed';
 
 /* ─────────────────────────────────────────────────────────────────────
    Kategorimetadata — färgkodade pills, gradient-placeholders och ikoner.
@@ -428,6 +429,9 @@ export default function BlogPage() {
             )}
           </>
         )}
+
+        {/* Trysoro-inbäddad blogg */}
+        <SoroBlogEmbed />
 
         {/* CTA */}
         <section className="mt-16 rounded-2xl border border-border/70 bg-card p-8 text-center overflow-hidden relative">

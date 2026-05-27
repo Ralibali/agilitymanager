@@ -60,9 +60,13 @@ export default function HoopersLandingPage() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Hoopers app – Träningslogg, poängtracker & banplanerare | AgilityManager</title>
+        <title>Hoopers app – träning & poäng | AgilityManager</title>
         <meta name="description" content="AgilityManager för hoopers – logga träningspass, spåra SHoK-poäng, planera banor och se tävlingskalendern. Anpassat för alla hoopers-klasser." />
         <link rel="canonical" href="https://agilitymanager.se/hoopers" />
+        <meta property="og:title" content="Hoopers app – träning & poäng" />
+        <meta property="og:description" content="Logga hoopers-pass, spåra SHoK-poäng och planera banor. Anpassat för alla hoopers-klasser i Sverige." />
+        <meta property="og:url" content="https://agilitymanager.se/hoopers" />
+        <meta property="og:type" content="website" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "SoftwareApplication",

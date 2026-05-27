@@ -239,7 +239,7 @@ export default function BlogPage() {
 
   const seoTitle =
     activeCategory === 'Alla'
-      ? 'Kunskapsbank – guider om agility och hoopers | AgilityManager'
+      ? 'Kunskapsbank – agility & hoopers | AgilityManager'
       : `${activeCategory} – ${filteredCount} guider | AgilityManager`;
 
   const seoDescription =
@@ -258,6 +258,10 @@ export default function BlogPage() {
         <title>{seoTitle}</title>
         <meta name="description" content={seoDescription} />
         <link rel="canonical" href={canonical} />
+        <meta property="og:title" content={activeCategory === 'Alla' ? 'Kunskapsbank – agility & hoopers' : `${activeCategory} – ${filteredCount} guider`} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:url" content={canonical} />
+        <meta property="og:type" content="website" />
         <script type="application/ld+json">
           {JSON.stringify({
             '@context': 'https://schema.org',

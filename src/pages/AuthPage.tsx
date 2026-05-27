@@ -174,7 +174,7 @@ export default function AuthPage() {
           <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center mx-auto mb-4">
             <Sparkles size={28} className="text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold font-display text-foreground">AgilityManager</h1>
+          <h1 className="text-2xl font-bold font-display text-foreground">{isLogin ? 'Logga in på AgilityManager' : 'Skapa konto på AgilityManager'}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {source === 'free_course_planner' ? 'Spara banor, logga pass och följ utvecklingen' : 'Din digitala agility-dagbok'}
           </p>

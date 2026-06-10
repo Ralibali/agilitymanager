@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { PreviewGate } from "@/components/v3/PreviewGate";
+import { CoursePlannerPreviewSkeleton } from "@/components/v3/previewSkeletons";
 import {
   OBSTACLES_V2, SIZE_CLASSES, CLASS_TEMPLATES, getArenaPresetsBySport,
   getObstacleDefV2, getTemplatesBySport,
@@ -124,6 +126,18 @@ function rectsOverlap(a: { minX: number; maxX: number; minY: number; maxY: numbe
 }
 
 export default function V3CoursePlannerV2Page() {
+  const { subscription } = useAuth();
+  if (!subscription.loading && !subscription.subscribed) {
+    return (
+      <PreviewGate featureKey="course-planner" preview={<CoursePlannerPreviewSkeleton />}>
+        <V3CoursePlannerV2PageInner />
+      </PreviewGate>
+    );
+  }
+  return <V3CoursePlannerV2PageInner />;
+}
+
+function V3CoursePlannerV2PageInner() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isMobile = useIsMobile();

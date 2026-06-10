@@ -7,6 +7,9 @@ import { useV3Milestones } from "@/hooks/v3/useV3Milestones";
 import { DogHero } from "@/components/v3/DogHero";
 import { NextMilestoneCard } from "@/components/v3/NextMilestoneCard";
 import { V3Page, V3PageHero, V3PrimaryButton, V3SecondaryButton } from "@/components/v3/V3Page";
+import { PreviewGate } from "@/components/v3/PreviewGate";
+import { StatsPreviewSkeleton } from "@/components/v3/previewSkeletons";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 type Tab = "overview" | "trends" | "patterns" | "milestones";
@@ -18,6 +21,18 @@ const time = (sec: number | null) => sec == null ? "—" : Math.floor(sec / 60) 
 const rangeText = (range: RangeKey) => RANGES.find((item) => item.value === range)?.long ?? "valt intervall";
 
 export default function V3StatsPage() {
+  const { subscription } = useAuth();
+  if (!subscription.loading && !subscription.subscribed) {
+    return (
+      <PreviewGate featureKey="stats" preview={<StatsPreviewSkeleton />}>
+        <V3StatsPageInner />
+      </PreviewGate>
+    );
+  }
+  return <V3StatsPageInner />;
+}
+
+function V3StatsPageInner() {
   const navigate = useNavigate();
   const { dogs, active, activeId, setActive, loading: dogsLoading } = useV3Dogs();
   const [tab, setTab] = useState<Tab>("overview");

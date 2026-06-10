@@ -303,6 +303,102 @@ export async function exportJudgePdf(input: JudgePdfInput) {
     by += rowH;
   }
 
+  /* ─── SIDA 3 — Bananalys + Hindermått + Banbyggar-koordinater ─── */
+  doc.addPage();
+  drawHeaderBand(doc, {
+    title: "Bananalys & mätprotokoll",
+    subtitle: input.name || "Bana",
+    badge: input.sport === "agility" ? "AGILITY" : "HOOPERS",
+  });
+
+  const ruleSetId = input.ruleSetId ?? getDefaultRuleSetIdForSport(input.sport);
+  const ruleSet = getRuleSet(ruleSetId);
+
+  let py = 32;
+  doc.setTextColor(...PDF_BRAND.ink);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.text("Bananalys (svårighet)", margin, py);
+  py += 6;
+  const analysis = analyzeCourse(input.obstacles);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.text(`Svårighet: ${analysis.difficultyLabel} (${analysis.difficultyScore}/100)`, margin, py); py += 5;
+  doc.text(`Skarpa svängar (>90°): ${analysis.sharpTurns}`, margin, py); py += 5;
+  doc.text(`Sidbyten: ${analysis.sideChanges}`, margin, py); py += 5;
+  doc.text(`Längsta raksträcka: ${analysis.longestStraightM.toFixed(1)} m`, margin, py); py += 5;
+  doc.text(`Medelsvängskärpa: ${analysis.avgCurvatureDegPerM.toFixed(1)}°/m`, margin, py); py += 5;
+  doc.setTextColor(...PDF_BRAND.muted);
+  doc.setFontSize(7.5);
+  doc.text(
+    `Poängkomponenter — svängar +${analysis.components.sharpTurns}, sidbyten +${analysis.components.sideChanges}, kurvatur +${analysis.components.avgCurvature}, fartsektion ${analysis.components.straightBonus}`,
+    margin, py,
+  );
+  py += 8;
+
+  /* Hindermått enligt regelverket för vald storleksklass */
+  doc.setTextColor(...PDF_BRAND.ink);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.text(`Hindermått — storleksklass ${sizeDef.label}`, margin, py);
+  py += 6;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.text(`Hopphöjd: ${sizeDef.jumpHeightCm[0]}–${sizeDef.jumpHeightCm[1]} cm`, margin, py); py += 5;
+  doc.text(`Däckhöjd: ${sizeDef.tireHeightCm[0]}–${sizeDef.tireHeightCm[1]} cm`, margin, py); py += 5;
+  doc.text(`Långhopp: ${sizeDef.longJumpPlanks} plankor, ${sizeDef.longJumpLengthCm[0]}–${sizeDef.longJumpLengthCm[1]} cm`, margin, py); py += 5;
+  doc.text(`Min-avstånd kombination: ${sizeDef.comboDistanceM} m`, margin, py); py += 8;
+
+  /* Banbyggar-koordinater */
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.text("Banbyggar-koordinater (m från nedre-vänster hörn)", margin, py);
+  py += 5;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7);
+  doc.setTextColor(...PDF_BRAND.muted);
+  const bcols = [12, 50, 22, 22, 22];
+  let bx = margin;
+  ["#", "Hinder", "X (m)", "Y (m)", "Rotation"].forEach((h, i) => { doc.text(h, bx, py); bx += bcols[i]; });
+  py += 1.5;
+  doc.setDrawColor(...PDF_BRAND.line);
+  doc.line(margin, py, pageW - margin, py);
+  py += 3.5;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(...PDF_BRAND.ink);
+  const buildList = input.obstacles
+    .filter((o) => o.number != null && !["start", "finish", "number"].includes(o.type))
+    .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+  for (const ob of buildList) {
+    if (py > pageH - 24) break;
+    const def = getObstacleDefV2(ob.type as ObstacleTypeV2);
+    let cx2 = margin;
+    const cells = [
+      String(ob.number),
+      def?.label ?? ob.type,
+      ob.x.toFixed(2),
+      ob.y.toFixed(2),
+      `${Math.round(ob.rotation)}°`,
+    ];
+    cells.forEach((c, i) => { doc.text(c, cx2, py); cx2 += bcols[i]; });
+    py += 4.5;
+  }
+
+  /* Mätprotokoll-rad i botten */
+  doc.setFontSize(7);
+  doc.setTextColor(...PDF_BRAND.muted);
+  const protoY = pageH - 18;
+  const lengthAlongPathFinal = computeCourseLengthAlongPath(input.obstacles);
+  doc.text(
+    `Mätprotokoll: banlängd (hundens väg) ${lengthAlongPathFinal.toFixed(1)} m · ref ${times.refTimeS ?? "—"} s · max ${times.maxTimeS ?? "—"} s`,
+    margin, protoY,
+  );
+  doc.text(
+    `Regelverk: ${ruleSet?.name ?? ruleSetId} (giltigt ${ruleSet?.validFrom ?? "?"}${ruleSet?.validTo ? "–" + ruleSet.validTo : "→"})`,
+    margin, protoY + 4,
+  );
+
   /* Footer på alla sidor */
   drawFooterAllPages(doc, { authorName: input.authorName ?? "" });
 

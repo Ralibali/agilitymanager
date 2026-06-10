@@ -142,6 +142,23 @@ async function fetchUpcomingCompetitions() {
   return [...a, ...h].sort((x, y) => x.date_start.localeCompare(y.date_start));
 }
 
+async function fetchPublishedBreeds() {
+  const url = `${SUPABASE_URL}/rest/v1/breeds?select=slug,name,size_class,description,seo_title,seo_description,image_url,breed_group,origin_country,life_expectancy,updated_at&published=eq.true&order=name.asc`;
+  const res = await fetch(url, {
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+  });
+  if (!res.ok) throw new Error(`Supabase breeds fetch failed: ${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+const SIZE_LABEL = {
+  XS: 'Mycket liten',
+  S: 'Liten',
+  M: 'Mellanstor',
+  L: 'Stor',
+  XL: 'Mycket stor',
+};
+
 // ---------------- HTML helpers ----------------
 
 function escapeHtml(s) {
@@ -560,8 +577,150 @@ async function main() {
     console.error('⚠️  Kunde inte prerender tävlingsdetalj-sidor:', err.message);
   }
 
+  // 4) Rassidor + /raser-index (Del 1 — SEO-prerendering för rasvertikalen)
+  let breedCount = 0;
+  let breeds = [];
+  try {
+    breeds = await fetchPublishedBreeds();
+    console.log(`🐕 Hämtade ${breeds.length} publicerade raser`);
+  } catch (err) {
+    console.error('⚠️  Kunde inte hämta raser:', err.message);
+  }
+
+  const excerptFromDescription = (desc, max = 158) => {
+    if (!desc) return '';
+    const clean = String(desc).replace(/\s+/g, ' ').trim();
+    if (clean.length <= max) return clean;
+    const cut = clean.slice(0, max);
+    const lastSpace = cut.lastIndexOf(' ');
+    return `${(lastSpace > max - 20 ? cut.slice(0, lastSpace) : cut).trim()}…`;
+  };
+
+  for (const breed of breeds) {
+    const route = `/raser/${breed.slug}`;
+    const url = `${SITE_URL}${route}`;
+    const sizeLabel = SIZE_LABEL[breed.size_class] || breed.size_class || '';
+    const seoTitle = (breed.seo_title && breed.seo_title.trim()) ||
+      `${breed.name} – passar för agility och hoopers?`;
+    const seoDesc = (breed.seo_description && breed.seo_description.trim()) ||
+      excerptFromDescription(breed.description) ||
+      `Allt om rasen ${breed.name} för agility och hoopers. Storleksklass ${sizeLabel}.`;
+
+    const descHtml = breed.description
+      ? `<p>${escapeHtml(excerptFromDescription(breed.description, 1200))}</p>`
+      : '';
+    const metaList = [
+      sizeLabel && `<li><strong>Storleksklass:</strong> ${escapeHtml(sizeLabel)} (${escapeHtml(breed.size_class)})</li>`,
+      breed.breed_group && `<li><strong>Rasgrupp:</strong> ${escapeHtml(breed.breed_group)}</li>`,
+      breed.origin_country && `<li><strong>Ursprungsland:</strong> ${escapeHtml(breed.origin_country)}</li>`,
+      breed.life_expectancy && `<li><strong>Livslängd:</strong> ${escapeHtml(breed.life_expectancy)}</li>`,
+    ].filter(Boolean).join('');
+
+    const prerenderedBody = `      <article>
+        <header>
+          <p>Hundras · Lämplighet för agility och hoopers</p>
+          <h1>${escapeHtml(breed.name)}</h1>
+          <p>${escapeHtml(seoDesc)}</p>
+        </header>
+        ${metaList ? `<ul>${metaList}</ul>` : ''}
+        ${descHtml}
+        <p><a href="/raser">Tillbaka till alla raser</a></p>
+      </article>`;
+
+    const articleSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: seoTitle.slice(0, 110),
+      description: seoDesc,
+      image: breed.image_url ? [breed.image_url] : [`${SITE_URL}/og-image.png`],
+      datePublished: breed.updated_at,
+      dateModified: breed.updated_at,
+      author: { '@type': 'Organization', name: SITE_NAME },
+      publisher: {
+        '@type': 'Organization', name: SITE_NAME,
+        logo: { '@type': 'ImageObject', url: `${SITE_URL}/favicon.svg` },
+      },
+      mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+      url,
+      about: { '@type': 'Thing', name: breed.name },
+    };
+    const breadcrumb = buildBreadcrumbSchema([
+      { name: 'Hem', url: '/' },
+      { name: 'Raser', url: '/raser' },
+      { name: breed.name, url: route },
+    ]);
+
+    const html = buildPageHtml({
+      template,
+      title: seoTitle,
+      description: seoDesc,
+      canonical: route,
+      ogType: 'article',
+      jsonLdScripts: [articleSchema, breadcrumb],
+      prerenderedBody,
+    });
+    await writeRoute(route, html);
+    breedCount++;
+  }
+  console.log(`   ✓ ${breedCount} rassidor skrivna`);
+
+  // /raser-index — egen prerendering med synliga länkar till alla raser
+  if (breeds.length > 0) {
+    const groupedBySize = ['XS', 'S', 'M', 'L', 'XL'].map((sz) => ({
+      size: sz,
+      label: SIZE_LABEL[sz],
+      items: breeds.filter((b) => b.size_class === sz),
+    })).filter((g) => g.items.length > 0);
+    const groupedHtml = groupedBySize.map((g) => {
+      const lis = g.items.map((b) =>
+        `<li><a href="/raser/${escapeHtml(b.slug)}">${escapeHtml(b.name)}</a>${b.breed_group ? ` — <em>${escapeHtml(b.breed_group)}</em>` : ''}</li>`,
+      ).join('');
+      return `<section><h2>${escapeHtml(g.label)} (${escapeHtml(g.size)}) — ${g.items.length} raser</h2><ul>${lis}</ul></section>`;
+    }).join('');
+
+    const indexBody = `      <article>
+        <header>
+          <h1>Hundraser för agility och hoopers</h1>
+          <p>Översikt över ${breeds.length} hundraser, deras storleksklass och lämplighet för agility och hoopers. Skrivet för svenska hundförare.</p>
+        </header>
+        ${groupedHtml}
+      </article>`;
+
+    const indexSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'Hundraser för agility och hoopers',
+      description: `Översikt över ${breeds.length} hundraser för agility och hoopers i Sverige.`,
+      url: `${SITE_URL}/raser`,
+      isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: SITE_URL },
+      hasPart: breeds.map((b) => ({
+        '@type': 'Article',
+        name: b.name,
+        url: `${SITE_URL}/raser/${b.slug}`,
+      })),
+    };
+    const indexBreadcrumb = buildBreadcrumbSchema([
+      { name: 'Hem', url: '/' },
+      { name: 'Raser', url: '/raser' },
+    ]);
+
+    const indexHtml = buildPageHtml({
+      template,
+      title: 'Hundraser för agility och hoopers',
+      description: `Översikt över ${breeds.length} hundraser och deras lämplighet för agility och hoopers. Filtrera på storleksklass och hitta rätt ras för din sport.`,
+      canonical: '/raser',
+      ogType: 'website',
+      jsonLdScripts: [indexSchema, indexBreadcrumb],
+      prerenderedBody: indexBody,
+    });
+    await writeRoute('/raser', indexHtml);
+    console.log(`   ✓ /raser-index skriven (${breeds.length} raser, ${groupedBySize.length} grupper)`);
+  } else {
+    console.warn('⚠️  Inga raser hämtade — /raser-index och rassidor hoppas över.');
+  }
+
   console.log('✅ Statisk HTML-generering klar');
-  console.log(`   Totalt: ${STATIC_PAGES.length + posts.length + detailCount} sidor under dist/`);
+  console.log(`   Totalt: ${STATIC_PAGES.length + posts.length + detailCount + breedCount + (breeds.length > 0 ? 1 : 0)} sidor under dist/`);
 }
 
 main().catch((err) => {

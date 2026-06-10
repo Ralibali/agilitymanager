@@ -51,7 +51,7 @@ const benefits = [
   'Automatisk poängberäkning med DO/BO/UL-bonusar',
   'Banmallar för Startklass, K1, K2 och K3',
   'Fungerar på mobil, surfplatta och dator',
-  '7 dagars gratis Pro-testperiod utan betalkrav',
+  'Gratis grundversion utan tidsbegränsning – inga kortuppgifter',
 ];
 
 export default function HoopersLandingPage() {

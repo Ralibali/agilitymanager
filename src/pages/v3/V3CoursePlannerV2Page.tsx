@@ -86,6 +86,11 @@ interface CourseV2 {
   arenaHeightM: number;
   classTemplate: ClassTemplateKey | null;
   obstacles: ObstacleV2[];
+  /**
+   * Id på versionerat regelverk (se @/features/course-planner-v2/rules).
+   * Saknas på gamla banor — fallback i loadCourse sätter default per sport.
+   */
+  ruleSetId?: string;
 }
 
 const DEFAULT_COURSE: CourseV2 = {
@@ -96,6 +101,7 @@ const DEFAULT_COURSE: CourseV2 = {
   arenaHeightM: 40,
   classTemplate: null,
   obstacles: [],
+  ruleSetId: DEFAULT_RULESET_ID,
 };
 
 function loadCourse(): CourseV2 {

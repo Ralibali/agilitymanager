@@ -109,7 +109,11 @@ function loadCourse(): CourseV2 {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_COURSE;
-    return { ...DEFAULT_COURSE, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    const merged: CourseV2 = { ...DEFAULT_COURSE, ...parsed };
+    // Prompt A: gamla banor saknar ruleSetId — sätt default baserat på sport.
+    if (!merged.ruleSetId) merged.ruleSetId = getDefaultRuleSetIdForSport(merged.sport);
+    return merged;
   } catch { return DEFAULT_COURSE; }
 }
 

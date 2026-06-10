@@ -9,6 +9,7 @@ import {
   type ClassTemplateKey, type ObstacleTypeV2, type SizeClassKey, type Sport,
 } from "./config";
 import { buildDogPath, type CourseDogPathOverride } from "./dogPath";
+import { computeApproachIssues } from "./courseAnalysis";
 
 export type IssueLevel = "error" | "warning" | "info";
 
@@ -381,6 +382,11 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
         obstacleId: ob.id,
       });
     }
+  }
+
+  // 7) Ansatsvinkel-validering (Prompt C) — bygger på hundens väg
+  if (course.sport === "agility") {
+    issues.push(...computeApproachIssues(course.obstacles, course.dogPath));
   }
 
   return issues;

@@ -755,9 +755,9 @@ export default function LandingPage() {
               <Button
                 className="w-full font-semibold"
                 style={{ background: '#1a6b3c', color: '#fff' }}
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/auth?mode=signup')}
               >
-                Prova Pro 7 dagar gratis
+                Skapa gratis konto
               </Button>
             </motion.div>
           </div>

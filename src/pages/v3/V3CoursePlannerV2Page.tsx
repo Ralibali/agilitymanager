@@ -938,6 +938,36 @@ function V3CoursePlannerV2PageInner() {
           </section>
 
           <section>
+            <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Regelverk</h3>
+            <select
+              value={course.ruleSetId ?? getDefaultRuleSetIdForSport(course.sport)}
+              onChange={(e) => update({ ruleSetId: e.target.value })}
+              className="w-full h-9 px-2 rounded-lg text-[12px] font-medium border border-border bg-card text-foreground/90 hover:border-primary/30 transition"
+            >
+              {getActiveRuleSets().filter((rs) => rs.sport === course.sport).map((rs) => (
+                <option key={rs.id} value={rs.id}>
+                  {rs.name} ({rs.validFrom.slice(0, 4)}{rs.validTo ? `–${rs.validTo.slice(0, 4)}` : "→"})
+                </option>
+              ))}
+            </select>
+            {(() => {
+              const rs = getRuleSet(course.ruleSetId ?? getDefaultRuleSetIdForSport(course.sport));
+              if (!rs) return null;
+              return (
+                <a
+                  href={rs.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block mt-1 text-[10px] text-neutral-500 hover:text-primary underline truncate"
+                  title={rs.sourceDocuments.map((d) => d.name).join(", ")}
+                >
+                  Källa: {rs.authority}
+                </a>
+              );
+            })()}
+          </section>
+
+          <section>
             <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Klassmallar</h3>
             <div className="grid gap-1">
               {templates.map((t) => (

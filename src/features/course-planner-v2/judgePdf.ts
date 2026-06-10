@@ -11,6 +11,8 @@ import {
   type ClassTemplateKey, type ObstacleTypeV2, type SizeClassKey, type Sport,
 } from "./config";
 import { computeCourseTimes, computeCourseLength, computeCourseLengthAlongPath, validateCourse, type ObstacleLite } from "./validation";
+import { analyzeCourse } from "./courseAnalysis";
+import { getRuleSet, getDefaultRuleSetIdForSport } from "./rules";
 import { PDF_BRAND, PDF_PAGE, drawArenaVector, drawHeaderBand, drawFooterAllPages, safeFileName } from "./pdfHelpers";
 
 export interface JudgePdfInput {
@@ -25,6 +27,8 @@ export interface JudgePdfInput {
   authorName?: string;
   /** Bakåtkompatibilitet — ignoreras (vi rasteriserar inte längre SVG). */
   svgElement?: SVGSVGElement | null;
+  /** Aktivt regelverk (Prompt A). Default väljs efter sport. */
+  ruleSetId?: string;
 }
 
 export async function exportJudgePdf(input: JudgePdfInput) {

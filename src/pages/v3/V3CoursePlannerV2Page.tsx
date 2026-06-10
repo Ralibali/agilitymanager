@@ -476,14 +476,15 @@ function V3CoursePlannerV2PageInner() {
 
   function switchSport(next: Sport) {
     if (next === course.sport) return;
+    const nextRuleSetId = getDefaultRuleSetIdForSport(next);
     if (course.obstacles.length > 0) {
       const ok = window.confirm("Att byta sport kräver tom bana. Vill du rensa banan och byta?");
       if (!ok) return;
-      setCourse((c) => ({ ...c, sport: next, obstacles: [], classTemplate: null }));
+      setCourse((c) => ({ ...c, sport: next, obstacles: [], classTemplate: null, ruleSetId: nextRuleSetId }));
       setSelectedId(null);
       return;
     }
-    update({ sport: next, classTemplate: null });
+    update({ sport: next, classTemplate: null, ruleSetId: nextRuleSetId });
   }
 
   function placeObstacle(type: ObstacleTypeV2) {

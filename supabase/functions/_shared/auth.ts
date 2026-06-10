@@ -46,3 +46,28 @@ export function hasInternalSecret(req: Request): boolean {
   const expected = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   return Boolean(expected) && secret === expected;
 }
+
+/**
+ * Accepts requests from pg_net cron jobs that send the anon key
+ * either in `apikey` header or as `Authorization: Bearer <anon>`.
+ * Requires the JSON body to contain `trigger: "cron"`.
+ */
+export async function hasCronAuth(req: Request): Promise<boolean> {
+  if (hasInternalSecret(req)) return true;
+
+  const auth = req.headers.get("Authorization") || "";
+  const apikey = req.headers.get("apikey") || "";
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!anonKey) return false;
+
+  const isAnonBearer = auth.startsWith("Bearer ") && auth.slice(7).trim() === anonKey;
+  const isAnonApikey = apikey === anonKey && !auth;
+  if (!isAnonBearer && !isAnonApikey) return false;
+
+  try {
+    const body = await req.clone().json();
+    return body?.trigger === "cron";
+  } catch {
+    return false;
+  }
+}

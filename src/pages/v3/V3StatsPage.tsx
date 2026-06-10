@@ -7,6 +7,9 @@ import { useV3Milestones } from "@/hooks/v3/useV3Milestones";
 import { DogHero } from "@/components/v3/DogHero";
 import { NextMilestoneCard } from "@/components/v3/NextMilestoneCard";
 import { V3Page, V3PageHero, V3PrimaryButton, V3SecondaryButton } from "@/components/v3/V3Page";
+import { PreviewGate } from "@/components/v3/PreviewGate";
+import { StatsPreviewSkeleton } from "@/components/v3/previewSkeletons";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 type Tab = "overview" | "trends" | "patterns" | "milestones";

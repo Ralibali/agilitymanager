@@ -126,6 +126,18 @@ function rectsOverlap(a: { minX: number; maxX: number; minY: number; maxY: numbe
 }
 
 export default function V3CoursePlannerV2Page() {
+  const { subscription } = useAuth();
+  if (!subscription.loading && !subscription.subscribed) {
+    return (
+      <PreviewGate featureKey="course-planner" preview={<CoursePlannerPreviewSkeleton />}>
+        <V3CoursePlannerV2PageInner />
+      </PreviewGate>
+    );
+  }
+  return <V3CoursePlannerV2PageInner />;
+}
+
+function V3CoursePlannerV2PageInner() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isMobile = useIsMobile();

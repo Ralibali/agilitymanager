@@ -241,7 +241,8 @@ export async function exportJudgePdf(input: JudgePdfInput) {
   doc.setTextColor(...PDF_BRAND.ink);
   for (const sc of SIZE_CLASSES) {
     const speed = baseSpeed * sctScale[sc.key];
-    const sct = lengthM > 0 ? Math.round(lengthM / speed) : null;
+    // SCT räknas från hundens väg (Prompt B).
+    const sct = lengthAlongPathM > 0 ? Math.round(lengthAlongPathM / speed) : null;
     const maxT = sct != null && tpl ? Math.round(sct * tpl.maxTimeFactor) : null;
     const isCurrent = sc.key === input.sizeClass;
     if (isCurrent) {
@@ -252,7 +253,7 @@ export async function exportJudgePdf(input: JudgePdfInput) {
     const cells = [
       sc.label,
       speed.toFixed(2),
-      lengthM.toFixed(1),
+      lengthAlongPathM.toFixed(1),
       sct != null ? `${sct}` : "—",
       maxT != null ? `${maxT}` : "—",
       isCurrent ? "← vald" : "",

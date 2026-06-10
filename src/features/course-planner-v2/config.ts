@@ -166,6 +166,11 @@ export interface ClassTemplate {
 
 const CONTACT_TYPES: ObstacleTypeV2[] = ["aframe", "dogwalk", "seesaw"];
 
+// TODO VERIFIERA: Samtliga `arenaWidthM`, `arenaHeightM`, `obstacleRange`,
+// `refSpeedMs` och `maxTimeFactor` nedan är uppskattningar. Slå upp i
+// "Agilityregler 2022-01-01–2026-12-31" och "Referenstider – Information
+// (reviderad 2023)" — om referenstid inte beräknas som en fast m/s per
+// klass behöver TimeRules i rules/ utökas.
 export const CLASS_TEMPLATES: ClassTemplate[] = [
   // Hoppklasser — inga balanshinder
   { key: "agility_hopp_1", sport: "agility", label: "Hoppklass 1", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 18], defaultSize: "L", forbiddenTypes: [...CONTACT_TYPES, "table"], refSpeedMs: 3.5, maxTimeFactor: 1.5, description: "Endast hopp, tunnel och slalom" },

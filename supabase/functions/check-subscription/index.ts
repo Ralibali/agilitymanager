@@ -88,13 +88,14 @@ serve(async (req) => {
       });
     }
 
-    // 3. Check 7-day free trial based on account age
+    // 3. Check free trial based on account age (must match TRIAL_DAYS in AuthContext)
+    const TRIAL_DAYS = 14;
     const createdAt = new Date(user.created_at);
     const now = new Date();
     const diffDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
-    if (diffDays <= 7) {
-      const trialEnd = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
-      logStep("User is in 7-day free trial");
+    if (diffDays <= TRIAL_DAYS) {
+      const trialEnd = new Date(createdAt.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+      logStep(`User is in ${TRIAL_DAYS}-day free trial`);
       return new Response(JSON.stringify({
         subscribed: true,
         is_trial: true,

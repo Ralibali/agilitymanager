@@ -5,6 +5,7 @@ import { V3BottomNav } from "./V3BottomNav";
 import { V3MoreSheet } from "./V3MoreSheet";
 import { V3QuickActionSheet } from "./V3QuickActionSheet";
 import { V3LogTrainingSheet } from "./V3LogTrainingSheet";
+import { TrialBanner } from "./TrialBanner";
 import { useV3LogSheet } from "@/hooks/v3/useV3LogSheet";
 
 function clickButtonByLabels(labels: string[]): boolean {

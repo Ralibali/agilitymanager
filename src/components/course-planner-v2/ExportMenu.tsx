@@ -49,6 +49,15 @@ export function ExportMenu({ onJudge, onTraining, onBuild, onStartlist, onJson, 
         <DropdownMenuItem onSelect={onStartlist}>
           <FileText size={14} className="mr-2" /> Startlista
         </DropdownMenuItem>
+        {onShareImage && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Dela</DropdownMenuLabel>
+            <DropdownMenuItem onSelect={onShareImage}>
+              <Share2 size={14} className="mr-2" /> Dela som bild
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuLabel>Backup och import</DropdownMenuLabel>
         <DropdownMenuItem onSelect={onJson}>

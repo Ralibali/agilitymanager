@@ -82,6 +82,7 @@ export function V3Layout() {
       {!isCoursePlanner && <V3Sidebar />}
 
       <div className="flex-1 flex flex-col min-w-0">
+        {!isCoursePlanner && <TrialBanner />}
         <main className={`flex-1 ${isCoursePlanner ? "pb-0 lg:pb-0 overflow-x-hidden" : "pb-24 lg:pb-0"}`}>
           <Suspense
             fallback={

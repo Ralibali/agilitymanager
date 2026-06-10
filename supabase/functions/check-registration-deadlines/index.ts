@@ -133,21 +133,12 @@ Deno.serve(async (req) => {
     // 2) E-postutskick — hämta användarens email + opt-out
     const userIds = [...new Set(pending.map((p) => p.interest.user_id))];
     const emailMap = new Map<string, string>();
-    const unsubscribedSet = new Set<string>();
 
     for (const uid of userIds) {
       const { data: u } = await supabase.auth.admin.getUserById(uid);
       if (u?.user?.email) emailMap.set(uid, u.user.email);
     }
 
-    // Hoppa över opt-outade
-    if (emailMap.size > 0) {
-      const { data: unsubs } = await supabase
-        .from("email_unsubscribes")
-        .select("email")
-        .in("email", Array.from(emailMap.values()).map((e) => e.toLowerCase()));
-      (unsubs ?? []).forEach((u: any) => unsubscribedSet.add(u.email.toLowerCase()));
-    }
 
     let emailsSent = 0;
     for (const p of pending) {

@@ -233,14 +233,23 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
         if (!aDef || !bDef) continue;
         const aIsJumpish = ["jump", "wall", "longjump", "tire", "combo"].includes(a.type);
         const bIsJumpish = ["jump", "wall", "longjump", "tire", "combo"].includes(b.type);
-        if (aIsJumpish && bIsJumpish && d < minCombo) {
+        const tooCloseForJumps = aIsJumpish && bIsJumpish && d < minCombo;
+        if (tooCloseForJumps) {
           issues.push({
             level: "error",
             code: "jump_too_close",
             message: `Hinder ${a.number}→${b.number}: ${d.toFixed(1)} m < ${minCombo} m (säkerhetsavstånd för ${sizeDef.label})`,
             obstacleId: b.id,
           });
-        } else if (d < minSafe && d >= minCombo) {
+        } else if (d < minCombo) {
+          // blandat par tätare än combo-gränsen — tidigare helt omissat
+          issues.push({
+            level: "warning",
+            code: "obstacles_close",
+            message: `Hinder ${a.number}→${b.number}: ${d.toFixed(1)} m är mycket nära (under ${minCombo} m)`,
+            obstacleId: b.id,
+          });
+        } else if (d < minSafe) {
           issues.push({
             level: "warning",
             code: "obstacles_close",

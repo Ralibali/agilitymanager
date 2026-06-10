@@ -92,20 +92,23 @@ describe("buildDogPath / computeDogPathLength", () => {
     expect(lenCurved - lenStraight).toBeLessThan(0.5);
   });
 
-  it("slalom mellan två hopp lägger till ~6.6 m jämfört med två hopp ensamma", () => {
+  it("slalom (roterad 90°) mellan två hopp tvingar omväg och förlänger vägen rejält", () => {
+    // Slalom på samma axel som hindren förlänger inte vägen geometriskt
+    // (hunden går igenom samma sträcka), men en slalom som ligger
+    // tvärställd mot förflyttningsriktningen tvingar en omväg.
     const withoutWeave: DogPathObstacle[] = [
       ob({ type: "jump", x: 0, y: 0, number: 1 }),
       ob({ type: "jump", x: 0, y: 10, number: 2 }),
     ];
     const withWeave: DogPathObstacle[] = [
       ob({ type: "jump", x: 0, y: 0, number: 1 }),
-      ob({ type: "weave_12", x: 0, y: 5, number: 2 }),
+      ob({ type: "weave_12", x: 0, y: 5, number: 2, rotation: 90 }),
       ob({ type: "jump", x: 0, y: 10, number: 3 }),
     ];
     const diff = computeDogPathLength(withWeave) - computeDogPathLength(withoutWeave);
-    // Slalomens 6.6 m läggs till, plus minus lite air-rebalansering.
+    // Slalomens 6.6 m + omvägen runt den ≈ +8 m totalt.
     expect(diff).toBeGreaterThan(5.5);
-    expect(diff).toBeLessThan(7.5);
+    expect(diff).toBeLessThan(12);
   });
 
   it("sampleDogPathAt vid t=1 returnerar slutpunkt med längd = total", () => {

@@ -5,15 +5,18 @@ import { useNavigate } from 'react-router-dom';
 import { ReactNode, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { getGateCopy, type GateFeatureKey } from '@/components/v3/gateCopy';
 
 interface PremiumGateProps {
   children: ReactNode;
   /** If true, blocks the entire content. If false, just shows inline lock. */
   fullPage?: boolean;
   featureName?: string;
+  /** Utfallsfokuserad copy per funktion. Faller tillbaka på featureName om okänd. */
+  featureKey?: GateFeatureKey;
 }
 
-export function PremiumGate({ children, fullPage = false, featureName = 'Denna funktion' }: PremiumGateProps) {
+export function PremiumGate({ children, fullPage = false, featureName = 'Denna funktion', featureKey }: PremiumGateProps) {
   const { subscription, user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);

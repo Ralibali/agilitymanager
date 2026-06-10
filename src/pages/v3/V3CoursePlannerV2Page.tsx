@@ -275,6 +275,7 @@ function V3CoursePlannerV2PageInner() {
     classTemplate: course.classTemplate,
     obstacles: course.obstacles,
     authorName: profileName,
+    ruleSetId: course.ruleSetId,
   }), [course, profileName]);
 
   async function handleExportPdf() {

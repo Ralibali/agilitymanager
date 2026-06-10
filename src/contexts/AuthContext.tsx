@@ -30,6 +30,9 @@ export const LEGACY_PRO_PRICE_IDS = [
   'price_1T9AomHzffTezY82vtiObR7E', // 99 kr/år
 ] as const;
 
+// Längd på gratis provperiod (dagar). Måste matcha check-subscription/create-checkout.
+export const TRIAL_DAYS = 14;
+
 interface SubscriptionState {
   subscribed: boolean;
   productId: string | null;

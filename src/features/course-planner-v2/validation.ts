@@ -46,6 +46,8 @@ export interface CourseLite {
   arenaHeightM: number;
   classTemplate: ClassTemplateKey | null;
   obstacles: ObstacleLite[];
+  /** Editbar override för hundens väg (Prompt B). */
+  dogPath?: CourseDogPathOverride;
 }
 
 /* ───────────── Banlängd & tider ───────────── */

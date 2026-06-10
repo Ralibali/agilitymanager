@@ -142,6 +142,23 @@ async function fetchUpcomingCompetitions() {
   return [...a, ...h].sort((x, y) => x.date_start.localeCompare(y.date_start));
 }
 
+async function fetchPublishedBreeds() {
+  const url = `${SUPABASE_URL}/rest/v1/breeds?select=slug,name,size_class,description,seo_title,seo_description,image_url,breed_group,origin_country,life_expectancy,updated_at&published=eq.true&order=name.asc`;
+  const res = await fetch(url, {
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+  });
+  if (!res.ok) throw new Error(`Supabase breeds fetch failed: ${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+const SIZE_LABEL = {
+  XS: 'Mycket liten',
+  S: 'Liten',
+  M: 'Mellanstor',
+  L: 'Stor',
+  XL: 'Mycket stor',
+};
+
 // ---------------- HTML helpers ----------------
 
 function escapeHtml(s) {

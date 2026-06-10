@@ -343,7 +343,7 @@ function parseDogInfo(html: string): Omit<DogSearchResult, 'results'> {
   let regName = '';
   let regNr = '';
   let breed = '';
-  let handler = '';
+  const handler = '';
 
   const tilltalsMatch = html.match(/Tilltalsnamn\s*(?:<[^>]*>)*\s*:\s*(?:<[^>]*>)*\s*([^<]+)/i);
   if (tilltalsMatch) dogName = tilltalsMatch[1].trim();

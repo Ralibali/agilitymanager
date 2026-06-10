@@ -112,7 +112,7 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") mode === "walk" ? setMode("view") : onClose();
+      if (e.key === "Escape") { if (mode === "walk") setMode("view"); else onClose(); }
       if (mode === "walk" && e.key.toLowerCase() === "n") setCurrentIdx((i) => Math.min(numbered.length - 1, i + 1));
       if (mode === "walk" && e.key.toLowerCase() === "p") setCurrentIdx((i) => Math.max(0, i - 1));
     };
@@ -142,14 +142,16 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
     return { pos: [ma.x - (dx / len) * 2.1, 1.65, ma.z - (dz / len) * 2.1] as [number, number, number], target: [mb.x, 1.52, mb.z] as [number, number, number] };
   }, [numbered, currentIdx, widthMeters, heightMeters]);
 
+  const sceneObstacles = useMemo(() => obstacles.map((o) => ({ ...o, ...map2DTo3D(o.x, o.y, widthMeters, heightMeters) })), [obstacles, widthMeters, heightMeters]);
+  const maxDim = Math.max(widthMeters, heightMeters);
+  const overviewCamera = useMemo(() => isMobile ? ([widthMeters * 0.42, maxDim * 0.42, heightMeters * 0.74] as [number, number, number]) : ([widthMeters * 0.5, maxDim * 0.46, heightMeters * 0.68] as [number, number, number]), [isMobile, widthMeters, heightMeters, maxDim]);
+
   if (!webglOk) {
     return <div className="fixed inset-0 z-[1100] bg-[#f6f2ea] text-v3-text-primary grid place-items-center p-6"><div className="max-w-md text-center space-y-4 rounded-[28px] bg-white border border-black/8 shadow-v3-xl p-6"><div className="text-2xl font-semibold">3D-läget kan inte visas</div><p className="text-v3-text-secondary">Din enhet eller webbläsare stöder inte WebGL.</p><button onClick={onClose} className="h-11 px-5 rounded-full bg-v3-text-primary text-white font-semibold">Tillbaka till 2D</button></div></div>;
   }
 
-  const sceneObstacles = useMemo(() => obstacles.map((o) => ({ ...o, ...map2DTo3D(o.x, o.y, widthMeters, heightMeters) })), [obstacles, widthMeters, heightMeters]);
-  const maxDim = Math.max(widthMeters, heightMeters);
-  const overviewCamera = useMemo(() => isMobile ? ([widthMeters * 0.42, maxDim * 0.42, heightMeters * 0.74] as [number, number, number]) : ([widthMeters * 0.5, maxDim * 0.46, heightMeters * 0.68] as [number, number, number]), [isMobile, widthMeters, heightMeters, maxDim]);
   const startWalk = () => { setCurrentIdx(0); setShowHint(true); setMode("walk"); };
+
 
   return (
     <div className="fixed inset-0 z-[1100] bg-[#f6f2ea]" style={{ touchAction: "none" }}>

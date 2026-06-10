@@ -2052,7 +2052,16 @@ export type Database = {
         Args: { _friend_id: string; _user_id: string }
         Returns: boolean
       }
+      reschedule_internal_cron: {
+        Args: { job_command: string; job_name: string; job_schedule: string }
+        Returns: undefined
+      }
       slugify: { Args: { input: string }; Returns: string }
+      vault_create_internal_secret: { Args: { v: string }; Returns: undefined }
+      vault_update_secret: {
+        Args: { new_secret: string; secret_name: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user"

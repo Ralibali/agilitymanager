@@ -37,7 +37,7 @@ export function getPublicEnv(key: EnvKey): string {
   if (value && value.length > 0) return value;
 
   if (import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
+     
     console.warn(
       `[env] ${key} saknas — använder fallback. Sätt variabeln i .env för att tysta varningen.`
     );

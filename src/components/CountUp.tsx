@@ -16,7 +16,7 @@ export function CountUp({ end, duration = 0.6, prefix = '', suffix = '', classNa
 
   useEffect(() => {
     if (!isInView) return;
-    let start = 0;
+    const start = 0;
     const startTime = performance.now();
     const step = (now: number) => {
       const progress = Math.min((now - startTime) / (duration * 1000), 1);

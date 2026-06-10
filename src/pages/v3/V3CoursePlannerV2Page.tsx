@@ -1191,8 +1191,10 @@ function V3CoursePlannerV2PageInner() {
               onSendToBack={() => sendToBack(selected.id)}
             />
           ) : (
-            <SummaryPanel course={course} />
-            <AnalysisPanel course={course} />
+            <>
+              <SummaryPanel course={course} />
+              <AnalysisPanel course={course} />
+            </>
           )}
           <CourseCommentsPanel courseId={cloudId} enabled={!!cloudId} />
         </aside>

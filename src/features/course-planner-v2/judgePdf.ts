@@ -10,7 +10,7 @@ import {
   CLASS_TEMPLATES, SIZE_CLASSES, getObstacleDefV2,
   type ClassTemplateKey, type ObstacleTypeV2, type SizeClassKey, type Sport,
 } from "./config";
-import { computeCourseTimes, computeCourseLength, validateCourse, type ObstacleLite } from "./validation";
+import { computeCourseTimes, computeCourseLength, computeCourseLengthAlongPath, validateCourse, type ObstacleLite } from "./validation";
 import { PDF_BRAND, PDF_PAGE, drawArenaVector, drawHeaderBand, drawFooterAllPages, safeFileName } from "./pdfHelpers";
 
 export interface JudgePdfInput {

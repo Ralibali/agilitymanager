@@ -8,6 +8,7 @@ import {
   CLASS_TEMPLATES, SIZE_CLASSES, getObstacleDefV2,
   type ClassTemplateKey, type ObstacleTypeV2, type SizeClassKey, type Sport,
 } from "./config";
+import { buildDogPath, type CourseDogPathOverride } from "./dogPath";
 
 export type IssueLevel = "error" | "warning" | "info";
 
@@ -45,11 +46,17 @@ export interface CourseLite {
   arenaHeightM: number;
   classTemplate: ClassTemplateKey | null;
   obstacles: ObstacleLite[];
+  /** Editbar override för hundens väg (Prompt B). */
+  dogPath?: CourseDogPathOverride;
 }
 
 /* ───────────── Banlängd & tider ───────────── */
 
-/** Sorterar numrerade hinder och returnerar deras väg-längd i meter. */
+/**
+ * Klassisk banlängd: rak linje mellan numrerade hindrens mittpunkter.
+ * Behålls för bakåtkompatibilitet och som teknisk uppgift bredvid
+ * hundens väg (`computeCourseLengthAlongPath`).
+ */
 export function computeCourseLength(obstacles: ObstacleLite[]): number {
   const numbered = obstacles
     .filter((o) => o.number != null)
@@ -63,8 +70,23 @@ export function computeCourseLength(obstacles: ObstacleLite[]): number {
   return length;
 }
 
+/**
+ * Banlängd längs hundens förväntade väg (Catmull-Rom + obstacle-interna
+ * längder — tunnelbåge, slalom, kontaktfält). Detta är den siffra som
+ * stämmer med hur domare och banbyggare faktiskt mäter banor.
+ */
+export function computeCourseLengthAlongPath(
+  obstacles: ObstacleLite[],
+  override?: CourseDogPathOverride,
+): number {
+  return buildDogPath(obstacles, override).total;
+}
+
 export interface CourseTimes {
+  /** Klassisk center-till-center-längd (m). */
   lengthM: number;
+  /** Längd längs hundens väg (m). Används för ref-/maxtid. */
+  lengthAlongPathM: number;
   refTimeS: number | null;
   maxTimeS: number | null;
   refSpeedMs: number | null;
@@ -73,21 +95,30 @@ export interface CourseTimes {
 
 export function computeCourseTimes(course: CourseLite): CourseTimes {
   const lengthM = computeCourseLength(course.obstacles);
+  const lengthAlongPathM = computeCourseLengthAlongPath(course.obstacles, course.dogPath);
   const tpl = course.classTemplate
     ? CLASS_TEMPLATES.find((t) => t.key === course.classTemplate)
     : null;
-  if (!tpl || lengthM <= 0) {
+  if (!tpl || lengthAlongPathM <= 0) {
     return {
       lengthM,
+      lengthAlongPathM,
       refTimeS: null,
       maxTimeS: null,
       refSpeedMs: tpl?.refSpeedMs ?? null,
       maxTimeFactor: tpl?.maxTimeFactor ?? null,
     };
   }
-  const refTimeS = Math.round(lengthM / tpl.refSpeedMs);
+  const refTimeS = Math.round(lengthAlongPathM / tpl.refSpeedMs);
   const maxTimeS = Math.round(refTimeS * tpl.maxTimeFactor);
-  return { lengthM, refTimeS, maxTimeS, refSpeedMs: tpl.refSpeedMs, maxTimeFactor: tpl.maxTimeFactor };
+  return {
+    lengthM,
+    lengthAlongPathM,
+    refTimeS,
+    maxTimeS,
+    refSpeedMs: tpl.refSpeedMs,
+    maxTimeFactor: tpl.maxTimeFactor,
+  };
 }
 
 /* ───────────── Validering ───────────── */

@@ -1,16 +1,33 @@
 /**
  * Banplaneraren v2 — Path-sampling för 2D-uppspelning.
  *
- * Bygger en polyline (i meter) från numrerade hinder och låter dig hämta
- * position + heading (radianer) vid en normaliserad parameter t ∈ [0, 1].
- *
- * Framtida utbyggnad: när CourseV2.handlerPath finns (Del C) skickar man
- * in den punktlistan istället för numbered-list.
+ * Från Prompt B (Hundens väg) delegerar vi till `dogPath.ts` när
+ * obstacles har `type` + `rotation`. Det ger en mjuk kurva via
+ * Catmull-Rom samt korrekta längder genom tunnel/slalom/kontaktfält.
+ * Saknas type/rotation faller vi tillbaka till raklinje mellan
+ * mittpunkter (bakåtkompatibelt).
  */
+import {
+  buildDogPath,
+  dogPathToSvgD,
+  dogPathToSvgDUntil,
+  sampleDogPathAt,
+  type DogPath,
+  type DogPathObstacle,
+} from "./dogPath";
 
 /** Minimal subset av en bana vi behöver — undviker cirkulär import. */
 export interface CoursePathInput {
-  obstacles: Array<{ x: number; y: number; number?: number | null }>;
+  obstacles: Array<{
+    x: number;
+    y: number;
+    number?: number | null;
+    /** Krävs för att räkna hundens väg via dogPath. */
+    type?: DogPathObstacle["type"];
+    rotation?: number;
+    curveDeg?: number;
+    curveSide?: "left" | "right";
+  }>;
 }
 
 export interface PathPoint {
@@ -26,24 +43,37 @@ export interface SampledPose {
 
 export interface SampledPath {
   points: PathPoint[];
-  cum: number[]; // ackumulerad längd vid varje punkt; cum[0]=0
-  total: number; // total längd i meter
+  cum: number[];
+  total: number;
 }
 
-/**
- * Bygger rutt från en bana. Använder handler-path om finns, annars
- * raklinje mellan numrerade hinder (1 → 2 → 3 …).
- */
+/** Bygger rutt från en bana. */
 export function buildCoursePath(course: CoursePathInput): SampledPath {
-  // Plats för framtida handler-path:
-  // const handlerPath = (course as any).handlerPath as PathPoint[] | undefined;
-  // if (handlerPath && handlerPath.length > 1) return buildFromPoints(handlerPath);
-
+  // Om obstacles har type+rotation: använd dogPath (Prompt B).
+  const hasGeometry = course.obstacles.every(
+    (o) => o.type != null && typeof o.rotation === "number",
+  );
+  if (hasGeometry && course.obstacles.length > 0) {
+    const dp: DogPath = buildDogPath(
+      course.obstacles
+        .filter((o) => o.number != null)
+        .map((o) => ({
+          type: o.type as DogPathObstacle["type"],
+          x: o.x,
+          y: o.y,
+          rotation: o.rotation as number,
+          number: o.number ?? null,
+          curveDeg: o.curveDeg,
+          curveSide: o.curveSide,
+        })),
+    );
+    return { points: dp.points, cum: dp.cum, total: dp.total };
+  }
+  // Fallback: raklinje mellan numrerade mittpunkter.
   const numbered = course.obstacles
     .filter((o) => o.number != null)
     .sort((a, b) => (a.number ?? 0) - (b.number ?? 0))
     .map((o) => ({ x: o.x, y: o.y }));
-
   return buildFromPoints(numbered);
 }
 
@@ -62,61 +92,21 @@ function buildFromPoints(points: PathPoint[]): SampledPath {
   return { points, cum, total };
 }
 
-/**
- * Hämta pose (x, y, heading) vid normaliserad parameter t ∈ [0, 1].
- * Returnerar null om path är tom.
- */
 export function sampleAt(path: SampledPath, t: number): SampledPose | null {
-  if (path.points.length === 0) return null;
-  if (path.points.length === 1 || path.total === 0) {
-    return { x: path.points[0].x, y: path.points[0].y, heading: 0 };
-  }
-  const clamped = Math.max(0, Math.min(1, t));
-  const target = clamped * path.total;
-
-  // Binärsök hade gått fint men n är litet.
-  let i = 1;
-  while (i < path.cum.length && path.cum[i] < target) i++;
-  if (i >= path.cum.length) i = path.cum.length - 1;
-
-  const segLen = path.cum[i] - path.cum[i - 1];
-  const localT = segLen > 0 ? (target - path.cum[i - 1]) / segLen : 0;
-  const a = path.points[i - 1];
-  const b = path.points[i];
-  const x = a.x + (b.x - a.x) * localT;
-  const y = a.y + (b.y - a.y) * localT;
-  const heading = Math.atan2(b.y - a.y, b.x - a.x);
-  return { x, y, heading };
+  // Återanvänd dogPath-implementationen för konsekvent beteende.
+  return sampleDogPathAt(
+    { anchors: [], points: path.points, cum: path.cum, total: path.total, obstacleM: 0, airM: 0 },
+    t,
+  );
 }
 
-/** Bygg SVG path-d för hela rutten. */
 export function toSvgPathD(path: SampledPath): string {
-  if (path.points.length < 2) return "";
-  return path.points
-    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
-    .join(" ");
+  return dogPathToSvgD({ anchors: [], points: path.points, cum: path.cum, total: path.total, obstacleM: 0, airM: 0 });
 }
 
-/**
- * Bygg SVG path-d för "redan tillryggalagd" del fram till parameter t.
- * Används för att rita den färgade traversen bakom markören.
- */
 export function toSvgPathDUntil(path: SampledPath, t: number): string {
-  if (path.points.length < 2 || path.total === 0) return "";
-  const clamped = Math.max(0, Math.min(1, t));
-  const target = clamped * path.total;
-  const parts: string[] = [`M ${path.points[0].x} ${path.points[0].y}`];
-  for (let i = 1; i < path.points.length; i++) {
-    if (path.cum[i] <= target) {
-      parts.push(`L ${path.points[i].x} ${path.points[i].y}`);
-    } else {
-      const segLen = path.cum[i] - path.cum[i - 1];
-      const localT = segLen > 0 ? (target - path.cum[i - 1]) / segLen : 0;
-      const a = path.points[i - 1];
-      const b = path.points[i];
-      parts.push(`L ${a.x + (b.x - a.x) * localT} ${a.y + (b.y - a.y) * localT}`);
-      break;
-    }
-  }
-  return parts.join(" ");
+  return dogPathToSvgDUntil(
+    { anchors: [], points: path.points, cum: path.cum, total: path.total, obstacleM: 0, airM: 0 },
+    t,
+  );
 }

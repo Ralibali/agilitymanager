@@ -10,7 +10,7 @@ import {
   CLASS_TEMPLATES, SIZE_CLASSES, getObstacleDefV2,
   type ClassTemplateKey, type ObstacleTypeV2, type SizeClassKey, type Sport,
 } from "./config";
-import { computeCourseTimes, computeCourseLength, validateCourse, type ObstacleLite } from "./validation";
+import { computeCourseTimes, computeCourseLength, computeCourseLengthAlongPath, validateCourse, type ObstacleLite } from "./validation";
 import { PDF_BRAND, PDF_PAGE, drawArenaVector, drawHeaderBand, drawFooterAllPages, safeFileName } from "./pdfHelpers";
 
 export interface JudgePdfInput {
@@ -205,7 +205,10 @@ export async function exportJudgePdf(input: JudgePdfInput) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   const lengthM = computeCourseLength(input.obstacles);
-  doc.text(`Total banlängd (mellan numrerade hinder): ${lengthM.toFixed(1)} m`, margin, sy);
+  const lengthAlongPathM = computeCourseLengthAlongPath(input.obstacles);
+  doc.text(`Banlängd (hundens väg): ${lengthAlongPathM.toFixed(1)} m`, margin, sy);
+  sy += 5;
+  doc.text(`Center-till-center (referens): ${lengthM.toFixed(1)} m`, margin, sy);
   sy += 5;
   doc.text(`Antal numrerade hinder: ${numbered.length}`, margin, sy);
   sy += 8;
@@ -238,7 +241,8 @@ export async function exportJudgePdf(input: JudgePdfInput) {
   doc.setTextColor(...PDF_BRAND.ink);
   for (const sc of SIZE_CLASSES) {
     const speed = baseSpeed * sctScale[sc.key];
-    const sct = lengthM > 0 ? Math.round(lengthM / speed) : null;
+    // SCT räknas från hundens väg (Prompt B).
+    const sct = lengthAlongPathM > 0 ? Math.round(lengthAlongPathM / speed) : null;
     const maxT = sct != null && tpl ? Math.round(sct * tpl.maxTimeFactor) : null;
     const isCurrent = sc.key === input.sizeClass;
     if (isCurrent) {
@@ -249,7 +253,7 @@ export async function exportJudgePdf(input: JudgePdfInput) {
     const cells = [
       sc.label,
       speed.toFixed(2),
-      lengthM.toFixed(1),
+      lengthAlongPathM.toFixed(1),
       sct != null ? `${sct}` : "—",
       maxT != null ? `${maxT}` : "—",
       isCurrent ? "← vald" : "",

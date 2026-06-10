@@ -28,6 +28,7 @@ import {
 } from "@/features/course-planner-v2/config";
 import { validateCourse, computeCourseTimes, summarizeIssues, type ValidationIssue } from "@/features/course-planner-v2/validation";
 import { DEFAULT_RULESET_ID, getActiveRuleSets, getRuleSet, getDefaultRuleSetIdForSport } from "@/features/course-planner-v2/rules";
+import { buildDogPath, dogPathToSvgD } from "@/features/course-planner-v2/dogPath";
 import { exportJudgePdf } from "@/features/course-planner-v2/judgePdf";
 import { exportStartlistPdf } from "@/features/course-planner-v2/startlistPdf";
 import CourseLibraryDialog from "@/features/course-planner-v2/CourseLibraryDialog";
@@ -1264,12 +1265,9 @@ function ArenaCanvas({
   const w = course.arenaWidthM;
   const h = course.arenaHeightM;
   const padding = showDimensions ? 1.8 : 1;
-  const numbered = course.obstacles
-    .filter((o) => o.number != null)
-    .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
-  const pathD = numbered.length > 1
-    ? numbered.map((o, i) => `${i === 0 ? "M" : "L"} ${o.x} ${o.y}`).join(" ")
-    : "";
+  // Hundens väg (Prompt B) — mjuk Catmull-Rom-kurva via dogPath.
+  const dogPath = buildDogPath(course.obstacles);
+  const pathD = dogPathToSvgD(dogPath);
 
   // Adaptiv tickmark-täthet i meter beroende på arenastorlek.
   const maxArenaM = Math.max(w, h);
@@ -1659,15 +1657,15 @@ function SelectedPanel({
 }
 
 function SummaryPanel({ course }: { course: CourseV2 }) {
-  const numbered = course.obstacles.filter((o) => o.number != null).sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
-  let length = 0;
-  for (let i = 1; i < numbered.length; i++) {
-    const a = numbered[i - 1]; const b = numbered[i];
-    length += Math.hypot(b.x - a.x, b.y - a.y);
-  }
+  const times = computeCourseTimes({
+    sport: course.sport,
+    sizeClass: course.sizeClass,
+    arenaWidthM: course.arenaWidthM,
+    arenaHeightM: course.arenaHeightM,
+    classTemplate: course.classTemplate,
+    obstacles: course.obstacles,
+  });
   const tpl = course.classTemplate ? CLASS_TEMPLATES.find((t) => t.key === course.classTemplate) : null;
-  const refTime = tpl && length > 0 ? Math.round(length / tpl.refSpeedMs) : null;
-  const maxTime = tpl && refTime ? Math.round(refTime * tpl.maxTimeFactor) : null;
   return (
     <section>
       <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Översikt</h3>
@@ -1676,12 +1674,15 @@ function SummaryPanel({ course }: { course: CourseV2 }) {
         <Row label="Klass" value={tpl?.label ?? "Ingen mall"} />
         <Row label="Banstorlek" value={`${course.arenaWidthM} × ${course.arenaHeightM} m`} />
         <Row label="Hinder" value={`${course.obstacles.length}${tpl ? ` (krav ${tpl.obstacleRange[0]}–${tpl.obstacleRange[1]})` : ""}`} />
-        <Row label="Banlängd" value={`${length.toFixed(1)} m`} />
-        {refTime != null && <Row label="Referenstid" value={`${refTime} s`} />}
-        {maxTime != null && <Row label="Maxtid" value={`${maxTime} s`} />}
+        <Row label="Banlängd (hundens väg)" value={`${times.lengthAlongPathM.toFixed(1)} m`} />
+        <Row label="Center-till-center" value={`${times.lengthM.toFixed(1)} m`} />
+        {times.refTimeS != null && <Row label="Referenstid" value={`${times.refTimeS} s`} />}
+        {times.maxTimeS != null && <Row label="Maxtid" value={`${times.maxTimeS} s`} />}
       </div>
       <p className="mt-2 text-[10px] text-neutral-500 leading-snug">
-        Banlängden räknas mellan numrerade hinder. Referens- och maxtid kommer från klassmallen.
+        Banlängden mäts längs hundens förväntade väg — Catmull-Rom-kurva genom hindren
+        med tunnel-, slalom- och kontaktfälts-längder inkluderade. Center-till-center
+        visas som teknisk referens.
       </p>
     </section>
   );

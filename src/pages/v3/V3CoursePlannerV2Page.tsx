@@ -1722,6 +1722,9 @@ function AnalysisPanel({ course }: { course: CourseV2 }) {
       </div>
     </section>
   );
+}
+
+
 
 function Row({ label, value }: { label: string; value: string }) {
   return (

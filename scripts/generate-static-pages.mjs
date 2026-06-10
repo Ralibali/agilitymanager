@@ -378,6 +378,8 @@ async function main() {
   console.log(`📄 Genererar ${STATIC_PAGES.length} statiska sidor…`);
   for (const page of STATIC_PAGES) {
     const isCompetitions = page.route === '/tavlingar';
+    const isHome = page.route === '/';
+    const isHoopers = page.route === '/hoopers';
     const extraJsonLd = isCompetitions
       ? [
           {
@@ -387,6 +389,30 @@ async function main() {
             description: page.description,
             url: `${SITE_URL}/tavlingar`,
             isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: SITE_URL },
+          },
+        ]
+      : isHome
+      ? [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: HOME_FAQS.map((f) => ({
+              '@type': 'Question',
+              name: f.q,
+              acceptedAnswer: { '@type': 'Answer', text: f.a },
+            })),
+          },
+        ]
+      : isHoopers
+      ? [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: HOOPERS_FAQS.map((f) => ({
+              '@type': 'Question',
+              name: f.q,
+              acceptedAnswer: { '@type': 'Answer', text: f.a },
+            })),
           },
         ]
       : [];

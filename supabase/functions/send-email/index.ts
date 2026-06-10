@@ -84,27 +84,8 @@ const TEMPLATES: Record<string, (data: any) => TemplateResult> = {
     `, data.unsubUrl),
   }),
 
-  competition_reminder: (data) => ({
-    subject: `Tävlingspåminnelse: ${data.event_name || 'Kommande tävling'}`,
-    html: wrap('Tävlingspåminnelse', `
-      <p style="color:#333;font-size:15px;line-height:1.6">
-        Hej${data.name ? ` ${data.name}` : ''}! 📋
-      </p>
-      <p style="color:#555;font-size:14px;line-height:1.6">
-        <strong>${data.event_name}</strong> närmar sig!<br/>
-        ${data.location ? `📍 ${data.location}<br/>` : ''}
-        ${data.date ? `📅 ${data.date}` : ''}
-      </p>
-      <p style="color:#555;font-size:14px;line-height:1.6">
-        Glöm inte att kolla checklistan innan du åker!
-      </p>
-      <div style="text-align:center;margin:24px 0">
-        <a href="${SITE_URL}/tavlingsresultat" style="background:#4f46e5;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;display:inline-block">
-          Se tävlingsdetaljer
-        </a>
-      </div>
-    `, data.unsubUrl),
-  }),
+  // (competition_reminder is defined below — newer keys: eventName, dateLabel, daysBefore, signupUrl)
+
 
   pin_achieved: (data) => ({
     subject: `🏆 Grattis till ny pinne!`,

@@ -1,19 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://agilitymanager.se/blogg/agility-kurs-nyborjare</loc>
-    <lastmod>2026-04-18</lastmod>
+    <loc>https://agilitymanager.se/blogg/basta-traningsappar-agility-2026</loc>
+    <lastmod>2026-06-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://agilitymanager.se/blogg/undvik-skador-agility</loc>
-    <lastmod>2026-04-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/sagik-klasser-forklarat</loc>
     <lastmod>2026-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -26,6 +20,12 @@
   </url>
   <url>
     <loc>https://agilitymanager.se/blogg/agility-vandringar-handling</loc>
+    <lastmod>2026-04-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/sagik-klasser-forklarat</loc>
     <lastmod>2026-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -44,6 +44,12 @@
   </url>
   <url>
     <loc>https://agilitymanager.se/blogg/agility-tavling-forsta-gangen</loc>
+    <lastmod>2026-04-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/agility-kurs-nyborjare</loc>
     <lastmod>2026-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -115,12 +121,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://agilitymanager.se/blogg/borja-med-agility</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://agilitymanager.se/blogg/mentala-foreberedelser-tavling</loc>
     <lastmod>2026-04-17</lastmod>
     <changefreq>monthly</changefreq>
@@ -139,6 +139,18 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://agilitymanager.se/blogg/distanshantering-agility</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/borja-med-agility</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://agilitymanager.se/blogg/agility-hinder-hemma</loc>
     <lastmod>2026-04-17</lastmod>
     <changefreq>monthly</changefreq>
@@ -146,12 +158,6 @@
   </url>
   <url>
     <loc>https://agilitymanager.se/blogg/uppvarmning-hund-agility</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://agilitymanager.se/blogg/distanshantering-agility</loc>
     <lastmod>2026-04-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

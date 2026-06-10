@@ -1,1 +1,13 @@
 project_id = "rcubbmnosawdtaupixnm"
+
+[functions.send-competition-reminders]
+verify_jwt = false
+
+[functions.check-registration-deadlines]
+verify_jwt = false
+
+[functions.scrape-competitions]
+verify_jwt = false
+
+[functions.bootstrap-cron-secret]
+verify_jwt = false

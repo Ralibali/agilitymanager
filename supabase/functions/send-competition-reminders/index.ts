@@ -1,6 +1,6 @@
 // Daglig cron: hittar påminnelser där dagar-kvar matchar och skickar mejl
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { hasInternalSecret } from "../_shared/auth.ts";
+import { hasCronAuth } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,7 +23,7 @@ function daysBetween(targetIso: string, todayIso: string): number {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  if (!hasInternalSecret(req)) {
+  if (!(await hasCronAuth(req))) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

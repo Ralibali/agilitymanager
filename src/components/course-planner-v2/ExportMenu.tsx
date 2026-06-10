@@ -15,11 +15,12 @@ interface Props {
   onStartlist: () => void;
   onJson: () => void;
   onImportJson: () => void;
+  onShareImage?: () => void;
   on3DView?: () => void;
   on3DWalk?: () => void;
 }
 
-export function ExportMenu({ onJudge, onTraining, onBuild, onStartlist, onJson, onImportJson, on3DView, on3DWalk }: Props) {
+export function ExportMenu({ onJudge, onTraining, onBuild, onStartlist, onJson, onImportJson, onShareImage, on3DView, on3DWalk }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

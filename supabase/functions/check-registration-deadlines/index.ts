@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
     for (const p of pending) {
       const email = emailMap.get(p.interest.user_id);
       if (!email) continue;
-      if (unsubscribedSet.has(email.toLowerCase())) continue;
+      
 
       try {
         const resp = await fetch(`${supabaseUrl}/functions/v1/send-email`, {

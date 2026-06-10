@@ -201,7 +201,13 @@ export function buildDogPath(
   // Specialfall: editbar väg (framtida UI för kontrollpunkter)
   if (override?.controlPoints && override.controlPoints.length >= 2) {
     const points = override.controlPoints.slice();
-    return finalize(points, anchors);
+    const cum: number[] = [0];
+    let total = 0;
+    for (let i = 1; i < points.length; i++) {
+      total += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+      cum.push(total);
+    }
+    return { anchors, points, cum, total, obstacleM: 0, airM: total };
   }
 
   if (anchors.length === 0) {

@@ -18,6 +18,14 @@ export function PremiumGate({ children, fullPage = false, featureName = 'Denna f
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
 
+  // Trial räknas som "subscribed" globalt, men vi vill ändå nudga sista 3 dagarna.
+  const trialDaysLeft = (() => {
+    if (!subscription.isTrial || !subscription.subscriptionEnd) return null;
+    const ms = new Date(subscription.subscriptionEnd).getTime() - Date.now();
+    if (ms <= 0) return 0;
+    return Math.ceil(ms / (1000 * 60 * 60 * 24));
+  })();
+
   if (subscription.subscribed) {
     return <>{children}</>;
   }

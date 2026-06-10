@@ -108,9 +108,9 @@ const faqs = [
   { q: 'Hur funkar coach-funktionen?', a: 'Du laddar upp en träningsvideo i appen och vår SM-meriterade coach analyserar dirigering, linjer och tempo. Du får konkreta tips inom 48 timmar. Ingår i Pro.' },
   { q: 'Kan jag bjuda in min klubb?', a: 'Ja. Skapa en klubb eller gå med i en befintlig. Klubbar har anslagstavla, gemensam kalender och undergrupper för olika nivåer.' },
   { q: 'Vad får jag på Pro?', a: 'Obegränsat antal hundar, full tävlingshistorik, AI-träningsinsikter, automatisk resultatimport från agilitydata.se, coach-videoanalys, kompisar/chatt/bandelning, tävlingskalender med påminnelser och CSV-export.' },
-  { q: 'Vad kostar Pro?', a: '79 kr/mån eller 790 kr/år (du sparar 158 kr per år). Du kan testa Pro gratis i 7 dagar när du skapar konto – ingen betalning krävs.' },
+  { q: 'Vad kostar Pro?', a: '79 kr/mån eller 790 kr/år (du sparar 158 kr per år). Pro låser upp alla funktioner – grundversionen är alltid gratis utan tidsbegränsning.' },
   { q: 'Får jag rabatt om jag bjuder in en vän?', a: 'Ja! När en vän du bjudit in skapar konto får ni båda 30 dagars Pro gratis. Dela din unika länk från Inställningar → Bjud in vänner.' },
-  { q: 'Är AgilityManager gratis?', a: 'Grundversionen är gratis utan tidsbegränsning. Du får dessutom 7 dagars gratis Pro när du skapar ett konto.' },
+  { q: 'Är AgilityManager gratis?', a: 'Ja. Grundversionen är gratis utan tidsbegränsning och utan kortuppgifter. Pro är ett tillval för dig som vill ha alla funktioner.' },
 ];
 
 /* ────── component ────── */

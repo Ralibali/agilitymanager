@@ -29,3 +29,5 @@ if (rootEl.hasChildNodes()) {
 } else {
   createRoot(rootEl).render(tree);
 }
+
+registerSW();

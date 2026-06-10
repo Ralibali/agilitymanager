@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { hasInternalSecret } from "../_shared/auth.ts";
+import { hasCronAuth } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,13 +12,12 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  if (!hasInternalSecret(req)) {
+  if (!(await hasCronAuth(req))) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -57,7 +56,6 @@ Deno.serve(async (req) => {
 
     const compIds = [...new Set(interests.map((i: any) => i.competition_id))];
 
-    // Fetch from both agility and hoopers tables in parallel
     const [agilityRes, hoopersRes] = await Promise.all([
       supabase
         .from("competitions")
@@ -72,21 +70,28 @@ Deno.serve(async (req) => {
     const agilityMap = new Map((agilityRes.data || []).map((c: any) => [c.id, c]));
     const hoopersMap = new Map((hoopersRes.data || []).map((c: any) => [c.id, c]));
 
-    let notifiedCount = 0;
-    const notifications: any[] = [];
-    const interestIds: string[] = [];
+    interface Pending {
+      interest: any;
+      message: string;
+      emailKind: "deadline_soon" | "last_chance" | "reg_opens";
+      compName: string;
+      compLocation: string;
+      daysLeft: number;
+    }
+
+    const pending: Pending[] = [];
 
     for (const interest of interests) {
       const agilityComp = agilityMap.get(interest.competition_id);
       const hoopersComp = hoopersMap.get(interest.competition_id);
-      let message: string | null = null;
+      let entry: Pending | null = null;
 
       if (agilityComp && agilityComp.last_registration_date) {
         const lastReg = agilityComp.last_registration_date;
         if (lastReg === fmt(in3Days)) {
-          message = `⭐️ ${agilityComp.competition_name} i ${agilityComp.location} — anmälan stänger om 3 dagar!`;
+          entry = { interest, message: `⭐️ ${agilityComp.competition_name} i ${agilityComp.location} — anmälan stänger om 3 dagar!`, emailKind: "deadline_soon", compName: agilityComp.competition_name, compLocation: agilityComp.location, daysLeft: 3 };
         } else if (lastReg === fmt(in1Day)) {
-          message = `⚠️ Sista chansen! ${agilityComp.competition_name} stänger imorgon!`;
+          entry = { interest, message: `⚠️ Sista chansen! ${agilityComp.competition_name} stänger imorgon!`, emailKind: "last_chance", compName: agilityComp.competition_name, compLocation: agilityComp.location, daysLeft: 1 };
         }
       }
 
@@ -96,48 +101,96 @@ Deno.serve(async (req) => {
         const name = hoopersComp.competition_name || "Hooperstävling";
         const loc = hoopersComp.location || "";
 
-        // Notify when registration opens today
         if (regOpens === todayStr) {
-          message = `🐕 Anmälan öppnar idag för ${name}${loc ? ` i ${loc}` : ""}!`;
-        }
-        // Notify day before registration opens
-        else if (regOpens === fmt(in1Day)) {
-          message = `🐕 Anmälan öppnar imorgon för ${name}${loc ? ` i ${loc}` : ""}!`;
-        }
-        // Also warn when registration closes soon
-        else if (regCloses === fmt(in3Days)) {
-          message = `⭐️ ${name}${loc ? ` i ${loc}` : ""} — anmälan stänger om 3 dagar!`;
+          entry = { interest, message: `🐕 Anmälan öppnar idag för ${name}${loc ? ` i ${loc}` : ""}!`, emailKind: "reg_opens", compName: name, compLocation: loc, daysLeft: 0 };
+        } else if (regOpens === fmt(in1Day)) {
+          entry = { interest, message: `🐕 Anmälan öppnar imorgon för ${name}${loc ? ` i ${loc}` : ""}!`, emailKind: "reg_opens", compName: name, compLocation: loc, daysLeft: 1 };
+        } else if (regCloses === fmt(in3Days)) {
+          entry = { interest, message: `⭐️ ${name}${loc ? ` i ${loc}` : ""} — anmälan stänger om 3 dagar!`, emailKind: "deadline_soon", compName: name, compLocation: loc, daysLeft: 3 };
         } else if (regCloses === fmt(in1Day)) {
-          message = `⚠️ Sista chansen! ${name} — anmälan stänger imorgon!`;
+          entry = { interest, message: `⚠️ Sista chansen! ${name} — anmälan stänger imorgon!`, emailKind: "last_chance", compName: name, compLocation: loc, daysLeft: 1 };
         }
       }
 
-      if (message) {
-        notifications.push({
-          user_id: interest.user_id,
-          competition_id: interest.competition_id,
-          message,
+      if (entry) pending.push(entry);
+    }
+
+    if (pending.length === 0) {
+      return new Response(
+        JSON.stringify({ success: true, notified: 0, checked: interests.length }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 1) In-app notiser
+    const notifications = pending.map((p) => ({
+      user_id: p.interest.user_id,
+      competition_id: p.interest.competition_id,
+      message: p.message,
+    }));
+    await supabase.from("notifications").insert(notifications);
+
+    // 2) E-postutskick — hämta användarens email + opt-out
+    const userIds = [...new Set(pending.map((p) => p.interest.user_id))];
+    const emailMap = new Map<string, string>();
+    const unsubscribedSet = new Set<string>();
+
+    for (const uid of userIds) {
+      const { data: u } = await supabase.auth.admin.getUserById(uid);
+      if (u?.user?.email) emailMap.set(uid, u.user.email);
+    }
+
+    // Hoppa över opt-outade
+    if (emailMap.size > 0) {
+      const { data: unsubs } = await supabase
+        .from("email_unsubscribes")
+        .select("email")
+        .in("email", Array.from(emailMap.values()).map((e) => e.toLowerCase()));
+      (unsubs ?? []).forEach((u: any) => unsubscribedSet.add(u.email.toLowerCase()));
+    }
+
+    let emailsSent = 0;
+    for (const p of pending) {
+      const email = emailMap.get(p.interest.user_id);
+      if (!email) continue;
+      if (unsubscribedSet.has(email.toLowerCase())) continue;
+
+      try {
+        const resp = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-internal-secret": serviceRoleKey,
+          },
+          body: JSON.stringify({
+            templateName: "competition_reminder",
+            recipientEmail: email,
+            data: {
+              eventName: p.compName,
+              dateLabel: p.daysLeft === 0 ? "Idag" : p.daysLeft === 1 ? "Imorgon" : `Om ${p.daysLeft} dagar`,
+              location: p.compLocation,
+              daysBefore: p.daysLeft,
+              signupUrl: "",
+            },
+          }),
         });
-        interestIds.push(interest.id);
-        notifiedCount++;
+        if (resp.ok) emailsSent++;
+        else console.error("send-email failed", await resp.text());
+      } catch (e) {
+        console.error("send-email error", e);
       }
     }
 
-    if (notifications.length > 0) {
-      await supabase.from("notifications").insert(notifications);
+    // 3) Markera som notifierade
+    await supabase
+      .from("competition_interests")
+      .update({ notified_at: new Date().toISOString() })
+      .in("id", pending.map((p) => p.interest.id));
 
-      for (const id of interestIds) {
-        await supabase
-          .from("competition_interests")
-          .update({ notified_at: new Date().toISOString() })
-          .eq("id", id);
-      }
-    }
-
-    console.log(`Notified ${notifiedCount} users`);
+    console.log(`Notified ${pending.length} users (${emailsSent} emails)`);
 
     return new Response(
-      JSON.stringify({ success: true, notified: notifiedCount }),
+      JSON.stringify({ success: true, notified: pending.length, emailsSent }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

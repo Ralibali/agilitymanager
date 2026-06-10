@@ -331,7 +331,7 @@ export function getCountyForLocation(location: string | null): string | null {
   }
 
   // Split on comma, slash, dash (common separators like "Borås/Dannike", "Kinnared, Ulricehamn")
-  const parts = loc.split(/[,\/]+/).map(p => p.trim()).filter(Boolean);
+  const parts = loc.split(/[,/]+/).map(p => p.trim()).filter(Boolean);
   for (const part of parts) {
     if (CITY_TO_COUNTY[part]) {
       return CITY_TO_COUNTY[part];

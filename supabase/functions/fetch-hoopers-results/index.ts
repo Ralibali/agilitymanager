@@ -282,7 +282,7 @@ function parseCompetitionHtml(html: string): CompetitionInfo {
       const faultsMatch = box.match(/Fel:\s*(\d+)/);
       const faults = faultsMatch ? parseInt(faultsMatch[1]) : 0;
 
-      const timeMatch = box.match(/Tid:\s*([\d,\.]+)/);
+      const timeMatch = box.match(/Tid:\s*([\d,.]+)/);
       const time_sec = timeMatch ? parseTime(timeMatch[1]) : null;
 
       const startNrMatch = box.match(/Startnr:\s*(\d+)/);

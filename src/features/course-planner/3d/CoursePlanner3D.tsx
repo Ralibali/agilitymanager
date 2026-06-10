@@ -112,7 +112,7 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") mode === "walk" ? setMode("view") : onClose();
+      if (e.key === "Escape") { if (mode === "walk") setMode("view"); else onClose(); }
       if (mode === "walk" && e.key.toLowerCase() === "n") setCurrentIdx((i) => Math.min(numbered.length - 1, i + 1));
       if (mode === "walk" && e.key.toLowerCase() === "p") setCurrentIdx((i) => Math.max(0, i - 1));
     };

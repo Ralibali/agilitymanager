@@ -230,7 +230,7 @@ Deno.serve(async (req) => {
           if (handlerIdx >= 0) handlerCell = row.cells[handlerIdx] || "";
           if (combinedIdx >= 0 && (!dogCell || !handlerCell)) {
             const combined = row.cells[combinedIdx] || "";
-            const parts = combined.split(/[\/–-]/).map((p) => p.trim()).filter(Boolean);
+            const parts = combined.split(/[/–-]/).map((p) => p.trim()).filter(Boolean);
             if (parts.length === 2) {
               if (parts[0].split(" ").length === 1 && parts[1].split(" ").length >= 2) {
                 dogCell = parts[0];

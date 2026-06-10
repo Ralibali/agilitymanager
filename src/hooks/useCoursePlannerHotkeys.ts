@@ -98,9 +98,9 @@ export function useCoursePlannerHotkeys(handlers: CoursePlannerHotkeyHandlers): 
         if (handlers.hasSelection()) {
           e.preventDefault();
           if (e.key === "]") {
-            e.shiftKey ? handlers.bringToFront() : handlers.bringForward();
+            if (e.shiftKey) handlers.bringToFront(); else handlers.bringForward();
           } else {
-            e.shiftKey ? handlers.sendToBack() : handlers.sendBackward();
+            if (e.shiftKey) handlers.sendToBack(); else handlers.sendBackward();
           }
         }
         return;

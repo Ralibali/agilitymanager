@@ -267,7 +267,7 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
 
   const toggleFilter = (key: string) => {
     const next = new Set(manualFilters);
-    next.has(key) ? next.delete(key) : next.add(key);
+    if (next.has(key)) next.delete(key); else next.add(key);
     setManualFilters(next);
   };
 
@@ -349,7 +349,7 @@ export function TavlingsKalendar({ dogs, selectedDogId }: TavlingsKalendarProps)
                   checked={selectedCounties.has(c)}
                   onCheckedChange={() => {
                     const next = new Set(selectedCounties);
-                    next.has(c) ? next.delete(c) : next.add(c);
+                    if (next.has(c)) next.delete(c); else next.add(c);
                     setSelectedCounties(next);
                   }}
                   className="h-3 w-3"

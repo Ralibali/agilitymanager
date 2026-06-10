@@ -1693,7 +1693,7 @@ function SummaryPanel({ course }: { course: CourseV2 }) {
 }
 
 function AnalysisPanel({ course }: { course: CourseV2 }) {
-  const a = useMemo(() => analyzeCourse(course.obstacles, course.dogPath), [course.obstacles, course.dogPath]);
+  const a = useMemo(() => analyzeCourse(course.obstacles), [course.obstacles]);
   const tone =
     a.difficultyLabel === "Lätt" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
       : a.difficultyLabel === "Medel" ? "bg-blue-50 text-blue-700 border-blue-200"

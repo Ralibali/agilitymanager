@@ -5,6 +5,7 @@ import { V3BottomNav } from "./V3BottomNav";
 import { V3MoreSheet } from "./V3MoreSheet";
 import { V3QuickActionSheet } from "./V3QuickActionSheet";
 import { V3LogTrainingSheet } from "./V3LogTrainingSheet";
+import { TrialBanner } from "./TrialBanner";
 import { useV3LogSheet } from "@/hooks/v3/useV3LogSheet";
 
 function clickButtonByLabels(labels: string[]): boolean {
@@ -81,6 +82,7 @@ export function V3Layout() {
       {!isCoursePlanner && <V3Sidebar />}
 
       <div className="flex-1 flex flex-col min-w-0">
+        {!isCoursePlanner && <TrialBanner />}
         <main className={`flex-1 ${isCoursePlanner ? "pb-0 lg:pb-0 overflow-x-hidden" : "pb-24 lg:pb-0"}`}>
           <Suspense
             fallback={

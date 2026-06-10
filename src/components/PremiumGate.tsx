@@ -18,6 +18,14 @@ export function PremiumGate({ children, fullPage = false, featureName = 'Denna f
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
 
+  // Trial räknas som "subscribed" globalt, men vi vill ändå nudga sista 3 dagarna.
+  const trialDaysLeft = (() => {
+    if (!subscription.isTrial || !subscription.subscriptionEnd) return null;
+    const ms = new Date(subscription.subscriptionEnd).getTime() - Date.now();
+    if (ms <= 0) return 0;
+    return Math.ceil(ms / (1000 * 60 * 60 * 24));
+  })();
+
   if (subscription.subscribed) {
     return <>{children}</>;
   }
@@ -53,6 +61,11 @@ export function PremiumGate({ children, fullPage = false, featureName = 'Denna f
         <p className="text-sm text-muted-foreground mb-6 max-w-xs">
           {featureName} ingår i Pro. Uppgradera för att låsa upp alla funktioner.
         </p>
+        {trialDaysLeft !== null && trialDaysLeft > 0 && trialDaysLeft <= 3 && (
+          <p className="text-xs font-semibold text-[hsl(var(--secondary))] mb-4">
+            Din trial slutar om {trialDaysLeft === 1 ? "1 dag" : `${trialDaysLeft} dagar`}.
+          </p>
+        )}
 
         <div className="grid grid-cols-2 gap-3 w-full max-w-sm mb-3">
           {/* Månadsvis */}

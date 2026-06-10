@@ -28,6 +28,7 @@ import {
 } from "@/features/course-planner-v2/config";
 import { validateCourse, computeCourseTimes, summarizeIssues, type ValidationIssue } from "@/features/course-planner-v2/validation";
 import { DEFAULT_RULESET_ID, getActiveRuleSets, getRuleSet, getDefaultRuleSetIdForSport } from "@/features/course-planner-v2/rules";
+import { buildDogPath, dogPathToSvgD } from "@/features/course-planner-v2/dogPath";
 import { exportJudgePdf } from "@/features/course-planner-v2/judgePdf";
 import { exportStartlistPdf } from "@/features/course-planner-v2/startlistPdf";
 import CourseLibraryDialog from "@/features/course-planner-v2/CourseLibraryDialog";

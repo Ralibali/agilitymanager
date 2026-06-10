@@ -2086,7 +2086,7 @@ export default function CoursePlannerPage() {
     }
 
     // Auto-recommend SHoK class based on obstacles
-    let recommendedClasses: { label: string; index: number; match: 'perfect' | 'partial' }[] = [];
+    const recommendedClasses: { label: string; index: number; match: 'perfect' | 'partial' }[] = [];
     if (sportMode === 'hoopers' && total > 0) {
       const tunnelCount = obstacles.filter(o => o.type === 'hoopers_tunnel').length;
       const gateCount = obstacles.filter(o => o.type === 'gate').length;

@@ -7,7 +7,7 @@ class Boundary extends Component<{ onClose: () => void; children: ReactNode }, {
   state = { hasError: false };
   static getDerivedStateFromError() { return { hasError: true }; }
   componentDidCatch(err: unknown) {
-    // eslint-disable-next-line no-console
+     
     console.error("[3D] error", err);
   }
   render() {

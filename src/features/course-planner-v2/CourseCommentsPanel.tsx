@@ -29,7 +29,7 @@ export default function CourseCommentsPanel({ courseId, enabled }: Props) {
     finally { setLoading(false); }
   }
 
-  useEffect(() => { if (enabled) refresh(); /* eslint-disable-next-line */ }, [courseId, enabled]);
+  useEffect(() => { if (enabled) refresh();   }, [courseId, enabled]);
 
   async function submit() {
     if (!user || !courseId) { toast.error("Logga in för att kommentera"); return; }

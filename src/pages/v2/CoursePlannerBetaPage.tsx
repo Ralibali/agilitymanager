@@ -1108,7 +1108,7 @@ export default function CoursePlannerBetaPage() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [selectedId, deleteSelectedObstacle, rotate90Obstacle, duplicateObstacle]);
 
   return (

@@ -85,7 +85,7 @@ export default function CoachVideoAnalysis({ dogs }: CoachVideoAnalysisProps) {
     setTimeout(() => {
       uploadCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 200);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   // Standardpriser och Pro-priser (~50% rabatt). Faktiskt pris valideras server-side.

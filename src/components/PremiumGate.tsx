@@ -61,6 +61,11 @@ export function PremiumGate({ children, fullPage = false, featureName = 'Denna f
         <p className="text-sm text-muted-foreground mb-6 max-w-xs">
           {featureName} ingår i Pro. Uppgradera för att låsa upp alla funktioner.
         </p>
+        {trialDaysLeft !== null && trialDaysLeft > 0 && trialDaysLeft <= 3 && (
+          <p className="text-xs font-semibold text-[hsl(var(--secondary))] mb-4">
+            Din trial slutar om {trialDaysLeft === 1 ? "1 dag" : `${trialDaysLeft} dagar`}.
+          </p>
+        )}
 
         <div className="grid grid-cols-2 gap-3 w-full max-w-sm mb-3">
           {/* Månadsvis */}

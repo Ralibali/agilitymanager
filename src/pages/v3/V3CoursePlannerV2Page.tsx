@@ -1264,12 +1264,9 @@ function ArenaCanvas({
   const w = course.arenaWidthM;
   const h = course.arenaHeightM;
   const padding = showDimensions ? 1.8 : 1;
-  const numbered = course.obstacles
-    .filter((o) => o.number != null)
-    .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
-  const pathD = numbered.length > 1
-    ? numbered.map((o, i) => `${i === 0 ? "M" : "L"} ${o.x} ${o.y}`).join(" ")
-    : "";
+  // Hundens väg (Prompt B) — mjuk Catmull-Rom-kurva via dogPath.
+  const dogPath = buildDogPath(course.obstacles);
+  const pathD = dogPathToSvgD(dogPath);
 
   // Adaptiv tickmark-täthet i meter beroende på arenastorlek.
   const maxArenaM = Math.max(w, h);

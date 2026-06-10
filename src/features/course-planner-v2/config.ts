@@ -40,6 +40,10 @@ export interface SizeClassDef {
 }
 
 export const SIZE_CLASSES: SizeClassDef[] = [
+  // TODO VERIFIERA samtliga numeriska värden nedan mot
+  // "Agilityregler 2022-01-01–2026-12-31" (agilityklubben.se/regler).
+  // jumpHeightCm, tireHeightCm, longJumpPlanks, longJumpLengthCm och
+  // comboDistanceM är idag uppskattningar — slå upp officiella tabeller.
   { key: "XS", label: "XS", jumpHeightCm: [20, 30], tireHeightCm: [35, 45], longJumpPlanks: 2, longJumpLengthCm: [40, 50], comboDistanceM: 2.0 },
   { key: "S",  label: "S",  jumpHeightCm: [25, 35], tireHeightCm: [45, 55], longJumpPlanks: 2, longJumpLengthCm: [40, 50], comboDistanceM: 2.5 },
   { key: "M",  label: "M",  jumpHeightCm: [35, 45], tireHeightCm: [55, 65], longJumpPlanks: 3, longJumpLengthCm: [70, 90], comboDistanceM: 3.0 },

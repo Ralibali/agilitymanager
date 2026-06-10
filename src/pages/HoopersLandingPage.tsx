@@ -400,7 +400,7 @@ export default function HoopersLandingPage() {
               color: 'rgba(255,255,255,0.7)',
             }}
           >
-            Eller testa Pro 7 dagar utan kostnad
+            Grundversionen är alltid gratis – inga kortuppgifter krävs
           </motion.p>
         </div>
       </section>

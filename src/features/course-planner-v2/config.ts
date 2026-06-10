@@ -1,10 +1,23 @@
 /**
- * Sprint 1 — Banplaneraren v2
- * Konfiguration för sport, hindertyper, storleksklasser och klassmallar.
- * Källor: SAgiK regelverk 2022–2026 (agility) och SHoK 2022→ (hoopers).
+ * Banplaneraren v2 — UI-/datakonstanter.
  *
- * OBS: Hoopers-paletten och hoopers-klassmallar finns i datat men exponeras
- * först i Sprint 3. Sprint 1 fokuserar på agility.
+ * ⚠️ REGELMOTOR: Från och med Prompt A är allt regelinnehåll också tillgängligt
+ * via det versionerade RuleSet-API:t i `./rules`. Värdena nedan är fortfarande
+ * "single source of truth" som rules-modulen pekar in i — men varje numerisk
+ * regelparameter ska verifieras mot officiella dokument (se checklista i
+ * `./rules/skk-agility-2023.ts`). Värden markerade `TODO VERIFIERA` är
+ * uppskattningar tills källa är bekräftad och citerad.
+ *
+ * Hindertyper, kategorier och rena UI-/canvaskonstanter (färger, ikoner)
+ * bör ligga kvar här. Klassmallar, hopphöjder, säkerhetsavstånd och
+ * tidsmodeller ska på sikt läsas via `getRuleSet(course.ruleSetId)` istället
+ * för direkt från arrayerna nedan.
+ *
+ * Källor (att verifiera):
+ *  - Agilityregler 2022-01-01–2026-12-31 (SAgiK/SKK) — agilityklubben.se/regler
+ *  - "Säkra hinder" – anvisningar (SAgiK)
+ *  - Referenstider – Information (reviderad 2023) (SAgiK)
+ *  - Svenska Hooperssällskapets regelverk 2022→
  */
 
 export type Sport = "agility" | "hoopers";
@@ -27,6 +40,10 @@ export interface SizeClassDef {
 }
 
 export const SIZE_CLASSES: SizeClassDef[] = [
+  // TODO VERIFIERA samtliga numeriska värden nedan mot
+  // "Agilityregler 2022-01-01–2026-12-31" (agilityklubben.se/regler).
+  // jumpHeightCm, tireHeightCm, longJumpPlanks, longJumpLengthCm och
+  // comboDistanceM är idag uppskattningar — slå upp officiella tabeller.
   { key: "XS", label: "XS", jumpHeightCm: [20, 30], tireHeightCm: [35, 45], longJumpPlanks: 2, longJumpLengthCm: [40, 50], comboDistanceM: 2.0 },
   { key: "S",  label: "S",  jumpHeightCm: [25, 35], tireHeightCm: [45, 55], longJumpPlanks: 2, longJumpLengthCm: [40, 50], comboDistanceM: 2.5 },
   { key: "M",  label: "M",  jumpHeightCm: [35, 45], tireHeightCm: [55, 65], longJumpPlanks: 3, longJumpLengthCm: [70, 90], comboDistanceM: 3.0 },
@@ -149,6 +166,11 @@ export interface ClassTemplate {
 
 const CONTACT_TYPES: ObstacleTypeV2[] = ["aframe", "dogwalk", "seesaw"];
 
+// TODO VERIFIERA: Samtliga `arenaWidthM`, `arenaHeightM`, `obstacleRange`,
+// `refSpeedMs` och `maxTimeFactor` nedan är uppskattningar. Slå upp i
+// "Agilityregler 2022-01-01–2026-12-31" och "Referenstider – Information
+// (reviderad 2023)" — om referenstid inte beräknas som en fast m/s per
+// klass behöver TimeRules i rules/ utökas.
 export const CLASS_TEMPLATES: ClassTemplate[] = [
   // Hoppklasser — inga balanshinder
   { key: "agility_hopp_1", sport: "agility", label: "Hoppklass 1", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 18], defaultSize: "L", forbiddenTypes: [...CONTACT_TYPES, "table"], refSpeedMs: 3.5, maxTimeFactor: 1.5, description: "Endast hopp, tunnel och slalom" },

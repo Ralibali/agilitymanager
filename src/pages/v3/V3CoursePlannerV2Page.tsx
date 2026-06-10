@@ -27,6 +27,7 @@ import {
   type Sport, type SizeClassKey, type ObstacleTypeV2, type ClassTemplateKey, type ObstacleDefV2,
 } from "@/features/course-planner-v2/config";
 import { validateCourse, computeCourseTimes, summarizeIssues, type ValidationIssue } from "@/features/course-planner-v2/validation";
+import { DEFAULT_RULESET_ID, getActiveRuleSets, getRuleSet, getDefaultRuleSetIdForSport } from "@/features/course-planner-v2/rules";
 import { exportJudgePdf } from "@/features/course-planner-v2/judgePdf";
 import { exportStartlistPdf } from "@/features/course-planner-v2/startlistPdf";
 import CourseLibraryDialog from "@/features/course-planner-v2/CourseLibraryDialog";
@@ -86,6 +87,11 @@ interface CourseV2 {
   arenaHeightM: number;
   classTemplate: ClassTemplateKey | null;
   obstacles: ObstacleV2[];
+  /**
+   * Id på versionerat regelverk (se @/features/course-planner-v2/rules).
+   * Saknas på gamla banor — fallback i loadCourse sätter default per sport.
+   */
+  ruleSetId?: string;
 }
 
 const DEFAULT_COURSE: CourseV2 = {
@@ -96,13 +102,18 @@ const DEFAULT_COURSE: CourseV2 = {
   arenaHeightM: 40,
   classTemplate: null,
   obstacles: [],
+  ruleSetId: DEFAULT_RULESET_ID,
 };
 
 function loadCourse(): CourseV2 {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_COURSE;
-    return { ...DEFAULT_COURSE, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    const merged: CourseV2 = { ...DEFAULT_COURSE, ...parsed };
+    // Prompt A: gamla banor saknar ruleSetId — sätt default baserat på sport.
+    if (!merged.ruleSetId) merged.ruleSetId = getDefaultRuleSetIdForSport(merged.sport);
+    return merged;
   } catch { return DEFAULT_COURSE; }
 }
 
@@ -465,14 +476,15 @@ function V3CoursePlannerV2PageInner() {
 
   function switchSport(next: Sport) {
     if (next === course.sport) return;
+    const nextRuleSetId = getDefaultRuleSetIdForSport(next);
     if (course.obstacles.length > 0) {
       const ok = window.confirm("Att byta sport kräver tom bana. Vill du rensa banan och byta?");
       if (!ok) return;
-      setCourse((c) => ({ ...c, sport: next, obstacles: [], classTemplate: null }));
+      setCourse((c) => ({ ...c, sport: next, obstacles: [], classTemplate: null, ruleSetId: nextRuleSetId }));
       setSelectedId(null);
       return;
     }
-    update({ sport: next, classTemplate: null });
+    update({ sport: next, classTemplate: null, ruleSetId: nextRuleSetId });
   }
 
   function placeObstacle(type: ObstacleTypeV2) {
@@ -923,6 +935,36 @@ function V3CoursePlannerV2PageInner() {
                 </div>
               ))}
             </div>
+          </section>
+
+          <section>
+            <h3 className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-500 mb-2">Regelverk</h3>
+            <select
+              value={course.ruleSetId ?? getDefaultRuleSetIdForSport(course.sport)}
+              onChange={(e) => update({ ruleSetId: e.target.value })}
+              className="w-full h-9 px-2 rounded-lg text-[12px] font-medium border border-border bg-card text-foreground/90 hover:border-primary/30 transition"
+            >
+              {getActiveRuleSets().filter((rs) => rs.sport === course.sport).map((rs) => (
+                <option key={rs.id} value={rs.id}>
+                  {rs.name} ({rs.validFrom.slice(0, 4)}{rs.validTo ? `–${rs.validTo.slice(0, 4)}` : "→"})
+                </option>
+              ))}
+            </select>
+            {(() => {
+              const rs = getRuleSet(course.ruleSetId ?? getDefaultRuleSetIdForSport(course.sport));
+              if (!rs) return null;
+              return (
+                <a
+                  href={rs.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block mt-1 text-[10px] text-neutral-500 hover:text-primary underline truncate"
+                  title={rs.sourceDocuments.map((d) => d.name).join(", ")}
+                >
+                  Källa: {rs.authority}
+                </a>
+              );
+            })()}
           </section>
 
           <section>

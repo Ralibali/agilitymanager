@@ -62,7 +62,7 @@ const V3HealthPage = React.lazy(() => import("./pages/v3/V3HealthPage"));
 const V3CoursesPage = React.lazy(() => import("./pages/v3/V3CoursesPage"));
 const V3CoachPage = React.lazy(() => import("./pages/v3/V3CoachPage"));
 const V3CoachStatusPage = React.lazy(() => import("./pages/v3/V3CoachStatusPage"));
-const V3CoursePlannerPage = React.lazy(() => import("./pages/v3/V3CoursePlannerPageTunnelIntegrated"));
+
 const V3CoursePlannerV2Page = React.lazy(() => import("./pages/v3/V3CoursePlannerV2Page"));
 const V3CoursePlannerV2JudgePage = React.lazy(() => import("./pages/v3/V3CoursePlannerV2JudgePage"));
 const V3FriendsPage = React.lazy(() => import("./pages/v3/V3FriendsPage"));
@@ -153,7 +153,7 @@ const App = () => (
                   <Route path="coach" element={<V3CoachPage />} />
                   <Route path="coach/status" element={<V3CoachStatusPage />} />
                   <Route path="course-planner" element={<Navigate to="/v3/course-planner-v2" replace />} />
-                  <Route path="course-planner-legacy" element={<V3CoursePlannerPage />} />
+                  <Route path="course-planner-legacy" element={<Navigate to="/v3/course-planner-v2" replace />} />
                   <Route path="course-planner-v2" element={<V3CoursePlannerV2Page />} />
                   <Route path="stopwatch" element={<V3StopwatchPage />} />
                   <Route path="friends" element={<V3FriendsPage />} />

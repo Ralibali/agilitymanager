@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { PreviewGate } from "@/components/v3/PreviewGate";
+import { CoursePlannerPreviewSkeleton } from "@/components/v3/previewSkeletons";
 import {
   OBSTACLES_V2, SIZE_CLASSES, CLASS_TEMPLATES, getArenaPresetsBySport,
   getObstacleDefV2, getTemplatesBySport,

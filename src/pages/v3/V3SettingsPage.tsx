@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import SupportForm from "@/components/SupportForm";
 import { useIsAdmin } from "@/components/layout/useIsAdmin";
 import { V3ProValueCard } from "@/components/v3/V3ProValueCard";
+import { ReferralCard } from "@/components/v3/ReferralCard";
 import { cn } from "@/lib/utils";
 import {
   getGuestInterestsSyncEnabled,
@@ -281,6 +282,8 @@ export default function V3SettingsPage() {
         </div>
 
         <aside className="space-y-6 v3-stagger">
+          <ReferralCard />
+
           <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken p-6 animate-v3-fade-up">
             <h3 className="font-v3-display text-v3-xl text-v3-text-primary mb-4">Integritet</h3>
             <div className="space-y-4">

@@ -21,6 +21,19 @@ const time = (sec: number | null) => sec == null ? "—" : Math.floor(sec / 60) 
 const rangeText = (range: RangeKey) => RANGES.find((item) => item.value === range)?.long ?? "valt intervall";
 
 export default function V3StatsPage() {
+export default function V3StatsPage() {
+  const { subscription } = useAuth();
+  if (!subscription.loading && !subscription.subscribed) {
+    return (
+      <PreviewGate featureKey="stats" preview={<StatsPreviewSkeleton />}>
+        <V3StatsPageInner />
+      </PreviewGate>
+    );
+  }
+  return <V3StatsPageInner />;
+}
+
+function V3StatsPageInner() {
   const navigate = useNavigate();
   const { dogs, active, activeId, setActive, loading: dogsLoading } = useV3Dogs();
   const [tab, setTab] = useState<Tab>("overview");

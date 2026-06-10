@@ -60,9 +60,9 @@ export async function hasCronAuth(req: Request): Promise<boolean> {
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   if (!anonKey) return false;
 
-  const isAnonBearer = auth.startsWith("Bearer ") && auth.slice(7).trim() === anonKey;
-  const isAnonApikey = apikey === anonKey && !auth;
-  if (!isAnonBearer && !isAnonApikey) return false;
+  const bearer = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+  const hasAnonKey = bearer === anonKey || apikey === anonKey;
+  if (!hasAnonKey) return false;
 
   try {
     const body = await req.clone().json();

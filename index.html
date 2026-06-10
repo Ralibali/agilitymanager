@@ -87,6 +87,39 @@
       }
     }
     </script>
+
+    <!-- JSON-LD: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "AgilityManager",
+      "url": "https://agilitymanager.se",
+      "logo": "https://agilitymanager.se/icon-512.png",
+      "email": "info@auroramedia.se",
+      "sameAs": [
+        "https://www.facebook.com/agilitymanager",
+        "https://www.instagram.com/agilitymanager"
+      ]
+    }
+    </script>
+
+    <!-- JSON-LD: WebSite (with SearchAction) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "AgilityManager",
+      "url": "https://agilitymanager.se",
+      "inLanguage": "sv-SE",
+      "publisher": { "@type": "Organization", "name": "AgilityManager" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://agilitymanager.se/blogg?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
   </head>
 
   <body>

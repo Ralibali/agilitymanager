@@ -51,7 +51,7 @@ const benefits = [
   'Automatisk poängberäkning med DO/BO/UL-bonusar',
   'Banmallar för Startklass, K1, K2 och K3',
   'Fungerar på mobil, surfplatta och dator',
-  '7 dagars gratis Pro-testperiod utan betalkrav',
+  'Gratis grundversion utan tidsbegränsning – inga kortuppgifter',
 ];
 
 export default function HoopersLandingPage() {
@@ -400,7 +400,7 @@ export default function HoopersLandingPage() {
               color: 'rgba(255,255,255,0.7)',
             }}
           >
-            Eller testa Pro 7 dagar utan kostnad
+            Grundversionen är alltid gratis – inga kortuppgifter krävs
           </motion.p>
         </div>
       </section>

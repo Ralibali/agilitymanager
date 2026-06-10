@@ -629,8 +629,8 @@ export default function LandingPage() {
                   </motion.li>
                 ))}
               </motion.ul>
-              <Button variant="outline" className="w-full font-semibold" onClick={() => navigate('/auth')}>
-                Kom igång gratis
+              <Button variant="outline" className="w-full font-semibold" onClick={() => navigate('/auth?mode=signup')}>
+                Skapa gratis konto
               </Button>
             </motion.div>
 

@@ -1,10 +1,23 @@
 /**
- * Sprint 1 — Banplaneraren v2
- * Konfiguration för sport, hindertyper, storleksklasser och klassmallar.
- * Källor: SAgiK regelverk 2022–2026 (agility) och SHoK 2022→ (hoopers).
+ * Banplaneraren v2 — UI-/datakonstanter.
  *
- * OBS: Hoopers-paletten och hoopers-klassmallar finns i datat men exponeras
- * först i Sprint 3. Sprint 1 fokuserar på agility.
+ * ⚠️ REGELMOTOR: Från och med Prompt A är allt regelinnehåll också tillgängligt
+ * via det versionerade RuleSet-API:t i `./rules`. Värdena nedan är fortfarande
+ * "single source of truth" som rules-modulen pekar in i — men varje numerisk
+ * regelparameter ska verifieras mot officiella dokument (se checklista i
+ * `./rules/skk-agility-2023.ts`). Värden markerade `TODO VERIFIERA` är
+ * uppskattningar tills källa är bekräftad och citerad.
+ *
+ * Hindertyper, kategorier och rena UI-/canvaskonstanter (färger, ikoner)
+ * bör ligga kvar här. Klassmallar, hopphöjder, säkerhetsavstånd och
+ * tidsmodeller ska på sikt läsas via `getRuleSet(course.ruleSetId)` istället
+ * för direkt från arrayerna nedan.
+ *
+ * Källor (att verifiera):
+ *  - Agilityregler 2022-01-01–2026-12-31 (SAgiK/SKK) — agilityklubben.se/regler
+ *  - "Säkra hinder" – anvisningar (SAgiK)
+ *  - Referenstider – Information (reviderad 2023) (SAgiK)
+ *  - Svenska Hooperssällskapets regelverk 2022→
  */
 
 export type Sport = "agility" | "hoopers";

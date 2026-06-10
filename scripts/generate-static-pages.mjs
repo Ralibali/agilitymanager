@@ -82,6 +82,27 @@ const STATIC_PAGES = [
   },
 ];
 
+// ---------------- FAQ (måste spegla src/pages/LandingPage.tsx + HoopersLandingPage.tsx) ----------------
+const HOME_FAQS = [
+  { q: 'Vad är agility och hur fungerar klassystemet?', a: 'Agility är en hinderbana på tid. I Sverige tävlar man i klass 1–3 under SAgiK/SKK. Man behöver 3 pinnar per klass för att flytta upp.' },
+  { q: 'Vad är hoopers?', a: 'Hoopers är en hundsport där hunden springer igenom bågar, tunnlar och runt tunnor – utan hopp. Föraren dirigerar på distans. Det är officiell SKK-sport sedan november 2025.' },
+  { q: 'Kan jag logga både agility och hoopers?', a: 'Ja. Du väljer sport per hund, så kan du ha en agility-hund och en hoopers-hund i samma konto.' },
+  { q: 'Hur fungerar banplaneraren?', a: 'Dra och släpp hinder på en canvas med rutnät. Du kan exportera banan som PNG eller PDF med metadata. Både agility- och hoopers-hinder stöds. Du kan också dela banor direkt till vänner via appen.' },
+  { q: 'Hur funkar coach-funktionen?', a: 'Du laddar upp en träningsvideo i appen och vår SM-meriterade coach analyserar dirigering, linjer och tempo. Du får konkreta tips inom 48 timmar. Ingår i Pro.' },
+  { q: 'Kan jag bjuda in min klubb?', a: 'Ja. Skapa en klubb eller gå med i en befintlig. Klubbar har anslagstavla, gemensam kalender och undergrupper för olika nivåer.' },
+  { q: 'Vad får jag på Pro?', a: 'Obegränsat antal hundar, full tävlingshistorik, AI-träningsinsikter, automatisk resultatimport från agilitydata.se, coach-videoanalys, kompisar/chatt/bandelning, tävlingskalender med påminnelser och CSV-export.' },
+  { q: 'Vad kostar Pro?', a: '79 kr/mån eller 790 kr/år (du sparar 158 kr per år). Pro låser upp alla funktioner – grundversionen är alltid gratis utan tidsbegränsning.' },
+  { q: 'Får jag rabatt om jag bjuder in en vän?', a: 'Ja! När en vän du bjudit in skapar konto får ni båda 30 dagars Pro gratis. Dela din unika länk från Inställningar → Bjud in vänner.' },
+  { q: 'Är AgilityManager gratis?', a: 'Ja. Grundversionen är gratis utan tidsbegränsning och utan kortuppgifter. Pro är ett tillval för dig som vill ha alla funktioner.' },
+];
+
+const HOOPERS_FAQS = [
+  { q: 'Vad är hoopers?', a: 'Hoopers är en hundsport utan hopp där hunden springer igenom bågar, tunnlar och runt tunnor. Föraren dirigerar på distans. Det är officiell SKK-sport sedan november 2025.' },
+  { q: 'Vilka klasser finns i hoopers?', a: 'Startklass, K1, K2 och K3 enligt Svenska Hoopersklubbens (SHoK) regelverk. Klasserna kräver olika poängnivåer för uppflyttning.' },
+  { q: 'Vilka storleksklasser finns?', a: 'Small (under 35 cm) och Large (35 cm och uppåt). AgilityManager rekommenderar storleksklass automatiskt baserat på hundens mankhöjd.' },
+  { q: 'Hur räknas hoopers-poäng?', a: 'Du får poäng baserat på placering, med bonusar för DO (dirigeringsoperatör), BO (banoperatör) och UL (utan ledband). AgilityManager beräknar det automatiskt.' },
+];
+
 // ---------------- Supabase ----------------
 
 async function fetchPublishedPosts() {
@@ -378,6 +399,8 @@ async function main() {
   console.log(`📄 Genererar ${STATIC_PAGES.length} statiska sidor…`);
   for (const page of STATIC_PAGES) {
     const isCompetitions = page.route === '/tavlingar';
+    const isHome = page.route === '/';
+    const isHoopers = page.route === '/hoopers';
     const extraJsonLd = isCompetitions
       ? [
           {
@@ -387,6 +410,30 @@ async function main() {
             description: page.description,
             url: `${SITE_URL}/tavlingar`,
             isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: SITE_URL },
+          },
+        ]
+      : isHome
+      ? [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: HOME_FAQS.map((f) => ({
+              '@type': 'Question',
+              name: f.q,
+              acceptedAnswer: { '@type': 'Answer', text: f.a },
+            })),
+          },
+        ]
+      : isHoopers
+      ? [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: HOOPERS_FAQS.map((f) => ({
+              '@type': 'Question',
+              name: f.q,
+              acceptedAnswer: { '@type': 'Answer', text: f.a },
+            })),
           },
         ]
       : [];

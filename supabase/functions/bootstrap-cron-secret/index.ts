@@ -16,14 +16,35 @@ Deno.serve(async (req) => {
   const srk = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 
-  // Only callable with the service role key in Authorization (so only Lovable/admin can call it).
+  // Allow callers that are either (a) an authenticated admin user, or (b) carry the SRK as bearer.
   const auth = req.headers.get("Authorization") || "";
-  if (!auth.startsWith("Bearer ") || auth.slice(7).trim() !== srk) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+  const isSrkBearer = auth.startsWith("Bearer ") && auth.slice(7).trim() === srk;
+
+  if (!isSrkBearer) {
+    if (!auth.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const userClient = createClient(supabaseUrl, anon, { global: { headers: { Authorization: auth } } });
+    const token = auth.slice(7).trim();
+    const { data: claims } = await userClient.auth.getClaims(token);
+    const uid = claims?.claims?.sub as string | undefined;
+    if (!uid) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const adminCheck = createClient(supabaseUrl, srk);
+    const { data: isAdmin } = await adminCheck.rpc("has_role", { _user_id: uid, _role: "admin" });
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Forbidden — admin only" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
   }
+
 
   const admin = createClient(supabaseUrl, srk);
 

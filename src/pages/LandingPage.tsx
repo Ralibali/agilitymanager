@@ -224,7 +224,7 @@ export default function LandingPage() {
               onClick={() => navigate('/auth?mode=signup')}
               className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
             >
-              Kom igång och utforska alla funktioner <ArrowRight size={14} />
+              Skapa gratis konto <ArrowRight size={14} />
             </button>
           </div>
         </div>

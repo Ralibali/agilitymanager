@@ -48,6 +48,7 @@ import { exportTrainingPdf } from "@/features/course-planner-v2/trainingPdf";
 import { exportBuildPdf } from "@/features/course-planner-v2/buildPdf";
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
 import { parseCourseJson } from "@/features/course-planner-v2/importJson";
+import { renderCourseImage, shareCanvas } from "@/lib/shareImage";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
 import {
   CoursePlaybackOverlay,
@@ -791,6 +792,24 @@ function V3CoursePlannerV2PageInner() {
             })}
             onJson={handleExportJson}
             onImportJson={handleImportJsonClick}
+            onShareImage={async () => {
+              try {
+                const canvas = renderCourseImage({
+                  courseName: course.name || "Ny bana",
+                  sport: course.sport,
+                  sizeClass: course.sizeClass,
+                  classTemplate: course.classTemplate,
+                  obstacleCount: course.obstacles.length,
+                  obstacles: course.obstacles.map((o) => ({ x: o.x, y: o.y, number: o.number ?? null })),
+                  ringMeters: { width: course.arenaWidthM, height: course.arenaHeightM },
+                });
+                const result = await shareCanvas(canvas, `${(course.name || "bana").replace(/\s+/g, "-").toLowerCase()}.png`, course.name || "Min bana");
+                toast.success(result === "shared" ? "Bana delad" : "Bild nedladdad");
+              } catch (e) {
+                toast.error("Kunde inte skapa bild");
+                console.error(e);
+              }
+            }}
             on3DView={() => setView3D("view")}
             on3DWalk={() => setView3D("walk")}
           />

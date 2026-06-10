@@ -2,7 +2,7 @@
  * Banplaneraren v2 — Export-meny.
  * Mobile-first: tydlig knapp med text så användaren ser att banan kan laddas ner/importeras.
  */
-import { ChevronDown, FileDown, Upload, FileText, Box, Footprints } from "lucide-react";
+import { ChevronDown, FileDown, Upload, FileText, Box, Footprints, Share2 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,
@@ -15,11 +15,12 @@ interface Props {
   onStartlist: () => void;
   onJson: () => void;
   onImportJson: () => void;
+  onShareImage?: () => void;
   on3DView?: () => void;
   on3DWalk?: () => void;
 }
 
-export function ExportMenu({ onJudge, onTraining, onBuild, onStartlist, onJson, onImportJson, on3DView, on3DWalk }: Props) {
+export function ExportMenu({ onJudge, onTraining, onBuild, onStartlist, onJson, onImportJson, onShareImage, on3DView, on3DWalk }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -48,6 +49,15 @@ export function ExportMenu({ onJudge, onTraining, onBuild, onStartlist, onJson, 
         <DropdownMenuItem onSelect={onStartlist}>
           <FileText size={14} className="mr-2" /> Startlista
         </DropdownMenuItem>
+        {onShareImage && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Dela</DropdownMenuLabel>
+            <DropdownMenuItem onSelect={onShareImage}>
+              <Share2 size={14} className="mr-2" /> Dela som bild
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuLabel>Backup och import</DropdownMenuLabel>
         <DropdownMenuItem onSelect={onJson}>

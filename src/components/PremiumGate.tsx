@@ -55,14 +55,17 @@ export function PremiumGate({ children, fullPage = false, featureName = 'Denna f
   };
 
   if (fullPage) {
+    const copy = getGateCopy(featureKey);
+    const title = copy?.title ?? 'Pro krävs';
+    const body = copy?.body ?? `${featureName} ingår i Pro. Uppgradera för att låsa upp alla funktioner.`;
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
         <div className="w-16 h-16 rounded-2xl gradient-accent flex items-center justify-center mb-4 shadow-elevated">
           <Crown size={28} className="text-accent-foreground" />
         </div>
-        <h2 className="font-display font-bold text-foreground text-xl mb-2">Pro krävs</h2>
+        <h2 className="font-display font-bold text-foreground text-xl mb-2">{title}</h2>
         <p className="text-sm text-muted-foreground mb-6 max-w-xs">
-          {featureName} ingår i Pro. Uppgradera för att låsa upp alla funktioner.
+          {body}
         </p>
         {trialDaysLeft !== null && trialDaysLeft > 0 && trialDaysLeft <= 3 && (
           <p className="text-xs font-semibold text-[hsl(var(--secondary))] mb-4">

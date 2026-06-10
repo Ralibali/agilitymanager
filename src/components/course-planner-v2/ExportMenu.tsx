@@ -2,7 +2,7 @@
  * Banplaneraren v2 — Export-meny.
  * Mobile-first: tydlig knapp med text så användaren ser att banan kan laddas ner/importeras.
  */
-import { ChevronDown, FileDown, Upload, FileText, Box, Footprints } from "lucide-react";
+import { ChevronDown, FileDown, Upload, FileText, Box, Footprints, Share2 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,

@@ -30,6 +30,9 @@ export const LEGACY_PRO_PRICE_IDS = [
   'price_1T9AomHzffTezY82vtiObR7E', // 99 kr/år
 ] as const;
 
+// Längd på gratis provperiod (dagar). Måste matcha check-subscription/create-checkout.
+export const TRIAL_DAYS = 14;
+
 interface SubscriptionState {
   subscribed: boolean;
   productId: string | null;
@@ -162,8 +165,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               const createdAt = session?.user?.created_at;
               if (createdAt) {
                 const diffDays = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24);
-                if (diffDays <= 7) {
-                  const trialEnd = new Date(new Date(createdAt).getTime() + 7 * 24 * 60 * 60 * 1000);
+                if (diffDays <= TRIAL_DAYS) {
+                  const trialEnd = new Date(new Date(createdAt).getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
                   setSubscription(prev => ({
                     ...prev,
                     subscribed: true,

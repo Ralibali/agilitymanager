@@ -8,6 +8,7 @@ import {
   CLASS_TEMPLATES, SIZE_CLASSES, getObstacleDefV2,
   type ClassTemplateKey, type ObstacleTypeV2, type SizeClassKey, type Sport,
 } from "./config";
+import { buildDogPath, type CourseDogPathOverride } from "./dogPath";
 
 export type IssueLevel = "error" | "warning" | "info";
 

@@ -5,6 +5,7 @@ import "./index.css";
 import "./styles/mobile-polish.css";
 import "./styles/v3-desktop-polish.css";
 import "./styles/v3-hardening.css";
+import { registerSW } from "./pwa/registerSW";
 
 // Brand foundation fonts — laddade men inte använda visuellt ännu.
 // Aktiveras explicit i kommande fas via font-family/utility-klasser.

@@ -205,7 +205,10 @@ export async function exportJudgePdf(input: JudgePdfInput) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   const lengthM = computeCourseLength(input.obstacles);
-  doc.text(`Total banlängd (mellan numrerade hinder): ${lengthM.toFixed(1)} m`, margin, sy);
+  const lengthAlongPathM = computeCourseLengthAlongPath(input.obstacles);
+  doc.text(`Banlängd (hundens väg): ${lengthAlongPathM.toFixed(1)} m`, margin, sy);
+  sy += 5;
+  doc.text(`Center-till-center (referens): ${lengthM.toFixed(1)} m`, margin, sy);
   sy += 5;
   doc.text(`Antal numrerade hinder: ${numbered.length}`, margin, sy);
   sy += 8;

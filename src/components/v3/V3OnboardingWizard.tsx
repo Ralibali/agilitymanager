@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, ArrowRight, Dog as DogIcon, Target, Dumbbell, Check } from "lucide-react";
+import { Sparkles, ArrowRight, Dog as DogIcon, Target, Dumbbell, Check, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { store } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";

@@ -175,8 +175,9 @@ export default function V3HomePage() {
             />
           </section>
 
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <ActionTile icon={Plus} label="Logga pass" hint="30 sek" value="Träning" tone="brand" onClick={openV3LogSheet} />
+            <ActionTile icon={Timer} label="Starta stoppur" hint="Ta tid direkt" value="Stoppur" tone="cyan" onClick={() => navigate("/v3/stopwatch")} />
             <ActionTile icon={Trophy} label="Lägg resultat" hint="Efter tävling" value="Resultat" tone="success" onClick={() => navigate("/v3/competition?action=result")} />
             <ActionTile icon={Target} label="Sätt mål" hint="Nästa nivå" value="Fokus" tone="warm" onClick={() => navigate("/v3/goals?action=new")} />
             <ActionTile icon={CalendarDays} label="Hitta tävling" hint="Agility & hoopers" value="Kalender" tone="cyan" onClick={() => navigate("/v3/competition/kalender")} />

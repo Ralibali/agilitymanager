@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, ArrowRight, Dog as DogIcon, Target, Dumbbell, Check } from "lucide-react";
+import { Sparkles, ArrowRight, Dog as DogIcon, Target, Dumbbell, Check, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { store } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +46,7 @@ const GOAL_OPTIONS = [
  * Använder samma DB-flöden som äldre OnboardingWizard men v3-tokens & micro-motion.
  */
 export function V3OnboardingWizard({ onComplete }: Props) {
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -152,11 +154,12 @@ export function V3OnboardingWizard({ onComplete }: Props) {
     setStep(4);
   };
 
-  const handleFinish = async (skipped = false) => {
+  const handleFinish = async (skipped = false, target?: string) => {
     await supabase.auth.updateUser({
       data: { onboarding_complete: true, onboarding_skipped: skipped },
     });
     onComplete();
+    if (target) navigate(target);
   };
 
   const handleSkip = () => handleFinish(true);
@@ -574,12 +577,20 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                     </div>
                   ))}
                 </div>
-                <button
-                  onClick={() => handleFinish(false)}
-                  className="w-full h-12 rounded-v3-base bg-v3-brand-500 hover:bg-v3-brand-600 text-white font-semibold inline-flex items-center justify-center gap-2 v3-tappable v3-focus-ring shadow-v3-brand"
-                >
-                  Gå till din dashboard <ArrowRight className="h-4 w-4" />
-                </button>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleFinish(false, "/v3/stopwatch")}
+                    className="w-full h-12 rounded-v3-base bg-v3-brand-500 hover:bg-v3-brand-600 text-white font-semibold inline-flex items-center justify-center gap-2 v3-tappable v3-focus-ring shadow-v3-brand"
+                  >
+                    <Timer className="h-4 w-4" /> Starta stoppur nu
+                  </button>
+                  <button
+                    onClick={() => handleFinish(false)}
+                    className="w-full h-11 rounded-v3-base bg-v3-canvas-elevated hover:bg-v3-canvas-sunken/60 border border-v3-canvas-sunken text-v3-text-primary font-medium inline-flex items-center justify-center gap-2 v3-tappable v3-focus-ring"
+                  >
+                    Gå till din dashboard <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

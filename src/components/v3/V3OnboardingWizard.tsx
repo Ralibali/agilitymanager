@@ -577,12 +577,20 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                     </div>
                   ))}
                 </div>
-                <button
-                  onClick={() => handleFinish(false)}
-                  className="w-full h-12 rounded-v3-base bg-v3-brand-500 hover:bg-v3-brand-600 text-white font-semibold inline-flex items-center justify-center gap-2 v3-tappable v3-focus-ring shadow-v3-brand"
-                >
-                  Gå till din dashboard <ArrowRight className="h-4 w-4" />
-                </button>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleFinish(false, "/v3/stopwatch")}
+                    className="w-full h-12 rounded-v3-base bg-v3-brand-500 hover:bg-v3-brand-600 text-white font-semibold inline-flex items-center justify-center gap-2 v3-tappable v3-focus-ring shadow-v3-brand"
+                  >
+                    <Timer className="h-4 w-4" /> Starta stoppur nu
+                  </button>
+                  <button
+                    onClick={() => handleFinish(false)}
+                    className="w-full h-11 rounded-v3-base bg-v3-canvas-elevated hover:bg-v3-canvas-sunken/60 border border-v3-canvas-sunken text-v3-text-primary font-medium inline-flex items-center justify-center gap-2 v3-tappable v3-focus-ring"
+                  >
+                    Gå till din dashboard <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

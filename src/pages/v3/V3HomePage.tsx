@@ -13,6 +13,7 @@ import {
   Plus,
   Sparkles,
   Target,
+  Timer,
   Trophy,
   type LucideIcon,
 } from "lucide-react";

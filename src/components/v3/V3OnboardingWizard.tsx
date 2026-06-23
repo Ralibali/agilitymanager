@@ -154,11 +154,12 @@ export function V3OnboardingWizard({ onComplete }: Props) {
     setStep(4);
   };
 
-  const handleFinish = async (skipped = false) => {
+  const handleFinish = async (skipped = false, target?: string) => {
     await supabase.auth.updateUser({
       data: { onboarding_complete: true, onboarding_skipped: skipped },
     });
     onComplete();
+    if (target) navigate(target);
   };
 
   const handleSkip = () => handleFinish(true);

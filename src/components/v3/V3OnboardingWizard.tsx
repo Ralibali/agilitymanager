@@ -46,6 +46,7 @@ const GOAL_OPTIONS = [
  * Använder samma DB-flöden som äldre OnboardingWizard men v3-tokens & micro-motion.
  */
 export function V3OnboardingWizard({ onComplete }: Props) {
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
 

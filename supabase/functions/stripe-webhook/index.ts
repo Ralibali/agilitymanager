@@ -7,21 +7,97 @@ const logStep = (step: string, details?: unknown) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
 
+type AdminClient = ReturnType<typeof createClient>;
+
+async function findUserIdByEmail(supabaseAdmin: AdminClient, email: string): Promise<string | null> {
+  const normalizedEmail = email.trim().toLowerCase();
+  const perPage = 1000;
+
+  for (let page = 1; page <= 50; page += 1) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+    if (error) throw error;
+
+    const found = data.users.find((user) => user.email?.trim().toLowerCase() === normalizedEmail);
+    if (found) return found.id;
+    if (data.users.length < perPage) return null;
+  }
+
+  return null;
+}
+
+async function resolveUserId(
+  supabaseAdmin: AdminClient,
+  options: { metadataUserId?: string | null; customerId?: string | null; email?: string | null },
+): Promise<string | null> {
+  if (options.metadataUserId) {
+    const { data, error } = await supabaseAdmin.auth.admin.getUserById(options.metadataUserId);
+    if (!error && data.user) return data.user.id;
+  }
+
+  if (options.customerId) {
+    const { data: profile, error } = await supabaseAdmin
+      .from("profiles")
+      .select("user_id")
+      .eq("stripe_customer_id", options.customerId)
+      .maybeSingle();
+    if (!error && profile?.user_id) return profile.user_id;
+  }
+
+  if (options.email) return findUserIdByEmail(supabaseAdmin, options.email);
+  return null;
+}
+
+function subscriptionFields(subscription: Stripe.Subscription, customerId: string) {
+  const isActive = ["active", "trialing"].includes(subscription.status);
+  const priceItem = subscription.items?.data?.[0]?.price;
+  const productId = priceItem?.product
+    ? typeof priceItem.product === "string"
+      ? priceItem.product
+      : priceItem.product.id
+    : null;
+  const priceId = priceItem?.id ?? null;
+  const periodEnd = subscription.current_period_end
+    ? new Date(subscription.current_period_end * 1000).toISOString()
+    : null;
+
+  return {
+    stripe_customer_id: customerId,
+    stripe_subscription_status: isActive ? "active" : subscription.status,
+    stripe_product_id: productId,
+    stripe_price_id: priceId,
+    stripe_current_period_end: periodEnd,
+  };
+}
+
+async function updateProfileSubscription(
+  supabaseAdmin: AdminClient,
+  userId: string,
+  fields: Record<string, unknown>,
+) {
+  const { error } = await supabaseAdmin
+    .from("profiles")
+    .update(fields)
+    .eq("user_id", userId);
+
+  if (error) throw new Error(`Failed to update profile: ${error.message}`);
+}
+
 serve(async (req) => {
-  // Only POST allowed
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
 
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
-  if (!stripeKey || !webhookSecret) {
-    logStep("ERROR", { message: "Missing STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET" });
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!stripeKey || !webhookSecret || !supabaseUrl || !serviceRoleKey) {
+    logStep("ERROR", { message: "Missing Stripe or Supabase server configuration" });
     return new Response("Server misconfigured", { status: 500 });
   }
 
   const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
   if (!signature) {
@@ -32,134 +108,99 @@ serve(async (req) => {
   let event: Stripe.Event;
   try {
     event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
-  } catch (err) {
-    logStep("Signature verification failed", { error: String(err) });
-    return new Response(`Webhook signature verification failed`, { status: 400 });
+  } catch (error) {
+    logStep("Signature verification failed", { error: String(error) });
+    return new Response("Webhook signature verification failed", { status: 400 });
   }
 
   logStep("Event received", { type: event.type, id: event.id });
 
-  const supabaseAdmin = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    { auth: { persistSession: false } }
-  );
-
-  // Handle relevant subscription events
-  const relevantEvents = [
+  const relevantEvents = new Set([
     "customer.subscription.created",
     "customer.subscription.updated",
     "customer.subscription.deleted",
     "checkout.session.completed",
-  ];
-
-  if (!relevantEvents.includes(event.type)) {
-    logStep("Ignoring event type", { type: event.type });
+  ]);
+  if (!relevantEvents.has(event.type)) {
     return new Response(JSON.stringify({ received: true }), { status: 200 });
   }
+
+  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
 
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
-      if (session.mode !== "subscription" || !session.customer || !session.subscription) {
-        logStep("Checkout session not a subscription, skipping");
+      if (session.mode !== "subscription" || !session.customer) {
+        logStep("Checkout session is not a subscription, skipping");
         return new Response(JSON.stringify({ received: true }), { status: 200 });
       }
 
-      // Ensure customer_id is saved to profile
       const customerId = typeof session.customer === "string" ? session.customer : session.customer.id;
-      const customerEmail = session.customer_details?.email || session.customer_email;
+      const email = session.customer_details?.email || session.customer_email;
+      const metadataUserId = session.client_reference_id || session.metadata?.user_id;
+      const userId = await resolveUserId(supabaseAdmin, { metadataUserId, customerId, email });
 
-      if (customerEmail) {
-        // Find user by email via auth admin
-        const { data: users } = await supabaseAdmin.auth.admin.listUsers();
-        const user = users?.users?.find(u => u.email === customerEmail);
-        if (user) {
-          await supabaseAdmin
-            .from("profiles")
-            .update({ stripe_customer_id: customerId })
-            .eq("user_id", user.id);
-          logStep("Saved stripe_customer_id from checkout", { userId: user.id, customerId });
-        }
+      if (!userId) {
+        logStep("No matching user for checkout", { customerId, email, metadataUserId });
+        return new Response(JSON.stringify({ received: true }), { status: 200 });
       }
 
-      // The subscription.created event will handle the rest
+      const fields: Record<string, unknown> = { stripe_customer_id: customerId };
+      if (session.subscription) {
+        const subscriptionId = typeof session.subscription === "string"
+          ? session.subscription
+          : session.subscription.id;
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        Object.assign(fields, subscriptionFields(subscription, customerId));
+      }
+
+      await updateProfileSubscription(supabaseAdmin, userId, fields);
+      logStep("Checkout linked to profile", { userId, customerId });
       return new Response(JSON.stringify({ received: true }), { status: 200 });
     }
 
-    // For subscription events
     const subscription = event.data.object as Stripe.Subscription;
     const customerId = typeof subscription.customer === "string"
       ? subscription.customer
       : subscription.customer.id;
 
-    logStep("Processing subscription event", {
+    let email: string | null = null;
+    const customer = await stripe.customers.retrieve(customerId);
+    if (!customer.deleted) email = (customer as Stripe.Customer).email;
+
+    const userId = await resolveUserId(supabaseAdmin, {
+      metadataUserId: subscription.metadata?.user_id,
       customerId,
-      status: subscription.status,
-      subscriptionId: subscription.id,
+      email,
     });
 
-    // Get customer email from Stripe
-    const customer = await stripe.customers.retrieve(customerId);
-    if (customer.deleted) {
-      logStep("Customer deleted, skipping");
+    if (!userId) {
+      logStep("No matching user for subscription", {
+        customerId,
+        email,
+        metadataUserId: subscription.metadata?.user_id,
+      });
       return new Response(JSON.stringify({ received: true }), { status: 200 });
     }
 
-    const email = (customer as Stripe.Customer).email;
-    if (!email) {
-      logStep("No email on customer, skipping");
-      return new Response(JSON.stringify({ received: true }), { status: 200 });
-    }
+    const fields = subscriptionFields(subscription, customerId);
+    await updateProfileSubscription(supabaseAdmin, userId, fields);
 
-    // Find user by email
-    const { data: users } = await supabaseAdmin.auth.admin.listUsers();
-    const user = users?.users?.find(u => u.email === email);
-    if (!user) {
-      logStep("No matching user found for email", { email });
-      return new Response(JSON.stringify({ received: true }), { status: 200 });
-    }
-
-    // Extract subscription details
-    const isActive = ["active", "trialing"].includes(subscription.status);
-    const priceItem = subscription.items?.data?.[0]?.price;
-    const productId = priceItem?.product
-      ? (typeof priceItem.product === "string" ? priceItem.product : priceItem.product.id)
-      : null;
-    const priceId = priceItem?.id ?? null;
-    const periodEnd = subscription.current_period_end
-      ? new Date(subscription.current_period_end * 1000).toISOString()
-      : null;
-
-    // Update profiles table
-    const updateData: Record<string, unknown> = {
-      stripe_customer_id: customerId,
-      stripe_subscription_status: isActive ? "active" : subscription.status,
-      stripe_product_id: productId,
-      stripe_price_id: priceId,
-      stripe_current_period_end: periodEnd,
-    };
-
-    const { error: updateError } = await supabaseAdmin
-      .from("profiles")
-      .update(updateData)
-      .eq("user_id", user.id);
-
-    if (updateError) {
-      logStep("ERROR updating profile", { error: updateError.message, userId: user.id });
-      return new Response(JSON.stringify({ error: "Failed to update profile" }), { status: 500 });
-    }
-
-    logStep("Profile updated successfully", {
-      userId: user.id,
-      status: updateData.stripe_subscription_status,
-      productId,
-      periodEnd,
+    logStep("Profile subscription updated", {
+      userId,
+      status: fields.stripe_subscription_status,
+      priceId: fields.stripe_price_id,
+      periodEnd: fields.stripe_current_period_end,
     });
 
     return new Response(JSON.stringify({ received: true }), { status: 200 });
-  } catch (err) {
-    logStep("ERROR processing event", { error: String(err) });
-    return new Response(JSON.stringify({ error: String(err) }), { status: 500 });
+  } catch (error) {
+    logStep("ERROR processing event", { error: String(error) });
+    return new Response(JSON.stringify({ error: "Failed to process Stripe event" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 });

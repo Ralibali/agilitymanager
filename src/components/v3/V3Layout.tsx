@@ -39,7 +39,9 @@ export function V3Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const handledActionRef = useRef<string | null>(null);
-  const isCoursePlanner = location.pathname === "/v3/course-planner";
+  const isCoursePlanner =
+    location.pathname === "/v3/course-planner" ||
+    location.pathname.startsWith("/v3/course-planner-v2");
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);

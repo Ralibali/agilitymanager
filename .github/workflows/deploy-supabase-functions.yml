@@ -1,0 +1,57 @@
+name: Deploy Supabase functions
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/functions/**"
+      - "supabase/config.toml"
+      - ".github/workflows/deploy-supabase-functions.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-functions-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deployment credentials
+        id: credentials
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::SUPABASE_ACCESS_TOKEN saknas. Lägg till den som repository secret för automatisk funktionsdeploy."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out repository
+        if: steps.credentials.outputs.configured == 'true'
+        uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        if: steps.credentials.outputs.configured == 'true'
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy Edge Functions
+        if: steps.credentials.outputs.configured == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy --project-ref rcubbmnosawdtaupixnm
+
+      - name: Deployment summary
+        run: |
+          if [ "${{ steps.credentials.outputs.configured }}" = "true" ]; then
+            echo "Supabase Edge Functions deployades till produktion." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Supabase-deploy hoppades över eftersom repository secret SUPABASE_ACCESS_TOKEN saknas." >> "$GITHUB_STEP_SUMMARY"
+          fi

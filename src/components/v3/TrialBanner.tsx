@@ -18,10 +18,8 @@ export function TrialBanner() {
 
   const state = useMemo(() => {
     if (subscription.loading) return null;
-    // Betalande: dölj alltid.
     if (subscription.subscribed && !subscription.isTrial) return null;
 
-    // Trial pågår.
     if (subscription.isTrial && subscription.subscriptionEnd) {
       const end = new Date(subscription.subscriptionEnd).getTime();
       const msLeft = end - Date.now();
@@ -29,7 +27,6 @@ export function TrialBanner() {
       return { kind: "trial" as const, daysLeft };
     }
 
-    // Inte prenumererad och inte trial — provperioden är slut.
     if (!subscription.subscribed) {
       return { kind: "expired" as const, daysLeft: 0 };
     }
@@ -39,20 +36,20 @@ export function TrialBanner() {
 
   if (!state || dismissed) return null;
 
-  const goUpgrade = () => navigate("/settings");
+  const goUpgrade = () => navigate("/v3/settings");
 
   if (state.kind === "expired") {
     return (
-      <div className="w-full bg-[hsl(var(--destructive))]/10 border-b border-[hsl(var(--destructive))]/30 text-[hsl(var(--destructive))]">
-        <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-2 flex items-center gap-3 text-sm">
-          <AlertTriangle size={16} className="shrink-0" />
+      <div className="w-full border-b border-[hsl(var(--destructive))]/30 bg-[hsl(var(--destructive))]/10 text-[hsl(var(--destructive))]">
+        <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-4 py-2 text-sm sm:px-5 lg:px-10">
+          <AlertTriangle size={16} className="shrink-0" aria-hidden="true" />
           <span className="flex-1 font-medium">
             Din provperiod är slut — fortsätt med Pro för att behålla alla funktioner.
           </span>
           <button
             type="button"
             onClick={goUpgrade}
-            className="rounded-full bg-[hsl(var(--destructive))] text-white px-3 py-1 text-xs font-semibold hover:opacity-90"
+            className="min-h-9 shrink-0 rounded-full bg-[hsl(var(--destructive))] px-3 py-1 text-xs font-semibold text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
           >
             Fortsätt med Pro
           </button>
@@ -68,12 +65,12 @@ export function TrialBanner() {
     <div
       className={
         urgent
-          ? "w-full bg-[hsl(var(--secondary))]/15 border-b border-[hsl(var(--secondary))]/40 text-[hsl(var(--secondary))]"
-          : "w-full bg-[hsl(var(--primary))]/8 border-b border-[hsl(var(--primary))]/20 text-[hsl(var(--primary))]"
+          ? "w-full border-b border-[hsl(var(--secondary))]/40 bg-[hsl(var(--secondary))]/15 text-[hsl(var(--secondary))]"
+          : "w-full border-b border-[hsl(var(--primary))]/20 bg-[hsl(var(--primary))]/8 text-[hsl(var(--primary))]"
       }
     >
-      <div className="max-w-[1100px] mx-auto px-5 lg:px-10 py-2 flex items-center gap-3 text-sm">
-        <Crown size={16} className="shrink-0" />
+      <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-4 py-2 text-sm sm:px-5 lg:px-10">
+        <Crown size={16} className="shrink-0" aria-hidden="true" />
         {urgent ? (
           <>
             <span className="flex-1 font-medium">
@@ -82,30 +79,28 @@ export function TrialBanner() {
             <button
               type="button"
               onClick={goUpgrade}
-              className="rounded-full bg-[hsl(var(--secondary))] text-white px-3 py-1 text-xs font-semibold hover:opacity-90"
+              className="min-h-9 shrink-0 rounded-full bg-[hsl(var(--secondary))] px-3 py-1 text-xs font-semibold text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
             >
               Uppgradera
             </button>
           </>
         ) : (
           <>
-            <span className="flex-1">
-              {dayLabel} kvar av din Pro-period.
-            </span>
+            <span className="flex-1">{dayLabel} kvar av din Pro-provperiod.</span>
             <button
               type="button"
               onClick={goUpgrade}
-              className="text-xs underline underline-offset-2 hover:no-underline"
+              className="min-h-9 text-xs font-semibold underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
             >
-              Hantera
+              Välj plan
             </button>
             <button
               type="button"
-              aria-label="Dölj"
+              aria-label="Dölj information om provperioden"
               onClick={() => setDismissed(true)}
-              className="p-1 opacity-70 hover:opacity-100"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full opacity-70 hover:bg-current/10 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
             >
-              <X size={14} />
+              <X size={14} aria-hidden="true" />
             </button>
           </>
         )}

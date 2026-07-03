@@ -78,7 +78,7 @@ export default function V3ClubsPage() {
 
   const handleCreate = async () => {
     if (!newName.trim() || !user) { toast.error("Ange ett klubbnamn"); return; }
-    const { data: club, error } = await supabase.from("clubs").insert({ name: newName.trim(), description: newDesc.trim(), city: newCity.trim(), created_by: user.id }).select().single();
+    const { data: club, error } = await supabase.from("clubs").insert({ name: newName.trim(), description: newDesc.trim(), city: newCity.trim(), created_by: user.id }).select("id, name, description, city, logo_url, created_by, created_at, updated_at, quick_tags, slug, region").single();
     if (error || !club) { toast.error("Kunde inte skapa klubben"); return; }
     await supabase.from("club_members").insert({ club_id: club.id, user_id: user.id, role: "admin", status: "accepted" });
     toast.success("Klubb skapad");

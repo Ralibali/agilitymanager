@@ -48,26 +48,11 @@ export function hasInternalSecret(req: Request): boolean {
 }
 
 /**
- * Accepts requests from pg_net cron jobs that send the anon key
- * either in `apikey` header or as `Authorization: Bearer <anon>`.
- * Requires the JSON body to contain `trigger: "cron"`.
+ * Cron-jobb måste skicka `x-internal-secret` (provisionerad via vault av
+ * bootstrap-cron-secret). Vi accepterar INTE längre anon-nyckeln som
+ * cron-auth eftersom den ligger publikt i JS-bundeln — då kunde vem som
+ * helst trigga t.ex. send-competition-reminders utifrån.
  */
 export async function hasCronAuth(req: Request): Promise<boolean> {
-  if (hasInternalSecret(req)) return true;
-
-  const auth = req.headers.get("Authorization") || "";
-  const apikey = req.headers.get("apikey") || "";
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!anonKey) return false;
-
-  const bearer = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
-  const hasAnonKey = bearer === anonKey || apikey === anonKey;
-  if (!hasAnonKey) return false;
-
-  try {
-    const body = await req.clone().json();
-    return body?.trigger === "cron";
-  } catch {
-    return false;
-  }
+  return hasInternalSecret(req);
 }

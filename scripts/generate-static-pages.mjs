@@ -80,6 +80,12 @@ const STATIC_PAGES = [
     description:
       'Komplett översikt över kommande agility- och hooperstävlingar i Sverige. Uppdateras dagligen från Agilitydata.se.',
   },
+  {
+    route: '/banplanerare',
+    title: 'Gratis banplanerare för agility och hoopers | AgilityManager',
+    description:
+      'Rita agility- och hoopersbanor gratis direkt i webbläsaren. Dra och släpp hinder, numrera, exportera som PNG eller PDF. Inget konto krävs.',
+  },
 ];
 
 // ---------------- FAQ (måste spegla src/pages/LandingPage.tsx + HoopersLandingPage.tsx) ----------------

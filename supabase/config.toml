@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.bootstrap-cron-secret]
 verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.social-notifications]
+verify_jwt = false

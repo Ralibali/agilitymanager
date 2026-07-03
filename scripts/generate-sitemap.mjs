@@ -55,6 +55,9 @@ const STATIC_ROUTES = [
   { path: '/integritetspolicy', changefreq: 'yearly', priority: '0.3' },
   { path: '/cookiepolicy', changefreq: 'yearly', priority: '0.3' },
   { path: '/tavlingar', changefreq: 'weekly', priority: '0.8' },
+  { path: '/banplanerare', changefreq: 'weekly', priority: '0.9' },
+  { path: '/ansvarsfriskrivning', changefreq: 'yearly', priority: '0.3' },
+  { path: '/hjalp/resultathamtning', changefreq: 'yearly', priority: '0.3' },
 ];
 
 /* ─────────────────────────────────────────────────────────────────────

@@ -201,6 +201,21 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Non-internal callers must be admins — the scraper hits external sites and is rate-limit sensitive.
+  if (!isInternal && userId) {
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { data: isAdmin } = await adminClient.rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Forbidden — admin only" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
+
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;

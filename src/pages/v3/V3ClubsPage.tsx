@@ -13,7 +13,7 @@ interface Club {
   description: string;
   city: string;
   logo_url: string | null;
-  invite_code: string;
+  invite_code?: string | null;
   created_by: string;
   created_at: string;
   quick_tags: string[];
@@ -49,7 +49,7 @@ export default function V3ClubsPage() {
     setMemberships(memList);
     if (memList.length > 0) {
       const ids = memList.map((m) => m.club_id);
-      const { data: clubs } = await supabase.from("clubs").select("*").in("id", ids);
+      const { data: clubs } = await supabase.from("clubs").select("id, name, description, city, logo_url, created_by, created_at, updated_at, quick_tags, slug, region").in("id", ids);
       setMyClubs((clubs ?? []) as Club[]);
     } else setMyClubs([]);
     setLoading(false);
@@ -60,7 +60,7 @@ export default function V3ClubsPage() {
   useEffect(() => {
     if (search.length < 2) { setSearchResults([]); return; }
     const t = setTimeout(async () => {
-      const { data } = await supabase.from("clubs").select("*").or(`name.ilike.%${search}%,city.ilike.%${search}%`).limit(20);
+      const { data } = await supabase.from("clubs").select("id, name, description, city, logo_url, created_by, created_at, updated_at, quick_tags, slug, region").or(`name.ilike.%${search}%,city.ilike.%${search}%`).limit(20);
       setSearchResults((data ?? []) as Club[]);
     }, 300);
     return () => clearTimeout(t);
@@ -78,7 +78,7 @@ export default function V3ClubsPage() {
 
   const handleCreate = async () => {
     if (!newName.trim() || !user) { toast.error("Ange ett klubbnamn"); return; }
-    const { data: club, error } = await supabase.from("clubs").insert({ name: newName.trim(), description: newDesc.trim(), city: newCity.trim(), created_by: user.id }).select().single();
+    const { data: club, error } = await supabase.from("clubs").insert({ name: newName.trim(), description: newDesc.trim(), city: newCity.trim(), created_by: user.id }).select("id, name, description, city, logo_url, created_by, created_at, updated_at, quick_tags, slug, region").single();
     if (error || !club) { toast.error("Kunde inte skapa klubben"); return; }
     await supabase.from("club_members").insert({ club_id: club.id, user_id: user.id, role: "admin", status: "accepted" });
     toast.success("Klubb skapad");
@@ -127,8 +127,21 @@ export default function V3ClubsPage() {
 }
 
 function ClubDetail({ club, role, onBack }: { club: Club; role?: string; onBack: () => void }) {
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    if (role === "admin") {
+      void supabase.rpc("get_my_club_invite_code", { p_club_id: club.id }).then(({ data }) => {
+        if (alive) setInviteCode((data as string | null) ?? null);
+      });
+    } else {
+      setInviteCode(null);
+    }
+    return () => { alive = false; };
+  }, [club.id, role]);
   const copyInvite = async () => {
-    const url = `${window.location.origin}/club-invite/${club.invite_code}`;
+    if (!inviteCode) return;
+    const url = `${window.location.origin}/club-invite/${inviteCode}`;
     await navigator.clipboard?.writeText(url);
     toast.success("Inbjudningslänk kopierad");
   };
@@ -143,8 +156,8 @@ function ClubDetail({ club, role, onBack }: { club: Club; role?: string; onBack:
         </div>
         {club.description && <p className="text-v3-base text-v3-text-secondary mt-5 max-w-3xl">{club.description}</p>}
       </section>
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-3"><V3Stat label="Din roll" value={role ?? "Gäst"} hint="medlemskap" /><V3Stat label="Stad" value={club.city || "—"} hint="klubbens ort" /><V3Stat label="Inbjudan" value={club.invite_code ? "Aktiv" : "—"} hint="delbar länk" /></section>
-      <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs"><h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Klubböversikt</h2><p className="text-v3-sm text-v3-text-secondary mt-1">Här visas klubbens information. Medlemslista, inlägg och aktiviteter kan byggas vidare här utan att skicka användaren till en trasig gammal route.</p>{club.invite_code && <button type="button" onClick={copyInvite} className="mt-4 inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600"><Copy size={15} /> Kopiera inbjudningslänk</button>}</section>
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-3"><V3Stat label="Din roll" value={role ?? "Gäst"} hint="medlemskap" /><V3Stat label="Stad" value={club.city || "—"} hint="klubbens ort" /><V3Stat label="Inbjudan" value={inviteCode ? "Aktiv" : "—"} hint="delbar länk" /></section>
+      <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs"><h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Klubböversikt</h2><p className="text-v3-sm text-v3-text-secondary mt-1">Här visas klubbens information. Medlemslista, inlägg och aktiviteter kan byggas vidare här utan att skicka användaren till en trasig gammal route.</p>{inviteCode && <button type="button" onClick={copyInvite} className="mt-4 inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600"><Copy size={15} /> Kopiera inbjudningslänk</button>}</section>
     </V3Page>
   );
 }

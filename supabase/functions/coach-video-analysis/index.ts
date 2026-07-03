@@ -38,10 +38,34 @@ serve(async (req) => {
       });
     }
 
-    const { feedbackId, videoPath, question, sport, dogName } = await req.json();
+    const { feedbackId, question, sport, dogName } = await req.json();
 
-    if (!videoPath || !question || !feedbackId) {
+    if (!question || !feedbackId) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Verify ownership of the feedback record before accessing the video.
+    // The service-role client bypasses RLS, so we must check user_id manually
+    // and derive the storage path from the trusted DB row — never from client input.
+    const { data: fb, error: fbError } = await supabase
+      .from("coach_feedback")
+      .select("user_id, video_url")
+      .eq("id", feedbackId)
+      .maybeSingle();
+
+    if (fbError || !fb || fb.user_id !== user.id) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const videoPath: string = fb.video_url;
+    if (!videoPath) {
+      return new Response(JSON.stringify({ error: "Feedback has no video" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

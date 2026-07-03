@@ -13,7 +13,7 @@ interface Club {
   description: string;
   city: string;
   logo_url: string | null;
-  invite_code: string;
+  invite_code?: string | null;
   created_by: string;
   created_at: string;
   quick_tags: string[];

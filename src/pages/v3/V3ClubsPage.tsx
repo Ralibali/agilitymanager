@@ -49,7 +49,7 @@ export default function V3ClubsPage() {
     setMemberships(memList);
     if (memList.length > 0) {
       const ids = memList.map((m) => m.club_id);
-      const { data: clubs } = await supabase.from("clubs").select("*").in("id", ids);
+      const { data: clubs } = await supabase.from("clubs").select("id, name, description, city, logo_url, created_by, created_at, updated_at, quick_tags, slug, region").in("id", ids);
       setMyClubs((clubs ?? []) as Club[]);
     } else setMyClubs([]);
     setLoading(false);

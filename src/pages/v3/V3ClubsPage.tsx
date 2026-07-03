@@ -60,7 +60,7 @@ export default function V3ClubsPage() {
   useEffect(() => {
     if (search.length < 2) { setSearchResults([]); return; }
     const t = setTimeout(async () => {
-      const { data } = await supabase.from("clubs").select("*").or(`name.ilike.%${search}%,city.ilike.%${search}%`).limit(20);
+      const { data } = await supabase.from("clubs").select("id, name, description, city, logo_url, created_by, created_at, updated_at, quick_tags, slug, region").or(`name.ilike.%${search}%,city.ilike.%${search}%`).limit(20);
       setSearchResults((data ?? []) as Club[]);
     }, 300);
     return () => clearTimeout(t);

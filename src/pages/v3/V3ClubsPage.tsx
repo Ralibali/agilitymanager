@@ -127,8 +127,21 @@ export default function V3ClubsPage() {
 }
 
 function ClubDetail({ club, role, onBack }: { club: Club; role?: string; onBack: () => void }) {
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    if (role === "admin") {
+      void supabase.rpc("get_my_club_invite_code", { p_club_id: club.id }).then(({ data }) => {
+        if (alive) setInviteCode((data as string | null) ?? null);
+      });
+    } else {
+      setInviteCode(null);
+    }
+    return () => { alive = false; };
+  }, [club.id, role]);
   const copyInvite = async () => {
-    const url = `${window.location.origin}/club-invite/${club.invite_code}`;
+    if (!inviteCode) return;
+    const url = `${window.location.origin}/club-invite/${inviteCode}`;
     await navigator.clipboard?.writeText(url);
     toast.success("Inbjudningslänk kopierad");
   };

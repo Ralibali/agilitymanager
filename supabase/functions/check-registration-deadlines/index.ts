@@ -115,12 +115,7 @@ Deno.serve(async (req) => {
       if (entry) pending.push(entry);
     }
 
-    if (pending.length === 0) {
-      return new Response(
-        JSON.stringify({ success: true, notified: 0, checked: interests.length }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // (watchers-blocket längre ner körs oavsett om interests är tomma)
 
     // 1) In-app notiser
     const notifications = pending.map((p) => ({

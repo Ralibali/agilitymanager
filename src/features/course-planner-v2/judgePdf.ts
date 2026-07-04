@@ -29,6 +29,10 @@ export interface JudgePdfInput {
   svgElement?: SVGSVGElement | null;
   /** Aktivt regelverk (Prompt A). Default väljs efter sport. */
   ruleSetId?: string;
+  /** PNG dataURL för QR-kod som visas på sida 1. */
+  qrDataUrl?: string;
+  /** Premium-flagga för att slå av byline-vattenmärket. Default = true. */
+  showWatermark?: boolean;
 }
 
 export async function exportJudgePdf(input: JudgePdfInput) {

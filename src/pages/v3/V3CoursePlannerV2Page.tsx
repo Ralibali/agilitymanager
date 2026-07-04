@@ -279,24 +279,48 @@ function V3CoursePlannerV2PageInner() {
     obstacles: course.obstacles,
     authorName: profileName,
     ruleSetId: course.ruleSetId,
-  }), [course, profileName]);
+    showWatermark: !isPremium || showWatermark,
+  }), [course, profileName, isPremium, showWatermark]);
+
+  // Bygger dataURL för QR-koden som pekar tillbaka till banplaneraren.
+  // Använder en engångs-per-export rendering för att undvika onödigt jobb.
+  async function buildQrDataUrl(): Promise<string | undefined> {
+    try {
+      return await makeQrDataUrl(
+        "https://agilitymanager.se/banplanerare?utm_source=pdf&utm_medium=export",
+        256,
+      );
+    } catch {
+      return undefined;
+    }
+  }
 
   async function handleExportPdf() {
     try {
-      await exportJudgePdf({ ...baseExportInput(), svgElement: svgRef.current });
+      const qrDataUrl = await buildQrDataUrl();
+      await exportJudgePdf({ ...baseExportInput(), qrDataUrl, svgElement: svgRef.current });
       toast.success("Domar-PDF skapad");
     } catch (e) { console.error(e); toast.error("Kunde inte skapa PDF"); }
   }
 
   async function handleExportTrainingPdf() {
-    try { await exportTrainingPdf(baseExportInput()); toast.success("Tränings-PDF skapad"); }
+    try {
+      const qrDataUrl = await buildQrDataUrl();
+      await exportTrainingPdf({ ...baseExportInput(), qrDataUrl });
+      toast.success("Tränings-PDF skapad");
+    }
     catch (e) { console.error(e); toast.error("Kunde inte skapa PDF"); }
   }
 
   async function handleExportBuildPdf() {
-    try { await exportBuildPdf(baseExportInput()); toast.success("Bygg-PDF skapad"); }
+    try {
+      const qrDataUrl = await buildQrDataUrl();
+      await exportBuildPdf({ ...baseExportInput(), qrDataUrl });
+      toast.success("Bygg-PDF skapad");
+    }
     catch (e) { console.error(e); toast.error("Kunde inte skapa PDF"); }
   }
+
 
   function handleExportJson() {
     try {

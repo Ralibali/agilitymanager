@@ -283,7 +283,7 @@ Deno.serve(async (req) => {
     console.log(`Watchers notified: ${watcherEmails}`);
 
     return new Response(
-      JSON.stringify({ success: true, notified: pending.length, emailsSent }),
+      JSON.stringify({ success: true, notified: pending.length, emailsSent, watcherEmails }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

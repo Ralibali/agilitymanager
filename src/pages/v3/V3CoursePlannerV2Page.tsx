@@ -844,7 +844,7 @@ function V3CoursePlannerV2PageInner() {
                   obstacleCount: course.obstacles.length,
                   obstacles: course.obstacles.map((o) => ({ x: o.x, y: o.y, number: o.number ?? null })),
                   ringMeters: { width: course.arenaWidthM, height: course.arenaHeightM },
-                });
+                }, { showWatermark: !isPremium || showWatermark });
                 const result = await shareCanvas(canvas, `${(course.name || "bana").replace(/\s+/g, "-").toLowerCase()}.png`, course.name || "Min bana");
                 toast.success(result === "shared" ? "Bana delad" : "Bild nedladdad");
               } catch (e) {
@@ -854,6 +854,9 @@ function V3CoursePlannerV2PageInner() {
             }}
             on3DView={() => setView3D("view")}
             on3DWalk={() => setView3D("walk")}
+            isPremium={isPremium}
+            showWatermark={showWatermark}
+            onToggleWatermark={setShowWatermark}
           />
         }
         onLibrary={() => setLibraryOpen(true)}

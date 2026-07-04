@@ -45,6 +45,7 @@ function stripHtml(s: string | null | undefined): string {
 
 export default function CompetitionDetailPage() {
   const { id } = useParams<{ id: string; slug?: string }>();
+  const { user } = useAuth();
   const [comp, setComp] = useState<Competition | null>(null);
   const [related, setRelated] = useState<Competition[]>([]);
   const [weather, setWeather] = useState<WeatherDay | null>(null);

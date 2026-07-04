@@ -354,11 +354,19 @@ export default function HoopersCompetitionDetailPage() {
               <p className="text-muted-foreground mb-4">
                 Anmälan sker via Svenska Hoopersklubben (SHoK).
               </p>
-              <Button asChild size="lg" className="gap-2">
-                <a href={comp.source_url} target="_blank" rel="noopener noreferrer">
-                  Gå till anmälan <ExternalLink className="w-4 h-4" />
-                </a>
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild size="lg" className="gap-2">
+                  <a href={comp.source_url} target="_blank" rel="noopener noreferrer">
+                    Gå till anmälan <ExternalLink className="w-4 h-4" />
+                  </a>
+                </Button>
+                {!user && (
+                  <WatchCompetitionDialog
+                    competitionId={comp.competition_id}
+                    competitionName={stripHtml(comp.competition_name) || "Hooperstävling"}
+                  />
+                )}
+              </div>
             </section>
           )}
 

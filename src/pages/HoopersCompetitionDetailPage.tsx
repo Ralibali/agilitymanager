@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { fetchWeatherForDate, describeWeather, type WeatherDay } from "@/lib/weatherForecast";
 import { buildHoopersCompetitionPath, buildCompetitionSlug } from "@/lib/competitionSlug";
 import { Disclaimer } from "@/components/Disclaimer";
+import { WatchCompetitionDialog } from "@/components/competitions/WatchCompetitionDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SITE_URL = "https://agilitymanager.se";
 

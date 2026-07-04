@@ -153,7 +153,9 @@ export default function V3CoursePlannerV2Page() {
 
 function V3CoursePlannerV2PageInner() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, subscription } = useAuth();
+  const isPremium = !!subscription.subscribed;
+  const [showWatermark, setShowWatermark] = useState(true);
   const isMobile = useIsMobile();
   const [course, setCourseRaw] = useState<CourseV2>(() => loadCourse());
   const [selectedId, setSelectedId] = useState<string | null>(null);

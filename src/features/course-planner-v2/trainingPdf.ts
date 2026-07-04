@@ -18,6 +18,8 @@ export interface TrainingPdfInput {
   authorName?: string;
   /** Hundens namn (valfritt). */
   dogName?: string;
+  qrDataUrl?: string;
+  showWatermark?: boolean;
 }
 
 export async function exportTrainingPdf(input: TrainingPdfInput) {

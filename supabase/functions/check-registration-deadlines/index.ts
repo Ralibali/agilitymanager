@@ -180,6 +180,114 @@ Deno.serve(async (req) => {
 
     console.log(`Notified ${pending.length} users (${emailsSent} emails)`);
 
+    // 4) Publik e-postbevakning (competition_watchers) — påminn confirmed
+    //    watchers vars tävling har deadline inom 3 dagar.
+    let watcherEmails = 0;
+    try {
+      const { data: watchers } = await supabase
+        .from("competition_watchers")
+        .select("id, email, competition_id, sport, token")
+        .not("confirmed_at", "is", null)
+        .is("deadline_notified_at", null);
+
+      if (watchers && watchers.length > 0) {
+        const watcherAgilityIds = [
+          ...new Set(watchers.filter((w: any) => w.sport === "agility").map((w: any) => w.competition_id)),
+        ];
+        const watcherHoopersIds = [
+          ...new Set(watchers.filter((w: any) => w.sport === "hoopers").map((w: any) => w.competition_id)),
+        ];
+
+        const [wAgility, wHoopers] = await Promise.all([
+          watcherAgilityIds.length
+            ? supabase
+                .from("competitions")
+                .select("id, competition_name, location, last_registration_date")
+                .in("id", watcherAgilityIds)
+            : Promise.resolve({ data: [] as any[] }),
+          watcherHoopersIds.length
+            ? supabase
+                .from("hoopers_competitions")
+                .select("competition_id, competition_name, location, registration_closes")
+                .in("competition_id", watcherHoopersIds)
+            : Promise.resolve({ data: [] as any[] }),
+        ]);
+
+        const wAgilityMap = new Map((wAgility.data || []).map((c: any) => [c.id, c]));
+        const wHoopersMap = new Map((wHoopers.data || []).map((c: any) => [c.competition_id, c]));
+
+        const notifiedIds: string[] = [];
+        for (const w of watchers as any[]) {
+          let compName = "";
+          let compLoc = "";
+          let closes: string | null = null;
+          if (w.sport === "agility") {
+            const c: any = wAgilityMap.get(w.competition_id);
+            if (!c) continue;
+            compName = c.competition_name || "Tävling";
+            compLoc = c.location || "";
+            closes = c.last_registration_date;
+          } else {
+            const c: any = wHoopersMap.get(w.competition_id);
+            if (!c) continue;
+            compName = c.competition_name || "Hooperstävling";
+            compLoc = c.location || "";
+            closes = c.registration_closes;
+          }
+          if (!closes) continue;
+          if (closes !== fmt(in3Days) && closes !== fmt(in1Day)) continue;
+
+          const daysLeft = closes === fmt(in1Day) ? 1 : 3;
+          const dateLabel = daysLeft === 1 ? "imorgon" : `om ${daysLeft} dagar`;
+          const viewUrl =
+            w.sport === "hoopers"
+              ? `https://agilitymanager.se/tavlingar/hoopers/${encodeURIComponent(w.competition_id)}`
+              : `https://agilitymanager.se/tavlingar/${encodeURIComponent(w.competition_id)}`;
+          const unsubUrl = `${supabaseUrl}/functions/v1/watch-competition/unsubscribe?token=${w.token}`;
+
+          try {
+            const resp = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-internal-secret": serviceRoleKey,
+              },
+              body: JSON.stringify({
+                templateName: "watch_deadline",
+                recipientEmail: w.email,
+                data: {
+                  competitionName: compName,
+                  location: compLoc,
+                  dateLabel,
+                  viewUrl,
+                  unsubUrl,
+                },
+              }),
+            });
+            if (resp.ok) {
+              watcherEmails++;
+              notifiedIds.push(w.id);
+            } else {
+              console.error("watcher send-email failed", resp.status, await resp.text());
+            }
+          } catch (e) {
+            console.error("watcher send-email error", e);
+          }
+        }
+
+        if (notifiedIds.length > 0) {
+          await supabase
+            .from("competition_watchers")
+            .update({ deadline_notified_at: new Date().toISOString() })
+            .in("id", notifiedIds);
+        }
+      }
+    } catch (e) {
+      console.error("watcher block error", e);
+    }
+
+    console.log(`Watchers notified: ${watcherEmails}`);
+
     return new Response(
       JSON.stringify({ success: true, notified: pending.length, emailsSent }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

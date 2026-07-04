@@ -318,7 +318,7 @@ export function renderCourseImage(data: CourseShareData, opts: { showWatermark?:
     ctx.textAlign = "left";
   }
 
-  drawFooter(ctx, "Skapad i AgilityManager");
+  drawFooter(ctx, "Skapad i AgilityManager", opts.showWatermark !== false);
   return canvas;
 }
 

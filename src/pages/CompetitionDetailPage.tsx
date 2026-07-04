@@ -12,6 +12,8 @@ import { buildAgilityCompetitionPath, buildCompetitionSlug } from "@/lib/competi
 import { CITY_TO_COUNTY } from "@/lib/swedishCityCounty";
 import { Disclaimer } from "@/components/Disclaimer";
 import type { Competition } from "@/types/competitions";
+import { WatchCompetitionDialog } from "@/components/competitions/WatchCompetitionDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SITE_URL = "https://agilitymanager.se";
 
@@ -43,6 +45,7 @@ function stripHtml(s: string | null | undefined): string {
 
 export default function CompetitionDetailPage() {
   const { id } = useParams<{ id: string; slug?: string }>();
+  const { user } = useAuth();
   const [comp, setComp] = useState<Competition | null>(null);
   const [related, setRelated] = useState<Competition[]>([]);
   const [weather, setWeather] = useState<WeatherDay | null>(null);
@@ -357,11 +360,19 @@ export default function CompetitionDetailPage() {
               <p className="text-muted-foreground mb-4">
                 Anmälan sker via Agilitydata.se — den officiella SBK-portalen för svensk agility.
               </p>
-              <Button asChild size="lg" className="gap-2">
-                <a href={comp.source_url} target="_blank" rel="noopener noreferrer">
-                  Gå till anmälan <ExternalLink className="w-4 h-4" />
-                </a>
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild size="lg" className="gap-2">
+                  <a href={comp.source_url} target="_blank" rel="noopener noreferrer">
+                    Gå till anmälan <ExternalLink className="w-4 h-4" />
+                  </a>
+                </Button>
+                {!user && (
+                  <WatchCompetitionDialog
+                    competitionId={comp.id}
+                    competitionName={name}
+                  />
+                )}
+              </div>
             </section>
           )}
 

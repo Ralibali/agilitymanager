@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { fetchWeatherForDate, describeWeather, type WeatherDay } from "@/lib/weatherForecast";
 import { buildHoopersCompetitionPath, buildCompetitionSlug } from "@/lib/competitionSlug";
 import { Disclaimer } from "@/components/Disclaimer";
+import { WatchCompetitionDialog } from "@/components/competitions/WatchCompetitionDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SITE_URL = "https://agilitymanager.se";
 
@@ -63,6 +65,7 @@ function formatDate(d: string | null): string {
 
 export default function HoopersCompetitionDetailPage() {
   const { id } = useParams<{ id: string; slug?: string }>();
+  const { user } = useAuth();
   const [comp, setComp] = useState<HoopersCompetition | null>(null);
   const [related, setRelated] = useState<HoopersCompetition[]>([]);
   const [weather, setWeather] = useState<WeatherDay | null>(null);
@@ -351,11 +354,19 @@ export default function HoopersCompetitionDetailPage() {
               <p className="text-muted-foreground mb-4">
                 Anmälan sker via Svenska Hoopersklubben (SHoK).
               </p>
-              <Button asChild size="lg" className="gap-2">
-                <a href={comp.source_url} target="_blank" rel="noopener noreferrer">
-                  Gå till anmälan <ExternalLink className="w-4 h-4" />
-                </a>
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild size="lg" className="gap-2">
+                  <a href={comp.source_url} target="_blank" rel="noopener noreferrer">
+                    Gå till anmälan <ExternalLink className="w-4 h-4" />
+                  </a>
+                </Button>
+                {!user && (
+                  <WatchCompetitionDialog
+                    competitionId={comp.competition_id}
+                    competitionName={stripHtml(comp.competition_name) || "Hooperstävling"}
+                  />
+                )}
+              </div>
             </section>
           )}
 

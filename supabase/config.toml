@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.social-notifications]
 verify_jwt = false
+
+[functions.watch-competition]
+verify_jwt = false

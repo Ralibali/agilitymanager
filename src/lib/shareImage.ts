@@ -134,7 +134,7 @@ export type ResultShareData = {
   disqualified?: boolean;
 };
 
-export function renderResultImage(data: ResultShareData): HTMLCanvasElement {
+export function renderResultImage(data: ResultShareData, opts: { showWatermark?: boolean } = {}): HTMLCanvasElement {
   const { canvas, ctx } = makeCanvas();
   drawBackground(ctx);
   drawHeader(ctx);

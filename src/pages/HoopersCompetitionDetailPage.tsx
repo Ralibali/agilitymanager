@@ -65,6 +65,7 @@ function formatDate(d: string | null): string {
 
 export default function HoopersCompetitionDetailPage() {
   const { id } = useParams<{ id: string; slug?: string }>();
+  const { user } = useAuth();
   const [comp, setComp] = useState<HoopersCompetition | null>(null);
   const [related, setRelated] = useState<HoopersCompetition[]>([]);
   const [weather, setWeather] = useState<WeatherDay | null>(null);

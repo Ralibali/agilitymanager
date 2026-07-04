@@ -55,8 +55,10 @@ export default function PrivacyPolicyPage() {
                 <li><strong>Betalnings- och prenumerationsdata:</strong> Stripe-kund-ID, prenumerationsstatus, produkt, betalningsstatus och kvittorelaterad information. Kortuppgifter hanteras av Stripe.</li>
                 <li><strong>Teknisk information:</strong> session, cookieval, säkerhetsloggar, felinformation och enhets-/webbläsarinformation som behövs för drift och säkerhet.</li>
                 <li><strong>Analys och kampanjdata efter samtycke:</strong> statistik, UTM-parametrar, hänvisande sida, landningssida och eventuella pixelhändelser om du godkänt motsvarande kategori.</li>
+                <li><strong>Tävlingsbevakning utan konto:</strong> om du använder "Bevaka tävling" på en publik tävlingssida sparar vi din e-postadress kopplat till den specifika tävlingen, en tidsstämpel och en unik avregistreringstoken. Laglig grund är samtycke (art. 6.1 a) och uppgifterna lagras tills du avregistrerar dig via länken i mejlen. Adressen är inte kopplad till något användarkonto och används enbart för att skicka påminnelser och resultatnotiser för just den tävlingen.</li>
               </ul>
             </section>
+
 
             <section>
               <h2 className="text-xl font-display font-semibold text-foreground">4. Varför vi behandlar uppgifter och laglig grund</h2>

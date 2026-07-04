@@ -797,6 +797,42 @@ export type Database = {
           },
         ]
       }
+      competition_watchers: {
+        Row: {
+          competition_id: string
+          confirmed_at: string | null
+          created_at: string
+          deadline_notified_at: string | null
+          email: string
+          id: string
+          results_notified_at: string | null
+          sport: string
+          token: string
+        }
+        Insert: {
+          competition_id: string
+          confirmed_at?: string | null
+          created_at?: string
+          deadline_notified_at?: string | null
+          email: string
+          id?: string
+          results_notified_at?: string | null
+          sport: string
+          token?: string
+        }
+        Update: {
+          competition_id?: string
+          confirmed_at?: string | null
+          created_at?: string
+          deadline_notified_at?: string | null
+          email?: string
+          id?: string
+          results_notified_at?: string | null
+          sport?: string
+          token?: string
+        }
+        Relationships: []
+      }
       competitions: {
         Row: {
           classes_agility: string[] | null

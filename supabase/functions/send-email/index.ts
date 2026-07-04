@@ -171,6 +171,49 @@ const TEMPLATES: Record<string, (data: any) => TemplateResult> = {
       </div>
       `, data.unsubUrl),
   }),
+
+  watch_confirmation: (data) => ({
+    subject: `Bekräfta bevakning: ${data.competitionName}`,
+    html: wrap('Bekräfta din bevakning', `
+      <p style="color:#333;font-size:15px;line-height:1.6">Hej!</p>
+      <p style="color:#555;font-size:14px;line-height:1.6">
+        Du har valt att bevaka <strong>${data.competitionName}</strong>. Klicka på knappen nedan för att bekräfta din e-postadress, sedan hör vi av oss när anmälan snart stänger eller när resultat publiceras.
+      </p>
+      <div style="text-align:center;margin:24px 0">
+        <a href="${data.confirmUrl}" style="background:#1a6b3c;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;display:inline-block">Bekräfta bevakning</a>
+      </div>
+      <p style="color:#888;font-size:12px">Om du inte bad om detta kan du strunta i mejlet — inga fler utskick skickas utan bekräftelse.</p>
+    `, data.unsubUrl),
+  }),
+
+  watch_reminder_info: (data) => ({
+    subject: `Du bevakar redan ${data.competitionName}`,
+    html: wrap('Bevakning aktiv', `
+      <p style="color:#333;font-size:15px;line-height:1.6">Hej!</p>
+      <p style="color:#555;font-size:14px;line-height:1.6">
+        Du bevakar redan <strong>${data.competitionName}</strong>. Vi hör av oss när anmälan stänger eller resultat publiceras.
+      </p>
+      <p style="color:#888;font-size:12px">Vill du sluta bevaka? Använd länken längst ner.</p>
+    `, data.unsubUrl),
+  }),
+
+  watch_deadline: (data) => ({
+    subject: `⏳ Anmälan till ${data.competitionName} stänger snart`,
+    html: wrap('Anmälan stänger snart', `
+      <p style="color:#333;font-size:15px;line-height:1.6">Hej!</p>
+      <p style="color:#555;font-size:14px;line-height:1.6">
+        Anmälan till <strong>${data.competitionName}</strong>${data.location ? ` i ${data.location}` : ''} stänger <strong>${data.dateLabel}</strong>.
+      </p>
+      <div style="text-align:center;margin:24px 0">
+        <a href="${data.viewUrl}" style="background:#1a6b3c;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;display:inline-block">Se tävlingen →</a>
+      </div>
+      <p style="color:#555;font-size:13px;line-height:1.6;text-align:center;margin-top:16px">
+        Vill du hålla koll på alla dina tävlingar automatiskt?
+        <br/>
+        <a href="${SITE_URL}/auth?mode=signup&utm_source=email&utm_medium=watch" style="color:#1a6b3c;text-decoration:underline">Skapa gratiskonto</a>
+      </p>
+    `, data.unsubUrl),
+  }),
 }
 // ---------- HANDLER ----------
 import { requireAuth, hasInternalSecret, escapeHtml } from '../_shared/auth.ts'

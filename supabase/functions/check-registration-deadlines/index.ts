@@ -117,63 +117,62 @@ Deno.serve(async (req) => {
 
     // (watchers-blocket längre ner körs oavsett om interests är tomma)
 
-    // 1) In-app notiser
-    const notifications = pending.map((p) => ({
-      user_id: p.interest.user_id,
-      competition_id: p.interest.competition_id,
-      message: p.message,
-    }));
-    await supabase.from("notifications").insert(notifications);
-
-    // 2) E-postutskick — hämta användarens email + opt-out
-    const userIds = [...new Set(pending.map((p) => p.interest.user_id))];
-    const emailMap = new Map<string, string>();
-
-    for (const uid of userIds) {
-      const { data: u } = await supabase.auth.admin.getUserById(uid);
-      if (u?.user?.email) emailMap.set(uid, u.user.email);
-    }
-
-
     let emailsSent = 0;
-    for (const p of pending) {
-      const email = emailMap.get(p.interest.user_id);
-      if (!email) continue;
-      
+    if (pending.length > 0) {
+      // 1) In-app notiser
+      const notifications = pending.map((p) => ({
+        user_id: p.interest.user_id,
+        competition_id: p.interest.competition_id,
+        message: p.message,
+      }));
+      await supabase.from("notifications").insert(notifications);
 
-      try {
-        const resp = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-internal-secret": serviceRoleKey,
-          },
-          body: JSON.stringify({
-            templateName: "competition_reminder",
-            recipientEmail: email,
-            data: {
-              eventName: p.compName,
-              dateLabel: p.daysLeft === 0 ? "Idag" : p.daysLeft === 1 ? "Imorgon" : `Om ${p.daysLeft} dagar`,
-              location: p.compLocation,
-              daysBefore: p.daysLeft,
-              signupUrl: "",
-            },
-          }),
-        });
-        if (resp.ok) emailsSent++;
-        else console.error("send-email failed", await resp.text());
-      } catch (e) {
-        console.error("send-email error", e);
+      // 2) E-postutskick — hämta användarens email + opt-out
+      const userIds = [...new Set(pending.map((p) => p.interest.user_id))];
+      const emailMap = new Map<string, string>();
+      for (const uid of userIds) {
+        const { data: u } = await supabase.auth.admin.getUserById(uid);
+        if (u?.user?.email) emailMap.set(uid, u.user.email);
       }
+
+      for (const p of pending) {
+        const email = emailMap.get(p.interest.user_id);
+        if (!email) continue;
+        try {
+          const resp = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-internal-secret": serviceRoleKey,
+            },
+            body: JSON.stringify({
+              templateName: "competition_reminder",
+              recipientEmail: email,
+              data: {
+                eventName: p.compName,
+                dateLabel: p.daysLeft === 0 ? "Idag" : p.daysLeft === 1 ? "Imorgon" : `Om ${p.daysLeft} dagar`,
+                location: p.compLocation,
+                daysBefore: p.daysLeft,
+                signupUrl: "",
+              },
+            }),
+          });
+          if (resp.ok) emailsSent++;
+          else console.error("send-email failed", await resp.text());
+        } catch (e) {
+          console.error("send-email error", e);
+        }
+      }
+
+      // 3) Markera som notifierade
+      await supabase
+        .from("competition_interests")
+        .update({ notified_at: new Date().toISOString() })
+        .in("id", pending.map((p) => p.interest.id));
+
+      console.log(`Notified ${pending.length} users (${emailsSent} emails)`);
     }
 
-    // 3) Markera som notifierade
-    await supabase
-      .from("competition_interests")
-      .update({ notified_at: new Date().toISOString() })
-      .in("id", pending.map((p) => p.interest.id));
-
-    console.log(`Notified ${pending.length} users (${emailsSent} emails)`);
 
     // 4) Publik e-postbevakning (competition_watchers) — påminn confirmed
     //    watchers vars tävling har deadline inom 3 dagar.

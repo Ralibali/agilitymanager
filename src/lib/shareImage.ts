@@ -208,7 +208,7 @@ export function renderResultImage(data: ResultShareData, opts: { showWatermark?:
   ctx.fillText(status, W / 2, boxTop + boxH + 60);
   ctx.textAlign = "left";
 
-  drawFooter(ctx, "Träna · Tävla · Följ utvecklingen");
+  drawFooter(ctx, "Träna · Tävla · Följ utvecklingen", opts.showWatermark !== false);
   return canvas;
 }
 

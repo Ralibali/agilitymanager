@@ -29,6 +29,10 @@ export interface JudgePdfInput {
   svgElement?: SVGSVGElement | null;
   /** Aktivt regelverk (Prompt A). Default väljs efter sport. */
   ruleSetId?: string;
+  /** PNG dataURL för QR-kod som visas på sida 1. */
+  qrDataUrl?: string;
+  /** Premium-flagga för att slå av byline-vattenmärket. Default = true. */
+  showWatermark?: boolean;
 }
 
 export async function exportJudgePdf(input: JudgePdfInput) {
@@ -400,7 +404,7 @@ export async function exportJudgePdf(input: JudgePdfInput) {
   );
 
   /* Footer på alla sidor */
-  drawFooterAllPages(doc, { authorName: input.authorName ?? "" });
+  drawFooterAllPages(doc, { authorName: input.authorName ?? "", qrDataUrl: input.qrDataUrl, showWatermark: input.showWatermark });
 
   doc.save(`${safeFileName(input.name)}_domarbana.pdf`);
 }

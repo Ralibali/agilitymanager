@@ -80,15 +80,28 @@ function drawHeader(ctx: CanvasRenderingContext2D) {
   ctx.fillText("AgilityManager", 160, 118);
 }
 
-function drawFooter(ctx: CanvasRenderingContext2D, label: string) {
+function drawFooter(ctx: CanvasRenderingContext2D, label: string, showWatermark: boolean) {
   ctx.fillStyle = FG_FAINT;
   ctx.font = "500 24px 'Urbanist', system-ui, sans-serif";
   ctx.textBaseline = "alphabetic";
   ctx.fillText(label, 80, H - 80);
 
-  ctx.fillStyle = FG_DIM;
+  if (!showWatermark) {
+    ctx.textAlign = "left";
+    return;
+  }
+
+  // Viralt vattenmärke: alltid inbränt i canvasen så det följer med filen
+  // även när den sparas, delas vidare eller croppas för sociala medier.
+  // ~55% opacitet + medium storlek räcker för att bilden ska tåla nerskalning
+  // till FB/Instagram-thumbnail utan att bli oläslig.
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = FG;
+  ctx.font = "600 22px 'Urbanist', system-ui, sans-serif";
   ctx.textAlign = "right";
-  ctx.fillText("agilitymanager.se", W - 80, H - 80);
+  ctx.fillText("agilitymanager.se · Gratis banplanerare", W - 80, H - 80);
+  ctx.restore();
   ctx.textAlign = "left";
 }
 
@@ -121,7 +134,7 @@ export type ResultShareData = {
   disqualified?: boolean;
 };
 
-export function renderResultImage(data: ResultShareData): HTMLCanvasElement {
+export function renderResultImage(data: ResultShareData, opts: { showWatermark?: boolean } = {}): HTMLCanvasElement {
   const { canvas, ctx } = makeCanvas();
   drawBackground(ctx);
   drawHeader(ctx);
@@ -195,7 +208,7 @@ export function renderResultImage(data: ResultShareData): HTMLCanvasElement {
   ctx.fillText(status, W / 2, boxTop + boxH + 60);
   ctx.textAlign = "left";
 
-  drawFooter(ctx, "Träna · Tävla · Följ utvecklingen");
+  drawFooter(ctx, "Träna · Tävla · Följ utvecklingen", opts.showWatermark !== false);
   return canvas;
 }
 
@@ -209,7 +222,7 @@ export type CourseShareData = {
   ringMeters?: { width: number; height: number };
 };
 
-export function renderCourseImage(data: CourseShareData): HTMLCanvasElement {
+export function renderCourseImage(data: CourseShareData, opts: { showWatermark?: boolean } = {}): HTMLCanvasElement {
   const { canvas, ctx } = makeCanvas();
   drawBackground(ctx);
   drawHeader(ctx);
@@ -305,7 +318,7 @@ export function renderCourseImage(data: CourseShareData): HTMLCanvasElement {
     ctx.textAlign = "left";
   }
 
-  drawFooter(ctx, "Skapad i AgilityManager");
+  drawFooter(ctx, "Skapad i AgilityManager", opts.showWatermark !== false);
   return canvas;
 }
 

@@ -388,24 +388,73 @@ export function drawHeaderBand(doc: jsPDF, opts: {
  * Renderar footer på alla sidor i dokumentet.
  * Anropa SIST efter att alla sidor är ritade.
  */
-export function drawFooterAllPages(doc: jsPDF, opts: { authorName: string }) {
+export function drawFooterAllPages(
+  doc: jsPDF,
+  opts: {
+    authorName: string;
+    /** PNG dataURL för QR-kod som ritas i nedre vänstra hörnet på sida 1. */
+    qrDataUrl?: string;
+    /** URL som QR-koden pekar på — samma URL används i den klickbara footer-länken. */
+    qrUrl?: string;
+    /** Premium-användare kan slå av byline-vattenmärket. Default = true. */
+    showWatermark?: boolean;
+  },
+) {
   const total = doc.getNumberOfPages();
   const today = new Date().toISOString().slice(0, 10);
+  const showWatermark = opts.showWatermark !== false;
+  const linkUrl = opts.qrUrl ?? "https://agilitymanager.se/banplanerare?utm_source=pdf&utm_medium=export";
+  const SITE = "agilitymanager.se";
+
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
     const y = PDF_PAGE.height - 6;
     doc.setDrawColor(...PDF_BRAND.line);
     doc.setLineWidth(0.2);
     doc.line(PDF_PAGE.margin, y - 4, PDF_PAGE.width - PDF_PAGE.margin, y - 4);
+
+    if (showWatermark) {
+      // Vänster: "Banan skapad av X på " (italic) + "agilitymanager.se" (bold + länk)
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(7.5);
+      doc.setTextColor(...PDF_BRAND.muted);
+      const prefix = opts.authorName ? `Banan skapad av ${opts.authorName} på ` : "Skapad i Banplaneraren · ";
+      doc.text(prefix, PDF_PAGE.margin, y);
+      const prefixW = doc.getTextWidth(prefix);
+
+      // Site-länk i medium/bold + klickbar annotation
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...PDF_BRAND.primary);
+      const linkX = PDF_PAGE.margin + prefixW;
+      doc.textWithLink(SITE, linkX, y, { url: linkUrl });
+    }
+
     doc.setFont("helvetica", "italic");
     doc.setFontSize(7.5);
     doc.setTextColor(...PDF_BRAND.muted);
-    const author = opts.authorName ? `Banan skapad av ${opts.authorName} på agilitymanager.se` : "Skapad i Banplaneraren · agilitymanager.se";
-    doc.text(author, PDF_PAGE.margin, y);
     doc.text(`${today} · sida ${i} av ${total}`, PDF_PAGE.width - PDF_PAGE.margin, y, { align: "right" });
+
     // varumärkesrad
     doc.setFillColor(...PDF_BRAND.primary);
     doc.rect(0, PDF_PAGE.height - 3, PDF_PAGE.width, 3, "F");
+
+    // QR-kod nere till vänster på sida 1
+    if (i === 1 && opts.qrDataUrl) {
+      const qrSize = 18; // mm
+      const qrX = PDF_PAGE.margin;
+      const qrY = PDF_PAGE.height - 3 - qrSize - 8; // ovanför footer-linjen
+      try {
+        doc.addImage(opts.qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize, undefined, "FAST");
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(6.5);
+        doc.setTextColor(...PDF_BRAND.muted);
+        doc.text("Öppna banan digitalt", qrX + qrSize / 2, qrY + qrSize + 2.5, { align: "center" });
+        // Hela QR-ytan klickbar också
+        doc.link(qrX, qrY, qrSize, qrSize, { url: linkUrl });
+      } catch {
+        // Skit i det om addImage failar — footern behöver ändå fungera.
+      }
+    }
   }
   doc.setTextColor(0);
 }

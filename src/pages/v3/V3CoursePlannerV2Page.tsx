@@ -52,6 +52,7 @@ import { exportBuildPdf } from "@/features/course-planner-v2/buildPdf";
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
 import { parseCourseJson } from "@/features/course-planner-v2/importJson";
 import { renderCourseImage, shareCanvas } from "@/lib/shareImage";
+import { makeQrDataUrl } from "@/lib/qrDataUrl";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
 import {
   CoursePlaybackOverlay,
@@ -153,7 +154,9 @@ export default function V3CoursePlannerV2Page() {
 
 function V3CoursePlannerV2PageInner() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, subscription } = useAuth();
+  const isPremium = !!subscription.subscribed;
+  const [showWatermark, setShowWatermark] = useState(true);
   const isMobile = useIsMobile();
   const [course, setCourseRaw] = useState<CourseV2>(() => loadCourse());
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -276,24 +279,48 @@ function V3CoursePlannerV2PageInner() {
     obstacles: course.obstacles,
     authorName: profileName,
     ruleSetId: course.ruleSetId,
-  }), [course, profileName]);
+    showWatermark: !isPremium || showWatermark,
+  }), [course, profileName, isPremium, showWatermark]);
+
+  // Bygger dataURL för QR-koden som pekar tillbaka till banplaneraren.
+  // Använder en engångs-per-export rendering för att undvika onödigt jobb.
+  async function buildQrDataUrl(): Promise<string | undefined> {
+    try {
+      return await makeQrDataUrl(
+        "https://agilitymanager.se/banplanerare?utm_source=pdf&utm_medium=export",
+        256,
+      );
+    } catch {
+      return undefined;
+    }
+  }
 
   async function handleExportPdf() {
     try {
-      await exportJudgePdf({ ...baseExportInput(), svgElement: svgRef.current });
+      const qrDataUrl = await buildQrDataUrl();
+      await exportJudgePdf({ ...baseExportInput(), qrDataUrl, svgElement: svgRef.current });
       toast.success("Domar-PDF skapad");
     } catch (e) { console.error(e); toast.error("Kunde inte skapa PDF"); }
   }
 
   async function handleExportTrainingPdf() {
-    try { await exportTrainingPdf(baseExportInput()); toast.success("Tränings-PDF skapad"); }
+    try {
+      const qrDataUrl = await buildQrDataUrl();
+      await exportTrainingPdf({ ...baseExportInput(), qrDataUrl });
+      toast.success("Tränings-PDF skapad");
+    }
     catch (e) { console.error(e); toast.error("Kunde inte skapa PDF"); }
   }
 
   async function handleExportBuildPdf() {
-    try { await exportBuildPdf(baseExportInput()); toast.success("Bygg-PDF skapad"); }
+    try {
+      const qrDataUrl = await buildQrDataUrl();
+      await exportBuildPdf({ ...baseExportInput(), qrDataUrl });
+      toast.success("Bygg-PDF skapad");
+    }
     catch (e) { console.error(e); toast.error("Kunde inte skapa PDF"); }
   }
+
 
   function handleExportJson() {
     try {
@@ -817,7 +844,7 @@ function V3CoursePlannerV2PageInner() {
                   obstacleCount: course.obstacles.length,
                   obstacles: course.obstacles.map((o) => ({ x: o.x, y: o.y, number: o.number ?? null })),
                   ringMeters: { width: course.arenaWidthM, height: course.arenaHeightM },
-                });
+                }, { showWatermark: !isPremium || showWatermark });
                 const result = await shareCanvas(canvas, `${(course.name || "bana").replace(/\s+/g, "-").toLowerCase()}.png`, course.name || "Min bana");
                 toast.success(result === "shared" ? "Bana delad" : "Bild nedladdad");
               } catch (e) {
@@ -827,6 +854,9 @@ function V3CoursePlannerV2PageInner() {
             }}
             on3DView={() => setView3D("view")}
             on3DWalk={() => setView3D("walk")}
+            isPremium={isPremium}
+            showWatermark={showWatermark}
+            onToggleWatermark={setShowWatermark}
           />
         }
         onLibrary={() => setLibraryOpen(true)}

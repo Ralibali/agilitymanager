@@ -19,6 +19,8 @@ export interface BuildPdfInput {
   classTemplate: ClassTemplateKey | null;
   obstacles: ObstacleLite[];
   authorName?: string;
+  qrDataUrl?: string;
+  showWatermark?: boolean;
 }
 
 export async function exportBuildPdf(input: BuildPdfInput) {
@@ -196,6 +198,6 @@ export async function exportBuildPdf(input: BuildPdfInput) {
     }
   }
 
-  drawFooterAllPages(doc, { authorName: input.authorName ?? "" });
+  drawFooterAllPages(doc, { authorName: input.authorName ?? "", qrDataUrl: input.qrDataUrl, showWatermark: input.showWatermark });
   doc.save(`${safeFileName(input.name)}_bygg.pdf`);
 }

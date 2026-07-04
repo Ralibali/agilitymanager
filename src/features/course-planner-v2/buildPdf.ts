@@ -19,6 +19,8 @@ export interface BuildPdfInput {
   classTemplate: ClassTemplateKey | null;
   obstacles: ObstacleLite[];
   authorName?: string;
+  qrDataUrl?: string;
+  showWatermark?: boolean;
 }
 
 export async function exportBuildPdf(input: BuildPdfInput) {

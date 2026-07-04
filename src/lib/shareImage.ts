@@ -222,7 +222,7 @@ export type CourseShareData = {
   ringMeters?: { width: number; height: number };
 };
 
-export function renderCourseImage(data: CourseShareData): HTMLCanvasElement {
+export function renderCourseImage(data: CourseShareData, opts: { showWatermark?: boolean } = {}): HTMLCanvasElement {
   const { canvas, ctx } = makeCanvas();
   drawBackground(ctx);
   drawHeader(ctx);

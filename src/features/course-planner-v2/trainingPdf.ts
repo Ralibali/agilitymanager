@@ -138,6 +138,6 @@ export async function exportTrainingPdf(input: TrainingPdfInput) {
     y += 6;
   }
 
-  drawFooterAllPages(doc, { authorName: input.authorName ?? "" });
+  drawFooterAllPages(doc, { authorName: input.authorName ?? "", qrDataUrl: input.qrDataUrl, showWatermark: input.showWatermark });
   doc.save(`${safeFileName(input.name)}_traning.pdf`);
 }

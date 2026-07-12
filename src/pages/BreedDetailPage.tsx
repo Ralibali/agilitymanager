@@ -10,6 +10,7 @@ import { motion as motionTokens } from "@/lib/motion";
 import { CountUp } from "@/components/CountUp";
 import { ScrollProgress } from "@/components/motion";
 import { Disclaimer } from "@/components/Disclaimer";
+import { ProductCTA } from "@/components/marketing/ProductCTA";
 
 type BreedFull = {
   id: string;

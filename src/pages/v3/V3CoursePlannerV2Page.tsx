@@ -709,7 +709,10 @@ function V3CoursePlannerV2PageInner() {
     try { navigator.vibrate?.(8); } catch { /* ignore */ }
   }
 
-  // Drag på SVG-koordinater → meter
+  // Drag på SVG-koordinater → meter.
+  // Klampar HELA det roterade hindret innanför arenan via geometry-helper
+  // så att långa/roterade hinder (tunnel, slalom, långhopp) inte kan dras ut
+  // över kanten. Snap sker på det klampade centrumet.
   function handleSvgPointerMove(e: PointerEvent<SVGSVGElement>) {
     if (!draggingId) return;
     const svg = e.currentTarget;
@@ -720,13 +723,27 @@ function V3CoursePlannerV2PageInner() {
     const local = pt.matrixTransform(ctm.inverse());
     setCourse((c) => ({
       ...c,
-      obstacles: c.obstacles.map((o) => o.id === draggingId
-        ? { ...o, x: snapM(clamp(local.x, 0, c.arenaWidthM)), y: snapM(clamp(local.y, 0, c.arenaHeightM)) }
-        : o),
+      obstacles: c.obstacles.map((o) => {
+        if (o.id !== draggingId) return o;
+        const def = getObstacleDefV2(o.type);
+        const dims = def?.sizeM ?? { w: 1, d: 1 };
+        const desired = { ...o, x: local.x, y: local.y };
+        const clamped = clampObstacleToArena(
+          desired,
+          { widthM: c.arenaWidthM, heightM: c.arenaHeightM },
+          dims,
+        );
+        return { ...clamped, x: snapM(clamped.x), y: snapM(clamped.y) };
+      }),
     }));
   }
 
-  function handleSvgPointerUp() { setDraggingId(null); }
+  function handleSvgPointerUp() {
+    if (draggingId) {
+      trackEvent("course_obstacle_moved", { sport: course.sport, device_class: getDeviceClass() });
+    }
+    setDraggingId(null);
+  }
 
   const palette = useMemo(
     () => OBSTACLES_V2.filter((o) => o.sport.includes(course.sport)),

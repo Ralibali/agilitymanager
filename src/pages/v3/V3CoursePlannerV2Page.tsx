@@ -275,21 +275,8 @@ function V3CoursePlannerV2PageInner() {
   }, [view3D]);
 
   // Fit-to-screen på mobil första gången canvasstorleken är känd (så användaren
-  // ser hela banan från start), och vid sport-/arena-byte. viewport.fitToScreen
-  // är stabilt över samma arena-storlek och läses inte som dep här.
-  useEffect(() => {
-    if (isMobile && !mobileFitDoneRef.current && viewport.metrics.viewportWidthPx > 100) {
-      mobileFitDoneRef.current = true;
-      viewport.fitToScreen();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMobile, viewport.metrics.viewportWidthPx]);
-
-  useEffect(() => {
-    // Vid arena- eller sportbyte: fit så att nya banan syns direkt.
-    viewport.fitToScreen();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [course.arenaWidthM, course.arenaHeightM, course.sport]);
+  // Auto-fit vid första storlek och vid arena-/sportbyte ligger nu inne i
+  // ArenaCanvas (den äger viewport-hooken och sin egen ResizeObserver).
 
 
   // 2D-uppspelning ("Spela upp banan").

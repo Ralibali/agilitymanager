@@ -1311,6 +1311,7 @@ function V3CoursePlannerV2PageInner() {
                   responsiv och wrapar när skärmen är smal. */}
               {/* Grupp: ritverktyg */}
               <ToolBtn active={tool === "select"} onClick={() => setTool("select")} icon={<MousePointer2 size={14} />} title="Välj och flytta hinder">Välj</ToolBtn>
+              <ToolBtn active={tool === "pan"} onClick={() => setTool("pan")} icon={<Hand size={14} />} title="Panorera vyn genom att dra bakgrunden">Flytta vy</ToolBtn>
               <ToolBtn active={tool === "erase"} onClick={() => setTool("erase")} icon={<Eraser size={14} />} title="Sudda hinder genom att klicka">Sudda</ToolBtn>
               <ToolBtn active={tool === "number"} onClick={() => setTool("number")} icon={<Hash size={14} />} title="Sätt nummer på hinder genom att klicka i ordning">Nummer</ToolBtn>
 

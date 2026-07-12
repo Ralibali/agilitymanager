@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Calendar, Award, ExternalLink, Cloud, User, Mail, Info } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Award, ExternalLink, Cloud, User, Mail, Info, Pencil, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SEO, buildBreadcrumbSchema } from "@/components/SEO";
 import { LandingNav } from "@/components/landing/LandingNav";
@@ -11,6 +11,9 @@ import { fetchWeatherForDate, describeWeather, type WeatherDay } from "@/lib/wea
 import { buildHoopersCompetitionPath, buildCompetitionSlug } from "@/lib/competitionSlug";
 import { Disclaimer } from "@/components/Disclaimer";
 import { WatchCompetitionDialog } from "@/components/competitions/WatchCompetitionDialog";
+import { CompetitionProductBridge } from "@/components/marketing/CompetitionProductBridge";
+import { buildPlannerUrl, buildSignupUrl } from "@/components/marketing/competitionBridgeRoutes";
+import { trackGrowthEvent } from "@/lib/growth";
 import { useAuth } from "@/contexts/AuthContext";
 
 const SITE_URL = "https://agilitymanager.se";
@@ -71,6 +74,7 @@ export default function HoopersCompetitionDetailPage() {
   const [weather, setWeather] = useState<WeatherDay | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [bridgeVisible, setBridgeVisible] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -156,7 +160,8 @@ export default function HoopersCompetitionDetailPage() {
     name,
     description: seoData.description,
     startDate: comp.date,
-    eventStatus: "https://schema.org/EventScheduled",
+    // Utelämnar eventStatus för avslutade tävlingar; schema.org har ingen "past"-status.
+    ...(isPast ? {} : { eventStatus: "https://schema.org/EventScheduled" }),
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: {
       "@type": "Place",

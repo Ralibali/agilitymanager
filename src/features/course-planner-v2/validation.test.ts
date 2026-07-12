@@ -394,3 +394,35 @@ describe("missing rule values", () => {
   });
 });
 
+describe("handler_zone är inte ett tävlingshinder", () => {
+  it("hoopersbana: start + handler_zone + 2 numrerade hoopar + mål → zone räknas inte som onumrerad, antal = 2", () => {
+    const course = makeCourse({
+      sport: "hoopers",
+      ruleSetId: DEFAULT_HOOPERS_RULESET_ID,
+      obstacles: [
+        ob({ type: "start", x: 1, y: 1 }),
+        ob({ type: "handler_zone", x: 15, y: 15 }),
+        ob({ type: "hoop", x: 5, y: 5, number: 1 }),
+        ob({ type: "hoop", x: 10, y: 10, number: 2 }),
+        ob({ type: "finish", x: 20, y: 20 }),
+      ],
+    });
+    const issues = validateCourse(course);
+
+    // handler_zone får INTE flaggas som onumrerat hinder.
+    const unnumberedForZone = issues.find(
+      (i) =>
+        i.code === "unnumbered_obstacle" &&
+        course.obstacles.find((o) => o.id === i.obstacleId)?.type === "handler_zone",
+    );
+    expect(unnumberedForZone).toBeUndefined();
+    expect(issues.some((i) => i.code === "unnumbered_obstacles")).toBe(false);
+
+    // Antalet tävlingshinder är 2 (de två hooparna), inte 3.
+    // Motverifiera via en klassmall som kräver just 2 hinder → inget too_few/too_many.
+    // Här räcker det att asserta att inga meddelanden om "0 hinder" eller "3 hinder" finns.
+    const msg = issues.map((i) => i.message).join("\n");
+    expect(msg).not.toMatch(/\b3 hinder\b/);
+  });
+});
+

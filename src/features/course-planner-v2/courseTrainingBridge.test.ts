@@ -3,9 +3,9 @@ import {
   courseSportToLogSport,
   mapObstacleTypesToFormOptions,
   defaultDurationForCourse,
-} from "./courseToLogDefaults";
+} from "./courseTrainingBridge";
 
-describe("courseToLogDefaults", () => {
+describe("courseTrainingBridge", () => {
   it("courseSportToLogSport maps agility/hoopers", () => {
     expect(courseSportToLogSport("agility")).toBe("Agility");
     expect(courseSportToLogSport("hoopers")).toBe("Hoopers");

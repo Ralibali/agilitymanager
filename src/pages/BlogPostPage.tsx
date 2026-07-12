@@ -10,7 +10,8 @@ import { BlogFAQ } from '@/components/BlogFAQ';
 import { BlogTOC, extractTOCItems, slugifyHeading } from '@/components/BlogTOC';
 import { ShareArticleButton } from '@/components/ShareArticleButton';
 import { Disclaimer } from '@/components/Disclaimer';
-import { FadeIn, ScrollProgress, MagneticButton } from '@/components/motion';
+import { FadeIn, ScrollProgress } from '@/components/motion';
+import { ProductCTA } from '@/components/marketing/ProductCTA';
 
 // Parse inline markdown: **bold** and [link](/url)
 function parseInline(text: string): React.ReactNode[] {

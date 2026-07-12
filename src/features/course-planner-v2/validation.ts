@@ -88,8 +88,8 @@ function resolveRuleSet(course: CourseLite): RuleSet {
  */
 function obstacleAabb(ob: ObstacleLite) {
   const def = getObstacleDefV2(ob.type);
-  const w = def?.widthM ?? 0.4;
-  const d = def?.depthM ?? 0.4;
+  const w = def?.sizeM.w ?? 0.4;
+  const d = def?.sizeM.d ?? 0.4;
   return rotatedAabb({ x: ob.x, y: ob.y }, w, d, ob.rotation);
 }
 

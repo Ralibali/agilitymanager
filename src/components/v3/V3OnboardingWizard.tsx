@@ -156,10 +156,13 @@ export function V3OnboardingWizard({ onComplete }: Props) {
         hoopers_size: sizeClass === "L" ? "Large" : "Small",
         withers_cm: null,
       });
-      if (dog) {
-        setCreatedDogId(dog.id);
-        trackGrowthEvent("dog_created", { sport, size_class: sizeClass });
+      if (!dog) {
+        toast.error("Kunde inte skapa hund", { description: "Försök igen om en stund." });
+        setLoading(false);
+        return;
       }
+      setCreatedDogId(dog.id);
+      trackGrowthEvent("dog_created", { sport, size_class: sizeClass });
       setStep(2);
     } catch {
       toast.error("Kunde inte skapa hund");
@@ -169,7 +172,7 @@ export function V3OnboardingWizard({ onComplete }: Props) {
 
   const handleFocusStep = async () => {
     if (focus.length === 0) return;
-    trackGrowthEvent("onboarding_focus_selected", { focus, goal: selectedGoal });
+    trackGrowthEvent("onboarding_focus_selected", { focus, goal: selectedGoal, sport: recSport });
 
     if (selectedGoal && createdDogId) {
       try {
@@ -178,39 +181,47 @@ export function V3OnboardingWizard({ onComplete }: Props) {
           await supabase.from("training_goals").insert({
             user_id: userId,
             dog_id: createdDogId,
-            title: GOAL_OPTIONS.find((g) => g.value === selectedGoal)?.label || selectedGoal,
+            title: goalOptions.find((g) => g.value === selectedGoal)?.label || selectedGoal,
             goal_type: selectedGoal,
             category: "onboarding",
             status: "active",
           });
         }
       } catch {
-        /* ignore */
+        /* ignore — goal-loggning får inte blockera onboardingen */
       }
     }
     setStep(3);
   };
 
   const finalize = async (target?: string) => {
-    await supabase.auth.updateUser({
-      data: {
-        onboarding_complete: true,
-        onboarding_focus: focus,
-        onboarding_goal: selectedGoal || null,
-        onboarding_sport: recSport,
-        starter_plan_id: starterPlan.id,
-        starter_plan_selected_at: new Date().toISOString(),
-      },
-    });
+    try {
+      await supabase.auth.updateUser({
+        data: {
+          onboarding_complete: true,
+          onboarding_focus: focus,
+          onboarding_goal: selectedGoal || null,
+          onboarding_sport: recSport,
+          starter_plan_id: starterPlan.id,
+          starter_plan_selected_at: new Date().toISOString(),
+        },
+      });
+      await supabase.auth.refreshSession();
+    } catch {
+      /* ignore */
+    }
     trackGrowthEvent("onboarding_completed", {
       focus,
       goal: selectedGoal,
       sport: recSport,
       starter_plan_id: starterPlan.id,
     });
-    onComplete();
+    // Navigera FÖRST så eventuella query-params (t.ex. ?logNow=1) bevaras;
+    // stäng sen onboardingen. V3HomePage får inte reload:a i callbacken.
     if (target) navigate(target);
+    onComplete();
   };
+
 
   const handleSkip = async () => {
     await supabase.auth.updateUser({

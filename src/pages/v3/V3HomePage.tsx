@@ -258,6 +258,11 @@ export default function V3HomePage() {
           </section>
         </div>
       )}
+      <V3AddDogSheet
+        open={addDogOpen}
+        onClose={() => setAddDogOpen(false)}
+        onAdded={() => { setAddDogOpen(false); window.location.reload(); }}
+      />
     </main>
   );
 }

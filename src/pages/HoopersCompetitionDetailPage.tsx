@@ -268,6 +268,22 @@ export default function HoopersCompetitionDetailPage() {
             </div>
           </section>
 
+          {/* Produktbrygga för hoopers — endast utloggade. */}
+          {!user && (
+            <div className="mb-8">
+              <CompetitionProductBridge
+                placement="hoopers_competition_detail"
+                competitionId={comp.competition_id}
+                competitionName={name}
+                competitionDate={comp.date}
+                sport="hoopers"
+                variant={isPast ? "past" : "upcoming"}
+                layout="detail"
+                onVisibilityChange={setBridgeVisible}
+              />
+            </div>
+          )}
+
           {comp.classes && comp.classes.length > 0 && (
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-foreground mb-3 flex items-center gap-2">

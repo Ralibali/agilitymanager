@@ -158,3 +158,69 @@ export function snapToGrid(valueM: number, stepM: number): number {
   if (stepM <= 0) return valueM;
   return Math.round(valueM / stepM) * stepM;
 }
+
+/**
+ * Sprint 1-alias: snapa en kurspunkt komponentvis till närmaste `stepM`.
+ * Om `stepM <= 0` returneras punkten oförändrad.
+ */
+export function snapCoursePoint(point: Point, stepM: number): Point {
+  return { x: snapToGrid(point.x, stepM), y: snapToGrid(point.y, stepM) };
+}
+
+/**
+ * Sprint 1-alias för `rotatedAabb` + `computeRotatedBox` med hindercentrerad
+ * signatur som matchar UI-koden i banplaneraren.
+ */
+export function rotatedObstacleBounds(
+  type: string,
+  x: number,
+  y: number,
+  rotationDeg: number,
+  dimensions: { w: number; d: number },
+): RotatedBox {
+  // `type` accepteras för framtida typspecifika bounds (t.ex. tunnel-curve),
+  // men Sprint 1 använder samma AABB för alla typer.
+  void type;
+  return computeRotatedBox({ x, y }, dimensions.w, dimensions.d, rotationDeg);
+}
+
+/**
+ * Klampa ett hinder så att HELA den roterade bounding-boxen ligger inom
+ * arenan. Returnerar ett nytt objekt med uppdaterat `x`/`y`.
+ */
+export function clampObstacleToArena<
+  T extends { x: number; y: number; rotation: number },
+>(
+  obstacle: T,
+  arena: { widthM: number; heightM: number },
+  dimensions: { w: number; d: number },
+): T {
+  const clamped = clampCenterForRotatedBox(
+    { x: obstacle.x, y: obstacle.y },
+    dimensions.w,
+    dimensions.d,
+    obstacle.rotation,
+    arena.widthM,
+    arena.heightM,
+  );
+  if (clamped.x === obstacle.x && clamped.y === obstacle.y) return obstacle;
+  return { ...obstacle, x: clamped.x, y: clamped.y };
+}
+
+/**
+ * Grov device-klass från pointer-capabilities. Används för analytics.
+ * Ren i SSR: returnerar "unknown" när `window`/`navigator` saknas.
+ */
+export type DeviceClass = "mobile" | "tablet" | "desktop" | "unknown";
+
+export function getDeviceClass(): DeviceClass {
+  if (typeof window === "undefined" || typeof navigator === "undefined") {
+    return "unknown";
+  }
+  const coarse = typeof window.matchMedia === "function"
+    && window.matchMedia("(pointer: coarse)").matches;
+  const width = window.innerWidth || 0;
+  if (coarse && width < 820) return "mobile";
+  if (coarse) return "tablet";
+  return "desktop";
+}

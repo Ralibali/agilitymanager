@@ -55,6 +55,8 @@ import { exportBuildPdf } from "@/features/course-planner-v2/buildPdf";
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
 import { parseCourseJson } from "@/features/course-planner-v2/importJson";
 import { renderCourseImage, shareCanvas } from "@/lib/shareImage";
+import { trackEvent } from "@/lib/analyticsLoader";
+import { clampObstacleToArena, getDeviceClass } from "@/features/course-planner-v2/geometry";
 import { makeQrDataUrl } from "@/lib/qrDataUrl";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
 import {
@@ -200,6 +202,20 @@ function V3CoursePlannerV2PageInner() {
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
 
+  // Emit `course_planner_opened` en gång per mount, med sport och device-klass.
+  // Ingen bane-data eller koordinater lämnar klienten.
+  const openedRef = useRef(false);
+  useEffect(() => {
+    if (openedRef.current) return;
+    openedRef.current = true;
+    trackEvent("course_planner_opened", {
+      sport: course.sport,
+      device_class: getDeviceClass(),
+    });
+    // course.sport läses medvetet vid mount — inte som dep.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const toggleFullscreen = useCallback(async () => {
     const el = fullscreenRootRef.current;
     if (!el) return;
@@ -210,6 +226,22 @@ function V3CoursePlannerV2PageInner() {
   }, []);
   // Stoppa orefererade variabler från att smälla — kommer bindas i nästa pass.
   void isFullscreen; void toggleFullscreen; void fullscreenRootRef;
+
+  // Emit `course_validation_opened` när regelpanelen öppnas.
+  useEffect(() => {
+    if (issuesOpen) {
+      trackEvent("course_validation_opened", { sport: course.sport, device_class: getDeviceClass() });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [issuesOpen]);
+
+  // Emit `course_3d_opened` när 3D-läget öppnas.
+  useEffect(() => {
+    if (view3D) {
+      trackEvent("course_3d_opened", { sport: course.sport, mode: view3D, device_class: getDeviceClass() });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view3D]);
 
   // 2D-uppspelning ("Spela upp banan").
   const playback = useCoursePlayback(course, playback2D);
@@ -538,6 +570,8 @@ function V3CoursePlannerV2PageInner() {
     setCourse((c) => ({ ...c, obstacles: [...c.obstacles, ob] }));
     setSelectedId(id);
     setTool("select");
+    try { navigator.vibrate?.(8); } catch { /* ignore */ }
+    trackEvent("course_obstacle_added", { sport: course.sport, type, device_class: getDeviceClass() });
   }
 
   function duplicateObstacle(id: string) {
@@ -707,7 +741,10 @@ function V3CoursePlannerV2PageInner() {
     try { navigator.vibrate?.(8); } catch { /* ignore */ }
   }
 
-  // Drag på SVG-koordinater → meter
+  // Drag på SVG-koordinater → meter.
+  // Klampar HELA det roterade hindret innanför arenan via geometry-helper
+  // så att långa/roterade hinder (tunnel, slalom, långhopp) inte kan dras ut
+  // över kanten. Snap sker på det klampade centrumet.
   function handleSvgPointerMove(e: PointerEvent<SVGSVGElement>) {
     if (!draggingId) return;
     const svg = e.currentTarget;
@@ -718,13 +755,27 @@ function V3CoursePlannerV2PageInner() {
     const local = pt.matrixTransform(ctm.inverse());
     setCourse((c) => ({
       ...c,
-      obstacles: c.obstacles.map((o) => o.id === draggingId
-        ? { ...o, x: snapM(clamp(local.x, 0, c.arenaWidthM)), y: snapM(clamp(local.y, 0, c.arenaHeightM)) }
-        : o),
+      obstacles: c.obstacles.map((o) => {
+        if (o.id !== draggingId) return o;
+        const def = getObstacleDefV2(o.type);
+        const dims = def?.sizeM ?? { w: 1, d: 1 };
+        const desired = { ...o, x: local.x, y: local.y };
+        const clamped = clampObstacleToArena(
+          desired,
+          { widthM: c.arenaWidthM, heightM: c.arenaHeightM },
+          dims,
+        );
+        return { ...clamped, x: snapM(clamped.x), y: snapM(clamped.y) };
+      }),
     }));
   }
 
-  function handleSvgPointerUp() { setDraggingId(null); }
+  function handleSvgPointerUp() {
+    if (draggingId) {
+      trackEvent("course_obstacle_moved", { sport: course.sport, device_class: getDeviceClass() });
+    }
+    setDraggingId(null);
+  }
 
   const palette = useMemo(
     () => OBSTACLES_V2.filter((o) => o.sport.includes(course.sport)),

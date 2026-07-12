@@ -165,7 +165,7 @@ function V3CoursePlannerV2PageInner() {
   const isMobile = useIsMobile();
   const [course, setCourseRaw] = useState<CourseV2>(() => loadCourse());
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [tool, setTool] = useState<"select" | "erase" | "number" | "measure">("select");
+  const [tool, setTool] = useState<"select" | "erase" | "number" | "measure" | "pan">("select");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [showPath, setShowPath] = useState(true);

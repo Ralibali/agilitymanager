@@ -1219,6 +1219,27 @@ function V3CoursePlannerV2PageInner() {
           <CourseCommentsPanel courseId={cloudId} enabled={!!cloudId} />
         </aside>
       </main>
+
+      {/* Mobil bottom dock + hinder-sheet — förstaklassig mobilredigering. */}
+      <MobileObstacleSheet
+        open={mobileObstaclesOpen}
+        onOpenChange={setMobileObstaclesOpen}
+        sport={course.sport}
+        onPick={(type) => placeObstacle(type)}
+      />
+      <MobileBottomDock
+        tool={tool}
+        onSetTool={(t) => setTool(t)}
+        onAddObstacle={() => setMobileObstaclesOpen(true)}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={historyRef.current.past.length > 0}
+        canRedo={historyRef.current.future.length > 0}
+        onValidate={() => setIssuesOpen((v) => !v)}
+        errorCount={issueSummary.errors}
+        warningCount={issueSummary.warnings}
+        onMore={() => setPaletteOpen(true)}
+      />
     </div>
   );
 }
@@ -1302,7 +1323,7 @@ function ArenaCanvas({
       <svg
         ref={svgRef}
         viewBox={`${-padding} ${-padding} ${w + padding * 2} ${h + padding * 2}`}
-        className="w-full h-auto max-h-[calc(100dvh-200px)] touch-none select-none"
+        className="w-full h-auto min-h-[min(70dvh,720px)] lg:min-h-0 max-h-[calc(100dvh-200px)] touch-none select-none"
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerUp}

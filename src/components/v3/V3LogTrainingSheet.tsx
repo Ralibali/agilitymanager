@@ -227,11 +227,18 @@ export function V3LogTrainingSheet({ open, onClose, onLogged, defaults, context 
     }
 
     try {
-      trackGrowthEvent("training_logged", {
+      const props: Record<string, unknown> = {
         type: parsed.data.type,
         duration_min: parsed.data.duration_min,
         mood: parsed.data.overall_mood,
-      });
+        has_course_context: Boolean(context),
+      };
+      if (context?.source) props.source = context.source;
+      // courseId endast om det redan är en opak UUID; skicka aldrig courseName.
+      if (context?.courseId && /^[0-9a-f-]{16,}$/i.test(context.courseId)) {
+        props.course_id = context.courseId;
+      }
+      trackGrowthEvent("training_logged", props);
       if (isFirst) {
         trackGrowthEvent("first_training_logged", { type: parsed.data.type });
       }
@@ -248,16 +255,21 @@ export function V3LogTrainingSheet({ open, onClose, onLogged, defaults, context 
       obstacles: parsed.data.obstacles,
     });
 
-    toast.success("Pass loggat", {
-      description: insight,
-      duration: 6000,
-      action: {
-        label: "Se statistik",
-        onClick: () => {
-          window.location.href = "/v3/stats";
+    toast.success(
+      context
+        ? `Passet från “${context.courseName}” är loggat`
+        : "Pass loggat",
+      {
+        description: insight,
+        duration: 6000,
+        action: {
+          label: "Se statistik",
+          onClick: () => {
+            window.location.href = "/v3/stats";
+          },
         },
       },
-    });
+    );
 
     // Ge dashboarden allt den behöver för refetch + första insikt direkt.
     window.dispatchEvent(

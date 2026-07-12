@@ -3,7 +3,7 @@
  *
  * Motorn låtsas inte vara AI. Den mappar sport + fokusområden + senaste
  * träningshistorik till ett kort, konkret 10–20-minuters pass med tre steg,
- * utrustning och en tydlig motivering. Testbar, deterministisk, ren.
+ * utrustning och en pedagogisk motivering. Testbar, deterministisk, ren.
  */
 
 export type RecSport = "Agility" | "Hoopers";
@@ -26,30 +26,62 @@ export type HoopersFocus =
 
 export type FocusArea = AgilityFocus | HoopersFocus;
 
+/** Sammanfattning av en tidigare loggad session — endast fält motorn använder. */
+export interface TrainingSessionSummary {
+  date: string;
+  duration_min: number | null;
+  obstacles_trained?: string[] | null;
+  overall_mood?: number | null;
+  tags?: string[] | null;
+  notes_good?: string | null;
+  notes_improve?: string | null;
+}
+
 export interface RecInput {
   sport: RecSport;
   /** 1–2 fokusområden från onboardingen. Första prioriteras. */
   focus: FocusArea[];
-  /** Sist loggade sessioner (nyast först). Endast fält vi använder. */
-  recentSessions?: Array<{
-    date: string;
-    duration_min: number | null;
-    obstacles_trained?: string[] | null;
-    overall_mood?: number | null;
-    tags?: string[] | null;
-  }>;
+  /** Sist loggade sessioner (nyast först). */
+  recentSessions?: TrainingSessionSummary[];
   /** Frivilligt "seed" som växlar rotation utan att tappa determinism. */
   variant?: number;
 }
 
-export interface Recommendation {
+/** Förifyllningar till loggningsformuläret när användaren startar från Dagens pass. */
+export interface LogDefaults {
+  type: string;
+  durationMinutes: number;
+  obstacles: string[];
+  tags: string[];
+  focusLabel: string;
+}
+
+export interface EasierAlternative {
   id: string;
   title: string;
+  durationMinutes: number;
+  reason: string;
+  steps: [string, string, string];
+  equipment: string[];
+  logDefaults: LogDefaults;
+}
+
+export interface TrainingRecommendation {
+  id: string;
+  title: string;
+  /** Nyckel — samma som `focusKey`. */
+  focus: FocusArea;
   focusLabel: string;
-  focusKey: FocusArea;
-  minutes: number;
+  durationMinutes: number;
   equipment: string[];
   steps: [string, string, string];
+  reason: string;
+  easierAlternative: EasierAlternative;
+  logDefaults: LogDefaults;
+
+  // ── Bakåtkompatibla alias — behåll så äldre call-sites inte bryts.
+  focusKey: FocusArea;
+  minutes: number;
   why: string;
   alternative: {
     id: string;
@@ -59,16 +91,17 @@ export interface Recommendation {
   };
 }
 
+/** Bakåtkompatibelt namn. */
+export type Recommendation = TrainingRecommendation;
+
 /** Läsbara etiketter för svenska. */
 export const FOCUS_LABELS: Record<FocusArea, string> = {
-  // Agility
   weaves: "Slalom",
   contacts: "Kontaktfält",
   starts: "Starter",
   handling_turns: "Handling & vändningar",
   speed_confidence: "Fart & självförtroende",
   competition_nerves: "Tävlingsnervositet",
-  // Hoopers
   directing: "Dirigering",
   distance: "Distans",
   lines_flow: "Linjer & flow",
@@ -93,10 +126,96 @@ export const HOOPERS_FOCUS_KEYS: HoopersFocus[] = [
   "independence",
 ];
 
+const FOCUS_SYNONYMS: Record<string, FocusArea> = {
+  // engelska
+  weaves: "weaves",
+  weave: "weaves",
+  slalom: "weaves",
+  contacts: "contacts",
+  contact: "contacts",
+  kontakt: "contacts",
+  kontaktfält: "contacts",
+  starts: "starts",
+  start: "starts",
+  handling_turns: "handling_turns",
+  handling: "handling_turns",
+  turns: "handling_turns",
+  vändningar: "handling_turns",
+  speed_confidence: "speed_confidence",
+  speed: "speed_confidence",
+  fart: "speed_confidence",
+  competition_nerves: "competition_nerves",
+  nerves: "competition_nerves",
+  nervositet: "competition_nerves",
+  directing: "directing",
+  dirigering: "directing",
+  distance: "distance",
+  distans: "distance",
+  lines_flow: "lines_flow",
+  lines: "lines_flow",
+  flow: "lines_flow",
+  linjer: "lines_flow",
+  tunnels: "tunnels",
+  tunnel: "tunnels",
+  tunnlar: "tunnels",
+  independence: "independence",
+  självständighet: "independence",
+};
+
+/**
+ * Säker normalisering av fokusvärden. Accepterar svenska/engelska etiketter,
+ * små bokstavsvariationer och okänt värde (→ null).
+ */
+export function normalizeFocus(value: string | null | undefined, sport?: RecSport): FocusArea | null {
+  if (!value) return null;
+  const key = value.trim().toLowerCase().replace(/\s+/g, "_");
+  const hit = FOCUS_SYNONYMS[key];
+  if (!hit) return null;
+  if (sport === "Agility" && !(AGILITY_FOCUS_KEYS as string[]).includes(hit)) return null;
+  if (sport === "Hoopers" && !(HOOPERS_FOCUS_KEYS as string[]).includes(hit)) return null;
+  return hit;
+}
+
 // ────────────────────────────────────────────────────────────────
-// Templates: ett pass per fokus. Två varianter per fokus växlas via "variant".
-// Extremt pragmatiskt – uppdateras när vi lär oss mer om användarna.
+// LogDefaults per fokus — används vid pre-fill i loggningsformuläret.
 // ────────────────────────────────────────────────────────────────
+
+function baseLogDefaults(focus: FocusArea, minutes: number): LogDefaults {
+  const map: Record<FocusArea, { type: string; obstacles: string[]; tags: string[] }> = {
+    weaves: { type: "Hinder", obstacles: ["Slalom"], tags: ["Slalom"] },
+    contacts: { type: "Kontakt", obstacles: ["A-ram"], tags: ["Kontakt"] },
+    starts: { type: "Bana", obstacles: ["Hopp"], tags: [] },
+    handling_turns: { type: "Vändning", obstacles: ["Hopp"], tags: [] },
+    speed_confidence: { type: "Bana", obstacles: ["Hopp"], tags: ["Snabb"] },
+    competition_nerves: { type: "Bana", obstacles: [], tags: ["Fokuserad"] },
+    directing: { type: "Dirigering", obstacles: ["Hoop", "Tunnel"], tags: [] },
+    distance: { type: "Distans", obstacles: ["Hoop"], tags: ["Distans"] },
+    lines_flow: { type: "Bana", obstacles: ["Hoop"], tags: [] },
+    tunnels: { type: "Tunnel", obstacles: ["Tunnel"], tags: [] },
+    independence: { type: "Dirigering", obstacles: ["Hoop"], tags: [] },
+  };
+  const m = map[focus];
+  return {
+    type: m.type,
+    durationMinutes: minutes,
+    obstacles: m.obstacles,
+    tags: m.tags,
+    focusLabel: FOCUS_LABELS[focus],
+  };
+}
+
+// ────────────────────────────────────────────────────────────────
+// Templates: ett pass per fokus, med lättare variant som har
+// EGNA steg och utrustning.
+// ────────────────────────────────────────────────────────────────
+
+interface AltShape {
+  title: string;
+  minutes: number;
+  reason: string;
+  steps: [string, string, string];
+  equipment: string[];
+}
 
 interface Template {
   key: FocusArea;
@@ -105,13 +224,9 @@ interface Template {
     minutes: number;
     equipment: string[];
     steps: [string, string, string];
-    why: string;
+    reason: string;
   }>;
-  alternative: {
-    title: string;
-    minutes: number;
-    why: string;
-  };
+  alternative: AltShape;
 }
 
 const TEMPLATES: Record<FocusArea, Template> = {
@@ -128,7 +243,7 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Flytta dig till 45° höger, sedan 45° vänster. 3 reps på varje sida.",
           "Avsluta med två fulla slalom i lugnt tempo. Belöna vid utgång.",
         ],
-        why: "Slalomingången är den enskilt vanligaste feltyp i K1–K2. Kort session med tydlig belöning fäster mönstret.",
+        reason: "Du valde slalom som fokus, därför börjar vi med en kort ingångsövning från olika vinklar.",
       },
       {
         title: "Slalom + fart ut",
@@ -139,13 +254,19 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Väx sida vid utgång (höger/vänster) mellan varje rep.",
           "Avsluta med en lugn genomgång utan belöning – bara beröm.",
         ],
-        why: "Fart ut ur slalom är svårt att träna på plats. Extern belöning drar ut hunden framåt.",
+        reason: "Slalom är ditt fokus. Den här varianten bygger fart ut ur slalomen genom extern belöning.",
       },
     ],
     alternative: {
       title: "Kort ingångsrep utan hela slalomen",
       minutes: 8,
-      why: "Om hunden känns trött eller osäker – bara 2–3 pinnar och belöning direkt.",
+      reason: "Kortare och enklare variant för dagar då det behövs.",
+      steps: [
+        "Ställ upp 2–3 pinnar i rak linje.",
+        "Kör 5 lugna ingångar med belöning direkt efter sista pinnen.",
+        "Avsluta med beröm och en enkel lek.",
+      ],
+      equipment: ["2–3 slalompinnar", "Godis eller leksak"],
     },
   },
   contacts: {
@@ -160,7 +281,7 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Vary din egen position: vid sidan, framför, bakom hunden.",
           "Avsluta med 1 rep där du släpper till leksak framåt.",
         ],
-        why: "Konsekvent kontakt kräver att hunden kan hålla position oavsett vad du gör. Delar upp problemet till hanterbara steg.",
+        reason: "Kontakt är ditt fokus. Vi delar upp problemet: position först, release sedan.",
       },
       {
         title: "Kontaktfält i sekvens",
@@ -171,13 +292,19 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Hopp → A-ram → hopp ut. 3 reps, belöning efter utgången.",
           "Filma 1 rep och kolla att hunden verkligen når zonen.",
         ],
-        why: "Kontakt i sekvens är närmare tävlingssituationen än isolerad kontaktträning.",
+        reason: "Sekvensen efterliknar tävlingssituationen och testar om kontakten håller under fart.",
       },
     ],
     alternative: {
       title: "Bara matt-arbete på plan mark",
       minutes: 8,
-      why: "Kort mattfokus utan hinder – lugnar hunden och sätter positionen inför nästa pass.",
+      reason: "Enkelt positionsarbete utan hinder — sänker svårighetsgraden.",
+      steps: [
+        "Lägg mattan på plan mark. Belöna hunden för att gå till mattan. 5 reps.",
+        "Bygg på med kort distans: skicka hunden till mattan från 2 m. 5 reps.",
+        "Håll positionen 2 sekunder innan release. 3 reps.",
+      ],
+      equipment: ["Matta", "Godis"],
     },
   },
   starts: {
@@ -192,7 +319,7 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Öka avståndet: du går 5 m före hoppet innan release. 3 reps.",
           "Kombinera: du kör över själva startlinjen. 2 reps.",
         ],
-        why: "En stabil startlinje är gratis säkerhet på tävling. Kort och tydlig, byggd på lugn.",
+        reason: "Du valde starter som fokus. En stabil startlinje ger lugn och trygghet innan första hindret.",
       },
       {
         title: "Start + första hindret snabbt",
@@ -203,13 +330,19 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Start → tunnel → belöning. 4 reps.",
           "Avsluta lugnt: 1 rep utan press.",
         ],
-        why: "Bygger fart in i första hindret utan att skynda i själva starten.",
+        reason: "Bygger fart in i första hindret utan att skynda själva starten.",
       },
     ],
     alternative: {
       title: "Bara sitt-stay-lek",
       minutes: 6,
-      why: "Utan hinder – bara kontroll på stay och release.",
+      reason: "Ren kontroll på stay och release — inga hinder.",
+      steps: [
+        "Sitt-stay 1 m ifrån dig. Belöna vid release. 4 reps.",
+        "Öka distansen: 3 m. 3 reps.",
+        "Avsluta med en tydlig belöning för lugn väntan.",
+      ],
+      equipment: ["Godis eller leksak"],
     },
   },
   handling_turns: {
@@ -224,7 +357,7 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Lägg in en front cross mellan hopp 1 och 2. 4 reps.",
           "Flytta crossen till mellan 2 och 3. 4 reps.",
         ],
-        why: "Vändningar avgör tider på tävling. Renodlar hanterandet utan slalom eller kontakt.",
+        reason: "Du valde vändningar som fokus. Vi renodlar hanterandet utan slalom eller kontakt.",
       },
       {
         title: "Rear cross på 4 hopp",
@@ -235,13 +368,19 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Lägg in en rear cross mellan hopp 3 och 4. 4 reps.",
           "Testa båda sidor.",
         ],
-        why: "Rear cross är mest känsligt för hundens självförtroende – kort och tydlig träning betalar.",
+        reason: "Rear cross är känsligt för hundens självförtroende — kort och tydlig träning hjälper.",
       },
     ],
     alternative: {
       title: "2-hopp med krok",
       minutes: 8,
-      why: "Bara två hopp med en tydlig sväng emellan – för dagar med kort tid.",
+      reason: "Bara två hopp med en tydlig sväng emellan — kort och enkelt.",
+      steps: [
+        "Sätt två hopp i 90°-vinkel. Kör mönstret långsamt. 3 reps.",
+        "Lägg in en front cross i vinkeln. 3 reps.",
+        "Avsluta med en lugn belöning.",
+      ],
+      equipment: ["2 hopp", "Belöning"],
     },
   },
   speed_confidence: {
@@ -256,7 +395,7 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Belöning direkt vid landning – ingen fördröjning.",
           "Avsluta med lugn belöning och beröm.",
         ],
-        why: "Fart byggs av att hunden känner att det lönar sig framåt. Ingen handling som distraherar.",
+        reason: "Fart och självförtroende är ditt fokus. Rakspår ger belöning framåt utan handling som distraherar.",
       },
       {
         title: "Tunnel-hopp-tunnel för fart",
@@ -267,13 +406,19 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Hopp → tunnel → belöning framifrån. 4 reps.",
           "En rep med extra distans mellan – hunden ska välja tempo själv.",
         ],
-        why: "Tunnlar drar oftast fart hos hunden och färgar hela sekvensen.",
+        reason: "Tunnlar drar oftast fart hos hunden och färgar hela sekvensen.",
       },
     ],
     alternative: {
       title: "Bara leksakslek utan hinder",
       minutes: 8,
-      why: "Relation och fart utan agility – bra på tunga dagar.",
+      reason: "Relation och fart utan agility — bra på tunga dagar.",
+      steps: [
+        "Kasta leksaken kort. Belöna hunden för att komma tillbaka. 4 reps.",
+        "Bygg på med en kort sprint efter leksaken. 3 reps.",
+        "Avsluta med lugn belöning.",
+      ],
+      equipment: ["Leksak"],
     },
   },
   competition_nerves: {
@@ -288,7 +433,7 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Kör sekvensen med hunden i lugnt tempo. Belöning efter varje hinder.",
           "Kör sekvensen en gång i vanligt tempo. Belöning bara i mål.",
         ],
-        why: "Nerver kommer av osäkerhet. Kort session där du känner att du kan mönstret sänker pulsen på riktigt.",
+        reason: "Nerver kommer av osäkerhet. Kort session där du känner att du kan mönstret sänker pulsen.",
       },
       {
         title: "Kort start + mål-rutin",
@@ -299,13 +444,19 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Kör med en tydlig mål-rutin: berömma → belöna på samma plats.",
           "Repetera precis rutinen inför en (låtsad) domare.",
         ],
-        why: "Rutinen före och efter passet ger tryggheten på tävling – inte antalet reps.",
+        reason: "Rutinen före och efter passet ger tryggheten på tävling.",
       },
     ],
     alternative: {
       title: "Andningspaus + 1 hoppövning",
       minutes: 6,
-      why: "På dagar när nerverna redan känns – bara ett hopp och en långsam belöning.",
+      reason: "På dagar när nerverna redan känns — bara ett hopp och en långsam belöning.",
+      steps: [
+        "Andas lugnt i 30 sekunder tillsammans med hunden.",
+        "Kör 3 lugna reps över ett hopp med belöning.",
+        "Avsluta med en tydlig beröm och avslut.",
+      ],
+      equipment: ["1 hopp", "Godis"],
     },
   },
 
@@ -322,7 +473,7 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Peka ut tunnel → belöning. 5 reps.",
           "Blanda 3 hinder i sekvens. 3 reps.",
         ],
-        why: "Dirigering är kärnan i hoopers. Rena signaler byggs genom rena reps med tydlig belöning.",
+        reason: "Dirigering är ditt fokus. Rena signaler byggs genom rena reps med tydlig belöning.",
       },
       {
         title: "Verbal + arm-signal",
@@ -333,13 +484,19 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Byt: verbal 'tunnel' vid samma val.",
           "Testa utan att peka – bara verbal.",
         ],
-        why: "Ju renare verbaler, desto längre kan du stå kvar. Fokus på tydlighet, inte distans.",
+        reason: "Ju renare verbaler, desto längre kan du stå kvar. Fokus på tydlighet, inte distans.",
       },
     ],
     alternative: {
       title: "Bara två val, en verbal",
       minutes: 8,
-      why: "Enklaste möjliga val – för dagar när det behöver kännas enkelt.",
+      reason: "Enklaste möjliga val — för dagar när det behöver kännas enkelt.",
+      steps: [
+        "Sätt en hoop och en tunnel med 2 m emellan.",
+        "Dirigera hunden till hoopet 5 gånger med belöning.",
+        "Dirigera hunden till tunneln 5 gånger med belöning.",
+      ],
+      equipment: ["1 hoop", "1 tunnel"],
     },
   },
   distance: {
@@ -354,7 +511,7 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Backa till 4 m. 5 reps.",
           "Backa till 6 m – bara om det känns rent.",
         ],
-        why: "Distans byggs i små steg. Om ett steg fallerar: gå tillbaka utan drama.",
+        reason: "Distans är ditt fokus. Vi bygger i små steg — om ett steg fallerar går vi tillbaka utan drama.",
       },
       {
         title: "Distans i sekvens",
@@ -365,13 +522,19 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Stå kvar vid start – låt hunden köra hela sekvensen. 3 reps.",
           "Om det bryts, gå tillbaka en nivå.",
         ],
-        why: "Sekvens-distans är hela poängen med hoopers på tävling.",
+        reason: "Sekvens-distans är hela poängen med hoopers på tävling.",
       },
     ],
     alternative: {
       title: "1 hoop, 2 meter",
       minutes: 6,
-      why: "Bygg tillbaka självförtroendet med enklast möjliga val.",
+      reason: "Bygg tillbaka självförtroendet med enklast möjliga val.",
+      steps: [
+        "Stå 2 m från hoopet. Dirigera hunden. Belöna. 5 reps.",
+        "Belöna varje gång hunden går rakt igenom.",
+        "Avsluta med lugn belöning.",
+      ],
+      equipment: ["1 hoop", "Godis"],
     },
   },
   lines_flow: {
@@ -386,7 +549,7 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Öka tempot. 3 reps.",
           "Belöning bara efter sista hindret.",
         ],
-        why: "Flow är att hunden vet var linjen slutar. Kort linje, tydlig utgång.",
+        reason: "Flow är ditt fokus. Kort linje, tydlig utgång.",
       },
       {
         title: "Linje med tunnel-vändning",
@@ -397,13 +560,19 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Vänd linjen: hoop → tunnel andra sidan → hoop. 4 reps.",
           "Avsluta med lugnt tempo.",
         ],
-        why: "Vändningar bryter flow om de inte tränas separat.",
+        reason: "Vändningar bryter flow om de inte tränas separat.",
       },
     ],
     alternative: {
       title: "2 hoopar, ren rak linje",
       minutes: 6,
-      why: "Bara två hoopar – ren linje utan valmoment.",
+      reason: "Bara två hoopar — ren linje utan valmoment.",
+      steps: [
+        "Sätt två hoopar 3 m isär. Kör linjen 5 gånger.",
+        "Belöna efter sista hoopet.",
+        "Avsluta med lugn belöning.",
+      ],
+      equipment: ["2 hoopar", "Belöning"],
     },
   },
   tunnels: {
@@ -418,7 +587,7 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Byt så hoopet är valet. 5 reps.",
           "Blanda: dirigera skarpt olika hinder. 3 reps.",
         ],
-        why: "Tunnlar drar hunden ur linjen om valet inte tränas. Kort renodling ger stor effekt.",
+        reason: "Tunnlar är ditt fokus. Kort renodling av val ger stor effekt.",
       },
       {
         title: "Tunnel + linje efter",
@@ -429,13 +598,19 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Tunnel → hoop åt sidan. 4 reps.",
           "Blanda – hunden ska läsa sig ut.",
         ],
-        why: "Utgången ur tunneln är där det brukar bli fel på tävling.",
+        reason: "Utgången ur tunneln är där det brukar bli fel på tävling.",
       },
     ],
     alternative: {
       title: "Bara tunnel-igenom",
       minutes: 6,
-      why: "Utan hinder efteråt – för att bara belöna fart igenom tunneln.",
+      reason: "Utan hinder efteråt — för att bara belöna fart igenom tunneln.",
+      steps: [
+        "Kort tunnel, 2 m. Belöna vid utgång. 5 reps.",
+        "Öka tempot. 3 reps.",
+        "Avsluta med lugn belöning.",
+      ],
+      equipment: ["1 tunnel", "Belöning"],
     },
   },
   independence: {
@@ -450,7 +625,7 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Vänta 1 sekund extra med signalen. Låt hunden 'tänka'.",
           "Avsluta med 3 reps där du står helt still.",
         ],
-        why: "Självständighet byggs av tid, inte av avstånd. Träna att inte prata.",
+        reason: "Självständighet är ditt fokus. Den byggs av tid, inte av avstånd.",
       },
       {
         title: "Sekvens där du står kvar",
@@ -461,13 +636,19 @@ const TEMPLATES: Record<FocusArea, Template> = {
           "Kör den med dig nära hunden. 2 reps.",
           "Kör den där du står vid start hela vägen. 3 reps.",
         ],
-        why: "Riktig hoopers är att hunden kan sekvenser utan att du rör dig mycket.",
+        reason: "Riktig hoopers är att hunden kan sekvenser utan att du rör dig mycket.",
       },
     ],
     alternative: {
       title: "1 val, tydlig belöning",
       minutes: 6,
-      why: "Enklaste möjliga val – för att bara belöna att hunden svarade.",
+      reason: "Enklaste möjliga val — bara belöna att hunden svarade.",
+      steps: [
+        "Sätt en hoop 2 m ifrån dig. Dirigera. Belöna. 5 reps.",
+        "Vänta 1 sekund extra innan signal. 3 reps.",
+        "Avsluta med lugn belöning.",
+      ],
+      equipment: ["1 hoop", "Belöning"],
     },
   },
 };
@@ -495,8 +676,7 @@ export function pickPrimaryFocus(input: RecInput): FocusArea {
 }
 
 /**
- * Om senaste session hade låg mood eller kort duration – välj lättare variant.
- * Ren funktion, ingen sida-effekt.
+ * Om senaste session hade låg mood eller mycket lång duration – välj lättare variant.
  */
 export function shouldSuggestLighterVariant(input: RecInput): boolean {
   const last = input.recentSessions?.[0];
@@ -507,7 +687,7 @@ export function shouldSuggestLighterVariant(input: RecInput): boolean {
 }
 
 /** Hela rekommendationen. */
-export function recommendDailyPlan(input: RecInput): Recommendation {
+export function recommendDailyPlan(input: RecInput): TrainingRecommendation {
   const focus = pickPrimaryFocus(input);
   const template = TEMPLATES[focus];
   const variantIdx =
@@ -515,58 +695,89 @@ export function recommendDailyPlan(input: RecInput): Recommendation {
     template.variants.length;
   const chosen = template.variants[variantIdx];
   const lighter = shouldSuggestLighterVariant(input);
+  const alt = template.alternative;
 
+  // Om lättare variant ska användas: använd alternativets EGNA steg + utrustning.
   const active = lighter
     ? {
-        title: template.alternative.title,
-        minutes: template.alternative.minutes,
-        equipment: chosen.equipment,
-        steps: chosen.steps,
-        why: `Senaste passet såg tungt ut, så vi föreslår ett lättare upplägg. ${template.alternative.why}`,
+        title: alt.title,
+        minutes: alt.minutes,
+        equipment: alt.equipment,
+        steps: alt.steps,
+        reason: `Senaste passet såg tungt ut, så vi föreslår ett lättare upplägg. ${alt.reason}`,
       }
     : chosen;
+
+  const logDefaults = baseLogDefaults(focus, active.minutes);
+  const altLogDefaults = baseLogDefaults(focus, alt.minutes);
+
+  const easierAlternative: EasierAlternative = {
+    id: `${focus}-alt`,
+    title: alt.title,
+    durationMinutes: alt.minutes,
+    reason: alt.reason,
+    steps: alt.steps,
+    equipment: alt.equipment,
+    logDefaults: altLogDefaults,
+  };
 
   return {
     id: `${focus}-${variantIdx}${lighter ? "-lite" : ""}`,
     title: active.title,
-    focusLabel: FOCUS_LABELS[focus],
+    focus,
     focusKey: focus,
+    focusLabel: FOCUS_LABELS[focus],
+    durationMinutes: active.minutes,
     minutes: active.minutes,
     equipment: active.equipment,
     steps: active.steps,
-    why: active.why,
+    reason: active.reason,
+    why: active.reason,
+    easierAlternative,
     alternative: {
-      id: `${focus}-alt`,
-      title: template.alternative.title,
-      minutes: template.alternative.minutes,
-      why: template.alternative.why,
+      id: easierAlternative.id,
+      title: easierAlternative.title,
+      minutes: easierAlternative.durationMinutes,
+      why: easierAlternative.reason,
     },
+    logDefaults,
   };
 }
 
-/** Byter till ett alternativt pass (används av "Byt övning"). */
-export function swapRecommendation(current: Recommendation, input: RecInput): Recommendation {
+/** Byter till en annan variant (används av "Byt övning"). */
+export function swapRecommendation(current: TrainingRecommendation, input: RecInput): TrainingRecommendation {
   return recommendDailyPlan({ ...input, variant: (input.variant ?? 0) + 1 });
 }
 
 /**
  * Genererar en kort, ärlig insikt baserat på ett nyligen loggat pass.
- * Regelbaserad — inga påhittade AI-fraser.
+ * Regelbaserad — påstår aldrig mer än vad användaren matat in.
  */
 export function buildFirstInsight(session: {
   dogName: string;
   focusLabel?: string | null;
   mood: number;
   notesGood?: string | null;
+  notesImprove?: string | null;
   obstacles?: string[] | null;
 }): string {
-  const dog = session.dogName || "Din hund";
-  const focus = session.focusLabel ?? session.obstacles?.[0] ?? "träningen";
+  const dog = session.dogName?.trim() || "Din hund";
+  const focus = (session.focusLabel ?? session.obstacles?.[0] ?? "träningen").toLowerCase();
+  const good = session.notesGood?.trim();
+  const improve = session.notesImprove?.trim();
+
   if (session.mood >= 4) {
-    return `${dog} kändes stark i ${focus.toLowerCase()}. Nästa gång: behåll samma upplägg men lägg till en variation i ingången.`;
+    const tail = good ? ` Du noterade: "${good.slice(0, 90)}".` : "";
+    return `${dog} kändes stark i ${focus}.${tail}`;
   }
   if (session.mood <= 2) {
-    return `${dog} kämpade lite. Kör ett kortare, enklare pass nästa gång — bygg tillbaka självförtroendet.`;
+    const tail = improve
+      ? ` Nästa gång tar vi med: "${improve.slice(0, 90)}".`
+      : " Kör ett kortare, enklare pass nästa gång — bygg tillbaka självförtroendet.";
+    return `${dog} kämpade lite.${tail}`;
   }
-  return `${dog} är i gång. Fortsätt med samma fokus (${focus.toLowerCase()}) och notera vad som ändras nästa pass.`;
+  const tail = improve
+    ? ` Nästa gång följer vi upp: "${improve.slice(0, 90)}".`
+    : ` Fortsätt med samma fokus (${focus}) och notera vad som ändras.`;
+  return `${dog} är i gång.${tail}`;
 }

@@ -35,7 +35,7 @@ function clickButtonByLabels(labels: string[]): boolean {
 export function V3Layout() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
-  const { open: logOpen, setOpen: setLogOpen, close: closeLog } = useV3LogSheet();
+  const { open: logOpen, setOpen: setLogOpen, close: closeLog, defaults: logDefaults } = useV3LogSheet();
   const location = useLocation();
   const navigate = useNavigate();
   const handledActionRef = useRef<string | null>(null);
@@ -123,7 +123,7 @@ export function V3Layout() {
               setLogOpen(true);
             }}
           />
-          <V3LogTrainingSheet open={logOpen} onClose={closeLog} />
+          <V3LogTrainingSheet open={logOpen} onClose={closeLog} defaults={logDefaults} />
         </>
       )}
     </div>

@@ -39,10 +39,27 @@ const SPORT_OPTIONS: { value: Sport; label: string; description: string }[] = [
   { value: "Båda", label: "Båda", description: "Tränar i båda" },
 ];
 
-const GOAL_OPTIONS = [
+// Sportspecifika huvudmål — Hoopers-tävling kallas inte K1.
+const AGILITY_GOALS = [
   { value: "compete_k1", label: "Tävla i K1", emoji: "🏆" },
   { value: "improve_times", label: "Snabbare tider", emoji: "⚡" },
   { value: "train_more", label: "Träna mer regelbundet", emoji: "📅" },
+  { value: "track", label: "Bara ha koll", emoji: "📊" },
+  { value: "other", label: "Annat", emoji: "✨" },
+];
+
+const HOOPERS_GOALS = [
+  { value: "compete_startklass", label: "Tävla i startklass", emoji: "🏆" },
+  { value: "clean_lines", label: "Rena linjer & flow", emoji: "🌊" },
+  { value: "train_more", label: "Träna mer regelbundet", emoji: "📅" },
+  { value: "track", label: "Bara ha koll", emoji: "📊" },
+  { value: "other", label: "Annat", emoji: "✨" },
+];
+
+const BOTH_GOALS = [
+  { value: "compete_any", label: "Tävla i startklass", emoji: "🏆" },
+  { value: "train_more", label: "Träna mer regelbundet", emoji: "📅" },
+  { value: "improve_times", label: "Utvecklas i båda sporterna", emoji: "⚡" },
   { value: "track", label: "Bara ha koll", emoji: "📊" },
   { value: "other", label: "Annat", emoji: "✨" },
 ];
@@ -68,12 +85,26 @@ export function V3OnboardingWizard({ onComplete }: Props) {
   // Steg 2 – Fokus + huvudmål
   const [focus, setFocus] = useState<FocusArea[]>([]);
   const [selectedGoal, setSelectedGoal] = useState("");
+  // För sport = "Båda": vilken sport gäller dagens första plan?
+  const [bothPlanSport, setBothPlanSport] = useState<RecSport>("Agility");
 
   // Steg 3 – visa alternativ
   const [showAlternative, setShowAlternative] = useState(false);
 
-  const recSport: RecSport = sport === "Hoopers" ? "Hoopers" : "Agility";
+  // Om sport = "Båda" väljer användaren själv (default: Agility, eller Hoopers om fokus pekar dit)
+  const focusPicksHoopers = focus.some((f) => (HOOPERS_FOCUS_KEYS as string[]).includes(f as string));
+  const recSport: RecSport =
+    sport === "Hoopers"
+      ? "Hoopers"
+      : sport === "Agility"
+      ? "Agility"
+      : focusPicksHoopers
+      ? "Hoopers"
+      : bothPlanSport;
   const focusOptions: FocusArea[] = recSport === "Hoopers" ? HOOPERS_FOCUS_KEYS : AGILITY_FOCUS_KEYS;
+
+  const goalOptions =
+    sport === "Hoopers" ? HOOPERS_GOALS : sport === "Agility" ? AGILITY_GOALS : BOTH_GOALS;
 
   const starterPlan = useMemo(
     () => recommendDailyPlan({ sport: recSport, focus }),
@@ -125,10 +156,13 @@ export function V3OnboardingWizard({ onComplete }: Props) {
         hoopers_size: sizeClass === "L" ? "Large" : "Small",
         withers_cm: null,
       });
-      if (dog) {
-        setCreatedDogId(dog.id);
-        trackGrowthEvent("dog_created", { sport, size_class: sizeClass });
+      if (!dog) {
+        toast.error("Kunde inte skapa hund", { description: "Försök igen om en stund." });
+        setLoading(false);
+        return;
       }
+      setCreatedDogId(dog.id);
+      trackGrowthEvent("dog_created", { sport, size_class: sizeClass });
       setStep(2);
     } catch {
       toast.error("Kunde inte skapa hund");
@@ -138,7 +172,7 @@ export function V3OnboardingWizard({ onComplete }: Props) {
 
   const handleFocusStep = async () => {
     if (focus.length === 0) return;
-    trackGrowthEvent("onboarding_focus_selected", { focus, goal: selectedGoal });
+    trackGrowthEvent("onboarding_focus_selected", { focus, goal: selectedGoal, sport: recSport });
 
     if (selectedGoal && createdDogId) {
       try {
@@ -147,39 +181,47 @@ export function V3OnboardingWizard({ onComplete }: Props) {
           await supabase.from("training_goals").insert({
             user_id: userId,
             dog_id: createdDogId,
-            title: GOAL_OPTIONS.find((g) => g.value === selectedGoal)?.label || selectedGoal,
+            title: goalOptions.find((g) => g.value === selectedGoal)?.label || selectedGoal,
             goal_type: selectedGoal,
             category: "onboarding",
             status: "active",
           });
         }
       } catch {
-        /* ignore */
+        /* ignore — goal-loggning får inte blockera onboardingen */
       }
     }
     setStep(3);
   };
 
   const finalize = async (target?: string) => {
-    await supabase.auth.updateUser({
-      data: {
-        onboarding_complete: true,
-        onboarding_focus: focus,
-        onboarding_goal: selectedGoal || null,
-        onboarding_sport: recSport,
-        starter_plan_id: starterPlan.id,
-        starter_plan_selected_at: new Date().toISOString(),
-      },
-    });
+    try {
+      await supabase.auth.updateUser({
+        data: {
+          onboarding_complete: true,
+          onboarding_focus: focus,
+          onboarding_goal: selectedGoal || null,
+          onboarding_sport: recSport,
+          starter_plan_id: starterPlan.id,
+          starter_plan_selected_at: new Date().toISOString(),
+        },
+      });
+      await supabase.auth.refreshSession();
+    } catch {
+      /* ignore */
+    }
     trackGrowthEvent("onboarding_completed", {
       focus,
       goal: selectedGoal,
       sport: recSport,
       starter_plan_id: starterPlan.id,
     });
-    onComplete();
+    // Navigera FÖRST så eventuella query-params (t.ex. ?logNow=1) bevaras;
+    // stäng sen onboardingen. V3HomePage får inte reload:a i callbacken.
     if (target) navigate(target);
+    onComplete();
   };
+
 
   const handleSkip = async () => {
     await supabase.auth.updateUser({
@@ -230,7 +272,7 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                     Få veta vad du och din hund ska träna på härnäst.
                   </h1>
                   <p className="text-v3-base text-v3-text-secondary leading-relaxed">
-                    Fyra snabba steg – ingen fejkad träning sparas.
+                    På några minuter får ni ett första pass anpassat efter ert fokus.
                   </p>
                 </div>
                 <button
@@ -371,6 +413,45 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                   <p className="text-v3-sm text-v3-text-secondary">Välj 1–2 områden – vi anpassar dagens pass.</p>
                 </div>
 
+                {sport === "Båda" && (
+                  <div className="space-y-2">
+                    <p className="text-v3-sm font-medium text-v3-text-secondary text-center">
+                      Vilken sport gäller dagens första pass?
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["Agility", "Hoopers"] as const).map((s) => {
+                        const isActive = recSport === s;
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => {
+                              setBothPlanSport(s);
+                              // Rensa fokusval som inte passar den nya sporten
+                              setFocus((prev) =>
+                                prev.filter((f) =>
+                                  s === "Hoopers"
+                                    ? (HOOPERS_FOCUS_KEYS as string[]).includes(f as string)
+                                    : (AGILITY_FOCUS_KEYS as string[]).includes(f as string),
+                                ),
+                              );
+                            }}
+                            className={cn(
+                              "min-h-12 rounded-v3-base border-2 text-v3-sm font-semibold transition-all v3-focus-ring",
+                              isActive
+                                ? "border-v3-brand-500 bg-v3-brand-500 text-white"
+                                : "border-v3-canvas-sunken bg-v3-canvas-elevated text-v3-text-primary",
+                            )}
+                          >
+                            {s}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+
                 <div className="flex flex-wrap gap-2 justify-center">
                   {focusOptions.map((f) => {
                     const active = focus.includes(f);
@@ -396,7 +477,7 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                 <div className="space-y-2">
                   <p className="text-v3-sm font-medium text-v3-text-secondary">Huvudmål (valfritt)</p>
                   <div className="grid grid-cols-1 gap-2">
-                    {GOAL_OPTIONS.map((g) => {
+                    {goalOptions.map((g) => {
                       const active = selectedGoal === g.value;
                       return (
                         <button
@@ -446,7 +527,7 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                   </div>
                   <h2 className="font-v3-display text-v3-3xl text-v3-text-primary">Ditt startpass</h2>
                   <p className="text-v3-sm text-v3-text-secondary">
-                    Ett pass att göra – inte ett pass som sparas som gjort.
+                    Spara planen och logga först när ni har tränat.
                   </p>
                 </div>
 
@@ -482,21 +563,35 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                 </article>
 
                 {showAlternative ? (
-                  <article className="rounded-v3-xl border border-v3-canvas-sunken bg-v3-canvas-elevated p-4 space-y-2">
+                  <article className="rounded-v3-xl border border-v3-canvas-sunken bg-v3-canvas-elevated p-4 space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-v3-canvas-sunken/60 px-2.5 py-1 text-[11px] font-semibold text-v3-text-secondary">
-                        <Clock3 size={11} /> {starterPlan.alternative.minutes} min
+                        <Clock3 size={11} /> {starterPlan.easierAlternative.durationMinutes} min
                       </span>
                       <span className="text-[11px] font-semibold uppercase tracking-wider text-v3-text-tertiary">
                         Lättare variant
                       </span>
                     </div>
                     <h4 className="font-v3-display text-v3-lg text-v3-text-primary leading-snug">
-                      {starterPlan.alternative.title}
+                      {starterPlan.easierAlternative.title}
                     </h4>
                     <p className="text-v3-sm text-v3-text-secondary leading-relaxed">
-                      {starterPlan.alternative.why}
+                      {starterPlan.easierAlternative.reason}
                     </p>
+                    <ol className="space-y-2">
+                      {starterPlan.easierAlternative.steps.map((s, i) => (
+                        <li key={i} className="flex gap-2.5">
+                          <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-v3-brand-500/15 text-[11px] font-black text-v3-brand-700">
+                            {i + 1}
+                          </span>
+                          <span className="text-v3-sm text-v3-text-primary leading-6">{s}</span>
+                        </li>
+                      ))}
+                    </ol>
+                    <div className="flex items-start gap-2 rounded-v3-base border border-dashed border-v3-canvas-sunken bg-v3-canvas/40 p-2.5 text-[12px] text-v3-text-secondary">
+                      <Package size={13} className="mt-0.5 shrink-0" />
+                      <span>{starterPlan.easierAlternative.equipment.join(" · ")}</span>
+                    </div>
                   </article>
                 ) : (
                   <button
@@ -505,10 +600,10 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                       setShowAlternative(true);
                       trackGrowthEvent("starter_plan_alternative_viewed", {
                         plan_id: starterPlan.id,
-                        alternative_id: starterPlan.alternative.id,
+                        alternative_id: starterPlan.easierAlternative.id,
                       });
                     }}
-                    className="w-full text-v3-sm text-v3-brand-700 hover:text-v3-brand-800 underline underline-offset-4"
+                    className="w-full min-h-11 text-v3-sm text-v3-brand-700 hover:text-v3-brand-800 underline underline-offset-4"
                   >
                     Visa lättare variant
                   </button>

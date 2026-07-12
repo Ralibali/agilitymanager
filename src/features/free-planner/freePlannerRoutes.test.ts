@@ -4,7 +4,7 @@ import {
   buildFreePlannerSelfUrl,
   FREE_PLANNER_DEFAULT_SOURCE,
   FREE_PLANNER_REDIRECT,
-} from "./buildFreePlannerAuthUrl";
+} from "./freePlannerRoutes";
 
 describe("buildFreePlannerAuthUrl", () => {
   it("signup with defaults uses fallback source and planner redirect", () => {

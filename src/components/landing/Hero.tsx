@@ -76,7 +76,7 @@ export function Hero() {
               }}
               className="h-12 sm:h-11"
             >
-              Skapa gratis konto
+              Få min första träningsplan
             </Button>
             <Button
               variant="brand-outline"
@@ -86,7 +86,7 @@ export function Hero() {
               }}
               className="h-12 sm:h-11"
             >
-              Testa gratis banplanerare
+              Testa banplaneraren
             </Button>
           </fmMotion.div>
 

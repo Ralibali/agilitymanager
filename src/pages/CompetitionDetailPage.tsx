@@ -272,6 +272,22 @@ export default function CompetitionDetailPage() {
             </div>
           </section>
 
+          {/* Produktbrygga — integrerad, inte bannerannons. Endast för utloggade. */}
+          {!user && (
+            <div className="mb-8">
+              <CompetitionProductBridge
+                placement="competition_detail"
+                competitionId={comp.id}
+                competitionName={name}
+                competitionDate={comp.date_start}
+                sport="agility"
+                variant={isPast ? "past" : "upcoming"}
+                layout="detail"
+                onVisibilityChange={setBridgeVisible}
+              />
+            </div>
+          )}
+
           {/* Classes */}
           {allClasses.length > 0 && (
             <section className="mb-8">
@@ -383,21 +399,10 @@ export default function CompetitionDetailPage() {
             </section>
           )}
 
-          {/* Logga i appen */}
-          <section className="mb-8 rounded-lg border bg-card p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-2">Tävlar du här?</h2>
-            <p className="text-muted-foreground text-sm mb-4">
-              Logga din anmälan, dina starter och resultat i AgilityManager — gratis.
-            </p>
-            <div className="flex gap-2 flex-wrap">
-              <Button asChild variant="default">
-                <Link to="/auth?mode=signup">Skapa konto</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link to="/app/competition">Mina tävlingar</Link>
-              </Button>
-            </div>
-          </section>
+          {/* "Tävlar du här?" och botten-ProductCTA är borttagna — bridgen ovan + sticky
+              mobil-CTA är sidans två produktplaceringar. */}
+
+
 
           {/* Related */}
           {related.length > 0 && (

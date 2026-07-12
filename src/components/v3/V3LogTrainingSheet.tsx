@@ -103,16 +103,25 @@ export function V3LogTrainingSheet({ open, onClose, onLogged, defaults, context 
   const types = isHoopers ? TRAINING_TYPES_HOOPERS : TRAINING_TYPES_AGILITY;
   const obstacleOptions = isHoopers ? OBSTACLES_HOOPERS : OBSTACLES_AGILITY;
 
-  // Reset när sheet öppnas — plocka upp ev. förifyllningar från "Dagens pass".
+  // Reset när sheet öppnas — plocka upp ev. förifyllningar och kontext.
+  // När kontexten kommer från banplaneraren väljer vi en hund vars sport matchar.
   useEffect(() => {
     if (open) {
-      setForm(defaultState(activeId ?? active?.id ?? null, defaults));
+      let initialDogId = activeId ?? active?.id ?? null;
+      if (context?.sport && dogs.length > 0) {
+        const active_matches = dogs.find((d) => d.id === initialDogId)?.sport === context.sport;
+        if (!active_matches) {
+          const match = dogs.find((d) => d.sport === context.sport);
+          if (match) initialDogId = match.id;
+        }
+      }
+      setForm(defaultState(initialDogId, defaults));
       setErrors({});
       setAdvOpen(Boolean(defaults?.obstacles?.length || defaults?.tags?.length));
       setStartedTracked(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, activeId, active?.id, defaults?.type, defaults?.durationMinutes]);
+  }, [open, activeId, active?.id, defaults?.type, defaults?.durationMinutes, context?.sport, context?.courseName]);
 
   // ESC + scroll-lock
   useEffect(() => {

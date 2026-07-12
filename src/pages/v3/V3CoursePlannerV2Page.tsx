@@ -980,15 +980,9 @@ function V3CoursePlannerV2PageInner() {
               const rs = getRuleSet(course.ruleSetId ?? getDefaultRuleSetIdForSport(course.sport));
               if (!rs) return null;
               return (
-                <a
-                  href={rs.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block mt-1 text-[10px] text-neutral-500 hover:text-primary underline truncate"
-                  title={rs.sourceDocuments.map((d) => d.name).join(", ")}
-                >
-                  Källa: {rs.authority}
-                </a>
+                <div className="mt-2">
+                  <RuleSetTrustBadge ruleSet={rs} />
+                </div>
               );
             })()}
           </section>
@@ -1037,7 +1031,9 @@ function V3CoursePlannerV2PageInner() {
         {/* CENTER — banyta */}
         <section className="rounded-2xl bg-card border border-border p-3 min-w-0">
           <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-            <div className={cn("flex items-center gap-1.5 flex-wrap", isMobile && "hidden")}>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Mobil kompletteras av MobileBottomDock nedan. Toolbar-raden är
+                  responsiv och wrapar när skärmen är smal. */}
               {/* Grupp: ritverktyg */}
               <ToolBtn active={tool === "select"} onClick={() => setTool("select")} icon={<MousePointer2 size={14} />} title="Välj och flytta hinder">Välj</ToolBtn>
               <ToolBtn active={tool === "erase"} onClick={() => setTool("erase")} icon={<Eraser size={14} />} title="Sudda hinder genom att klicka">Sudda</ToolBtn>

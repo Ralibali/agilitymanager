@@ -11,7 +11,7 @@
  * Data sparas i localStorage under egen nyckel — påverkar INTE v1.
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
-import { useEffect, useMemo, useRef, useState, useCallback, type PointerEvent, type WheelEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback, forwardRef, useImperativeHandle, type PointerEvent, type WheelEvent } from "react";
 import { Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Undo2, Redo2, Copy, Magnet, Box, Footprints, Lock, Unlock, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown, Ruler, Crosshair, Smartphone, Hand, ZoomIn, ZoomOut, Maximize } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, useNavigate } from "react-router-dom";
@@ -159,6 +159,20 @@ export default function V3CoursePlannerV2Page() {
   return <V3CoursePlannerV2PageInner />;
 }
 
+/** Imperative API som ArenaCanvas exponerar för sin förälder. */
+interface ArenaCanvasHandle {
+  fitToScreen(): void;
+  zoomIn(): void;
+  zoomOut(): void;
+  zoomAtClient(factor: number, clientX: number, clientY: number): void;
+  zoomTo(zoom: number, anchorClientX?: number, anchorClientY?: number): void;
+  panByPx(dxPx: number, dyPx: number): void;
+  clientToCourseM(clientX: number, clientY: number): { x: number; y: number };
+  getViewportCenterCourseM(): { x: number; y: number };
+  getZoom(): number;
+  getSvgElement(): SVGSVGElement | null;
+}
+
 function V3CoursePlannerV2PageInner() {
   const navigate = useNavigate();
   const { user, subscription } = useAuth();
@@ -191,20 +205,12 @@ function V3CoursePlannerV2PageInner() {
   const fullscreenRootRef = useRef<HTMLDivElement | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Viewport-hook: source of truth för zoom/pan + client↔meter-konvertering.
-  // containerRef/svgRef binds i ArenaCanvas via prop.
-  const viewport = useCanvasViewport({
-    storageKey: cloudId ?? "local",
-    arenaWidthM: course.arenaWidthM,
-    arenaHeightM: course.arenaHeightM,
-    paddingM: showDimensions ? 1.8 : 1,
-  });
-  const svgRef = viewport.svgRef;
+  // Imperative handle mot ArenaCanvas — hooken useCanvasViewport bor inuti
+  // barnkomponenten och exponerar zoom/pan/fit/koordinatkonvertering härifrån.
+  const arenaCanvasRef = useRef<ArenaCanvasHandle>(null);
 
-  // Pointer- och drag-session state.
-  // pointersRef håller aktiva pointers under gest → tvåfinger-detektering.
-  // pinchStartRef sparar sample-läge vid pinch-start så vi kan räkna delta.
-  // dragSessionRef: en enda undo-transition skapas vid pointerup, inte per move.
+  // Pointer- och drag-session state (bevaras i föräldern eftersom historik
+  // och tävlingsstate hanteras här).
   const pointersRef = useRef<Map<number, { clientX: number; clientY: number }>>(new Map());
   const pinchStartRef = useRef<
     { sample: PinchSample; startZoom: number } | null
@@ -214,7 +220,6 @@ function V3CoursePlannerV2PageInner() {
     | null
   >(null);
   const panSessionRef = useRef<{ lastClientX: number; lastClientY: number } | null>(null);
-  const mobileFitDoneRef = useRef(false);
 
   // Persistera Mått-toggle.
   useEffect(() => {
@@ -270,21 +275,8 @@ function V3CoursePlannerV2PageInner() {
   }, [view3D]);
 
   // Fit-to-screen på mobil första gången canvasstorleken är känd (så användaren
-  // ser hela banan från start), och vid sport-/arena-byte. viewport.fitToScreen
-  // är stabilt över samma arena-storlek och läses inte som dep här.
-  useEffect(() => {
-    if (isMobile && !mobileFitDoneRef.current && viewport.metrics.viewportWidthPx > 100) {
-      mobileFitDoneRef.current = true;
-      viewport.fitToScreen();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMobile, viewport.metrics.viewportWidthPx]);
-
-  useEffect(() => {
-    // Vid arena- eller sportbyte: fit så att nya banan syns direkt.
-    viewport.fitToScreen();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [course.arenaWidthM, course.arenaHeightM, course.sport]);
+  // Auto-fit vid första storlek och vid arena-/sportbyte ligger nu inne i
+  // ArenaCanvas (den äger viewport-hooken och sin egen ResizeObserver).
 
 
   // 2D-uppspelning ("Spela upp banan").
@@ -378,7 +370,7 @@ function V3CoursePlannerV2PageInner() {
   async function handleExportPdf() {
     try {
       const qrDataUrl = await buildQrDataUrl();
-      await exportJudgePdf({ ...baseExportInput(), qrDataUrl, svgElement: svgRef.current });
+      await exportJudgePdf({ ...baseExportInput(), qrDataUrl, svgElement: arenaCanvasRef.current?.getSvgElement() ?? null });
       toast.success("Domar-PDF skapad");
     } catch (e) { console.error(e); toast.error("Kunde inte skapa PDF"); }
   }
@@ -605,14 +597,13 @@ function V3CoursePlannerV2PageInner() {
       return;
     }
     const id = uid();
-    // Placeringspunkt = viewportens mitt i banans meter-koord.
-    // Faller tillbaka till arenans mitt tills viewport-storlek är känd.
-    const vpCx = viewport.viewMinXM + viewport.visibleWidthM / 2;
-    const vpCy = viewport.viewMinYM + viewport.visibleHeightM / 2;
+    // Placeringspunkt = viewportens mitt i banans meter-koord (via ArenaCanvas
+    // imperative-API). Faller tillbaka till arenans mitt tills canvas är monterad.
+    const vpCenter = arenaCanvasRef.current?.getViewportCenterCourseM();
     const arenaCx = course.arenaWidthM / 2;
     const arenaCy = course.arenaHeightM / 2;
-    const cx = Number.isFinite(vpCx) ? vpCx : arenaCx;
-    const cy = Number.isFinite(vpCy) ? vpCy : arenaCy;
+    const cx = vpCenter && Number.isFinite(vpCenter.x) ? vpCenter.x : arenaCx;
+    const cy = vpCenter && Number.isFinite(vpCenter.y) ? vpCenter.y : arenaCy;
     // Diskret offset per placering så flera hinder inte hamnar exakt ovanpå.
     // Räknar antal hinder av samma typ, offsettar 0.5 m diagonalt per steg.
     const sameTypeCount = course.obstacles.filter((o) => o.type === type).length;
@@ -874,16 +865,16 @@ function V3CoursePlannerV2PageInner() {
       ];
       const sample = pinchSample(pts[0], pts[1]);
       if (!pinchStartRef.current) {
-        pinchStartRef.current = { sample, startZoom: viewport.state.zoom };
+        pinchStartRef.current = { sample, startZoom: (arenaCanvasRef.current?.getZoom() ?? 1) };
         // Avbryt eventuell drag så att pinch inte råkar flytta ett hinder.
         dragSessionRef.current = null;
         setDraggingId(null);
       } else {
         const scale = pinchScale(pinchStartRef.current.sample, sample);
         const nextZoom = pinchStartRef.current.startZoom * scale;
-        viewport.zoomTo(nextZoom, sample.mid.clientX, sample.mid.clientY);
+        arenaCanvasRef.current?.zoomTo(nextZoom, sample.mid.clientX, sample.mid.clientY);
         const dp = pinchPanDelta(pinchStartRef.current.sample, sample);
-        viewport.panByPx(dp.dxPx, dp.dyPx);
+        arenaCanvasRef.current?.panByPx(dp.dxPx, dp.dyPx);
         pinchStartRef.current = { sample, startZoom: nextZoom };
       }
       return;
@@ -891,7 +882,8 @@ function V3CoursePlannerV2PageInner() {
 
     // Hinder-drag.
     if (draggingId && dragSessionRef.current) {
-      const local = viewport.clientToCourseM(e.clientX, e.clientY);
+      const local = arenaCanvasRef.current?.clientToCourseM(e.clientX, e.clientY);
+      if (!local) return;
       const session = dragSessionRef.current;
       skipHistoryRef.current = true;
       setCourseRaw((c) => ({
@@ -925,7 +917,7 @@ function V3CoursePlannerV2PageInner() {
       const dx = e.clientX - panSessionRef.current.lastClientX;
       const dy = e.clientY - panSessionRef.current.lastClientY;
       panSessionRef.current = { lastClientX: e.clientX, lastClientY: e.clientY };
-      viewport.panByPx(dx, dy);
+      arenaCanvasRef.current?.panByPx(dx, dy);
     }
   }
 
@@ -967,7 +959,7 @@ function V3CoursePlannerV2PageInner() {
       ];
       pinchStartRef.current = {
         sample: pinchSample(pts[0], pts[1]),
-        startZoom: viewport.state.zoom,
+        startZoom: (arenaCanvasRef.current?.getZoom() ?? 1),
       };
       // Om vi råkade dra ett hinder — släpp det, pinch tar över.
       dragSessionRef.current = null;
@@ -991,13 +983,13 @@ function V3CoursePlannerV2PageInner() {
       // Trackpad-pinch/ctrl-scroll = zoom kring pekaren.
       e.preventDefault();
       const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
-      viewport.zoomAtClient(factor, e.clientX, e.clientY);
+      arenaCanvasRef.current?.zoomAtClient(factor, e.clientX, e.clientY);
       return;
     }
     // Vanlig scroll → panorera viewporten. Dra åt höger/ner motsvarar positiv delta.
     if (e.deltaX === 0 && e.deltaY === 0) return;
     e.preventDefault();
-    viewport.panByPx(-e.deltaX, -e.deltaY);
+    arenaCanvasRef.current?.panByPx(-e.deltaX, -e.deltaY);
   }
 
 
@@ -1425,58 +1417,23 @@ function V3CoursePlannerV2PageInner() {
             speed={playback.speed}
             setSpeed={playback.setSpeed}
           />
-          <div className="relative">
-            <ArenaCanvas
-              containerRef={viewport.containerRef}
-              svgRef={viewport.svgRef}
-              viewBox={viewport.viewBox}
-              pxPerM={viewport.metrics.pxPerM}
-              course={course}
-              selectedId={selectedId}
-              highlightIds={issueIdSet}
-              showPath={showPath}
-              showDimensions={showDimensions}
-              onObstacleDown={handlePointerDown}
-              onSvgPointerDown={handleSvgBackgroundPointerDown}
-              onPointerMove={handleSvgPointerMove}
-              onPointerUp={handleSvgPointerUp}
-              onWheel={handleSvgWheel}
-              onBackgroundClick={() => setSelectedId(null)}
-              playbackActive={playback2D}
-              playbackT={playback.t}
-            />
-            {/* Mobil zoom-overlay inuti canvas-wrappern. 44px targets. */}
-            <div
-              className="lg:hidden pointer-events-none absolute right-3 top-3 flex flex-col items-end gap-2"
-              aria-label="Zoom-kontroller"
-            >
-              <button
-                type="button"
-                onClick={() => viewport.zoomIn()}
-                aria-label="Zooma in"
-                className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-border bg-card/95 text-foreground/80 shadow-sm backdrop-blur active:scale-95"
-              >
-                <ZoomIn size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => viewport.fitToScreen()}
-                aria-label={`Anpassa banan till skärmen. Zoom ${Math.round(viewport.state.zoom * 100)} procent`}
-                className="pointer-events-auto inline-flex h-11 min-w-[60px] items-center justify-center gap-1 rounded-full border border-border bg-card/95 px-2 text-[11px] font-semibold text-foreground/80 shadow-sm backdrop-blur active:scale-95"
-              >
-                <Maximize size={14} />
-                <span>{Math.round(viewport.state.zoom * 100)}%</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => viewport.zoomOut()}
-                aria-label="Zooma ut"
-                className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-border bg-card/95 text-foreground/80 shadow-sm backdrop-blur active:scale-95"
-              >
-                <ZoomOut size={18} />
-              </button>
-            </div>
-          </div>
+          <ArenaCanvas
+            ref={arenaCanvasRef}
+            storageKey={cloudId ?? "local"}
+            course={course}
+            selectedId={selectedId}
+            highlightIds={issueIdSet}
+            showPath={showPath}
+            showDimensions={showDimensions}
+            onObstacleDown={handlePointerDown}
+            onSvgPointerDown={handleSvgBackgroundPointerDown}
+            onPointerMove={handleSvgPointerMove}
+            onPointerUp={handleSvgPointerUp}
+            onWheel={handleSvgWheel}
+            onBackgroundClick={() => setSelectedId(null)}
+            playbackActive={playback2D}
+            playbackT={playback.t}
+          />
         </section>
 
 
@@ -1619,16 +1576,8 @@ function ToolBtn({ active, onClick, icon, children, title }: { active: boolean; 
 }
 
 
-function ArenaCanvas({
-  containerRef, svgRef, viewBox, pxPerM,
-  course, selectedId, highlightIds, showPath, showDimensions = false,
-  onObstacleDown, onSvgPointerDown, onPointerMove, onPointerUp, onWheel, onBackgroundClick,
-  playbackActive = false, playbackT = 0,
-}: {
-  containerRef: React.MutableRefObject<HTMLDivElement | null>;
-  svgRef: React.MutableRefObject<SVGSVGElement | null>;
-  viewBox: string;
-  pxPerM: number;
+interface ArenaCanvasProps {
+  storageKey: string;
   course: CourseV2;
   selectedId: string | null;
   highlightIds: Set<string>;
@@ -1642,26 +1591,95 @@ function ArenaCanvas({
   onBackgroundClick: () => void;
   playbackActive?: boolean;
   playbackT?: number;
-}) {
+}
+
+/**
+ * ArenaCanvas äger `useCanvasViewport`-hooken och är därmed enda källa till
+ * viewBox, client↔meter-konvertering, zoom/pan/pinch och Fit-to-screen.
+ * Föräldern kommer åt viewport via `useImperativeHandle` (se ArenaCanvasHandle).
+ */
+const ArenaCanvas = forwardRef<ArenaCanvasHandle, ArenaCanvasProps>(function ArenaCanvas(
+  {
+    storageKey,
+    course,
+    selectedId,
+    highlightIds,
+    showPath,
+    showDimensions = false,
+    onObstacleDown,
+    onSvgPointerDown,
+    onPointerMove,
+    onPointerUp,
+    onWheel,
+    onBackgroundClick,
+    playbackActive = false,
+    playbackT = 0,
+  },
+  ref,
+) {
+  const viewport = useCanvasViewport({
+    storageKey,
+    arenaWidthM: course.arenaWidthM,
+    arenaHeightM: course.arenaHeightM,
+    paddingM: showDimensions ? 1.8 : 1,
+  });
+
+  // Imperative API mot föräldern. Alla metoder är stabila referenser på
+  // `viewport`, som re-skapas bara vid arena-/state-byte — vi listar dem i
+  // deps så att den senaste versionen alltid exponeras.
+  useImperativeHandle(
+    ref,
+    () => ({
+      fitToScreen: () => viewport.fitToScreen(),
+      zoomIn: () => viewport.zoomIn(),
+      zoomOut: () => viewport.zoomOut(),
+      zoomAtClient: (factor, cx, cy) => viewport.zoomAtClient(factor, cx, cy),
+      zoomTo: (z, ax, ay) => viewport.zoomTo(z, ax, ay),
+      panByPx: (dx, dy) => viewport.panByPx(dx, dy),
+      clientToCourseM: (cx, cy) => viewport.clientToCourseM(cx, cy),
+      getViewportCenterCourseM: () => ({
+        x: viewport.viewMinXM + viewport.visibleWidthM / 2,
+        y: viewport.viewMinYM + viewport.visibleHeightM / 2,
+      }),
+      getZoom: () => viewport.state.zoom,
+      getSvgElement: () => viewport.svgRef.current,
+    }),
+    [viewport],
+  );
+
+  // Fit när canvasen först får storlek (ResizeObserver inuti hooken driver
+  // metrics.viewportWidthPx). Görs en gång per mount.
+  const firstFitRef = useRef(false);
+  useEffect(() => {
+    if (!firstFitRef.current && viewport.metrics.viewportWidthPx > 100) {
+      firstFitRef.current = true;
+      viewport.fitToScreen();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewport.metrics.viewportWidthPx]);
+
+  // Fit vid arena- eller sportbyte så att nya banan alltid syns direkt.
+  useEffect(() => {
+    viewport.fitToScreen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [course.arenaWidthM, course.arenaHeightM, course.sport]);
+
   const w = course.arenaWidthM;
   const h = course.arenaHeightM;
-  // Hundens väg (Prompt B) — mjuk Catmull-Rom-kurva via dogPath.
   const dogPath = buildDogPath(course.obstacles);
   const pathD = dogPathToSvgD(dogPath);
-
-  // Adaptiv tickmark-täthet i meter beroende på arenastorlek.
   const maxArenaM = Math.max(w, h);
   const tickStepM = maxArenaM <= 20 ? 1 : maxArenaM <= 40 ? 5 : 10;
 
   return (
     <div
-      ref={containerRef}
+      ref={viewport.containerRef}
       className="relative rounded-xl bg-[#e8efe0] p-2"
       style={{ touchAction: "none" }}
     >
       <svg
-        ref={svgRef}
-        viewBox={viewBox}
+        ref={viewport.svgRef}
+        viewBox={viewport.viewBox}
         className="w-full h-auto min-h-[min(70dvh,720px)] lg:min-h-0 max-h-[calc(100dvh-200px)] touch-none select-none"
         onPointerDown={onSvgPointerDown}
         onPointerMove={onPointerMove}
@@ -1695,16 +1713,13 @@ function ArenaCanvas({
               obstacle={ob}
               selected={selectedId === ob.id}
               hasIssue={highlightIds.has(ob.id)}
-              pxPerM={pxPerM}
+              pxPerM={viewport.metrics.pxPerM}
               onPointerDown={(e) => onObstacleDown(e, ob.id)}
             />
           ))}
 
-
-        {/* Banmått — sticky linjaler i meter, ritade direkt i SVG så de skalar med viewBox */}
         {showDimensions && (
           <g pointerEvents="none">
-            {/* Tickmarks topp (x-axel) */}
             {Array.from({ length: Math.floor(w / tickStepM) + 1 }).map((_, i) => {
               const m = i * tickStepM;
               if (m === 0 || m === w) return null;
@@ -1717,7 +1732,6 @@ function ArenaCanvas({
                 </g>
               );
             })}
-            {/* Tickmarks vänster (y-axel) */}
             {Array.from({ length: Math.floor(h / tickStepM) + 1 }).map((_, i) => {
               const m = i * tickStepM;
               if (m === 0 || m === h) return null;
@@ -1730,7 +1744,6 @@ function ArenaCanvas({
                 </g>
               );
             })}
-            {/* Banmått — totala bredd/höjd centrerat utanför arenan */}
             <text x={w / 2} y={-0.92} textAnchor="middle" fontSize={0.55} fontWeight={700} fill="#173d2c" opacity={0.9}>
               {w} m
             </text>
@@ -1740,16 +1753,47 @@ function ArenaCanvas({
             >
               {h} m
             </text>
-            {/* Hörnmarkörer (0,0) */}
             <text x={-0.55} y={-0.2} textAnchor="end" fontSize={0.35} fill="#173d2c" opacity={0.55}>0</text>
           </g>
         )}
 
         <CoursePlaybackOverlay course={course} active={playbackActive} t={playbackT} />
       </svg>
+
+      {/* Mobil zoom-overlay ligger inuti canvas-wrappern. 44px touch-targets. */}
+      <div
+        className="lg:hidden pointer-events-none absolute right-3 top-3 flex flex-col items-end gap-2"
+        aria-label="Zoom-kontroller"
+      >
+        <button
+          type="button"
+          onClick={() => viewport.zoomIn()}
+          aria-label="Zooma in"
+          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-border bg-card/95 text-foreground/80 shadow-sm backdrop-blur active:scale-95"
+        >
+          <ZoomIn size={18} />
+        </button>
+        <button
+          type="button"
+          onClick={() => viewport.fitToScreen()}
+          aria-label={`Anpassa banan till skärmen. Zoom ${Math.round(viewport.state.zoom * 100)} procent`}
+          className="pointer-events-auto inline-flex h-11 min-w-[60px] items-center justify-center gap-1 rounded-full border border-border bg-card/95 px-2 text-[11px] font-semibold text-foreground/80 shadow-sm backdrop-blur active:scale-95"
+        >
+          <Maximize size={14} />
+          <span>{Math.round(viewport.state.zoom * 100)}%</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => viewport.zoomOut()}
+          aria-label="Zooma ut"
+          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-border bg-card/95 text-foreground/80 shadow-sm backdrop-blur active:scale-95"
+        >
+          <ZoomOut size={18} />
+        </button>
+      </div>
     </div>
   );
-}
+});
 
 function ObstacleSvg({ obstacle, selected, hasIssue, pxPerM, onPointerDown }: {
   obstacle: ObstacleV2;

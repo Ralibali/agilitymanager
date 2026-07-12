@@ -96,7 +96,7 @@ const COPY = {
         {
           icon: Pencil,
           title: "Rita hoopers-banor",
-          body: "Testa banor med SHoK-regler i banbyggaren.",
+          body: "Hoopers-anpassade hinder och kontroller i banbyggaren.",
         },
       ],
       primary: "Få min plan fram till start",

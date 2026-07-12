@@ -686,11 +686,7 @@ function V3CoursePlannerV2PageInner() {
 
   function handlePointerDown(e: PointerEvent<SVGGElement>, id: string) {
     e.stopPropagation();
-    // Mobil = visningsläge: tillåt markering men ingen drag/redigering
-    if (isMobile) {
-      setSelectedId(id);
-      return;
-    }
+    // Prompt K: mobil är nu ett förstaklassigt redigeringsläge. Ingen blockering.
     const ob = course.obstacles.find((o) => o.id === id);
     if (tool === "erase") { deleteObstacle(id); return; }
     if (tool === "number") {
@@ -703,6 +699,8 @@ function V3CoursePlannerV2PageInner() {
     if (ob?.locked) return; // Markera men dra inte
     setDraggingId(id);
     (e.target as Element).setPointerCapture?.(e.pointerId);
+    // Diskret haptic feedback när drag startar. Ignorera i miljöer som saknar API.
+    try { navigator.vibrate?.(8); } catch { /* ignore */ }
   }
 
   // Drag på SVG-koordinater → meter
@@ -931,16 +929,7 @@ function V3CoursePlannerV2PageInner() {
         </div>
       )}
 
-      {/* Mobil-banner: visningsläge */}
-      {isMobile && (
-        <div className="mx-3 mt-3 rounded-xl bg-primary/10 border border-primary/20 px-3 py-2 flex items-start gap-2 text-[12px] text-primary">
-          <Smartphone size={16} className="shrink-0 mt-0.5" />
-          <div className="leading-snug">
-            <strong>Visningsläge.</strong> Banplaneraren är optimerad för dator eller surfplatta.
-            Här kan du titta på banan, växla 3D, exportera och spara — men inte redigera hinder.
-          </div>
-        </div>
-      )}
+      {/* Mobil-banner "visningsläge" borttagen — mobilen är nu ett fullt redigeringsläge. */}
 
       {/* MAIN GRID */}
       <main className="grid gap-3 p-3 lg:p-4 lg:grid-cols-[280px_minmax(0,1fr)_320px]">

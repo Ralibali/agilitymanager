@@ -790,9 +790,23 @@ function V3CoursePlannerV2PageInner() {
     toast.success("Numrerar i placeringsordning");
   }
 
+  /**
+   * Pointerdown på ett hinder. Startar en drag-session (för undo) om
+   * verktyget är select/pan och hindret inte är låst. Är verktyget `erase`
+   * eller `number` hanteras klicket direkt utan drag.
+   *
+   * Om ett andra finger redan är nere behandlas gesten som pinch och drag
+   * startar inte — se `handleSvgBackgroundPointerDown` för pinch-init.
+   */
   function handlePointerDown(e: PointerEvent<SVGGElement>, id: string) {
     e.stopPropagation();
-    // Prompt K: mobil är nu ett förstaklassigt redigeringsläge. Ingen blockering.
+    pointersRef.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    // Om två fingrar redan är nere: cancel drag och låt pinch-hanteraren ta över.
+    if (pointersRef.current.size >= 2) {
+      dragSessionRef.current = null;
+      setDraggingId(null);
+      return;
+    }
     const ob = course.obstacles.find((o) => o.id === id);
     if (tool === "erase") { deleteObstacle(id); return; }
     if (tool === "number") {
@@ -802,48 +816,165 @@ function V3CoursePlannerV2PageInner() {
       return;
     }
     setSelectedId(id);
-    if (ob?.locked) return; // Markera men dra inte
+    if (ob?.locked) return;
+    if (!ob) return;
     setDraggingId(id);
     (e.target as Element).setPointerCapture?.(e.pointerId);
-    // Diskret haptic feedback när drag startar. Ignorera i miljöer som saknar API.
+    dragSessionRef.current = {
+      id,
+      originalCourse: course,
+      startX: ob.x,
+      startY: ob.y,
+      moved: false,
+      lastCellKey: `${Math.round(ob.x * 2)}:${Math.round(ob.y * 2)}`,
+    };
     try { navigator.vibrate?.(8); } catch { /* ignore */ }
   }
 
-  // Drag på SVG-koordinater → meter.
-  // Klampar HELA det roterade hindret innanför arenan via geometry-helper
-  // så att långa/roterade hinder (tunnel, slalom, långhopp) inte kan dras ut
-  // över kanten. Snap sker på det klampade centrumet.
+  /**
+   * Pointermove på SVG-nivå. Tre olika lägen:
+   *  1. 2+ pointers → pinch: zoom + tvåfinger-pan via viewport-hooken.
+   *  2. draggingId satt → flytta det aktiva hindret. Använder
+   *     viewport.clientToCourseM för korrekt konvertering vid zoom/pan.
+   *  3. panSession aktiv → panorera viewporten (pan-verktyg / bakgrund).
+   *
+   * Under drag används `skipHistoryRef` så att varje pointermove INTE
+   * skapar en undo-post. Snapshot av original läggs i historiken vid
+   * pointerup (se `handleSvgPointerUp`).
+   */
   function handleSvgPointerMove(e: PointerEvent<SVGSVGElement>) {
-    if (!draggingId) return;
-    const svg = e.currentTarget;
-    const pt = svg.createSVGPoint();
-    pt.x = e.clientX; pt.y = e.clientY;
-    const ctm = svg.getScreenCTM();
-    if (!ctm) return;
-    const local = pt.matrixTransform(ctm.inverse());
-    setCourse((c) => ({
-      ...c,
-      obstacles: c.obstacles.map((o) => {
-        if (o.id !== draggingId) return o;
-        const def = getObstacleDefV2(o.type);
-        const dims = def?.sizeM ?? { w: 1, d: 1 };
-        const desired = { ...o, x: local.x, y: local.y };
-        const clamped = clampObstacleToArena(
-          desired,
-          { widthM: c.arenaWidthM, heightM: c.arenaHeightM },
-          dims,
-        );
-        return { ...clamped, x: snapM(clamped.x), y: snapM(clamped.y) };
-      }),
-    }));
+    // Uppdatera pointerns senaste position.
+    if (pointersRef.current.has(e.pointerId)) {
+      pointersRef.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    }
+
+    // Pinch (2 fingrar) — dominerar över drag/pan.
+    if (pointersRef.current.size >= 2) {
+      const pts = Array.from(pointersRef.current.values()).slice(0, 2) as [
+        { clientX: number; clientY: number },
+        { clientX: number; clientY: number },
+      ];
+      const sample = pinchSample(pts[0], pts[1]);
+      if (!pinchStartRef.current) {
+        pinchStartRef.current = { sample, startZoom: viewport.state.zoom };
+        // Avbryt eventuell drag så att pinch inte råkar flytta ett hinder.
+        dragSessionRef.current = null;
+        setDraggingId(null);
+      } else {
+        const scale = pinchScale(pinchStartRef.current.sample, sample);
+        const nextZoom = pinchStartRef.current.startZoom * scale;
+        viewport.zoomTo(nextZoom, sample.mid.clientX, sample.mid.clientY);
+        const dp = pinchPanDelta(pinchStartRef.current.sample, sample);
+        viewport.panByPx(dp.dxPx, dp.dyPx);
+        pinchStartRef.current = { sample, startZoom: nextZoom };
+      }
+      return;
+    }
+
+    // Hinder-drag.
+    if (draggingId && dragSessionRef.current) {
+      const local = viewport.clientToCourseM(e.clientX, e.clientY);
+      const session = dragSessionRef.current;
+      skipHistoryRef.current = true;
+      setCourseRaw((c) => ({
+        ...c,
+        obstacles: c.obstacles.map((o) => {
+          if (o.id !== draggingId) return o;
+          const def = getObstacleDefV2(o.type);
+          const dims = def?.sizeM ?? { w: 1, d: 1 };
+          const clamped = clampObstacleToArena(
+            { ...o, x: local.x, y: local.y },
+            { widthM: c.arenaWidthM, heightM: c.arenaHeightM },
+            dims,
+          );
+          const nx = snapM(clamped.x);
+          const ny = snapM(clamped.y);
+          const cellKey = `${Math.round(nx * 2)}:${Math.round(ny * 2)}`;
+          if (cellKey !== session.lastCellKey) {
+            session.lastCellKey = cellKey;
+            session.moved = session.moved || nx !== session.startX || ny !== session.startY;
+            // Haptic bara vid varje ny snap-cell — inte varje move.
+            try { navigator.vibrate?.(4); } catch { /* ignore */ }
+          }
+          return { ...clamped, x: nx, y: ny };
+        }),
+      }));
+      return;
+    }
+
+    // Pan-session (bakgrund + pan-verktyg / space+drag desktop).
+    if (panSessionRef.current) {
+      const dx = e.clientX - panSessionRef.current.lastClientX;
+      const dy = e.clientY - panSessionRef.current.lastClientY;
+      panSessionRef.current = { lastClientX: e.clientX, lastClientY: e.clientY };
+      viewport.panByPx(dx, dy);
+    }
   }
 
-  function handleSvgPointerUp() {
-    if (draggingId) {
-      trackEvent("course_obstacle_moved", { sport: course.sport, device_class: getDeviceClass() });
+  function handleSvgPointerUp(e: PointerEvent<SVGSVGElement>) {
+    pointersRef.current.delete(e.pointerId);
+    // Om vi tappar den andra pointern under pinch → återställ pinch-start.
+    if (pointersRef.current.size < 2) {
+      pinchStartRef.current = null;
     }
-    setDraggingId(null);
+    if (draggingId) {
+      const session = dragSessionRef.current;
+      if (session && session.moved) {
+        // Skapa en ENDA history-transition för hela draget: pusha original.
+        historyRef.current.past.push(session.originalCourse);
+        if (historyRef.current.past.length > 30) historyRef.current.past.shift();
+        historyRef.current.future = [];
+        trackEvent("course_obstacle_moved", {
+          sport: course.sport,
+          device_class: getDeviceClass(),
+        });
+      }
+      dragSessionRef.current = null;
+      setDraggingId(null);
+    }
+    panSessionRef.current = null;
   }
+
+  /**
+   * Pointerdown på SVG-bakgrunden (inte på ett hinder). Registrerar
+   * pointern, initierar pinch när ett andra finger går ned, eller startar
+   * pan när pan-verktyget är aktivt.
+   */
+  function handleSvgBackgroundPointerDown(e: PointerEvent<SVGSVGElement>) {
+    pointersRef.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    if (pointersRef.current.size >= 2) {
+      const pts = Array.from(pointersRef.current.values()).slice(0, 2) as [
+        { clientX: number; clientY: number },
+        { clientX: number; clientY: number },
+      ];
+      pinchStartRef.current = {
+        sample: pinchSample(pts[0], pts[1]),
+        startZoom: viewport.state.zoom,
+      };
+      // Om vi råkade dra ett hinder — släpp det, pinch tar över.
+      dragSessionRef.current = null;
+      setDraggingId(null);
+      return;
+    }
+    if (tool === "pan") {
+      panSessionRef.current = { lastClientX: e.clientX, lastClientY: e.clientY };
+      (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    }
+  }
+
+  /**
+   * Wheel/trackpad. ctrl/meta = zoom kring pointern (matchar
+   * mac/trackpad-pinch som skickas som wheel + ctrlKey). Annars normal
+   * scroll — vi låter sidan hantera det så att långa banor inte låser
+   * hela viewporten.
+   */
+  function handleSvgWheel(e: WheelEvent<SVGSVGElement>) {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    if (e.deltaY < 0) viewport.zoomIn(e.clientX, e.clientY);
+    else viewport.zoomOut(e.clientX, e.clientY);
+  }
+
 
   const palette = useMemo(
     () => OBSTACLES_V2.filter((o) => o.sport.includes(course.sport)),

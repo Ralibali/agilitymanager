@@ -7,11 +7,7 @@ import { motion } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import { BrandPill } from "@/components/brand/BrandPill";
 import { CoursePath } from "@/components/brand/CoursePath";
-
-const trackEvent = (name: string) => {
-  // @ts-ignore
-  if (typeof window !== "undefined" && window.flock) window.flock(name);
-};
+import { trackGrowthEvent } from "@/lib/growthEvents";
 
 export function Hero() {
   const navigate = useNavigate();
@@ -22,9 +18,8 @@ export function Hero() {
         {/* Vänster kolumn */}
         <div>
           <FadeIn delay={0.04} duration="smooth">
-            {/* Behållen sub-label, omstylad som BrandPill (moss + dot). Texten exakt från originalet. */}
             <BrandPill color="moss" dot className="mb-6">
-              Din och hundens träningsresa – samlad på ett ställe
+              14 dagar Pro gratis · ingen kortuppgift
             </BrandPill>
           </FadeIn>
 
@@ -38,17 +33,16 @@ export function Hero() {
 
           <FadeIn delay={0.2} duration="slow">
             <p className="mt-6 text-base text-stone leading-relaxed max-w-prose">
-              AgilityManager hjälper dig förstå din hund, minnas varje pass och känna riktning i träningen. Logga, planera banor, följ mål och bygg en relation där varje liten förbättring syns.
+              Samla träning, mål, banor och tävlingar på ett ställe. Se vad som faktiskt fungerar för din hund och få ett tydligt nästa steg inför varje pass.
             </p>
           </FadeIn>
 
           <FadeIn delay={0.28} duration="smooth">
-            {/* Behåller 3-kortssektionen — re-skinned till brand. */}
             <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-[560px]">
               {[
-                ["🐾", "Minns känslan", "Inte bara siffror – även vad som fungerade."],
-                ["🎯", "Nästa steg", "Få fokus inför nästa pass och tävling."],
-                ["🧡", "Bygg relation", "Se utvecklingen mellan dig och hunden."],
+                ["🐾", "Minns känslan", "Spara vad som fungerade – inte bara siffrorna."],
+                ["🎯", "Träna smartare", "Se fokus och nästa steg inför varje pass."],
+                ["📈", "Följ utvecklingen", "Upptäck framsteg som annars är lätta att missa."],
               ].map(([emoji, title, text]) => (
                 <div
                   key={title}
@@ -76,29 +70,35 @@ export function Hero() {
             <Button
               variant="brand"
               onClick={() => {
-                trackEvent("hero_primary_cta_click");
-                navigate("/auth?mode=signup");
+                trackGrowthEvent("landing_cta_clicked", {
+                  placement: "hero_primary",
+                  destination: "signup",
+                });
+                navigate("/auth?mode=signup&source=landing_hero");
               }}
               className="h-12 sm:h-11"
             >
-              Skapa gratis konto
+              Starta gratis – 14 dagar Pro
             </Button>
             <Button
               variant="brand-outline"
               onClick={() => {
-                trackEvent("hero_free_planner_cta_click");
-                navigate("/banplanerare");
+                trackGrowthEvent("landing_cta_clicked", {
+                  placement: "hero_secondary",
+                  destination: "course_planner",
+                });
+                navigate("/banplanerare?source=landing_hero");
               }}
               className="h-12 sm:h-11"
             >
-              Testa gratis banplanerare
+              Testa banplaneraren direkt
             </Button>
           </fmMotion.div>
 
           <FadeIn delay={0.55} duration="smooth">
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-stone">
-              <span><span className="text-amber-500" aria-hidden>★★★★★</span> Inga kort krävs</span>
-              <span className="inline-flex items-center gap-1"><Heart size={13} className="text-brand-600" /> Gratis för 1 hund</span>
+              <span>Ingen kortuppgift</span>
+              <span className="inline-flex items-center gap-1"><Heart size={13} className="text-brand-600" /> Gratisversion efter provperioden</span>
               <span>Byggt för svensk agility & hoopers</span>
             </div>
           </FadeIn>

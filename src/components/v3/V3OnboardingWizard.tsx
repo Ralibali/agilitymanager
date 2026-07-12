@@ -167,9 +167,16 @@ export function V3OnboardingWizard({ onComplete }: Props) {
         onboarding_focus: focus,
         onboarding_goal: selectedGoal || null,
         onboarding_sport: recSport,
+        starter_plan_id: starterPlan.id,
+        starter_plan_selected_at: new Date().toISOString(),
       },
     });
-    trackGrowthEvent("onboarding_completed", { focus, goal: selectedGoal, sport: recSport });
+    trackGrowthEvent("onboarding_completed", {
+      focus,
+      goal: selectedGoal,
+      sport: recSport,
+      starter_plan_id: starterPlan.id,
+    });
     onComplete();
     if (target) navigate(target);
   };

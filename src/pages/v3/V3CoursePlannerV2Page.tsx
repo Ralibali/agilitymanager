@@ -202,6 +202,20 @@ function V3CoursePlannerV2PageInner() {
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
 
+  // Emit `course_planner_opened` en gång per mount, med sport och device-klass.
+  // Ingen bane-data eller koordinater lämnar klienten.
+  const openedRef = useRef(false);
+  useEffect(() => {
+    if (openedRef.current) return;
+    openedRef.current = true;
+    trackEvent("course_planner_opened", {
+      sport: course.sport,
+      device_class: getDeviceClass(),
+    });
+    // course.sport läses medvetet vid mount — inte som dep.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const toggleFullscreen = useCallback(async () => {
     const el = fullscreenRootRef.current;
     if (!el) return;

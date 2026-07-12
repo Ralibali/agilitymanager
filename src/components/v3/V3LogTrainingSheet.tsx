@@ -7,14 +7,20 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { trackGrowthEvent } from "@/lib/growth";
-import { buildFirstInsight, type LogDefaults } from "@/lib/trainingRecommendations";
+import { buildFirstInsight, type LogDefaults, type LogContext } from "@/lib/trainingRecommendations";
+import { MapPinned } from "lucide-react";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   onLogged?: () => void;
-  /** Frivilliga defaults (från Dagens pass). Användaren måste alltid aktivt spara. */
+  /** Frivilliga defaults (från Dagens pass eller banplaneraren). Användaren måste alltid aktivt spara. */
   defaults?: Partial<LogDefaults>;
+  /**
+   * Transient kontext för Logga pass — sparas INTE i DB och kopieras aldrig
+   * automatiskt in i notes/tags. Används endast för banner-copy och analytics.
+   */
+  context?: LogContext;
 }
 
 const TRAINING_TYPES_AGILITY = ["Bana", "Hinder", "Kontakt", "Vändning", "Distans", "Kombination", "Annan"] as const;
@@ -80,7 +86,7 @@ function localIsoDate(date: Date = new Date()): string {
  * Avancerat (hopfällbart): plats, hinder, taggar, energi.
  * Kan förifyllas från "Dagens pass" — användaren måste alltid aktivt spara.
  */
-export function V3LogTrainingSheet({ open, onClose, onLogged, defaults }: Props) {
+export function V3LogTrainingSheet({ open, onClose, onLogged, defaults, context }: Props) {
   const { user } = useAuth();
   const { dogs, active, activeId } = useV3Dogs();
   const [form, setForm] = useState<FormState>(() => defaultState(activeId, defaults));

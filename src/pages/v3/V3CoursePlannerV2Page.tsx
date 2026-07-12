@@ -58,7 +58,7 @@ import { renderCourseImage, shareCanvas } from "@/lib/shareImage";
 import { trackEvent } from "@/lib/analyticsLoader";
 import { trackGrowthEvent } from "@/lib/growth";
 import { openV3LogSheet } from "@/hooks/v3/useV3LogSheet";
-import { mapObstacleTypesToFormOptions, defaultDurationForCourse } from "@/features/course-planner-v2/courseToLogDefaults";
+import { mapObstacleTypesToFormOptions, defaultDurationForCourse } from "@/features/course-planner-v2/courseTrainingBridge";
 import { clampObstacleToArena, clampCenterForRotatedBox, getDeviceClass } from "@/features/course-planner-v2/geometry";
 import { pinchSample, pinchScale, pinchPanDelta, type PinchSample } from "@/features/course-planner-v2/gestureMath";
 import { MobileSelectedObstacleSheet } from "@/components/course-planner-v2/MobileSelectedObstacleSheet";

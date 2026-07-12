@@ -7,6 +7,7 @@ import { LandingFooterV2 } from '@/components/landing/LandingFooterV2';
 import { Disclaimer } from '@/components/Disclaimer';
 import { TavlingsKalendar } from '@/components/competitions/TavlingsKalendar';
 import { ProductCTA } from '@/components/marketing/ProductCTA';
+import { CompetitionProductBridge } from '@/components/marketing/CompetitionProductBridge';
 
 /**
  * Region-slug → display-namn för svenska län (används bara för SEO-titel/H1).
@@ -175,19 +176,34 @@ export default function PublicCompetitionsPage() {
       {/* Delad shell — exakt samma TavlingsKalendar som inloggade ser, med statuskedja
           (Intresse → Anmäld → Genomförd) som funkar för utloggade via cookie/localStorage. */}
       <main className="mx-auto max-w-6xl px-4 py-8 md:py-12">
+        {/* Kompakt produktbrygga ovanför kalendern */}
+        <div className="mb-8">
+          <CompetitionProductBridge
+            placement="public_competitions_top"
+            sport={sportFilter === 'hoopers' ? 'hoopers' : 'agility'}
+            variant="upcoming"
+            layout="listing"
+            competitionName={null}
+          />
+          <p className="mt-2 text-center text-xs text-text-muted">
+            Hittat en tävling? Bygg planen fram till start.
+          </p>
+        </div>
+
         <TavlingsKalendar dogs={[]} selectedDogId={null} />
 
 
-        {/* CTA */}
+        {/* Avslutande CTA — annan vinkel än bridgen ovan: från resultat till nästa pass. */}
         <ProductCTA
-          placement="public_competitions"
-          source="public_competitions"
-          headline="Spara tävlingarna och få en plan fram till start."
-          body="AgilityManager samlar dina tävlingar, hämtar resultaten och gör dem till en tydlig träningsplan så du vet vad ni ska jobba på härnäst."
-          cta="Få min första träningsplan"
-          secondary={{ label: "Testa banplaneraren", to: "/banplanerare" }}
+          placement="public_competitions_bottom"
+          source="public_competitions_bottom"
+          headline="Från resultat till nästa pass."
+          body="När tävlingen är över: logga resultaten, se vad som gick bra, och få ett konkret nästa träningspass."
+          cta="Skapa gratis konto"
+          secondary={{ label: "Testa banbyggaren", to: "/banplanerare?source=public_competitions_bottom" }}
         />
         <p className="mt-3 text-center text-xs text-text-muted">Källa: Agilitydata.se &amp; SHoK</p>
+
 
         <section className="max-w-3xl mx-auto px-5 md:px-12 pb-12 mt-12">
           <Disclaimer variant="competition" />

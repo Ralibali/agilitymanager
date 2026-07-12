@@ -12,6 +12,8 @@ interface Props {
   cta: string;
   /** UTM/source som läggs på /auth-länken. */
   source: string;
+  /** Extra query-parametrar till signup-länken (t.ex. competition, sport). Encodas korrekt en gång. */
+  signupParams?: Record<string, string | null | undefined>;
   /** Sekundär outline-CTA (valfri). */
   secondary?: { label: string; to: string };
 }
@@ -20,7 +22,7 @@ interface Props {
  * Återanvändbar CTA för publika SEO-sidor.
  * Kontextuell copy, konsekvent styling, spårar view + click via growth-lagret.
  */
-export function ProductCTA({ placement, headline, body, cta, source, secondary }: Props) {
+export function ProductCTA({ placement, headline, body, cta, source, signupParams, secondary }: Props) {
   const seen = useRef(false);
 
   useEffect(() => {
@@ -32,6 +34,17 @@ export function ProductCTA({ placement, headline, body, cta, source, secondary }
   const handleClick = () => {
     trackGrowthEvent("public_product_cta_click", { placement, source });
   };
+
+  // Bygg /auth-URL med URLSearchParams → korrekt encoding en enda gång.
+  const params = new URLSearchParams();
+  params.set("mode", "signup");
+  params.set("source", source);
+  if (signupParams) {
+    for (const [k, v] of Object.entries(signupParams)) {
+      if (v) params.set(k, v);
+    }
+  }
+  const signupHref = `/auth?${params.toString()}`;
 
   return (
     <aside
@@ -47,7 +60,7 @@ export function ProductCTA({ placement, headline, body, cta, source, secondary }
           <p className="mt-2 text-sm leading-6 text-stone sm:text-base">{body}</p>
           <div className="mt-5 flex flex-col gap-3 sm:flex-row">
             <Link
-              to={`/auth?mode=signup&source=${encodeURIComponent(source)}`}
+              to={signupHref}
               onClick={handleClick}
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-brand-600 px-5 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-brand-700"
             >

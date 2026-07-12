@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Calendar, Award, ExternalLink, Trophy, Cloud, Users } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Award, ExternalLink, Trophy, Cloud, Users, Pencil, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SEO, buildBreadcrumbSchema } from "@/components/SEO";
 import { LandingNav } from "@/components/landing/LandingNav";
@@ -13,7 +13,12 @@ import { CITY_TO_COUNTY } from "@/lib/swedishCityCounty";
 import { Disclaimer } from "@/components/Disclaimer";
 import type { Competition } from "@/types/competitions";
 import { WatchCompetitionDialog } from "@/components/competitions/WatchCompetitionDialog";
-import { ProductCTA } from "@/components/marketing/ProductCTA";
+import { CompetitionProductBridge } from "@/components/marketing/CompetitionProductBridge";
+import {
+  buildPlannerUrl,
+  buildSignupUrl,
+} from "@/components/marketing/competitionBridgeRoutes";
+import { trackGrowthEvent } from "@/lib/growth";
 import { useAuth } from "@/contexts/AuthContext";
 
 const SITE_URL = "https://agilitymanager.se";
@@ -52,6 +57,7 @@ export default function CompetitionDetailPage() {
   const [weather, setWeather] = useState<WeatherDay | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [bridgeVisible, setBridgeVisible] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -145,9 +151,9 @@ export default function CompetitionDetailPage() {
     description: seoData.description,
     startDate: comp.date_start,
     endDate: comp.date_end ?? comp.date_start,
-    eventStatus: isPast
-      ? "https://schema.org/EventScheduled"
-      : "https://schema.org/EventScheduled",
+    // Vi utelämnar hellre eventStatus för avslutade tävlingar än sätter felaktig
+    // "EventScheduled". Schema.org saknar en särskild "past"-status.
+    ...(isPast ? {} : { eventStatus: "https://schema.org/EventScheduled" }),
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: {
       "@type": "Place",
@@ -266,6 +272,22 @@ export default function CompetitionDetailPage() {
             </div>
           </section>
 
+          {/* Produktbrygga — integrerad, inte bannerannons. Endast för utloggade. */}
+          {!user && (
+            <div className="mb-8">
+              <CompetitionProductBridge
+                placement="competition_detail"
+                competitionId={comp.id}
+                competitionName={name}
+                competitionDate={comp.date_start}
+                sport="agility"
+                variant={isPast ? "past" : "upcoming"}
+                layout="detail"
+                onVisibilityChange={setBridgeVisible}
+              />
+            </div>
+          )}
+
           {/* Classes */}
           {allClasses.length > 0 && (
             <section className="mb-8">
@@ -377,21 +399,10 @@ export default function CompetitionDetailPage() {
             </section>
           )}
 
-          {/* Logga i appen */}
-          <section className="mb-8 rounded-lg border bg-card p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-2">Tävlar du här?</h2>
-            <p className="text-muted-foreground text-sm mb-4">
-              Logga din anmälan, dina starter och resultat i AgilityManager — gratis.
-            </p>
-            <div className="flex gap-2 flex-wrap">
-              <Button asChild variant="default">
-                <Link to="/auth?mode=signup">Skapa konto</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link to="/app/competition">Mina tävlingar</Link>
-              </Button>
-            </div>
-          </section>
+          {/* "Tävlar du här?" och botten-ProductCTA är borttagna — bridgen ovan + sticky
+              mobil-CTA är sidans två produktplaceringar. */}
+
+
 
           {/* Related */}
           {related.length > 0 && (
@@ -440,23 +451,63 @@ export default function CompetitionDetailPage() {
           </p>
         </div>
 
-        {/* Produkt-CTA för utloggade besökare */}
-        {!user && (
-          <ProductCTA
-            placement="competition_detail"
-            source="competition_detail"
-            headline="Spara tävlingen och få en enkel plan fram till start."
-            body={`Vi hämtar startlistor, håller koll på anmälningsdatum och gör resultatet till en tydlig träningsplan – för ${comp.competition_name ?? "tävlingen"}.`}
-            cta="Spara tävlingen"
-            secondary={{ label: "Se fler tävlingar", to: "/tavlingar" }}
-          />
-        )}
-
         {/* Ansvarsfriskrivning för crawlat tävlingsdata */}
         <section className="max-w-3xl mx-auto px-5 md:px-12 pb-12">
           <Disclaimer variant="competition" />
         </section>
       </main>
+
+      {/* Sticky mobil CTA — endast utloggade, dölj när bridgen är tydligt synlig
+          eller på large screens. Reserverad plats via padding för att inte täcka footer. */}
+      {!user && !bridgeVisible && (
+        <div
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 shadow-lg backdrop-blur-md sm:hidden"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.5rem)" }}
+          role="region"
+          aria-label="Snabbåtgärder för AgilityManager"
+        >
+          <div className="mx-auto flex max-w-4xl items-center gap-2 px-3 pt-2">
+            <Link
+              to={buildSignupUrl({
+                source: "competition_bridge_sticky_mobile",
+                competitionId: comp.id,
+                sport: "agility",
+              })}
+              onClick={() =>
+                trackGrowthEvent("competition_bridge_click", {
+                  placement: "sticky_mobile",
+                  destination: "signup",
+                  competition_id: comp.id,
+                  sport: "agility",
+                  variant: isPast ? "past" : "upcoming",
+                })
+              }
+              className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 text-sm font-bold text-primary-foreground shadow"
+            >
+              <Target size={15} /> {isPast ? "Logga & få nästa pass" : "Få träningsplan"}
+            </Link>
+            <Link
+              to={buildPlannerUrl({
+                source: "competition_bridge_sticky_mobile",
+                sport: "agility",
+              })}
+              onClick={() =>
+                trackGrowthEvent("competition_bridge_click", {
+                  placement: "sticky_mobile",
+                  destination: "planner",
+                  competition_id: comp.id,
+                  sport: "agility",
+                  variant: isPast ? "past" : "upcoming",
+                })
+              }
+              aria-label="Rita bana i banbyggaren"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-foreground"
+            >
+              <Pencil size={16} />
+            </Link>
+          </div>
+        </div>
+      )}
 
       <LandingFooterV2 />
     </div>

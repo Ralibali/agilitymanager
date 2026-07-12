@@ -22,7 +22,7 @@ import {
   buildFreePlannerAuthUrl,
   FREE_PLANNER_DEFAULT_SOURCE,
   type FreePlannerSport,
-} from "@/features/free-planner/buildFreePlannerAuthUrl";
+} from "@/features/free-planner/freePlannerRoutes";
 import {
   clampPercent,
   clientPointToPercent,

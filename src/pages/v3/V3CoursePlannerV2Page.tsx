@@ -882,7 +882,8 @@ function V3CoursePlannerV2PageInner() {
 
     // Hinder-drag.
     if (draggingId && dragSessionRef.current) {
-      const local = (arenaCanvasRef.current?.clientToCourseM(e.clientX, e.clientY);
+      const local = arenaCanvasRef.current?.clientToCourseM(e.clientX, e.clientY);
+      if (!local) return;
       const session = dragSessionRef.current;
       skipHistoryRef.current = true;
       setCourseRaw((c) => ({

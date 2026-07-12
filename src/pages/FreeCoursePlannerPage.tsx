@@ -1,141 +1,972 @@
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
-import { ArrowRight, Lock, RotateCcw, Trash2, Plus, MousePointer2, Save, FileDown, Dumbbell, BarChart3, CheckCircle2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import {
+  ArrowRight,
+  RotateCcw,
+  Trash2,
+  Plus,
+  Move,
+  Save,
+  FileDown,
+  Sparkles,
+  X,
+  Copy,
+  CheckCircle2,
+  MousePointer2,
+  Lock,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { cn } from "@/lib/utils";
+import { trackGrowthEvent } from "@/lib/growth";
+import {
+  buildFreePlannerAuthUrl,
+  FREE_PLANNER_DEFAULT_SOURCE,
+  type FreePlannerSport,
+} from "@/features/free-planner/buildFreePlannerAuthUrl";
+import {
+  clampPercent,
+  clientPointToPercent,
+  obstacleCountExcludingMarkers,
+  nextFreeObstaclePosition,
+  FREE_MAX_COMPETITION_OBSTACLES,
+  MARKER_TYPES,
+} from "@/features/free-planner/freePlannerGeometry";
+import { FreeObstacleGlyph, type FreeObstacleGlyphType } from "@/components/free-planner/FreeObstacleGlyph";
 
-type ObstacleType = "jump" | "tunnel" | "weave" | "start" | "finish";
+// ---------- Data model ----------
 
-type FreeObstacle = { id: string; type: ObstacleType; label: string; symbol: string; x: number; y: number; rotation: number; number?: number; };
+type AgilityType = "jump" | "tunnel" | "weave" | "aframe" | "seesaw" | "longjump" | "wall" | "start" | "finish";
+type HoopersType = "hoop" | "tunnel" | "barrel" | "fence" | "zone" | "start" | "finish";
+type ObstacleType = AgilityType | HoopersType;
 
-const MAX_FREE_OBSTACLES = 10;
+interface FreeObstacle {
+  id: string;
+  type: ObstacleType;
+  x: number; // 0–100
+  y: number; // 0–100
+  rotation: number;
+  number?: number;
+}
+
+interface ObstacleDef {
+  type: ObstacleType;
+  label: string;
+  glyph: FreeObstacleGlyphType;
+  /** Approximate footprint in % of canvas width for hit-area sizing */
+  widthPct: number;
+  heightPct: number;
+}
+
+const AGILITY_OBSTACLES: ObstacleDef[] = [
+  { type: "jump", label: "Hopp", glyph: "jump", widthPct: 9, heightPct: 9 },
+  { type: "tunnel", label: "Tunnel", glyph: "tunnel", widthPct: 14, heightPct: 9 },
+  { type: "weave", label: "Slalom", glyph: "weave", widthPct: 16, heightPct: 7 },
+  { type: "aframe", label: "A-hinder", glyph: "aframe", widthPct: 12, heightPct: 9 },
+  { type: "seesaw", label: "Gungbräda", glyph: "seesaw", widthPct: 12, heightPct: 8 },
+  { type: "longjump", label: "Långhopp", glyph: "longjump", widthPct: 12, heightPct: 7 },
+  { type: "wall", label: "Mur", glyph: "wall", widthPct: 10, heightPct: 9 },
+  { type: "start", label: "Start", glyph: "start", widthPct: 8, heightPct: 8 },
+  { type: "finish", label: "Mål", glyph: "finish", widthPct: 8, heightPct: 8 },
+];
+
+const HOOPERS_OBSTACLES: ObstacleDef[] = [
+  { type: "hoop", label: "Hoop", glyph: "hoop", widthPct: 9, heightPct: 9 },
+  { type: "tunnel", label: "Tunnel", glyph: "tunnel", widthPct: 14, heightPct: 9 },
+  { type: "barrel", label: "Tunna", glyph: "barrel", widthPct: 9, heightPct: 9 },
+  { type: "fence", label: "Staket", glyph: "fence", widthPct: 14, heightPct: 6 },
+  { type: "zone", label: "Dirigeringszon", glyph: "zone", widthPct: 12, heightPct: 12 },
+  { type: "start", label: "Start", glyph: "start", widthPct: 8, heightPct: 8 },
+  { type: "finish", label: "Mål", glyph: "finish", widthPct: 8, heightPct: 8 },
+];
+
+function getObstaclesFor(sport: FreePlannerSport): ObstacleDef[] {
+  return sport === "hoopers" ? HOOPERS_OBSTACLES : AGILITY_OBSTACLES;
+}
+
+function defFor(sport: FreePlannerSport, type: ObstacleType): ObstacleDef {
+  return getObstaclesFor(sport).find((o) => o.type === type) ?? getObstaclesFor(sport)[0];
+}
+
+const AGILITY_DEMO: FreeObstacle[] = [
+  { id: "demo-start", type: "start", x: 10, y: 85, rotation: 0 },
+  { id: "demo-1", type: "jump", x: 24, y: 70, rotation: 0, number: 1 },
+  { id: "demo-2", type: "tunnel", x: 44, y: 55, rotation: 15, number: 2 },
+  { id: "demo-3", type: "weave", x: 62, y: 42, rotation: -8, number: 3 },
+  { id: "demo-4", type: "jump", x: 78, y: 30, rotation: 0, number: 4 },
+  { id: "demo-finish", type: "finish", x: 90, y: 15, rotation: 0 },
+];
+
+const HOOPERS_DEMO: FreeObstacle[] = [
+  { id: "demo-start", type: "start", x: 12, y: 82, rotation: 0 },
+  { id: "demo-1", type: "hoop", x: 28, y: 68, rotation: 0, number: 1 },
+  { id: "demo-2", type: "barrel", x: 46, y: 54, rotation: 0, number: 2 },
+  { id: "demo-3", type: "tunnel", x: 62, y: 40, rotation: 10, number: 3 },
+  { id: "demo-4", type: "hoop", x: 78, y: 26, rotation: 0, number: 4 },
+  { id: "demo-finish", type: "finish", x: 90, y: 14, rotation: 0 },
+];
+
+function demoFor(sport: FreePlannerSport): FreeObstacle[] {
+  return sport === "hoopers" ? HOOPERS_DEMO : AGILITY_DEMO;
+}
+
 const WATERMARK = "Skapad med AgilityManager.se";
-const FUNNEL_SOURCE = "free_course_planner";
-const AUTH_SIGNUP = `/auth?mode=signup&redirect=/v3&source=${FUNNEL_SOURCE}`;
-const AUTH_LOGIN = `/auth?mode=login&redirect=/v3&source=${FUNNEL_SOURCE}`;
 
-const OBSTACLES: { type: ObstacleType; label: string; symbol: string }[] = [
-  { type: "jump", label: "Hopp", symbol: "┃" },
-  { type: "tunnel", label: "Tunnel", symbol: "⌒" },
-  { type: "weave", label: "Slalom", symbol: "⫶" },
-  { type: "start", label: "Start", symbol: "▸" },
-  { type: "finish", label: "Mål", symbol: "◼" },
-];
+// ---------- Helpers ----------
 
-// Free planner now uses the same 0–100 percentage coordinate system as V3.
-// That makes future import/upgrade from free sketch -> full planner much safer.
-const START_COURSE: FreeObstacle[] = [
-  { id: "demo-start", type: "start", label: "Start", symbol: "▸", x: 12, y: 87, rotation: 0 },
-  { id: "demo-1", type: "jump", label: "Hopp", symbol: "┃", x: 24, y: 72, rotation: 0, number: 1 },
-  { id: "demo-2", type: "tunnel", label: "Tunnel", symbol: "⌒", x: 43, y: 54, rotation: 20, number: 2 },
-  { id: "demo-3", type: "jump", label: "Hopp", symbol: "┃", x: 63, y: 37, rotation: -18, number: 3 },
-  { id: "demo-finish", type: "finish", label: "Mål", symbol: "◼", x: 83, y: 20, rotation: 0 },
-];
+function detectDeviceClass(): "mobile" | "tablet" | "desktop" {
+  if (typeof window === "undefined") return "desktop";
+  const w = window.innerWidth;
+  if (w < 640) return "mobile";
+  if (w < 1024) return "tablet";
+  return "desktop";
+}
 
-const clampPercent = (value: number) => Math.min(96, Math.max(4, value));
-
-function createObstacle(type: ObstacleType, index: number): FreeObstacle {
-  const template = OBSTACLES.find((item) => item.type === type) ?? OBSTACLES[0];
+function createObstacle(sport: FreePlannerSport, type: ObstacleType, indexHint: number, competitionCount: number): FreeObstacle {
+  const pos = nextFreeObstaclePosition(indexHint);
   return {
-    id: `${type}-${Date.now()}-${index}`,
+    id: `${type}-${Date.now().toString(36)}-${indexHint}`,
     type,
-    label: template.label,
-    symbol: template.symbol,
-    x: clampPercent(16 + ((index * 12) % 70)),
-    y: clampPercent(24 + ((index * 11) % 56)),
-    rotation: type === "tunnel" ? 20 : 0,
-    number: type === "start" || type === "finish" ? undefined : index,
+    x: pos.x,
+    y: pos.y,
+    rotation: type === "tunnel" ? 15 : 0,
+    number: MARKER_TYPES.has(type) ? undefined : competitionCount + 1,
   };
 }
 
-export default function FreeCoursePlannerPage() {
-  const [obstacles, setObstacles] = useState<FreeObstacle[]>(START_COURSE);
-  const [selectedId, setSelectedId] = useState<string | null>(START_COURSE[1]?.id ?? null);
-  const [limitHit, setLimitHit] = useState(false);
-  const [lockedAction, setLockedAction] = useState<"save" | "export" | null>(null);
-  const selected = useMemo(() => obstacles.find((obstacle) => obstacle.id === selectedId) ?? null, [obstacles, selectedId]);
+// ---------- Page ----------
 
-  const addObstacle = (type: ObstacleType) => {
-    if (obstacles.length >= MAX_FREE_OBSTACLES) { setLimitHit(true); return; }
-    setLimitHit(false);
-    const next = createObstacle(type, obstacles.length + 1);
-    setObstacles((items) => [...items, next]);
-    setSelectedId(next.id);
-  };
-  const moveSelected = (dx: number, dy: number) => { if (!selectedId) return; setObstacles((items) => items.map((item) => item.id === selectedId ? { ...item, x: clampPercent(item.x + dx), y: clampPercent(item.y + dy) } : item)); };
-  const rotateSelected = () => { if (!selectedId) return; setObstacles((items) => items.map((item) => item.id === selectedId ? { ...item, rotation: (item.rotation + 15) % 360 } : item)); };
-  const removeSelected = () => { if (!selectedId) return; setObstacles((items) => items.filter((item) => item.id !== selectedId)); setSelectedId(null); setLimitHit(false); };
-  const reset = () => { setObstacles(START_COURSE); setSelectedId(START_COURSE[1]?.id ?? null); setLimitHit(false); setLockedAction(null); };
+export default function FreeCoursePlannerPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sportParam = searchParams.get("sport");
+  const sport: FreePlannerSport = sportParam === "hoopers" ? "hoopers" : "agility";
+  const source = (searchParams.get("source") ?? "").trim() || FREE_PLANNER_DEFAULT_SOURCE;
+
+  const [obstacles, setObstacles] = useState<FreeObstacle[]>(() => demoFor(sport));
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [addSheetOpen, setAddSheetOpen] = useState(false);
+  const [unlockOpen, setUnlockOpen] = useState(false);
+  const [unlockReason, setUnlockReason] = useState<"threshold" | "save" | "export" | "3d" | "validate" | null>(null);
+
+  const openedRef = useRef(false);
+  useEffect(() => {
+    if (openedRef.current) return;
+    openedRef.current = true;
+    trackGrowthEvent("free_planner_opened", { sport, source, device_class: detectDeviceClass() });
+  }, [sport, source]);
+
+  // Reset canvas when sport changes
+  const lastSportRef = useRef<FreePlannerSport>(sport);
+  useEffect(() => {
+    if (lastSportRef.current === sport) return;
+    lastSportRef.current = sport;
+    setObstacles(demoFor(sport));
+    setSelectedId(null);
+    setUnlockOpen(false);
+  }, [sport]);
+
+  const competitionCount = useMemo(() => obstacleCountExcludingMarkers(obstacles), [obstacles]);
+  const reachedLimit = competitionCount >= FREE_MAX_COMPETITION_OBSTACLES;
+  const selected = useMemo(() => obstacles.find((o) => o.id === selectedId) ?? null, [obstacles, selectedId]);
+
+  const signupUrl = buildFreePlannerAuthUrl({ mode: "signup", source, sport });
+  const loginUrl = buildFreePlannerAuthUrl({ mode: "login", source, sport });
+
+  // Value unlock trigger at threshold (6)
+  useEffect(() => {
+    if (competitionCount === 6 && !unlockOpen && unlockReason !== "threshold") {
+      setUnlockReason("threshold");
+      setUnlockOpen(true);
+    }
+  }, [competitionCount, unlockOpen, unlockReason]);
+
+  const switchSport = useCallback(
+    (next: FreePlannerSport) => {
+      if (next === sport) return;
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("sport", next);
+      if (!nextParams.get("source") && source) nextParams.set("source", source);
+      setSearchParams(nextParams, { replace: true });
+      trackGrowthEvent("free_planner_sport_changed", { from: sport, to: next });
+    },
+    [sport, source, searchParams, setSearchParams],
+  );
+
+  const addObstacle = useCallback(
+    (type: ObstacleType) => {
+      const isMarker = MARKER_TYPES.has(type);
+      if (!isMarker && reachedLimit) {
+        trackGrowthEvent("free_planner_limit_hit", { sport });
+        setUnlockReason("threshold");
+        setUnlockOpen(true);
+        return;
+      }
+      // Prevent duplicate start/finish
+      if (isMarker && obstacles.some((o) => o.type === type)) return;
+
+      setObstacles((items) => {
+        const next = createObstacle(sport, type, items.length + 1, obstacleCountExcludingMarkers(items));
+        return [...items, next];
+      });
+      setAddSheetOpen(false);
+      trackGrowthEvent("free_planner_obstacle_added", {
+        sport,
+        obstacle_type: type,
+        count: competitionCount + (isMarker ? 0 : 1),
+      });
+    },
+    [reachedLimit, sport, obstacles, competitionCount],
+  );
+
+  const handleLockedAction = useCallback(
+    (action: "save" | "export" | "3d" | "validate") => {
+      trackGrowthEvent("free_planner_locked_action", { action, sport });
+      setUnlockReason(action);
+      setUnlockOpen(true);
+    },
+    [sport],
+  );
+
+  const rotateSelected = useCallback(
+    (delta: number) => {
+      if (!selectedId) return;
+      setObstacles((items) =>
+        items.map((it) => (it.id === selectedId ? { ...it, rotation: ((it.rotation + delta) % 360 + 360) % 360 } : it)),
+      );
+    },
+    [selectedId],
+  );
+
+  const removeSelected = useCallback(() => {
+    if (!selectedId) return;
+    setObstacles((items) => items.filter((it) => it.id !== selectedId));
+    setSelectedId(null);
+  }, [selectedId]);
+
+  const duplicateSelected = useCallback(() => {
+    if (!selected) return;
+    if (!MARKER_TYPES.has(selected.type) && reachedLimit) {
+      setUnlockReason("threshold");
+      setUnlockOpen(true);
+      return;
+    }
+    if (MARKER_TYPES.has(selected.type)) return;
+    setObstacles((items) => {
+      const clone: FreeObstacle = {
+        ...selected,
+        id: `${selected.type}-${Date.now().toString(36)}-dup`,
+        x: clampPercent(selected.x + 6),
+        y: clampPercent(selected.y + 6),
+        number: obstacleCountExcludingMarkers(items) + 1,
+      };
+      return [...items, clone];
+    });
+  }, [selected, reachedLimit]);
+
+  const setNumber = useCallback(
+    (delta: number) => {
+      if (!selected || MARKER_TYPES.has(selected.type)) return;
+      setObstacles((items) =>
+        items.map((it) => (it.id === selected.id ? { ...it, number: Math.max(1, (it.number ?? 1) + delta) } : it)),
+      );
+    },
+    [selected],
+  );
+
+  const moveSelected = useCallback(
+    (dx: number, dy: number) => {
+      if (!selectedId) return;
+      setObstacles((items) =>
+        items.map((it) => (it.id === selectedId ? { ...it, x: clampPercent(it.x + dx), y: clampPercent(it.y + dy) } : it)),
+      );
+    },
+    [selectedId],
+  );
+
+  const resetCourse = useCallback(() => {
+    setObstacles(demoFor(sport));
+    setSelectedId(null);
+    setUnlockOpen(false);
+  }, [sport]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!selectedId) return;
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+      if (e.key === "ArrowUp") { e.preventDefault(); moveSelected(0, -1); }
+      else if (e.key === "ArrowDown") { e.preventDefault(); moveSelected(0, 1); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); moveSelected(-1, 0); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); moveSelected(1, 0); }
+      else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); removeSelected(); }
+      else if (e.key === "r" || e.key === "R") { e.preventDefault(); rotateSelected(15); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [selectedId, moveSelected, removeSelected, rotateSelected]);
+
+  // ---------- Pointer drag on canvas ----------
+
+  const canvasRef = useRef<HTMLDivElement | null>(null);
+  const dragRef = useRef<{ id: string; offsetX: number; offsetY: number; moved: boolean; type: ObstacleType } | null>(null);
+
+  const onObstaclePointerDown = useCallback(
+    (e: ReactPointerEvent<HTMLButtonElement>, obstacle: FreeObstacle) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      e.preventDefault();
+      e.stopPropagation();
+      (e.target as Element).setPointerCapture?.(e.pointerId);
+      const rect = canvas.getBoundingClientRect();
+      const pt = clientPointToPercent(rect, e.clientX, e.clientY);
+      dragRef.current = {
+        id: obstacle.id,
+        offsetX: pt.x - obstacle.x,
+        offsetY: pt.y - obstacle.y,
+        moved: false,
+        type: obstacle.type,
+      };
+      setSelectedId(obstacle.id);
+    },
+    [],
+  );
+
+  const onCanvasPointerMove = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    const canvas = canvasRef.current;
+    if (!drag || !canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const pt = clientPointToPercent(rect, e.clientX, e.clientY);
+    const nextX = clampPercent(pt.x - drag.offsetX);
+    const nextY = clampPercent(pt.y - drag.offsetY);
+    setObstacles((items) => {
+      let changed = false;
+      const mapped = items.map((it) => {
+        if (it.id !== drag.id) return it;
+        if (Math.abs(it.x - nextX) < 0.05 && Math.abs(it.y - nextY) < 0.05) return it;
+        changed = true;
+        return { ...it, x: nextX, y: nextY };
+      });
+      if (changed) drag.moved = true;
+      return mapped;
+    });
+  }, []);
+
+  const endDrag = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      const drag = dragRef.current;
+      if (!drag) return;
+      try { (e.target as Element).releasePointerCapture?.(e.pointerId); } catch { /* ignore */ }
+      if (drag.moved) {
+        trackGrowthEvent("free_planner_obstacle_moved", { sport, obstacle_type: drag.type });
+      }
+      dragRef.current = null;
+    },
+    [sport],
+  );
+
+  // ---------- Copy ----------
+
+  const heading =
+    sport === "hoopers" ? "Gratis banbyggare för hoopers" : "Gratis banbyggare för agility";
+  const metaTitle =
+    sport === "hoopers"
+      ? "Gratis banbyggare för hoopers | AgilityManager"
+      : "Gratis banbyggare för agility | AgilityManager";
+  const metaDesc =
+    sport === "hoopers"
+      ? "Rita en hoopersbana direkt i webbläsaren. Dra hoops, tunnor, tunnel och dirigeringszoner – fungerar på mobil, inget konto krävs."
+      : "Rita en agilitybana direkt i webbläsaren. Dra hopp, tunnel, slalom och kontakthinder – fungerar på mobil, inget konto krävs.";
+
+  const paletteDefs = getObstaclesFor(sport);
 
   return (
     <div className="light min-h-screen bg-background text-foreground">
       <Helmet>
-        <title>Gratis banplanerare för agility | AgilityManager</title>
-        <meta name="description" content="Rita en enkel agilitybana gratis online. Testa AgilityManagers begränsade banplanerare med hopp, tunnel, slalom, start och mål." />
+        <title>{metaTitle}</title>
+        <meta name="description" content={metaDesc} />
         <link rel="canonical" href="https://agilitymanager.se/banplanerare" />
-        <meta property="og:title" content="Gratis banplanerare för agility" />
-        <meta property="og:description" content="Rita en enkel agilitybana gratis online direkt i webbläsaren." />
+        <meta property="og:title" content={heading} />
+        <meta property="og:description" content={metaDesc} />
         <meta property="og:url" content="https://agilitymanager.se/banplanerare" />
         <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
       </Helmet>
 
-      <header className="border-b border-border bg-card/80 backdrop-blur-xl sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-5 py-3 sm:py-4 flex items-center justify-between gap-3">
-          <Link to="/" className="font-display text-lg sm:text-xl font-semibold tracking-tight truncate">Agility<span className="text-primary">Manager</span></Link>
-          <div className="flex items-center gap-2 shrink-0"><Link to={AUTH_LOGIN} className="hidden sm:inline-flex h-10 items-center justify-center rounded-full border border-border bg-card px-4 text-sm font-medium hover:bg-muted">Logga in</Link><Link to={AUTH_SIGNUP} className="inline-flex h-10 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">Skapa konto</Link></div>
+      <header className="border-b border-border bg-card/80 backdrop-blur-xl sticky top-0 z-30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-5 py-3 flex items-center justify-between gap-3">
+          <Link to="/" className="font-display text-lg sm:text-xl font-semibold tracking-tight truncate">
+            Agility<span className="text-primary">Manager</span>
+          </Link>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              to={loginUrl}
+              onClick={() => trackGrowthEvent("free_planner_signup_clicked", { placement: "header_login", sport })}
+              className="hidden sm:inline-flex h-10 items-center justify-center rounded-full border border-border bg-card px-4 text-sm font-medium hover:bg-muted"
+            >
+              Logga in
+            </Link>
+            <Link
+              to={signupUrl}
+              onClick={() => trackGrowthEvent("free_planner_signup_clicked", { placement: "header_signup", sport })}
+              className="inline-flex h-10 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Skapa konto
+            </Link>
+          </div>
         </div>
       </header>
 
-      <main>
-        <section className="max-w-6xl mx-auto px-4 sm:px-5 pt-8 sm:pt-10 pb-6 grid lg:grid-cols-[0.95fr_1.05fr] gap-6 lg:gap-8 items-center">
-          <div className="min-w-0">
-            <div className="inline-flex items-center rounded-full border border-primary/20 bg-card/70 px-3 py-1 text-xs font-medium text-primary">Gratis begränsad version</div>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl leading-tight tracking-tight mt-4">Gratis banplanerare för agility</h1>
-            <p className="text-base sm:text-lg text-muted-foreground mt-4 max-w-xl">Rita en enkel träningsbana direkt i webbläsaren. När du vill spara banan, logga passet och följa utvecklingen skapar du konto och fortsätter i appen.</p>
-            <div className="mt-6 flex flex-col sm:flex-row gap-3 v3-mobile-stack"><a href="#verktyg" className="inline-flex h-12 items-center justify-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/90">Testa gratis<ArrowRight size={16} className="ml-2" /></a><Link to={AUTH_SIGNUP} className="inline-flex h-12 items-center justify-center rounded-full border border-border bg-card px-5 text-sm font-medium hover:bg-muted">Spara banor med konto</Link></div>
-            <div className="mt-5 grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-2 max-w-lg text-xs text-muted-foreground"><div className="rounded-2xl bg-card/70 border border-border p-3"><strong className="block text-foreground">10 hinder</strong> i gratisläget</div><div className="rounded-2xl bg-card/70 border border-border p-3"><strong className="block text-foreground">Spara i appen</strong> med konto</div><div className="rounded-2xl bg-card/70 border border-border p-3"><strong className="block text-foreground">Logga pass</strong> och se statistik</div></div>
+      <main className="pb-32 lg:pb-16">
+        {/* Hero + sport toggle */}
+        <section className="max-w-6xl mx-auto px-4 sm:px-5 pt-6 sm:pt-10">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center rounded-full border border-primary/20 bg-card px-3 py-1 text-xs font-medium text-primary">
+              Gratis · ingen inloggning krävs för att testa
+            </div>
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl leading-tight tracking-tight mt-3">
+              {heading}
+            </h1>
+            <p className="text-base sm:text-lg text-muted-foreground mt-3">
+              Skissa en bana direkt i webbläsaren. Dra hindren, numrera och rotera – fungerar smidigt på mobil.
+              Skapa konto när du vill exportera, spara och validera i den fulla banbyggaren.
+            </p>
+            <div className="mt-4 inline-flex rounded-full border border-border bg-card p-1" role="tablist" aria-label="Välj sport">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={sport === "agility"}
+                onClick={() => switchSport("agility")}
+                className={cn(
+                  "h-9 px-4 rounded-full text-sm font-medium transition-colors",
+                  sport === "agility" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                Agility
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={sport === "hoopers"}
+                onClick={() => switchSport("hoopers")}
+                className={cn(
+                  "h-9 px-4 rounded-full text-sm font-medium transition-colors",
+                  sport === "hoopers" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                Hoopers
+              </button>
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground inline-flex items-center gap-2">
+              <CheckCircle2 size={13} className="text-primary" /> Fungerar på mobil · touchdragning · inget konto krävs
+            </p>
           </div>
-          <div className="rounded-[2rem] border border-border bg-card p-2 sm:p-4 shadow-2xl shadow-foreground/10"><PlannerCanvas obstacles={START_COURSE} selectedId={null} preview /></div>
         </section>
 
-        <section id="verktyg" className="max-w-6xl mx-auto px-4 sm:px-5 py-6 sm:py-8 grid lg:grid-cols-[260px_1fr_280px] gap-4">
-          <aside className="rounded-3xl border border-border bg-card p-4 h-fit">
-            <h2 className="font-display text-xl">Lägg till hinder</h2><p className="text-sm text-muted-foreground mt-1">Gratisversionen är begränsad till {MAX_FREE_OBSTACLES} hinder.</p>
-            <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-2 gap-2 mt-4">{OBSTACLES.map((item) => <button key={item.type} type="button" onClick={() => addObstacle(item.type)} className="min-h-20 rounded-2xl border border-border bg-background p-3 text-left hover:border-primary/40 hover:bg-muted transition-colors"><span className="block text-2xl leading-none">{item.symbol}</span><span className="block text-xs font-medium mt-2">{item.label}</span></button>)}</div>
-            {limitHit && <div className="mt-4 rounded-2xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-900">Gratisversionen tillåter max {MAX_FREE_OBSTACLES} hinder. Skapa konto för full banplanerare.</div>}
+        {/* Editor: mobile-first (canvas → dock; palette in bottom sheet), desktop 3-col */}
+        <section className="max-w-6xl mx-auto px-4 sm:px-5 mt-6 lg:mt-8 grid gap-4 lg:grid-cols-[240px_1fr_260px]">
+          {/* Desktop palette */}
+          <aside className="hidden lg:block rounded-3xl border border-border bg-card p-4 h-fit">
+            <h2 className="font-display text-lg">Lägg till hinder</h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              {competitionCount} av {FREE_MAX_COMPETITION_OBSTACLES} tävlingshinder · start/mål räknas inte
+            </p>
+            <div className="grid grid-cols-2 gap-2 mt-3">
+              {paletteDefs.map((def) => (
+                <PaletteButton key={def.type} def={def} onClick={() => addObstacle(def.type)} />
+              ))}
+            </div>
+            {reachedLimit && (
+              <div className="mt-3 rounded-2xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">
+                Gratisläget täcker {FREE_MAX_COMPETITION_OBSTACLES} tävlingshinder. Skapa konto för fler.
+              </div>
+            )}
           </aside>
 
-          <div className="rounded-[2rem] border border-border bg-card p-2 sm:p-3 shadow-xl shadow-foreground/5"><PlannerCanvas obstacles={obstacles} selectedId={selectedId} onSelect={setSelectedId} large /></div>
+          {/* Canvas */}
+          <div className="rounded-[1.75rem] border border-border bg-card p-2 sm:p-3 shadow-xl shadow-foreground/5">
+            <div className="flex items-center justify-between px-2 pt-1 pb-2 text-xs text-muted-foreground lg:hidden">
+              <span className="inline-flex items-center gap-1">
+                <MousePointer2 size={12} /> Dra hindren · tryck för att välja
+              </span>
+              <span className="font-medium text-foreground">
+                {competitionCount}/{FREE_MAX_COMPETITION_OBSTACLES}
+              </span>
+            </div>
+            <div
+              ref={canvasRef}
+              onPointerMove={onCanvasPointerMove}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setSelectedId(null);
+              }}
+              className={cn(
+                "relative w-full overflow-hidden rounded-2xl border border-border bg-muted select-none",
+                "aspect-[3/4] sm:aspect-[4/3] lg:aspect-[3/2]",
+              )}
+              style={{ touchAction: "none" }}
+              aria-label="Banarea"
+            >
+              {/* Grid background */}
+              <div
+                className="absolute inset-0 opacity-40 pointer-events-none"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(to right, hsl(var(--foreground) / 0.08) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--foreground) / 0.08) 1px, transparent 1px)",
+                  backgroundSize: "8% 10%",
+                }}
+              />
+              <div className="absolute left-3 top-3 rounded-full bg-card/85 px-2.5 py-1 text-[10px] sm:text-xs font-medium text-muted-foreground border border-border">
+                {sport === "hoopers" ? "Hoopers demo" : "20 × 30 m demo"}
+              </div>
+              <div className="absolute right-3 top-3 rounded-full bg-card/85 px-2.5 py-1 text-[10px] sm:text-xs font-semibold text-primary border border-border">
+                Gratis
+              </div>
 
-          <aside className="rounded-3xl border border-border bg-card p-4 h-fit space-y-4">
-            <div><h2 className="font-display text-xl">Valt hinder</h2>{selected ? <p className="text-sm text-muted-foreground mt-1 break-words">{selected.label} · x {Math.round(selected.x)}%, y {Math.round(selected.y)}%</p> : <p className="text-sm text-muted-foreground mt-1">Klicka på ett hinder i banan.</p>}</div>
-            <div className="grid grid-cols-3 gap-2"><button type="button" aria-label="Flytta upp" onClick={() => moveSelected(0, -3)} disabled={!selected} className="tool-btn">↑</button><button type="button" aria-label="Flytta vänster" onClick={() => moveSelected(-3, 0)} disabled={!selected} className="tool-btn">←</button><button type="button" aria-label="Flytta höger" onClick={() => moveSelected(3, 0)} disabled={!selected} className="tool-btn">→</button><button type="button" aria-label="Flytta ner" onClick={() => moveSelected(0, 3)} disabled={!selected} className="tool-btn">↓</button><button type="button" aria-label="Rotera valt hinder" onClick={rotateSelected} disabled={!selected} className="tool-btn col-span-2"><RotateCcw size={14} /> Rotera</button></div>
-            <button type="button" onClick={removeSelected} disabled={!selected} className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-destructive/30 bg-destructive/10 text-sm font-medium text-destructive disabled:opacity-40"><Trash2 size={14} /> Ta bort</button>
-            <button type="button" onClick={reset} className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-border bg-card text-sm font-medium hover:bg-muted">Återställ demo</button>
-            <div className="rounded-3xl border border-primary/20 bg-primary/5 p-4"><div className="text-sm font-semibold text-foreground">Vill du fortsätta senare?</div><p className="text-sm text-muted-foreground mt-1">Spara banan i appen, logga passet efter träningen och följ utvecklingen i statistik.</p><div className="grid grid-cols-2 gap-2 mt-3"><button type="button" onClick={() => setLockedAction("save")} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-card border border-border text-sm font-medium hover:bg-muted"><Save size={14} /> Spara</button><button type="button" onClick={() => setLockedAction("export")} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-card border border-border text-sm font-medium hover:bg-muted"><FileDown size={14} /> Export</button></div>{lockedAction && <div className="mt-3 rounded-2xl bg-card border border-border p-3 text-sm text-muted-foreground"><strong className="text-foreground">{lockedAction === "save" ? "Spara bana" : "Exportera bana"}</strong> är en konto-funktion. Skapa konto så kan du fortsätta i fulla banplaneraren.<Link to={AUTH_SIGNUP} className="mt-2 inline-flex w-full h-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">Skapa konto</Link></div>}</div>
-            <div className="rounded-3xl bg-foreground p-4 text-background"><div className="flex items-center gap-2 text-sm font-medium"><Lock size={15} /> Nästa steg</div><p className="text-sm text-background/70 mt-2">Gå från bana till träningspass: skapa konto, logga passet och se statistik över vad som fungerar.</p><Link to={AUTH_SIGNUP} className="mt-4 inline-flex w-full h-11 items-center justify-center rounded-full bg-background text-sm font-medium text-foreground">Skapa gratis konto</Link></div>
+              {obstacles.map((obs) => {
+                const def = defFor(sport, obs.type);
+                const isSelected = obs.id === selectedId;
+                const isMarker = MARKER_TYPES.has(obs.type);
+                return (
+                  <button
+                    key={obs.id}
+                    type="button"
+                    onPointerDown={(e) => onObstaclePointerDown(e, obs)}
+                    className={cn(
+                      "absolute grid place-items-center rounded-xl transition-shadow",
+                      "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                    )}
+                    style={{
+                      left: `${obs.x}%`,
+                      top: `${obs.y}%`,
+                      transform: `translate(-50%, -50%) rotate(${obs.rotation}deg)`,
+                      touchAction: "none",
+                    }}
+                    aria-label={def.label}
+                    aria-pressed={isSelected}
+                  >
+                    {/* Transparent 44px+ hit target */}
+                    <span
+                      className="absolute rounded-2xl"
+                      style={{
+                        minWidth: 44,
+                        minHeight: 44,
+                        width: `max(44px, ${def.widthPct * 1.3}%)`,
+                        height: `max(44px, ${def.heightPct * 1.3}%)`,
+                      }}
+                      aria-hidden
+                    />
+                    <span
+                      className={cn(
+                        "relative grid place-items-center rounded-xl border bg-card shadow-sm",
+                        isSelected ? "border-primary ring-2 ring-primary/25" : "border-border",
+                      )}
+                      style={{
+                        width: "clamp(34px, 8vw, 56px)",
+                        height: "clamp(34px, 8vw, 56px)",
+                      }}
+                    >
+                      <FreeObstacleGlyph type={def.glyph} size={26} />
+                      {!isMarker && obs.number != null && (
+                        <span className="absolute -right-2 -top-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold grid place-items-center shadow">
+                          {obs.number}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+
+              <div className="absolute left-3 bottom-3 rounded-full bg-card/90 border border-border px-2.5 py-1 text-[10px] sm:text-xs font-semibold text-primary shadow-sm inline-flex items-center gap-1.5">
+                <CheckCircle2 size={11} /> Gratis demo
+              </div>
+              <div className="absolute right-3 bottom-3 rounded-full bg-card/85 border border-border px-2.5 py-1 text-[10px] sm:text-xs text-muted-foreground shadow-sm">
+                {WATERMARK}
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop right panel */}
+          <aside className="hidden lg:block rounded-3xl border border-border bg-card p-4 h-fit space-y-4">
+            <div>
+              <h2 className="font-display text-lg">Valt hinder</h2>
+              {selected ? (
+                <p className="text-xs text-muted-foreground mt-1 break-words">
+                  {defFor(sport, selected.type).label}
+                  {selected.number != null && ` · #${selected.number}`}
+                  {" · "}rotation {Math.round(selected.rotation)}°
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground mt-1">Klicka eller dra ett hinder på banan.</p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <ToolButton onClick={() => rotateSelected(-15)} disabled={!selected}>
+                <RotateCcw size={14} /> −15°
+              </ToolButton>
+              <ToolButton onClick={() => rotateSelected(15)} disabled={!selected}>
+                <RotateCcw size={14} className="-scale-x-100" /> +15°
+              </ToolButton>
+              <ToolButton onClick={() => setNumber(-1)} disabled={!selected || MARKER_TYPES.has(selected.type)}>
+                # −1
+              </ToolButton>
+              <ToolButton onClick={() => setNumber(1)} disabled={!selected || MARKER_TYPES.has(selected.type)}>
+                # +1
+              </ToolButton>
+              <ToolButton onClick={duplicateSelected} disabled={!selected || MARKER_TYPES.has(selected.type)}>
+                <Copy size={14} /> Duplicera
+              </ToolButton>
+              <ToolButton onClick={removeSelected} disabled={!selected} className="text-destructive border-destructive/30 bg-destructive/10">
+                <Trash2 size={14} /> Ta bort
+              </ToolButton>
+            </div>
+            <button
+              type="button"
+              onClick={resetCourse}
+              className="w-full inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-border bg-card text-sm font-medium hover:bg-muted"
+            >
+              Återställ demo
+            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <LockedActionButton onClick={() => handleLockedAction("save")}><Save size={14} /> Spara</LockedActionButton>
+              <LockedActionButton onClick={() => handleLockedAction("export")}><FileDown size={14} /> PDF</LockedActionButton>
+              <LockedActionButton onClick={() => handleLockedAction("validate")}><CheckCircle2 size={14} /> Validera</LockedActionButton>
+              <LockedActionButton onClick={() => handleLockedAction("3d")}><Sparkles size={14} /> 3D</LockedActionButton>
+            </div>
           </aside>
         </section>
 
-        <section className="max-w-6xl mx-auto px-4 sm:px-5 py-8 sm:py-10"><div className="rounded-[2rem] bg-foreground text-background p-5 sm:p-6 lg:p-8 overflow-hidden relative"><div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary/30 blur-3xl" /><div className="relative grid lg:grid-cols-[0.9fr_1.1fr] gap-6 lg:gap-8 items-center"><div><div className="text-xs uppercase tracking-[0.12em] text-background/50 font-semibold">Så blir gratisverktyget till utveckling</div><h2 className="font-display text-3xl lg:text-4xl mt-3">Rita banan. Träna passet. Följ utvecklingen.</h2><p className="text-background/70 mt-3 max-w-lg">Banplaneraren är starten. Värdet kommer när du sparar övningen, loggar hur det gick och ser mönster i statistiken.</p><Link to={AUTH_SIGNUP} className="mt-5 inline-flex h-11 items-center justify-center rounded-full bg-background px-5 text-sm font-medium text-foreground hover:bg-background/90">Fortsätt i appen <ArrowRight size={15} className="ml-2" /></Link></div><div className="grid sm:grid-cols-3 gap-3"><JourneyCard icon={Save} title="1. Spara bana" text="Behåll övningen och bygg ett bibliotek." /><JourneyCard icon={Dumbbell} title="2. Logga pass" text="Fånga känslan medan den är färsk." /><JourneyCard icon={BarChart3} title="3. Se statistik" text="Förstå vad som går framåt över tid." /></div></div></div></section>
+        {/* Value / journey copy */}
+        <section className="max-w-6xl mx-auto px-4 sm:px-5 py-10 sm:py-14">
+          <div className="rounded-[2rem] bg-foreground text-background p-5 sm:p-8 relative overflow-hidden">
+            <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary/30 blur-3xl" aria-hidden />
+            <div className="relative grid lg:grid-cols-[0.9fr_1.1fr] gap-6 lg:gap-8 items-center">
+              <div>
+                <div className="text-xs uppercase tracking-[0.12em] text-background/50 font-semibold">
+                  Från skiss till riktigt träningspass
+                </div>
+                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl mt-3">
+                  Gör skissen till ett riktigt träningspass.
+                </h2>
+                <p className="text-background/70 mt-3 max-w-lg text-sm sm:text-base">
+                  I fulla banbyggaren får du exakta mått, förhandskontroll av vanliga banproblem, 3D-vy för att gå banan,
+                  PDF för att bygga i hallen och molnsparning kopplad till träningsloggen. Förhandskontrollen är ett stöd,
+                  inte ett officiellt regelutlåtande.
+                </p>
+                <Link
+                  to={signupUrl}
+                  onClick={() => trackGrowthEvent("free_planner_signup_clicked", { placement: "value_section", sport })}
+                  className="mt-5 inline-flex h-11 items-center justify-center rounded-full bg-background px-5 text-sm font-medium text-foreground hover:bg-background/90"
+                >
+                  Fortsätt i fulla banbyggaren <ArrowRight size={15} className="ml-2" />
+                </Link>
+              </div>
+              <ul className="grid sm:grid-cols-2 gap-3 text-sm">
+                {[
+                  ["Exakta mått", "Meter och avstånd, inte procent."],
+                  ["Banförhandskontroll", "Fångar vanliga problem innan träningen."],
+                  ["3D & gå banan", "Se linjer och avstånd i 3D."],
+                  ["Bygg-PDF", "Ta med utskrift till hallen."],
+                  ["Molnsparning", "Alla banor följer med."],
+                  ["Träningslogg", "Koppla bana till pass och statistik."],
+                ].map(([title, text]) => (
+                  <li key={title} className="rounded-2xl border border-background/10 bg-background/[0.06] p-4">
+                    <div className="text-sm font-semibold">{title}</div>
+                    <div className="text-xs text-background/70 mt-1">{text}</div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
 
-        <section className="max-w-4xl mx-auto px-4 sm:px-5 py-10 sm:py-12 prose prose-stone"><h2>Rita agilitybana online gratis</h2><p>Med AgilityManagers gratis banplanerare kan du snabbt skissa upp en enkel agilitybana för träning. Verktyget passar när du vill testa en kombination, planera ett pass eller visualisera en kortare övning innan du bygger på planen.</p><h2>Från gratis bana till träningslogg och statistik</h2><p>Gratisversionen är medvetet enkel: max tio hinder, ingen sparning och vattenstämpeln “{WATERMARK}”. När du skapar konto kan du fortsätta i appen, logga träningspass och följa utvecklingen över tid.</p></section>
+        <section className="max-w-4xl mx-auto px-4 sm:px-5 pb-16 prose prose-stone">
+          {sport === "hoopers" ? (
+            <>
+              <h2>Rita hoopersbana online gratis</h2>
+              <p>
+                Skissa en hoopersbana med hoops, tunnor, tunnel, staket och markerade dirigeringszoner. Använd den för att
+                planera ett träningspass eller visa en kombination för en tränarkollega.
+              </p>
+            </>
+          ) : (
+            <>
+              <h2>Rita agilitybana online gratis</h2>
+              <p>
+                Skissa en agilitybana med hopp, tunnel, slalom, kontakthinder och långhopp. Verktyget passar för att
+                snabbt planera en övning eller ett kortare pass innan du bygger på planen.
+              </p>
+            </>
+          )}
+          <p>
+            Gratisversionen är medvetet enkel – tillräcklig för att testa idén. När du vill ha exakta mått,
+            förhandskontroll, 3D, PDF och sparning skapar du ett konto och fortsätter i den fulla banbyggaren.
+          </p>
+        </section>
       </main>
+
+      {/* Mobile bottom dock */}
+      <div
+        className="lg:hidden fixed inset-x-0 bottom-0 z-30 bg-card/95 backdrop-blur-xl border-t border-border"
+        style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+      >
+        <div className="max-w-6xl mx-auto px-3 pt-2">
+          <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground px-1 pb-2">
+            <span className="truncate">
+              {selected ? defFor(sport, selected.type).label : "Inget hinder valt"}
+            </span>
+            <span className="font-medium text-foreground shrink-0">
+              {competitionCount}/{FREE_MAX_COMPETITION_OBSTACLES}
+            </span>
+          </div>
+          <div className="grid grid-cols-6 gap-1.5">
+            <DockButton onClick={() => setAddSheetOpen(true)} label="Lägg till">
+              <Plus size={18} />
+            </DockButton>
+            <DockButton onClick={() => {}} label="Flytta" disabled>
+              <Move size={18} />
+            </DockButton>
+            <DockButton onClick={() => rotateSelected(15)} label="Rotera" disabled={!selected}>
+              <RotateCcw size={18} />
+            </DockButton>
+            <DockButton
+              onClick={removeSelected}
+              label="Ta bort"
+              disabled={!selected}
+              className="text-destructive"
+            >
+              <Trash2 size={18} />
+            </DockButton>
+            <DockButton onClick={resetCourse} label="Återställ">
+              <RotateCcw size={18} className="-scale-x-100" />
+            </DockButton>
+            <DockButton onClick={() => handleLockedAction("save")} label="Spara" className="text-primary">
+              <Save size={18} />
+            </DockButton>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile selected sheet */}
+      {selected && (
+        <div className="lg:hidden fixed inset-x-0 z-30" style={{ bottom: "calc(env(safe-area-inset-bottom) + 92px)" }}>
+          <div className="mx-3 rounded-2xl border border-border bg-card shadow-xl p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold truncate">
+                  {defFor(sport, selected.type).label}
+                  {selected.number != null && ` · #${selected.number}`}
+                </div>
+                <div className="text-[11px] text-muted-foreground">
+                  rotation {Math.round(selected.rotation)}°
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedId(null)}
+                className="h-9 w-9 grid place-items-center rounded-full hover:bg-muted"
+                aria-label="Avmarkera"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="mt-2 grid grid-cols-4 gap-1.5">
+              <ToolButton onClick={() => rotateSelected(-15)}>−15°</ToolButton>
+              <ToolButton onClick={() => rotateSelected(15)}>+15°</ToolButton>
+              <ToolButton onClick={() => setNumber(-1)} disabled={MARKER_TYPES.has(selected.type)}># −1</ToolButton>
+              <ToolButton onClick={() => setNumber(1)} disabled={MARKER_TYPES.has(selected.type)}># +1</ToolButton>
+              <ToolButton onClick={duplicateSelected} disabled={MARKER_TYPES.has(selected.type)} className="col-span-2">
+                <Copy size={14} /> Duplicera
+              </ToolButton>
+              <ToolButton onClick={removeSelected} className="col-span-2 text-destructive border-destructive/30 bg-destructive/10">
+                <Trash2 size={14} /> Ta bort
+              </ToolButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add-obstacle bottom sheet */}
+      {addSheetOpen && (
+        <div className="lg:hidden fixed inset-0 z-40" role="dialog" aria-modal="true">
+          <div className="absolute inset-0 bg-foreground/40" onClick={() => setAddSheetOpen(false)} />
+          <div
+            className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-card border-t border-border p-4"
+            style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="font-display text-lg">Lägg till hinder</div>
+                <div className="text-xs text-muted-foreground">
+                  {competitionCount}/{FREE_MAX_COMPETITION_OBSTACLES} tävlingshinder · start/mål räknas inte
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAddSheetOpen(false)}
+                className="h-10 w-10 grid place-items-center rounded-full hover:bg-muted"
+                aria-label="Stäng"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {paletteDefs.map((def) => (
+                <PaletteButton key={def.type} def={def} onClick={() => addObstacle(def.type)} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Value unlock dialog */}
+      {unlockOpen && (
+        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
+          <div className="absolute inset-0 bg-foreground/50" onClick={() => setUnlockOpen(false)} />
+          <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:top-1/2 max-w-md sm:w-full">
+            <div className="rounded-3xl bg-card border border-border p-5 shadow-2xl">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-full bg-primary/10 text-primary grid place-items-center shrink-0">
+                  <Lock size={18} />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-display text-xl">Gör skissen till ett riktigt träningspass.</h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    I fulla banbyggaren får du <strong className="text-foreground">exakta mått</strong>,
+                    <strong className="text-foreground"> förhandskontroll</strong> av vanliga banproblem,
+                    <strong className="text-foreground"> 3D-vy</strong>, <strong className="text-foreground">bygg-PDF</strong>,
+                    <strong className="text-foreground"> molnsparning</strong> och koppling till träningsloggen.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Förhandskontrollen är ett stöd – den ersätter inte officiellt regelverk.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setUnlockOpen(false)}
+                  className="h-9 w-9 grid place-items-center rounded-full hover:bg-muted shrink-0"
+                  aria-label="Stäng"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="mt-4 grid gap-2">
+                <Link
+                  to={signupUrl}
+                  onClick={() =>
+                    trackGrowthEvent("free_planner_signup_clicked", {
+                      placement: "unlock_dialog",
+                      action: unlockReason ?? "threshold",
+                      sport,
+                    })
+                  }
+                  className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                >
+                  Fortsätt i fulla banbyggaren <ArrowRight size={15} className="ml-2" />
+                </Link>
+                <Link
+                  to={loginUrl}
+                  onClick={() =>
+                    trackGrowthEvent("free_planner_signup_clicked", {
+                      placement: "unlock_dialog_login",
+                      action: unlockReason ?? "threshold",
+                      sport,
+                    })
+                  }
+                  className="inline-flex h-11 items-center justify-center rounded-full border border-border bg-card px-5 text-sm font-medium hover:bg-muted"
+                >
+                  Jag har redan konto
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function JourneyCard({ icon: Icon, title, text }: { icon: typeof Save; title: string; text: string }) { return <div className="rounded-3xl border border-background/10 bg-background/[0.06] p-4"><div className="h-10 w-10 rounded-full bg-background/10 grid place-items-center mb-3"><Icon size={17} /></div><h3 className="font-semibold text-sm">{title}</h3><p className="text-sm text-background/60 mt-1">{text}</p></div>; }
+// ---------- Small components ----------
 
-function PlannerCanvas({ obstacles, selectedId, onSelect, large, preview }: { obstacles: FreeObstacle[]; selectedId: string | null; onSelect?: (id: string) => void; large?: boolean; preview?: boolean }) {
+function PaletteButton({ def, onClick }: { def: ObstacleDef; onClick: () => void }) {
   return (
-    <div className="v3-mobile-scroll">
-      <div className={cn("relative overflow-hidden rounded-[1.5rem] border border-border bg-muted", large ? "min-h-[460px] sm:min-h-[540px] min-w-[560px] lg:min-w-0" : "min-h-[320px] sm:min-h-[360px] min-w-[520px] sm:min-w-0", preview && "pointer-events-none") }>
-        <div className="absolute inset-0 opacity-40" style={{ backgroundImage: "linear-gradient(to right, hsl(var(--foreground) / 0.08) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--foreground) / 0.08) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
-        <div className="absolute left-4 top-4 rounded-full bg-card/85 px-3 py-1 text-xs font-medium text-muted-foreground border border-border">20 × 30 m demo</div><div className="absolute right-4 top-4 rounded-full bg-card/85 px-3 py-1 text-xs font-medium text-muted-foreground border border-border inline-flex items-center gap-1"><MousePointer2 size={12} /> {preview ? "Exempelbana" : "Klicka hinder"}</div>
-        {obstacles.map((obstacle) => { const selected = obstacle.id === selectedId && !preview; return <button key={obstacle.id} type="button" onClick={() => onSelect?.(obstacle.id)} className={cn("absolute grid place-items-center rounded-xl border bg-card shadow-sm transition-all", selected ? "border-primary ring-4 ring-primary/15 scale-105" : "border-border hover:border-primary/40", obstacle.type === "tunnel" ? "h-14 w-20" : obstacle.type === "weave" ? "h-10 w-24" : "h-12 w-12")} style={{ left: `${obstacle.x}%`, top: `${obstacle.y}%`, transform: `translate(-50%, -50%) rotate(${obstacle.rotation}deg)` }} title={obstacle.label} aria-label={obstacle.label}><span className="text-2xl leading-none text-foreground">{obstacle.symbol}</span>{obstacle.number && <span className="absolute -right-2 -top-2 h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-bold grid place-items-center">{obstacle.number}</span>}</button>; })}
-        <div className="absolute left-4 bottom-4 rounded-full bg-card/90 border border-border px-3 py-1 text-xs font-semibold text-primary shadow-sm inline-flex items-center gap-1.5"><CheckCircle2 size={12} /> Gratis demo</div><div className="absolute bottom-4 right-4 rounded-full bg-card/85 border border-border px-3 py-1 text-xs font-semibold text-muted-foreground shadow-sm">{WATERMARK}</div><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-card/70 to-transparent h-24 pointer-events-none" />
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      className="min-h-12 rounded-2xl border border-border bg-background p-2.5 text-left hover:border-primary/40 hover:bg-muted transition-colors flex items-center gap-2"
+    >
+      <FreeObstacleGlyph type={def.glyph} size={24} />
+      <span className="text-xs font-medium truncate">{def.label}</span>
+    </button>
+  );
+}
+
+function ToolButton({
+  children,
+  onClick,
+  disabled,
+  className,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-border bg-card text-xs font-medium hover:bg-muted disabled:opacity-40 disabled:pointer-events-none",
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function LockedActionButton({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-dashed border-primary/40 bg-primary/5 text-xs font-medium text-foreground hover:bg-primary/10"
+    >
+      {children}
+    </button>
+  );
+}
+
+function DockButton({
+  children,
+  onClick,
+  label,
+  disabled,
+  className,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  label: string;
+  disabled?: boolean;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className={cn(
+        "flex flex-col items-center justify-center gap-0.5 rounded-xl bg-card hover:bg-muted disabled:opacity-40 disabled:pointer-events-none",
+        "min-h-[52px] px-1 py-1.5",
+        className,
+      )}
+    >
+      {children}
+      <span className="text-[10px] font-medium leading-none">{label}</span>
+    </button>
   );
 }

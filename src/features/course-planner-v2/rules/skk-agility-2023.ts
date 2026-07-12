@@ -95,4 +95,26 @@ export const SKK_AGILITY_2023: RuleSet = {
         .map((t) => [t.key, t.maxTimeFactor]),
     ),
   },
+
+  // Spårbarhet: alla siffror härrör fortfarande från den tidigare hårdkodade
+  // config.ts. Inget värde är citerat mot officiellt dokument i denna commit.
+  // Byt till "partially_verified" eller "verified" endast när verifiedFields
+  // faktiskt fyllts med citat-referenser.
+  verificationStatus: "provisional",
+  verifiedFields: [],
+  provisionalFields: [
+    "safetyRules.minSafeM",
+    "safetyRules.minComboMBySize",
+    "safetyRules.contactAfterTunnelMinM",
+    "timeRules.model",
+    "timeRules.refSpeedMsByClass",
+    "timeRules.maxTimeFactorByClass",
+    "sizeClasses.jumpHeightCm",
+    "sizeClasses.tireHeightCm",
+    "sizeClasses.longJumpLengthCm",
+    "sizeClasses.comboDistanceM",
+    "obstacleSpecs.dimensions",
+    "classTemplates.arenaSize",
+    "classTemplates.obstacleRange",
+  ],
 };

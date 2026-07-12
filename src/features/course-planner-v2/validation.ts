@@ -1,6 +1,11 @@
 /**
  * Sprint 2 — Realtidsvalidering för Banplaneraren v2.
- * Källor: SAgiK regelverk 2022–2026 + Säkra hinder, SHoK 2022→.
+ *
+ * Prompt-B/K uppdatering: validering använder aktivt RuleSet (regelverk)
+ * för säkerhetsvärden och tidsmodell istället för hårdkodade konstanter.
+ * När regelverket inte är verifierat ("provisional") används copyn
+ * "förhandskontrollens gräns" — vi hävdar inte att kontrollen speglar
+ * officiellt regelverk innan värdena är citerade.
  *
  * Allt här är rena funktioner utan UI-beroenden så de kan testas/återanvändas.
  */
@@ -10,6 +15,12 @@ import {
 } from "./config";
 import { buildDogPath, type CourseDogPathOverride } from "./dogPath";
 import { computeApproachIssues } from "./courseAnalysis";
+import {
+  getRuleSet,
+  getDefaultRuleSetIdForSport,
+  type RuleSet,
+} from "./rules";
+import { rotatedAabb, edgesOutsideArena } from "./geometry";
 
 export type IssueLevel = "error" | "warning" | "info";
 
@@ -49,6 +60,37 @@ export interface CourseLite {
   obstacles: ObstacleLite[];
   /** Editbar override för hundens väg (Prompt B). */
   dogPath?: CourseDogPathOverride;
+  /**
+   * Id på versionerat regelverk. Om det inte anges eller är okänt används
+   * default för banans sport (`getDefaultRuleSetIdForSport`).
+   */
+  ruleSetId?: string;
+}
+
+/* ───────────── Hjälpfunktioner ───────────── */
+
+function resolveRuleSet(course: CourseLite): RuleSet {
+  const id = course.ruleSetId ?? getDefaultRuleSetIdForSport(course.sport);
+  const rs = getRuleSet(id) ?? getRuleSet(getDefaultRuleSetIdForSport(course.sport));
+  if (!rs) {
+    // Ska inte kunna hända — vi har alltid default. Kastar hellre än att
+    // hitta på siffror.
+    throw new Error(`Inget RuleSet hittades för sport ${course.sport}`);
+  }
+  return rs;
+}
+
+/**
+ * Rätt bounding-box i meter för ett hinder — tar hinderdefinitionens
+ * `widthM`/`depthM` från config och roterar enligt hinderets rotation.
+ * Om hindret inte har en def (t.ex. `number`-markör) faller vi tillbaka
+ * på en liten default så vi inte kraschar validation.
+ */
+function obstacleAabb(ob: ObstacleLite) {
+  const def = getObstacleDefV2(ob.type);
+  const w = def?.sizeM.w ?? 0.4;
+  const d = def?.sizeM.d ?? 0.4;
+  return rotatedAabb({ x: ob.x, y: ob.y }, w, d, ob.rotation);
 }
 
 /* ───────────── Banlängd & tider ───────────── */
@@ -90,53 +132,88 @@ export interface CourseTimes {
   lengthAlongPathM: number;
   refTimeS: number | null;
   maxTimeS: number | null;
-  refSpeedMs: number | null;
+  refSpeedMsByClass: number | null;
   maxTimeFactor: number | null;
+  /**
+   * True om regelverket bakom siffrorna inte är verifierat mot officiellt
+   * dokument. UI:t ska då kalla värdet "beräknad tid", inte officiell referenstid.
+   */
+  isProvisional: boolean;
+  /** Regelverkets id, exponeras så UI kan visa källa. */
+  ruleSetId: string;
+  /** Regelverkets verifieringsstatus. */
+  ruleSetStatus: RuleSet["verificationStatus"];
+  /** @deprecated Behålls för bakåtkompatibilitet; alias för refSpeedMsByClass. */
+  refSpeedMs: number | null;
 }
 
 export function computeCourseTimes(course: CourseLite): CourseTimes {
   const lengthM = computeCourseLength(course.obstacles);
   const lengthAlongPathM = computeCourseLengthAlongPath(course.obstacles, course.dogPath);
-  const tpl = course.classTemplate
-    ? CLASS_TEMPLATES.find((t) => t.key === course.classTemplate)
+  const rs = resolveRuleSet(course);
+  const isProvisional = rs.verificationStatus !== "verified";
+
+  const classKey = course.classTemplate;
+  const refSpeed = classKey
+    ? (rs.timeRules.refSpeedMsByClass[classKey] ??
+        CLASS_TEMPLATES.find((t) => t.key === classKey)?.refSpeedMs ??
+        null)
     : null;
-  if (!tpl || lengthAlongPathM <= 0) {
-    return {
-      lengthM,
-      lengthAlongPathM,
-      refTimeS: null,
-      maxTimeS: null,
-      refSpeedMs: tpl?.refSpeedMs ?? null,
-      maxTimeFactor: tpl?.maxTimeFactor ?? null,
-    };
-  }
-  const refTimeS = Math.round(lengthAlongPathM / tpl.refSpeedMs);
-  const maxTimeS = Math.round(refTimeS * tpl.maxTimeFactor);
-  return {
+  const maxFactor = classKey
+    ? (rs.timeRules.maxTimeFactorByClass[classKey] ??
+        CLASS_TEMPLATES.find((t) => t.key === classKey)?.maxTimeFactor ??
+        null)
+    : null;
+
+  const base = {
     lengthM,
     lengthAlongPathM,
-    refTimeS,
-    maxTimeS,
-    refSpeedMs: tpl.refSpeedMs,
-    maxTimeFactor: tpl.maxTimeFactor,
+    refSpeedMsByClass: refSpeed,
+    maxTimeFactor: maxFactor,
+    refSpeedMs: refSpeed,
+    isProvisional,
+    ruleSetId: rs.id,
+    ruleSetStatus: rs.verificationStatus,
   };
+
+  if (!refSpeed || !maxFactor || lengthAlongPathM <= 0) {
+    return { ...base, refTimeS: null, maxTimeS: null };
+  }
+  const refTimeS = Math.round(lengthAlongPathM / refSpeed);
+  const maxTimeS = Math.round(refTimeS * maxFactor);
+  return { ...base, refTimeS, maxTimeS };
 }
 
 /* ───────────── Validering ───────────── */
 
 const CONTACT_TYPES: ObstacleTypeV2[] = ["aframe", "dogwalk", "seesaw"];
+const NON_COMPETING: ObstacleTypeV2[] = ["start", "finish", "number"];
 
 /** Avstånd mellan två hinder i meter (centrum-till-centrum). */
 function dist(a: ObstacleLite, b: ObstacleLite) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
+/**
+ * Källfras för meddelanden. Verifierade regelverk får hänvisa till
+ * utgivaren; provisional/partially får INTE göra det — då säger vi
+ * "förhandskontrollens gräns" så användaren vet att siffran inte är citerad.
+ */
+function safetyMessagePrefix(rs: RuleSet): string {
+  if (rs.verificationStatus === "verified") return `enligt ${rs.authority}`;
+  return "förhandskontrollens gräns";
+}
+
 export function validateCourse(course: CourseLite): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
+  const rs = resolveRuleSet(course);
   const tpl = course.classTemplate
     ? CLASS_TEMPLATES.find((t) => t.key === course.classTemplate)
     : null;
   const sizeDef = SIZE_CLASSES.find((s) => s.key === course.sizeClass);
+
+  const safety = rs.safetyRules;
+  const prefix = safetyMessagePrefix(rs);
 
   // 1) Sport-konsistens
   for (const ob of course.obstacles) {
@@ -157,7 +234,11 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
     for (const ob of course.obstacles) {
       const def = getObstacleDefV2(ob.type);
       if (!def) continue;
-      if (tpl.allowedTypes && tpl.allowedTypes.length > 0 && !tpl.allowedTypes.includes(ob.type) && ob.type !== "start" && ob.type !== "finish" && ob.type !== "number") {
+      if (
+        tpl.allowedTypes && tpl.allowedTypes.length > 0 &&
+        !tpl.allowedTypes.includes(ob.type) &&
+        !NON_COMPETING.includes(ob.type)
+      ) {
         issues.push({
           level: "error",
           code: "type_not_allowed",
@@ -176,19 +257,19 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
     }
 
     // Antal hinder (exkl. start/finish/number-markörer)
-    const competing = course.obstacles.filter((o) => !["start", "finish", "number"].includes(o.type));
+    const competingCount = course.obstacles.filter((o) => !NON_COMPETING.includes(o.type));
     const [min, max] = tpl.obstacleRange;
-    if (competing.length < min) {
+    if (competingCount.length < min) {
       issues.push({
         level: "warning",
         code: "too_few_obstacles",
-        message: `${tpl.label} kräver minst ${min} hinder (du har ${competing.length})`,
+        message: `${tpl.label} kräver minst ${min} hinder (du har ${competingCount.length})`,
       });
-    } else if (competing.length > max) {
+    } else if (competingCount.length > max) {
       issues.push({
         level: "warning",
         code: "too_many_obstacles",
-        message: `${tpl.label} tillåter max ${max} hinder (du har ${competing.length})`,
+        message: `${tpl.label} tillåter max ${max} hinder (du har ${competingCount.length})`,
       });
     }
 
@@ -215,16 +296,47 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
   if (finishes.length > 1) issues.push({ level: "warning", code: "multiple_finishes", message: "Flera mållinjer" });
 
   // 4) Numrering – ska vara 1..N utan dubletter eller hål för tävlande hinder
-  const competing = course.obstacles.filter((o) => !["start", "finish", "number"].includes(o.type));
-  const numbers = competing.map((o) => o.number).filter((n): n is number => n != null).sort((a, b) => a - b);
-  const seen = new Set<number>();
-  for (const n of numbers) {
-    if (seen.has(n)) {
-      issues.push({ level: "error", code: "duplicate_number", message: `Hindernummer ${n} används flera gånger` });
+  const competing = course.obstacles.filter((o) => !NON_COMPETING.includes(o.type));
+  // Sortera efter number så att alla nummer-baserade jämförelser görs i rätt ordning,
+  // oberoende av array-ordningen. Onumrerade läggs sist och exkluderas ur pair-loops.
+  const competingByNumber = [...competing].sort((a, b) => {
+    const an = a.number ?? Number.POSITIVE_INFINITY;
+    const bn = b.number ?? Number.POSITIVE_INFINITY;
+    return an - bn;
+  });
+  const numberedByNumber = competingByNumber.filter((o) => o.number != null);
+
+  const numbers = numberedByNumber.map((o) => o.number as number);
+  const seenNumbers = new Map<number, ObstacleLite[]>();
+  for (const o of numberedByNumber) {
+    const list = seenNumbers.get(o.number as number) ?? [];
+    list.push(o);
+    seenNumbers.set(o.number as number, list);
+  }
+  for (const [n, list] of seenNumbers) {
+    if (list.length > 1) {
+      for (const o of list) {
+        issues.push({
+          level: "error",
+          code: "duplicate_number",
+          message: `Hindernummer ${n} används flera gånger`,
+          obstacleId: o.id,
+        });
+      }
     }
-    seen.add(n);
   }
   if (numbers.length > 0 && numbers.length !== competing.length) {
+    // markera de faktiskt onumrerade
+    for (const o of competing) {
+      if (o.number == null) {
+        issues.push({
+          level: "warning",
+          code: "unnumbered_obstacle",
+          message: `Hinder saknar nummer`,
+          obstacleId: o.id,
+        });
+      }
+    }
     issues.push({
       level: "warning",
       code: "unnumbered_obstacles",
@@ -240,7 +352,12 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
     // hål?
     for (let i = 1; i < numbers.length; i++) {
       if (numbers[i] !== numbers[i - 1] + 1) {
-        issues.push({ level: "warning", code: "numbering_gap", message: `Numreringen har lucka mellan ${numbers[i - 1]} och ${numbers[i]}` });
+        issues.push({
+          level: "warning",
+          code: "numbering_gap",
+          message: `Numreringen har lucka mellan ${numbers[i - 1]} och ${numbers[i]}`,
+          obstacleId: numberedByNumber[i].id,
+        });
         break;
       }
     }
@@ -249,32 +366,36 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
     }
   }
 
-  // 5) Säkerhet — avstånd mellan hinder (SAgiK Säkra hinder)
+  // 5) Säkerhet — avstånd mellan hinder (agility)
   if (sizeDef && course.sport === "agility") {
-    const minSafe = 4.0; // generell minimumavstånd vid full fart
-    const minCombo = sizeDef.comboDistanceM;
-    for (let i = 0; i < competing.length; i++) {
-      for (let j = i + 1; j < competing.length; j++) {
-        const a = competing[i], b = competing[j];
-        // bara i nummerföljd
-        if (a.number == null || b.number == null) continue;
-        if (Math.abs(a.number - b.number) !== 1) continue;
+    const minSafe = safety.minSafeM;
+    const minCombo = safety.minComboMBySize[course.sizeClass] ?? sizeDef.comboDistanceM;
+
+    // Följdpar bedöms i NUMMERORDNING — inte array-ordning. Vi jämför både
+    // (n, n+1)-par (adjacent numbers) och alla numrerade hinderpar för
+    // säkerhet, exakt som förr, men på en sorterad lista.
+    for (let i = 0; i < numberedByNumber.length; i++) {
+      for (let j = i + 1; j < numberedByNumber.length; j++) {
+        const a = numberedByNumber[i];
+        const b = numberedByNumber[j];
+        // Följd = |n - n±1| = 1
+        if ((b.number as number) - (a.number as number) !== 1) continue;
         const d = dist(a, b);
         const aDef = getObstacleDefV2(a.type);
         const bDef = getObstacleDefV2(b.type);
         if (!aDef || !bDef) continue;
-        const aIsJumpish = ["jump", "wall", "longjump", "tire", "combo"].includes(a.type);
-        const bIsJumpish = ["jump", "wall", "longjump", "tire", "combo"].includes(b.type);
+        const jumpish = ["jump", "wall", "longjump", "tire", "combo"];
+        const aIsJumpish = jumpish.includes(a.type);
+        const bIsJumpish = jumpish.includes(b.type);
         const tooCloseForJumps = aIsJumpish && bIsJumpish && d < minCombo;
         if (tooCloseForJumps) {
           issues.push({
             level: "error",
             code: "jump_too_close",
-            message: `Hinder ${a.number}→${b.number}: ${d.toFixed(1)} m < ${minCombo} m (säkerhetsavstånd för ${sizeDef.label})`,
+            message: `Hinder ${a.number}→${b.number}: ${d.toFixed(1)} m < ${minCombo} m (${prefix} för ${sizeDef.label})`,
             obstacleId: b.id,
           });
         } else if (d < minCombo) {
-          // blandat par tätare än combo-gränsen — tidigare helt omissat
           issues.push({
             level: "warning",
             code: "obstacles_close",
@@ -292,19 +413,18 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
       }
     }
 
-    // Kontaktfält direkt efter tunnel — riskvarning enligt Säkra hinder
-    for (let i = 1; i < competing.length; i++) {
-      const prev = competing[i - 1];
-      const cur = competing[i];
-      if (prev.number == null || cur.number == null) continue;
-      if (cur.number - prev.number !== 1) continue;
+    // Kontaktfält direkt efter tunnel — riskvarning (nummerordning)
+    for (let i = 1; i < numberedByNumber.length; i++) {
+      const prev = numberedByNumber[i - 1];
+      const cur = numberedByNumber[i];
+      if ((cur.number as number) - (prev.number as number) !== 1) continue;
       if (prev.type === "tunnel" && CONTACT_TYPES.includes(cur.type)) {
         const d = dist(prev, cur);
-        if (d < 5) {
+        if (d < safety.contactAfterTunnelMinM) {
           issues.push({
             level: "warning",
             code: "contact_after_tunnel",
-            message: `Kontaktfält direkt efter tunnel (${d.toFixed(1)} m) — risk enligt Säkra hinder`,
+            message: `Kontaktfält direkt efter tunnel (${d.toFixed(1)} m < ${safety.contactAfterTunnelMinM} m, ${prefix})`,
             obstacleId: cur.id,
           });
         }
@@ -323,19 +443,18 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
       });
     }
 
-    // Min-avstånd mellan på varandra följande hoopers-hinder (SHoK ≥ 3 m)
-    const HOOPERS_MIN_M = 3.0;
-    for (let i = 0; i < competing.length; i++) {
-      for (let j = i + 1; j < competing.length; j++) {
-        const a = competing[i], b = competing[j];
-        if (a.number == null || b.number == null) continue;
-        if (Math.abs(a.number - b.number) !== 1) continue;
+    const hoopersMin = safety.hoopersMinM ?? 3.0;
+    for (let i = 0; i < numberedByNumber.length; i++) {
+      for (let j = i + 1; j < numberedByNumber.length; j++) {
+        const a = numberedByNumber[i];
+        const b = numberedByNumber[j];
+        if ((b.number as number) - (a.number as number) !== 1) continue;
         const d = dist(a, b);
-        if (d < HOOPERS_MIN_M) {
+        if (d < hoopersMin) {
           issues.push({
             level: "error",
             code: "hoopers_too_close",
-            message: `Hinder ${a.number}→${b.number}: ${d.toFixed(1)} m < ${HOOPERS_MIN_M} m (SHoK min-avstånd)`,
+            message: `Hinder ${a.number}→${b.number}: ${d.toFixed(1)} m < ${hoopersMin} m (${prefix})`,
             obstacleId: b.id,
           });
         }
@@ -343,8 +462,20 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
     }
 
     // Inga agilityhinder i hoopers
+    const forbiddenInHoopers = new Set<ObstacleTypeV2>([
+      ...CONTACT_TYPES,
+      "table",
+      "weave_8",
+      "weave_10",
+      "weave_12",
+      "jump",
+      "wall",
+      "longjump",
+      "tire",
+      "combo",
+    ]);
     for (const ob of course.obstacles) {
-      if (CONTACT_TYPES.includes(ob.type) || ob.type === "table" || ob.type === "weave_8" || ob.type === "weave_10" || ob.type === "weave_12" || ob.type === "jump" || ob.type === "wall" || ob.type === "longjump" || ob.type === "tire" || ob.type === "combo") {
+      if (forbiddenInHoopers.has(ob.type)) {
         const def = getObstacleDefV2(ob.type);
         issues.push({
           level: "error",
@@ -355,16 +486,17 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
       }
     }
 
-    // Föraren får inte komma för nära hindren från sin zon (SHoK ≥ 3 m till närmsta hinder)
+    // Förarzonen — min-avstånd till hindren
     const zone = course.obstacles.find((o) => o.type === "handler_zone");
+    const zoneMin = safety.hoopersHandlerZoneMinM ?? 3.0;
     if (zone) {
       for (const ob of competing) {
         const d = dist(zone, ob);
-        if (d < 3) {
+        if (d < zoneMin) {
           issues.push({
             level: "warning",
             code: "handler_too_close",
-            message: `Hinder ${ob.number ?? "?"} ligger ${d.toFixed(1)} m från dirigeringsområdet (SHoK ≥ 3 m)`,
+            message: `Hinder ${ob.number ?? "?"} ligger ${d.toFixed(1)} m från dirigeringsområdet (${prefix} ≥ ${zoneMin} m)`,
             obstacleId: ob.id,
           });
         }
@@ -372,13 +504,20 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
     }
   }
 
-  // 6) Hinder utanför banytan
+  // 6) Hinder utanför banytan — roterad bounding box, säger vilken kant
   for (const ob of course.obstacles) {
-    if (ob.x < 0.2 || ob.x > course.arenaWidthM - 0.2 || ob.y < 0.2 || ob.y > course.arenaHeightM - 0.2) {
+    // Start/mål/number-markörer räknas inte som tävlingshinder — hoppa deras edge-check
+    // för att inte skapa falska varningar när användaren medvetet lägger startlinjen
+    // mot arenans kant.
+    if (NON_COMPETING.includes(ob.type)) continue;
+    const aabb = obstacleAabb(ob);
+    const edges = edgesOutsideArena(aabb, course.arenaWidthM, course.arenaHeightM, 0);
+    if (edges.length > 0) {
+      const worst = edges.reduce((a, b) => (a.overshootM > b.overshootM ? a : b));
       issues.push({
         level: "warning",
-        code: "obstacle_near_edge",
-        message: "Hinder ligger nära/utanför banytan",
+        code: "obstacle_outside_arena",
+        message: `Hinder ${ob.number ?? ""} sticker ut ${worst.overshootM.toFixed(2)} m över ${worst.edge}kanten`,
         obstacleId: ob.id,
       });
     }

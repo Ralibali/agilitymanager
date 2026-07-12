@@ -62,4 +62,19 @@ export const HOOPERS_SHS_2022: RuleSet = {
         .map((t) => [t.key, t.maxTimeFactor]),
     ),
   },
+
+  verificationStatus: "provisional",
+  verifiedFields: [],
+  provisionalFields: [
+    "safetyRules.minSafeM",
+    "safetyRules.minComboMBySize",
+    "safetyRules.contactAfterTunnelMinM",
+    "safetyRules.hoopersMinM",
+    "safetyRules.hoopersHandlerZoneMinM",
+    "timeRules.model",
+    "timeRules.refSpeedMsByClass",
+    "timeRules.maxTimeFactorByClass",
+    "classTemplates.obstacleRange",
+    "obstacleSpecs.dimensions",
+  ],
 };

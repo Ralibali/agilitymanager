@@ -44,6 +44,9 @@ import { PlannerTopbar } from "@/components/course-planner-v2/PlannerTopbar";
 import { CanvasRulers } from "@/components/course-planner-v2/CanvasRulers";
 import { ViewportControls } from "@/components/course-planner-v2/ViewportControls";
 import { useCanvasViewport } from "@/features/course-planner-v2/useCanvasViewport";
+import { MobileObstacleSheet } from "@/components/course-planner-v2/MobileObstacleSheet";
+import { MobileBottomDock } from "@/components/course-planner-v2/MobileBottomDock";
+import { RuleSetTrustBadge } from "@/components/course-planner-v2/RuleSetTrustBadge";
 import { buildPlannerCommands } from "@/features/course-planner-v2/plannerCommands";
 import { useCoursePlannerHotkeys } from "@/hooks/useCoursePlannerHotkeys";
 import { useProfileName } from "@/hooks/useProfileName";
@@ -180,6 +183,7 @@ function V3CoursePlannerV2PageInner() {
   const [view3D, setView3D] = useState<null | "view" | "walk">(null);
   const [playback2D, setPlayback2D] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [mobileObstaclesOpen, setMobileObstaclesOpen] = useState(false);
   const fullscreenRootRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
@@ -686,11 +690,7 @@ function V3CoursePlannerV2PageInner() {
 
   function handlePointerDown(e: PointerEvent<SVGGElement>, id: string) {
     e.stopPropagation();
-    // Mobil = visningsläge: tillåt markering men ingen drag/redigering
-    if (isMobile) {
-      setSelectedId(id);
-      return;
-    }
+    // Prompt K: mobil är nu ett förstaklassigt redigeringsläge. Ingen blockering.
     const ob = course.obstacles.find((o) => o.id === id);
     if (tool === "erase") { deleteObstacle(id); return; }
     if (tool === "number") {
@@ -703,6 +703,8 @@ function V3CoursePlannerV2PageInner() {
     if (ob?.locked) return; // Markera men dra inte
     setDraggingId(id);
     (e.target as Element).setPointerCapture?.(e.pointerId);
+    // Diskret haptic feedback när drag startar. Ignorera i miljöer som saknar API.
+    try { navigator.vibrate?.(8); } catch { /* ignore */ }
   }
 
   // Drag på SVG-koordinater → meter
@@ -931,16 +933,7 @@ function V3CoursePlannerV2PageInner() {
         </div>
       )}
 
-      {/* Mobil-banner: visningsläge */}
-      {isMobile && (
-        <div className="mx-3 mt-3 rounded-xl bg-primary/10 border border-primary/20 px-3 py-2 flex items-start gap-2 text-[12px] text-primary">
-          <Smartphone size={16} className="shrink-0 mt-0.5" />
-          <div className="leading-snug">
-            <strong>Visningsläge.</strong> Banplaneraren är optimerad för dator eller surfplatta.
-            Här kan du titta på banan, växla 3D, exportera och spara — men inte redigera hinder.
-          </div>
-        </div>
-      )}
+      {/* Mobil-banner "visningsläge" borttagen — mobilen är nu ett fullt redigeringsläge. */}
 
       {/* MAIN GRID */}
       <main className="grid gap-3 p-3 lg:p-4 lg:grid-cols-[280px_minmax(0,1fr)_320px]">
@@ -987,15 +980,9 @@ function V3CoursePlannerV2PageInner() {
               const rs = getRuleSet(course.ruleSetId ?? getDefaultRuleSetIdForSport(course.sport));
               if (!rs) return null;
               return (
-                <a
-                  href={rs.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block mt-1 text-[10px] text-neutral-500 hover:text-primary underline truncate"
-                  title={rs.sourceDocuments.map((d) => d.name).join(", ")}
-                >
-                  Källa: {rs.authority}
-                </a>
+                <div className="mt-2">
+                  <RuleSetTrustBadge ruleSet={rs} />
+                </div>
               );
             })()}
           </section>
@@ -1044,7 +1031,9 @@ function V3CoursePlannerV2PageInner() {
         {/* CENTER — banyta */}
         <section className="rounded-2xl bg-card border border-border p-3 min-w-0">
           <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-            <div className={cn("flex items-center gap-1.5 flex-wrap", isMobile && "hidden")}>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Mobil kompletteras av MobileBottomDock nedan. Toolbar-raden är
+                  responsiv och wrapar när skärmen är smal. */}
               {/* Grupp: ritverktyg */}
               <ToolBtn active={tool === "select"} onClick={() => setTool("select")} icon={<MousePointer2 size={14} />} title="Välj och flytta hinder">Välj</ToolBtn>
               <ToolBtn active={tool === "erase"} onClick={() => setTool("erase")} icon={<Eraser size={14} />} title="Sudda hinder genom att klicka">Sudda</ToolBtn>
@@ -1230,6 +1219,27 @@ function V3CoursePlannerV2PageInner() {
           <CourseCommentsPanel courseId={cloudId} enabled={!!cloudId} />
         </aside>
       </main>
+
+      {/* Mobil bottom dock + hinder-sheet — förstaklassig mobilredigering. */}
+      <MobileObstacleSheet
+        open={mobileObstaclesOpen}
+        onOpenChange={setMobileObstaclesOpen}
+        sport={course.sport}
+        onPick={(type) => placeObstacle(type)}
+      />
+      <MobileBottomDock
+        tool={tool}
+        onSetTool={(t) => setTool(t)}
+        onAddObstacle={() => setMobileObstaclesOpen(true)}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={historyRef.current.past.length > 0}
+        canRedo={historyRef.current.future.length > 0}
+        onValidate={() => setIssuesOpen((v) => !v)}
+        errorCount={issueSummary.errors}
+        warningCount={issueSummary.warnings}
+        onMore={() => setPaletteOpen(true)}
+      />
     </div>
   );
 }
@@ -1313,7 +1323,7 @@ function ArenaCanvas({
       <svg
         ref={svgRef}
         viewBox={`${-padding} ${-padding} ${w + padding * 2} ${h + padding * 2}`}
-        className="w-full h-auto max-h-[calc(100dvh-200px)] touch-none select-none"
+        className="w-full h-auto min-h-[min(70dvh,720px)] lg:min-h-0 max-h-[calc(100dvh-200px)] touch-none select-none"
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerUp}

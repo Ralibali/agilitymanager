@@ -10,7 +10,13 @@ import { SKK_AGILITY_2023 } from "./skk-agility-2023";
 import { HOOPERS_SHS_2022 } from "./hoopers-shs";
 import type { RuleSet } from "./types";
 
-export type { RuleSet, SafetyRules, TimeRules, SourceDocument } from "./types";
+export type {
+  RuleSet,
+  SafetyRules,
+  TimeRules,
+  SourceDocument,
+  RuleSetVerificationStatus,
+} from "./types";
 
 export const DEFAULT_RULESET_ID = "skk-agility-2023";
 export const DEFAULT_HOOPERS_RULESET_ID = "hoopers-shs-2022";

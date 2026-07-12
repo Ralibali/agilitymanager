@@ -844,3 +844,201 @@ function FirstInsightCard({
   );
 }
 
+/* ────────────────────────────────────────────────────────────────
+ * Nya v3-komponenter för growth-sprint: aktiveringschecklista,
+ * veckans träning (utan påhittad %), status-checklista och Fler verktyg.
+ * ──────────────────────────────────────────────────────────────── */
+
+function ActivationChecklist({
+  dogAdded,
+  starterPlanChosen,
+  firstSessionLogged,
+  hasInsight,
+  onLog,
+  onSeeInsight,
+}: {
+  dogAdded: boolean;
+  starterPlanChosen: boolean;
+  firstSessionLogged: boolean;
+  hasInsight: boolean;
+  onLog: () => void;
+  onSeeInsight: () => void;
+}) {
+  const items = [
+    { label: "Hund tillagd", done: dogAdded },
+    { label: "Startpass valt", done: starterPlanChosen },
+    { label: "Första riktiga passet loggat", done: firstSessionLogged, action: !firstSessionLogged ? { label: "Logga nu", onClick: onLog } : undefined },
+    { label: "Se första insikten", done: hasInsight && firstSessionLogged, action: firstSessionLogged && hasInsight ? { label: "Öppna", onClick: onSeeInsight } : undefined },
+  ];
+  const doneCount = items.filter((i) => i.done).length;
+  return (
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-4 shadow-v3-sm sm:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-brand-700">Kom igång</p>
+          <h2 className="mt-1 text-lg font-black text-v3-text-primary sm:text-xl">
+            {doneCount} av {items.length} klara
+          </h2>
+        </div>
+        <div className="h-2 w-24 overflow-hidden rounded-full bg-v3-canvas-sunken/60">
+          <div className="h-full rounded-full bg-v3-brand-500" style={{ width: `${(doneCount / items.length) * 100}%` }} />
+        </div>
+      </div>
+      <ul className="mt-4 space-y-2">
+        {items.map((it) => (
+          <li key={it.label} className="flex items-center gap-3 rounded-2xl border border-v3-canvas-sunken/60 bg-v3-canvas/60 px-3 py-2.5">
+            {it.done ? (
+              <CheckCircle2 size={18} className="shrink-0 text-v3-brand-600" />
+            ) : (
+              <Circle size={18} className="shrink-0 text-v3-text-tertiary" />
+            )}
+            <span className={cn("flex-1 text-sm font-semibold", it.done ? "text-v3-text-secondary line-through" : "text-v3-text-primary")}>
+              {it.label}
+            </span>
+            {it.action && (
+              <button
+                onClick={it.action.onClick}
+                className="inline-flex min-h-9 items-center gap-1 rounded-full bg-v3-brand-500 px-3 text-xs font-black text-v3-text-inverse hover:bg-v3-brand-600"
+              >
+                {it.action.label} <ArrowRight size={12} />
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </article>
+  );
+}
+
+function WeekTrainingPanel({
+  sessionsThisWeek,
+  minutesThisWeek,
+  streakDays,
+  onTraining,
+  onStats,
+}: {
+  sessionsThisWeek: number;
+  minutesThisWeek: number;
+  streakDays: number;
+  onTraining: () => void;
+  onStats: () => void;
+}) {
+  const days = getCurrentWeekDays();
+  return (
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-5 shadow-v3-sm">
+      <SectionHeader eyebrow="Rytm" title="Veckans träning" icon={BarChart3} />
+      <div className="mt-5 grid grid-cols-7 gap-1.5">
+        {days.map((day, i) => (
+          <div
+            key={`${day.d}-${day.n}`}
+            className={cn(
+              "rounded-xl border p-2 text-center",
+              day.active
+                ? "border-v3-brand-500 bg-v3-brand-500 text-v3-text-inverse"
+                : i < sessionsThisWeek
+                ? "border-v3-brand-500/30 bg-v3-brand-500/10 text-v3-brand-700"
+                : "border-v3-canvas-sunken/60 bg-v3-canvas text-v3-text-secondary",
+            )}
+          >
+            <p className="text-[10px] font-bold uppercase">{day.d}</p>
+            <p className="mt-0.5 text-sm font-black">{day.n}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <MiniFact label="Pass" value={String(sessionsThisWeek)} />
+        <MiniFact label="Minuter" value={String(minutesThisWeek)} />
+        <MiniFact label="Streak" value={`${streakDays} d`} />
+      </div>
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <button onClick={onTraining} className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-v3-canvas-sunken/70 bg-v3-canvas px-4 text-sm font-bold text-v3-text-primary hover:bg-v3-canvas-sunken/40">
+          Alla pass
+        </button>
+        <button onClick={onStats} className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-v3-canvas-sunken/70 bg-v3-canvas px-4 text-sm font-bold text-v3-text-primary hover:bg-v3-canvas-sunken/40">
+          Statistik
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function StatusChecklistCard({
+  hasTimeline,
+  sessionsThisWeek,
+  streakDays,
+  nextEvent,
+  passedThisMonth,
+}: {
+  hasTimeline: boolean;
+  sessionsThisWeek: number;
+  streakDays: number;
+  nextEvent: NextEvent;
+  passedThisMonth: number;
+}) {
+  const checks = [
+    { label: "Träningshistorik finns", done: hasTimeline },
+    { label: "Loggat pass denna vecka", done: sessionsThisWeek > 0 },
+    { label: "Streak igång", done: streakDays > 0 },
+    { label: "Nästa aktivitet planerad", done: Boolean(nextEvent) },
+    { label: "Godkänt lopp denna månad", done: passedThisMonth > 0 },
+  ];
+  return (
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-5 shadow-v3-sm">
+      <SectionHeader eyebrow="Status" title="Så ligger ni till" icon={HeartPulse} />
+      <ul className="mt-4 space-y-1.5">
+        {checks.map((c) => (
+          <li key={c.label} className="flex items-center gap-2.5 rounded-xl border border-v3-canvas-sunken/60 bg-v3-canvas/60 px-3 py-2 text-sm">
+            {c.done ? (
+              <CheckCircle2 size={16} className="shrink-0 text-v3-brand-600" />
+            ) : (
+              <Circle size={16} className="shrink-0 text-v3-text-tertiary" />
+            )}
+            <span className={cn("font-semibold", c.done ? "text-v3-text-secondary" : "text-v3-text-primary")}>{c.label}</span>
+          </li>
+        ))}
+      </ul>
+    </article>
+  );
+}
+
+function MoreTools({ onNavigate }: { onNavigate: (to: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const tools: { label: string; hint: string; icon: LucideIcon; to: string }[] = [
+    { label: "Starta stoppur", hint: "Ta tid direkt", icon: Timer, to: "/v3/stopwatch" },
+    { label: "Lägg resultat", hint: "Efter tävling", icon: Trophy, to: "/v3/competition?action=result" },
+    { label: "Sätt mål", hint: "Nästa nivå", icon: Target, to: "/v3/goals?action=new" },
+    { label: "Hitta tävling", hint: "Agility & hoopers", icon: CalendarDays, to: "/v3/competition/kalender" },
+    { label: "Rita bana", hint: "Banplaneraren", icon: Pencil, to: "/v3/course-planner-v2" },
+  ];
+  return (
+    <details
+      open={open}
+      onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}
+      className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated shadow-v3-sm"
+    >
+      <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-semibold text-v3-text-primary">
+        <span>Fler verktyg</span>
+        <span className="text-v3-text-tertiary">{open ? "Dölj" : "Visa"}</span>
+      </summary>
+      <div className="grid gap-2 px-5 pb-5 sm:grid-cols-2 lg:grid-cols-3">
+        {tools.map((t) => (
+          <button
+            key={t.to}
+            onClick={() => onNavigate(t.to)}
+            className="flex min-h-14 items-center gap-3 rounded-2xl border border-v3-canvas-sunken/60 bg-v3-canvas p-3 text-left transition hover:bg-v3-canvas-sunken/40"
+          >
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-v3-brand-500/10 text-v3-brand-700">
+              <t.icon size={18} />
+            </div>
+            <div>
+              <p className="text-sm font-black text-v3-text-primary">{t.label}</p>
+              <p className="text-xs text-v3-text-tertiary">{t.hint}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </details>
+  );
+}
+
+

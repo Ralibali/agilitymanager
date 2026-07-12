@@ -17,6 +17,19 @@ import type {
   ClassTemplate, ObstacleDefV2, SizeClassDef, Sport, SizeClassKey,
 } from "../config";
 
+/**
+ * Spårbarhet: säger hur säkert vi vet att RuleSet:ets siffror faktiskt
+ * kommer från det officiella regeldokumentet.
+ *
+ *  - "verified": varje `verifiedFields`-värde är citerat och länkat i `sourceDocuments`.
+ *  - "partially_verified": en delmängd är verifierad, resten står i `provisionalFields`.
+ *  - "provisional": alla siffror är uppskattningar/överföring från äldre config, INTE citat.
+ *
+ * UI får endast använda etiketten "Regelkontrollerad" när status = "verified".
+ * Övriga ska visas som "Förhandskontroll" med en info-länk till primär källa.
+ */
+export type RuleSetVerificationStatus = "verified" | "partially_verified" | "provisional";
+
 /** Ett enskilt källdokument som ligger till grund för regelvärdena. */
 export interface SourceDocument {
   /** T.ex. "Agilityregler 2022-01-01–2026-12-31". */
@@ -25,6 +38,8 @@ export interface SourceDocument {
   url: string;
   /** Frivillig kommentar om vad som hämtas härifrån. */
   notes?: string;
+  /** Sida/avsnitt i dokumentet (för spårbarhet). */
+  section?: string;
 }
 
 /** Säkerhetsregler — minimiavstånd, ansatskrav m.m. enligt "Säkra hinder". */
@@ -82,4 +97,15 @@ export interface RuleSet {
   safetyRules: SafetyRules;
   /** Tidsregler för referens- och maxtid. */
   timeRules: TimeRules;
+
+  /* ─── Spårbarhet ─── */
+
+  /** Verifieringsstatus. Styr UI-etikett ("Regelkontrollerad" vs "Förhandskontroll"). */
+  verificationStatus: RuleSetVerificationStatus;
+  /** ISO-datum då verifieringsstatus senast granskades. */
+  verifiedAt?: string;
+  /** Fält som är verifierade mot officiellt dokument (dotted path, t.ex. "safetyRules.minSafeM"). */
+  verifiedFields: string[];
+  /** Fält som fortfarande är uppskattningar/överföring från äldre config. */
+  provisionalFields: string[];
 }

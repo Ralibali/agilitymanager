@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowRight,
   BarChart3,
   CalendarDays,
   CheckCircle2,
+  Circle,
   Clock3,
   Dog as DogIcon,
   Download,
@@ -29,6 +30,9 @@ import { ActivityTimeline } from "@/components/v3/ActivityTimeline";
 import { V3OnboardingWizard } from "@/components/v3/V3OnboardingWizard";
 import { V3AddDogSheet } from "@/components/v3/V3AddDogSheet";
 import { DogHero } from "@/components/v3/DogHero";
+import { DagensPassCard } from "@/components/v3/DagensPassCard";
+import type { FocusArea, RecSport } from "@/lib/trainingRecommendations";
+import { defaultFocus, AGILITY_FOCUS_KEYS, HOOPERS_FOCUS_KEYS } from "@/lib/trainingRecommendations";
 import { cn } from "@/lib/utils";
 
 function getTimeGreeting(date: Date = new Date()): string {
@@ -109,6 +113,7 @@ type HomeMode = "no-dog" | "no-data" | "full";
 
 export default function V3HomePage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { greeting, name } = useGreeting();
   const { dogs, active, activeId, setActive, loading: dogsLoading } = useV3Dogs();
@@ -120,6 +125,22 @@ export default function V3HomePage() {
     return Boolean(meta.home_insight_dismissed_at);
   });
 
+  // Onboarding-preferenser från user_metadata
+  const meta = (user?.user_metadata ?? {}) as {
+    onboarding_complete?: boolean;
+    onboarding_skipped?: boolean;
+    onboarding_focus?: FocusArea[];
+    onboarding_goal?: string | null;
+    onboarding_sport?: RecSport;
+  };
+  const recSport: RecSport = meta.onboarding_sport
+    ?? (active?.sport === "Hoopers" ? "Hoopers" : "Agility");
+  const validFocusKeys = recSport === "Hoopers" ? HOOPERS_FOCUS_KEYS : AGILITY_FOCUS_KEYS;
+  const savedFocus = (meta.onboarding_focus ?? []).filter((f): f is FocusArea =>
+    (validFocusKeys as readonly string[]).includes(f as string),
+  );
+  const focusList: FocusArea[] = savedFocus.length > 0 ? savedFocus : [defaultFocus(recSport)];
+
   const sessionsThisWeek = stats?.sessionsThisWeek ?? 0;
   const minutesThisWeek = stats?.minutesThisWeek ?? 0;
   const streakDays = stats?.streakDays ?? 0;
@@ -129,21 +150,21 @@ export default function V3HomePage() {
 
   useEffect(() => {
     if (dogsLoading || !user) return;
-    const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean; onboarding_skipped?: boolean };
     const done = meta.onboarding_complete || meta.onboarding_skipped;
     if (!done && dogs.length === 0) setShowOnboarding(true);
-  }, [user, dogs, dogsLoading]);
+  }, [user, dogs, dogsLoading, meta.onboarding_complete, meta.onboarding_skipped]);
 
-  const dailyBrief = useMemo(() => {
-    if (!active) return "Lägg till en hund så bygger vi en smart startvy åt dig.";
-    if (!hasTimeline) return `Börja med ett enkelt pass för ${active.name}. Efter några loggar får du smartare rekommendationer här.`;
-    if (nextEvent?.kind === "competition") return `${active.name} har en tävling på gång. Håll träningen fokuserad och logga känslan efter varje pass.`;
-    if (nextEvent?.kind === "training") return `${active.name} har ett planerat pass. Gör det enkelt: ett fokus, en känsla och ett nästa steg.`;
-    if (streakDays > 0) return `${active.name} har momentum. Fortsätt med korta, tydliga pass och spara det viktigaste.`;
-    return `Du har historik för ${active.name}. Logga nästa pass så blir utvecklingen lättare att följa.`;
-  }, [active, hasTimeline, nextEvent?.kind, streakDays]);
+  // Öppna loggsheet automatiskt om användaren valde "logga riktigt pass" i onboardingen
+  useEffect(() => {
+    if (searchParams.get("logNow") === "1") {
+      openV3LogSheet();
+      const next = new URLSearchParams(searchParams);
+      next.delete("logNow");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
-  // Bestäm läge – vi väntar på både hundar och dashboard-signaler för att undvika layoutshift.
+  // Bestäm läge – vi väntar på både hundar och dashboard-signaler.
   const mode: HomeMode | null = useMemo(() => {
     if (dogsLoading) return null;
     if (dogs.length === 0) return "no-dog";
@@ -151,6 +172,9 @@ export default function V3HomePage() {
     if (!signals.hasAnyTraining && !signals.hasAnyResults) return "no-data";
     return "full";
   }, [dogsLoading, dogs.length, dashLoading, signals]);
+
+  const totalTraining = signals?.totalTraining ?? 0;
+  const showActivationChecklist = mode === "full" && totalTraining < 2;
 
   const dismissInsight = async () => {
     setInsightDismissed(true);
@@ -197,65 +221,71 @@ export default function V3HomePage() {
               onOpen={() => navigate("/v3/stats")}
             />
           )}
-          <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
-            <CommandHero
-              greeting={greeting}
-              name={name}
-              dogName={active?.name ?? "din hund"}
-              dailyBrief={dailyBrief}
-              nextEvent={nextEvent}
-              nextDays={nextDays}
+
+          {/* Aktiveringschecklista — bara tills användaren loggat 2+ pass */}
+          {showActivationChecklist && (
+            <ActivationChecklist
+              dogAdded={dogs.length > 0}
+              starterPlanChosen={Boolean(meta.onboarding_focus && meta.onboarding_focus.length > 0)}
+              firstSessionLogged={totalTraining >= 1}
+              hasInsight={totalTraining >= 1}
               onLog={openV3LogSheet}
-              onPlan={() => navigate("/v3/course-planner-v2")}
-              onCompetition={() => navigate("/v3/competition")}
+              onSeeInsight={() => navigate("/v3/stats")}
             />
-            <DogSwitcherPanel
-              dogs={dogs as Array<{ id: string; name: string; breed?: string | null; photo_url?: string | null; image_url?: string | null }>}
-              activeId={activeId}
-              onSelect={setActive}
-              onAdd={() => navigate("/v3/dogs")}
+          )}
+
+          {/* Dagens pass — det visuellt dominanta kortet */}
+          <DagensPassCard
+            sport={recSport}
+            focus={focusList}
+            dogName={active?.name ?? "din hund"}
+            recentSessions={timeline
+              .filter((t) => t.kind === "training")
+              .slice(0, 3)
+              .map((t) => ({ date: t.date, duration_min: null, obstacles_trained: null, overall_mood: null, tags: null }))}
+            onStart={() => navigate("/v3/stopwatch")}
+            onLog={() => openV3LogSheet()}
+          />
+
+          {/* Primär logga-pass CTA (mobile-first) */}
+          <button
+            onClick={openV3LogSheet}
+            className="w-full min-h-14 rounded-2xl bg-v3-text-primary text-v3-text-inverse font-black text-base inline-flex items-center justify-center gap-2 shadow-v3-brand hover:bg-v3-brand-600 sm:hidden"
+          >
+            <Plus size={20} /> Logga pass
+          </button>
+
+          {/* Nästa aktivitet + veckans träning */}
+          <section className="grid gap-4 md:grid-cols-2">
+            <NextEventPanel
+              loading={dashLoading}
+              nextEvent={nextEvent}
+              onOpen={() => navigate(nextEvent?.kind === "training" ? "/v3/training" : "/v3/competition")}
+              onCreate={() => navigate("/v3/competition?action=new")}
+            />
+            <WeekTrainingPanel
               sessionsThisWeek={sessionsThisWeek}
               minutesThisWeek={minutesThisWeek}
+              streakDays={streakDays}
+              onTraining={() => navigate("/v3/training")}
+              onStats={() => navigate("/v3/stats")}
             />
           </section>
 
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <ActionTile icon={Plus} label="Logga pass" hint="30 sek" value="Träning" tone="brand" onClick={openV3LogSheet} />
-            <ActionTile icon={Timer} label="Starta stoppur" hint="Ta tid direkt" value="Stoppur" tone="cyan" onClick={() => navigate("/v3/stopwatch")} />
-            <ActionTile icon={Trophy} label="Lägg resultat" hint="Efter tävling" value="Resultat" tone="success" onClick={() => navigate("/v3/competition?action=result")} />
-            <ActionTile icon={Target} label="Sätt mål" hint="Nästa nivå" value="Fokus" tone="warm" onClick={() => navigate("/v3/goals?action=new")} />
-            <ActionTile icon={CalendarDays} label="Hitta tävling" hint="Agility & hoopers" value="Kalender" tone="cyan" onClick={() => navigate("/v3/competition/kalender")} />
+          {/* Senaste aktivitet + status */}
+          <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <ActivityTimeline entries={timeline} loading={dashLoading} />
+            <StatusChecklistCard
+              hasTimeline={hasTimeline}
+              sessionsThisWeek={sessionsThisWeek}
+              streakDays={streakDays}
+              nextEvent={nextEvent}
+              passedThisMonth={passedThisMonth}
+            />
           </section>
 
-          <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-            <div className="space-y-5">
-              <section className="grid gap-4 lg:grid-cols-3">
-                <MissionCard
-                  title="Dagens bästa nästa steg"
-                  icon={Sparkles}
-                  eyebrow="Rekommenderat"
-                  body={buildMissionText({ hasTimeline, nextEvent, dogName: active?.name ?? "din hund", streakDays })}
-                  action="Logga ett pass"
-                  onClick={openV3LogSheet}
-                  featured
-                />
-                <MetricPanel icon={Flame} label="Streak" value={String(streakDays)} unit={streakDays === 1 ? "dag" : "dagar"} note={streakDays > 0 ? "Rutinen lever. Håll den enkel." : "Startar när du loggar första passet."} />
-                <MetricPanel icon={Medal} label="Godkända lopp" value={String(passedThisMonth)} unit="denna månad" note={passedThisMonth > 0 ? "Fint kvitto på utvecklingen." : "Resultaten visas här efter första loppet."} />
-              </section>
-
-              <section className="grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-                <NextEventPanel loading={dashLoading} nextEvent={nextEvent} onOpen={() => navigate(nextEvent?.kind === "training" ? "/v3/training" : "/v3/competition")} onCreate={() => navigate("/v3/competition?action=new")} />
-                <TrainingFocusPanel sessionsThisWeek={sessionsThisWeek} minutesThisWeek={minutesThisWeek} hasTimeline={hasTimeline} onTraining={() => navigate("/v3/training")} onStats={() => navigate("/v3/stats")} />
-              </section>
-
-              <WeeklyRhythmPanel sessionsThisWeek={sessionsThisWeek} minutesThisWeek={minutesThisWeek} />
-            </div>
-
-            <aside className="space-y-5">
-              <ReadinessPanel hasTimeline={hasTimeline} sessionsThisWeek={sessionsThisWeek} streakDays={streakDays} nextEvent={nextEvent} />
-              <ActivityTimeline entries={timeline} loading={dashLoading} />
-            </aside>
-          </section>
+          {/* Fler verktyg — sekundärt och komprimerat */}
+          <MoreTools onNavigate={navigate} />
         </div>
       )}
       <V3AddDogSheet
@@ -813,4 +843,202 @@ function FirstInsightCard({
     </article>
   );
 }
+
+/* ────────────────────────────────────────────────────────────────
+ * Nya v3-komponenter för growth-sprint: aktiveringschecklista,
+ * veckans träning (utan påhittad %), status-checklista och Fler verktyg.
+ * ──────────────────────────────────────────────────────────────── */
+
+function ActivationChecklist({
+  dogAdded,
+  starterPlanChosen,
+  firstSessionLogged,
+  hasInsight,
+  onLog,
+  onSeeInsight,
+}: {
+  dogAdded: boolean;
+  starterPlanChosen: boolean;
+  firstSessionLogged: boolean;
+  hasInsight: boolean;
+  onLog: () => void;
+  onSeeInsight: () => void;
+}) {
+  const items = [
+    { label: "Hund tillagd", done: dogAdded },
+    { label: "Startpass valt", done: starterPlanChosen },
+    { label: "Första riktiga passet loggat", done: firstSessionLogged, action: !firstSessionLogged ? { label: "Logga nu", onClick: onLog } : undefined },
+    { label: "Se första insikten", done: hasInsight && firstSessionLogged, action: firstSessionLogged && hasInsight ? { label: "Öppna", onClick: onSeeInsight } : undefined },
+  ];
+  const doneCount = items.filter((i) => i.done).length;
+  return (
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-4 shadow-v3-sm sm:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-brand-700">Kom igång</p>
+          <h2 className="mt-1 text-lg font-black text-v3-text-primary sm:text-xl">
+            {doneCount} av {items.length} klara
+          </h2>
+        </div>
+        <div className="h-2 w-24 overflow-hidden rounded-full bg-v3-canvas-sunken/60">
+          <div className="h-full rounded-full bg-v3-brand-500" style={{ width: `${(doneCount / items.length) * 100}%` }} />
+        </div>
+      </div>
+      <ul className="mt-4 space-y-2">
+        {items.map((it) => (
+          <li key={it.label} className="flex items-center gap-3 rounded-2xl border border-v3-canvas-sunken/60 bg-v3-canvas/60 px-3 py-2.5">
+            {it.done ? (
+              <CheckCircle2 size={18} className="shrink-0 text-v3-brand-600" />
+            ) : (
+              <Circle size={18} className="shrink-0 text-v3-text-tertiary" />
+            )}
+            <span className={cn("flex-1 text-sm font-semibold", it.done ? "text-v3-text-secondary line-through" : "text-v3-text-primary")}>
+              {it.label}
+            </span>
+            {it.action && (
+              <button
+                onClick={it.action.onClick}
+                className="inline-flex min-h-9 items-center gap-1 rounded-full bg-v3-brand-500 px-3 text-xs font-black text-v3-text-inverse hover:bg-v3-brand-600"
+              >
+                {it.action.label} <ArrowRight size={12} />
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </article>
+  );
+}
+
+function WeekTrainingPanel({
+  sessionsThisWeek,
+  minutesThisWeek,
+  streakDays,
+  onTraining,
+  onStats,
+}: {
+  sessionsThisWeek: number;
+  minutesThisWeek: number;
+  streakDays: number;
+  onTraining: () => void;
+  onStats: () => void;
+}) {
+  const days = getCurrentWeekDays();
+  return (
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-5 shadow-v3-sm">
+      <SectionHeader eyebrow="Rytm" title="Veckans träning" icon={BarChart3} />
+      <div className="mt-5 grid grid-cols-7 gap-1.5">
+        {days.map((day, i) => (
+          <div
+            key={`${day.d}-${day.n}`}
+            className={cn(
+              "rounded-xl border p-2 text-center",
+              day.active
+                ? "border-v3-brand-500 bg-v3-brand-500 text-v3-text-inverse"
+                : i < sessionsThisWeek
+                ? "border-v3-brand-500/30 bg-v3-brand-500/10 text-v3-brand-700"
+                : "border-v3-canvas-sunken/60 bg-v3-canvas text-v3-text-secondary",
+            )}
+          >
+            <p className="text-[10px] font-bold uppercase">{day.d}</p>
+            <p className="mt-0.5 text-sm font-black">{day.n}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <MiniFact label="Pass" value={String(sessionsThisWeek)} />
+        <MiniFact label="Minuter" value={String(minutesThisWeek)} />
+        <MiniFact label="Streak" value={`${streakDays} d`} />
+      </div>
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <button onClick={onTraining} className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-v3-canvas-sunken/70 bg-v3-canvas px-4 text-sm font-bold text-v3-text-primary hover:bg-v3-canvas-sunken/40">
+          Alla pass
+        </button>
+        <button onClick={onStats} className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-v3-canvas-sunken/70 bg-v3-canvas px-4 text-sm font-bold text-v3-text-primary hover:bg-v3-canvas-sunken/40">
+          Statistik
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function StatusChecklistCard({
+  hasTimeline,
+  sessionsThisWeek,
+  streakDays,
+  nextEvent,
+  passedThisMonth,
+}: {
+  hasTimeline: boolean;
+  sessionsThisWeek: number;
+  streakDays: number;
+  nextEvent: NextEvent;
+  passedThisMonth: number;
+}) {
+  const checks = [
+    { label: "Träningshistorik finns", done: hasTimeline },
+    { label: "Loggat pass denna vecka", done: sessionsThisWeek > 0 },
+    { label: "Streak igång", done: streakDays > 0 },
+    { label: "Nästa aktivitet planerad", done: Boolean(nextEvent) },
+    { label: "Godkänt lopp denna månad", done: passedThisMonth > 0 },
+  ];
+  return (
+    <article className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated p-5 shadow-v3-sm">
+      <SectionHeader eyebrow="Status" title="Så ligger ni till" icon={HeartPulse} />
+      <ul className="mt-4 space-y-1.5">
+        {checks.map((c) => (
+          <li key={c.label} className="flex items-center gap-2.5 rounded-xl border border-v3-canvas-sunken/60 bg-v3-canvas/60 px-3 py-2 text-sm">
+            {c.done ? (
+              <CheckCircle2 size={16} className="shrink-0 text-v3-brand-600" />
+            ) : (
+              <Circle size={16} className="shrink-0 text-v3-text-tertiary" />
+            )}
+            <span className={cn("font-semibold", c.done ? "text-v3-text-secondary" : "text-v3-text-primary")}>{c.label}</span>
+          </li>
+        ))}
+      </ul>
+    </article>
+  );
+}
+
+function MoreTools({ onNavigate }: { onNavigate: (to: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const tools: { label: string; hint: string; icon: LucideIcon; to: string }[] = [
+    { label: "Starta stoppur", hint: "Ta tid direkt", icon: Timer, to: "/v3/stopwatch" },
+    { label: "Lägg resultat", hint: "Efter tävling", icon: Trophy, to: "/v3/competition?action=result" },
+    { label: "Sätt mål", hint: "Nästa nivå", icon: Target, to: "/v3/goals?action=new" },
+    { label: "Hitta tävling", hint: "Agility & hoopers", icon: CalendarDays, to: "/v3/competition/kalender" },
+    { label: "Rita bana", hint: "Banplaneraren", icon: Pencil, to: "/v3/course-planner-v2" },
+  ];
+  return (
+    <details
+      open={open}
+      onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}
+      className="rounded-[1.5rem] border border-v3-canvas-sunken/60 bg-v3-canvas-elevated shadow-v3-sm"
+    >
+      <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-semibold text-v3-text-primary">
+        <span>Fler verktyg</span>
+        <span className="text-v3-text-tertiary">{open ? "Dölj" : "Visa"}</span>
+      </summary>
+      <div className="grid gap-2 px-5 pb-5 sm:grid-cols-2 lg:grid-cols-3">
+        {tools.map((t) => (
+          <button
+            key={t.to}
+            onClick={() => onNavigate(t.to)}
+            className="flex min-h-14 items-center gap-3 rounded-2xl border border-v3-canvas-sunken/60 bg-v3-canvas p-3 text-left transition hover:bg-v3-canvas-sunken/40"
+          >
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-v3-brand-500/10 text-v3-brand-700">
+              <t.icon size={18} />
+            </div>
+            <div>
+              <p className="text-sm font-black text-v3-text-primary">{t.label}</p>
+              <p className="text-xs text-v3-text-tertiary">{t.hint}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </details>
+  );
+}
+
 

@@ -6,6 +6,7 @@ import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingFooterV2 } from '@/components/landing/LandingFooterV2';
 import { Disclaimer } from '@/components/Disclaimer';
 import { TavlingsKalendar } from '@/components/competitions/TavlingsKalendar';
+import { ProductCTA } from '@/components/marketing/ProductCTA';
 
 /**
  * Region-slug → display-namn för svenska län (används bara för SEO-titel/H1).
@@ -178,21 +179,15 @@ export default function PublicCompetitionsPage() {
 
 
         {/* CTA */}
-        <section className="mt-16 rounded-2xl bg-gradient-to-br from-primary/10 via-surface to-secondary/10 p-8 text-center md:p-12">
-          <h2 className="font-display text-2xl font-bold md:text-3xl">
-            Logga in för att följa dina tävlingar
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-text-secondary">
-            På AgilityManager kan du spara tävlingar permanent på ditt konto, få startlistor automatiskt, följa resultat och analysera utvecklingen för din hund över tid.
-          </p>
-          <Link
-            to="/auth"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Kom igång gratis <ArrowRight className="h-4 w-4" />
-          </Link>
-          <p className="mt-3 text-xs text-text-muted">Källa: Agilitydata.se &amp; SHoK</p>
-        </section>
+        <ProductCTA
+          placement="public_competitions"
+          source="public_competitions"
+          headline="Spara tävlingarna och få en plan fram till start."
+          body="AgilityManager samlar dina tävlingar, hämtar resultaten och gör dem till en tydlig träningsplan så du vet vad ni ska jobba på härnäst."
+          cta="Få min första träningsplan"
+          secondary={{ label: "Testa banplaneraren", to: "/banplanerare" }}
+        />
+        <p className="mt-3 text-center text-xs text-text-muted">Källa: Agilitydata.se &amp; SHoK</p>
 
         <section className="max-w-3xl mx-auto px-5 md:px-12 pb-12 mt-12">
           <Disclaimer variant="competition" />

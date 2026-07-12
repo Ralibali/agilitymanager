@@ -10,7 +10,8 @@ import { BlogFAQ } from '@/components/BlogFAQ';
 import { BlogTOC, extractTOCItems, slugifyHeading } from '@/components/BlogTOC';
 import { ShareArticleButton } from '@/components/ShareArticleButton';
 import { Disclaimer } from '@/components/Disclaimer';
-import { FadeIn, ScrollProgress, MagneticButton } from '@/components/motion';
+import { FadeIn, ScrollProgress } from '@/components/motion';
+import { ProductCTA } from '@/components/marketing/ProductCTA';
 
 // Parse inline markdown: **bold** and [link](/url)
 function parseInline(text: string): React.ReactNode[] {
@@ -350,26 +351,16 @@ export default function BlogPostPage() {
       </section>
 
       {/* CTA */}
-      <section className="px-4 pb-16 max-w-2xl mx-auto">
-        <div className="bg-card rounded-2xl p-6 shadow-card text-center relative overflow-hidden">
-          <div
-            aria-hidden
-            className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,hsl(var(--primary)/0.10),transparent_60%)] pointer-events-none"
-          />
-          <div className="relative">
-            <h2 className="font-display font-bold text-foreground mb-2">Redo att börja träna smartare?</h2>
-            <p className="text-sm text-muted-foreground mb-4">Skapa ett gratis konto och använd alla verktyg i AgilityManager.</p>
-            <MagneticButton
-              strength={8}
-              radius={120}
-              onClick={() => navigate('/auth?mode=signup&source=blog')}
-              className="inline-flex items-center justify-center gap-2 rounded-md gradient-primary text-primary-foreground font-semibold px-4 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Kom igång gratis <ArrowRight size={16} />
-            </MagneticButton>
-          </div>
-        </div>
-      </section>
+      <div className="px-4 pb-16">
+        <ProductCTA
+          placement="blog_post"
+          source={`blog_${post.slug}`}
+          headline="Gör råden till ett träningspass för din hund."
+          body="AgilityManager omvandlar det du precis läst till nästa övning – med konkreta steg, tid och utrustning."
+          cta="Få min första träningsplan"
+          secondary={{ label: "Fler artiklar", to: "/blogg" }}
+        />
+      </div>
     </div>
   );
 }

@@ -13,6 +13,7 @@ import { CITY_TO_COUNTY } from "@/lib/swedishCityCounty";
 import { Disclaimer } from "@/components/Disclaimer";
 import type { Competition } from "@/types/competitions";
 import { WatchCompetitionDialog } from "@/components/competitions/WatchCompetitionDialog";
+import { ProductCTA } from "@/components/marketing/ProductCTA";
 import { useAuth } from "@/contexts/AuthContext";
 
 const SITE_URL = "https://agilitymanager.se";
@@ -438,6 +439,18 @@ export default function CompetitionDetailPage() {
             {comp.fetched_at && new Date(comp.fetched_at).toLocaleDateString("sv-SE")}
           </p>
         </div>
+
+        {/* Produkt-CTA för utloggade besökare */}
+        {!user && (
+          <ProductCTA
+            placement="competition_detail"
+            source="competition_detail"
+            headline="Spara tävlingen och få en enkel plan fram till start."
+            body={`Vi hämtar startlistor, håller koll på anmälningsdatum och gör resultatet till en tydlig träningsplan – för ${comp.competition_name ?? "tävlingen"}.`}
+            cta="Spara tävlingen"
+            secondary={{ label: "Se fler tävlingar", to: "/tavlingar" }}
+          />
+        )}
 
         {/* Ansvarsfriskrivning för crawlat tävlingsdata */}
         <section className="max-w-3xl mx-auto px-5 md:px-12 pb-12">

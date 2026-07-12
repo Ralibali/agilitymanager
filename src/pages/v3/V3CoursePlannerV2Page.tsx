@@ -987,10 +987,17 @@ function V3CoursePlannerV2PageInner() {
    * hela viewporten.
    */
   function handleSvgWheel(e: WheelEvent<SVGSVGElement>) {
-    if (!(e.ctrlKey || e.metaKey)) return;
+    if (e.ctrlKey || e.metaKey) {
+      // Trackpad-pinch/ctrl-scroll = zoom kring pekaren.
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+      viewport.zoomAtClient(factor, e.clientX, e.clientY);
+      return;
+    }
+    // Vanlig scroll → panorera viewporten. Dra åt höger/ner motsvarar positiv delta.
+    if (e.deltaX === 0 && e.deltaY === 0) return;
     e.preventDefault();
-    if (e.deltaY < 0) viewport.zoomIn(e.clientX, e.clientY);
-    else viewport.zoomOut(e.clientX, e.clientY);
+    viewport.panByPx(-e.deltaX, -e.deltaY);
   }
 
 

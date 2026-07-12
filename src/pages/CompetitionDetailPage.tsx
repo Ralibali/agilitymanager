@@ -13,6 +13,7 @@ import { CITY_TO_COUNTY } from "@/lib/swedishCityCounty";
 import { Disclaimer } from "@/components/Disclaimer";
 import type { Competition } from "@/types/competitions";
 import { WatchCompetitionDialog } from "@/components/competitions/WatchCompetitionDialog";
+import { ProductCTA } from "@/components/marketing/ProductCTA";
 import { useAuth } from "@/contexts/AuthContext";
 
 const SITE_URL = "https://agilitymanager.se";

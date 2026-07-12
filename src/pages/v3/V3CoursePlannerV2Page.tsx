@@ -55,6 +55,8 @@ import { exportBuildPdf } from "@/features/course-planner-v2/buildPdf";
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
 import { parseCourseJson } from "@/features/course-planner-v2/importJson";
 import { renderCourseImage, shareCanvas } from "@/lib/shareImage";
+import { trackEvent } from "@/lib/analyticsLoader";
+import { clampObstacleToArena, getDeviceClass } from "@/features/course-planner-v2/geometry";
 import { makeQrDataUrl } from "@/lib/qrDataUrl";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
 import {

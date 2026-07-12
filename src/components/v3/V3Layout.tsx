@@ -123,7 +123,7 @@ export function V3Layout() {
               setLogOpen(true);
             }}
           />
-          <V3LogTrainingSheet open={logOpen} onClose={closeLog} />
+          <V3LogTrainingSheet open={logOpen} onClose={closeLog} defaults={logDefaults} />
         </>
       )}
     </div>

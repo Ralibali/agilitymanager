@@ -413,6 +413,45 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                   <p className="text-v3-sm text-v3-text-secondary">Välj 1–2 områden – vi anpassar dagens pass.</p>
                 </div>
 
+                {sport === "Båda" && (
+                  <div className="space-y-2">
+                    <p className="text-v3-sm font-medium text-v3-text-secondary text-center">
+                      Vilken sport gäller dagens första pass?
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["Agility", "Hoopers"] as const).map((s) => {
+                        const isActive = recSport === s;
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => {
+                              setBothPlanSport(s);
+                              // Rensa fokusval som inte passar den nya sporten
+                              setFocus((prev) =>
+                                prev.filter((f) =>
+                                  s === "Hoopers"
+                                    ? (HOOPERS_FOCUS_KEYS as string[]).includes(f as string)
+                                    : (AGILITY_FOCUS_KEYS as string[]).includes(f as string),
+                                ),
+                              );
+                            }}
+                            className={cn(
+                              "min-h-12 rounded-v3-base border-2 text-v3-sm font-semibold transition-all v3-focus-ring",
+                              isActive
+                                ? "border-v3-brand-500 bg-v3-brand-500 text-white"
+                                : "border-v3-canvas-sunken bg-v3-canvas-elevated text-v3-text-primary",
+                            )}
+                          >
+                            {s}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+
                 <div className="flex flex-wrap gap-2 justify-center">
                   {focusOptions.map((f) => {
                     const active = focus.includes(f);

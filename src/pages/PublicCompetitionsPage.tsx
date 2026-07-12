@@ -6,6 +6,7 @@ import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingFooterV2 } from '@/components/landing/LandingFooterV2';
 import { Disclaimer } from '@/components/Disclaimer';
 import { TavlingsKalendar } from '@/components/competitions/TavlingsKalendar';
+import { ProductCTA } from '@/components/marketing/ProductCTA';
 
 /**
  * Region-slug → display-namn för svenska län (används bara för SEO-titel/H1).

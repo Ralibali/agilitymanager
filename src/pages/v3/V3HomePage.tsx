@@ -248,6 +248,11 @@ export default function V3HomePage() {
             onLog={() => openV3LogSheet()}
           />
 
+          {/* Pro-värdekort — visas först när användaren har loggat sitt första
+              riktiga pass (full-läget kräver hasAnyTraining). Ingen paywall
+              innan det. */}
+          <ProValueCard />
+
           {/* Primär logga-pass CTA (mobile-first) */}
           <button
             onClick={openV3LogSheet}

@@ -451,23 +451,63 @@ export default function CompetitionDetailPage() {
           </p>
         </div>
 
-        {/* Produkt-CTA för utloggade besökare */}
-        {!user && (
-          <ProductCTA
-            placement="competition_detail"
-            source="competition_detail"
-            headline="Spara tävlingen och få en enkel plan fram till start."
-            body={`Vi hämtar startlistor, håller koll på anmälningsdatum och gör resultatet till en tydlig träningsplan – för ${comp.competition_name ?? "tävlingen"}.`}
-            cta="Spara tävlingen"
-            secondary={{ label: "Se fler tävlingar", to: "/tavlingar" }}
-          />
-        )}
-
         {/* Ansvarsfriskrivning för crawlat tävlingsdata */}
         <section className="max-w-3xl mx-auto px-5 md:px-12 pb-12">
           <Disclaimer variant="competition" />
         </section>
       </main>
+
+      {/* Sticky mobil CTA — endast utloggade, dölj när bridgen är tydligt synlig
+          eller på large screens. Reserverad plats via padding för att inte täcka footer. */}
+      {!user && !bridgeVisible && (
+        <div
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 shadow-lg backdrop-blur-md sm:hidden"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.5rem)" }}
+          role="region"
+          aria-label="Snabbåtgärder för AgilityManager"
+        >
+          <div className="mx-auto flex max-w-4xl items-center gap-2 px-3 pt-2">
+            <Link
+              to={buildSignupUrl({
+                source: "competition_bridge_sticky_mobile",
+                competitionId: comp.id,
+                sport: "agility",
+              })}
+              onClick={() =>
+                trackGrowthEvent("competition_bridge_click", {
+                  placement: "sticky_mobile",
+                  destination: "signup",
+                  competition_id: comp.id,
+                  sport: "agility",
+                  variant: isPast ? "past" : "upcoming",
+                })
+              }
+              className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 text-sm font-bold text-primary-foreground shadow"
+            >
+              <Target size={15} /> {isPast ? "Logga & få nästa pass" : "Få träningsplan"}
+            </Link>
+            <Link
+              to={buildPlannerUrl({
+                source: "competition_bridge_sticky_mobile",
+                sport: "agility",
+              })}
+              onClick={() =>
+                trackGrowthEvent("competition_bridge_click", {
+                  placement: "sticky_mobile",
+                  destination: "planner",
+                  competition_id: comp.id,
+                  sport: "agility",
+                  variant: isPast ? "past" : "upcoming",
+                })
+              }
+              aria-label="Rita bana i banbyggaren"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-foreground"
+            >
+              <Pencil size={16} />
+            </Link>
+          </div>
+        </div>
+      )}
 
       <LandingFooterV2 />
     </div>

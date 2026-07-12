@@ -498,22 +498,30 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
       });
     }
 
-    const hoopersMin = safety.hoopersMinM ?? 3.0;
-    for (let i = 0; i < numberedByNumber.length; i++) {
-      for (let j = i + 1; j < numberedByNumber.length; j++) {
-        const a = numberedByNumber[i];
-        const b = numberedByNumber[j];
-        if ((b.number as number) - (a.number as number) !== 1) continue;
-        const d = dist(a, b);
-        if (d < hoopersMin) {
-          issues.push({
-            level: "error",
-            code: "hoopers_too_close",
-            message: `Hinder ${a.number}→${b.number}: ${d.toFixed(1)} m < ${hoopersMin} m (${prefix})`,
-            obstacleId: b.id,
-          });
+    if (typeof safety.hoopersMinM === "number") {
+      const hoopersMin = safety.hoopersMinM;
+      for (let i = 0; i < numberedByNumber.length; i++) {
+        for (let j = i + 1; j < numberedByNumber.length; j++) {
+          const a = numberedByNumber[i];
+          const b = numberedByNumber[j];
+          if ((b.number as number) - (a.number as number) !== 1) continue;
+          const d = dist(a, b);
+          if (d < hoopersMin) {
+            issues.push({
+              level: "error",
+              code: "hoopers_too_close",
+              message: `Hinder ${a.number}→${b.number}: ${d.toFixed(1)} m < ${hoopersMin} m (${prefix})`,
+              obstacleId: b.id,
+            });
+          }
         }
       }
+    } else {
+      issues.push({
+        level: "info",
+        code: "hoopers_min_distance_unverified",
+        message: "Förhandskontrollen saknar ett verifierat gränsvärde för min-avstånd mellan hoopershinder. Kontrollera aktuellt regelverk.",
+      });
     }
 
     // Inga agilityhinder i hoopers

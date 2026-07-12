@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   aabbsOverlap,
   clampCenterForRotatedBox,
+  clampObstacleToArena,
   computeRotatedBox,
   edgesOutsideArena,
   rotatedAabb,
+  rotatedObstacleBounds,
+  snapCoursePoint,
   snapToGrid,
 } from "./geometry";
 

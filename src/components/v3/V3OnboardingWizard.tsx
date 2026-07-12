@@ -85,12 +85,26 @@ export function V3OnboardingWizard({ onComplete }: Props) {
   // Steg 2 – Fokus + huvudmål
   const [focus, setFocus] = useState<FocusArea[]>([]);
   const [selectedGoal, setSelectedGoal] = useState("");
+  // För sport = "Båda": vilken sport gäller dagens första plan?
+  const [bothPlanSport, setBothPlanSport] = useState<RecSport>("Agility");
 
   // Steg 3 – visa alternativ
   const [showAlternative, setShowAlternative] = useState(false);
 
-  const recSport: RecSport = sport === "Hoopers" ? "Hoopers" : "Agility";
+  // Om sport = "Båda" väljer användaren själv (default: Agility, eller Hoopers om fokus pekar dit)
+  const focusPicksHoopers = focus.some((f) => (HOOPERS_FOCUS_KEYS as string[]).includes(f as string));
+  const recSport: RecSport =
+    sport === "Hoopers"
+      ? "Hoopers"
+      : sport === "Agility"
+      ? "Agility"
+      : focusPicksHoopers
+      ? "Hoopers"
+      : bothPlanSport;
   const focusOptions: FocusArea[] = recSport === "Hoopers" ? HOOPERS_FOCUS_KEYS : AGILITY_FOCUS_KEYS;
+
+  const goalOptions =
+    sport === "Hoopers" ? HOOPERS_GOALS : sport === "Agility" ? AGILITY_GOALS : BOTH_GOALS;
 
   const starterPlan = useMemo(
     () => recommendDailyPlan({ sport: recSport, focus }),

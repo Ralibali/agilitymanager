@@ -551,18 +551,26 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
 
     // Förarzonen — min-avstånd till hindren
     const zone = course.obstacles.find((o) => o.type === "handler_zone");
-    const zoneMin = safety.hoopersHandlerZoneMinM ?? 3.0;
     if (zone) {
-      for (const ob of competing) {
-        const d = dist(zone, ob);
-        if (d < zoneMin) {
-          issues.push({
-            level: "warning",
-            code: "handler_too_close",
-            message: `Hinder ${ob.number ?? "?"} ligger ${d.toFixed(1)} m från dirigeringsområdet (${prefix} ≥ ${zoneMin} m)`,
-            obstacleId: ob.id,
-          });
+      if (typeof safety.hoopersHandlerZoneMinM === "number") {
+        const zoneMin = safety.hoopersHandlerZoneMinM;
+        for (const ob of competing) {
+          const d = dist(zone, ob);
+          if (d < zoneMin) {
+            issues.push({
+              level: "warning",
+              code: "handler_too_close",
+              message: `Hinder ${ob.number ?? "?"} ligger ${d.toFixed(1)} m från dirigeringsområdet (${prefix} ≥ ${zoneMin} m)`,
+              obstacleId: ob.id,
+            });
+          }
         }
+      } else {
+        issues.push({
+          level: "info",
+          code: "handler_zone_min_distance_unverified",
+          message: "Förhandskontrollen saknar ett verifierat gränsvärde för min-avstånd mellan dirigeringsområdet och hinder. Kontrollera aktuellt regelverk.",
+        });
       }
     }
   }

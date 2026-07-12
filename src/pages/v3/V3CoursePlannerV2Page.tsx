@@ -1425,26 +1425,58 @@ function V3CoursePlannerV2PageInner() {
             speed={playback.speed}
             setSpeed={playback.setSpeed}
           />
-          {/* Mobil zoom-overlay ligger inuti canvas-wrapparen — se ArenaCanvas nedan. */}
-          <ArenaCanvas
-            containerRef={viewport.containerRef}
-            svgRef={viewport.svgRef}
-            viewBox={viewport.viewBox}
-            pxPerM={viewport.metrics.pxPerM}
-            course={course}
-            selectedId={selectedId}
-            highlightIds={issueIdSet}
-            showPath={showPath}
-            showDimensions={showDimensions}
-            onObstacleDown={handlePointerDown}
-            onSvgPointerDown={handleSvgBackgroundPointerDown}
-            onPointerMove={handleSvgPointerMove}
-            onPointerUp={handleSvgPointerUp}
-            onWheel={handleSvgWheel}
-            onBackgroundClick={() => setSelectedId(null)}
-            playbackActive={playback2D}
-            playbackT={playback.t}
-          />
+          <div className="relative">
+            <ArenaCanvas
+              containerRef={viewport.containerRef}
+              svgRef={viewport.svgRef}
+              viewBox={viewport.viewBox}
+              pxPerM={viewport.metrics.pxPerM}
+              course={course}
+              selectedId={selectedId}
+              highlightIds={issueIdSet}
+              showPath={showPath}
+              showDimensions={showDimensions}
+              onObstacleDown={handlePointerDown}
+              onSvgPointerDown={handleSvgBackgroundPointerDown}
+              onPointerMove={handleSvgPointerMove}
+              onPointerUp={handleSvgPointerUp}
+              onWheel={handleSvgWheel}
+              onBackgroundClick={() => setSelectedId(null)}
+              playbackActive={playback2D}
+              playbackT={playback.t}
+            />
+            {/* Mobil zoom-overlay inuti canvas-wrappern. 44px targets. */}
+            <div
+              className="lg:hidden pointer-events-none absolute right-3 top-3 flex flex-col items-end gap-2"
+              aria-label="Zoom-kontroller"
+            >
+              <button
+                type="button"
+                onClick={() => viewport.zoomIn()}
+                aria-label="Zooma in"
+                className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-border bg-card/95 text-foreground/80 shadow-sm backdrop-blur active:scale-95"
+              >
+                <ZoomIn size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => viewport.fitToScreen()}
+                aria-label={`Anpassa banan till skärmen. Zoom ${Math.round(viewport.state.zoom * 100)} procent`}
+                className="pointer-events-auto inline-flex h-11 min-w-[60px] items-center justify-center gap-1 rounded-full border border-border bg-card/95 px-2 text-[11px] font-semibold text-foreground/80 shadow-sm backdrop-blur active:scale-95"
+              >
+                <Maximize size={14} />
+                <span>{Math.round(viewport.state.zoom * 100)}%</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => viewport.zoomOut()}
+                aria-label="Zooma ut"
+                className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-border bg-card/95 text-foreground/80 shadow-sm backdrop-blur active:scale-95"
+              >
+                <ZoomOut size={18} />
+              </button>
+            </div>
+          </div>
         </section>
 
 

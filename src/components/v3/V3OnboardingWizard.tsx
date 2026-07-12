@@ -481,6 +481,39 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                   </div>
                 </article>
 
+                {showAlternative ? (
+                  <article className="rounded-v3-xl border border-v3-canvas-sunken bg-v3-canvas-elevated p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-v3-canvas-sunken/60 px-2.5 py-1 text-[11px] font-semibold text-v3-text-secondary">
+                        <Clock3 size={11} /> {starterPlan.alternative.minutes} min
+                      </span>
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-v3-text-tertiary">
+                        Lättare variant
+                      </span>
+                    </div>
+                    <h4 className="font-v3-display text-v3-lg text-v3-text-primary leading-snug">
+                      {starterPlan.alternative.title}
+                    </h4>
+                    <p className="text-v3-sm text-v3-text-secondary leading-relaxed">
+                      {starterPlan.alternative.why}
+                    </p>
+                  </article>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAlternative(true);
+                      trackGrowthEvent("starter_plan_alternative_viewed", {
+                        plan_id: starterPlan.id,
+                        alternative_id: starterPlan.alternative.id,
+                      });
+                    }}
+                    className="w-full text-v3-sm text-v3-brand-700 hover:text-v3-brand-800 underline underline-offset-4"
+                  >
+                    Visa lättare variant
+                  </button>
+                )}
+
                 <div className="space-y-2">
                   <button
                     onClick={() => finalize()}

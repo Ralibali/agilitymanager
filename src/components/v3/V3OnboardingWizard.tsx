@@ -69,6 +69,9 @@ export function V3OnboardingWizard({ onComplete }: Props) {
   const [focus, setFocus] = useState<FocusArea[]>([]);
   const [selectedGoal, setSelectedGoal] = useState("");
 
+  // Steg 3 – visa alternativ
+  const [showAlternative, setShowAlternative] = useState(false);
+
   const recSport: RecSport = sport === "Hoopers" ? "Hoopers" : "Agility";
   const focusOptions: FocusArea[] = recSport === "Hoopers" ? HOOPERS_FOCUS_KEYS : AGILITY_FOCUS_KEYS;
 
@@ -80,6 +83,17 @@ export function V3OnboardingWizard({ onComplete }: Props) {
   useEffect(() => {
     trackGrowthEvent("onboarding_started");
   }, []);
+
+  useEffect(() => {
+    if (step === 3) {
+      trackGrowthEvent("starter_plan_viewed", {
+        plan_id: starterPlan.id,
+        focus: starterPlan.focusKey,
+        minutes: starterPlan.minutes,
+      });
+      setShowAlternative(false);
+    }
+  }, [step, starterPlan.id, starterPlan.focusKey, starterPlan.minutes]);
 
   const toggleFocus = (f: FocusArea) => {
     setFocus((prev) => {

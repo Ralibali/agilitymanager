@@ -44,6 +44,9 @@ import { PlannerTopbar } from "@/components/course-planner-v2/PlannerTopbar";
 import { CanvasRulers } from "@/components/course-planner-v2/CanvasRulers";
 import { ViewportControls } from "@/components/course-planner-v2/ViewportControls";
 import { useCanvasViewport } from "@/features/course-planner-v2/useCanvasViewport";
+import { MobileObstacleSheet } from "@/components/course-planner-v2/MobileObstacleSheet";
+import { MobileBottomDock } from "@/components/course-planner-v2/MobileBottomDock";
+import { RuleSetTrustBadge } from "@/components/course-planner-v2/RuleSetTrustBadge";
 import { buildPlannerCommands } from "@/features/course-planner-v2/plannerCommands";
 import { useCoursePlannerHotkeys } from "@/hooks/useCoursePlannerHotkeys";
 import { useProfileName } from "@/hooks/useProfileName";
@@ -180,6 +183,7 @@ function V3CoursePlannerV2PageInner() {
   const [view3D, setView3D] = useState<null | "view" | "walk">(null);
   const [playback2D, setPlayback2D] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [mobileObstaclesOpen, setMobileObstaclesOpen] = useState(false);
   const fullscreenRootRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);

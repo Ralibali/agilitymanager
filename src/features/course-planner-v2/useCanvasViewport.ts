@@ -97,6 +97,8 @@ export interface UseCanvasViewportApi {
   zoomIn: (anchorClientX?: number, anchorClientY?: number) => void;
   zoomOut: (anchorClientX?: number, anchorClientY?: number) => void;
   zoomTo: (zoom: number, anchorClientX?: number, anchorClientY?: number) => void;
+  /** Multiplicera aktuell zoom med `factor` och ankra runt en client-pixel. */
+  zoomAtClient: (factor: number, clientX: number, clientY: number) => void;
   resetZoom: () => void;
   fitToScreen: () => void;
   /** Pan-kontroller (client-pixel-delta). */
@@ -250,6 +252,28 @@ export function useCanvasViewport(opts: UseCanvasViewportOpts): UseCanvasViewpor
     });
   }, [viewMinXM, viewMinYM, visibleWidthM, baseWidthM, aspect, centerXM, centerYM, opts.arenaWidthM, opts.arenaHeightM]);
 
+  const zoomAtClient = useCallback((factor: number, clientX: number, clientY: number) => {
+    setState((s) => {
+      const nextZoom = clamp(s.zoom * factor, ZOOM_MIN, ZOOM_MAX);
+      if (Math.abs(nextZoom - s.zoom) < 1e-4) return s;
+      if (!svgRef.current) return { ...s, zoom: nextZoom };
+      const r = svgRef.current.getBoundingClientRect();
+      const fx = (clientX - r.left) / r.width;
+      const fy = (clientY - r.top) / r.height;
+      const beforeX = viewMinXM + fx * visibleWidthM;
+      const beforeY = viewMinYM + fy * visibleHeightM;
+      const newVw = baseWidthM / nextZoom;
+      const newVh = baseWidthM * aspect / nextZoom;
+      const newPanX = beforeX - fx * newVw - (centerXM - newVw / 2);
+      const newPanY = beforeY - fy * newVh - (centerYM - newVh / 2);
+      return {
+        zoom: nextZoom,
+        panX: clampPan(newPanX, opts.arenaWidthM, newVw),
+        panY: clampPan(newPanY, opts.arenaHeightM, newVh),
+      };
+    });
+  }, [viewMinXM, viewMinYM, visibleWidthM, visibleHeightM, baseWidthM, aspect, centerXM, centerYM, opts.arenaWidthM, opts.arenaHeightM]);
+
   const resetZoom = useCallback(() => {
     setState({ zoom: 1.0, panX: 0, panY: 0 });
   }, []);
@@ -318,6 +342,7 @@ export function useCanvasViewport(opts: UseCanvasViewportOpts): UseCanvasViewpor
     zoomIn,
     zoomOut,
     zoomTo,
+    zoomAtClient,
     resetZoom,
     fitToScreen,
     panByPx,

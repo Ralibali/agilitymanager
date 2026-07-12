@@ -987,10 +987,17 @@ function V3CoursePlannerV2PageInner() {
    * hela viewporten.
    */
   function handleSvgWheel(e: WheelEvent<SVGSVGElement>) {
-    if (!(e.ctrlKey || e.metaKey)) return;
+    if (e.ctrlKey || e.metaKey) {
+      // Trackpad-pinch/ctrl-scroll = zoom kring pekaren.
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+      viewport.zoomAtClient(factor, e.clientX, e.clientY);
+      return;
+    }
+    // Vanlig scroll → panorera viewporten. Dra åt höger/ner motsvarar positiv delta.
+    if (e.deltaX === 0 && e.deltaY === 0) return;
     e.preventDefault();
-    if (e.deltaY < 0) viewport.zoomIn(e.clientX, e.clientY);
-    else viewport.zoomOut(e.clientX, e.clientY);
+    viewport.panByPx(-e.deltaX, -e.deltaY);
   }
 
 
@@ -1304,6 +1311,7 @@ function V3CoursePlannerV2PageInner() {
                   responsiv och wrapar när skärmen är smal. */}
               {/* Grupp: ritverktyg */}
               <ToolBtn active={tool === "select"} onClick={() => setTool("select")} icon={<MousePointer2 size={14} />} title="Välj och flytta hinder">Välj</ToolBtn>
+              <ToolBtn active={tool === "pan"} onClick={() => setTool("pan")} icon={<Hand size={14} />} title="Panorera vyn genom att dra bakgrunden">Flytta vy</ToolBtn>
               <ToolBtn active={tool === "erase"} onClick={() => setTool("erase")} icon={<Eraser size={14} />} title="Sudda hinder genom att klicka">Sudda</ToolBtn>
               <ToolBtn active={tool === "number"} onClick={() => setTool("number")} icon={<Hash size={14} />} title="Sätt nummer på hinder genom att klicka i ordning">Nummer</ToolBtn>
 
@@ -1417,52 +1425,58 @@ function V3CoursePlannerV2PageInner() {
             speed={playback.speed}
             setSpeed={playback.setSpeed}
           />
-          {/* Mobil zoom-kontroller ovan canvas (dolda ≥ lg). 44px touch-targets. */}
-          <div className="lg:hidden mb-2 flex items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => viewport.zoomOut()}
-              aria-label="Zooma ut"
-              className="grid h-11 w-11 place-items-center rounded-full border border-border bg-card text-foreground/80 active:scale-95"
+          <div className="relative">
+            <ArenaCanvas
+              containerRef={viewport.containerRef}
+              svgRef={viewport.svgRef}
+              viewBox={viewport.viewBox}
+              pxPerM={viewport.metrics.pxPerM}
+              course={course}
+              selectedId={selectedId}
+              highlightIds={issueIdSet}
+              showPath={showPath}
+              showDimensions={showDimensions}
+              onObstacleDown={handlePointerDown}
+              onSvgPointerDown={handleSvgBackgroundPointerDown}
+              onPointerMove={handleSvgPointerMove}
+              onPointerUp={handleSvgPointerUp}
+              onWheel={handleSvgWheel}
+              onBackgroundClick={() => setSelectedId(null)}
+              playbackActive={playback2D}
+              playbackT={playback.t}
+            />
+            {/* Mobil zoom-overlay inuti canvas-wrappern. 44px targets. */}
+            <div
+              className="lg:hidden pointer-events-none absolute right-3 top-3 flex flex-col items-end gap-2"
+              aria-label="Zoom-kontroller"
             >
-              <ZoomOut size={18} />
-            </button>
-            <button
-              type="button"
-              onClick={() => viewport.fitToScreen()}
-              aria-label="Anpassa banan till skärmen"
-              className="inline-flex h-11 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-[12px] font-semibold text-foreground/80 active:scale-95"
-            >
-              <Maximize size={14} /> Fit
-            </button>
-            <button
-              type="button"
-              onClick={() => viewport.zoomIn()}
-              aria-label="Zooma in"
-              className="grid h-11 w-11 place-items-center rounded-full border border-border bg-card text-foreground/80 active:scale-95"
-            >
-              <ZoomIn size={18} />
-            </button>
+              <button
+                type="button"
+                onClick={() => viewport.zoomIn()}
+                aria-label="Zooma in"
+                className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-border bg-card/95 text-foreground/80 shadow-sm backdrop-blur active:scale-95"
+              >
+                <ZoomIn size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => viewport.fitToScreen()}
+                aria-label={`Anpassa banan till skärmen. Zoom ${Math.round(viewport.state.zoom * 100)} procent`}
+                className="pointer-events-auto inline-flex h-11 min-w-[60px] items-center justify-center gap-1 rounded-full border border-border bg-card/95 px-2 text-[11px] font-semibold text-foreground/80 shadow-sm backdrop-blur active:scale-95"
+              >
+                <Maximize size={14} />
+                <span>{Math.round(viewport.state.zoom * 100)}%</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => viewport.zoomOut()}
+                aria-label="Zooma ut"
+                className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-border bg-card/95 text-foreground/80 shadow-sm backdrop-blur active:scale-95"
+              >
+                <ZoomOut size={18} />
+              </button>
+            </div>
           </div>
-          <ArenaCanvas
-            containerRef={viewport.containerRef}
-            svgRef={viewport.svgRef}
-            viewBox={viewport.viewBox}
-            pxPerM={viewport.metrics.pxPerM}
-            course={course}
-            selectedId={selectedId}
-            highlightIds={issueIdSet}
-            showPath={showPath}
-            showDimensions={showDimensions}
-            onObstacleDown={handlePointerDown}
-            onSvgPointerDown={handleSvgBackgroundPointerDown}
-            onPointerMove={handleSvgPointerMove}
-            onPointerUp={handleSvgPointerUp}
-            onWheel={handleSvgWheel}
-            onBackgroundClick={() => setSelectedId(null)}
-            playbackActive={playback2D}
-            playbackT={playback.t}
-          />
         </section>
 
 

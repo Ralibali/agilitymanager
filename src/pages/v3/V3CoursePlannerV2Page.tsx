@@ -1400,15 +1400,20 @@ function V3CoursePlannerV2PageInner() {
             setSpeed={playback.setSpeed}
           />
           <ArenaCanvas
-            svgRef={svgRef}
+            containerRef={viewport.containerRef}
+            svgRef={viewport.svgRef}
+            viewBox={viewport.viewBox}
+            pxPerM={viewport.metrics.pxPerM}
             course={course}
             selectedId={selectedId}
             highlightIds={issueIdSet}
             showPath={showPath}
             showDimensions={showDimensions}
             onObstacleDown={handlePointerDown}
+            onSvgPointerDown={handleSvgBackgroundPointerDown}
             onPointerMove={handleSvgPointerMove}
             onPointerUp={handleSvgPointerUp}
+            onWheel={handleSvgWheel}
             onBackgroundClick={() => setSelectedId(null)}
             playbackActive={playback2D}
             playbackT={playback.t}

@@ -594,6 +594,32 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
     }
   }
 
+  // 6b) Överlappande hinder — verklig geometrisk kollisionscheck.
+  // AABB efter rotation är en grov approximation; långsmala roterade hinder
+  // kan ge falskpositiver. Vi använder därför försiktig copy vid rotation.
+  {
+    const overlaps = findObstacleOverlaps(course.obstacles);
+    const emittedPairs = new Set<string>();
+    for (const ov of overlaps) {
+      const key = [ov.a.id, ov.b.id].sort().join("|");
+      if (emittedPairs.has(key)) continue;
+      emittedPairs.add(key);
+      const zoneLike = ZONE_LIKE_TYPES.includes(ov.a.type) || ZONE_LIKE_TYPES.includes(ov.b.type);
+      const level: IssueLevel = ov.strict && !zoneLike ? "error" : "warning";
+      const aDef = getObstacleDefV2(ov.a.type);
+      const bDef = getObstacleDefV2(ov.b.type);
+      const aName = ov.a.number != null ? `#${ov.a.number}` : (aDef?.label ?? ov.a.type);
+      const bName = ov.b.number != null ? `#${ov.b.number}` : (bDef?.label ?? ov.b.type);
+      const message = level === "error"
+        ? `Hindren ${aName} och ${bName} ligger ovanpå varandra`
+        : `Hindren ${aName} och ${bName} ser ut att överlappa – kontrollera placeringen`;
+      issues.push({ level, code: "obstacle_overlap", message, obstacleId: ov.a.id });
+      issues.push({ level, code: "obstacle_overlap", message, obstacleId: ov.b.id });
+    }
+  }
+
+
+
   // 7) Ansatsvinkel-validering (Prompt C) — bygger på hundens väg
   if (course.sport === "agility") {
     issues.push(...computeApproachIssues(course.obstacles, course.dogPath));

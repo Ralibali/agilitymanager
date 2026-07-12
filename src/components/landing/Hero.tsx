@@ -18,23 +18,22 @@ export function Hero() {
         {/* Vänster kolumn */}
         <div>
           <FadeIn delay={0.04} duration="smooth">
-            {/* Behållen sub-label, omstylad som BrandPill (moss + dot). Texten exakt från originalet. */}
             <BrandPill color="moss" dot className="mb-6">
-              Din och hundens träningsresa – samlad på ett ställe
+              För svensk agility & hoopers
             </BrandPill>
           </FadeIn>
 
           <FadeIn delay={0.08} duration="slow">
             <h1 className="font-display font-medium text-5xl md:text-7xl leading-[1.0] tracking-[-0.035em]">
-              <span className="sr-only">AgilityManager – träningsapp för agility och hoopers. </span>
-              <span className="text-forest block" aria-hidden="true">Bli teamet</span>
-              <span className="text-brand-600 block" aria-hidden="true">ni tränar för.</span>
+              <span className="sr-only">AgilityManager – vet vad ni ska träna på härnäst. </span>
+              <span className="text-forest block" aria-hidden="true">Vet vad ni ska</span>
+              <span className="text-brand-600 block" aria-hidden="true">träna på härnäst.</span>
             </h1>
           </FadeIn>
 
           <FadeIn delay={0.2} duration="slow">
             <p className="mt-6 text-base text-stone leading-relaxed max-w-prose">
-              AgilityManager hjälper dig förstå din hund, minnas varje pass och känna riktning i träningen. Logga, planera banor, följ mål och bygg en relation där varje liten förbättring syns.
+              AgilityManager gör dina träningspass till en tydlig plan – med nästa övning, utveckling över tid och allt om hunden samlat på ett ställe. För svensk agility och hoopers.
             </p>
           </FadeIn>
 

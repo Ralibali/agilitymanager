@@ -6,6 +6,7 @@ import { ReactNode, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { getGateCopy, type GateFeatureKey } from '@/components/v3/gateCopy';
+import { useHasLoggedTraining } from '@/hooks/v3/useHasLoggedTraining';
 
 interface PremiumGateProps {
   children: ReactNode;
@@ -18,6 +19,7 @@ interface PremiumGateProps {
 
 export function PremiumGate({ children, fullPage = false, featureName = 'Denna funktion', featureKey }: PremiumGateProps) {
   const { subscription, user } = useAuth();
+  const { hasLogged, loading: trainingLoading } = useHasLoggedTraining();
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
 
@@ -32,6 +34,14 @@ export function PremiumGate({ children, fullPage = false, featureName = 'Denna f
   if (subscription.subscribed) {
     return <>{children}</>;
   }
+
+  // Håll paywall helt ur vägen innan användaren fått första aha-upplevelsen
+  // (första riktiga träningspasset). Rendera funktionen som vanligt — Pro-CTA
+  // dyker upp senare via ProValueCard på hemskärmen.
+  if (!trainingLoading && !hasLogged) {
+    return <>{children}</>;
+  }
+
 
   const handleCheckout = async (priceId: string) => {
     if (!user) {

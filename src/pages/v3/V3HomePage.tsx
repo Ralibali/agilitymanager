@@ -31,6 +31,7 @@ import { V3OnboardingWizard } from "@/components/v3/V3OnboardingWizard";
 import { V3AddDogSheet } from "@/components/v3/V3AddDogSheet";
 import { DogHero } from "@/components/v3/DogHero";
 import { DagensPassCard } from "@/components/v3/DagensPassCard";
+import { ProValueCard } from "@/components/v3/ProValueCard";
 import type { FocusArea, RecSport } from "@/lib/trainingRecommendations";
 import { defaultFocus, AGILITY_FOCUS_KEYS, HOOPERS_FOCUS_KEYS } from "@/lib/trainingRecommendations";
 import { cn } from "@/lib/utils";
@@ -246,6 +247,11 @@ export default function V3HomePage() {
             onStart={() => navigate("/v3/stopwatch")}
             onLog={() => openV3LogSheet()}
           />
+
+          {/* Pro-värdekort — visas först när användaren har loggat sitt första
+              riktiga pass (full-läget kräver hasAnyTraining). Ingen paywall
+              innan det. */}
+          <ProValueCard />
 
           {/* Primär logga-pass CTA (mobile-first) */}
           <button

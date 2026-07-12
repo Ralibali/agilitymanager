@@ -7,11 +7,7 @@ import { motion } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import { BrandPill } from "@/components/brand/BrandPill";
 import { CoursePath } from "@/components/brand/CoursePath";
-
-const trackEvent = (name: string) => {
-  // @ts-ignore
-  if (typeof window !== "undefined" && window.flock) window.flock(name);
-};
+import { trackGrowthEvent } from "@/lib/growth";
 
 export function Hero() {
   const navigate = useNavigate();
@@ -22,7 +18,6 @@ export function Hero() {
         {/* Vänster kolumn */}
         <div>
           <FadeIn delay={0.04} duration="smooth">
-            {/* Behållen sub-label, omstylad som BrandPill (moss + dot). Texten exakt från originalet. */}
             <BrandPill color="moss" dot className="mb-6">
               Din och hundens träningsresa – samlad på ett ställe
             </BrandPill>
@@ -43,7 +38,6 @@ export function Hero() {
           </FadeIn>
 
           <FadeIn delay={0.28} duration="smooth">
-            {/* Behåller 3-kortssektionen — re-skinned till brand. */}
             <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-[560px]">
               {[
                 ["🐾", "Minns känslan", "Inte bara siffror – även vad som fungerade."],
@@ -76,8 +70,11 @@ export function Hero() {
             <Button
               variant="brand"
               onClick={() => {
-                trackEvent("hero_primary_cta_click");
-                navigate("/auth?mode=signup");
+                trackGrowthEvent("signup_cta_clicked", {
+                  placement: "hero",
+                  offer: "free_account",
+                });
+                navigate("/auth?mode=signup&source=landing_hero");
               }}
               className="h-12 sm:h-11"
             >
@@ -86,7 +83,10 @@ export function Hero() {
             <Button
               variant="brand-outline"
               onClick={() => {
-                trackEvent("hero_free_planner_cta_click");
+                trackGrowthEvent("free_tool_cta_clicked", {
+                  placement: "hero",
+                  tool: "course_planner",
+                });
                 navigate("/banplanerare");
               }}
               className="h-12 sm:h-11"

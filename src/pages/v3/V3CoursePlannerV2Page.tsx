@@ -159,6 +159,20 @@ export default function V3CoursePlannerV2Page() {
   return <V3CoursePlannerV2PageInner />;
 }
 
+/** Imperative API som ArenaCanvas exponerar för sin förälder. */
+interface ArenaCanvasHandle {
+  fitToScreen(): void;
+  zoomIn(): void;
+  zoomOut(): void;
+  zoomAtClient(factor: number, clientX: number, clientY: number): void;
+  zoomTo(zoom: number, anchorClientX?: number, anchorClientY?: number): void;
+  panByPx(dxPx: number, dyPx: number): void;
+  clientToCourseM(clientX: number, clientY: number): { x: number; y: number };
+  getViewportCenterCourseM(): { x: number; y: number };
+  getZoom(): number;
+  getSvgElement(): SVGSVGElement | null;
+}
+
 function V3CoursePlannerV2PageInner() {
   const navigate = useNavigate();
   const { user, subscription } = useAuth();

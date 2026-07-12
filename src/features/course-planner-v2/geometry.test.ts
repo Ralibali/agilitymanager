@@ -170,3 +170,26 @@ describe("clampObstacleToArena", () => {
     expect(clamped.x).toBeCloseTo(28.5, 6);
   });
 });
+
+describe("clampObstacleToArena efter rotation", () => {
+  it("hopp roterat 90° nära vänsterkant klampas in efter roterad AABB", () => {
+    // 1.4×0.4 hopp roterat 90° → AABB 0.4×1.4; halvbredd = 0.2
+    const clamped = clampObstacleToArena(
+      { x: 0.05, y: 20, rotation: 90 },
+      { widthM: 30, heightM: 40 },
+      { w: 1.4, d: 0.4 },
+    );
+    expect(clamped.x).toBeCloseTo(0.2, 6);
+  });
+  it("duplikat +1,+1 nära högra nedre hörnet klampas in", () => {
+    // Original vid (29.5, 39.5), duplikat läggs på (30.5, 40.5) — utanför.
+    // 1.4×0.4 orotated → halvbredd 0.7, halvdjup 0.2
+    const clamped = clampObstacleToArena(
+      { x: 30.5, y: 40.5, rotation: 0 },
+      { widthM: 30, heightM: 40 },
+      { w: 1.4, d: 0.4 },
+    );
+    expect(clamped.x).toBeLessThanOrEqual(30 - 0.7 + 1e-6);
+    expect(clamped.y).toBeLessThanOrEqual(40 - 0.2 + 1e-6);
+  });
+});

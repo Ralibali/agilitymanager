@@ -272,7 +272,7 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                     Få veta vad du och din hund ska träna på härnäst.
                   </h1>
                   <p className="text-v3-base text-v3-text-secondary leading-relaxed">
-                    Fyra snabba steg – ingen fejkad träning sparas.
+                    På några minuter får ni ett första pass anpassat efter ert fokus.
                   </p>
                 </div>
                 <button
@@ -438,7 +438,7 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                 <div className="space-y-2">
                   <p className="text-v3-sm font-medium text-v3-text-secondary">Huvudmål (valfritt)</p>
                   <div className="grid grid-cols-1 gap-2">
-                    {GOAL_OPTIONS.map((g) => {
+                    {goalOptions.map((g) => {
                       const active = selectedGoal === g.value;
                       return (
                         <button
@@ -488,7 +488,7 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                   </div>
                   <h2 className="font-v3-display text-v3-3xl text-v3-text-primary">Ditt startpass</h2>
                   <p className="text-v3-sm text-v3-text-secondary">
-                    Ett pass att göra – inte ett pass som sparas som gjort.
+                    Spara planen och logga först när ni har tränat.
                   </p>
                 </div>
 

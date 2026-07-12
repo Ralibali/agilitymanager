@@ -511,15 +511,38 @@ function V3CoursePlannerV2PageInner() {
   }
 
   function handleTrainThis() {
-    const sport = course.sport === "agility" ? "agility" : "hoopers";
-    const params = new URLSearchParams({
-      from: "course-planner",
-      sport,
-      courseName: course.name || "Ny bana",
-      sizeClass: course.sizeClass,
+    // Kopplingen bana→loggat pass är transient — training_sessions har idag
+    // ingen course_id-kolumn, så vi skickar bara UI/analytics-kontext och
+    // låter användaren aktivt spara passet som vanligt.
+    const sport = course.sport === "hoopers" ? "Hoopers" : "Agility";
+    const obstacleTypes = course.obstacles.map((o) => o.type);
+    const competingCount = course.obstacles.filter(
+      (o) => o.type !== "start" && o.type !== "finish" && o.type !== "number" && o.type !== "handler_zone",
+    ).length;
+    const formObstacles = mapObstacleTypesToFormOptions(course.sport, obstacleTypes);
+
+    trackGrowthEvent("course_train_clicked", {
+      sport: course.sport,
+      device_class: getDeviceClass(),
+      obstacle_count: competingCount,
+      has_cloud_id: Boolean(cloudId),
     });
-    if (cloudId) params.set("courseId", cloudId);
-    navigate(`/v3/training?${params.toString()}`);
+
+    openV3LogSheet({
+      defaults: {
+        type: "Bana",
+        durationMinutes: defaultDurationForCourse(competingCount),
+        obstacles: formObstacles,
+        tags: [],
+        focusLabel: "Bana",
+      },
+      context: {
+        source: "course-planner",
+        courseName: course.name || "Ny bana",
+        sport,
+        ...(cloudId ? { courseId: cloudId } : {}),
+      },
+    });
   }
 
 

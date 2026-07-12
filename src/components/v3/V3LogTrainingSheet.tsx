@@ -7,12 +7,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { trackGrowthEvent } from "@/lib/growth";
-import { buildFirstInsight } from "@/lib/trainingRecommendations";
+import { buildFirstInsight, type LogDefaults } from "@/lib/trainingRecommendations";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   onLogged?: () => void;
+  /** Frivilliga defaults (från Dagens pass). Användaren måste alltid aktivt spara. */
+  defaults?: Partial<LogDefaults>;
 }
 
 const TRAINING_TYPES_AGILITY = ["Bana", "Hinder", "Kontakt", "Vändning", "Distans", "Kombination", "Annan"] as const;
@@ -51,15 +53,15 @@ type FormState = {
   location: string;
 };
 
-const defaultState = (firstDogId: string | null): FormState => ({
+const defaultState = (firstDogId: string | null, defaults?: Partial<LogDefaults>): FormState => ({
   dog_id: firstDogId ?? "",
-  type: "Bana",
-  duration_min: "20",
+  type: defaults?.type ?? "Bana",
+  duration_min: String(defaults?.durationMinutes ?? 20),
   overall_mood: 4,
   notes_good: "",
   notes_improve: "",
-  obstacles: [],
-  tags: [],
+  obstacles: defaults?.obstacles ?? [],
+  tags: defaults?.tags ?? [],
   dog_energy: 4,
   handler_energy: 4,
   location: "",
@@ -76,12 +78,12 @@ function localIsoDate(date: Date = new Date()): string {
  * V3 Logga pass – progressive disclosure.
  * Standardvyn: hund, typ, tid, känsla, gick bra, tränar vi vidare på.
  * Avancerat (hopfällbart): plats, hinder, taggar, energi.
- * Efter sparning visas en riktig regelbaserad insikt istället för "Pass loggat".
+ * Kan förifyllas från "Dagens pass" — användaren måste alltid aktivt spara.
  */
-export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
+export function V3LogTrainingSheet({ open, onClose, onLogged, defaults }: Props) {
   const { user } = useAuth();
   const { dogs, active, activeId } = useV3Dogs();
-  const [form, setForm] = useState<FormState>(() => defaultState(activeId));
+  const [form, setForm] = useState<FormState>(() => defaultState(activeId, defaults));
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [advOpen, setAdvOpen] = useState(false);
@@ -95,15 +97,16 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
   const types = isHoopers ? TRAINING_TYPES_HOOPERS : TRAINING_TYPES_AGILITY;
   const obstacleOptions = isHoopers ? OBSTACLES_HOOPERS : OBSTACLES_AGILITY;
 
-  // Reset när sheet öppnas
+  // Reset när sheet öppnas — plocka upp ev. förifyllningar från "Dagens pass".
   useEffect(() => {
     if (open) {
-      setForm(defaultState(activeId ?? active?.id ?? null));
+      setForm(defaultState(activeId ?? active?.id ?? null, defaults));
       setErrors({});
-      setAdvOpen(false);
+      setAdvOpen(Boolean(defaults?.obstacles?.length || defaults?.tags?.length));
       setStartedTracked(false);
     }
-  }, [open, activeId, active?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, activeId, active?.id, defaults?.type, defaults?.durationMinutes]);
 
   // ESC + scroll-lock
   useEffect(() => {
@@ -121,19 +124,25 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
 
   if (!open) return null;
 
-  const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
+  const trackStarted = () => {
     if (!startedTracked) {
       trackGrowthEvent("training_form_started");
       setStartedTracked(true);
     }
+  };
+
+  const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
+    trackStarted();
     setForm((p) => ({ ...p, [key]: value }));
   };
 
-  const toggleArr = (key: "obstacles" | "tags", value: string) =>
+  const toggleArr = (key: "obstacles" | "tags", value: string) => {
+    trackStarted();
     setForm((p) => ({
       ...p,
       [key]: p[key].includes(value) ? p[key].filter((v) => v !== value) : [...p[key], value],
     }));
+  };
 
   const submit = async () => {
     if (!user?.id) {
@@ -166,12 +175,17 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
     setErrors({});
     setSubmitting(true);
 
-    // Kolla om detta är användarens första pass (för first_training_logged-event)
-    const { count: existingCount } = await supabase
-      .from("training_sessions")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id);
-    const isFirst = (existingCount ?? 0) === 0;
+    // Är detta användarens första pass? Om räkningen misslyckas — fortsätt ändå.
+    let isFirst = false;
+    try {
+      const { count: existingCount, error: countErr } = await supabase
+        .from("training_sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      if (!countErr) isFirst = (existingCount ?? 0) === 0;
+    } catch {
+      /* ignore — eventlogik får inte blockera sparning */
+    }
 
     const today = localIsoDate();
     const { error } = await supabase.from("training_sessions").insert({
@@ -197,20 +211,25 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
       return;
     }
 
-    trackGrowthEvent("training_logged", {
-      type: parsed.data.type,
-      duration_min: parsed.data.duration_min,
-      mood: parsed.data.overall_mood,
-    });
-    if (isFirst) {
-      trackGrowthEvent("first_training_logged", { type: parsed.data.type });
+    try {
+      trackGrowthEvent("training_logged", {
+        type: parsed.data.type,
+        duration_min: parsed.data.duration_min,
+        mood: parsed.data.overall_mood,
+      });
+      if (isFirst) {
+        trackGrowthEvent("first_training_logged", { type: parsed.data.type });
+      }
+    } catch {
+      /* ignore */
     }
 
     const insight = buildFirstInsight({
       dogName: selectedDog?.name ?? "",
-      focusLabel: parsed.data.obstacles[0] ?? parsed.data.tags[0] ?? null,
+      focusLabel: defaults?.focusLabel ?? parsed.data.obstacles[0] ?? parsed.data.tags[0] ?? null,
       mood: parsed.data.overall_mood,
       notesGood: parsed.data.notes_good ?? null,
+      notesImprove: parsed.data.notes_improve ?? null,
       obstacles: parsed.data.obstacles,
     });
 
@@ -225,10 +244,24 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
       },
     });
 
-    window.dispatchEvent(new CustomEvent("v3:training-logged", { detail: { dogId: parsed.data.dog_id, date: today } }));
+    // Ge dashboarden allt den behöver för refetch + första insikt direkt.
+    window.dispatchEvent(
+      new CustomEvent("v3:training-logged", {
+        detail: {
+          dogId: parsed.data.dog_id,
+          date: today,
+          isFirst,
+          insight,
+          mood: parsed.data.overall_mood,
+          type: parsed.data.type,
+        },
+      }),
+    );
     onLogged?.();
     onClose();
   };
+
+
 
   return (
     <div className="fixed inset-0 z-[70] font-v3-sans" role="dialog" aria-modal="true" aria-label="Logga pass">

@@ -446,7 +446,7 @@ export default function CompetitionDetailPage() {
             placement="competition_detail"
             source="competition_detail"
             headline="Spara tävlingen och få en enkel plan fram till start."
-            body={`Vi hämtar startlistor, håller koll på anmälningsdatum och gör resultatet till en tydlig träningsplan – för ${comp.event_name}.`}
+            body={`Vi hämtar startlistor, håller koll på anmälningsdatum och gör resultatet till en tydlig träningsplan – för ${comp.competition_name ?? "tävlingen"}.`}
             cta="Spara tävlingen"
             secondary={{ label: "Se fler tävlingar", to: "/tavlingar" }}
           />

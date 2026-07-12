@@ -188,10 +188,65 @@ export function computeCourseTimes(course: CourseLite): CourseTimes {
 
 const CONTACT_TYPES: ObstacleTypeV2[] = ["aframe", "dogwalk", "seesaw"];
 const NON_COMPETING: ObstacleTypeV2[] = ["start", "finish", "number"];
+/**
+ * Typer som inte räknas som fysiska hinder vid överlappnings-check.
+ * Utöver start/mål/number är även `handler_zone` en yta/markör, inte
+ * ett hinder — den får ligga över hinder utan att vi flaggar.
+ */
+const NON_PHYSICAL_FOR_OVERLAP: ObstacleTypeV2[] = ["start", "finish", "number", "handler_zone"];
+
+/**
+ * Typer med stor dekorativ/zonliknande fotavtryck där en AABB-överlappning
+ * lätt blir falskpositiv. Sådana par nedgraderas till varning.
+ */
+const ZONE_LIKE_TYPES: ObstacleTypeV2[] = ["table"];
 
 /** Avstånd mellan två hinder i meter (centrum-till-centrum). */
 function dist(a: ObstacleLite, b: ObstacleLite) {
   return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+export interface ObstacleOverlap {
+  a: ObstacleLite;
+  b: ObstacleLite;
+  aabbA: AABB;
+  aabbB: AABB;
+  /** True om båda är fysiska fasta hinder och båda AABB:erna är axelinriktade
+   *  (dvs. rotationsfria) — då är AABB-överlapp inte en grov falskpositiv. */
+  strict: boolean;
+}
+
+/** Finns det överlappande AABB-yta mellan a och b (med liten tolerans)? */
+function aabbsOverlapTolerant(a: AABB, b: AABB, tolM: number): boolean {
+  return !(
+    a.maxX < b.minX + tolM ||
+    b.maxX < a.minX + tolM ||
+    a.maxY < b.minY + tolM ||
+    b.maxY < a.minY + tolM
+  );
+}
+
+/**
+ * Rena helper: hitta alla unika hinderpar vars roterade AABB:er överlappar.
+ * Exkluderar start/finish/number/handler_zone. Testbar utan RuleSet.
+ */
+export function findObstacleOverlaps(
+  obstacles: ObstacleLite[],
+  tolM = 0.02,
+): ObstacleOverlap[] {
+  const competing = obstacles.filter((o) => !NON_PHYSICAL_FOR_OVERLAP.includes(o.type));
+  const aabbs = competing.map((o) => ({ o, box: obstacleAabb(o), rotated: (o.rotation % 180) !== 0 }));
+  const out: ObstacleOverlap[] = [];
+  for (let i = 0; i < aabbs.length; i++) {
+    for (let j = i + 1; j < aabbs.length; j++) {
+      const a = aabbs[i];
+      const b = aabbs[j];
+      if (!aabbsOverlapTolerant(a.box, b.box, tolM)) continue;
+      const strict = !a.rotated && !b.rotated;
+      out.push({ a: a.o, b: b.o, aabbA: a.box, aabbB: b.box, strict });
+    }
+  }
+  return out;
 }
 
 /**

@@ -7,14 +7,17 @@ import {
   CheckCircle2,
   Clock3,
   Dog as DogIcon,
+  Download,
   Flame,
   HeartPulse,
   Medal,
+  Pencil,
   Plus,
   Sparkles,
   Target,
   Timer,
   Trophy,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,8 +26,9 @@ import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Dashboard, type NextEvent } from "@/hooks/v3/useV3Dashboard";
 import { openV3LogSheet } from "@/hooks/v3/useV3LogSheet";
 import { ActivityTimeline } from "@/components/v3/ActivityTimeline";
-import { V3EmptyState } from "@/components/v3/V3EmptyState";
 import { V3OnboardingWizard } from "@/components/v3/V3OnboardingWizard";
+import { V3AddDogSheet } from "@/components/v3/V3AddDogSheet";
+import { DogHero } from "@/components/v3/DogHero";
 import { cn } from "@/lib/utils";
 
 function getTimeGreeting(date: Date = new Date()): string {

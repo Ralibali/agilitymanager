@@ -587,25 +587,57 @@ function V3CoursePlannerV2PageInner() {
       return;
     }
     const id = uid();
+    // Placeringspunkt = viewportens mitt i banans meter-koord.
+    // Faller tillbaka till arenans mitt tills viewport-storlek är känd.
+    const vpCx = viewport.viewMinXM + viewport.visibleWidthM / 2;
+    const vpCy = viewport.viewMinYM + viewport.visibleHeightM / 2;
+    const arenaCx = course.arenaWidthM / 2;
+    const arenaCy = course.arenaHeightM / 2;
+    const cx = Number.isFinite(vpCx) ? vpCx : arenaCx;
+    const cy = Number.isFinite(vpCy) ? vpCy : arenaCy;
+    // Diskret offset per placering så flera hinder inte hamnar exakt ovanpå.
+    // Räknar antal hinder av samma typ, offsettar 0.5 m diagonalt per steg.
+    const sameTypeCount = course.obstacles.filter((o) => o.type === type).length;
+    const offset = sameTypeCount * 0.5;
+    const clamped = clampCenterForRotatedBox(
+      { x: cx + offset, y: cy + offset },
+      def.sizeM.w, def.sizeM.d, 0,
+      course.arenaWidthM, course.arenaHeightM,
+    );
     const ob: ObstacleV2 = {
       id, type,
-      x: snapM(course.arenaWidthM / 2),
-      y: snapM(course.arenaHeightM / 2),
+      x: snapM(clamped.x),
+      y: snapM(clamped.y),
       rotation: 0,
     };
     setCourse((c) => ({ ...c, obstacles: [...c.obstacles, ob] }));
     setSelectedId(id);
     setTool("select");
     try { navigator.vibrate?.(8); } catch { /* ignore */ }
-    trackEvent("course_obstacle_added", { sport: course.sport, type, device_class: getDeviceClass() });
+    trackEvent("course_obstacle_added", { sport: course.sport, obstacle_type: type, device_class: getDeviceClass() });
   }
 
   function duplicateObstacle(id: string) {
     const ob = course.obstacles.find((o) => o.id === id);
     if (!ob) return;
+    const def = getObstacleDefV2(ob.type);
+    const dims = def?.sizeM ?? { w: 1, d: 1 };
     const newId = uid();
+    // +1, +1 kan hamna utanför banan om ob ligger nära hörnet — klampa via
+    // rotated bounds så hela kopian är innanför även vid roterade långhopp.
+    const clamped = clampCenterForRotatedBox(
+      { x: ob.x + 1, y: ob.y + 1 },
+      dims.w, dims.d, ob.rotation,
+      course.arenaWidthM, course.arenaHeightM,
+    );
     // Duplikat ärver INTE locked — användaren vill kunna flytta kopian direkt.
-    const copy: ObstacleV2 = { ...ob, id: newId, x: snapM(ob.x + 1), y: snapM(ob.y + 1), number: undefined, locked: false };
+    const copy: ObstacleV2 = {
+      ...ob, id: newId,
+      x: snapM(clamped.x),
+      y: snapM(clamped.y),
+      number: undefined,
+      locked: false,
+    };
     setCourse((c) => ({ ...c, obstacles: [...c.obstacles, copy] }));
     setSelectedId(newId);
   }

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, Crown, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useHasLoggedTraining } from "@/hooks/v3/useHasLoggedTraining";
 
 /**
  * Smal trial-banner som visas i v3-skalet för användare på fri provperiod.
@@ -9,15 +10,20 @@ import { useAuth } from "@/contexts/AuthContext";
  * - ≤3 dagar kvar: framträdande färg + tydlig CTA.
  * - 0 dagar / utgången utan prenumeration: "Provperioden är slut".
  *
- * Visas inte för betalande Pro-användare.
+ * Visas inte för betalande Pro-användare, och inte förrän användaren har
+ * loggat sitt första riktiga träningspass (håll paywall ur vägen innan
+ * första aha-upplevelsen).
  */
 export function TrialBanner() {
   const { subscription } = useAuth();
+  const { hasLogged, loading: trainingLoading } = useHasLoggedTraining();
   const navigate = useNavigate();
   const [dismissed, setDismissed] = useState(false);
 
   const state = useMemo(() => {
     if (subscription.loading) return null;
+    if (trainingLoading) return null;
+    if (!hasLogged) return null; // Ingen paywall innan första loggade passet.
     if (subscription.subscribed && !subscription.isTrial) return null;
 
     if (subscription.isTrial && subscription.subscriptionEnd) {
@@ -32,7 +38,8 @@ export function TrialBanner() {
     }
 
     return null;
-  }, [subscription]);
+  }, [subscription, hasLogged, trainingLoading]);
+
 
   if (!state || dismissed) return null;
 

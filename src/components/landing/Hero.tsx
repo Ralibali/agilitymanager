@@ -7,11 +7,7 @@ import { motion } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import { BrandPill } from "@/components/brand/BrandPill";
 import { CoursePath } from "@/components/brand/CoursePath";
-
-const trackEvent = (name: string) => {
-  // @ts-ignore
-  if (typeof window !== "undefined" && window.flock) window.flock(name);
-};
+import { trackGrowthEvent } from "@/lib/growth";
 
 export function Hero() {
   const navigate = useNavigate();
@@ -76,7 +72,7 @@ export function Hero() {
             <Button
               variant="brand"
               onClick={() => {
-                trackEvent("hero_primary_cta_click");
+                trackGrowthEvent("landing_cta_click", { placement: "hero", destination: "signup" });
                 navigate("/auth?mode=signup&source=landing_hero");
               }}
               className="h-12 sm:h-11"
@@ -86,7 +82,7 @@ export function Hero() {
             <Button
               variant="brand-outline"
               onClick={() => {
-                trackEvent("hero_free_planner_cta_click");
+                trackGrowthEvent("landing_cta_click", { placement: "hero", destination: "course_planner" });
                 navigate("/banplanerare");
               }}
               className="h-12 sm:h-11"

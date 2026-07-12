@@ -57,6 +57,7 @@ export default function CompetitionDetailPage() {
   const [weather, setWeather] = useState<WeatherDay | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [bridgeVisible, setBridgeVisible] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -150,9 +151,9 @@ export default function CompetitionDetailPage() {
     description: seoData.description,
     startDate: comp.date_start,
     endDate: comp.date_end ?? comp.date_start,
-    eventStatus: isPast
-      ? "https://schema.org/EventScheduled"
-      : "https://schema.org/EventScheduled",
+    // Vi utelämnar hellre eventStatus för avslutade tävlingar än sätter felaktig
+    // "EventScheduled". Schema.org saknar en särskild "past"-status.
+    ...(isPast ? {} : { eventStatus: "https://schema.org/EventScheduled" }),
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: {
       "@type": "Place",

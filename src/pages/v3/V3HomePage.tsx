@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowRight,
+  BarChart3,
   CalendarDays,
   CheckCircle2,
   Circle,
@@ -9,6 +10,7 @@ import {
   Dog as DogIcon,
   Download,
   Flame,
+  HeartPulse,
   Medal,
   Pencil,
   Plus,

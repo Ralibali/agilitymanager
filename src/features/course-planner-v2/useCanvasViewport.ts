@@ -97,6 +97,8 @@ export interface UseCanvasViewportApi {
   zoomIn: (anchorClientX?: number, anchorClientY?: number) => void;
   zoomOut: (anchorClientX?: number, anchorClientY?: number) => void;
   zoomTo: (zoom: number, anchorClientX?: number, anchorClientY?: number) => void;
+  /** Multiplicera aktuell zoom med `factor` och ankra runt en client-pixel. */
+  zoomAtClient: (factor: number, clientX: number, clientY: number) => void;
   resetZoom: () => void;
   fitToScreen: () => void;
   /** Pan-kontroller (client-pixel-delta). */

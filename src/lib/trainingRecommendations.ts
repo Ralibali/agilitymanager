@@ -56,6 +56,20 @@ export interface LogDefaults {
   focusLabel: string;
 }
 
+/**
+ * Transient UI/analytics-kontext för Logga pass — t.ex. att sheet:n öppnades
+ * från banplaneraren. Sparas INTE i DB och blandar sig inte med defaults/formfält.
+ * Kopplingen bana→pass är inte modellerad i schemat idag.
+ */
+export interface LogContext {
+  source: "course-planner";
+  courseName: string;
+  sport: "Agility" | "Hoopers";
+  /** Opak molnid om banan är sparad – används endast för analytics. */
+  courseId?: string;
+}
+
+
 export interface EasierAlternative {
   id: string;
   title: string;

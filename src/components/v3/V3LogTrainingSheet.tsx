@@ -7,14 +7,20 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { trackGrowthEvent } from "@/lib/growth";
-import { buildFirstInsight, type LogDefaults } from "@/lib/trainingRecommendations";
+import { buildFirstInsight, type LogDefaults, type LogContext } from "@/lib/trainingRecommendations";
+import { MapPinned } from "lucide-react";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   onLogged?: () => void;
-  /** Frivilliga defaults (från Dagens pass). Användaren måste alltid aktivt spara. */
+  /** Frivilliga defaults (från Dagens pass eller banplaneraren). Användaren måste alltid aktivt spara. */
   defaults?: Partial<LogDefaults>;
+  /**
+   * Transient kontext för Logga pass — sparas INTE i DB och kopieras aldrig
+   * automatiskt in i notes/tags. Används endast för banner-copy och analytics.
+   */
+  context?: LogContext;
 }
 
 const TRAINING_TYPES_AGILITY = ["Bana", "Hinder", "Kontakt", "Vändning", "Distans", "Kombination", "Annan"] as const;
@@ -80,7 +86,7 @@ function localIsoDate(date: Date = new Date()): string {
  * Avancerat (hopfällbart): plats, hinder, taggar, energi.
  * Kan förifyllas från "Dagens pass" — användaren måste alltid aktivt spara.
  */
-export function V3LogTrainingSheet({ open, onClose, onLogged, defaults }: Props) {
+export function V3LogTrainingSheet({ open, onClose, onLogged, defaults, context }: Props) {
   const { user } = useAuth();
   const { dogs, active, activeId } = useV3Dogs();
   const [form, setForm] = useState<FormState>(() => defaultState(activeId, defaults));
@@ -97,16 +103,25 @@ export function V3LogTrainingSheet({ open, onClose, onLogged, defaults }: Props)
   const types = isHoopers ? TRAINING_TYPES_HOOPERS : TRAINING_TYPES_AGILITY;
   const obstacleOptions = isHoopers ? OBSTACLES_HOOPERS : OBSTACLES_AGILITY;
 
-  // Reset när sheet öppnas — plocka upp ev. förifyllningar från "Dagens pass".
+  // Reset när sheet öppnas — plocka upp ev. förifyllningar och kontext.
+  // När kontexten kommer från banplaneraren väljer vi en hund vars sport matchar.
   useEffect(() => {
     if (open) {
-      setForm(defaultState(activeId ?? active?.id ?? null, defaults));
+      let initialDogId = activeId ?? active?.id ?? null;
+      if (context?.sport && dogs.length > 0) {
+        const active_matches = dogs.find((d) => d.id === initialDogId)?.sport === context.sport;
+        if (!active_matches) {
+          const match = dogs.find((d) => d.sport === context.sport);
+          if (match) initialDogId = match.id;
+        }
+      }
+      setForm(defaultState(initialDogId, defaults));
       setErrors({});
       setAdvOpen(Boolean(defaults?.obstacles?.length || defaults?.tags?.length));
       setStartedTracked(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, activeId, active?.id, defaults?.type, defaults?.durationMinutes]);
+  }, [open, activeId, active?.id, defaults?.type, defaults?.durationMinutes, context?.sport, context?.courseName]);
 
   // ESC + scroll-lock
   useEffect(() => {
@@ -212,11 +227,18 @@ export function V3LogTrainingSheet({ open, onClose, onLogged, defaults }: Props)
     }
 
     try {
-      trackGrowthEvent("training_logged", {
+      const props: Record<string, unknown> = {
         type: parsed.data.type,
         duration_min: parsed.data.duration_min,
         mood: parsed.data.overall_mood,
-      });
+        has_course_context: Boolean(context),
+      };
+      if (context?.source) props.source = context.source;
+      // courseId endast om det redan är en opak UUID; skicka aldrig courseName.
+      if (context?.courseId && /^[0-9a-f-]{16,}$/i.test(context.courseId)) {
+        props.course_id = context.courseId;
+      }
+      trackGrowthEvent("training_logged", props);
       if (isFirst) {
         trackGrowthEvent("first_training_logged", { type: parsed.data.type });
       }
@@ -233,16 +255,21 @@ export function V3LogTrainingSheet({ open, onClose, onLogged, defaults }: Props)
       obstacles: parsed.data.obstacles,
     });
 
-    toast.success("Pass loggat", {
-      description: insight,
-      duration: 6000,
-      action: {
-        label: "Se statistik",
-        onClick: () => {
-          window.location.href = "/v3/stats";
+    toast.success(
+      context
+        ? `Passet från “${context.courseName}” är loggat`
+        : "Pass loggat",
+      {
+        description: insight,
+        duration: 6000,
+        action: {
+          label: "Se statistik",
+          onClick: () => {
+            window.location.href = "/v3/stats";
+          },
         },
       },
-    });
+    );
 
     // Ge dashboarden allt den behöver för refetch + första insikt direkt.
     window.dispatchEvent(
@@ -300,6 +327,17 @@ export function V3LogTrainingSheet({ open, onClose, onLogged, defaults }: Props)
         </div>
 
         <div className="overflow-y-auto px-5 pb-5 space-y-5 flex-1">
+          {context?.source === "course-planner" && (
+            <div className="rounded-v3-base border border-v3-brand-500/25 bg-v3-brand-500/[0.06] px-3.5 py-2.5 flex items-start gap-2.5">
+              <MapPinned size={16} className="text-v3-brand-600 mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <div className="text-v3-sm font-medium text-v3-text-primary truncate">
+                  Träningspass från banan “{context.courseName}”
+                </div>
+                <div className="text-v3-xs text-v3-text-tertiary">{context.sport}</div>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <Field label="Hund" icon={<UserIcon size={13} />} error={errors.dog_id}>
               <select value={form.dog_id} onChange={(e) => update("dog_id", e.target.value)} className={selectClass}>

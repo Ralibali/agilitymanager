@@ -20,7 +20,7 @@ import {
   getDefaultRuleSetIdForSport,
   type RuleSet,
 } from "./rules";
-import { rotatedAabb, edgesOutsideArena } from "./geometry";
+import { rotatedAabb, edgesOutsideArena, aabbsOverlap, type AABB } from "./geometry";
 
 export type IssueLevel = "error" | "warning" | "info";
 
@@ -188,10 +188,65 @@ export function computeCourseTimes(course: CourseLite): CourseTimes {
 
 const CONTACT_TYPES: ObstacleTypeV2[] = ["aframe", "dogwalk", "seesaw"];
 const NON_COMPETING: ObstacleTypeV2[] = ["start", "finish", "number"];
+/**
+ * Typer som inte räknas som fysiska hinder vid överlappnings-check.
+ * Utöver start/mål/number är även `handler_zone` en yta/markör, inte
+ * ett hinder — den får ligga över hinder utan att vi flaggar.
+ */
+const NON_PHYSICAL_FOR_OVERLAP: ObstacleTypeV2[] = ["start", "finish", "number", "handler_zone"];
+
+/**
+ * Typer med stor dekorativ/zonliknande fotavtryck där en AABB-överlappning
+ * lätt blir falskpositiv. Sådana par nedgraderas till varning.
+ */
+const ZONE_LIKE_TYPES: ObstacleTypeV2[] = ["table"];
 
 /** Avstånd mellan två hinder i meter (centrum-till-centrum). */
 function dist(a: ObstacleLite, b: ObstacleLite) {
   return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+export interface ObstacleOverlap {
+  a: ObstacleLite;
+  b: ObstacleLite;
+  aabbA: AABB;
+  aabbB: AABB;
+  /** True om båda är fysiska fasta hinder och båda AABB:erna är axelinriktade
+   *  (dvs. rotationsfria) — då är AABB-överlapp inte en grov falskpositiv. */
+  strict: boolean;
+}
+
+/** Finns det överlappande AABB-yta mellan a och b (med liten tolerans)? */
+function aabbsOverlapTolerant(a: AABB, b: AABB, tolM: number): boolean {
+  return !(
+    a.maxX < b.minX + tolM ||
+    b.maxX < a.minX + tolM ||
+    a.maxY < b.minY + tolM ||
+    b.maxY < a.minY + tolM
+  );
+}
+
+/**
+ * Rena helper: hitta alla unika hinderpar vars roterade AABB:er överlappar.
+ * Exkluderar start/finish/number/handler_zone. Testbar utan RuleSet.
+ */
+export function findObstacleOverlaps(
+  obstacles: ObstacleLite[],
+  tolM = 0.02,
+): ObstacleOverlap[] {
+  const competing = obstacles.filter((o) => !NON_PHYSICAL_FOR_OVERLAP.includes(o.type));
+  const aabbs = competing.map((o) => ({ o, box: obstacleAabb(o), rotated: (o.rotation % 180) !== 0 }));
+  const out: ObstacleOverlap[] = [];
+  for (let i = 0; i < aabbs.length; i++) {
+    for (let j = i + 1; j < aabbs.length; j++) {
+      const a = aabbs[i];
+      const b = aabbs[j];
+      if (!aabbsOverlapTolerant(a.box, b.box, tolM)) continue;
+      const strict = !a.rotated && !b.rotated;
+      out.push({ a: a.o, b: b.o, aabbA: a.box, aabbB: b.box, strict });
+    }
+  }
+  return out;
 }
 
 /**
@@ -443,22 +498,30 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
       });
     }
 
-    const hoopersMin = safety.hoopersMinM ?? 3.0;
-    for (let i = 0; i < numberedByNumber.length; i++) {
-      for (let j = i + 1; j < numberedByNumber.length; j++) {
-        const a = numberedByNumber[i];
-        const b = numberedByNumber[j];
-        if ((b.number as number) - (a.number as number) !== 1) continue;
-        const d = dist(a, b);
-        if (d < hoopersMin) {
-          issues.push({
-            level: "error",
-            code: "hoopers_too_close",
-            message: `Hinder ${a.number}→${b.number}: ${d.toFixed(1)} m < ${hoopersMin} m (${prefix})`,
-            obstacleId: b.id,
-          });
+    if (typeof safety.hoopersMinM === "number") {
+      const hoopersMin = safety.hoopersMinM;
+      for (let i = 0; i < numberedByNumber.length; i++) {
+        for (let j = i + 1; j < numberedByNumber.length; j++) {
+          const a = numberedByNumber[i];
+          const b = numberedByNumber[j];
+          if ((b.number as number) - (a.number as number) !== 1) continue;
+          const d = dist(a, b);
+          if (d < hoopersMin) {
+            issues.push({
+              level: "error",
+              code: "hoopers_too_close",
+              message: `Hinder ${a.number}→${b.number}: ${d.toFixed(1)} m < ${hoopersMin} m (${prefix})`,
+              obstacleId: b.id,
+            });
+          }
         }
       }
+    } else {
+      issues.push({
+        level: "info",
+        code: "hoopers_min_distance_unverified",
+        message: "Förhandskontrollen saknar ett verifierat gränsvärde för min-avstånd mellan hoopershinder. Kontrollera aktuellt regelverk.",
+      });
     }
 
     // Inga agilityhinder i hoopers
@@ -488,18 +551,26 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
 
     // Förarzonen — min-avstånd till hindren
     const zone = course.obstacles.find((o) => o.type === "handler_zone");
-    const zoneMin = safety.hoopersHandlerZoneMinM ?? 3.0;
     if (zone) {
-      for (const ob of competing) {
-        const d = dist(zone, ob);
-        if (d < zoneMin) {
-          issues.push({
-            level: "warning",
-            code: "handler_too_close",
-            message: `Hinder ${ob.number ?? "?"} ligger ${d.toFixed(1)} m från dirigeringsområdet (${prefix} ≥ ${zoneMin} m)`,
-            obstacleId: ob.id,
-          });
+      if (typeof safety.hoopersHandlerZoneMinM === "number") {
+        const zoneMin = safety.hoopersHandlerZoneMinM;
+        for (const ob of competing) {
+          const d = dist(zone, ob);
+          if (d < zoneMin) {
+            issues.push({
+              level: "warning",
+              code: "handler_too_close",
+              message: `Hinder ${ob.number ?? "?"} ligger ${d.toFixed(1)} m från dirigeringsområdet (${prefix} ≥ ${zoneMin} m)`,
+              obstacleId: ob.id,
+            });
+          }
         }
+      } else {
+        issues.push({
+          level: "info",
+          code: "handler_zone_min_distance_unverified",
+          message: "Förhandskontrollen saknar ett verifierat gränsvärde för min-avstånd mellan dirigeringsområdet och hinder. Kontrollera aktuellt regelverk.",
+        });
       }
     }
   }
@@ -522,6 +593,32 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
       });
     }
   }
+
+  // 6b) Överlappande hinder — verklig geometrisk kollisionscheck.
+  // AABB efter rotation är en grov approximation; långsmala roterade hinder
+  // kan ge falskpositiver. Vi använder därför försiktig copy vid rotation.
+  {
+    const overlaps = findObstacleOverlaps(course.obstacles);
+    const emittedPairs = new Set<string>();
+    for (const ov of overlaps) {
+      const key = [ov.a.id, ov.b.id].sort().join("|");
+      if (emittedPairs.has(key)) continue;
+      emittedPairs.add(key);
+      const zoneLike = ZONE_LIKE_TYPES.includes(ov.a.type) || ZONE_LIKE_TYPES.includes(ov.b.type);
+      const level: IssueLevel = ov.strict && !zoneLike ? "error" : "warning";
+      const aDef = getObstacleDefV2(ov.a.type);
+      const bDef = getObstacleDefV2(ov.b.type);
+      const aName = ov.a.number != null ? `#${ov.a.number}` : (aDef?.label ?? ov.a.type);
+      const bName = ov.b.number != null ? `#${ov.b.number}` : (bDef?.label ?? ov.b.type);
+      const message = level === "error"
+        ? `Hindren ${aName} och ${bName} ligger ovanpå varandra`
+        : `Hindren ${aName} och ${bName} ser ut att överlappa – kontrollera placeringen`;
+      issues.push({ level, code: "obstacle_overlap", message, obstacleId: ov.a.id });
+      issues.push({ level, code: "obstacle_overlap", message, obstacleId: ov.b.id });
+    }
+  }
+
+
 
   // 7) Ansatsvinkel-validering (Prompt C) — bygger på hundens väg
   if (course.sport === "agility") {

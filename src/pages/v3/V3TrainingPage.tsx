@@ -56,16 +56,28 @@ export default function V3TrainingPage() {
   const [filter, setFilter] = useState<V3TrainingFilter>({ sport: "all", period: "30d" });
   const { sessions, stats, loading } = useV3Training(activeId, filter);
 
-  // Inkommande från banplaneraren — öppna log-sheet och ge feedback
+  // Inkommande från äldre banplanerar-länkar (`/v3/training?from=course-planner...`).
+  // Vi bygger korrekt context + defaults och öppnar log-sheet på plats.
   useEffect(() => {
-    if (searchParams.get("from") === "course-planner") {
-      const courseName = searchParams.get("courseName") || "banan";
-      toast.success(`Loggar pass för "${courseName}"`);
-      openV3LogSheet();
-      const next = new URLSearchParams(searchParams);
-      next.delete("from"); next.delete("courseName"); next.delete("courseId"); next.delete("sport"); next.delete("sizeClass");
-      setSearchParams(next, { replace: true });
-    }
+    if (searchParams.get("from") !== "course-planner") return;
+    const courseName = searchParams.get("courseName") || "banan";
+    const sportParam = searchParams.get("sport");
+    const sport: "Agility" | "Hoopers" =
+      sportParam === "hoopers" || sportParam === "Hoopers" ? "Hoopers" : "Agility";
+    const courseId = searchParams.get("courseId") || undefined;
+
+    openV3LogSheet({
+      defaults: { type: "Bana", durationMinutes: 20, obstacles: [], tags: [], focusLabel: "Bana" },
+      context: {
+        source: "course-planner",
+        courseName,
+        sport,
+        ...(courseId ? { courseId } : {}),
+      },
+    });
+    const next = new URLSearchParams(searchParams);
+    next.delete("from"); next.delete("courseName"); next.delete("courseId"); next.delete("sport"); next.delete("sizeClass");
+    setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
 
   const exportCsv = () => {

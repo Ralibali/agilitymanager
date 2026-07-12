@@ -35,7 +35,7 @@ function clickButtonByLabels(labels: string[]): boolean {
 export function V3Layout() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
-  const { open: logOpen, setOpen: setLogOpen, close: closeLog, defaults: logDefaults } = useV3LogSheet();
+  const { open: logOpen, setOpen: setLogOpen, close: closeLog, defaults: logDefaults, context: logContext } = useV3LogSheet();
   const location = useLocation();
   const navigate = useNavigate();
   const handledActionRef = useRef<string | null>(null);
@@ -123,9 +123,10 @@ export function V3Layout() {
               setLogOpen(true);
             }}
           />
-          <V3LogTrainingSheet open={logOpen} onClose={closeLog} defaults={logDefaults} />
         </>
       )}
+      {/* Logga pass-sheet monteras alltid så att t.ex. banplaneraren kan öppna den via event-bussen. */}
+      <V3LogTrainingSheet open={logOpen} onClose={closeLog} defaults={logDefaults} context={logContext} />
     </div>
   );
 }

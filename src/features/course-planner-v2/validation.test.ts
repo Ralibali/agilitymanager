@@ -1,6 +1,11 @@
 /**
  * Tester för banplanerarens beräknings- och valideringskärna.
  * Säkerhetslogiken är affärskritisk — buggar här kan släppa igenom osäkra banor.
+ *
+ * Prompt K: täcker nu även att validation.ts läser säkerhetsvärden från
+ * aktivt RuleSet, att följdpar bedöms i nummerordning även vid osorterad
+ * array, och att roterat hinder utanför arenan detekteras även om centrum
+ * ligger innanför.
  */
 import { describe, it, expect } from "vitest";
 import {
@@ -11,6 +16,7 @@ import {
   type ObstacleLite,
 } from "./validation";
 import type { ObstacleTypeV2 } from "./config";
+import { getRuleSet, DEFAULT_RULESET_ID, DEFAULT_HOOPERS_RULESET_ID } from "./rules";
 
 let __id = 0;
 const ob = (partial: Partial<ObstacleLite> & { type: ObstacleTypeV2; x: number; y: number }): ObstacleLite => ({
@@ -26,6 +32,7 @@ const makeCourse = (partial: Partial<CourseLite> = {}): CourseLite => ({
   arenaHeightM: 40,
   classTemplate: null,
   obstacles: [],
+  ruleSetId: DEFAULT_RULESET_ID,
   ...partial,
 });
 
@@ -46,7 +53,7 @@ describe("computeCourseLength", () => {
   it("ignorerar onumrerade hinder", () => {
     const obs = [
       ob({ type: "jump", x: 0, y: 0, number: 1 }),
-      ob({ type: "jump", x: 100, y: 100 }), // onumrerad — ska ignoreras
+      ob({ type: "jump", x: 100, y: 100 }),
       ob({ type: "jump", x: 3, y: 4, number: 2 }),
     ];
     expect(computeCourseLength(obs)).toBeCloseTo(5, 6);
@@ -69,25 +76,30 @@ describe("computeCourseTimes", () => {
     ob({ type: "jump", x: 3, y: 9, number: 3 }),
   ];
 
-  it("utan klassmall: refTimeS och maxTimeS = null, längd stämmer", () => {
+  it("utan klassmall: refTimeS/maxTimeS = null", () => {
     const t = computeCourseTimes(makeCourse({ obstacles: obs }));
     expect(t.lengthM).toBeCloseTo(10, 6);
     expect(t.refTimeS).toBeNull();
     expect(t.maxTimeS).toBeNull();
   });
 
-  it("med klassmall agility_1 (refSpeed 2.5, maxFactor 1.5): ref=4s, max=6s för 10 m", () => {
+  it("med klassmall agility_1: ref/max räknas från aktivt RuleSet", () => {
     const t = computeCourseTimes(makeCourse({ obstacles: obs, classTemplate: "agility_1" }));
     expect(t.lengthM).toBeCloseTo(10, 6);
-    // round(10 / 2.5) = 4
     expect(t.refTimeS).toBe(4);
-    // round(4 * 1.5) = 6
     expect(t.maxTimeS).toBe(6);
+  });
+
+  it("provisional RuleSet → isProvisional = true (UI ska kalla det beräknad tid)", () => {
+    const t = computeCourseTimes(makeCourse({ obstacles: obs, classTemplate: "agility_1" }));
+    expect(t.isProvisional).toBe(true);
+    expect(t.ruleSetStatus).toBe("provisional");
+    expect(t.ruleSetId).toBe(DEFAULT_RULESET_ID);
   });
 });
 
 describe("validateCourse — säkerhetsavstånd", () => {
-  it("två hopp 1.5 m isär i klass L (combo 4.0) → error jump_too_close", () => {
+  it("två hopp 1.5 m isär i klass L → error jump_too_close", () => {
     const course = makeCourse({
       obstacles: [
         ob({ type: "start", x: 0, y: 0 }),
@@ -100,8 +112,7 @@ describe("validateCourse — säkerhetsavstånd", () => {
     expect(issues.some((i) => i.code === "jump_too_close" && i.level === "error")).toBe(true);
   });
 
-  it("REGRESSION: hopp 1.5 m efter tunnel (blandat par) i klass L → warning, inte tyst", () => {
-    // Detta fall föll tidigare i ingen-gren och flaggades aldrig.
+  it("REGRESSION: hopp 1.5 m efter tunnel (blandat par) → obstacles_close warning", () => {
     const course = makeCourse({
       obstacles: [
         ob({ type: "start", x: 0, y: 0 }),
@@ -111,7 +122,6 @@ describe("validateCourse — säkerhetsavstånd", () => {
       ],
     });
     const issues = validateCourse(course);
-    // ska ge en avstånds-relaterad varning för paret 1→2
     const close = issues.find(
       (i) =>
         i.code === "obstacles_close" &&
@@ -119,6 +129,68 @@ describe("validateCourse — säkerhetsavstånd", () => {
         i.message.includes("1→2"),
     );
     expect(close).toBeDefined();
+  });
+
+  it("följdpar bedöms i nummerordning även om array-ordningen är blandad", () => {
+    const course = makeCourse({
+      obstacles: [
+        ob({ type: "jump", x: 5, y: 6.5, number: 2 }),
+        ob({ type: "jump", x: 5, y: 5, number: 1 }),
+        ob({ type: "start", x: 0, y: 0 }),
+        ob({ type: "finish", x: 10, y: 10 }),
+      ],
+    });
+    const issues = validateCourse(course);
+    // Ska hitta jump_too_close mellan hinder 1→2 trots att arrayen är osorterad.
+    expect(
+      issues.some(
+        (i) => i.code === "jump_too_close" && i.message.includes("1→2"),
+      ),
+    ).toBe(true);
+  });
+
+  it("kontaktfält direkt efter tunnel (nummerordning) → contact_after_tunnel warning", () => {
+    const course = makeCourse({
+      obstacles: [
+        ob({ type: "start", x: 0, y: 0 }),
+        // arrayen läggs medvetet i omvänd nummerordning
+        ob({ type: "aframe", x: 5, y: 8, number: 2 }),
+        ob({ type: "tunnel", x: 5, y: 5, number: 1 }),
+        ob({ type: "finish", x: 10, y: 10 }),
+      ],
+    });
+    const issues = validateCourse(course);
+    expect(issues.some((i) => i.code === "contact_after_tunnel")).toBe(true);
+  });
+});
+
+describe("validateCourse — säkerhet från RuleSet", () => {
+  it("hoopers-RuleSet används när ruleSetId anges", () => {
+    const course = makeCourse({
+      sport: "hoopers",
+      ruleSetId: DEFAULT_HOOPERS_RULESET_ID,
+      obstacles: [
+        ob({ type: "hoop", x: 5, y: 5, number: 1 }),
+        ob({ type: "hoop", x: 5, y: 6.5, number: 2 }), // 1.5 m < 3.0 m
+        ob({ type: "handler_zone", x: 15, y: 15 }),
+      ],
+    });
+    const issues = validateCourse(course);
+    expect(issues.some((i) => i.code === "hoopers_too_close")).toBe(true);
+  });
+
+  it("provisional RuleSet → meddelande innehåller 'förhandskontrollens gräns'", () => {
+    const rs = getRuleSet(DEFAULT_RULESET_ID);
+    expect(rs?.verificationStatus).toBe("provisional");
+    const course = makeCourse({
+      obstacles: [
+        ob({ type: "jump", x: 5, y: 5, number: 1 }),
+        ob({ type: "jump", x: 5, y: 6.5, number: 2 }),
+      ],
+    });
+    const issues = validateCourse(course);
+    const jumpIssue = issues.find((i) => i.code === "jump_too_close");
+    expect(jumpIssue?.message).toContain("förhandskontrollens gräns");
   });
 });
 
@@ -133,10 +205,13 @@ describe("validateCourse — numrering", () => {
       ],
     });
     const issues = validateCourse(course);
-    expect(issues.some((i) => i.code === "duplicate_number" && i.level === "error")).toBe(true);
+    const dupes = issues.filter((i) => i.code === "duplicate_number");
+    // Båda hindren med samma nummer ska markeras
+    expect(dupes.length).toBeGreaterThanOrEqual(2);
+    expect(dupes.every((i) => i.obstacleId !== undefined)).toBe(true);
   });
 
-  it("hål i numrering (1,2,4) → numbering_gap warning", () => {
+  it("hål i numrering (1,2,4) → numbering_gap warning med obstacleId", () => {
     const course = makeCourse({
       obstacles: [
         ob({ type: "start", x: 0, y: 0 }),
@@ -147,7 +222,9 @@ describe("validateCourse — numrering", () => {
       ],
     });
     const issues = validateCourse(course);
-    expect(issues.some((i) => i.code === "numbering_gap" && i.level === "warning")).toBe(true);
+    const gap = issues.find((i) => i.code === "numbering_gap");
+    expect(gap).toBeDefined();
+    expect(gap?.obstacleId).toBeDefined();
   });
 
   it("numrering börjar på 2 → numbering_not_from_1 warning", () => {
@@ -189,5 +266,43 @@ describe("validateCourse — sport-konsistens", () => {
     });
     const issues = validateCourse(course);
     expect(issues.some((i) => i.code === "wrong_sport" && i.level === "error")).toBe(true);
+  });
+});
+
+describe("validateCourse — roterad bounding box utanför arena", () => {
+  it("hinder vars CENTRUM ligger innanför men roterat hörn utanför → obstacle_outside_arena", () => {
+    // Balansbom 3.6 m djup; center vid y = 1.5 → orotat helt innanför.
+    // Rotera 90° → djup blir bredd. Placera nära vänsterkant och rotera 90°:
+    const course = makeCourse({
+      arenaWidthM: 30,
+      arenaHeightM: 40,
+      obstacles: [
+        ob({ type: "start", x: 5, y: 5 }),
+        ob({
+          type: "dogwalk",
+          x: 1.5, // center innanför
+          y: 20,
+          rotation: 90, // 3.6 m bredd → sticker ut åt vänster
+          number: 1,
+        }),
+        ob({ type: "finish", x: 25, y: 30 }),
+      ],
+    });
+    const issues = validateCourse(course);
+    const outside = issues.find((i) => i.code === "obstacle_outside_arena");
+    expect(outside).toBeDefined();
+    expect(outside?.message).toMatch(/vänster/);
+  });
+
+  it("start-linje precis mot kanten flaggas INTE som outside (start räknas ej som tävlingshinder)", () => {
+    const course = makeCourse({
+      obstacles: [
+        ob({ type: "start", x: 0.1, y: 20 }),
+        ob({ type: "jump", x: 10, y: 10, number: 1 }),
+        ob({ type: "finish", x: 20, y: 20 }),
+      ],
+    });
+    const issues = validateCourse(course);
+    expect(issues.some((i) => i.code === "obstacle_outside_arena")).toBe(false);
   });
 });

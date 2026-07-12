@@ -432,6 +432,16 @@ export default function BreedDetailPage() {
           </section>
         )}
 
+        {/* Produkt-CTA */}
+        <ProductCTA
+          placement="breed_detail"
+          source={`breed_${breed.slug}`}
+          headline={`Skapa en träningsprofil för din ${breed.name}.`}
+          body="Följ utveckling, logga pass som passar rasen och få rekommendationer på nästa övning – gratis för första hunden."
+          cta="Kom igång gratis"
+          secondary={{ label: "Fler raser", to: "/raser" }}
+        />
+
         {/* Ansvarsfriskrivning för rasprofiler */}
         <section className="max-w-3xl mx-auto px-5 md:px-12 pb-12">
           <Disclaimer variant="breed" />

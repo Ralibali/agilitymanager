@@ -327,6 +327,17 @@ export function V3LogTrainingSheet({ open, onClose, onLogged, defaults, context 
         </div>
 
         <div className="overflow-y-auto px-5 pb-5 space-y-5 flex-1">
+          {context?.source === "course-planner" && (
+            <div className="rounded-v3-base border border-v3-brand-500/25 bg-v3-brand-500/[0.06] px-3.5 py-2.5 flex items-start gap-2.5">
+              <MapPinned size={16} className="text-v3-brand-600 mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <div className="text-v3-sm font-medium text-v3-text-primary truncate">
+                  Träningspass från banan “{context.courseName}”
+                </div>
+                <div className="text-v3-xs text-v3-text-tertiary">{context.sport}</div>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <Field label="Hund" icon={<UserIcon size={13} />} error={errors.dog_id}>
               <select value={form.dog_id} onChange={(e) => update("dog_id", e.target.value)} className={selectClass}>

@@ -69,6 +69,9 @@ export function V3OnboardingWizard({ onComplete }: Props) {
   const [focus, setFocus] = useState<FocusArea[]>([]);
   const [selectedGoal, setSelectedGoal] = useState("");
 
+  // Steg 3 – visa alternativ
+  const [showAlternative, setShowAlternative] = useState(false);
+
   const recSport: RecSport = sport === "Hoopers" ? "Hoopers" : "Agility";
   const focusOptions: FocusArea[] = recSport === "Hoopers" ? HOOPERS_FOCUS_KEYS : AGILITY_FOCUS_KEYS;
 
@@ -80,6 +83,17 @@ export function V3OnboardingWizard({ onComplete }: Props) {
   useEffect(() => {
     trackGrowthEvent("onboarding_started");
   }, []);
+
+  useEffect(() => {
+    if (step === 3) {
+      trackGrowthEvent("starter_plan_viewed", {
+        plan_id: starterPlan.id,
+        focus: starterPlan.focusKey,
+        minutes: starterPlan.minutes,
+      });
+      setShowAlternative(false);
+    }
+  }, [step, starterPlan.id, starterPlan.focusKey, starterPlan.minutes]);
 
   const toggleFocus = (f: FocusArea) => {
     setFocus((prev) => {
@@ -153,9 +167,16 @@ export function V3OnboardingWizard({ onComplete }: Props) {
         onboarding_focus: focus,
         onboarding_goal: selectedGoal || null,
         onboarding_sport: recSport,
+        starter_plan_id: starterPlan.id,
+        starter_plan_selected_at: new Date().toISOString(),
       },
     });
-    trackGrowthEvent("onboarding_completed", { focus, goal: selectedGoal, sport: recSport });
+    trackGrowthEvent("onboarding_completed", {
+      focus,
+      goal: selectedGoal,
+      sport: recSport,
+      starter_plan_id: starterPlan.id,
+    });
     onComplete();
     if (target) navigate(target);
   };
@@ -459,6 +480,39 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                     <span>{starterPlan.equipment.join(" · ")}</span>
                   </div>
                 </article>
+
+                {showAlternative ? (
+                  <article className="rounded-v3-xl border border-v3-canvas-sunken bg-v3-canvas-elevated p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-v3-canvas-sunken/60 px-2.5 py-1 text-[11px] font-semibold text-v3-text-secondary">
+                        <Clock3 size={11} /> {starterPlan.alternative.minutes} min
+                      </span>
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-v3-text-tertiary">
+                        Lättare variant
+                      </span>
+                    </div>
+                    <h4 className="font-v3-display text-v3-lg text-v3-text-primary leading-snug">
+                      {starterPlan.alternative.title}
+                    </h4>
+                    <p className="text-v3-sm text-v3-text-secondary leading-relaxed">
+                      {starterPlan.alternative.why}
+                    </p>
+                  </article>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAlternative(true);
+                      trackGrowthEvent("starter_plan_alternative_viewed", {
+                        plan_id: starterPlan.id,
+                        alternative_id: starterPlan.alternative.id,
+                      });
+                    }}
+                    className="w-full text-v3-sm text-v3-brand-700 hover:text-v3-brand-800 underline underline-offset-4"
+                  >
+                    Visa lättare variant
+                  </button>
+                )}
 
                 <div className="space-y-2">
                   <button

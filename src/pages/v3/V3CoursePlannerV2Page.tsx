@@ -597,14 +597,13 @@ function V3CoursePlannerV2PageInner() {
       return;
     }
     const id = uid();
-    // Placeringspunkt = viewportens mitt i banans meter-koord.
-    // Faller tillbaka till arenans mitt tills viewport-storlek är känd.
-    const vpCx = viewport.viewMinXM + viewport.visibleWidthM / 2;
-    const vpCy = viewport.viewMinYM + viewport.visibleHeightM / 2;
+    // Placeringspunkt = viewportens mitt i banans meter-koord (via ArenaCanvas
+    // imperative-API). Faller tillbaka till arenans mitt tills canvas är monterad.
+    const vpCenter = arenaCanvasRef.current?.getViewportCenterCourseM();
     const arenaCx = course.arenaWidthM / 2;
     const arenaCy = course.arenaHeightM / 2;
-    const cx = Number.isFinite(vpCx) ? vpCx : arenaCx;
-    const cy = Number.isFinite(vpCy) ? vpCy : arenaCy;
+    const cx = vpCenter && Number.isFinite(vpCenter.x) ? vpCenter.x : arenaCx;
+    const cy = vpCenter && Number.isFinite(vpCenter.y) ? vpCenter.y : arenaCy;
     // Diskret offset per placering så flera hinder inte hamnar exakt ovanpå.
     // Räknar antal hinder av samma typ, offsettar 0.5 m diagonalt per steg.
     const sameTypeCount = course.obstacles.filter((o) => o.type === type).length;

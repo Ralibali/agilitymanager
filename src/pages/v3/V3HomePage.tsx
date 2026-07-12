@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowRight,
-  BarChart3,
   CalendarDays,
   CheckCircle2,
+  Circle,
   Clock3,
   Dog as DogIcon,
   Download,
   Flame,
-  HeartPulse,
   Medal,
   Pencil,
   Plus,
@@ -29,6 +28,9 @@ import { ActivityTimeline } from "@/components/v3/ActivityTimeline";
 import { V3OnboardingWizard } from "@/components/v3/V3OnboardingWizard";
 import { V3AddDogSheet } from "@/components/v3/V3AddDogSheet";
 import { DogHero } from "@/components/v3/DogHero";
+import { DagensPassCard } from "@/components/v3/DagensPassCard";
+import type { FocusArea, RecSport } from "@/lib/trainingRecommendations";
+import { defaultFocus, AGILITY_FOCUS_KEYS, HOOPERS_FOCUS_KEYS } from "@/lib/trainingRecommendations";
 import { cn } from "@/lib/utils";
 
 function getTimeGreeting(date: Date = new Date()): string {

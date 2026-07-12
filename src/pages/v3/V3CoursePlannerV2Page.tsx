@@ -1425,33 +1425,7 @@ function V3CoursePlannerV2PageInner() {
             speed={playback.speed}
             setSpeed={playback.setSpeed}
           />
-          {/* Mobil zoom-kontroller ovan canvas (dolda ≥ lg). 44px touch-targets. */}
-          <div className="lg:hidden mb-2 flex items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => viewport.zoomOut()}
-              aria-label="Zooma ut"
-              className="grid h-11 w-11 place-items-center rounded-full border border-border bg-card text-foreground/80 active:scale-95"
-            >
-              <ZoomOut size={18} />
-            </button>
-            <button
-              type="button"
-              onClick={() => viewport.fitToScreen()}
-              aria-label="Anpassa banan till skärmen"
-              className="inline-flex h-11 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-[12px] font-semibold text-foreground/80 active:scale-95"
-            >
-              <Maximize size={14} /> Fit
-            </button>
-            <button
-              type="button"
-              onClick={() => viewport.zoomIn()}
-              aria-label="Zooma in"
-              className="grid h-11 w-11 place-items-center rounded-full border border-border bg-card text-foreground/80 active:scale-95"
-            >
-              <ZoomIn size={18} />
-            </button>
-          </div>
+          {/* Mobil zoom-overlay ligger inuti canvas-wrapparen — se ArenaCanvas nedan. */}
           <ArenaCanvas
             containerRef={viewport.containerRef}
             svgRef={viewport.svgRef}

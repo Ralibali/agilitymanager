@@ -113,6 +113,7 @@ type HomeMode = "no-dog" | "no-data" | "full";
 
 export default function V3HomePage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { greeting, name } = useGreeting();
   const { dogs, active, activeId, setActive, loading: dogsLoading } = useV3Dogs();
@@ -124,6 +125,22 @@ export default function V3HomePage() {
     return Boolean(meta.home_insight_dismissed_at);
   });
 
+  // Onboarding-preferenser från user_metadata
+  const meta = (user?.user_metadata ?? {}) as {
+    onboarding_complete?: boolean;
+    onboarding_skipped?: boolean;
+    onboarding_focus?: FocusArea[];
+    onboarding_goal?: string | null;
+    onboarding_sport?: RecSport;
+  };
+  const recSport: RecSport = meta.onboarding_sport
+    ?? (active?.sport === "Hoopers" ? "Hoopers" : "Agility");
+  const validFocusKeys = recSport === "Hoopers" ? HOOPERS_FOCUS_KEYS : AGILITY_FOCUS_KEYS;
+  const savedFocus = (meta.onboarding_focus ?? []).filter((f): f is FocusArea =>
+    (validFocusKeys as readonly string[]).includes(f as string),
+  );
+  const focusList: FocusArea[] = savedFocus.length > 0 ? savedFocus : [defaultFocus(recSport)];
+
   const sessionsThisWeek = stats?.sessionsThisWeek ?? 0;
   const minutesThisWeek = stats?.minutesThisWeek ?? 0;
   const streakDays = stats?.streakDays ?? 0;
@@ -133,21 +150,21 @@ export default function V3HomePage() {
 
   useEffect(() => {
     if (dogsLoading || !user) return;
-    const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean; onboarding_skipped?: boolean };
     const done = meta.onboarding_complete || meta.onboarding_skipped;
     if (!done && dogs.length === 0) setShowOnboarding(true);
-  }, [user, dogs, dogsLoading]);
+  }, [user, dogs, dogsLoading, meta.onboarding_complete, meta.onboarding_skipped]);
 
-  const dailyBrief = useMemo(() => {
-    if (!active) return "Lägg till en hund så bygger vi en smart startvy åt dig.";
-    if (!hasTimeline) return `Börja med ett enkelt pass för ${active.name}. Efter några loggar får du smartare rekommendationer här.`;
-    if (nextEvent?.kind === "competition") return `${active.name} har en tävling på gång. Håll träningen fokuserad och logga känslan efter varje pass.`;
-    if (nextEvent?.kind === "training") return `${active.name} har ett planerat pass. Gör det enkelt: ett fokus, en känsla och ett nästa steg.`;
-    if (streakDays > 0) return `${active.name} har momentum. Fortsätt med korta, tydliga pass och spara det viktigaste.`;
-    return `Du har historik för ${active.name}. Logga nästa pass så blir utvecklingen lättare att följa.`;
-  }, [active, hasTimeline, nextEvent?.kind, streakDays]);
+  // Öppna loggsheet automatiskt om användaren valde "logga riktigt pass" i onboardingen
+  useEffect(() => {
+    if (searchParams.get("logNow") === "1") {
+      openV3LogSheet();
+      const next = new URLSearchParams(searchParams);
+      next.delete("logNow");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
-  // Bestäm läge – vi väntar på både hundar och dashboard-signaler för att undvika layoutshift.
+  // Bestäm läge – vi väntar på både hundar och dashboard-signaler.
   const mode: HomeMode | null = useMemo(() => {
     if (dogsLoading) return null;
     if (dogs.length === 0) return "no-dog";
@@ -155,6 +172,9 @@ export default function V3HomePage() {
     if (!signals.hasAnyTraining && !signals.hasAnyResults) return "no-data";
     return "full";
   }, [dogsLoading, dogs.length, dashLoading, signals]);
+
+  const totalTraining = signals?.totalTraining ?? 0;
+  const showActivationChecklist = mode === "full" && totalTraining < 2;
 
   const dismissInsight = async () => {
     setInsightDismissed(true);

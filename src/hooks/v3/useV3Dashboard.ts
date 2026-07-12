@@ -9,6 +9,15 @@ export type DashboardStats = {
   passedThisMonth: number;
 };
 
+export type DashboardSignals = {
+  hasAnyTraining: boolean;
+  hasAnyResults: boolean;
+  totalResults: number;
+  totalTraining: number;
+  bestPlacement: number | null;
+  firstTrainingDate: string | null;
+};
+
 export type NextEvent =
   | {
       kind: "competition";
@@ -91,6 +100,7 @@ function computeStreak(dates: string[], today: Date = new Date()): number {
 export function useV3Dashboard(dogId: string | null) {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [signals, setSignals] = useState<DashboardSignals | null>(null);
   const [nextEvent, setNextEvent] = useState<NextEvent>(null);
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,6 +121,7 @@ export function useV3Dashboard(dogId: string | null) {
     let cancelled = false;
     if (!user?.id || !dogId) {
       setStats(null);
+      setSignals(null);
       setNextEvent(null);
       setTimeline([]);
       setLoading(false);
@@ -125,7 +136,18 @@ export function useV3Dashboard(dogId: string | null) {
       const todayIso = localIsoDate(today);
       const sixtyDaysAgo = localIsoDate(addDays(today, -60));
 
-      const [sessionsRes, allSessionsRes, resultsMonthRes, plannedCompRes, plannedTrainingRes, recentResultsRes] = await Promise.all([
+      const [
+        sessionsRes,
+        allSessionsRes,
+        resultsMonthRes,
+        plannedCompRes,
+        plannedTrainingRes,
+        recentResultsRes,
+        totalTrainingRes,
+        totalResultsRes,
+        bestPlacementRes,
+        firstTrainingRes,
+      ] = await Promise.all([
         supabase.from("training_sessions").select("id, duration_min, date").eq("user_id", user.id).eq("dog_id", dogId).gte("date", weekStart),
         supabase.from("training_sessions").select("date").eq("user_id", user.id).eq("dog_id", dogId).gte("date", sixtyDaysAgo).order("date", { ascending: false }),
         supabase.from("competition_results").select("id").eq("user_id", user.id).eq("dog_id", dogId).eq("passed", true).gte("date", monthStart),
@@ -135,6 +157,10 @@ export function useV3Dashboard(dogId: string | null) {
           supabase.from("training_sessions").select("id, date, duration_min, type, sport, notes_good, tags").eq("user_id", user.id).eq("dog_id", dogId).order("date", { ascending: false }).limit(5),
           supabase.from("competition_results").select("id, date, event_name, placement, passed, time_sec, faults, discipline").eq("user_id", user.id).eq("dog_id", dogId).order("date", { ascending: false }).limit(5),
         ]),
+        supabase.from("training_sessions").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("dog_id", dogId),
+        supabase.from("competition_results").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("dog_id", dogId),
+        supabase.from("competition_results").select("placement").eq("user_id", user.id).eq("dog_id", dogId).not("placement", "is", null).order("placement", { ascending: true }).limit(1).maybeSingle(),
+        supabase.from("training_sessions").select("date").eq("user_id", user.id).eq("dog_id", dogId).order("date", { ascending: true }).limit(1).maybeSingle(),
       ]);
 
       if (cancelled) return;
@@ -148,6 +174,17 @@ export function useV3Dashboard(dogId: string | null) {
         minutesThisWeek: sessions.reduce((sum, s: { duration_min: number | null }) => sum + (s.duration_min ?? 0), 0),
         streakDays: computeStreak(allDates, today),
         passedThisMonth: passedMonth.length,
+      });
+
+      const totalTraining = totalTrainingRes.count ?? 0;
+      const totalResults = totalResultsRes.count ?? 0;
+      setSignals({
+        hasAnyTraining: totalTraining > 0,
+        hasAnyResults: totalResults > 0,
+        totalTraining,
+        totalResults,
+        bestPlacement: (bestPlacementRes.data as { placement: number | null } | null)?.placement ?? null,
+        firstTrainingDate: (firstTrainingRes.data as { date: string } | null)?.date ?? null,
       });
 
       const comp = plannedCompRes.data;
@@ -195,5 +232,5 @@ export function useV3Dashboard(dogId: string | null) {
     };
   }, [user?.id, dogId, reloadKey]);
 
-  return { stats, nextEvent, timeline, loading };
+  return { stats, signals, nextEvent, timeline, loading };
 }

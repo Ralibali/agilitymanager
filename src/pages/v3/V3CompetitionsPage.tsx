@@ -66,6 +66,15 @@ export default function V3CompetitionsPage() {
 
   useEffect(() => {
     const action = searchParams.get("action");
+    const tabParam = searchParams.get("tab");
+
+    if (tabParam === "find" || tabParam === "results" || tabParam === "upcoming") {
+      setTab(tabParam as Tab);
+      const next = new URLSearchParams(searchParams);
+      next.delete("tab");
+      setSearchParams(next, { replace: true });
+    }
+
     if (!action) return;
 
     if (action === "new" || action === "planned" || action === "plan") {
@@ -78,6 +87,11 @@ export default function V3CompetitionsPage() {
     if (action === "result" || action === "results") {
       setTab("results");
       setResultSheet(true);
+      setSearchParams({}, { replace: true });
+    }
+
+    if (action === "import" || action === "find") {
+      setTab("find");
       setSearchParams({}, { replace: true });
     }
   }, [searchParams, setSearchParams]);

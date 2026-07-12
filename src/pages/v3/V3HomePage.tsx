@@ -7,14 +7,17 @@ import {
   CheckCircle2,
   Clock3,
   Dog as DogIcon,
+  Download,
   Flame,
   HeartPulse,
   Medal,
+  Pencil,
   Plus,
   Sparkles,
   Target,
   Timer,
   Trophy,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,8 +26,9 @@ import { useV3Dogs } from "@/hooks/v3/useV3Dogs";
 import { useV3Dashboard, type NextEvent } from "@/hooks/v3/useV3Dashboard";
 import { openV3LogSheet } from "@/hooks/v3/useV3LogSheet";
 import { ActivityTimeline } from "@/components/v3/ActivityTimeline";
-import { V3EmptyState } from "@/components/v3/V3EmptyState";
 import { V3OnboardingWizard } from "@/components/v3/V3OnboardingWizard";
+import { V3AddDogSheet } from "@/components/v3/V3AddDogSheet";
+import { DogHero } from "@/components/v3/DogHero";
 import { cn } from "@/lib/utils";
 
 function getTimeGreeting(date: Date = new Date()): string {
@@ -101,13 +105,20 @@ function useGreeting(): { greeting: string; name: string } {
   return { greeting, name };
 }
 
+type HomeMode = "no-dog" | "no-data" | "full";
+
 export default function V3HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { greeting, name } = useGreeting();
   const { dogs, active, activeId, setActive, loading: dogsLoading } = useV3Dogs();
-  const { stats, nextEvent, timeline, loading: dashLoading } = useV3Dashboard(activeId);
+  const { stats, signals, nextEvent, timeline, loading: dashLoading } = useV3Dashboard(activeId);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [addDogOpen, setAddDogOpen] = useState(false);
+  const [insightDismissed, setInsightDismissed] = useState<boolean>(() => {
+    const meta = (user?.user_metadata ?? {}) as { home_insight_dismissed_at?: string };
+    return Boolean(meta.home_insight_dismissed_at);
+  });
 
   const sessionsThisWeek = stats?.sessionsThisWeek ?? 0;
   const minutesThisWeek = stats?.minutesThisWeek ?? 0;
@@ -132,27 +143,60 @@ export default function V3HomePage() {
     return `Du har historik för ${active.name}. Logga nästa pass så blir utvecklingen lättare att följa.`;
   }, [active, hasTimeline, nextEvent?.kind, streakDays]);
 
+  // Bestäm läge – vi väntar på både hundar och dashboard-signaler för att undvika layoutshift.
+  const mode: HomeMode | null = useMemo(() => {
+    if (dogsLoading) return null;
+    if (dogs.length === 0) return "no-dog";
+    if (dashLoading || !signals) return null;
+    if (!signals.hasAnyTraining && !signals.hasAnyResults) return "no-data";
+    return "full";
+  }, [dogsLoading, dogs.length, dashLoading, signals]);
+
+  const dismissInsight = async () => {
+    setInsightDismissed(true);
+    try {
+      await supabase.auth.updateUser({ data: { home_insight_dismissed_at: new Date().toISOString() } });
+    } catch {
+      /* ignore */
+    }
+  };
+
   if (showOnboarding) {
     return <V3OnboardingWizard onComplete={() => { setShowOnboarding(false); window.location.reload(); }} />;
   }
 
   return (
     <main id="main-content" className="mx-auto w-full max-w-[1520px] px-4 py-4 sm:px-6 lg:px-8 lg:py-8 animate-v3-fade-in">
-      {dogsLoading ? (
+      {mode === null ? (
         <div className="h-[520px] rounded-[2rem] v3-skeleton" />
-      ) : dogs.length === 0 ? (
-        <V3EmptyState
-          icon={DogIcon}
-          accent="brand"
-          title="Lägg till din första hund"
-          description="Dashboarden blir magisk när den vet vem du tränar med. Lägg till en hund och få en personlig översikt för träning, tävling och mål."
-          actions={[
-            { label: "Starta guiden", onClick: () => setShowOnboarding(true), icon: Plus },
-            { label: "Lägg till manuellt", onClick: () => navigate("/v3/dogs"), variant: "secondary" },
-          ]}
+      ) : mode === "no-dog" ? (
+        <FocusedIntroCard
+          eyebrow="Kom igång"
+          title="Vem tränar du med?"
+          body="Lägg till din hund så hämtar vi tävlingsresultat och bygger er profil."
+          primary={{ label: "Lägg till hund", onClick: () => setAddDogOpen(true), icon: Plus }}
+          secondary={{ label: "Utforska banplaneraren först →", onClick: () => navigate("/v3/course-planner-v2") }}
+        />
+      ) : mode === "no-data" ? (
+        <NoDataMode
+          dogs={dogs}
+          active={active}
+          activeId={activeId}
+          onSelectDog={setActive}
+          onAddDog={() => setAddDogOpen(true)}
+          onFetchResults={() => navigate("/v3/competition?tab=find")}
+          onLogTraining={openV3LogSheet}
+          onPlanCourse={() => navigate("/v3/course-planner-v2")}
         />
       ) : (
         <div className="space-y-5 lg:space-y-6">
+          {!insightDismissed && signals && (
+            <FirstInsightCard
+              signals={signals}
+              onDismiss={dismissInsight}
+              onOpen={() => navigate("/v3/stats")}
+            />
+          )}
           <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
             <CommandHero
               greeting={greeting}
@@ -214,6 +258,11 @@ export default function V3HomePage() {
           </section>
         </div>
       )}
+      <V3AddDogSheet
+        open={addDogOpen}
+        onClose={() => setAddDogOpen(false)}
+        onAdded={() => { setAddDogOpen(false); window.location.reload(); }}
+      />
     </main>
   );
 }
@@ -572,3 +621,196 @@ function buildMissionText({ hasTimeline, nextEvent, dogName, streakDays }: { has
   if (streakDays > 0) return `Behåll rytmen. Logga ett kort pass eller en reflektion innan dagen är slut.`;
   return `Välj ett träningsfokus för ${dogName} och skapa nästa datapunkt i utvecklingen.`;
 }
+
+/* ────────────────────────────────────────────────────────────────
+ * Progressive hierarchy: focused cards for Läge 1 & 2 samt Första insikten.
+ * Håller samma visuella stil som resten av /v3 (rundade kort, kanvas-toner).
+ * ──────────────────────────────────────────────────────────────── */
+
+function FocusedIntroCard({
+  eyebrow,
+  title,
+  body,
+  primary,
+  secondary,
+}: {
+  eyebrow?: string;
+  title: string;
+  body: string;
+  primary: { label: string; onClick: () => void; icon?: LucideIcon };
+  secondary?: { label: string; onClick: () => void };
+}) {
+  const Icon = primary.icon;
+  return (
+    <div className="mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col items-center justify-center py-10">
+      <article className="w-full rounded-[2rem] border border-v3-canvas-sunken/60 bg-[radial-gradient(circle_at_20%_10%,hsl(var(--v3-brand-500)/0.10),transparent_50%),linear-gradient(135deg,hsl(var(--v3-canvas-elevated))_0%,hsl(var(--v3-canvas))_100%)] p-8 shadow-v3-lg sm:p-10 text-center">
+        {eyebrow && (
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-v3-brand-700">{eyebrow}</p>
+        )}
+        <h1 className="mt-3 font-v3-display text-[clamp(1.9rem,4vw,3rem)] leading-[1.05] tracking-[-0.04em] text-v3-text-primary">
+          {title}
+        </h1>
+        <p className="mx-auto mt-4 max-w-md text-base leading-7 text-v3-text-secondary">{body}</p>
+        <button
+          onClick={primary.onClick}
+          className="mt-8 inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-v3-brand-500 px-6 text-sm font-extrabold text-v3-text-inverse shadow-v3-brand transition hover:-translate-y-0.5 hover:bg-v3-brand-600"
+        >
+          {Icon && <Icon size={18} />} {primary.label} <ArrowRight size={16} />
+        </button>
+      </article>
+      {secondary && (
+        <button
+          onClick={secondary.onClick}
+          className="mt-5 text-sm font-semibold text-v3-text-secondary underline-offset-4 hover:text-v3-text-primary hover:underline"
+        >
+          {secondary.label}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function NoDataMode({
+  dogs,
+  active,
+  activeId,
+  onSelectDog,
+  onAddDog,
+  onFetchResults,
+  onLogTraining,
+  onPlanCourse,
+}: {
+  dogs: import("@/hooks/v3/useV3Dogs").V3Dog[];
+  active: import("@/hooks/v3/useV3Dogs").V3Dog | null;
+  activeId: string | null;
+  onSelectDog: (id: string) => void;
+  onAddDog: () => void;
+  onFetchResults: () => void;
+  onLogTraining: () => void;
+  onPlanCourse: () => void;
+}) {
+  const [showAlt, setShowAlt] = useState(false);
+  const dogName = active?.name ?? "din hund";
+
+  return (
+    <div className="space-y-6">
+      <DogHero dogs={dogs} active={active} activeId={activeId} onSelect={onSelectDog} onAddDog={onAddDog} />
+
+      <article className="rounded-[2rem] border border-v3-canvas-sunken/60 bg-[radial-gradient(circle_at_15%_20%,hsl(var(--v3-brand-500)/0.10),transparent_45%),linear-gradient(135deg,hsl(var(--v3-canvas-elevated))_0%,hsl(var(--v3-canvas))_100%)] p-6 shadow-v3-lg sm:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-v3-brand-700">Kom igång</p>
+            <h2 className="mt-3 font-v3-display text-[clamp(1.75rem,3.4vw,2.5rem)] leading-[1.05] tracking-[-0.04em] text-v3-text-primary">
+              Hämta {dogName}s tävlingsresultat
+            </h2>
+            <p className="mt-3 text-base leading-7 text-v3-text-secondary">
+              Vi söker upp era resultat automatiskt — placeringar, felpoäng och utveckling.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button
+                onClick={onFetchResults}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-v3-brand-500 px-5 text-sm font-extrabold text-v3-text-inverse shadow-v3-brand transition hover:-translate-y-0.5 hover:bg-v3-brand-600"
+              >
+                <Download size={17} /> Hämta resultat <ArrowRight size={15} />
+              </button>
+              <button
+                onClick={() => setShowAlt((v) => !v)}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-v3-canvas-sunken/70 bg-v3-canvas-elevated px-5 text-sm font-bold text-v3-text-primary transition hover:bg-v3-canvas-sunken/40"
+              >
+                Jag har inte tävlat än
+              </button>
+            </div>
+            {showAlt && (
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <button
+                  onClick={onLogTraining}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-v3-canvas-sunken/70 bg-v3-canvas px-4 text-sm font-bold text-v3-text-primary hover:bg-v3-canvas-sunken/50"
+                >
+                  <Plus size={15} /> Logga en träning
+                </button>
+                <button
+                  onClick={onPlanCourse}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-v3-canvas-sunken/70 bg-v3-canvas px-4 text-sm font-bold text-v3-text-primary hover:bg-v3-canvas-sunken/50"
+                >
+                  <Pencil size={15} /> Rita en bana
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </article>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-hidden="true">
+        {["Bästa placering", "Godkända lopp", "Utveckling", "Snabbaste tid"].map((label) => (
+          <div key={label} className="rounded-[1.5rem] border border-dashed border-v3-canvas-sunken/70 bg-v3-canvas-elevated/60 p-4 shadow-v3-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-text-tertiary">{label}</p>
+            <p className="mt-3 text-2xl font-black tracking-tight text-v3-text-tertiary/70">— —</p>
+            <p className="mt-2 text-xs text-v3-text-tertiary">Fylls i när resultaten är på plats.</p>
+          </div>
+        ))}
+      </section>
+    </div>
+  );
+}
+
+function FirstInsightCard({
+  signals,
+  onDismiss,
+  onOpen,
+}: {
+  signals: import("@/hooks/v3/useV3Dashboard").DashboardSignals;
+  onDismiss: () => void;
+  onOpen: () => void;
+}) {
+  const { message, cta } = useMemo(() => {
+    if (signals.bestPlacement !== null && signals.totalResults > 0) {
+      return {
+        message: `Bästa placering: ${signals.bestPlacement} — och ${signals.totalResults} resultat importerade. Här är er utveckling.`,
+        cta: "Se statistik",
+      };
+    }
+    if (signals.totalResults > 0) {
+      return {
+        message: `${signals.totalResults} resultat importerade — här är er utveckling.`,
+        cta: "Se statistik",
+      };
+    }
+    if (signals.totalTraining > 0) {
+      return {
+        message: `Första träningen loggad — bra jobbat. Bygg vidare på rytmen.`,
+        cta: "Se statistik",
+      };
+    }
+    return { message: "Din träningsbild börjar ta form.", cta: "Se statistik" };
+  }, [signals]);
+
+  return (
+    <article className="relative rounded-[1.5rem] border border-v3-brand-500/25 bg-gradient-to-br from-v3-brand-500/10 to-v3-canvas-elevated p-5 shadow-v3-sm sm:p-6">
+      <button
+        onClick={onDismiss}
+        aria-label="Dölj insikt"
+        className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-v3-text-tertiary hover:bg-v3-canvas-sunken/40 hover:text-v3-text-primary"
+      >
+        <X size={16} />
+      </button>
+      <div className="flex flex-col gap-4 pr-8 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-v3-brand-500/15 text-v3-brand-700">
+            <Sparkles size={20} />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-v3-brand-700">Första insikten</p>
+            <p className="mt-1 text-base font-bold leading-6 text-v3-text-primary">{message}</p>
+          </div>
+        </div>
+        <button
+          onClick={onOpen}
+          className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-v3-text-primary px-4 text-sm font-black text-v3-text-inverse hover:bg-v3-brand-600"
+        >
+          {cta} <ArrowRight size={15} />
+        </button>
+      </div>
+    </article>
+  );
+}
+

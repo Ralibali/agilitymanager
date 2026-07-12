@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Calendar, Award, ExternalLink, Trophy, Cloud, Users } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Award, ExternalLink, Trophy, Cloud, Users, Pencil, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SEO, buildBreadcrumbSchema } from "@/components/SEO";
 import { LandingNav } from "@/components/landing/LandingNav";
@@ -13,7 +13,12 @@ import { CITY_TO_COUNTY } from "@/lib/swedishCityCounty";
 import { Disclaimer } from "@/components/Disclaimer";
 import type { Competition } from "@/types/competitions";
 import { WatchCompetitionDialog } from "@/components/competitions/WatchCompetitionDialog";
-import { ProductCTA } from "@/components/marketing/ProductCTA";
+import { CompetitionProductBridge } from "@/components/marketing/CompetitionProductBridge";
+import {
+  buildPlannerUrl,
+  buildSignupUrl,
+} from "@/components/marketing/competitionBridgeRoutes";
+import { trackGrowthEvent } from "@/lib/growth";
 import { useAuth } from "@/contexts/AuthContext";
 
 const SITE_URL = "https://agilitymanager.se";

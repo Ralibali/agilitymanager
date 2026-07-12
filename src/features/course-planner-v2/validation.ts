@@ -187,13 +187,18 @@ export function computeCourseTimes(course: CourseLite): CourseTimes {
 /* ───────────── Validering ───────────── */
 
 const CONTACT_TYPES: ObstacleTypeV2[] = ["aframe", "dogwalk", "seesaw"];
-const NON_COMPETING: ObstacleTypeV2[] = ["start", "finish", "number"];
 /**
- * Typer som inte räknas som fysiska hinder vid överlappnings-check.
- * Utöver start/mål/number är även `handler_zone` en yta/markör, inte
- * ett hinder — den får ligga över hinder utan att vi flaggar.
+ * Typer som INTE räknas som tävlingshinder. Exkluderas från klassmallens
+ * hinderantal, numrering, följdpar-säkerhet, edge-check och overlap-check.
+ * `handler_zone` (hoopers dirigeringsområde) är en markerad yta för föraren,
+ * inte ett fysiskt hinder, och behandlas därför som start/mål/number.
  */
-const NON_PHYSICAL_FOR_OVERLAP: ObstacleTypeV2[] = ["start", "finish", "number", "handler_zone"];
+const NON_COMPETING: ObstacleTypeV2[] = ["start", "finish", "number", "handler_zone"];
+/**
+ * Alias behållet för läsbarhet vid overlap-loopen. Samma lista som
+ * `NON_COMPETING` — dessa typer är inte fysiska hinder.
+ */
+const NON_PHYSICAL_FOR_OVERLAP: ObstacleTypeV2[] = NON_COMPETING;
 
 /**
  * Typer med stor dekorativ/zonliknande fotavtryck där en AABB-överlappning
@@ -216,8 +221,17 @@ export interface ObstacleOverlap {
   strict: boolean;
 }
 
-/** Finns det överlappande AABB-yta mellan a och b (med liten tolerans)? */
+/**
+ * Finns det överlappande AABB-yta mellan a och b?
+ *
+ * Steg 1: snabb bascheck via delad `aabbsOverlap` — om AABB:erna inte ens
+ * möts finns ingen gemensam yta.
+ * Steg 2: kräv att överlappet är tjockare än `tolM` på båda axlarna så att
+ * hinder som bara nuddar (0 mm kant) eller ligger några cm ifrån varandra
+ * inte flaggas. Vi kräver alltså verklig överlappningsyta, inte kontakt.
+ */
 function aabbsOverlapTolerant(a: AABB, b: AABB, tolM: number): boolean {
+  if (!aabbsOverlap(a, b)) return false;
   return !(
     a.maxX < b.minX + tolM ||
     b.maxX < a.minX + tolM ||

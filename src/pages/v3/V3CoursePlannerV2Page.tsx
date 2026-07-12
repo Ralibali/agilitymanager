@@ -1540,26 +1540,31 @@ function ToolBtn({ active, onClick, icon, children, title }: { active: boolean; 
 
 
 function ArenaCanvas({
-  svgRef, course, selectedId, highlightIds, showPath, showDimensions = false,
-  onObstacleDown, onPointerMove, onPointerUp, onBackgroundClick,
+  containerRef, svgRef, viewBox, pxPerM,
+  course, selectedId, highlightIds, showPath, showDimensions = false,
+  onObstacleDown, onSvgPointerDown, onPointerMove, onPointerUp, onWheel, onBackgroundClick,
   playbackActive = false, playbackT = 0,
 }: {
+  containerRef: React.MutableRefObject<HTMLDivElement | null>;
   svgRef: React.MutableRefObject<SVGSVGElement | null>;
+  viewBox: string;
+  pxPerM: number;
   course: CourseV2;
   selectedId: string | null;
   highlightIds: Set<string>;
   showPath: boolean;
   showDimensions?: boolean;
   onObstacleDown: (e: PointerEvent<SVGGElement>, id: string) => void;
+  onSvgPointerDown: (e: PointerEvent<SVGSVGElement>) => void;
   onPointerMove: (e: PointerEvent<SVGSVGElement>) => void;
-  onPointerUp: () => void;
+  onPointerUp: (e: PointerEvent<SVGSVGElement>) => void;
+  onWheel: (e: WheelEvent<SVGSVGElement>) => void;
   onBackgroundClick: () => void;
   playbackActive?: boolean;
   playbackT?: number;
 }) {
   const w = course.arenaWidthM;
   const h = course.arenaHeightM;
-  const padding = showDimensions ? 1.8 : 1;
   // Hundens väg (Prompt B) — mjuk Catmull-Rom-kurva via dogPath.
   const dogPath = buildDogPath(course.obstacles);
   const pathD = dogPathToSvgD(dogPath);
@@ -1569,14 +1574,21 @@ function ArenaCanvas({
   const tickStepM = maxArenaM <= 20 ? 1 : maxArenaM <= 40 ? 5 : 10;
 
   return (
-    <div className="relative rounded-xl bg-[#e8efe0] p-2 overflow-auto">
+    <div
+      ref={containerRef}
+      className="relative rounded-xl bg-[#e8efe0] p-2"
+      style={{ touchAction: "none" }}
+    >
       <svg
         ref={svgRef}
-        viewBox={`${-padding} ${-padding} ${w + padding * 2} ${h + padding * 2}`}
+        viewBox={viewBox}
         className="w-full h-auto min-h-[min(70dvh,720px)] lg:min-h-0 max-h-[calc(100dvh-200px)] touch-none select-none"
+        onPointerDown={onSvgPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
         onPointerLeave={onPointerUp}
+        onWheel={onWheel}
         onClick={onBackgroundClick}
         style={{ cursor: "default" }}
       >
@@ -1603,9 +1615,11 @@ function ArenaCanvas({
               obstacle={ob}
               selected={selectedId === ob.id}
               hasIssue={highlightIds.has(ob.id)}
+              pxPerM={pxPerM}
               onPointerDown={(e) => onObstacleDown(e, ob.id)}
             />
           ))}
+
 
         {/* Banmått — sticky linjaler i meter, ritade direkt i SVG så de skalar med viewBox */}
         {showDimensions && (

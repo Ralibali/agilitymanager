@@ -1555,6 +1555,7 @@ function V3CoursePlannerV2PageInner() {
           onTunnelCurve={(p) => setTunnelCurve(selected.id, p)}
           onClose={() => setSelectedId(null)}
         />
+      )}
     </div>
   );
 }

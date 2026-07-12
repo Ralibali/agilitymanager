@@ -1676,16 +1676,24 @@ function ArenaCanvas({
   );
 }
 
-function ObstacleSvg({ obstacle, selected, hasIssue, onPointerDown }: {
+function ObstacleSvg({ obstacle, selected, hasIssue, pxPerM, onPointerDown }: {
   obstacle: ObstacleV2;
   selected: boolean;
   hasIssue?: boolean;
+  /** Skala mellan meter och skärm-pixlar. Används för att räkna ut en
+   *  transparent hit-area så att små hinder alltid har minst ~44 CSS-px
+   *  tryck-yta oavsett zoom-nivå. */
+  pxPerM: number;
   onPointerDown: (e: PointerEvent<SVGGElement>) => void;
 }) {
   const def = getObstacleDefV2(obstacle.type);
   if (!def) return null;
   const { w, d } = def.sizeM;
   const locked = !!obstacle.locked;
+  // Minsta hit-area i meter så att touch-target ≥ 44 CSS-px.
+  const minHitM = pxPerM > 0 ? 44 / pxPerM : 0;
+  const hitW = Math.max(w, minHitM);
+  const hitD = Math.max(d, minHitM);
   return (
     <g
       transform={`translate(${obstacle.x} ${obstacle.y}) rotate(${obstacle.rotation})`}
@@ -1693,6 +1701,12 @@ function ObstacleSvg({ obstacle, selected, hasIssue, onPointerDown }: {
       onClick={(e) => e.stopPropagation()}
       style={{ cursor: locked ? "not-allowed" : "grab" }}
     >
+      {/* Transparent hit-target — påverkar inte visuella mått, bara touch-yta. */}
+      <rect
+        x={-hitW / 2} y={-hitD / 2} width={hitW} height={hitD}
+        fill="transparent"
+        pointerEvents="all"
+      />
       {hasIssue && !selected && (
         <circle r={Math.max(w, d) / 2 + 0.35} fill="#ef4444" opacity={0.18} />
       )}

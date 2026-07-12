@@ -1,9 +1,11 @@
-import { Hash, LayoutGrid, MoreHorizontal, MousePointer2, Plus, Redo2, ShieldCheck, Undo2 } from "lucide-react";
+import { Hand, Hash, LayoutGrid, MoreHorizontal, MousePointer2, Plus, Redo2, ShieldCheck, Undo2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+type MobileTool = "select" | "number" | "pan";
+
 interface Props {
-  tool: "select" | "erase" | "number" | "measure";
-  onSetTool: (t: "select" | "number") => void;
+  tool: "select" | "erase" | "number" | "measure" | "pan";
+  onSetTool: (t: MobileTool) => void;
   onAddObstacle: () => void;
   onUndo: () => void;
   onRedo: () => void;

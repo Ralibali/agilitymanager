@@ -1576,16 +1576,8 @@ function ToolBtn({ active, onClick, icon, children, title }: { active: boolean; 
 }
 
 
-function ArenaCanvas({
-  containerRef, svgRef, viewBox, pxPerM,
-  course, selectedId, highlightIds, showPath, showDimensions = false,
-  onObstacleDown, onSvgPointerDown, onPointerMove, onPointerUp, onWheel, onBackgroundClick,
-  playbackActive = false, playbackT = 0,
-}: {
-  containerRef: React.MutableRefObject<HTMLDivElement | null>;
-  svgRef: React.MutableRefObject<SVGSVGElement | null>;
-  viewBox: string;
-  pxPerM: number;
+interface ArenaCanvasProps {
+  storageKey: string;
   course: CourseV2;
   selectedId: string | null;
   highlightIds: Set<string>;
@@ -1599,26 +1591,95 @@ function ArenaCanvas({
   onBackgroundClick: () => void;
   playbackActive?: boolean;
   playbackT?: number;
-}) {
+}
+
+/**
+ * ArenaCanvas äger `useCanvasViewport`-hooken och är därmed enda källa till
+ * viewBox, client↔meter-konvertering, zoom/pan/pinch och Fit-to-screen.
+ * Föräldern kommer åt viewport via `useImperativeHandle` (se ArenaCanvasHandle).
+ */
+const ArenaCanvas = forwardRef<ArenaCanvasHandle, ArenaCanvasProps>(function ArenaCanvas(
+  {
+    storageKey,
+    course,
+    selectedId,
+    highlightIds,
+    showPath,
+    showDimensions = false,
+    onObstacleDown,
+    onSvgPointerDown,
+    onPointerMove,
+    onPointerUp,
+    onWheel,
+    onBackgroundClick,
+    playbackActive = false,
+    playbackT = 0,
+  },
+  ref,
+) {
+  const viewport = useCanvasViewport({
+    storageKey,
+    arenaWidthM: course.arenaWidthM,
+    arenaHeightM: course.arenaHeightM,
+    paddingM: showDimensions ? 1.8 : 1,
+  });
+
+  // Imperative API mot föräldern. Alla metoder är stabila referenser på
+  // `viewport`, som re-skapas bara vid arena-/state-byte — vi listar dem i
+  // deps så att den senaste versionen alltid exponeras.
+  useImperativeHandle(
+    ref,
+    () => ({
+      fitToScreen: () => viewport.fitToScreen(),
+      zoomIn: () => viewport.zoomIn(),
+      zoomOut: () => viewport.zoomOut(),
+      zoomAtClient: (factor, cx, cy) => viewport.zoomAtClient(factor, cx, cy),
+      zoomTo: (z, ax, ay) => viewport.zoomTo(z, ax, ay),
+      panByPx: (dx, dy) => viewport.panByPx(dx, dy),
+      clientToCourseM: (cx, cy) => viewport.clientToCourseM(cx, cy),
+      getViewportCenterCourseM: () => ({
+        x: viewport.viewMinXM + viewport.visibleWidthM / 2,
+        y: viewport.viewMinYM + viewport.visibleHeightM / 2,
+      }),
+      getZoom: () => viewport.state.zoom,
+      getSvgElement: () => viewport.svgRef.current,
+    }),
+    [viewport],
+  );
+
+  // Fit när canvasen först får storlek (ResizeObserver inuti hooken driver
+  // metrics.viewportWidthPx). Görs en gång per mount.
+  const firstFitRef = useRef(false);
+  useEffect(() => {
+    if (!firstFitRef.current && viewport.metrics.viewportWidthPx > 100) {
+      firstFitRef.current = true;
+      viewport.fitToScreen();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewport.metrics.viewportWidthPx]);
+
+  // Fit vid arena- eller sportbyte så att nya banan alltid syns direkt.
+  useEffect(() => {
+    viewport.fitToScreen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [course.arenaWidthM, course.arenaHeightM, course.sport]);
+
   const w = course.arenaWidthM;
   const h = course.arenaHeightM;
-  // Hundens väg (Prompt B) — mjuk Catmull-Rom-kurva via dogPath.
   const dogPath = buildDogPath(course.obstacles);
   const pathD = dogPathToSvgD(dogPath);
-
-  // Adaptiv tickmark-täthet i meter beroende på arenastorlek.
   const maxArenaM = Math.max(w, h);
   const tickStepM = maxArenaM <= 20 ? 1 : maxArenaM <= 40 ? 5 : 10;
 
   return (
     <div
-      ref={containerRef}
+      ref={viewport.containerRef}
       className="relative rounded-xl bg-[#e8efe0] p-2"
       style={{ touchAction: "none" }}
     >
       <svg
-        ref={svgRef}
-        viewBox={viewBox}
+        ref={viewport.svgRef}
+        viewBox={viewport.viewBox}
         className="w-full h-auto min-h-[min(70dvh,720px)] lg:min-h-0 max-h-[calc(100dvh-200px)] touch-none select-none"
         onPointerDown={onSvgPointerDown}
         onPointerMove={onPointerMove}
@@ -1652,16 +1713,13 @@ function ArenaCanvas({
               obstacle={ob}
               selected={selectedId === ob.id}
               hasIssue={highlightIds.has(ob.id)}
-              pxPerM={pxPerM}
+              pxPerM={viewport.metrics.pxPerM}
               onPointerDown={(e) => onObstacleDown(e, ob.id)}
             />
           ))}
 
-
-        {/* Banmått — sticky linjaler i meter, ritade direkt i SVG så de skalar med viewBox */}
         {showDimensions && (
           <g pointerEvents="none">
-            {/* Tickmarks topp (x-axel) */}
             {Array.from({ length: Math.floor(w / tickStepM) + 1 }).map((_, i) => {
               const m = i * tickStepM;
               if (m === 0 || m === w) return null;
@@ -1674,7 +1732,6 @@ function ArenaCanvas({
                 </g>
               );
             })}
-            {/* Tickmarks vänster (y-axel) */}
             {Array.from({ length: Math.floor(h / tickStepM) + 1 }).map((_, i) => {
               const m = i * tickStepM;
               if (m === 0 || m === h) return null;
@@ -1687,7 +1744,6 @@ function ArenaCanvas({
                 </g>
               );
             })}
-            {/* Banmått — totala bredd/höjd centrerat utanför arenan */}
             <text x={w / 2} y={-0.92} textAnchor="middle" fontSize={0.55} fontWeight={700} fill="#173d2c" opacity={0.9}>
               {w} m
             </text>
@@ -1697,16 +1753,47 @@ function ArenaCanvas({
             >
               {h} m
             </text>
-            {/* Hörnmarkörer (0,0) */}
             <text x={-0.55} y={-0.2} textAnchor="end" fontSize={0.35} fill="#173d2c" opacity={0.55}>0</text>
           </g>
         )}
 
         <CoursePlaybackOverlay course={course} active={playbackActive} t={playbackT} />
       </svg>
+
+      {/* Mobil zoom-overlay ligger inuti canvas-wrappern. 44px touch-targets. */}
+      <div
+        className="lg:hidden pointer-events-none absolute right-3 top-3 flex flex-col items-end gap-2"
+        aria-label="Zoom-kontroller"
+      >
+        <button
+          type="button"
+          onClick={() => viewport.zoomIn()}
+          aria-label="Zooma in"
+          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-border bg-card/95 text-foreground/80 shadow-sm backdrop-blur active:scale-95"
+        >
+          <ZoomIn size={18} />
+        </button>
+        <button
+          type="button"
+          onClick={() => viewport.fitToScreen()}
+          aria-label={`Anpassa banan till skärmen. Zoom ${Math.round(viewport.state.zoom * 100)} procent`}
+          className="pointer-events-auto inline-flex h-11 min-w-[60px] items-center justify-center gap-1 rounded-full border border-border bg-card/95 px-2 text-[11px] font-semibold text-foreground/80 shadow-sm backdrop-blur active:scale-95"
+        >
+          <Maximize size={14} />
+          <span>{Math.round(viewport.state.zoom * 100)}%</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => viewport.zoomOut()}
+          aria-label="Zooma ut"
+          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-border bg-card/95 text-foreground/80 shadow-sm backdrop-blur active:scale-95"
+        >
+          <ZoomOut size={18} />
+        </button>
+      </div>
     </div>
   );
-}
+});
 
 function ObstacleSvg({ obstacle, selected, hasIssue, pxPerM, onPointerDown }: {
   obstacle: ObstacleV2;

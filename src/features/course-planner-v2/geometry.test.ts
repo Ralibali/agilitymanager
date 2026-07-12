@@ -119,3 +119,54 @@ describe("snapToGrid", () => {
     expect(snapToGrid(3.14, 0)).toBe(3.14);
   });
 });
+
+describe("snapCoursePoint", () => {
+  it("snapar båda komponenter till 0.5 m", () => {
+    const p = snapCoursePoint({ x: 1.23, y: 4.76 }, 0.5);
+    expect(p.x).toBeCloseTo(1.0, 6);
+    expect(p.y).toBeCloseTo(5.0, 6);
+  });
+  it("step 0 lämnar punkten oförändrad", () => {
+    expect(snapCoursePoint({ x: 3.14, y: 2.72 }, 0)).toEqual({ x: 3.14, y: 2.72 });
+  });
+});
+
+describe("rotatedObstacleBounds", () => {
+  it("roterat hopp nära vänsterkant får aabb som sticker utanför arena", () => {
+    // 1.4×0.4 hopp, 45° roterat vid x=0.3
+    const box = rotatedObstacleBounds("jump", 0.3, 20, 45, { w: 1.4, d: 0.4 });
+    expect(box.aabb.minX).toBeLessThan(0);
+  });
+  it("tunnel 3.0×0.6 roterat 90° blir 0.6 bred × 3.0 djup", () => {
+    const box = rotatedObstacleBounds("tunnel", 10, 10, 90, { w: 3.0, d: 0.6 });
+    expect(box.aabb.maxX - box.aabb.minX).toBeCloseTo(0.6, 4);
+    expect(box.aabb.maxY - box.aabb.minY).toBeCloseTo(3.0, 4);
+  });
+});
+
+describe("clampObstacleToArena", () => {
+  it("roterat hopp med centrum innanför men bounds utanför flyttas in", () => {
+    const clamped = clampObstacleToArena(
+      { id: "a", x: 0.3, y: 20, rotation: 45 },
+      { widthM: 30, heightM: 40 },
+      { w: 1.4, d: 0.4 },
+    );
+    // Hela roterade AABB ska nu ligga innanför
+    const box = rotatedObstacleBounds("jump", clamped.x, clamped.y, clamped.rotation, { w: 1.4, d: 0.4 });
+    expect(box.aabb.minX).toBeGreaterThanOrEqual(-1e-6);
+  });
+  it("obstacle inom arenan lämnas oförändrat (samma referens)", () => {
+    const ob = { id: "b", x: 15, y: 20, rotation: 0 };
+    const clamped = clampObstacleToArena(ob, { widthM: 30, heightM: 40 }, { w: 1.4, d: 0.4 });
+    expect(clamped).toBe(ob);
+  });
+  it("tunnel nära högerkant klampas efter roterad AABB", () => {
+    const clamped = clampObstacleToArena(
+      { x: 29.8, y: 20, rotation: 0 },
+      { widthM: 30, heightM: 40 },
+      { w: 3.0, d: 0.6 },
+    );
+    // AABB-halvbredd = 1.5 → maxCenterX = 28.5
+    expect(clamped.x).toBeCloseTo(28.5, 6);
+  });
+});

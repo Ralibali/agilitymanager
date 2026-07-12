@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-import { X, Check, Loader2, Star, MapPin, Clock, Dumbbell, Smile, Tag as TagIcon, Battery, User as UserIcon } from "lucide-react";
+import { X, Check, Loader2, Star, MapPin, Clock, Dumbbell, Smile, Tag as TagIcon, Battery, User as UserIcon, ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
 import { useV3Dogs, type V3Dog } from "@/hooks/v3/useV3Dogs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { trackGrowthEvent } from "@/lib/growth";
+import { buildFirstInsight } from "@/lib/trainingRecommendations";
 
 interface Props {
   open: boolean;
@@ -27,6 +29,7 @@ const schema = z.object({
   duration_min: z.number().int().min(1, "Minst 1 min").max(600, "Max 600 min"),
   overall_mood: z.number().int().min(1).max(5),
   notes_good: z.string().trim().max(500).optional(),
+  notes_improve: z.string().trim().max(500).optional(),
   obstacles: z.array(z.string().max(40)).max(20),
   tags: z.array(z.string().max(40)).max(15),
   dog_energy: z.number().int().min(1).max(5),
@@ -40,6 +43,7 @@ type FormState = {
   duration_min: string;
   overall_mood: number;
   notes_good: string;
+  notes_improve: string;
   obstacles: string[];
   tags: string[];
   dog_energy: number;
@@ -50,9 +54,10 @@ type FormState = {
 const defaultState = (firstDogId: string | null): FormState => ({
   dog_id: firstDogId ?? "",
   type: "Bana",
-  duration_min: "30",
+  duration_min: "20",
   overall_mood: 4,
   notes_good: "",
+  notes_improve: "",
   obstacles: [],
   tags: [],
   dog_energy: 4,
@@ -67,41 +72,11 @@ function localIsoDate(date: Date = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
-function getSmartSuccessCopy(data: { dogName?: string; type: string; minutes: number; mood: number; tags: string[]; obstacles: string[] }) {
-  const dogName = data.dogName ?? "hunden";
-  if (data.mood >= 5) {
-    return {
-      description: `${data.minutes} min ${data.type.toLowerCase()} · stark känsla`,
-      actionLabel: "Se statistik",
-      actionUrl: "/v3/stats",
-    };
-  }
-  if (data.mood <= 2) {
-    return {
-      description: `${data.minutes} min sparat. Sätt gärna ett lugnt mål för nästa pass.`,
-      actionLabel: "Skapa mål",
-      actionUrl: "/v3/goals?action=new",
-    };
-  }
-  if (data.obstacles.length > 0 || data.tags.length > 0) {
-    return {
-      description: `${dogName}: ${data.minutes} min · ${data.tags[0] ?? data.obstacles[0]} sparat`,
-      actionLabel: "Se pass",
-      actionUrl: "/v3/training",
-    };
-  }
-  return {
-    description: `${data.minutes} min ${data.type.toLowerCase()} sparat`,
-    actionLabel: "Se träning",
-    actionUrl: "/v3/training",
-  };
-}
-
 /**
- * Bottom-sheet för v3 Logga pass.
- * – Allt på en vy (snabbt, Linear-känsla)
- * – 10 fält enligt Standard-omfång
- * – zod-validering, sonner-toast, stänger på success
+ * V3 Logga pass – progressive disclosure.
+ * Standardvyn: hund, typ, tid, känsla, gick bra, tränar vi vidare på.
+ * Avancerat (hopfällbart): plats, hinder, taggar, energi.
+ * Efter sparning visas en riktig regelbaserad insikt istället för "Pass loggat".
  */
 export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
   const { user } = useAuth();
@@ -109,6 +84,8 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
   const [form, setForm] = useState<FormState>(() => defaultState(activeId));
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const [advOpen, setAdvOpen] = useState(false);
+  const [startedTracked, setStartedTracked] = useState(false);
 
   const selectedDog: V3Dog | null = useMemo(
     () => dogs.find((d) => d.id === form.dog_id) ?? null,
@@ -118,11 +95,13 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
   const types = isHoopers ? TRAINING_TYPES_HOOPERS : TRAINING_TYPES_AGILITY;
   const obstacleOptions = isHoopers ? OBSTACLES_HOOPERS : OBSTACLES_AGILITY;
 
-  // Återställ när sheet öppnas / aktiv hund ändras
+  // Reset när sheet öppnas
   useEffect(() => {
     if (open) {
       setForm(defaultState(activeId ?? active?.id ?? null));
       setErrors({});
+      setAdvOpen(false);
+      setStartedTracked(false);
     }
   }, [open, activeId, active?.id]);
 
@@ -142,8 +121,13 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
 
   if (!open) return null;
 
-  const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
+  const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
+    if (!startedTracked) {
+      trackGrowthEvent("training_form_started");
+      setStartedTracked(true);
+    }
     setForm((p) => ({ ...p, [key]: value }));
+  };
 
   const toggleArr = (key: "obstacles" | "tags", value: string) =>
     setForm((p) => ({
@@ -162,6 +146,7 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
       duration_min: Number(form.duration_min),
       overall_mood: form.overall_mood,
       notes_good: form.notes_good,
+      notes_improve: form.notes_improve,
       obstacles: form.obstacles,
       tags: form.tags,
       dog_energy: form.dog_energy,
@@ -180,6 +165,14 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
     }
     setErrors({});
     setSubmitting(true);
+
+    // Kolla om detta är användarens första pass (för first_training_logged-event)
+    const { count: existingCount } = await supabase
+      .from("training_sessions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    const isFirst = (existingCount ?? 0) === 0;
+
     const today = localIsoDate();
     const { error } = await supabase.from("training_sessions").insert({
       user_id: user.id,
@@ -190,7 +183,7 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
       sport: (isHoopers ? "Hoopers" : "Agility") as never,
       reps: 0,
       notes_good: parsed.data.notes_good ?? "",
-      notes_improve: "",
+      notes_improve: parsed.data.notes_improve ?? "",
       dog_energy: parsed.data.dog_energy,
       handler_energy: parsed.data.handler_energy,
       tags: parsed.data.tags,
@@ -203,23 +196,35 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
       toast.error("Kunde inte spara passet", { description: error.message });
       return;
     }
-    const smartCopy = getSmartSuccessCopy({
-      dogName: selectedDog?.name,
+
+    trackGrowthEvent("training_logged", {
       type: parsed.data.type,
-      minutes: parsed.data.duration_min,
+      duration_min: parsed.data.duration_min,
       mood: parsed.data.overall_mood,
-      tags: parsed.data.tags,
+    });
+    if (isFirst) {
+      trackGrowthEvent("first_training_logged", { type: parsed.data.type });
+    }
+
+    const insight = buildFirstInsight({
+      dogName: selectedDog?.name ?? "",
+      focusLabel: parsed.data.obstacles[0] ?? parsed.data.tags[0] ?? null,
+      mood: parsed.data.overall_mood,
+      notesGood: parsed.data.notes_good ?? null,
       obstacles: parsed.data.obstacles,
     });
+
     toast.success("Pass loggat", {
-      description: smartCopy.description,
+      description: insight,
+      duration: 6000,
       action: {
-        label: smartCopy.actionLabel,
+        label: "Se statistik",
         onClick: () => {
-          window.location.href = smartCopy.actionUrl;
+          window.location.href = "/v3/stats";
         },
       },
     });
+
     window.dispatchEvent(new CustomEvent("v3:training-logged", { detail: { dogId: parsed.data.dog_id, date: today } }));
     onLogged?.();
     onClose();
@@ -246,9 +251,7 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
 
         <div className="flex items-center justify-between px-5 pt-1 pb-3 shrink-0">
           <div>
-            <h2 className="font-v3-display text-[24px] leading-tight text-v3-text-primary">
-              Logga pass
-            </h2>
+            <h2 className="font-v3-display text-[24px] leading-tight text-v3-text-primary">Logga pass</h2>
             <p className="text-v3-xs text-v3-text-tertiary mt-0.5">
               {new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long" })}
             </p>
@@ -271,53 +274,116 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
                 {dogs.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
             </Field>
-            <Field label="Typ" icon={<Dumbbell size={13} />}>
+            <Field label="Typ / fokus" icon={<Dumbbell size={13} />}>
               <select value={form.type} onChange={(e) => update("type", e.target.value)} className={selectClass}>
                 {types.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </Field>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Längd (min)" icon={<Clock size={13} />} error={errors.duration_min}>
-              <input inputMode="numeric" value={form.duration_min} onChange={(e) => update("duration_min", e.target.value.replace(/[^0-9]/g, ""))} className={inputClass} />
-            </Field>
-            <Field label="Plats" icon={<MapPin size={13} />}>
-              <input value={form.location} onChange={(e) => update("location", e.target.value)} placeholder="t.ex. klubben" maxLength={120} className={inputClass} />
-            </Field>
-          </div>
+          <Field label="Längd (min)" icon={<Clock size={13} />} error={errors.duration_min}>
+            <input
+              inputMode="numeric"
+              value={form.duration_min}
+              onChange={(e) => update("duration_min", e.target.value.replace(/[^0-9]/g, ""))}
+              className={inputClass}
+            />
+          </Field>
 
           <Field label="Hur kändes passet?" icon={<Smile size={13} />}>
             <StarPicker value={form.overall_mood} onChange={(v) => update("overall_mood", v)} />
           </Field>
 
-          <Field label="Tränade hinder" icon={<Dumbbell size={13} />}>
-            <ChipRow options={obstacleOptions} selected={form.obstacles} onToggle={(o) => toggleArr("obstacles", o)} />
+          <Field label="Vad gick bra?">
+            <textarea
+              value={form.notes_good}
+              onChange={(e) => update("notes_good", e.target.value)}
+              maxLength={500}
+              rows={2}
+              placeholder="Snabb slalom, bra kontaktzoner…"
+              className={cn(inputClass, "resize-none leading-snug h-auto py-2")}
+            />
           </Field>
 
-          <Field label="Taggar" icon={<TagIcon size={13} />}>
-            <ChipRow options={COMMON_TAGS} selected={form.tags} onToggle={(t) => toggleArr("tags", t)} />
+          <Field label="Vad tränar vi vidare på?" icon={<TrendingUp size={13} />}>
+            <textarea
+              value={form.notes_improve}
+              onChange={(e) => update("notes_improve", e.target.value)}
+              maxLength={500}
+              rows={2}
+              placeholder="Ingång slalom från höger, kontakt utan stopp…"
+              className={cn(inputClass, "resize-none leading-snug h-auto py-2")}
+            />
           </Field>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Hundens energi" icon={<Battery size={13} />}>
-              <StarPicker value={form.dog_energy} onChange={(v) => update("dog_energy", v)} compact />
-            </Field>
-            <Field label="Din energi" icon={<Battery size={13} />}>
-              <StarPicker value={form.handler_energy} onChange={(v) => update("handler_energy", v)} compact />
-            </Field>
+          {/* Avancerat – hopfällbart */}
+          <div className="rounded-v3-base border border-v3-canvas-sunken/60 bg-v3-canvas/30">
+            <button
+              type="button"
+              onClick={() => setAdvOpen((v) => !v)}
+              aria-expanded={advOpen}
+              className="w-full flex items-center justify-between gap-2 px-4 py-3 text-v3-sm font-medium text-v3-text-secondary hover:text-v3-text-primary"
+            >
+              <span>Avancerat</span>
+              {advOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            {advOpen && (
+              <div className="px-4 pb-4 space-y-4">
+                <Field label="Plats" icon={<MapPin size={13} />}>
+                  <input
+                    value={form.location}
+                    onChange={(e) => update("location", e.target.value)}
+                    placeholder="t.ex. klubben"
+                    maxLength={120}
+                    className={inputClass}
+                  />
+                </Field>
+
+                <Field label="Tränade hinder" icon={<Dumbbell size={13} />}>
+                  <ChipRow options={obstacleOptions} selected={form.obstacles} onToggle={(o) => toggleArr("obstacles", o)} />
+                </Field>
+
+                <Field label="Taggar" icon={<TagIcon size={13} />}>
+                  <ChipRow options={COMMON_TAGS} selected={form.tags} onToggle={(t) => toggleArr("tags", t)} />
+                </Field>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Hundens energi" icon={<Battery size={13} />}>
+                    <StarPicker value={form.dog_energy} onChange={(v) => update("dog_energy", v)} compact />
+                  </Field>
+                  <Field label="Din energi" icon={<Battery size={13} />}>
+                    <StarPicker value={form.handler_energy} onChange={(v) => update("handler_energy", v)} compact />
+                  </Field>
+                </div>
+              </div>
+            )}
           </div>
-
-          <Field label="Vad funkade bra?">
-            <textarea value={form.notes_good} onChange={(e) => update("notes_good", e.target.value)} maxLength={500} rows={3} placeholder="Snabb slalom, bra kontaktzoner…" className={cn(inputClass, "resize-none leading-snug")} />
-            <div className="text-[10px] text-v3-text-tertiary text-right mt-1">{form.notes_good.length}/500</div>
-          </Field>
         </div>
 
         <div className="border-t border-v3-canvas-sunken/40 px-5 py-3 bg-v3-canvas-elevated shrink-0 flex items-center gap-3">
-          <button type="button" onClick={onClose} className="h-11 px-4 rounded-v3-base text-v3-sm font-medium text-v3-text-secondary hover:bg-v3-canvas-secondary transition-colors">Avbryt</button>
-          <button type="button" onClick={submit} disabled={submitting || !form.dog_id} className={cn("flex-1 h-11 rounded-v3-base inline-flex items-center justify-center gap-2", "bg-v3-brand-500 text-white text-v3-sm font-medium", "hover:bg-v3-brand-600 transition-colors", "disabled:opacity-50 disabled:cursor-not-allowed") }>
-            {submitting ? <><Loader2 size={16} className="animate-spin" /> Sparar…</> : <><Check size={16} strokeWidth={2} /> Spara pass</>}
+          <button
+            type="button"
+            onClick={onClose}
+            className="min-h-11 h-11 px-4 rounded-v3-base text-v3-sm font-medium text-v3-text-secondary hover:bg-v3-canvas-secondary"
+          >
+            Avbryt
+          </button>
+          <button
+            type="button"
+            onClick={submit}
+            disabled={submitting || !form.dog_id}
+            className={cn(
+              "flex-1 min-h-11 h-11 rounded-v3-base inline-flex items-center justify-center gap-2",
+              "bg-v3-brand-500 text-white text-v3-sm font-semibold shadow-v3-brand",
+              "hover:bg-v3-brand-600 transition-colors",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+            )}
+          >
+            {submitting ? (
+              <><Loader2 size={16} className="animate-spin" /> Sparar…</>
+            ) : (
+              <><Check size={16} strokeWidth={2} /> Spara pass</>
+            )}
           </button>
         </div>
       </div>
@@ -325,17 +391,66 @@ export function V3LogTrainingSheet({ open, onClose, onLogged }: Props) {
   );
 }
 
-const inputClass = "w-full h-10 px-3 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken/60 text-v3-sm text-v3-text-primary placeholder:text-v3-text-tertiary focus:outline-none focus:border-v3-brand-500/60 focus:ring-2 focus:ring-v3-brand-500/15 transition-colors";
+const inputClass =
+  "w-full h-11 px-3 rounded-v3-base bg-v3-canvas border border-v3-canvas-sunken/60 text-v3-sm text-v3-text-primary placeholder:text-v3-text-tertiary focus:outline-none focus:border-v3-brand-500/60 focus:ring-2 focus:ring-v3-brand-500/15 transition-colors";
 const selectClass = cn(inputClass, "appearance-none cursor-pointer pr-8");
 
 function Field({ label, icon, error, children }: { label: string; icon?: React.ReactNode; error?: string; children: React.ReactNode }) {
-  return <div><label className="flex items-center gap-1.5 text-[11px] tracking-[0.06em] font-medium text-v3-text-tertiary mb-1.5">{icon}{label}</label>{children}{error && <p className="text-[11px] text-v3-accent-tavlings mt-1">{error}</p>}</div>;
+  return (
+    <div>
+      <label className="flex items-center gap-1.5 text-[11px] tracking-[0.06em] font-medium text-v3-text-tertiary mb-1.5 uppercase">
+        {icon}
+        {label}
+      </label>
+      {children}
+      {error && <p className="text-[11px] text-v3-accent-tavlings mt-1">{error}</p>}
+    </div>
+  );
 }
 
 function StarPicker({ value, onChange, compact = false }: { value: number; onChange: (v: number) => void; compact?: boolean }) {
-  return <div className="flex items-center gap-1">{[1, 2, 3, 4, 5].map((i) => <button key={i} type="button" aria-label={`${i} av 5`} onClick={() => onChange(i)} className={cn("grid place-items-center rounded-md transition-colors", compact ? "h-8 w-8" : "h-9 w-9", i <= value ? "text-v3-brand-600" : "text-v3-canvas-sunken hover:text-v3-text-tertiary")}><Star size={compact ? 16 : 18} fill={i <= value ? "currentColor" : "none"} strokeWidth={1.6} /></button>)}</div>;
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <button
+          key={i}
+          type="button"
+          aria-label={`${i} av 5`}
+          onClick={() => onChange(i)}
+          className={cn(
+            "grid place-items-center rounded-md transition-colors",
+            compact ? "h-9 w-9" : "h-11 w-11",
+            i <= value ? "text-v3-brand-600" : "text-v3-canvas-sunken hover:text-v3-text-tertiary",
+          )}
+        >
+          <Star size={compact ? 17 : 20} fill={i <= value ? "currentColor" : "none"} strokeWidth={1.6} />
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function ChipRow({ options, selected, onToggle }: { options: string[]; selected: string[]; onToggle: (v: string) => void }) {
-  return <div className="flex flex-wrap gap-1.5">{options.map((o) => { const isOn = selected.includes(o); return <button key={o} type="button" onClick={() => onToggle(o)} className={cn("h-8 px-3 rounded-full text-v3-xs font-medium transition-colors border", isOn ? "bg-v3-brand-500/10 border-v3-brand-500/30 text-v3-brand-700" : "bg-v3-canvas border-v3-canvas-sunken/60 text-v3-text-secondary hover:border-v3-text-tertiary/50")}>{o}</button>; })}</div>;
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {options.map((o) => {
+        const isOn = selected.includes(o);
+        return (
+          <button
+            key={o}
+            type="button"
+            onClick={() => onToggle(o)}
+            className={cn(
+              "min-h-9 px-3 rounded-full text-v3-xs font-medium transition-colors border",
+              isOn
+                ? "bg-v3-brand-500/10 border-v3-brand-500/30 text-v3-brand-700"
+                : "bg-v3-canvas border-v3-canvas-sunken/60 text-v3-text-secondary hover:border-v3-text-tertiary/50",
+            )}
+          >
+            {o}
+          </button>
+        );
+      })}
+    </div>
+  );
 }

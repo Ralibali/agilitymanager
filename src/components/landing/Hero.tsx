@@ -77,7 +77,7 @@ export function Hero() {
               variant="brand"
               onClick={() => {
                 trackEvent("hero_primary_cta_click");
-                navigate("/auth?mode=signup");
+                navigate("/auth?mode=signup&source=landing_hero");
               }}
               className="h-12 sm:h-11"
             >

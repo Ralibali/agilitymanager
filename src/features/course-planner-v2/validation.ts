@@ -20,7 +20,7 @@ import {
   getDefaultRuleSetIdForSport,
   type RuleSet,
 } from "./rules";
-import { rotatedAabb, edgesOutsideArena } from "./geometry";
+import { rotatedAabb, edgesOutsideArena, aabbsOverlap, type AABB } from "./geometry";
 
 export type IssueLevel = "error" | "warning" | "info";
 

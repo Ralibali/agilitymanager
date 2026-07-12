@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { motion as M } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
+import { trackGrowthEvent } from "@/lib/growthEvents";
 
 const NAV_LINKS = [
   { href: "#features", label: "Funktioner" },
@@ -14,11 +15,6 @@ const NAV_LINKS = [
   { href: "#pricing", label: "Priser" },
   { href: "/blogg", label: "Blogg", external: true },
 ];
-
-const trackEvent = (name: string) => {
-  // @ts-ignore
-  if (typeof window !== "undefined" && window.flock) window.flock(name);
-};
 
 /** Underline-sweep länk – hover-animation från vänster→höger */
 function NavLinkSweep({
@@ -53,9 +49,12 @@ export function LandingNav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const goAuth = (mode: "login" | "signup", track: string) => {
-    trackEvent(track);
-    navigate(mode === "login" ? "/auth" : "/auth?mode=signup");
+  const goAuth = (mode: "login" | "signup", placement: "desktop" | "mobile") => {
+    trackGrowthEvent("landing_cta_clicked", {
+      placement: `navigation_${placement}`,
+      destination: mode,
+    });
+    navigate(`/auth?mode=${mode}&source=landing_nav`);
     setMobileOpen(false);
   };
 
@@ -119,17 +118,17 @@ export function LandingNav() {
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-2">
           <button
-            onClick={() => goAuth("login", "nav_login_click")}
+            onClick={() => goAuth("login", "desktop")}
             className="h-9 px-3 text-[13px] text-stone hover:text-forest transition-colors"
           >
             Logga in
           </button>
           <Button
             variant="brand"
-            onClick={() => goAuth("signup", "nav_cta_click")}
+            onClick={() => goAuth("signup", "desktop")}
             className="h-9"
           >
-            Kom igång gratis
+            Testa Pro gratis
           </Button>
         </div>
 
@@ -210,7 +209,7 @@ export function LandingNav() {
                   hidden: { opacity: 0, x: -8 },
                   visible: { opacity: 1, x: 0 },
                 }}
-                onClick={() => goAuth("login", "nav_login_click")}
+                onClick={() => goAuth("login", "mobile")}
                 className="flex items-center text-left min-h-[48px] py-3 text-[15px] text-text-secondary [-webkit-tap-highlight-color:transparent] active:bg-subtle/60 -mx-2 px-2 rounded-md transition-colors"
               >
                 Logga in
@@ -223,10 +222,10 @@ export function LandingNav() {
               >
                 <Button
                   variant="brand"
-                  onClick={() => goAuth("signup", "nav_cta_click")}
+                  onClick={() => goAuth("signup", "mobile")}
                   className="mt-2 h-12 w-full"
                 >
-                  Kom igång gratis
+                  Testa Pro gratis
                 </Button>
               </motion.div>
             </motion.nav>

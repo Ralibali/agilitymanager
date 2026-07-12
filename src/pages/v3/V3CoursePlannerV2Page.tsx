@@ -540,6 +540,8 @@ function V3CoursePlannerV2PageInner() {
     setCourse((c) => ({ ...c, obstacles: [...c.obstacles, ob] }));
     setSelectedId(id);
     setTool("select");
+    try { navigator.vibrate?.(8); } catch { /* ignore */ }
+    trackEvent("course_obstacle_added", { sport: course.sport, type, device_class: getDeviceClass() });
   }
 
   function duplicateObstacle(id: string) {

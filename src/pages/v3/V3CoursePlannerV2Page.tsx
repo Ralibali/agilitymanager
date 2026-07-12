@@ -370,7 +370,7 @@ function V3CoursePlannerV2PageInner() {
   async function handleExportPdf() {
     try {
       const qrDataUrl = await buildQrDataUrl();
-      await exportJudgePdf({ ...baseExportInput(), qrDataUrl, svgElement: svgRef.current });
+      await exportJudgePdf({ ...baseExportInput(), qrDataUrl, svgElement: arenaCanvasRef.current?.getSvgElement() ?? null });
       toast.success("Domar-PDF skapad");
     } catch (e) { console.error(e); toast.error("Kunde inte skapa PDF"); }
   }

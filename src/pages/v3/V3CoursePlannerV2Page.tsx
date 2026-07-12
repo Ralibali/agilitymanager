@@ -189,8 +189,32 @@ function V3CoursePlannerV2PageInner() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mobileObstaclesOpen, setMobileObstaclesOpen] = useState(false);
   const fullscreenRootRef = useRef<HTMLDivElement | null>(null);
-  const svgRef = useRef<SVGSVGElement | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Viewport-hook: source of truth för zoom/pan + client↔meter-konvertering.
+  // containerRef/svgRef binds i ArenaCanvas via prop.
+  const viewport = useCanvasViewport({
+    storageKey: cloudId ?? "local",
+    arenaWidthM: course.arenaWidthM,
+    arenaHeightM: course.arenaHeightM,
+    paddingM: showDimensions ? 1.8 : 1,
+  });
+  const svgRef = viewport.svgRef;
+
+  // Pointer- och drag-session state.
+  // pointersRef håller aktiva pointers under gest → tvåfinger-detektering.
+  // pinchStartRef sparar sample-läge vid pinch-start så vi kan räkna delta.
+  // dragSessionRef: en enda undo-transition skapas vid pointerup, inte per move.
+  const pointersRef = useRef<Map<number, { clientX: number; clientY: number }>>(new Map());
+  const pinchStartRef = useRef<
+    { sample: PinchSample; startZoom: number } | null
+  >(null);
+  const dragSessionRef = useRef<
+    | { id: string; originalCourse: CourseV2; startX: number; startY: number; moved: boolean; lastCellKey: string }
+    | null
+  >(null);
+  const panSessionRef = useRef<{ lastClientX: number; lastClientY: number } | null>(null);
+  const mobileFitDoneRef = useRef(false);
 
   // Persistera Mått-toggle.
   useEffect(() => {

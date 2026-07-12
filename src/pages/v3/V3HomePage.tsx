@@ -105,13 +105,20 @@ function useGreeting(): { greeting: string; name: string } {
   return { greeting, name };
 }
 
+type HomeMode = "no-dog" | "no-data" | "full";
+
 export default function V3HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { greeting, name } = useGreeting();
   const { dogs, active, activeId, setActive, loading: dogsLoading } = useV3Dogs();
-  const { stats, nextEvent, timeline, loading: dashLoading } = useV3Dashboard(activeId);
+  const { stats, signals, nextEvent, timeline, loading: dashLoading } = useV3Dashboard(activeId);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [addDogOpen, setAddDogOpen] = useState(false);
+  const [insightDismissed, setInsightDismissed] = useState<boolean>(() => {
+    const meta = (user?.user_metadata ?? {}) as { home_insight_dismissed_at?: string };
+    return Boolean(meta.home_insight_dismissed_at);
+  });
 
   const sessionsThisWeek = stats?.sessionsThisWeek ?? 0;
   const minutesThisWeek = stats?.minutesThisWeek ?? 0;
@@ -136,26 +143,62 @@ export default function V3HomePage() {
     return `Du har historik för ${active.name}. Logga nästa pass så blir utvecklingen lättare att följa.`;
   }, [active, hasTimeline, nextEvent?.kind, streakDays]);
 
+  // Bestäm läge – vi väntar på både hundar och dashboard-signaler för att undvika layoutshift.
+  const mode: HomeMode | null = useMemo(() => {
+    if (dogsLoading) return null;
+    if (dogs.length === 0) return "no-dog";
+    if (dashLoading || !signals) return null;
+    if (!signals.hasAnyTraining && !signals.hasAnyResults) return "no-data";
+    return "full";
+  }, [dogsLoading, dogs.length, dashLoading, signals]);
+
+  const dismissInsight = async () => {
+    setInsightDismissed(true);
+    try {
+      await supabase.auth.updateUser({ data: { home_insight_dismissed_at: new Date().toISOString() } });
+    } catch {
+      /* ignore */
+    }
+  };
+
   if (showOnboarding) {
     return <V3OnboardingWizard onComplete={() => { setShowOnboarding(false); window.location.reload(); }} />;
   }
 
   return (
     <main id="main-content" className="mx-auto w-full max-w-[1520px] px-4 py-4 sm:px-6 lg:px-8 lg:py-8 animate-v3-fade-in">
-      {dogsLoading ? (
+      {mode === null ? (
         <div className="h-[520px] rounded-[2rem] v3-skeleton" />
-      ) : dogs.length === 0 ? (
-        <V3EmptyState
-          icon={DogIcon}
-          accent="brand"
-          title="Lägg till din första hund"
-          description="Dashboarden blir magisk när den vet vem du tränar med. Lägg till en hund och få en personlig översikt för träning, tävling och mål."
-          actions={[
-            { label: "Starta guiden", onClick: () => setShowOnboarding(true), icon: Plus },
-            { label: "Lägg till manuellt", onClick: () => navigate("/v3/dogs"), variant: "secondary" },
-          ]}
+      ) : mode === "no-dog" ? (
+        <FocusedIntroCard
+          eyebrow="Kom igång"
+          title="Vem tränar du med?"
+          body="Lägg till din hund så hämtar vi tävlingsresultat och bygger er profil."
+          primary={{ label: "Lägg till hund", onClick: () => setAddDogOpen(true), icon: Plus }}
+          secondary={{ label: "Utforska banplaneraren först →", onClick: () => navigate("/v3/course-planner-v2") }}
+        />
+      ) : mode === "no-data" ? (
+        <NoDataMode
+          dogs={dogs}
+          active={active}
+          activeId={activeId}
+          onSelectDog={setActive}
+          onAddDog={() => setAddDogOpen(true)}
+          onFetchResults={() => navigate("/v3/competition?tab=find")}
+          onLogTraining={openV3LogSheet}
+          onPlanCourse={() => navigate("/v3/course-planner-v2")}
         />
       ) : (
+        <div className="space-y-5 lg:space-y-6">
+          {!insightDismissed && signals && (
+            <FirstInsightCard
+              signals={signals}
+              onDismiss={dismissInsight}
+              onOpen={() => navigate("/v3/stats")}
+            />
+          )}
+          <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
+
         <div className="space-y-5 lg:space-y-6">
           <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
             <CommandHero

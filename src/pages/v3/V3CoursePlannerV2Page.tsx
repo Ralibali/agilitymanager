@@ -1541,6 +1541,20 @@ function V3CoursePlannerV2PageInner() {
         warningCount={issueSummary.warnings}
         onMore={() => setPaletteOpen(true)}
       />
+      {/* Kompakt action-panel för markerat hinder — visas ovanför docken.
+          Bara på mobil; desktop har redan SelectedPanel i höger sidokolumn. */}
+      {isMobile && selected && (
+        <MobileSelectedObstacleSheet
+          obstacle={selected}
+          label={getObstacleDefV2(selected.type)?.label ?? "Hinder"}
+          onRotate={(deg) => rotateObstacle(selected.id, deg)}
+          onNumber={(n) => setObstacleNumber(selected.id, n)}
+          onToggleLock={() => toggleLock(selected.id)}
+          onDuplicate={() => duplicateObstacle(selected.id)}
+          onDelete={() => deleteObstacle(selected.id)}
+          onTunnelCurve={(p) => setTunnelCurve(selected.id, p)}
+          onClose={() => setSelectedId(null)}
+        />
     </div>
   );
 }

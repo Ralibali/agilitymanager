@@ -295,7 +295,7 @@ export default function V3HomePage() {
 }
 
 /* ────────────────────────────────────────────────────────────────
- * Subkomponenter (inga påhittade procent, ingen "cockpit"-copy).
+ * Subkomponenter — inga påhittade procent eller status­etiketter.
  * ──────────────────────────────────────────────────────────────── */
 
 function FocusedIntroCard({

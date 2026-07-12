@@ -7,11 +7,7 @@ import { motion } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import { BrandPill } from "@/components/brand/BrandPill";
 import { CoursePath } from "@/components/brand/CoursePath";
-
-const trackEvent = (name: string) => {
-  // @ts-ignore
-  if (typeof window !== "undefined" && window.flock) window.flock(name);
-};
+import { trackGrowthEvent } from "@/lib/growth";
 
 export function Hero() {
   const navigate = useNavigate();

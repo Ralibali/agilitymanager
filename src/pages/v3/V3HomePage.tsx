@@ -221,65 +221,71 @@ export default function V3HomePage() {
               onOpen={() => navigate("/v3/stats")}
             />
           )}
-          <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
-            <CommandHero
-              greeting={greeting}
-              name={name}
-              dogName={active?.name ?? "din hund"}
-              dailyBrief={dailyBrief}
-              nextEvent={nextEvent}
-              nextDays={nextDays}
+
+          {/* Aktiveringschecklista — bara tills användaren loggat 2+ pass */}
+          {showActivationChecklist && (
+            <ActivationChecklist
+              dogAdded={dogs.length > 0}
+              starterPlanChosen={Boolean(meta.onboarding_focus && meta.onboarding_focus.length > 0)}
+              firstSessionLogged={totalTraining >= 1}
+              hasInsight={totalTraining >= 1}
               onLog={openV3LogSheet}
-              onPlan={() => navigate("/v3/course-planner-v2")}
-              onCompetition={() => navigate("/v3/competition")}
+              onSeeInsight={() => navigate("/v3/stats")}
             />
-            <DogSwitcherPanel
-              dogs={dogs as Array<{ id: string; name: string; breed?: string | null; photo_url?: string | null; image_url?: string | null }>}
-              activeId={activeId}
-              onSelect={setActive}
-              onAdd={() => navigate("/v3/dogs")}
+          )}
+
+          {/* Dagens pass — det visuellt dominanta kortet */}
+          <DagensPassCard
+            sport={recSport}
+            focus={focusList}
+            dogName={active?.name ?? "din hund"}
+            recentSessions={timeline
+              .filter((t) => t.kind === "training")
+              .slice(0, 3)
+              .map((t) => ({ date: t.date, duration_min: null, obstacles_trained: null, overall_mood: null, tags: null }))}
+            onStart={() => navigate("/v3/stopwatch")}
+            onLog={() => openV3LogSheet()}
+          />
+
+          {/* Primär logga-pass CTA (mobile-first) */}
+          <button
+            onClick={openV3LogSheet}
+            className="w-full min-h-14 rounded-2xl bg-v3-text-primary text-v3-text-inverse font-black text-base inline-flex items-center justify-center gap-2 shadow-v3-brand hover:bg-v3-brand-600 sm:hidden"
+          >
+            <Plus size={20} /> Logga pass
+          </button>
+
+          {/* Nästa aktivitet + veckans träning */}
+          <section className="grid gap-4 md:grid-cols-2">
+            <NextEventPanel
+              loading={dashLoading}
+              nextEvent={nextEvent}
+              onOpen={() => navigate(nextEvent?.kind === "training" ? "/v3/training" : "/v3/competition")}
+              onCreate={() => navigate("/v3/competition?action=new")}
+            />
+            <WeekTrainingPanel
               sessionsThisWeek={sessionsThisWeek}
               minutesThisWeek={minutesThisWeek}
+              streakDays={streakDays}
+              onTraining={() => navigate("/v3/training")}
+              onStats={() => navigate("/v3/stats")}
             />
           </section>
 
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <ActionTile icon={Plus} label="Logga pass" hint="30 sek" value="Träning" tone="brand" onClick={openV3LogSheet} />
-            <ActionTile icon={Timer} label="Starta stoppur" hint="Ta tid direkt" value="Stoppur" tone="cyan" onClick={() => navigate("/v3/stopwatch")} />
-            <ActionTile icon={Trophy} label="Lägg resultat" hint="Efter tävling" value="Resultat" tone="success" onClick={() => navigate("/v3/competition?action=result")} />
-            <ActionTile icon={Target} label="Sätt mål" hint="Nästa nivå" value="Fokus" tone="warm" onClick={() => navigate("/v3/goals?action=new")} />
-            <ActionTile icon={CalendarDays} label="Hitta tävling" hint="Agility & hoopers" value="Kalender" tone="cyan" onClick={() => navigate("/v3/competition/kalender")} />
+          {/* Senaste aktivitet + status */}
+          <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <ActivityTimeline entries={timeline} loading={dashLoading} />
+            <StatusChecklistCard
+              hasTimeline={hasTimeline}
+              sessionsThisWeek={sessionsThisWeek}
+              streakDays={streakDays}
+              nextEvent={nextEvent}
+              passedThisMonth={passedThisMonth}
+            />
           </section>
 
-          <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-            <div className="space-y-5">
-              <section className="grid gap-4 lg:grid-cols-3">
-                <MissionCard
-                  title="Dagens bästa nästa steg"
-                  icon={Sparkles}
-                  eyebrow="Rekommenderat"
-                  body={buildMissionText({ hasTimeline, nextEvent, dogName: active?.name ?? "din hund", streakDays })}
-                  action="Logga ett pass"
-                  onClick={openV3LogSheet}
-                  featured
-                />
-                <MetricPanel icon={Flame} label="Streak" value={String(streakDays)} unit={streakDays === 1 ? "dag" : "dagar"} note={streakDays > 0 ? "Rutinen lever. Håll den enkel." : "Startar när du loggar första passet."} />
-                <MetricPanel icon={Medal} label="Godkända lopp" value={String(passedThisMonth)} unit="denna månad" note={passedThisMonth > 0 ? "Fint kvitto på utvecklingen." : "Resultaten visas här efter första loppet."} />
-              </section>
-
-              <section className="grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-                <NextEventPanel loading={dashLoading} nextEvent={nextEvent} onOpen={() => navigate(nextEvent?.kind === "training" ? "/v3/training" : "/v3/competition")} onCreate={() => navigate("/v3/competition?action=new")} />
-                <TrainingFocusPanel sessionsThisWeek={sessionsThisWeek} minutesThisWeek={minutesThisWeek} hasTimeline={hasTimeline} onTraining={() => navigate("/v3/training")} onStats={() => navigate("/v3/stats")} />
-              </section>
-
-              <WeeklyRhythmPanel sessionsThisWeek={sessionsThisWeek} minutesThisWeek={minutesThisWeek} />
-            </div>
-
-            <aside className="space-y-5">
-              <ReadinessPanel hasTimeline={hasTimeline} sessionsThisWeek={sessionsThisWeek} streakDays={streakDays} nextEvent={nextEvent} />
-              <ActivityTimeline entries={timeline} loading={dashLoading} />
-            </aside>
-          </section>
+          {/* Fler verktyg — sekundärt och komprimerat */}
+          <MoreTools onNavigate={navigate} />
         </div>
       )}
       <V3AddDogSheet

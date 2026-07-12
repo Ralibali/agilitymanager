@@ -46,7 +46,7 @@ export function MobileBottomDock({
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.25rem)" }}
     >
       <div className="mx-auto max-w-4xl px-2 pt-2">
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-8 gap-1">
           <DockButton
             label="Hinder"
             icon={<Plus size={20} strokeWidth={2.2} />}
@@ -58,6 +58,12 @@ export function MobileBottomDock({
             icon={<MousePointer2 size={18} />}
             onClick={() => onSetTool("select")}
             active={tool === "select"}
+          />
+          <DockButton
+            label="Flytta"
+            icon={<Hand size={18} />}
+            onClick={() => onSetTool("pan")}
+            active={tool === "pan"}
           />
           <DockButton
             label="Nr"

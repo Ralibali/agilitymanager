@@ -39,10 +39,27 @@ const SPORT_OPTIONS: { value: Sport; label: string; description: string }[] = [
   { value: "Båda", label: "Båda", description: "Tränar i båda" },
 ];
 
-const GOAL_OPTIONS = [
+// Sportspecifika huvudmål — Hoopers-tävling kallas inte K1.
+const AGILITY_GOALS = [
   { value: "compete_k1", label: "Tävla i K1", emoji: "🏆" },
   { value: "improve_times", label: "Snabbare tider", emoji: "⚡" },
   { value: "train_more", label: "Träna mer regelbundet", emoji: "📅" },
+  { value: "track", label: "Bara ha koll", emoji: "📊" },
+  { value: "other", label: "Annat", emoji: "✨" },
+];
+
+const HOOPERS_GOALS = [
+  { value: "compete_startklass", label: "Tävla i startklass", emoji: "🏆" },
+  { value: "clean_lines", label: "Rena linjer & flow", emoji: "🌊" },
+  { value: "train_more", label: "Träna mer regelbundet", emoji: "📅" },
+  { value: "track", label: "Bara ha koll", emoji: "📊" },
+  { value: "other", label: "Annat", emoji: "✨" },
+];
+
+const BOTH_GOALS = [
+  { value: "compete_any", label: "Tävla i startklass", emoji: "🏆" },
+  { value: "train_more", label: "Träna mer regelbundet", emoji: "📅" },
+  { value: "improve_times", label: "Utvecklas i båda sporterna", emoji: "⚡" },
   { value: "track", label: "Bara ha koll", emoji: "📊" },
   { value: "other", label: "Annat", emoji: "✨" },
 ];

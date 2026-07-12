@@ -1,9 +1,11 @@
-import { Hash, LayoutGrid, MoreHorizontal, MousePointer2, Plus, Redo2, ShieldCheck, Undo2 } from "lucide-react";
+import { Hand, Hash, LayoutGrid, MoreHorizontal, MousePointer2, Plus, Redo2, ShieldCheck, Undo2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+type MobileTool = "select" | "number" | "pan";
+
 interface Props {
-  tool: "select" | "erase" | "number" | "measure";
-  onSetTool: (t: "select" | "number") => void;
+  tool: "select" | "erase" | "number" | "measure" | "pan";
+  onSetTool: (t: MobileTool) => void;
   onAddObstacle: () => void;
   onUndo: () => void;
   onRedo: () => void;
@@ -44,7 +46,7 @@ export function MobileBottomDock({
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.25rem)" }}
     >
       <div className="mx-auto max-w-4xl px-2 pt-2">
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-8 gap-1">
           <DockButton
             label="Hinder"
             icon={<Plus size={20} strokeWidth={2.2} />}
@@ -56,6 +58,12 @@ export function MobileBottomDock({
             icon={<MousePointer2 size={18} />}
             onClick={() => onSetTool("select")}
             active={tool === "select"}
+          />
+          <DockButton
+            label="Flytta"
+            icon={<Hand size={18} />}
+            onClick={() => onSetTool("pan")}
+            active={tool === "pan"}
           />
           <DockButton
             label="Nr"

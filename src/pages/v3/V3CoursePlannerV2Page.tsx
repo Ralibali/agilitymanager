@@ -11,8 +11,8 @@
  * Data sparas i localStorage under egen nyckel — påverkar INTE v1.
  * Hoopers-läget visar palett men sprint 1 är primärt agility.
  */
-import { useEffect, useMemo, useRef, useState, useCallback, type PointerEvent } from "react";
-import { Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Undo2, Redo2, Copy, Magnet, Box, Footprints, Lock, Unlock, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown, Ruler, Crosshair, Smartphone } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, useCallback, type PointerEvent, type WheelEvent } from "react";
+import { Trash2, RotateCw, Hash, MousePointer2, Eraser, AlertTriangle, AlertCircle, Info, CheckCircle2, Undo2, Redo2, Copy, Magnet, Box, Footprints, Lock, Unlock, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown, Ruler, Crosshair, Smartphone, Hand, ZoomIn, ZoomOut, Maximize } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -56,7 +56,9 @@ import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
 import { parseCourseJson } from "@/features/course-planner-v2/importJson";
 import { renderCourseImage, shareCanvas } from "@/lib/shareImage";
 import { trackEvent } from "@/lib/analyticsLoader";
-import { clampObstacleToArena, getDeviceClass } from "@/features/course-planner-v2/geometry";
+import { clampObstacleToArena, clampCenterForRotatedBox, getDeviceClass } from "@/features/course-planner-v2/geometry";
+import { pinchSample, pinchScale, pinchPanDelta, type PinchSample } from "@/features/course-planner-v2/gestureMath";
+import { MobileSelectedObstacleSheet } from "@/components/course-planner-v2/MobileSelectedObstacleSheet";
 import { makeQrDataUrl } from "@/lib/qrDataUrl";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
 import {
@@ -165,7 +167,7 @@ function V3CoursePlannerV2PageInner() {
   const isMobile = useIsMobile();
   const [course, setCourseRaw] = useState<CourseV2>(() => loadCourse());
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [tool, setTool] = useState<"select" | "erase" | "number" | "measure">("select");
+  const [tool, setTool] = useState<"select" | "erase" | "number" | "measure" | "pan">("select");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [showPath, setShowPath] = useState(true);
@@ -187,8 +189,32 @@ function V3CoursePlannerV2PageInner() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mobileObstaclesOpen, setMobileObstaclesOpen] = useState(false);
   const fullscreenRootRef = useRef<HTMLDivElement | null>(null);
-  const svgRef = useRef<SVGSVGElement | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Viewport-hook: source of truth för zoom/pan + client↔meter-konvertering.
+  // containerRef/svgRef binds i ArenaCanvas via prop.
+  const viewport = useCanvasViewport({
+    storageKey: cloudId ?? "local",
+    arenaWidthM: course.arenaWidthM,
+    arenaHeightM: course.arenaHeightM,
+    paddingM: showDimensions ? 1.8 : 1,
+  });
+  const svgRef = viewport.svgRef;
+
+  // Pointer- och drag-session state.
+  // pointersRef håller aktiva pointers under gest → tvåfinger-detektering.
+  // pinchStartRef sparar sample-läge vid pinch-start så vi kan räkna delta.
+  // dragSessionRef: en enda undo-transition skapas vid pointerup, inte per move.
+  const pointersRef = useRef<Map<number, { clientX: number; clientY: number }>>(new Map());
+  const pinchStartRef = useRef<
+    { sample: PinchSample; startZoom: number } | null
+  >(null);
+  const dragSessionRef = useRef<
+    | { id: string; originalCourse: CourseV2; startX: number; startY: number; moved: boolean; lastCellKey: string }
+    | null
+  >(null);
+  const panSessionRef = useRef<{ lastClientX: number; lastClientY: number } | null>(null);
+  const mobileFitDoneRef = useRef(false);
 
   // Persistera Mått-toggle.
   useEffect(() => {
@@ -242,6 +268,24 @@ function V3CoursePlannerV2PageInner() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view3D]);
+
+  // Fit-to-screen på mobil första gången canvasstorleken är känd (så användaren
+  // ser hela banan från start), och vid sport-/arena-byte. viewport.fitToScreen
+  // är stabilt över samma arena-storlek och läses inte som dep här.
+  useEffect(() => {
+    if (isMobile && !mobileFitDoneRef.current && viewport.metrics.viewportWidthPx > 100) {
+      mobileFitDoneRef.current = true;
+      viewport.fitToScreen();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobile, viewport.metrics.viewportWidthPx]);
+
+  useEffect(() => {
+    // Vid arena- eller sportbyte: fit så att nya banan syns direkt.
+    viewport.fitToScreen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [course.arenaWidthM, course.arenaHeightM, course.sport]);
+
 
   // 2D-uppspelning ("Spela upp banan").
   const playback = useCoursePlayback(course, playback2D);
@@ -561,25 +605,57 @@ function V3CoursePlannerV2PageInner() {
       return;
     }
     const id = uid();
+    // Placeringspunkt = viewportens mitt i banans meter-koord.
+    // Faller tillbaka till arenans mitt tills viewport-storlek är känd.
+    const vpCx = viewport.viewMinXM + viewport.visibleWidthM / 2;
+    const vpCy = viewport.viewMinYM + viewport.visibleHeightM / 2;
+    const arenaCx = course.arenaWidthM / 2;
+    const arenaCy = course.arenaHeightM / 2;
+    const cx = Number.isFinite(vpCx) ? vpCx : arenaCx;
+    const cy = Number.isFinite(vpCy) ? vpCy : arenaCy;
+    // Diskret offset per placering så flera hinder inte hamnar exakt ovanpå.
+    // Räknar antal hinder av samma typ, offsettar 0.5 m diagonalt per steg.
+    const sameTypeCount = course.obstacles.filter((o) => o.type === type).length;
+    const offset = sameTypeCount * 0.5;
+    const clamped = clampCenterForRotatedBox(
+      { x: cx + offset, y: cy + offset },
+      def.sizeM.w, def.sizeM.d, 0,
+      course.arenaWidthM, course.arenaHeightM,
+    );
     const ob: ObstacleV2 = {
       id, type,
-      x: snapM(course.arenaWidthM / 2),
-      y: snapM(course.arenaHeightM / 2),
+      x: snapM(clamped.x),
+      y: snapM(clamped.y),
       rotation: 0,
     };
     setCourse((c) => ({ ...c, obstacles: [...c.obstacles, ob] }));
     setSelectedId(id);
     setTool("select");
     try { navigator.vibrate?.(8); } catch { /* ignore */ }
-    trackEvent("course_obstacle_added", { sport: course.sport, type, device_class: getDeviceClass() });
+    trackEvent("course_obstacle_added", { sport: course.sport, obstacle_type: type, device_class: getDeviceClass() });
   }
 
   function duplicateObstacle(id: string) {
     const ob = course.obstacles.find((o) => o.id === id);
     if (!ob) return;
+    const def = getObstacleDefV2(ob.type);
+    const dims = def?.sizeM ?? { w: 1, d: 1 };
     const newId = uid();
+    // +1, +1 kan hamna utanför banan om ob ligger nära hörnet — klampa via
+    // rotated bounds så hela kopian är innanför även vid roterade långhopp.
+    const clamped = clampCenterForRotatedBox(
+      { x: ob.x + 1, y: ob.y + 1 },
+      dims.w, dims.d, ob.rotation,
+      course.arenaWidthM, course.arenaHeightM,
+    );
     // Duplikat ärver INTE locked — användaren vill kunna flytta kopian direkt.
-    const copy: ObstacleV2 = { ...ob, id: newId, x: snapM(ob.x + 1), y: snapM(ob.y + 1), number: undefined, locked: false };
+    const copy: ObstacleV2 = {
+      ...ob, id: newId,
+      x: snapM(clamped.x),
+      y: snapM(clamped.y),
+      number: undefined,
+      locked: false,
+    };
     setCourse((c) => ({ ...c, obstacles: [...c.obstacles, copy] }));
     setSelectedId(newId);
   }
@@ -621,7 +697,17 @@ function V3CoursePlannerV2PageInner() {
       obstacles: c.obstacles.map((o) => {
         if (o.id !== id) return o;
         if (o.locked) return o;
-        return { ...o, rotation: (o.rotation + deg + 360) % 360 };
+        const rotation = (o.rotation + deg + 360) % 360;
+        // Efter rotation kan hindrets AABB sticka utanför arenan; klampa in
+        // via geometry-helpern så att t.ex. ett långt slalom vid vänsterkanten
+        // ryckt in något efter en 90° rotation istället för att lämna banan.
+        const def = getObstacleDefV2(o.type);
+        const dims = def?.sizeM ?? { w: 1, d: 1 };
+        const clamped = clampCenterForRotatedBox(
+          { x: o.x, y: o.y }, dims.w, dims.d, rotation,
+          c.arenaWidthM, c.arenaHeightM,
+        );
+        return { ...o, rotation, x: snapM(clamped.x), y: snapM(clamped.y) };
       }),
     }));
   }
@@ -722,9 +808,23 @@ function V3CoursePlannerV2PageInner() {
     toast.success("Numrerar i placeringsordning");
   }
 
+  /**
+   * Pointerdown på ett hinder. Startar en drag-session (för undo) om
+   * verktyget är select/pan och hindret inte är låst. Är verktyget `erase`
+   * eller `number` hanteras klicket direkt utan drag.
+   *
+   * Om ett andra finger redan är nere behandlas gesten som pinch och drag
+   * startar inte — se `handleSvgBackgroundPointerDown` för pinch-init.
+   */
   function handlePointerDown(e: PointerEvent<SVGGElement>, id: string) {
     e.stopPropagation();
-    // Prompt K: mobil är nu ett förstaklassigt redigeringsläge. Ingen blockering.
+    pointersRef.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    // Om två fingrar redan är nere: cancel drag och låt pinch-hanteraren ta över.
+    if (pointersRef.current.size >= 2) {
+      dragSessionRef.current = null;
+      setDraggingId(null);
+      return;
+    }
     const ob = course.obstacles.find((o) => o.id === id);
     if (tool === "erase") { deleteObstacle(id); return; }
     if (tool === "number") {
@@ -734,48 +834,165 @@ function V3CoursePlannerV2PageInner() {
       return;
     }
     setSelectedId(id);
-    if (ob?.locked) return; // Markera men dra inte
+    if (ob?.locked) return;
+    if (!ob) return;
     setDraggingId(id);
     (e.target as Element).setPointerCapture?.(e.pointerId);
-    // Diskret haptic feedback när drag startar. Ignorera i miljöer som saknar API.
+    dragSessionRef.current = {
+      id,
+      originalCourse: course,
+      startX: ob.x,
+      startY: ob.y,
+      moved: false,
+      lastCellKey: `${Math.round(ob.x * 2)}:${Math.round(ob.y * 2)}`,
+    };
     try { navigator.vibrate?.(8); } catch { /* ignore */ }
   }
 
-  // Drag på SVG-koordinater → meter.
-  // Klampar HELA det roterade hindret innanför arenan via geometry-helper
-  // så att långa/roterade hinder (tunnel, slalom, långhopp) inte kan dras ut
-  // över kanten. Snap sker på det klampade centrumet.
+  /**
+   * Pointermove på SVG-nivå. Tre olika lägen:
+   *  1. 2+ pointers → pinch: zoom + tvåfinger-pan via viewport-hooken.
+   *  2. draggingId satt → flytta det aktiva hindret. Använder
+   *     viewport.clientToCourseM för korrekt konvertering vid zoom/pan.
+   *  3. panSession aktiv → panorera viewporten (pan-verktyg / bakgrund).
+   *
+   * Under drag används `skipHistoryRef` så att varje pointermove INTE
+   * skapar en undo-post. Snapshot av original läggs i historiken vid
+   * pointerup (se `handleSvgPointerUp`).
+   */
   function handleSvgPointerMove(e: PointerEvent<SVGSVGElement>) {
-    if (!draggingId) return;
-    const svg = e.currentTarget;
-    const pt = svg.createSVGPoint();
-    pt.x = e.clientX; pt.y = e.clientY;
-    const ctm = svg.getScreenCTM();
-    if (!ctm) return;
-    const local = pt.matrixTransform(ctm.inverse());
-    setCourse((c) => ({
-      ...c,
-      obstacles: c.obstacles.map((o) => {
-        if (o.id !== draggingId) return o;
-        const def = getObstacleDefV2(o.type);
-        const dims = def?.sizeM ?? { w: 1, d: 1 };
-        const desired = { ...o, x: local.x, y: local.y };
-        const clamped = clampObstacleToArena(
-          desired,
-          { widthM: c.arenaWidthM, heightM: c.arenaHeightM },
-          dims,
-        );
-        return { ...clamped, x: snapM(clamped.x), y: snapM(clamped.y) };
-      }),
-    }));
+    // Uppdatera pointerns senaste position.
+    if (pointersRef.current.has(e.pointerId)) {
+      pointersRef.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    }
+
+    // Pinch (2 fingrar) — dominerar över drag/pan.
+    if (pointersRef.current.size >= 2) {
+      const pts = Array.from(pointersRef.current.values()).slice(0, 2) as [
+        { clientX: number; clientY: number },
+        { clientX: number; clientY: number },
+      ];
+      const sample = pinchSample(pts[0], pts[1]);
+      if (!pinchStartRef.current) {
+        pinchStartRef.current = { sample, startZoom: viewport.state.zoom };
+        // Avbryt eventuell drag så att pinch inte råkar flytta ett hinder.
+        dragSessionRef.current = null;
+        setDraggingId(null);
+      } else {
+        const scale = pinchScale(pinchStartRef.current.sample, sample);
+        const nextZoom = pinchStartRef.current.startZoom * scale;
+        viewport.zoomTo(nextZoom, sample.mid.clientX, sample.mid.clientY);
+        const dp = pinchPanDelta(pinchStartRef.current.sample, sample);
+        viewport.panByPx(dp.dxPx, dp.dyPx);
+        pinchStartRef.current = { sample, startZoom: nextZoom };
+      }
+      return;
+    }
+
+    // Hinder-drag.
+    if (draggingId && dragSessionRef.current) {
+      const local = viewport.clientToCourseM(e.clientX, e.clientY);
+      const session = dragSessionRef.current;
+      skipHistoryRef.current = true;
+      setCourseRaw((c) => ({
+        ...c,
+        obstacles: c.obstacles.map((o) => {
+          if (o.id !== draggingId) return o;
+          const def = getObstacleDefV2(o.type);
+          const dims = def?.sizeM ?? { w: 1, d: 1 };
+          const clamped = clampObstacleToArena(
+            { ...o, x: local.x, y: local.y },
+            { widthM: c.arenaWidthM, heightM: c.arenaHeightM },
+            dims,
+          );
+          const nx = snapM(clamped.x);
+          const ny = snapM(clamped.y);
+          const cellKey = `${Math.round(nx * 2)}:${Math.round(ny * 2)}`;
+          if (cellKey !== session.lastCellKey) {
+            session.lastCellKey = cellKey;
+            session.moved = session.moved || nx !== session.startX || ny !== session.startY;
+            // Haptic bara vid varje ny snap-cell — inte varje move.
+            try { navigator.vibrate?.(4); } catch { /* ignore */ }
+          }
+          return { ...clamped, x: nx, y: ny };
+        }),
+      }));
+      return;
+    }
+
+    // Pan-session (bakgrund + pan-verktyg / space+drag desktop).
+    if (panSessionRef.current) {
+      const dx = e.clientX - panSessionRef.current.lastClientX;
+      const dy = e.clientY - panSessionRef.current.lastClientY;
+      panSessionRef.current = { lastClientX: e.clientX, lastClientY: e.clientY };
+      viewport.panByPx(dx, dy);
+    }
   }
 
-  function handleSvgPointerUp() {
-    if (draggingId) {
-      trackEvent("course_obstacle_moved", { sport: course.sport, device_class: getDeviceClass() });
+  function handleSvgPointerUp(e: PointerEvent<SVGSVGElement>) {
+    pointersRef.current.delete(e.pointerId);
+    // Om vi tappar den andra pointern under pinch → återställ pinch-start.
+    if (pointersRef.current.size < 2) {
+      pinchStartRef.current = null;
     }
-    setDraggingId(null);
+    if (draggingId) {
+      const session = dragSessionRef.current;
+      if (session && session.moved) {
+        // Skapa en ENDA history-transition för hela draget: pusha original.
+        historyRef.current.past.push(session.originalCourse);
+        if (historyRef.current.past.length > 30) historyRef.current.past.shift();
+        historyRef.current.future = [];
+        trackEvent("course_obstacle_moved", {
+          sport: course.sport,
+          device_class: getDeviceClass(),
+        });
+      }
+      dragSessionRef.current = null;
+      setDraggingId(null);
+    }
+    panSessionRef.current = null;
   }
+
+  /**
+   * Pointerdown på SVG-bakgrunden (inte på ett hinder). Registrerar
+   * pointern, initierar pinch när ett andra finger går ned, eller startar
+   * pan när pan-verktyget är aktivt.
+   */
+  function handleSvgBackgroundPointerDown(e: PointerEvent<SVGSVGElement>) {
+    pointersRef.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    if (pointersRef.current.size >= 2) {
+      const pts = Array.from(pointersRef.current.values()).slice(0, 2) as [
+        { clientX: number; clientY: number },
+        { clientX: number; clientY: number },
+      ];
+      pinchStartRef.current = {
+        sample: pinchSample(pts[0], pts[1]),
+        startZoom: viewport.state.zoom,
+      };
+      // Om vi råkade dra ett hinder — släpp det, pinch tar över.
+      dragSessionRef.current = null;
+      setDraggingId(null);
+      return;
+    }
+    if (tool === "pan") {
+      panSessionRef.current = { lastClientX: e.clientX, lastClientY: e.clientY };
+      (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    }
+  }
+
+  /**
+   * Wheel/trackpad. ctrl/meta = zoom kring pointern (matchar
+   * mac/trackpad-pinch som skickas som wheel + ctrlKey). Annars normal
+   * scroll — vi låter sidan hantera det så att långa banor inte låser
+   * hela viewporten.
+   */
+  function handleSvgWheel(e: WheelEvent<SVGSVGElement>) {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    if (e.deltaY < 0) viewport.zoomIn(e.clientX, e.clientY);
+    else viewport.zoomOut(e.clientX, e.clientY);
+  }
+
 
   const palette = useMemo(
     () => OBSTACLES_V2.filter((o) => o.sport.includes(course.sport)),
@@ -1200,21 +1417,54 @@ function V3CoursePlannerV2PageInner() {
             speed={playback.speed}
             setSpeed={playback.setSpeed}
           />
+          {/* Mobil zoom-kontroller ovan canvas (dolda ≥ lg). 44px touch-targets. */}
+          <div className="lg:hidden mb-2 flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => viewport.zoomOut()}
+              aria-label="Zooma ut"
+              className="grid h-11 w-11 place-items-center rounded-full border border-border bg-card text-foreground/80 active:scale-95"
+            >
+              <ZoomOut size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={() => viewport.fitToScreen()}
+              aria-label="Anpassa banan till skärmen"
+              className="inline-flex h-11 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-[12px] font-semibold text-foreground/80 active:scale-95"
+            >
+              <Maximize size={14} /> Fit
+            </button>
+            <button
+              type="button"
+              onClick={() => viewport.zoomIn()}
+              aria-label="Zooma in"
+              className="grid h-11 w-11 place-items-center rounded-full border border-border bg-card text-foreground/80 active:scale-95"
+            >
+              <ZoomIn size={18} />
+            </button>
+          </div>
           <ArenaCanvas
-            svgRef={svgRef}
+            containerRef={viewport.containerRef}
+            svgRef={viewport.svgRef}
+            viewBox={viewport.viewBox}
+            pxPerM={viewport.metrics.pxPerM}
             course={course}
             selectedId={selectedId}
             highlightIds={issueIdSet}
             showPath={showPath}
             showDimensions={showDimensions}
             onObstacleDown={handlePointerDown}
+            onSvgPointerDown={handleSvgBackgroundPointerDown}
             onPointerMove={handleSvgPointerMove}
             onPointerUp={handleSvgPointerUp}
+            onWheel={handleSvgWheel}
             onBackgroundClick={() => setSelectedId(null)}
             playbackActive={playback2D}
             playbackT={playback.t}
           />
         </section>
+
 
         {/* RIGHT */}
         <aside className="hidden lg:block rounded-2xl bg-card border border-border p-3 space-y-4 max-h-[calc(100dvh-90px)] overflow-y-auto">
@@ -1291,6 +1541,21 @@ function V3CoursePlannerV2PageInner() {
         warningCount={issueSummary.warnings}
         onMore={() => setPaletteOpen(true)}
       />
+      {/* Kompakt action-panel för markerat hinder — visas ovanför docken.
+          Bara på mobil; desktop har redan SelectedPanel i höger sidokolumn. */}
+      {isMobile && selected && (
+        <MobileSelectedObstacleSheet
+          obstacle={selected}
+          label={getObstacleDefV2(selected.type)?.label ?? "Hinder"}
+          onRotate={(deg) => rotateObstacle(selected.id, deg)}
+          onNumber={(n) => setObstacleNumber(selected.id, n)}
+          onToggleLock={() => toggleLock(selected.id)}
+          onDuplicate={() => duplicateObstacle(selected.id)}
+          onDelete={() => deleteObstacle(selected.id)}
+          onTunnelCurve={(p) => setTunnelCurve(selected.id, p)}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
     </div>
   );
 }
@@ -1341,26 +1606,31 @@ function ToolBtn({ active, onClick, icon, children, title }: { active: boolean; 
 
 
 function ArenaCanvas({
-  svgRef, course, selectedId, highlightIds, showPath, showDimensions = false,
-  onObstacleDown, onPointerMove, onPointerUp, onBackgroundClick,
+  containerRef, svgRef, viewBox, pxPerM,
+  course, selectedId, highlightIds, showPath, showDimensions = false,
+  onObstacleDown, onSvgPointerDown, onPointerMove, onPointerUp, onWheel, onBackgroundClick,
   playbackActive = false, playbackT = 0,
 }: {
+  containerRef: React.MutableRefObject<HTMLDivElement | null>;
   svgRef: React.MutableRefObject<SVGSVGElement | null>;
+  viewBox: string;
+  pxPerM: number;
   course: CourseV2;
   selectedId: string | null;
   highlightIds: Set<string>;
   showPath: boolean;
   showDimensions?: boolean;
   onObstacleDown: (e: PointerEvent<SVGGElement>, id: string) => void;
+  onSvgPointerDown: (e: PointerEvent<SVGSVGElement>) => void;
   onPointerMove: (e: PointerEvent<SVGSVGElement>) => void;
-  onPointerUp: () => void;
+  onPointerUp: (e: PointerEvent<SVGSVGElement>) => void;
+  onWheel: (e: WheelEvent<SVGSVGElement>) => void;
   onBackgroundClick: () => void;
   playbackActive?: boolean;
   playbackT?: number;
 }) {
   const w = course.arenaWidthM;
   const h = course.arenaHeightM;
-  const padding = showDimensions ? 1.8 : 1;
   // Hundens väg (Prompt B) — mjuk Catmull-Rom-kurva via dogPath.
   const dogPath = buildDogPath(course.obstacles);
   const pathD = dogPathToSvgD(dogPath);
@@ -1370,14 +1640,21 @@ function ArenaCanvas({
   const tickStepM = maxArenaM <= 20 ? 1 : maxArenaM <= 40 ? 5 : 10;
 
   return (
-    <div className="relative rounded-xl bg-[#e8efe0] p-2 overflow-auto">
+    <div
+      ref={containerRef}
+      className="relative rounded-xl bg-[#e8efe0] p-2"
+      style={{ touchAction: "none" }}
+    >
       <svg
         ref={svgRef}
-        viewBox={`${-padding} ${-padding} ${w + padding * 2} ${h + padding * 2}`}
+        viewBox={viewBox}
         className="w-full h-auto min-h-[min(70dvh,720px)] lg:min-h-0 max-h-[calc(100dvh-200px)] touch-none select-none"
+        onPointerDown={onSvgPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
         onPointerLeave={onPointerUp}
+        onWheel={onWheel}
         onClick={onBackgroundClick}
         style={{ cursor: "default" }}
       >
@@ -1404,9 +1681,11 @@ function ArenaCanvas({
               obstacle={ob}
               selected={selectedId === ob.id}
               hasIssue={highlightIds.has(ob.id)}
+              pxPerM={pxPerM}
               onPointerDown={(e) => onObstacleDown(e, ob.id)}
             />
           ))}
+
 
         {/* Banmått — sticky linjaler i meter, ritade direkt i SVG så de skalar med viewBox */}
         {showDimensions && (
@@ -1458,16 +1737,24 @@ function ArenaCanvas({
   );
 }
 
-function ObstacleSvg({ obstacle, selected, hasIssue, onPointerDown }: {
+function ObstacleSvg({ obstacle, selected, hasIssue, pxPerM, onPointerDown }: {
   obstacle: ObstacleV2;
   selected: boolean;
   hasIssue?: boolean;
+  /** Skala mellan meter och skärm-pixlar. Används för att räkna ut en
+   *  transparent hit-area så att små hinder alltid har minst ~44 CSS-px
+   *  tryck-yta oavsett zoom-nivå. */
+  pxPerM: number;
   onPointerDown: (e: PointerEvent<SVGGElement>) => void;
 }) {
   const def = getObstacleDefV2(obstacle.type);
   if (!def) return null;
   const { w, d } = def.sizeM;
   const locked = !!obstacle.locked;
+  // Minsta hit-area i meter så att touch-target ≥ 44 CSS-px.
+  const minHitM = pxPerM > 0 ? 44 / pxPerM : 0;
+  const hitW = Math.max(w, minHitM);
+  const hitD = Math.max(d, minHitM);
   return (
     <g
       transform={`translate(${obstacle.x} ${obstacle.y}) rotate(${obstacle.rotation})`}
@@ -1475,6 +1762,12 @@ function ObstacleSvg({ obstacle, selected, hasIssue, onPointerDown }: {
       onClick={(e) => e.stopPropagation()}
       style={{ cursor: locked ? "not-allowed" : "grab" }}
     >
+      {/* Transparent hit-target — påverkar inte visuella mått, bara touch-yta. */}
+      <rect
+        x={-hitW / 2} y={-hitD / 2} width={hitW} height={hitD}
+        fill="transparent"
+        pointerEvents="all"
+      />
       {hasIssue && !selected && (
         <circle r={Math.max(w, d) / 2 + 0.35} fill="#ef4444" opacity={0.18} />
       )}

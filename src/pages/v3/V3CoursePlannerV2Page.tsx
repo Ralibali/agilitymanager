@@ -227,6 +227,22 @@ function V3CoursePlannerV2PageInner() {
   // Stoppa orefererade variabler från att smälla — kommer bindas i nästa pass.
   void isFullscreen; void toggleFullscreen; void fullscreenRootRef;
 
+  // Emit `course_validation_opened` när regelpanelen öppnas.
+  useEffect(() => {
+    if (issuesOpen) {
+      trackEvent("course_validation_opened", { sport: course.sport, device_class: getDeviceClass() });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [issuesOpen]);
+
+  // Emit `course_3d_opened` när 3D-läget öppnas.
+  useEffect(() => {
+    if (view3D) {
+      trackEvent("course_3d_opened", { sport: course.sport, mode: view3D, device_class: getDeviceClass() });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view3D]);
+
   // 2D-uppspelning ("Spela upp banan").
   const playback = useCoursePlayback(course, playback2D);
 

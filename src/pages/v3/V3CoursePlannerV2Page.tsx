@@ -865,16 +865,16 @@ function V3CoursePlannerV2PageInner() {
       ];
       const sample = pinchSample(pts[0], pts[1]);
       if (!pinchStartRef.current) {
-        pinchStartRef.current = { sample, startZoom: viewport.state.zoom };
+        pinchStartRef.current = { sample, startZoom: (arenaCanvasRef.current?.getZoom() ?? 1) };
         // Avbryt eventuell drag så att pinch inte råkar flytta ett hinder.
         dragSessionRef.current = null;
         setDraggingId(null);
       } else {
         const scale = pinchScale(pinchStartRef.current.sample, sample);
         const nextZoom = pinchStartRef.current.startZoom * scale;
-        viewport.zoomTo(nextZoom, sample.mid.clientX, sample.mid.clientY);
+        arenaCanvasRef.current?.zoomTo(nextZoom, sample.mid.clientX, sample.mid.clientY);
         const dp = pinchPanDelta(pinchStartRef.current.sample, sample);
-        viewport.panByPx(dp.dxPx, dp.dyPx);
+        arenaCanvasRef.current?.panByPx(dp.dxPx, dp.dyPx);
         pinchStartRef.current = { sample, startZoom: nextZoom };
       }
       return;
@@ -882,7 +882,7 @@ function V3CoursePlannerV2PageInner() {
 
     // Hinder-drag.
     if (draggingId && dragSessionRef.current) {
-      const local = viewport.clientToCourseM(e.clientX, e.clientY);
+      const local = (arenaCanvasRef.current?.clientToCourseM(e.clientX, e.clientY);
       const session = dragSessionRef.current;
       skipHistoryRef.current = true;
       setCourseRaw((c) => ({
@@ -916,7 +916,7 @@ function V3CoursePlannerV2PageInner() {
       const dx = e.clientX - panSessionRef.current.lastClientX;
       const dy = e.clientY - panSessionRef.current.lastClientY;
       panSessionRef.current = { lastClientX: e.clientX, lastClientY: e.clientY };
-      viewport.panByPx(dx, dy);
+      arenaCanvasRef.current?.panByPx(dx, dy);
     }
   }
 
@@ -958,7 +958,7 @@ function V3CoursePlannerV2PageInner() {
       ];
       pinchStartRef.current = {
         sample: pinchSample(pts[0], pts[1]),
-        startZoom: viewport.state.zoom,
+        startZoom: (arenaCanvasRef.current?.getZoom() ?? 1),
       };
       // Om vi råkade dra ett hinder — släpp det, pinch tar över.
       dragSessionRef.current = null;
@@ -982,13 +982,13 @@ function V3CoursePlannerV2PageInner() {
       // Trackpad-pinch/ctrl-scroll = zoom kring pekaren.
       e.preventDefault();
       const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
-      viewport.zoomAtClient(factor, e.clientX, e.clientY);
+      arenaCanvasRef.current?.zoomAtClient(factor, e.clientX, e.clientY);
       return;
     }
     // Vanlig scroll → panorera viewporten. Dra åt höger/ner motsvarar positiv delta.
     if (e.deltaX === 0 && e.deltaY === 0) return;
     e.preventDefault();
-    viewport.panByPx(-e.deltaX, -e.deltaY);
+    arenaCanvasRef.current?.panByPx(-e.deltaX, -e.deltaY);
   }
 
 
@@ -1452,11 +1452,11 @@ function V3CoursePlannerV2PageInner() {
               <button
                 type="button"
                 onClick={() => viewport.fitToScreen()}
-                aria-label={`Anpassa banan till skärmen. Zoom ${Math.round(viewport.state.zoom * 100)} procent`}
+                aria-label={`Anpassa banan till skärmen. Zoom ${Math.round((arenaCanvasRef.current?.getZoom() ?? 1) * 100)} procent`}
                 className="pointer-events-auto inline-flex h-11 min-w-[60px] items-center justify-center gap-1 rounded-full border border-border bg-card/95 px-2 text-[11px] font-semibold text-foreground/80 shadow-sm backdrop-blur active:scale-95"
               >
                 <Maximize size={14} />
-                <span>{Math.round(viewport.state.zoom * 100)}%</span>
+                <span>{Math.round((arenaCanvasRef.current?.getZoom() ?? 1) * 100)}%</span>
               </button>
               <button
                 type="button"

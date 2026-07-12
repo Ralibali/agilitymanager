@@ -679,7 +679,17 @@ function V3CoursePlannerV2PageInner() {
       obstacles: c.obstacles.map((o) => {
         if (o.id !== id) return o;
         if (o.locked) return o;
-        return { ...o, rotation: (o.rotation + deg + 360) % 360 };
+        const rotation = (o.rotation + deg + 360) % 360;
+        // Efter rotation kan hindrets AABB sticka utanför arenan; klampa in
+        // via geometry-helpern så att t.ex. ett långt slalom vid vänsterkanten
+        // ryckt in något efter en 90° rotation istället för att lämna banan.
+        const def = getObstacleDefV2(o.type);
+        const dims = def?.sizeM ?? { w: 1, d: 1 };
+        const clamped = clampCenterForRotatedBox(
+          { x: o.x, y: o.y }, dims.w, dims.d, rotation,
+          c.arenaWidthM, c.arenaHeightM,
+        );
+        return { ...o, rotation, x: snapM(clamped.x), y: snapM(clamped.y) };
       }),
     }));
   }

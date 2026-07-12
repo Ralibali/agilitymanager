@@ -12,6 +12,8 @@ interface Props {
   cta: string;
   /** UTM/source som läggs på /auth-länken. */
   source: string;
+  /** Extra query-parametrar till signup-länken (t.ex. competition, sport). Encodas korrekt en gång. */
+  signupParams?: Record<string, string | null | undefined>;
   /** Sekundär outline-CTA (valfri). */
   secondary?: { label: string; to: string };
 }

@@ -342,6 +342,7 @@ export function useCanvasViewport(opts: UseCanvasViewportOpts): UseCanvasViewpor
     zoomIn,
     zoomOut,
     zoomTo,
+    zoomAtClient,
     resetZoom,
     fitToScreen,
     panByPx,

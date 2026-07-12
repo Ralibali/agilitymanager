@@ -198,9 +198,6 @@ export default function V3HomePage() {
             />
           )}
           <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
-
-        <div className="space-y-5 lg:space-y-6">
-          <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
             <CommandHero
               greeting={greeting}
               name={name}

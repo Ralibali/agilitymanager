@@ -56,7 +56,9 @@ import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
 import { parseCourseJson } from "@/features/course-planner-v2/importJson";
 import { renderCourseImage, shareCanvas } from "@/lib/shareImage";
 import { trackEvent } from "@/lib/analyticsLoader";
-import { clampObstacleToArena, getDeviceClass } from "@/features/course-planner-v2/geometry";
+import { clampObstacleToArena, clampCenterForRotatedBox, getDeviceClass } from "@/features/course-planner-v2/geometry";
+import { pinchSample, pinchScale, pinchPanDelta, type PinchSample } from "@/features/course-planner-v2/gestureMath";
+import { MobileSelectedObstacleSheet } from "@/components/course-planner-v2/MobileSelectedObstacleSheet";
 import { makeQrDataUrl } from "@/lib/qrDataUrl";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
 import {

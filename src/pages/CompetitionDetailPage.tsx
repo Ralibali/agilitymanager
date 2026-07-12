@@ -440,6 +440,18 @@ export default function CompetitionDetailPage() {
           </p>
         </div>
 
+        {/* Produkt-CTA för utloggade besökare */}
+        {!user && (
+          <ProductCTA
+            placement="competition_detail"
+            source="competition_detail"
+            headline="Spara tävlingen och få en enkel plan fram till start."
+            body={`Vi hämtar startlistor, håller koll på anmälningsdatum och gör resultatet till en tydlig träningsplan – för ${comp.event_name}.`}
+            cta="Spara tävlingen"
+            secondary={{ label: "Se fler tävlingar", to: "/tavlingar" }}
+          />
+        )}
+
         {/* Ansvarsfriskrivning för crawlat tävlingsdata */}
         <section className="max-w-3xl mx-auto px-5 md:px-12 pb-12">
           <Disclaimer variant="competition" />

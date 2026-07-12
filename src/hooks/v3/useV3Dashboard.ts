@@ -9,6 +9,15 @@ export type DashboardStats = {
   passedThisMonth: number;
 };
 
+export type DashboardSignals = {
+  hasAnyTraining: boolean;
+  hasAnyResults: boolean;
+  totalResults: number;
+  totalTraining: number;
+  bestPlacement: number | null;
+  firstTrainingDate: string | null;
+};
+
 export type NextEvent =
   | {
       kind: "competition";

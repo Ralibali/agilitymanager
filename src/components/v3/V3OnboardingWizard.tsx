@@ -563,21 +563,35 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                 </article>
 
                 {showAlternative ? (
-                  <article className="rounded-v3-xl border border-v3-canvas-sunken bg-v3-canvas-elevated p-4 space-y-2">
+                  <article className="rounded-v3-xl border border-v3-canvas-sunken bg-v3-canvas-elevated p-4 space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-v3-canvas-sunken/60 px-2.5 py-1 text-[11px] font-semibold text-v3-text-secondary">
-                        <Clock3 size={11} /> {starterPlan.alternative.minutes} min
+                        <Clock3 size={11} /> {starterPlan.easierAlternative.durationMinutes} min
                       </span>
                       <span className="text-[11px] font-semibold uppercase tracking-wider text-v3-text-tertiary">
                         Lättare variant
                       </span>
                     </div>
                     <h4 className="font-v3-display text-v3-lg text-v3-text-primary leading-snug">
-                      {starterPlan.alternative.title}
+                      {starterPlan.easierAlternative.title}
                     </h4>
                     <p className="text-v3-sm text-v3-text-secondary leading-relaxed">
-                      {starterPlan.alternative.why}
+                      {starterPlan.easierAlternative.reason}
                     </p>
+                    <ol className="space-y-2">
+                      {starterPlan.easierAlternative.steps.map((s, i) => (
+                        <li key={i} className="flex gap-2.5">
+                          <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-v3-brand-500/15 text-[11px] font-black text-v3-brand-700">
+                            {i + 1}
+                          </span>
+                          <span className="text-v3-sm text-v3-text-primary leading-6">{s}</span>
+                        </li>
+                      ))}
+                    </ol>
+                    <div className="flex items-start gap-2 rounded-v3-base border border-dashed border-v3-canvas-sunken bg-v3-canvas/40 p-2.5 text-[12px] text-v3-text-secondary">
+                      <Package size={13} className="mt-0.5 shrink-0" />
+                      <span>{starterPlan.easierAlternative.equipment.join(" · ")}</span>
+                    </div>
                   </article>
                 ) : (
                   <button
@@ -586,10 +600,10 @@ export function V3OnboardingWizard({ onComplete }: Props) {
                       setShowAlternative(true);
                       trackGrowthEvent("starter_plan_alternative_viewed", {
                         plan_id: starterPlan.id,
-                        alternative_id: starterPlan.alternative.id,
+                        alternative_id: starterPlan.easierAlternative.id,
                       });
                     }}
-                    className="w-full text-v3-sm text-v3-brand-700 hover:text-v3-brand-800 underline underline-offset-4"
+                    className="w-full min-h-11 text-v3-sm text-v3-brand-700 hover:text-v3-brand-800 underline underline-offset-4"
                   >
                     Visa lättare variant
                   </button>

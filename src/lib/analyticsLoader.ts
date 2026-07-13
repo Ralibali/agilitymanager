@@ -45,11 +45,27 @@ function clearCookiesByPrefix(prefixes: string[]) {
   });
 }
 
+/**
+ * Ladda Plausible endast på produktionsdomänen.
+ * Skippas på localhost och Lovable preview (*.lovable.app / *.lovable.dev),
+ * samt om användaren har DNT/Global Privacy Control aktiverat.
+ */
+function isTrackingHost(): boolean {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  if (!host) return false;
+  if (host === "localhost" || host === "127.0.0.1" || host === "0.0.0.0") return false;
+  if (host.endsWith(".local")) return false;
+  if (host.endsWith(".lovable.app") || host.endsWith(".lovable.dev")) return false;
+  if (host.endsWith(".lovableproject.com")) return false;
+  return true;
+}
+
 function loadPlausible() {
   if (typeof document === "undefined") return;
   if (document.getElementById(PLAUSIBLE_SCRIPT_ID)) return;
-  const domain = import.meta.env.VITE_PLAUSIBLE_DOMAIN as string | undefined;
-  if (!domain) return;
+  if (!isTrackingHost()) return;
+  const domain = (import.meta.env.VITE_PLAUSIBLE_DOMAIN as string | undefined) || "agilitymanager.se";
   const src = (import.meta.env.VITE_PLAUSIBLE_SRC as string | undefined) || "https://plausible.io/js/script.js";
   const s = document.createElement("script");
   s.id = PLAUSIBLE_SCRIPT_ID;

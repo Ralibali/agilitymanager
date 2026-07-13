@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { getGateCopy, type GateFeatureKey } from '@/components/v3/gateCopy';
 import { useHasLoggedTraining } from '@/hooks/v3/useHasLoggedTraining';
+import { trackAnalyticsEvent, billingIntervalFromPriceId } from '@/lib/analytics';
 
 interface PremiumGateProps {
   children: ReactNode;
@@ -50,6 +51,10 @@ export function PremiumGate({ children, fullPage = false, featureName = 'Denna f
     }
     setLoading(priceId);
     try {
+      trackAnalyticsEvent('pro_checkout_started', {
+        billing_interval: billingIntervalFromPriceId(priceId),
+        source: 'premium_gate',
+      });
       const { data, error } = await supabase.functions.invoke('create-checkout', { body: { priceId } });
       if (error) throw error;
       if (data?.url) window.open(data.url, '_blank');

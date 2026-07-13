@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { trackGrowthEvent } from "@/lib/growth";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 import { buildFirstInsight, type LogDefaults, type LogContext } from "@/lib/trainingRecommendations";
 import { MapPinned } from "lucide-react";
 
@@ -241,6 +242,9 @@ export function V3LogTrainingSheet({ open, onClose, onLogged, defaults, context 
       trackGrowthEvent("training_logged", props);
       if (isFirst) {
         trackGrowthEvent("first_training_logged", { type: parsed.data.type });
+        trackAnalyticsEvent("first_training_logged", {
+          sport: isHoopers ? "hoopers" : "agility",
+        });
       }
     } catch {
       /* ignore */

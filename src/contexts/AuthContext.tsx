@@ -1,6 +1,7 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { trackAnalyticsEvent, billingIntervalFromPriceId } from '@/lib/analytics';
 
 // Aktuella priser (v2 — 2026)
 // Gamla priser (price_1T9Aio... 19 kr/mån, price_1T9Aom... 99 kr/år) är fortfarande aktiva

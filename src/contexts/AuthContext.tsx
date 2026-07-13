@@ -205,6 +205,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, [session, checkSubscription]);
 
+  // En gång per användare: emit `trial_started` när trial upptäcks och
+  // `pro_purchased` när en betald prenumeration upptäcks. Använder localStorage-
+  // flaggor per user_id så vi inte dubbelrapporterar över refresh eller sessioner.
+  const analyticsFiredRef = useRef<{ trial: boolean; pro: boolean; userId: string | null }>({
+    trial: false,
+    pro: false,
+    userId: null,
+  });
+  useEffect(() => {
+    const userId = session?.user?.id ?? null;
+    if (!userId) {
+      analyticsFiredRef.current = { trial: false, pro: false, userId: null };
+      return;
+    }
+    if (subscription.loading) return;
+    if (analyticsFiredRef.current.userId !== userId) {
+      analyticsFiredRef.current = { trial: false, pro: false, userId };
+    }
+    const trialKey = `am_analytics_trial_started_${userId}`;
+    const proKey = `am_analytics_pro_purchased_${userId}`;
+    try {
+      if (subscription.isTrial && subscription.subscribed && !analyticsFiredRef.current.trial) {
+        if (!window.localStorage.getItem(trialKey)) {
+          window.localStorage.setItem(trialKey, '1');
+          trackAnalyticsEvent('trial_started', { plan: 'trial' });
+        }
+        analyticsFiredRef.current.trial = true;
+      }
+      if (subscription.subscribed && !subscription.isTrial && !analyticsFiredRef.current.pro) {
+        if (!window.localStorage.getItem(proKey)) {
+          window.localStorage.setItem(proKey, '1');
+          trackAnalyticsEvent('pro_purchased', {
+            plan: 'pro',
+            billing_interval: billingIntervalFromPriceId(subscription.priceId),
+          });
+        }
+        analyticsFiredRef.current.pro = true;
+      }
+    } catch {
+      /* localStorage kan vara blockerad */
+    }
+  }, [
+    session?.user?.id,
+    subscription.loading,
+    subscription.subscribed,
+    subscription.isTrial,
+    subscription.priceId,
+  ]);
+
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };

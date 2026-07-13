@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { getGateCopy, type GateFeatureKey } from '@/components/v3/gateCopy';
 import { useHasLoggedTraining } from '@/hooks/v3/useHasLoggedTraining';
+import { trackAnalyticsEvent, billingIntervalFromPriceId } from '@/lib/analytics';
 
 interface PremiumGateProps {
   children: ReactNode;

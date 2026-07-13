@@ -10,6 +10,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { V3Layout } from "@/components/v3/V3Layout";
 import { ScrollToTop } from "@/components/motion/ScrollToTop";
+import { PageviewTracker } from "@/components/PageviewTracker";
 import { captureUtmParams } from "@/lib/utm";
 import { initAnalyticsLoader } from "@/lib/analyticsLoader";
 
@@ -114,6 +115,7 @@ const App = () => (
             <BrowserRouter>
               <CookieBanner />
               <ScrollToTop />
+              <PageviewTracker />
               <Suspense fallback={<LazyFallback />}>
                 <Routes>
                   <Route element={<AuthGuard />}>

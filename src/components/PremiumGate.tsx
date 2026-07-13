@@ -50,6 +50,10 @@ export function PremiumGate({ children, fullPage = false, featureName = 'Denna f
     }
     setLoading(priceId);
     try {
+      trackAnalyticsEvent('pro_checkout_started', {
+        billing_interval: billingIntervalFromPriceId(priceId),
+        source: 'premium_gate',
+      });
       const { data, error } = await supabase.functions.invoke('create-checkout', { body: { priceId } });
       if (error) throw error;
       if (data?.url) window.open(data.url, '_blank');

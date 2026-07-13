@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getAndClearUtmData } from '@/lib/utm';
 import { readGuestInterestItems } from '@/lib/guestInterestsStorage';
 import { trackGrowthEvent } from '@/lib/growth';
+import { trackAnalyticsEvent } from '@/lib/analytics';
 
 function safeRedirectPath(value: string | null): string {
   if (!value) return '/v3';
@@ -288,9 +289,11 @@ export default function AuthPage() {
         // Non-critical
       }
       trackGrowthEvent('signup_completed', { source: source ?? null, has_ref: !!refCode });
+      trackAnalyticsEvent('signup_completed', { source: source ?? undefined });
       goToRedirect();
     } else {
       trackGrowthEvent('signup_completed', { source: source ?? null, has_ref: !!refCode, requires_email_confirm: true });
+      trackAnalyticsEvent('signup_completed', { source: source ?? undefined });
       toast({ title: 'Konto skapat!', description: 'Kolla din e-post och fortsätt sedan i AgilityManager.' });
       setIsLogin(true);
     }

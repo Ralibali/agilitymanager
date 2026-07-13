@@ -27,6 +27,7 @@ import { useIsAdmin } from "@/components/layout/useIsAdmin";
 import { V3ProValueCard } from "@/components/v3/V3ProValueCard";
 import { ReferralCard } from "@/components/v3/ReferralCard";
 import { cn } from "@/lib/utils";
+import { trackAnalyticsEvent, billingIntervalFromPriceId } from "@/lib/analytics";
 import {
   getGuestInterestsSyncEnabled,
   setGuestInterestsSyncEnabled,
@@ -192,6 +193,10 @@ export default function V3SettingsPage() {
   const handleCheckout = async (priceId: string) => {
     setCheckoutLoading(priceId);
     try {
+      trackAnalyticsEvent("pro_checkout_started", {
+        billing_interval: billingIntervalFromPriceId(priceId),
+        source: "settings",
+      });
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { priceId },
       });

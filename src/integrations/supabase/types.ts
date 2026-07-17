@@ -399,6 +399,42 @@ export type Database = {
           },
         ]
       }
+      club_interest_leads: {
+        Row: {
+          club_name: string
+          contact_name: string
+          created_at: string
+          email: string
+          id: string
+          members_estimate: number | null
+          message: string | null
+          sport: string | null
+          user_id: string | null
+        }
+        Insert: {
+          club_name: string
+          contact_name: string
+          created_at?: string
+          email: string
+          id?: string
+          members_estimate?: number | null
+          message?: string | null
+          sport?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          club_name?: string
+          contact_name?: string
+          created_at?: string
+          email?: string
+          id?: string
+          members_estimate?: number | null
+          message?: string | null
+          sport?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       club_members: {
         Row: {
           club_id: string
@@ -465,50 +501,6 @@ export type Database = {
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      club_interest_leads: {
-        Row: {
-          club_name: string
-          contact_name: string
-          created_at: string
-          email: string
-          id: string
-          members_estimate: number | null
-          message: string | null
-          sport: string | null
-          user_id: string | null
-        }
-        Insert: {
-          club_name: string
-          contact_name: string
-          created_at?: string
-          email: string
-          id?: string
-          members_estimate?: number | null
-          message?: string | null
-          sport?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          club_name?: string
-          contact_name?: string
-          created_at?: string
-          email?: string
-          id?: string
-          members_estimate?: number | null
-          message?: string | null
-          sport?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "club_interest_leads_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]

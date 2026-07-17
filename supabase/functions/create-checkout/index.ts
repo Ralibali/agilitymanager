@@ -76,7 +76,7 @@ serve(async (req) => {
     }
     const user = data.user;
 
-    let payload: { priceId?: unknown };
+    let payload: { priceId?: unknown; mode?: unknown; clubId?: unknown; seats?: unknown };
     try {
       payload = await req.json();
     } catch {
@@ -93,6 +93,50 @@ serve(async (req) => {
     const customerId = customers.data[0]?.id;
     const origin = getSafeOrigin(req);
 
+    // ── Klubbläge: per-seat-prenumeration kopplad till en klubb ──
+    if (payload.mode === "club") {
+      const clubId = typeof payload.clubId === "string" ? payload.clubId : "";
+      const seats = typeof payload.seats === "number" ? Math.floor(payload.seats) : 0;
+      if (!clubId || seats < 1 || seats > 500) {
+        return jsonResponse({ error: "Ogiltigt klubb-id eller antal platser" }, 400);
+      }
+
+      // Endast klubbadmin får köpa platser åt klubben (via RLS-läsbar egen medlemsrad)
+      const { data: membership } = await supabaseClient
+        .from("club_members")
+        .select("role")
+        .eq("club_id", clubId)
+        .eq("user_id", user.id)
+        .eq("status", "accepted")
+        .maybeSingle();
+      if (membership?.role !== "admin") {
+        return jsonResponse({ error: "Endast klubbadmin kan köpa Klubb Pro" }, 403);
+      }
+
+      const clubMeta = {
+        user_id: user.id,
+        club_id: clubId,
+        club_checkout: "true",
+        seats: String(seats),
+      };
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        client_reference_id: user.id,
+        line_items: [{ price: priceId, quantity: seats }],
+        mode: "subscription",
+        allow_promotion_codes: true,
+        success_url: `${origin}/v3/clubs?checkout=success`,
+        cancel_url: `${origin}/v3/clubs?checkout=cancel`,
+        metadata: clubMeta,
+        subscription_data: { metadata: clubMeta },
+      });
+
+      if (!session.url) throw new Error("Stripe checkout session has no URL");
+      return jsonResponse({ url: session.url });
+    }
+
+    // ── Personligt Pro (befintligt flöde, orört) ──
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,

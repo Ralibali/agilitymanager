@@ -137,6 +137,49 @@ serve(async (req) => {
         return new Response(JSON.stringify({ received: true }), { status: 200 });
       }
 
+      // ── Klubb Pro-checkout: bokför på club_subscriptions, inte på profilen ──
+      const clubId = session.metadata?.club_id;
+      if (clubId) {
+        const customerId = typeof session.customer === "string" ? session.customer : session.customer.id;
+        const seats = Number(session.metadata?.seats ?? "0") || 0;
+        const buyerId = session.metadata?.user_id || session.client_reference_id || null;
+
+        let status = "incomplete";
+        let periodEnd: string | null = null;
+        let priceId: string | null = null;
+        let subscriptionId: string | null = null;
+        if (session.subscription) {
+          subscriptionId = typeof session.subscription === "string"
+            ? session.subscription
+            : session.subscription.id;
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          status = ["active", "trialing"].includes(subscription.status) ? "active" : subscription.status;
+          priceId = subscription.items?.data?.[0]?.price?.id ?? null;
+          periodEnd = subscription.current_period_end
+            ? new Date(subscription.current_period_end * 1000).toISOString()
+            : null;
+        }
+
+        const { error } = await supabaseAdmin
+          .from("club_subscriptions")
+          .upsert(
+            {
+              club_id: clubId,
+              created_by: buyerId,
+              stripe_customer_id: customerId,
+              stripe_subscription_id: subscriptionId,
+              stripe_price_id: priceId,
+              seats,
+              status,
+              current_period_end: periodEnd,
+            },
+            { onConflict: "club_id" },
+          );
+        if (error) throw new Error(`Failed to upsert club subscription: ${error.message}`);
+        logStep("Club subscription created", { clubId, seats, status });
+        return new Response(JSON.stringify({ received: true }), { status: 200 });
+      }
+
       const customerId = typeof session.customer === "string" ? session.customer : session.customer.id;
       const email = session.customer_details?.email || session.customer_email;
       const metadataUserId = session.client_reference_id || session.metadata?.user_id;
@@ -162,6 +205,33 @@ serve(async (req) => {
     }
 
     const subscription = event.data.object as Stripe.Subscription;
+
+    // ── Klubb Pro-prenumeration: uppdatera club_subscriptions, inte profilen ──
+    const subClubId = subscription.metadata?.club_id;
+    if (subClubId) {
+      const isActive = ["active", "trialing"].includes(subscription.status);
+      const quantity = subscription.items?.data?.[0]?.quantity ?? 0;
+      const periodEnd = subscription.current_period_end
+        ? new Date(subscription.current_period_end * 1000).toISOString()
+        : null;
+
+      const updateFields: Record<string, unknown> = {
+        status: event.type === "customer.subscription.deleted" ? "canceled" : isActive ? "active" : subscription.status,
+        current_period_end: periodEnd,
+      };
+      if (quantity > 0) updateFields.seats = quantity;
+      const priceId = subscription.items?.data?.[0]?.price?.id;
+      if (priceId) updateFields.stripe_price_id = priceId;
+
+      const { error } = await supabaseAdmin
+        .from("club_subscriptions")
+        .update(updateFields)
+        .eq("club_id", subClubId);
+      if (error) throw new Error(`Failed to update club subscription: ${error.message}`);
+      logStep("Club subscription updated", { clubId: subClubId, status: updateFields.status, seats: updateFields.seats });
+      return new Response(JSON.stringify({ received: true }), { status: 200 });
+    }
+
     const customerId = typeof subscription.customer === "string"
       ? subscription.customer
       : subscription.customer.id;

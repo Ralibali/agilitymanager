@@ -107,6 +107,52 @@ serve(async (req) => {
       });
     }
 
+    // ── Klubb Pro: aktiv klubbprenumeration med tillräckligt många platser ──
+    // Placeras före Stripe-uppslaget: rent databasanrop, billigare och snabbare.
+    try {
+      const { data: memberships } = await supabaseAdmin
+        .from("club_members")
+        .select("club_id")
+        .eq("user_id", user.id)
+        .eq("status", "accepted");
+
+      if (memberships && memberships.length > 0) {
+        const clubIds = memberships.map((m: { club_id: string }) => m.club_id);
+        const { data: clubSubs } = await supabaseAdmin
+          .from("club_subscriptions")
+          .select("club_id, seats, current_period_end")
+          .in("club_id", clubIds)
+          .eq("status", "active");
+
+        for (const clubSub of clubSubs ?? []) {
+          if (clubSub.current_period_end) {
+            const end = new Date(clubSub.current_period_end);
+            if (!Number.isNaN(end.getTime()) && end <= now) continue;
+          }
+          const { count } = await supabaseAdmin
+            .from("club_members")
+            .select("id", { count: "exact", head: true })
+            .eq("club_id", clubSub.club_id)
+            .eq("status", "accepted");
+
+          if ((count ?? 0) <= clubSub.seats) {
+            return jsonResponse({
+              subscribed: true,
+              is_trial: false,
+              product_id: null,
+              price_id: null,
+              subscription_end: clubSub.current_period_end,
+              club_granted: true,
+              club_id: clubSub.club_id,
+            });
+          }
+        }
+      }
+    } catch (clubError) {
+      // Klubbkollen får aldrig stoppa den personliga prenumerationskollen
+      logStep("Club subscription check failed (continuing)", { error: String(clubError) });
+    }
+
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (stripeKey) {
       const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });

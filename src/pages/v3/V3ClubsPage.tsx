@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { V3Page, V3PageHero, V3PrimaryButton } from "@/components/v3/V3Page";
+import { ClubProCard } from "@/components/v3/ClubProCard";
 
 interface Club {
   id: string;
@@ -40,6 +41,23 @@ export default function V3ClubsPage() {
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newCity, setNewCity] = useState("");
+
+  // Checkout-retur från Klubb Pro-köp
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const checkout = params.get("checkout");
+    if (checkout === "success") {
+      toast.success("Klubb Pro aktiverat! Det kan ta någon minut innan alla medlemmar ser Pro.");
+    } else if (checkout === "cancel") {
+      toast.info("Betalningen avbröts — inget har dragits.");
+    }
+    if (checkout) {
+      params.delete("checkout");
+      const query = params.toString();
+      window.history.replaceState(null, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
+    }
+  }, []);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -157,6 +175,7 @@ function ClubDetail({ club, role, onBack }: { club: Club; role?: string; onBack:
         {club.description && <p className="text-v3-base text-v3-text-secondary mt-5 max-w-3xl">{club.description}</p>}
       </section>
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-3"><V3Stat label="Din roll" value={role ?? "Gäst"} hint="medlemskap" /><V3Stat label="Stad" value={club.city || "—"} hint="klubbens ort" /><V3Stat label="Inbjudan" value={inviteCode ? "Aktiv" : "—"} hint="delbar länk" /></section>
+      <ClubProCard clubId={club.id} clubName={club.name} role={role} />
       <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs"><h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Klubböversikt</h2><p className="text-v3-sm text-v3-text-secondary mt-1">Här visas klubbens information. Medlemslista, inlägg och aktiviteter kan byggas vidare här utan att skicka användaren till en trasig gammal route.</p>{inviteCode && <button type="button" onClick={copyInvite} className="mt-4 inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600"><Copy size={15} /> Kopiera inbjudningslänk</button>}</section>
     </V3Page>
   );

@@ -159,7 +159,17 @@ export default function ClubsLandingPage() {
                 ))}
               </ul>
               <p className="text-sm text-stone mt-5">
-                Berätta om er klubb så återkommer vi med ett prisförslag inom några dagar.
+                {user ? (
+                  <>
+                    Är du klubbadmin?{" "}
+                    <Link to="/v3/clubs" className="font-medium text-forest underline-offset-2 hover:underline">
+                      Köp platser direkt i appen
+                    </Link>{" "}
+                    — eller berätta om er klubb så återkommer vi med ett prisförslag för större föreningar.
+                  </>
+                ) : (
+                  "Klubbadmin köper platser direkt i appen — eller berätta om er klubb så återkommer vi med ett prisförslag för större föreningar."
+                )}
               </p>
             </motion.div>
 

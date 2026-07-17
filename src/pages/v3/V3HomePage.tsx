@@ -74,7 +74,7 @@ export default function V3HomePage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const { dogs, active, activeId, setActive, loading: dogsLoading } = useV3Dogs();
+  const { dogs, active, activeId, setActive, loading: dogsLoading, refetch: refetchDogs } = useV3Dogs();
   const { stats, signals, nextEvent, timeline, loading: dashLoading } = useV3Dashboard(activeId);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [addDogOpen, setAddDogOpen] = useState(false);
@@ -155,7 +155,16 @@ export default function V3HomePage() {
   };
 
   if (showOnboarding) {
-    return <V3OnboardingWizard onComplete={() => setShowOnboarding(false)} />;
+    // Efter onboarding: hämta om hundlistan — wizarden skapar hunden direkt
+    // mot databasen, och utan refetch skulle hemskärmen fastna i "no-dog"-läge.
+    return (
+      <V3OnboardingWizard
+        onComplete={() => {
+          setShowOnboarding(false);
+          refetchDogs();
+        }}
+      />
+    );
   }
 
   return (
@@ -178,6 +187,9 @@ export default function V3HomePage() {
         />
       ) : (
         <div className="space-y-5 lg:space-y-6">
+          {/* Personlig hälsning — värme utan att konkurrera med hierarkin */}
+          <GreetingHeader userMetadata={user?.user_metadata} />
+
           {/* Kompakt hundidentitet + växlare */}
           <DogHero
             dogs={dogs}
@@ -287,7 +299,9 @@ export default function V3HomePage() {
         onClose={() => setAddDogOpen(false)}
         onAdded={() => {
           setAddDogOpen(false);
-          window.location.reload();
+          // Mjuk uppdatering istället för hård omladdning — behåller scroll,
+          // state och ger omedelbar övergång till dashboard-läget.
+          refetchDogs();
         }}
       />
     </main>
@@ -297,6 +311,29 @@ export default function V3HomePage() {
 /* ────────────────────────────────────────────────────────────────
  * Subkomponenter — inga påhittade procent eller status­etiketter.
  * ──────────────────────────────────────────────────────────────── */
+
+function GreetingHeader({ userMetadata }: { userMetadata?: Record<string, unknown> }) {
+  const displayName = (userMetadata as { display_name?: string } | undefined)?.display_name;
+  const firstName = displayName?.trim().split(/\s+/)[0];
+  const hour = new Date().getHours();
+  const greeting =
+    hour >= 5 && hour < 11 ? "God morgon" : hour >= 11 && hour < 17 ? "God dag" : hour >= 17 && hour < 23 ? "God kväll" : "Sent ute";
+  const dateStr = new Date().toLocaleDateString("sv-SE", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
+  return (
+    <header className="flex items-baseline justify-between gap-3">
+      <p className="text-sm font-medium text-v3-text-secondary">
+        {greeting}
+        {firstName ? `, ${firstName}` : ""} 👋
+      </p>
+      <p className="text-xs text-v3-text-tertiary capitalize shrink-0">{dateStr}</p>
+    </header>
+  );
+}
 
 function FocusedIntroCard({
   eyebrow,

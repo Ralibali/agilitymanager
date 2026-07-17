@@ -27,6 +27,7 @@ export function useV3Dogs() {
   const [dogs, setDogs] = useState<V3Dog[] | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,14 +62,20 @@ export function useV3Dogs() {
       const stored = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : null;
       const fromStorage = stored && list.find((d) => d.id === stored) ? stored : null;
       const fromActive = list.find((d) => d.is_active_competition_dog)?.id ?? null;
-      setActiveId(fromStorage ?? fromActive ?? list[0]?.id ?? null);
+      setActiveId((prev) =>
+        // Behåll nuvarande val om hunden fortfarande finns (viktigt vid refetch),
+        // annars fall tillbaka på storage → aktiv-markering → första hunden.
+        prev && list.find((d) => d.id === prev)
+          ? prev
+          : fromStorage ?? fromActive ?? list[0]?.id ?? null,
+      );
       setLoading(false);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [user?.id]);
+  }, [user?.id, reloadKey]);
 
   const setActive = useCallback((id: string) => {
     setActiveId(id);
@@ -79,10 +86,17 @@ export function useV3Dogs() {
     }
   }, []);
 
+  /**
+   * Hämta om hundlistan utan sidladdning — används efter att en hund lagts
+   * till (t.ex. i onboarding eller Lägg-till-hund-sheet) så att hemskärmen
+   * direkt visar rätt läge.
+   */
+  const refetch = useCallback(() => setReloadKey((k) => k + 1), []);
+
   const active = useMemo(
     () => (dogs && activeId ? dogs.find((d) => d.id === activeId) ?? null : null),
     [dogs, activeId],
   );
 
-  return { dogs: dogs ?? [], active, activeId, setActive, loading };
+  return { dogs: dogs ?? [], active, activeId, setActive, loading, refetch };
 }

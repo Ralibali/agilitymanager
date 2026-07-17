@@ -92,6 +92,12 @@ const STATIC_PAGES = [
     description:
       'AgilityManager är gratis att börja med. Pro kostar 79 kr/mån eller 790 kr/år (66 kr/mån) och låser upp obegränsade hundar, banbyggare med 3D, AI-insikter och resultatimport.',
   },
+  {
+    route: '/klubb',
+    title: 'För klubbar – agility- och hoopersklubbar | AgilityManager',
+    description:
+      'Samla klubben i AgilityManager: anslagstavla, gemensam kalender och undergrupper gratis. Be om grupppris på Pro för hela klubben.',
+  },
 ];
 
 // ---------------- FAQ (måste spegla src/pages/LandingPage.tsx + HoopersLandingPage.tsx) ----------------

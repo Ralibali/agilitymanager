@@ -87,13 +87,16 @@ describe("computeCourseTimes", () => {
     const t = computeCourseTimes(makeCourse({ obstacles: obs, classTemplate: "agility_1" }));
     expect(t.lengthM).toBeCloseTo(10, 6);
     expect(t.refTimeS).toBe(4);
-    expect(t.maxTimeS).toBe(6);
+    // VERIFIERAT §3.4 (SAgiK 2022–2026): maxtiden är 2 × referenstiden.
+    expect(t.maxTimeS).toBe(8);
   });
 
-  it("provisional RuleSet → isProvisional = true (UI ska kalla det beräknad tid)", () => {
+  it("ej fullt verifierat RuleSet → isProvisional = true (UI ska kalla det beräknad tid)", () => {
     const t = computeCourseTimes(makeCourse({ obstacles: obs, classTemplate: "agility_1" }));
     expect(t.isProvisional).toBe(true);
-    expect(t.ruleSetStatus).toBe("provisional");
+    // Kärnvärdena är verifierade mot SAgiK 2022–2026; status är
+    // "partially_verified" tills tunnel→kontaktfält-avståndet är citerat.
+    expect(t.ruleSetStatus).toBe("partially_verified");
     expect(t.ruleSetId).toBe(DEFAULT_RULESET_ID);
   });
 });
@@ -179,9 +182,9 @@ describe("validateCourse — säkerhet från RuleSet", () => {
     expect(issues.some((i) => i.code === "hoopers_too_close")).toBe(true);
   });
 
-  it("provisional RuleSet → meddelande innehåller 'förhandskontrollens gräns'", () => {
+  it("ej fullt verifierat RuleSet → meddelande innehåller 'förhandskontrollens gräns'", () => {
     const rs = getRuleSet(DEFAULT_RULESET_ID);
-    expect(rs?.verificationStatus).toBe("provisional");
+    expect(rs?.verificationStatus).toBe("partially_verified");
     const course = makeCourse({
       obstacles: [
         ob({ type: "jump", x: 5, y: 5, number: 1 }),

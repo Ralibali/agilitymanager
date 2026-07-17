@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTheme } from "next-themes";
 import {
   Check,
@@ -139,6 +139,17 @@ export default function V3SettingsPage() {
       cancelled = true;
     };
   }, [searchParams, checkSubscription]);
+
+  // Scrolla direkt till Pro-sektionen när man landar med #pro-prenumeration
+  // (t.ex. från trial-bannerns "Fortsätt med Pro").
+  const location = useLocation();
+  useEffect(() => {
+    if (location.hash !== "#pro-prenumeration") return;
+    const timer = window.setTimeout(() => {
+      document.getElementById("pro-prenumeration")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [location.hash]);
 
   useEffect(() => {
     if (!user) return;
@@ -340,7 +351,7 @@ export default function V3SettingsPage() {
             )}
           </section>
 
-          <section className="animate-v3-fade-up rounded-v3-2xl border border-v3-canvas-sunken bg-v3-canvas-elevated p-5 sm:p-6">
+          <section id="pro-prenumeration" className="animate-v3-fade-up rounded-v3-2xl border border-v3-canvas-sunken bg-v3-canvas-elevated p-5 sm:p-6 scroll-mt-24">
             <div className="mb-5 flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-v3-base bg-v3-brand-100">

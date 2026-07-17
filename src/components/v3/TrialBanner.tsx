@@ -43,7 +43,7 @@ export function TrialBanner() {
 
   if (!state || dismissed) return null;
 
-  const goUpgrade = () => navigate("/v3/settings");
+  const goUpgrade = () => navigate("/v3/settings#pro-prenumeration");
 
   if (state.kind === "expired") {
     return (

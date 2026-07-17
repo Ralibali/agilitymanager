@@ -66,8 +66,9 @@ Deno.serve(async (req) => {
   const baseUrl = `${supabaseUrl}/functions/v1`;
   const jobs: { name: string; schedule: string; fn: string }[] = [
     { name: "scrape-competitions-daily", schedule: "0 5 * * *", fn: "scrape-competitions" },
-    { name: "check-deadlines-daily", schedule: "0 8 * * *", fn: "check-registration-deadlines" },
+    { name: "scrape-hoopers-competitions-daily", schedule: "30 5 * * *", fn: "scrape-hoopers-competitions" },
     { name: "send-competition-reminders-daily", schedule: "0 7 * * *", fn: "send-competition-reminders" },
+    { name: "check-deadlines-daily", schedule: "0 8 * * *", fn: "check-registration-deadlines" },
     { name: "social-notifications-daily", schedule: "0 9 * * *", fn: "social-notifications" },
   ];
 

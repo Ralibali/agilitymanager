@@ -14,6 +14,8 @@
     { "source": "/hoopers/rules", "destination": "/hoopers-regler", "permanent": true },
     { "source": "/disclaimer", "destination": "/ansvarsfriskrivning", "permanent": true },
     { "source": "/pricing", "destination": "/priser", "permanent": true },
+    { "source": "/klubbar", "destination": "/klubb", "permanent": true },
+    { "source": "/for-klubbar", "destination": "/klubb", "permanent": true },
     { "source": "/blogg/agility-kurs-nyb%C3%B6rjare", "destination": "/blogg/agility-kurs-nyborjare", "permanent": true },
     { "source": "/blogg/agility-kurs-nybörjare", "destination": "/blogg/agility-kurs-nyborjare", "permanent": true },
     { "source": "/agility-kurs-nyb%C3%B6rjare", "destination": "/blogg/agility-kurs-nyborjare", "permanent": true },

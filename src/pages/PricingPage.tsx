@@ -63,7 +63,7 @@ const PRICING_FAQS = [
   },
   {
     q: "Vad kostar videoanalys av en coach?",
-    a: "Vår SM-meriterade coach analyserar din träningsvideo från 79 kr per video. Du laddar upp videon i appen och får konkret feedback inom 48 timmar.",
+    a: "Vår SM-meriterade coach analyserar din träningsvideo för 149 kr per video — 79 kr med Pro. Du laddar upp videon i appen och får konkret, skriftlig feedback inom 5 arbetsdagar.",
   },
 ];
 
@@ -288,7 +288,7 @@ export default function PricingPage() {
               {isPro ? (
                 <Button
                   className="w-full mt-8 bg-forest text-bone hover:bg-forest-soft"
-                  onClick={() => navigate("/v3/settings")}
+                  onClick={() => navigate("/v3/settings#pro-prenumeration")}
                 >
                   Du har Pro — hantera prenumeration
                 </Button>
@@ -331,10 +331,11 @@ export default function PricingPage() {
               </div>
               <p className="text-sm text-stone mt-2">
                 Ladda upp en träningsvideo och få konkret feedback på dirigering, linjer
-                och tempo av vår SM-meriterade coach — inom 48 timmar.
+                och tempo av vår SM-meriterade coach — inom 5 arbetsdagar.
               </p>
               <p className="font-display text-xl text-forest mt-3">
-                från 79 kr <span className="text-sm font-normal text-stone">/ video</span>
+                149 kr <span className="text-sm font-normal text-stone">/ video</span>
+                <span className="ml-2 text-sm font-semibold text-forest/80 bg-forest/10 px-2 py-0.5 rounded-full">79 kr med Pro</span>
               </p>
               <Link
                 to="/coach"
@@ -359,12 +360,12 @@ export default function PricingPage() {
                 Klubbar får anslagstavla, gemensam kalender och undergrupper — gratis.
                 Hör av dig om ni vill ha Pro till hela klubben till grupppris.
               </p>
-              <a
-                href="mailto:info@auroramedia.se?subject=Klubbpris%20AgilityManager%20Pro"
+              <Link
+                to="/klubb"
                 className="inline-flex items-center gap-1 text-sm font-medium text-forest underline-offset-2 hover:underline mt-3"
               >
-                Kontakta oss om klubbpris
-              </a>
+                Be om prisförslag för er klubb
+              </Link>
             </motion.div>
           </div>
 

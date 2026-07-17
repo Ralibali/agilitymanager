@@ -53,7 +53,7 @@ export function ProValueCard() {
 
   const handleUpgrade = () => {
     trackGrowthEvent("pro_value_card_cta_click", { in_trial: subscription.isTrial });
-    navigate("/v3/settings");
+    navigate("/v3/settings#pro-prenumeration");
   };
 
   const eyebrow = subscription.isTrial

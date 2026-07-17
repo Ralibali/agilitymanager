@@ -53,6 +53,7 @@ const STATIC_ROUTES = [
   { path: '/om-agility', changefreq: 'monthly', priority: '0.9' },
   { path: '/hundforsakring', changefreq: 'monthly', priority: '0.9' },
   { path: '/priser', changefreq: 'monthly', priority: '0.9' },
+  { path: '/klubb', changefreq: 'monthly', priority: '0.8' },
   { path: '/integritetspolicy', changefreq: 'yearly', priority: '0.3' },
   { path: '/cookiepolicy', changefreq: 'yearly', priority: '0.3' },
   { path: '/tavlingar', changefreq: 'weekly', priority: '0.8' },

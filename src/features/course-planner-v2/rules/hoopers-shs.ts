@@ -1,18 +1,21 @@
 /**
- * RuleSet: Svenska Hooperssällskapets regelverk (SHoK), gällande från 2022.
+ * RuleSet: Svenska Hoopersklubbens regelverk (SHoK), gällande 2025-11-01→.
  *
- * Källa: https://www.hooperssallskapet.se (TODO VERIFIERA direktlänk
- * till PDF-regelverket).
+ * Källa (verifierad 2026-07): "Regler för hooperstävlingar" (SHoK),
+ * svenskahoopersklubben.se.
  *
- * ⚠️ VERIFIERINGSARBETE — INTE KLART
- * Samma princip som för SKK_AGILITY_2023: alla numeriska värden härrör
- * från den tidigare hårdkodade konfigurationen och måste verifieras mot
- * SHoK:s officiella dokument. Checklista:
- *  - Klasstruktur (hoopers klass 1–4): antal hinder, banstorlek,
- *    tillåtna hindertyper.
- *  - Referenshastigheter och maxtidsfaktorer.
- *  - Min-avstånd mellan hinder (idag hårdkodat till 3.0 m i validation.ts).
- *  - Krav på dirigeringsområde (förarens zon) och min-avstånd därifrån.
+ * Verifierade avsnitt:
+ *  - §2.1 Storleksgrupper: Small <40 cm, Large ≥40 cm (två grupper —
+ *    agilitys fem storleksklasser gäller EJ hoopers; sizeClass-valet är
+ *    därför mest informativt i hooperläge).
+ *  - §2.3 Klasser: startklass 10–15 hinder (5–7 m mellan hinder),
+ *    klass 1: 13–20 (6–8 m), klass 2: 17–22 (6–9 m), klass 3: 20–24 (6–9 m).
+ *  - §4 Referenstid: 45 sekunder i ALLA klasser; maxtid 90 sekunder.
+ *    Det finns ingen m/s-modell — refSpeedMs är planeringsuppskattning.
+ *  - §4.4 Banområde: 30×30 m rekommenderat; banan börjar och slutar alltid
+ *    med en hoop; hinder utanför hundens tänkta väg ska ligga minst 2,5 m
+ *    från den tänkta vägen.
+ *  - §1.6 Hunden ska vara 15 månader (agility: 18 månader).
  */
 
 import {
@@ -22,16 +25,16 @@ import type { RuleSet } from "./types";
 
 export const HOOPERS_SHS_2022: RuleSet = {
   id: "hoopers-shs-2022",
-  name: "SHoK Hoopers 2022→",
-  authority: "Svenska Hooperssällskapet (SHoK)",
-  validFrom: "2022-01-01",
+  name: "SHoK Hoopers 2025-11-01→",
+  authority: "Svenska Hoopersklubben (SHoK)",
+  validFrom: "2025-11-01",
   validTo: null,
-  sourceUrl: "https://www.hooperssallskapet.se",
+  sourceUrl: "https://www.svenskahoopersklubben.se",
   sourceDocuments: [
     {
-      name: "SHoK Regelverk Hoopers",
-      url: "https://www.hooperssallskapet.se",
-      notes: "TODO VERIFIERA: klassindelning, hindermått, min-avstånd och dirigeringsregler.",
+      name: "Regler för hooperstävlingar (SHoK) 2025-11-01",
+      url: "https://www.svenskahoopersklubben.se/wp-content/uploads/2025/08/SHOK-REGLER-2025-11-01.pdf",
+      notes: "Verifierat 2026-07: storleksgrupper (§2.1), klasser och hinderavstånd (§2.3), referenstid 45 s/maxtid 90 s (§4), banområde 30×30 m och 2,5 m-regeln (§4.4).",
     },
   ],
   sport: "hoopers",
@@ -41,40 +44,51 @@ export const HOOPERS_SHS_2022: RuleSet = {
   obstacleSpecs: OBSTACLES_V2.filter((o) => o.sport.includes("hoopers")),
 
   safetyRules: {
-    // TODO VERIFIERA: SHoK-värden för minimiavstånd.
-    minSafeM: 3.0,
+    // VERIFIERAT §2.3: hinderavstånd 5–7 m (startklass) respektive 6–8/6–9 m
+    // (klass 1–3) → 5,0 m som absolut minimigräns.
+    minSafeM: 5.0,
     minComboMBySize: Object.fromEntries(
-      SIZE_CLASSES.map((s) => [s.key, 3.0]),
+      SIZE_CLASSES.map((s) => [s.key, 5.0]),
     ),
     contactAfterTunnelMinM: 3.0,
-    hoopersMinM: 3.0, // TODO VERIFIERA — idag hårdkodat i validation.ts
-    hoopersHandlerZoneMinM: 3.0, // TODO VERIFIERA — idag hårdkodat i validation.ts
+    // VERIFIERAT §4.4: hinder utanför hundens tänkta väg ska ligga minst
+    // 2,5 m från den tänkta vägen.
+    hoopersMinM: 2.5,
+    // PRELIMINÄRT: krav kring dirigeringsområdet är MAXAVSTÅND (13–25 m beroende
+    // på klass), inte minimiavstånd — behöver modelleras om. Värdet nedan är
+    // en behållen uppskattning tills dess.
+    hoopersHandlerZoneMinM: 3.0,
   },
 
   timeRules: {
-    model: "fixed_speed", // TODO VERIFIERA
+    // VERIFIERAT §4: referenstiden är 45 s i alla klasser och maxtiden 90 s —
+    // en fast tid, ingen hastighetsmodell. refSpeedMs är en
+    // planeringsuppskattning av banlängd/tid, inte en regelparameter.
+    model: "fixed_speed",
     refSpeedMsByClass: Object.fromEntries(
       CLASS_TEMPLATES.filter((t) => t.sport === "hoopers")
         .map((t) => [t.key, t.refSpeedMs]),
     ),
+    // VERIFIERAT §4: 90/45 = faktor 2,0.
     maxTimeFactorByClass: Object.fromEntries(
       CLASS_TEMPLATES.filter((t) => t.sport === "hoopers")
         .map((t) => [t.key, t.maxTimeFactor]),
     ),
   },
 
-  verificationStatus: "provisional",
-  verifiedFields: [],
-  provisionalFields: [
+  verificationStatus: "partially_verified",
+  verifiedFields: [
     "safetyRules.minSafeM",
     "safetyRules.minComboMBySize",
-    "safetyRules.contactAfterTunnelMinM",
     "safetyRules.hoopersMinM",
-    "safetyRules.hoopersHandlerZoneMinM",
-    "timeRules.model",
-    "timeRules.refSpeedMsByClass",
     "timeRules.maxTimeFactorByClass",
     "classTemplates.obstacleRange",
+    "classTemplates.arenaSize",
+  ],
+  provisionalFields: [
+    "safetyRules.contactAfterTunnelMinM",
+    "safetyRules.hoopersHandlerZoneMinM",
+    "timeRules.refSpeedMsByClass",
     "obstacleSpecs.dimensions",
   ],
 };

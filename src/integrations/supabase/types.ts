@@ -553,13 +553,6 @@ export type Database = {
             referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "club_subscriptions_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
       }
       clubs: {

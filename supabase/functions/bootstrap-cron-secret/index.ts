@@ -56,10 +56,14 @@ Deno.serve(async (req) => {
     .eq("name", "internal_secret")
     .maybeSingle();
 
-  if (existing) {
-    await admin.rpc("vault_update_secret", { secret_name: "internal_secret", new_secret: srk }).catch(() => null);
-  } else {
-    await admin.rpc("vault_create_internal_secret", { v: srk }).catch(() => null);
+  try {
+    if (existing) {
+      await admin.rpc("vault_update_secret", { secret_name: "internal_secret", new_secret: srk });
+    } else {
+      await admin.rpc("vault_create_internal_secret", { v: srk });
+    }
+  } catch (e) {
+    console.error("vault secret upsert failed", e);
   }
 
   // Reschedule the three internal cron jobs.

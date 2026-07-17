@@ -269,7 +269,7 @@ export function ResultsImporter({ dogs, onImported, autoFetch = false, compact =
       <div className="bg-card rounded-xl border border-border p-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <AlertTriangle size={16} className="text-amber-500" />
-          <span>Ange ditt förnamn och efternamn i <a href="/installningar" className="text-primary underline">Inställningar</a> för att importera resultat automatiskt.</span>
+          <span>Ange ditt förnamn och efternamn i <a href="/v3/settings" className="text-primary underline">Inställningar</a> för att importera resultat automatiskt.</span>
         </div>
       </div>
     );
@@ -279,7 +279,7 @@ export function ResultsImporter({ dogs, onImported, autoFetch = false, compact =
     return (
       <div className="bg-card rounded-xl border border-border p-4">
         <div className="text-sm text-muted-foreground">
-          Inga aktiva tävlingshundar. Markera hundar som aktiva tävlingshundar i <a href="/hundar" className="text-primary underline">Hundprofilen</a>.
+          Inga aktiva tävlingshundar. Markera hundar som aktiva tävlingshundar i <a href="/v3/dogs" className="text-primary underline">Hundprofilen</a>.
         </div>
       </div>
     );

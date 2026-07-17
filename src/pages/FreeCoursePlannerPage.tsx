@@ -894,10 +894,10 @@ function PaletteButton({ def, onClick }: { def: ObstacleDef; onClick: () => void
     <button
       type="button"
       onClick={onClick}
-      className="min-h-12 rounded-2xl border border-border bg-background p-2.5 text-left hover:border-primary/40 hover:bg-muted transition-colors flex items-center gap-2"
+      className="min-h-12 rounded-2xl border border-border bg-background p-2.5 hover:border-primary/40 hover:bg-muted transition-colors flex flex-col items-center justify-center gap-1.5 text-center"
     >
       <FreeObstacleGlyph type={def.glyph} size={24} />
-      <span className="text-xs font-medium truncate">{def.label}</span>
+      <span className="text-xs font-medium leading-tight">{def.label}</span>
     </button>
   );
 }

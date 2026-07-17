@@ -52,6 +52,7 @@ const BreedsIndexPage = React.lazy(() => import("./pages/BreedsIndexPage"));
 const BreedDetailPage = React.lazy(() => import("./pages/BreedDetailPage"));
 const HelpResultImportPage = React.lazy(() => import("./pages/HelpResultImportPage"));
 const PublicCoachPage = React.lazy(() => import("./pages/PublicCoachPage"));
+const PricingPage = React.lazy(() => import("./pages/PricingPage"));
 
 const V3HomePage = React.lazy(() => import("./pages/v3/V3HomePage"));
 const V3TrainingPage = React.lazy(() => import("./pages/v3/V3TrainingPage"));
@@ -153,6 +154,7 @@ const App = () => (
                   <Route path="/design-demo" element={<DesignDemoPage />} />
                   <Route path="/hjalp/resultathamtning" element={<HelpResultImportPage />} />
                   <Route path="/coach" element={<PublicCoachPage />} />
+                  <Route path="/priser" element={<PricingPage />} />
                   <Route path="/v3/course-planner-v2/judge/:slug" element={<V3CoursePlannerV2JudgePage />} />
 
                   <Route path="/v3" element={<V3Guard />}>

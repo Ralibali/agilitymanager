@@ -10,6 +10,8 @@ const POPULAR = [
   { label: "Raser", to: "/raser" },
   { label: "Tävlingar", to: "/tavlingar" },
   { label: "Om agility", to: "/om-agility" },
+  { label: "Banplanerare", to: "/banplanerare" },
+  { label: "Priser", to: "/priser" },
 ];
 
 const NotFound = () => {

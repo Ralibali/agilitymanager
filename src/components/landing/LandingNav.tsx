@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -11,7 +11,7 @@ const NAV_LINKS = [
   { href: "/banplanerare", label: "Gratis banplanerare", external: true },
   { href: "/coach", label: "Coach", external: true },
   { href: "#hoopers", label: "Hoopers" },
-  { href: "#pricing", label: "Priser" },
+  { href: "/priser", label: "Priser", external: true },
   { href: "/blogg", label: "Blogg", external: true },
 ];
 
@@ -43,6 +43,7 @@ function NavLinkSweep({
 
 export function LandingNav() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -57,6 +58,26 @@ export function LandingNav() {
     trackEvent(track);
     navigate(mode === "login" ? "/auth" : "/auth?mode=signup");
     setMobileOpen(false);
+  };
+
+  /**
+   * Anchor-länkar (#features, #hoopers) ska fungera även från undersidor:
+   * stående på startsidan scrollar vi direkt, annars navigerar vi dit först
+   * och scrollar när sidan hunnit renderas.
+   */
+  const goAnchor = (hash: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMobileOpen(false);
+    const scrollToEl = () => {
+      const el = document.getElementById(hash.slice(1));
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    };
+    if (location.pathname === "/") {
+      scrollToEl();
+    } else {
+      navigate("/");
+      setTimeout(scrollToEl, 150);
+    }
   };
 
   return (
@@ -109,7 +130,7 @@ export function LandingNav() {
                 {l.label}
               </NavLinkSweep>
             ) : (
-              <NavLinkSweep key={l.href} href={l.href}>
+              <NavLinkSweep key={l.href} href={l.href} onClick={goAnchor(l.href)}>
                 {l.label}
               </NavLinkSweep>
             ),
@@ -196,7 +217,7 @@ export function LandingNav() {
                   ) : (
                     <a
                       href={l.href}
-                      onClick={() => setMobileOpen(false)}
+                      onClick={goAnchor(l.href)}
                       className="flex items-center min-h-[48px] py-3 text-[15px] text-text-primary [-webkit-tap-highlight-color:transparent] active:bg-subtle/60 -mx-2 px-2 rounded-md transition-colors"
                     >
                       {l.label}

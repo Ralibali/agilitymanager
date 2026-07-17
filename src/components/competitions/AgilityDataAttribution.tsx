@@ -53,7 +53,7 @@ export function AgilityDataAttribution({ sourceUrl, sport = 'agility' }: Props) 
           <p>
             AgilityManager har inget samarbete med, och är inte godkänd av,{' '}
             {isHoopers ? 'SHoK' : 'SAgiK eller AGIDA'}. Verifiera alltid information direkt hos arrangören innan anmälan.{' '}
-            <Link to="/disclaimer" className="text-primary underline-offset-2 hover:underline">
+            <Link to="/ansvarsfriskrivning" className="text-primary underline-offset-2 hover:underline">
               Läs fullständig ansvarsfriskrivning
             </Link>
             .

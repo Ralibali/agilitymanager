@@ -9,9 +9,9 @@ const COLS = [
     links: [
       { label: "Funktioner", href: "/#features" },
       { label: "Coach", href: "/#coach" },
-      { label: "Priser", href: "/#pricing" },
-      { label: "Blogg", href: "/blog" },
-      { label: "Försäkringsjämförelse", href: "/insurance" },
+      { label: "Priser", href: "/priser" },
+      { label: "Blogg", href: "/blogg" },
+      { label: "Försäkringsjämförelse", href: "/hundforsakring" },
     ],
   },
   {
@@ -26,9 +26,9 @@ const COLS = [
   {
     title: "Sport",
     links: [
-      { label: "Om agility", href: "/agility" },
+      { label: "Om agility", href: "/om-agility" },
       { label: "Om hoopers", href: "/hoopers" },
-      { label: "Hoopers-regler", href: "/hoopers/rules" },
+      { label: "Hoopers-regler", href: "/hoopers-regler" },
       { label: "SAgiK", href: "https://www.sagik.se", external: true },
       { label: "SHoK", href: "https://www.shok.se", external: true },
       { label: "Agidadata.se", href: "https://www.agilitydata.se", external: true },

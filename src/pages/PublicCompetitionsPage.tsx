@@ -159,7 +159,7 @@ export default function PublicCompetitionsPage() {
                 </p>
                 <p className="mt-1.5">
                   AgilityManager har inget samarbete med, och är inte godkänd av, SAgiK, AGIDA eller SHoK. Verifiera alltid information direkt hos arrangören innan anmälan.{' '}
-                  <Link to="/disclaimer" className="text-primary underline-offset-2 hover:underline">
+                  <Link to="/ansvarsfriskrivning" className="text-primary underline-offset-2 hover:underline">
                     Läs fullständig ansvarsfriskrivning
                   </Link>
                   .

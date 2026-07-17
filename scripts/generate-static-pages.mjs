@@ -86,6 +86,12 @@ const STATIC_PAGES = [
     description:
       'Rita agility- och hoopersbanor gratis direkt i webbläsaren. Dra och släpp hinder, numrera, exportera som PNG eller PDF. Inget konto krävs.',
   },
+  {
+    route: '/priser',
+    title: 'Priser – Pro från 66 kr/mån | AgilityManager',
+    description:
+      'AgilityManager är gratis att börja med. Pro kostar 79 kr/mån eller 790 kr/år (66 kr/mån) och låser upp obegränsade hundar, banbyggare med 3D, AI-insikter och resultatimport.',
+  },
 ];
 
 // ---------------- FAQ (måste spegla src/pages/LandingPage.tsx + HoopersLandingPage.tsx) ----------------

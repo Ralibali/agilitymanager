@@ -130,7 +130,9 @@ export default function V3ChatPage() {
             (m.sender_id === friendId && m.receiver_id === user.id) ||
             (m.sender_id === user.id && m.receiver_id === friendId)
           ) {
-            setMessages((prev) => [...prev, m]);
+            // Deduplicera — samma INSERT kan levereras igen vid återanslutning
+            // eller redan finnas i state efter optimistisk sändning.
+            setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
             if (m.receiver_id === user.id) {
               supabase.from("messages").update({ read: true }).eq("id", m.id).then();
             }
@@ -144,14 +146,26 @@ export default function V3ChatPage() {
   }, [user?.id, friendId]);
 
   const handleSend = async () => {
-    if (!newMessage.trim() || !user || !friendId || sending) return;
+    const content = newMessage.trim();
+    if (!content || !user || !friendId || sending) return;
     setSending(true);
-    const { error } = await supabase.from("messages").insert({
-      sender_id: user.id,
-      receiver_id: friendId,
-      content: newMessage.trim(),
-    });
-    if (!error) setNewMessage("");
+    const { data, error } = await supabase
+      .from("messages")
+      .insert({
+        sender_id: user.id,
+        receiver_id: friendId,
+        content,
+      })
+      .select()
+      .single();
+    if (!error) {
+      setNewMessage("");
+      // Optimistisk visning — realtime-eventet dedupliceras på id.
+      if (data) {
+        const inserted = data as Message;
+        setMessages((prev) => (prev.some((x) => x.id === inserted.id) ? prev : [...prev, inserted]));
+      }
+    }
     setSending(false);
   };
 

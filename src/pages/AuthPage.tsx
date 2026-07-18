@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Sparkles, CheckCircle2, Eye, EyeOff, ShieldCheck, Heart, Clock } from 'lucide-react';
+import { Sparkles, CheckCircle2, Eye, EyeOff, ShieldCheck, Heart, Clock, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { getAndClearUtmData } from '@/lib/utm';
@@ -308,15 +308,106 @@ export default function AuthPage() {
         <title>{isLogin ? 'Logga in' : 'Skapa konto'} – AgilityManager</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
-      <div className="min-h-screen flex items-center justify-center px-4 bg-background py-10">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm space-y-6">
-          <div className="text-center">
-            <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center mx-auto mb-4">
-              <Sparkles size={28} className="text-primary-foreground" />
-            </div>
-            <h1 className="text-2xl font-bold font-display text-foreground">{heading}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{subheading}</p>
+      <div className="min-h-screen bg-bone font-sans-ds lg:grid lg:grid-cols-[1.05fr_1fr]">
+        {/* ── Varumärkespanel (desktop) ── */}
+        <aside className="hidden lg:flex relative flex-col justify-between overflow-hidden bg-forest p-12 text-bone">
+          {/* Dekor: mjuka ljusringar + båge ur logotypen */}
+          <div aria-hidden className="pointer-events-none absolute -top-32 -right-32 w-[420px] h-[420px] rounded-full bg-bone/[0.06]" />
+          <div aria-hidden className="pointer-events-none absolute -bottom-40 -left-24 w-[380px] h-[380px] rounded-full bg-bone/[0.05]" />
+          <svg aria-hidden viewBox="0 0 400 220" className="pointer-events-none absolute bottom-24 right-8 w-72 opacity-20" fill="none">
+            <path d="M20 200 C 120 40, 280 40, 380 200" stroke="#B5F94A" strokeWidth="10" strokeLinecap="round" />
+          </svg>
+
+          <Link to="/" className="relative z-10 inline-flex items-center gap-2.5 group w-fit" aria-label="Till startsidan">
+            <span className="w-9 h-9 rounded-ds-sm bg-bone/10 border border-bone/15 flex items-center justify-center transition-transform duration-300 group-hover:rotate-[-3deg] group-hover:scale-105">
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none">
+                <path d="M4 17 C 8 9, 16 9, 20 17" stroke="#B5F94A" strokeWidth="2.4" strokeLinecap="round" />
+                <circle cx="4" cy="17" r="1.6" fill="#B5F94A" />
+                <circle cx="20" cy="17" r="1.6" fill="#B5F94A" />
+              </svg>
+            </span>
+            <span className="text-lg tracking-tight font-medium">
+              agility<span className="font-normal opacity-60">manager</span>
+            </span>
+          </Link>
+
+          <div className="relative z-10 max-w-md">
+            <motion.h2
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="font-display text-[2.6rem] leading-[1.08] tracking-tight"
+            >
+              Din och hundens träningsresa börjar här.
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-5 text-bone/75 text-[15px] leading-relaxed"
+            >
+              Logga pass på tio sekunder, se vad ni ska träna på härnäst och följ
+              utvecklingen mot nästa tävling — med svenska regelverk inbyggda.
+            </motion.p>
+
+            <motion.ul
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-9 space-y-4"
+            >
+              {[
+                { icon: Sparkles, title: 'Vet vad ni ska träna på härnäst', desc: 'Varje pass blir ett nästa steg — inte bara en rad i en logg.' },
+                { icon: Trophy, title: 'Byggd för svensk tävling', desc: 'SAgiK- och SHoK-klasser, storlekar och regler redan på plats.' },
+                { icon: Heart, title: 'Hela hundens resa samlad', desc: 'Hälsa, träning, tävling och känslan — på ett ställe.' },
+              ].map((f) => (
+                <li key={f.title} className="flex items-start gap-3.5">
+                  <span className="mt-0.5 w-9 h-9 shrink-0 rounded-xl bg-bone/10 border border-bone/15 flex items-center justify-center">
+                    <f.icon size={16} className="text-[#B5F94A]" />
+                  </span>
+                  <span>
+                    <strong className="block text-[15px] font-semibold">{f.title}</strong>
+                    <span className="block text-sm text-bone/65 mt-0.5">{f.desc}</span>
+                  </span>
+                </li>
+              ))}
+            </motion.ul>
           </div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+            className="relative z-10 flex items-center gap-5 text-[12px] text-bone/60"
+          >
+            <span className="inline-flex items-center gap-1.5"><ShieldCheck size={13} /> Inga kort krävs</span>
+            <span className="inline-flex items-center gap-1.5"><Clock size={13} /> Klart på under en minut</span>
+            <span className="inline-flex items-center gap-1.5"><Trophy size={13} /> SKK & SHoK</span>
+          </motion.div>
+        </aside>
+
+        {/* ── Formulärsida ── */}
+        <main className="flex items-center justify-center px-4 py-10 sm:px-8">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} className="w-full max-w-md">
+            {/* Mobil logotyp */}
+            <Link to="/" className="lg:hidden flex items-center justify-center gap-2.5 mb-8" aria-label="Till startsidan">
+              <span className="w-9 h-9 rounded-ds-sm bg-forest flex items-center justify-center">
+                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none">
+                  <path d="M4 17 C 8 9, 16 9, 20 17" stroke="#B5F94A" strokeWidth="2.4" strokeLinecap="round" />
+                  <circle cx="4" cy="17" r="1.6" fill="#B5F94A" />
+                  <circle cx="20" cy="17" r="1.6" fill="#B5F94A" />
+                </svg>
+              </span>
+              <span className="text-lg tracking-tight font-medium text-forest">
+                agility<span className="font-normal opacity-60">manager</span>
+              </span>
+            </Link>
+
+            <div className="rounded-3xl border border-forest/12 bg-card p-7 sm:p-9 shadow-[0_24px_60px_rgba(26,107,60,0.10)]">
+              <div className="text-center">
+                <h1 className="font-display text-[1.65rem] leading-tight text-forest">{heading}</h1>
+                <p className="text-sm text-stone mt-2">{subheading}</p>
+              </div>
 
           {contextCard && !resetMode && (
             <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 text-sm text-muted-foreground">
@@ -350,10 +441,10 @@ export default function AuthPage() {
                     placeholder="din@email.se"
                   />
                 </div>
-                <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={loading}>
+                <Button type="submit" className="w-full h-11 rounded-xl bg-forest text-bone hover:bg-forest-soft font-semibold" disabled={loading}>
                   {loading ? 'Skickar...' : 'Skicka återställningslänk'}
                 </Button>
-                <button type="button" onClick={() => setResetMode(false)} className="text-sm text-primary w-full text-center">
+                <button type="button" onClick={() => setResetMode(false)} className="text-sm font-medium text-forest w-full text-center hover:underline underline-offset-2">
                   Tillbaka till inloggning
                 </button>
               </>
@@ -409,30 +500,39 @@ export default function AuthPage() {
                     </button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={loading}>
+                <Button type="submit" className="w-full h-11 rounded-xl bg-forest text-bone hover:bg-forest-soft font-semibold" disabled={loading}>
                   {loading ? 'Vänta...' : isLogin ? 'Logga in' : 'Skapa mitt gratiskonto'}
                 </Button>
 
                 {!isLogin && (
-                  <ul className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-[11px] text-muted-foreground pt-1">
-                    <li className="inline-flex items-center gap-1"><ShieldCheck size={12} className="text-primary" /> Inget betalkort</li>
-                    <li className="inline-flex items-center gap-1"><Heart size={12} className="text-primary" /> Gratis för 1 hund</li>
-                    <li className="inline-flex items-center gap-1"><Clock size={12} className="text-primary" /> Klart på under en minut</li>
+                  <ul className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-[11px] text-stone pt-1">
+                    <li className="inline-flex items-center gap-1"><ShieldCheck size={12} className="text-forest" /> Inget betalkort</li>
+                    <li className="inline-flex items-center gap-1"><Heart size={12} className="text-forest" /> Gratis för 1 hund</li>
+                    <li className="inline-flex items-center gap-1"><Clock size={12} className="text-forest" /> Klart på under en minut</li>
                   </ul>
                 )}
 
                 {isLogin && (
-                  <button type="button" onClick={() => setResetMode(true)} className="text-xs text-muted-foreground w-full text-center">
+                  <button type="button" onClick={() => setResetMode(true)} className="text-xs text-stone w-full text-center hover:text-forest transition-colors">
                     Glömt lösenord?
                   </button>
                 )}
-                <button type="button" onClick={() => setIsLogin(!isLogin)} className="text-sm text-primary w-full text-center">
+                <button type="button" onClick={() => setIsLogin(!isLogin)} className="text-sm font-medium text-forest w-full text-center hover:underline underline-offset-2">
                   {isLogin ? 'Har du inget konto? Skapa ett' : 'Har du redan konto? Logga in'}
                 </button>
               </>
             )}
           </form>
-        </motion.div>
+
+              <p className="mt-5 text-center text-[11px] leading-relaxed text-stone">
+                Genom att fortsätta godkänner du vår{' '}
+                <Link to="/integritetspolicy" className="underline underline-offset-2 hover:text-forest">integritetspolicy</Link>
+                {' '}och{' '}
+                <Link to="/ansvarsfriskrivning" className="underline underline-offset-2 hover:text-forest">ansvarsfriskrivning</Link>.
+              </p>
+            </div>
+          </motion.div>
+        </main>
       </div>
     </>
   );

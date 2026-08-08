@@ -26,6 +26,7 @@ import SupportForm from "@/components/SupportForm";
 import { useIsAdmin } from "@/components/layout/useIsAdmin";
 import { V3ProValueCard } from "@/components/v3/V3ProValueCard";
 import { ReferralCard } from "@/components/v3/ReferralCard";
+import { DeleteAccountSection } from "@/components/v3/DeleteAccountSection";
 import { cn } from "@/lib/utils";
 import { trackAnalyticsEvent, billingIntervalFromPriceId } from "@/lib/analytics";
 import {

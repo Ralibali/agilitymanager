@@ -176,6 +176,7 @@ function ClubDetail({ club, role, onBack }: { club: Club; role?: string; onBack:
       </section>
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-3"><V3Stat label="Din roll" value={role ?? "Gäst"} hint="medlemskap" /><V3Stat label="Stad" value={club.city || "—"} hint="klubbens ort" /><V3Stat label="Inbjudan" value={inviteCode ? "Aktiv" : "—"} hint="delbar länk" /></section>
       <ClubProCard clubId={club.id} clubName={club.name} role={role} />
+      <ClubMembersSection clubId={club.id} isAdmin={role === "admin"} />
       <section className="rounded-v3-2xl bg-v3-canvas-elevated border border-v3-canvas-sunken/40 p-5 shadow-v3-xs"><h2 className="font-v3-display text-v3-2xl text-v3-text-primary">Klubböversikt</h2><p className="text-v3-sm text-v3-text-secondary mt-1">Här visas klubbens information. Medlemslista, inlägg och aktiviteter kan byggas vidare här utan att skicka användaren till en trasig gammal route.</p>{inviteCode && <button type="button" onClick={copyInvite} className="mt-4 inline-flex items-center gap-2 h-10 px-4 rounded-v3-base bg-v3-brand-500 text-white text-v3-sm font-medium hover:bg-v3-brand-600"><Copy size={15} /> Kopiera inbjudningslänk</button>}</section>
     </V3Page>
   );

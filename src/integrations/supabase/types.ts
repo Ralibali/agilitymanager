@@ -2154,6 +2154,17 @@ export type Database = {
           name: string
         }[]
       }
+      get_club_members: {
+        Args: { p_club_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          joined_at: string
+          role: string
+          status: string
+          user_id: string
+        }[]
+      }
       get_my_club_invite_code: { Args: { p_club_id: string }; Returns: string }
       has_role: {
         Args: {

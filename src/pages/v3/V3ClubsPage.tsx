@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { V3Page, V3PageHero, V3PrimaryButton } from "@/components/v3/V3Page";
 import { ClubProCard } from "@/components/v3/ClubProCard";
+import { ClubMembersSection } from "@/components/v3/ClubMembersSection";
 
 interface Club {
   id: string;

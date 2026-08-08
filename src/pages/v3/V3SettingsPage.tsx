@@ -559,6 +559,8 @@ export default function V3SettingsPage() {
               <LogOut className="h-4 w-4" aria-hidden="true" /> Logga ut
             </button>
           </section>
+
+          <DeleteAccountSection />
         </aside>
       </div>
     </div>

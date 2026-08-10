@@ -17,7 +17,6 @@ import { initAnalyticsLoader } from "@/lib/analyticsLoader";
 captureUtmParams();
 initAnalyticsLoader();
 
-// Engångs-reset av äldre sparade temaval efter rebrand.
 try {
   if (typeof window !== "undefined" && !window.localStorage.getItem("theme-rebrand-v5")) {
     window.localStorage.removeItem("theme");
@@ -44,6 +43,7 @@ const InvitePage = React.lazy(() => import("./pages/InvitePage"));
 const ClubInvitePage = React.lazy(() => import("./pages/ClubInvitePage"));
 const DesignDemoPage = React.lazy(() => import("./pages/DesignDemoPage"));
 const FreeCoursePlannerPage = React.lazy(() => import("./pages/FreeCoursePlannerPage"));
+const PublicCoursePage = React.lazy(() => import("./pages/PublicCoursePage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const PublicCompetitionsPage = React.lazy(() => import("./pages/PublicCompetitionsPage"));
 const CompetitionDetailPage = React.lazy(() => import("./pages/CompetitionDetailPage"));
@@ -132,6 +132,7 @@ const App = () => (
                   <Route path="/hoopers-regler" element={<HoopersRulesPage />} />
                   <Route path="/blogg" element={<BlogPage />} />
                   <Route path="/banplanerare" element={<FreeCoursePlannerPage />} />
+                  <Route path="/banor/:courseId" element={<PublicCoursePage />} />
                   <Route path="/gratis-banplanerare-agility" element={<Navigate to="/banplanerare" replace />} />
                   <Route path="/agility-bana-ritverktyg" element={<Navigate to="/banplanerare" replace />} />
                   <Route path="/raser" element={<BreedsIndexPage />} />

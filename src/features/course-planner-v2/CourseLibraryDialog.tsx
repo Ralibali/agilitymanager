@@ -13,7 +13,9 @@ import {
   fetchMyCourses, fetchClubCourses, fetchMyClubs, deleteCourse,
   type LibraryCourse,
 } from "@/features/course-planner-v2/library";
-import { PREBUILT_COURSES, type PrebuiltCourse } from "@/features/course-planner-v2/templates";
+import type { PrebuiltCourse } from "@/features/course-planner-v2/templates";
+import { COURSE_BANK, type CourseBankEntry } from "@/features/course-planner-v2/courseBank";
+import CourseLibraryPreview from "@/features/course-planner-v2/CourseLibraryPreview";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -25,6 +27,7 @@ interface Props {
 type Tab = "prebuilt" | "mine" | "clubs";
 type SportFilter = "all" | "agility" | "hoopers";
 type ClassFilter = "all" | "1" | "2" | "3";
+type LayoutFilter = "all" | "original" | "mirror";
 
 function classNumber(course: PrebuiltCourse): "1" | "2" | "3" | null {
   if (course.classTemplate === "agility_1" || course.classTemplate === "agility_hopp_1") return "1";
@@ -54,6 +57,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
   const [query, setQuery] = useState("");
   const [sport, setSport] = useState<SportFilter>("all");
   const [courseClass, setCourseClass] = useState<ClassFilter>("all");
+  const [layout, setLayout] = useState<LayoutFilter>("all");
 
   useEffect(() => {
     if (!open || !user) return;
@@ -81,19 +85,21 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
 
   const filteredPrebuilt = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("sv-SE");
-    return PREBUILT_COURSES.filter((course) => {
+    return COURSE_BANK.filter((course) => {
       if (sport !== "all" && course.sport !== sport) return false;
       if (courseClass !== "all" && classNumber(course) !== courseClass) return false;
+      if (layout !== "all" && course.bankKind !== layout) return false;
       if (!needle) return true;
       const haystack = [
         course.label,
         course.description,
         disciplineLabel(course),
+        course.bankKind === "mirror" ? "spegel spegelbana" : "original",
         ...(course.focus ?? []),
       ].join(" ").toLocaleLowerCase("sv-SE");
       return haystack.includes(needle);
     });
-  }, [query, sport, courseClass]);
+  }, [query, sport, courseClass, layout]);
 
   async function handleDelete(c: LibraryCourse) {
     if (!confirm(`Ta bort "${c.name}" från ditt bibliotek?`)) return;
@@ -111,21 +117,21 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
 
   return (
     <div className="fixed inset-0 z-[60] grid place-items-center bg-foreground/40 p-3 sm:p-4" onClick={() => onOpenChange(false)}>
-      <div onClick={(e) => e.stopPropagation()} className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-card shadow-xl">
+      <div onClick={(e) => e.stopPropagation()} className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-card shadow-xl">
         <header className="flex items-start justify-between gap-4 border-b border-border px-4 py-4 sm:px-5">
           <div>
             <div className="flex items-center gap-2">
               <BookOpen size={18} className="text-primary" />
               <h2 className="text-base font-semibold">Banbibliotek</h2>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">Öppna en färdig bana som egen kopia och ändra den direkt i V2-planeraren.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Se bankartan, välj en bana och öppna en egen redigerbar kopia direkt i V2-planeraren.</p>
           </div>
           <button onClick={() => onOpenChange(false)} className="grid h-8 w-8 shrink-0 place-items-center rounded-full hover:bg-muted" aria-label="Stäng banbibliotek"><X size={16} /></button>
         </header>
 
         <div className="flex border-b border-border">
           {([
-            { key: "prebuilt", label: `Färdiga banor (${PREBUILT_COURSES.length})`, icon: BookOpen },
+            { key: "prebuilt", label: `Färdiga banor (${COURSE_BANK.length})`, icon: BookOpen },
             { key: "mine", label: "Mina banor", icon: Cloud },
             { key: "clubs", label: "Klubbens banor", icon: Users },
           ] as { key: Tab; label: string; icon: typeof BookOpen }[]).map((t) => {
@@ -149,21 +155,21 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
           {tab === "prebuilt" && (
             <div className="space-y-4">
               <div className="rounded-2xl border border-primary/15 bg-primary/5 p-3 text-xs leading-5 text-muted-foreground">
-                <div className="flex items-center gap-2 font-semibold text-foreground"><ShieldCheck size={15} className="text-primary" /> Svenska klassbanor kvalitetskontrolleras i CI</div>
-                <p className="mt-1">Märkningen gäller våra egna klass 1–3-banor för agility och hopp. Regler som kräver fysisk bedömning på plats måste fortfarande verifieras av domare/arrangör.</p>
+                <div className="flex items-center gap-2 font-semibold text-foreground"><ShieldCheck size={15} className="text-primary" /> 12 svenska klassbanor kontrolleras maskinellt i CI</div>
+                <p className="mt-1">Sex original och sex spegelversioner testas mot de maskinellt kontrollerbara svenska klassreglerna och samma beräknade hundlinje som visas i planaren. Fysisk slutkontroll på plats är fortfarande domarens/arrangörens ansvar.</p>
               </div>
 
-              <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+              <div className="grid gap-2 lg:grid-cols-[1fr_auto]">
                 <label className="relative block">
                   <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Sök t.ex. slalom, kontaktfält, flow…"
+                    placeholder="Sök t.ex. slalom, kontaktfält, flow, spegel…"
                     className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
                   />
                 </label>
-                <div className="flex gap-1 overflow-x-auto pb-1 sm:pb-0">
+                <div className="flex gap-1 overflow-x-auto pb-1 lg:pb-0">
                   {(["all", "agility", "hoopers"] as SportFilter[]).map((value) => (
                     <button
                       key={value}
@@ -179,54 +185,69 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Klass</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Klass</span>
                 {(["all", "1", "2", "3"] as ClassFilter[]).map((value) => (
                   <button
                     key={value}
                     onClick={() => setCourseClass(value)}
                     className={cn(
-                      "h-8 shrink-0 rounded-full border px-3 text-xs font-semibold transition",
+                      "h-8 rounded-full border px-3 text-xs font-semibold transition",
                       courseClass === value ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground",
                     )}
                   >
                     {value === "all" ? "Alla klasser" : `Klass ${value}`}
                   </button>
                 ))}
-                <span className="ml-auto shrink-0 text-xs text-muted-foreground">{filteredPrebuilt.length} banor</span>
+                <span className="ml-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Variant</span>
+                {(["all", "original", "mirror"] as LayoutFilter[]).map((value) => (
+                  <button
+                    key={value}
+                    onClick={() => setLayout(value)}
+                    className={cn(
+                      "h-8 rounded-full border px-3 text-xs font-semibold transition",
+                      layout === value ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {value === "all" ? "Alla" : value === "original" ? "Original" : "Spegel"}
+                  </button>
+                ))}
+                <span className="ml-auto text-xs text-muted-foreground">{filteredPrebuilt.length} banor</span>
               </div>
 
               {filteredPrebuilt.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">Inga banor matchar filtren.</div>
               ) : (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {filteredPrebuilt.map((p) => {
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {filteredPrebuilt.map((p: CourseBankEntry) => {
                     const cls = classNumber(p);
                     const verified = p.qualityLabel?.startsWith("Kontrollerad") ?? false;
                     return (
                       <button
                         key={p.key}
                         onClick={() => { onPick("prebuilt", p); onOpenChange(false); }}
-                        className="group text-left rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/35 hover:bg-primary/[0.025] hover:shadow-md"
+                        className="group rounded-2xl border border-border bg-card p-3 text-left shadow-sm transition hover:border-primary/35 hover:bg-primary/[0.025] hover:shadow-md"
                       >
-                        <div className="flex items-start justify-between gap-3">
+                        <CourseLibraryPreview course={p} />
+                        <div className="flex items-start justify-between gap-3 px-1">
                           <div className="min-w-0">
                             <div className="text-sm font-semibold leading-5 text-foreground">{p.label}</div>
                             <div className="mt-1 flex flex-wrap gap-1.5">
                               <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">{disciplineLabel(p)}</span>
                               {cls && <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">Klass {cls}</span>}
+                              {p.bankKind === "mirror" && <span className="rounded-full border border-primary/25 px-2 py-0.5 text-[10px] font-semibold text-primary">Spegel</span>}
                               <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">{numberedCount(p)} passager</span>
                             </div>
                           </div>
                           {verified ? <ShieldCheck size={17} className="shrink-0 text-primary" aria-label="Regelkontrollerad" /> : <CheckCircle2 size={17} className="shrink-0 text-muted-foreground" />}
                         </div>
-                        <p className="mt-3 text-xs leading-5 text-muted-foreground">{p.description}</p>
+                        <p className="mt-3 px-1 text-xs leading-5 text-muted-foreground">{p.description}</p>
                         {p.focus && p.focus.length > 0 && (
-                          <div className="mt-3 flex flex-wrap gap-1.5">
-                            {p.focus.map((tag) => <span key={tag} className="rounded-full border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{tag}</span>)}
+                          <div className="mt-3 flex flex-wrap gap-1.5 px-1">
+                            {p.focus.slice(0, 4).map((tag) => <span key={tag} className="rounded-full border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{tag}</span>)}
                           </div>
                         )}
-                        <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-[11px] text-muted-foreground">
+                        <div className="mt-3 flex items-center justify-between border-t border-border px-1 pt-3 text-[11px] text-muted-foreground">
                           <span>{p.arenaWidthM} × {p.arenaHeightM} m</span>
                           <span className="font-semibold text-primary group-hover:underline">Öppna & redigera</span>
                         </div>

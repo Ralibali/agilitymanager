@@ -1,7 +1,7 @@
 name: CI
 
 # Kör vid varje push och PR mot main. Kör install, lint, typecheck, test
-# och build så att vi fångar regressioner innan de når produktion.
+# och hela produktionsbygget så att även statisk SEO, bansidor och sitemap verifieras.
 on:
   push:
     branches: [main]
@@ -57,9 +57,19 @@ jobs:
           VITE_SUPABASE_PROJECT_ID: test-project
         run: pnpm test
 
-      - name: Build (no static prerender)
+      - name: Full production build + static SEO
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
-        run: pnpm build:no-snap
+        run: pnpm build
+
+      - name: Verify public course SEO output
+        shell: bash
+        run: |
+          test -f dist/banplanerare/index.html
+          test -f dist/banor/klass-1-agility-grundflyt/index.html
+          test -f dist/banor/klass-3-hopp-teknik/index.html
+          grep -q "klass-1-agility-grundflyt" dist/sitemap-pages.xml
+          grep -q "Gratis banplanerare för agility" dist/index.html
+          echo "Static planner/course SEO output verified."

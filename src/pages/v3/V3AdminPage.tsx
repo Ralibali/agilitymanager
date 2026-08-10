@@ -55,6 +55,9 @@ export default function V3AdminPage() {
     enabled: !!user?.id,
   });
 
+  const queryClient = useQueryClient();
+
+
   const { data: stats } = useQuery({
     queryKey: ["admin-stats-v3"],
     queryFn: async () => {

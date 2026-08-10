@@ -12,12 +12,12 @@ export function PlannerSeoFooter() {
             <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Rita nästa agilitybana gratis</h2>
             <p className="mt-4 max-w-2xl text-muted-foreground">AgilityManagers banplanerare fungerar direkt i webbläsaren utan registrering. Bygg i meterskala, placera och rotera hinder, numrera banan, se hundlinje och avstånd och kontrollera ritningen mot svenska banregler.</p>
             <div className="mt-5 grid gap-2 text-sm sm:grid-cols-2">
-              {["Ingen inloggning för att börja", "Agility och hoopers", "Lokal autosparning", "Banbank med kopierbara banor", "Svensk regelkontroll", "Mobil, surfplatta och dator"].map((item) => <div key={item} className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" />{item}</div>)}
+              {["Ingen inloggning för att börja", "Agilityklass och hoppklass", "Lokal autosparning", "Banbank med 8 originalbanor", "Svensk regelkontroll", "Mobil, surfplatta och dator"].map((item) => <div key={item} className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" />{item}</div>)}
             </div>
             <Link to="/banplanerare" className="mt-7 inline-flex h-12 items-center gap-2 rounded-full bg-primary px-6 font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">Öppna gratis banplaneraren <ArrowRight className="h-4 w-4" /></Link>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {[ [LayoutGrid,"Riktig banritning","Rutnät och meterskala"], [Ruler,"Mät avstånd","Kontrollera hinderlinjer"], [Smartphone,"Rita överallt","Touchanpassad editor"], [Share2,"Bygg en banbank","Spara, kopiera och dela"] ].map(([Icon,title,text]) => {
+            {[ [LayoutGrid,"Riktig banritning","Rutnät och meterskala"], [Ruler,"Mät avstånd","Kontrollera hinderlinjer"], [Smartphone,"Rita överallt","Touchanpassad editor"], [Share2,"Banbanken","Spara och kopiera banor"] ].map(([Icon,title,text]) => {
               const C = Icon as typeof LayoutGrid;
               return <div key={String(title)} className="rounded-2xl border border-border bg-card p-4 shadow-sm"><C className="h-5 w-5 text-primary" /><div className="mt-3 font-semibold">{String(title)}</div><div className="mt-1 text-xs text-muted-foreground">{String(text)}</div></div>;
             })}

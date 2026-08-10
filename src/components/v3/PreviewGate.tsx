@@ -16,6 +16,11 @@ interface PreviewGateProps {
  * rendera funktionens layout (skelett/exempel) blurrad och lägg gate-kortet
  * ovanpå. Användaren ser direkt vad de går miste om.
  *
+ * Banplaneraren är ett medvetet undantag: den är AgilityManagers publika,
+ * kostnadsfria huvudprodukt och ska därför alltid visa den riktiga editorn.
+ * Konto/Pro kan fortfarande krävas inne i editorn för användarspecifika
+ * funktioner som molnsparning, klubbdelning och träningskoppling.
+ *
  * Säkerhet: `preview` ska vara ett skelett — inga faktiska Pro-värden i DOM:en.
  * Blur-laget är `pointer-events-none`, `select-none`, `aria-hidden` och
  * `inert` så ingen interaktion eller AT-läsning sker.
@@ -23,6 +28,7 @@ interface PreviewGateProps {
 export function PreviewGate({ featureKey, preview, children }: PreviewGateProps) {
   const { subscription } = useAuth();
 
+  if (featureKey === "course-planner") return <>{children}</>;
   if (subscription.loading) return <>{children}</>;
   if (subscription.subscribed) return <>{children}</>;
 

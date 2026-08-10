@@ -16,16 +16,13 @@
  *   2. Tokenisera de första 800 tecknen av content (markdown-rensat).
  *      800 tecken ger plats för en ingress eller första resonemanget utan
  *      att checken börjar matcha mot hela artikeln.
- *   3. Kräv att MINST 1 nyckelord från title eller slug förekommer i
- *      content-prefixet. Inlägg utan match flaggas som mismatch.
+ *   3. Kräv att MINST 1 nyckelord från title eller slug matchar inledningen.
+ *      Exakt match eller tydlig svensk sammansättningsstam räknas, t.ex.
+ *      "träning" ↔ "träningslogg".
  *
  * Exit-koder:
  *   0 = alla OK (eller bara warnings)
  *   1 = en eller flera mismatches → CI failar
- *
- * Kör manuellt:  node scripts/check-blog-content-match.mjs
- * Strikt mode:   node scripts/check-blog-content-match.mjs --strict
- *                (warnings → errors)
  */
 
 const SUPABASE_URL =
@@ -36,13 +33,13 @@ const SUPABASE_ANON_KEY =
 
 const PREFIX_LENGTH = 800;
 const MIN_KEYWORD_LENGTH = 4;
+const MIN_STEM_LENGTH = 6;
 const STRICT = process.argv.includes('--strict');
 
-// Vanliga svenska/engelska ord som inte bidrar till matchning.
 const STOPWORDS = new Set([
   'och', 'eller', 'att', 'det', 'den', 'med', 'för', 'från', 'till', 'som',
   'vid', 'när', 'där', 'här', 'inte', 'inom', 'över', 'under', 'mellan',
-  'efter', 'före', 'genom', 'utan', 'samt', 'eller', 'sina', 'sitt', 'sin',
+  'efter', 'före', 'genom', 'utan', 'samt', 'sina', 'sitt', 'sin',
   'detta', 'denna', 'dessa', 'dem', 'deras', 'vara', 'blir', 'blev', 'kan',
   'ska', 'skall', 'skulle', 'man', 'mig', 'dig', 'sig', 'oss', 'ert', 'era',
   'guide', 'guiden', 'allt', 'alla', 'mer', 'mest', 'mycket', 'lite',
@@ -50,7 +47,6 @@ const STOPWORDS = new Set([
   'this', 'that', 'with', 'from', 'have', 'will', 'your', 'about',
 ]);
 
-/** Markdown → ren text: ta bort headings, länkar, formatering, kodblock. */
 function stripMarkdown(md) {
   return md
     .replace(/```[\s\S]*?```/g, ' ')
@@ -63,7 +59,6 @@ function stripMarkdown(md) {
     .trim();
 }
 
-/** Tokenisera till lowercased nyckelord >= MIN_KEYWORD_LENGTH, exkl. stoppord. */
 function tokenize(text) {
   return new Set(
     text
@@ -72,6 +67,18 @@ function tokenize(text) {
       .split(/[\s-]+/)
       .filter((w) => w.length >= MIN_KEYWORD_LENGTH && !STOPWORDS.has(w)),
   );
+}
+
+/**
+ * Svenska sammansättningar gör exakt tokenmatchning för strikt.
+ * Vi godkänner därför en gemensam ordstam när den kortare tokenen är
+ * minst sex tecken, t.ex. träning -> träningslogg eller agility -> agilityförare.
+ */
+function tokensMatch(expectedToken, contentToken) {
+  if (expectedToken === contentToken) return true;
+  const shorter = expectedToken.length <= contentToken.length ? expectedToken : contentToken;
+  const longer = expectedToken.length > contentToken.length ? expectedToken : contentToken;
+  return shorter.length >= MIN_STEM_LENGTH && longer.startsWith(shorter);
 }
 
 async function fetchPublishedPosts() {
@@ -103,7 +110,9 @@ function checkPost(post) {
   }
 
   const prefixTokens = tokenize(prefix);
-  const matches = [...expected].filter((t) => prefixTokens.has(t));
+  const matches = [...expected].filter((expectedToken) =>
+    [...prefixTokens].some((contentToken) => tokensMatch(expectedToken, contentToken)),
+  );
 
   if (matches.length === 0) {
     return {

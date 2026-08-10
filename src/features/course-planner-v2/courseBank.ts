@@ -1,7 +1,7 @@
 import type { ClassTemplateKey, ObstacleTypeV2 } from "./config";
 import { PREBUILT_COURSES, type PrebuiltCourse, type PrebuiltObstacle } from "./templates";
 
-export type CourseBankKind = "original" | "mirror" | "hoopers";
+export type CourseBankKind = "original" | "mirror";
 
 export interface CourseBankEntry extends PrebuiltCourse {
   bankKind: CourseBankKind;
@@ -61,7 +61,7 @@ export function createMirrorCourse(course: PrebuiltCourse): CourseBankEntry {
 
 const originals: CourseBankEntry[] = PREBUILT_COURSES.map((course) => ({
   ...course,
-  bankKind: course.sport === "hoopers" ? "hoopers" : "original",
+  bankKind: "original",
 }));
 
 const mirrors: CourseBankEntry[] = PREBUILT_COURSES

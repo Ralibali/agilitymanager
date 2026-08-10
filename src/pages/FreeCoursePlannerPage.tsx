@@ -12,7 +12,9 @@ import {
   Plus,
   RotateCcw,
   Save,
+  Search,
   ShieldCheck,
+  SlidersHorizontal,
   Trash2,
   TriangleAlert,
   X,
@@ -37,9 +39,22 @@ import {
   type RingSize,
   type Ruleset,
 } from "@/features/free-planner/agilityCourseRules";
+import {
+  COURSE_BANK,
+  DEFAULT_COURSE_RING,
+  PRIMARY_AGILITY_TEMPLATE,
+  PRIMARY_JUMPING_TEMPLATE,
+  cloneBankCourseObstacles,
+  getBankCourse,
+  type BankCourse,
+  type CourseFocus,
+} from "@/features/free-planner/courseBank";
 import { FreeObstacleGlyph, type FreeObstacleGlyphType } from "@/components/free-planner/FreeObstacleGlyph";
 
 type ViewMode = "editor" | "bank";
+type BankKindFilter = "all" | CourseKind;
+type BankClassFilter = "all" | AgilityClass;
+type BankFocusFilter = "all" | CourseFocus;
 
 interface ObstacleDef {
   type: AgilityObstacleType;
@@ -49,7 +64,6 @@ interface ObstacleDef {
 }
 
 const STORAGE_KEY = "agilitymanager_public_course_v2";
-const DEFAULT_RING: RingSize = { widthM: 40, heightM: 30 };
 
 const OBSTACLES: ObstacleDef[] = [
   { type: "jump", label: "Hopphinder", glyph: "jump", description: "Vanligt enkelhopp" },
@@ -81,67 +95,13 @@ const LABEL_BY_TYPE: Record<AgilityObstacleType, string> = Object.fromEntries(
   OBSTACLES.map((item) => [item.type, item.label]),
 ) as Record<AgilityObstacleType, string>;
 
-const GRID_POINTS_METRES = [
-  [6, 5], [13, 5], [20, 5], [27, 5], [34, 5],
-  [34, 12], [27, 12], [20, 12], [13, 12], [6, 12],
-  [6, 19], [13, 19], [20, 19], [27, 19], [34, 19],
-  [34, 26], [27, 26], [20, 26], [13, 26], [6, 26],
-] as const;
-
-function obstacleRotation(index: number, points = GRID_POINTS_METRES): number {
-  const current = points[index];
-  const reference = index === 0 ? points[1] : points[index - 1];
-  const dx = current[0] - reference[0];
-  const dy = current[1] - reference[1];
-  const incoming = (Math.atan2(dy, dx) * 180) / Math.PI;
-  return incoming - 90;
-}
-
-function buildTemplate(types: AgilityObstacleType[]): PlannerObstacle[] {
-  return types.map((type, index) => ({
-    id: `template-${index + 1}-${type}`,
-    type,
-    x: (GRID_POINTS_METRES[index][0] / DEFAULT_RING.widthM) * 100,
-    y: (GRID_POINTS_METRES[index][1] / DEFAULT_RING.heightM) * 100,
-    rotation: obstacleRotation(index),
-    number: index + 1,
-  }));
-}
-
-const SWEDISH_AGILITY_TEMPLATE = buildTemplate([
-  "jump", "jump", "tunnel", "jump", "dogwalk",
-  "jump", "weave", "jump", "tunnel", "aframe",
-  "jump", "jump", "longjump", "jump", "seesaw",
-  "jump", "wall", "tunnel", "jump", "jump",
-]);
-
-const SWEDISH_JUMPING_TEMPLATE = buildTemplate([
-  "jump", "jump", "tunnel", "jump", "tyre",
-  "jump", "weave", "jump", "tunnel", "jump",
-  "longjump", "jump", "wall", "jump", "tunnel",
-  "jump", "jump", "tunnel", "jump", "jump",
-]);
-
-const BANK_COURSES = [
-  {
-    id: "svensk-agility-1-grund",
-    title: "Svensk agility – grundlayout",
-    subtitle: "20 hinder · klass 1 · 40 × 30 m",
-    kind: "agility" as CourseKind,
-    competitionClass: 1 as AgilityClass,
-    ruleset: "sweden" as Ruleset,
-    obstacles: SWEDISH_AGILITY_TEMPLATE,
-  },
-  {
-    id: "svensk-hopp-1-grund",
-    title: "Svensk hoppklass – grundlayout",
-    subtitle: "20 hinder · klass 1 · 40 × 30 m",
-    kind: "jumping" as CourseKind,
-    competitionClass: 1 as AgilityClass,
-    ruleset: "sweden" as Ruleset,
-    obstacles: SWEDISH_JUMPING_TEMPLATE,
-  },
-];
+const FOCUS_LABELS: Record<CourseFocus, string> = {
+  flow: "Flyt",
+  handling: "Handling",
+  contacts: "Kontaktfält",
+  speed: "Fart",
+  technical: "Teknik",
+};
 
 function renumber(items: PlannerObstacle[]): PlannerObstacle[] {
   return items.map((item, index) => ({ ...item, number: index + 1 }));
@@ -159,11 +119,6 @@ function createObstacle(type: AgilityObstacleType, index: number): PlannerObstac
   };
 }
 
-function cloneCourse(items: PlannerObstacle[]): PlannerObstacle[] {
-  const stamp = Date.now().toString(36);
-  return items.map((item, index) => ({ ...item, id: `${stamp}-${index + 1}-${item.type}` }));
-}
-
 function badgeOffset(index: number, obstacles: PlannerObstacle[], ring: RingSize) {
   const current = obstacles[index];
   const reference = index === 0 ? obstacles[1] : obstacles[index - 1];
@@ -174,16 +129,69 @@ function badgeOffset(index: number, obstacles: PlannerObstacle[], ring: RingSize
   return { x: -Math.cos(angle) * 29, y: -Math.sin(angle) * 29 };
 }
 
-function CoursePreview({ obstacles }: { obstacles: PlannerObstacle[] }) {
-  const sorted = [...obstacles].sort((a, b) => a.number - b.number);
-  const points = sorted.map((item) => `${item.x},${item.y}`).join(" ");
+function PreviewObstacle({ obstacle }: { obstacle: PlannerObstacle }) {
+  const y = obstacle.y * 0.75;
+  const transform = `translate(${obstacle.x} ${y}) rotate(${obstacle.rotation})`;
+
+  if (obstacle.type === "tunnel") {
+    return <path d="M-3.5 2 Q0 -3.5 3.5 2" transform={transform} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />;
+  }
+  if (obstacle.type === "weave") {
+    return (
+      <g transform={transform}>
+        {[-4, -2.4, -0.8, 0.8, 2.4, 4].map((x) => <circle key={x} cx={x} cy="0" r="0.55" fill="currentColor" />)}
+      </g>
+    );
+  }
+  if (obstacle.type === "tyre") {
+    return <circle cx={obstacle.x} cy={y} r="2.2" fill="none" stroke="currentColor" strokeWidth="1.4" />;
+  }
+  if (obstacle.type === "dogwalk" || obstacle.type === "seesaw") {
+    return <rect x="-4.5" y="-1" width="9" height="2" rx="0.5" transform={transform} fill="currentColor" opacity="0.9" />;
+  }
+  if (obstacle.type === "aframe") {
+    return <path d="M-4 1.8 L0 -2.2 L4 1.8" transform={transform} fill="none" stroke="currentColor" strokeWidth="1.4" />;
+  }
+  if (obstacle.type === "longjump") {
+    return (
+      <g transform={transform}>
+        {[-3, -1, 1, 3].map((x) => <rect key={x} x={x - 0.45} y="-2.3" width="0.9" height="4.6" rx="0.3" fill="currentColor" />)}
+      </g>
+    );
+  }
+
+  return <line x1="-3.6" y1="0" x2="3.6" y2="0" transform={transform} stroke="currentColor" strokeWidth={obstacle.type === "spread" ? 2.1 : 1.5} strokeLinecap="round" />;
+}
+
+function CoursePreview({ course }: { course: BankCourse }) {
+  const sorted = [...course.obstacles].sort((a, b) => a.number - b.number);
+  const points = sorted.map((item) => `${item.x},${item.y * 0.75}`).join(" ");
   return (
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-full w-full">
-      <polyline points={points} fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="1.1" vectorEffect="non-scaling-stroke" />
+    <svg viewBox="0 0 100 75" className="h-full w-full text-foreground" aria-label={`Förhandsvisning av ${course.title}`}>
+      {Array.from({ length: 9 }, (_, index) => index * 12.5).map((position) => (
+        <line key={`v-${position}`} x1={position} y1="0" x2={position} y2="75" stroke="currentColor" strokeOpacity="0.07" strokeWidth="0.5" />
+      ))}
+      {Array.from({ length: 7 }, (_, index) => index * 12.5).map((position) => (
+        <line key={`h-${position}`} x1="0" y1={position} x2="100" y2={position} stroke="currentColor" strokeOpacity="0.07" strokeWidth="0.5" />
+      ))}
+      <polyline points={points} fill="none" stroke="hsl(var(--primary))" strokeOpacity="0.28" strokeWidth="1.2" strokeDasharray="2.5 2.5" />
+      {sorted.map((item) => <PreviewObstacle key={item.id} obstacle={item} />)}
       {sorted.map((item) => (
-        <circle key={item.id} cx={item.x} cy={item.y} r="1.8" fill="currentColor" opacity="0.8" />
+        <g key={`n-${item.id}`} transform={`translate(${Math.min(97, item.x + 2.6)} ${Math.max(3, item.y * 0.75 - 2.6)})`}>
+          <circle r="1.55" fill="hsl(var(--background))" stroke="currentColor" strokeWidth="0.55" />
+          <text y="0.72" textAnchor="middle" fontSize="2.1" fontWeight="700" fill="currentColor">{item.number}</text>
+        </g>
       ))}
     </svg>
+  );
+}
+
+function Stat({ label, value, good }: { label: string; value: string; good: boolean }) {
+  return (
+    <div className="rounded-xl bg-muted/60 p-2 text-center">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className={cn("mt-0.5 text-sm font-bold", good ? "text-foreground" : "text-amber-700")}>{value}</div>
+    </div>
   );
 }
 
@@ -191,15 +199,21 @@ export default function FreeCoursePlannerPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const source = (searchParams.get("source") ?? "").trim() || FREE_PLANNER_DEFAULT_SOURCE;
   const view: ViewMode = searchParams.get("view") === "bank" ? "bank" : "editor";
+  const requestedCourse = getBankCourse(searchParams.get("course"));
+  const initialCourse = requestedCourse ?? PRIMARY_AGILITY_TEMPLATE;
 
-  const [ring, setRing] = useState<RingSize>(DEFAULT_RING);
-  const [ruleset, setRuleset] = useState<Ruleset>("sweden");
-  const [kind, setKind] = useState<CourseKind>("agility");
-  const [competitionClass, setCompetitionClass] = useState<AgilityClass>(1);
-  const [obstacles, setObstacles] = useState<PlannerObstacle[]>(() => cloneCourse(SWEDISH_AGILITY_TEMPLATE));
+  const [ring, setRing] = useState<RingSize>(() => ({ ...initialCourse.ring }));
+  const [ruleset, setRuleset] = useState<Ruleset>(initialCourse.ruleset);
+  const [kind, setKind] = useState<CourseKind>(initialCourse.kind);
+  const [competitionClass, setCompetitionClass] = useState<AgilityClass>(initialCourse.competitionClass);
+  const [obstacles, setObstacles] = useState<PlannerObstacle[]>(() => cloneBankCourseObstacles(initialCourse));
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [bankKind, setBankKind] = useState<BankKindFilter>("all");
+  const [bankClass, setBankClass] = useState<BankClassFilter>("all");
+  const [bankFocus, setBankFocus] = useState<BankFocusFilter>("all");
+  const [bankSearch, setBankSearch] = useState("");
   const hydratedRef = useRef(false);
 
   const signupUrl = buildFreePlannerAuthUrl({ mode: "signup", source, sport: "agility" });
@@ -210,6 +224,16 @@ export default function FreeCoursePlannerPage() {
   }, [source]);
 
   useEffect(() => {
+    if (requestedCourse) {
+      hydratedRef.current = true;
+      const params = new URLSearchParams(searchParams);
+      params.delete("course");
+      params.delete("view");
+      setSearchParams(params, { replace: true });
+      trackGrowthEvent("course_bank_course_opened_from_link", { course_id: requestedCourse.id });
+      return;
+    }
+
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
@@ -231,6 +255,8 @@ export default function FreeCoursePlannerPage() {
     } finally {
       hydratedRef.current = true;
     }
+    // Vi vill bara hydrera en gång vid mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -252,23 +278,38 @@ export default function FreeCoursePlannerPage() {
   const errorCount = validation.issues.filter((issue) => issue.severity === "error").length;
   const warningCount = validation.issues.filter((issue) => issue.severity === "warning").length;
 
+  const filteredCourses = useMemo(() => {
+    const query = bankSearch.trim().toLocaleLowerCase("sv-SE");
+    return COURSE_BANK.filter((course) => {
+      if (bankKind !== "all" && course.kind !== bankKind) return false;
+      if (bankClass !== "all" && course.competitionClass !== bankClass) return false;
+      if (bankFocus !== "all" && !course.focus.includes(bankFocus)) return false;
+      if (!query) return true;
+      return [course.title, course.description, ...course.tags, ...course.focus.map((focus) => FOCUS_LABELS[focus])]
+        .join(" ")
+        .toLocaleLowerCase("sv-SE")
+        .includes(query);
+    });
+  }, [bankClass, bankFocus, bankKind, bankSearch]);
+
   const changeView = useCallback((next: ViewMode) => {
     const params = new URLSearchParams(searchParams);
+    params.delete("course");
     if (next === "bank") params.set("view", "bank");
     else params.delete("view");
     setSearchParams(params, { replace: true });
     trackGrowthEvent("course_bank_view_changed", { view: next });
   }, [searchParams, setSearchParams]);
 
-  const loadCourse = useCallback((course: (typeof BANK_COURSES)[number]) => {
-    setRing(DEFAULT_RING);
+  const loadCourse = useCallback((course: BankCourse) => {
+    setRing({ ...course.ring });
     setRuleset(course.ruleset);
     setKind(course.kind);
     setCompetitionClass(course.competitionClass);
-    setObstacles(cloneCourse(course.obstacles));
+    setObstacles(cloneBankCourseObstacles(course));
     setSelectedId(null);
     changeView("editor");
-    trackGrowthEvent("course_bank_course_copied", { course_id: course.id });
+    trackGrowthEvent("course_bank_course_copied", { course_id: course.id, class: course.competitionClass, kind: course.kind });
   }, [changeView]);
 
   const addObstacle = useCallback((type: AgilityObstacleType) => {
@@ -314,11 +355,11 @@ export default function FreeCoursePlannerPage() {
   }, [selected]);
 
   const resetCourse = useCallback(() => {
-    const next = kind === "agility" ? SWEDISH_AGILITY_TEMPLATE : SWEDISH_JUMPING_TEMPLATE;
-    setRing(DEFAULT_RING);
-    setRuleset("sweden");
-    setCompetitionClass(1);
-    setObstacles(cloneCourse(next));
+    const course = kind === "agility" ? PRIMARY_AGILITY_TEMPLATE : PRIMARY_JUMPING_TEMPLATE;
+    setRing({ ...course.ring });
+    setRuleset(course.ruleset);
+    setCompetitionClass(course.competitionClass);
+    setObstacles(cloneBankCourseObstacles(course));
     setSelectedId(null);
     trackGrowthEvent("free_planner_reset", { kind });
   }, [kind]);
@@ -388,12 +429,14 @@ export default function FreeCoursePlannerPage() {
   return (
     <div className="light min-h-screen bg-background text-foreground">
       <Helmet>
-        <title>{view === "bank" ? "Banbank för agility" : "Rita agilitybana gratis"} | AgilityManager</title>
+        <title>{view === "bank" ? "Banbank – agilitybanor klass 1–3" : "Rita agilitybana gratis"} | AgilityManager</title>
         <meta
           name="description"
-          content="Rita agilitybanor gratis direkt i webbläsaren. Svensk regelkontroll, korrekt skala, 15–22 hinder, autosparning och banbank – utan konto."
+          content={view === "bank"
+            ? "Hitta gratis agility- och hoppbanor för klass 1, 2 och 3. Filtrera, förhandsgranska, kopiera och redigera direkt i AgilityManagers banplanerare."
+            : "Rita agilitybanor gratis direkt i webbläsaren. Svensk regelkontroll, riktig meterskala, 15–22 hinder, autosparning och banbank – utan konto."}
         />
-        <link rel="canonical" href="https://agilitymanager.se/banplanerare" />
+        <link rel="canonical" href={view === "bank" ? "https://agilitymanager.se/banplanerare?view=bank" : "https://agilitymanager.se/banplanerare"} />
       </Helmet>
 
       <header className="sticky top-0 z-40 border-b border-border bg-card/90 backdrop-blur-xl">
@@ -418,52 +461,123 @@ export default function FreeCoursePlannerPage() {
 
       {view === "bank" ? (
         <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
-          <div className="max-w-3xl">
+          <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-              <Library size={13} /> Banbanken
+              <Library size={13} /> Gratis banbank · {COURSE_BANK.length} banor
             </div>
-            <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight sm:text-5xl">Ta en riktig bana och gör den till din.</h1>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Banorna nedan är byggda på 40 × 30 meter och passerar AgilityManagers svenska regelkontroll. Kopiera en bana och flytta sedan hindren fritt.
+            <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight sm:text-5xl">Hitta en bana. Kopiera den. Gör den till din.</h1>
+            <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
+              Alla banor här är AgilityManager-original byggda på 40 × 30 meter och testas automatiskt mot den svenska planritningsbara regelkontrollen. Välj klass, bantyp eller träningsfokus och öppna banan direkt i ritbordet.
             </p>
           </div>
 
-          <div className="mt-8 grid gap-5 md:grid-cols-2">
-            {BANK_COURSES.map((course) => (
-              <article key={course.id} className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-                <div className="aspect-[4/3] bg-muted p-5 text-primary">
-                  <div className="h-full w-full rounded-2xl border border-border bg-background p-2">
-                    <CoursePreview obstacles={course.obstacles} />
-                  </div>
-                </div>
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h2 className="font-display text-xl font-semibold">{course.title}</h2>
-                      <p className="mt-1 text-sm text-muted-foreground">{course.subtitle}</p>
+          <section className="mt-8 rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-5" aria-label="Filtrera banbanken">
+            <div className="flex items-center gap-2 text-sm font-semibold"><SlidersHorizontal size={17} /> Filtrera banor</div>
+            <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(220px,1fr)_auto_auto_auto]">
+              <label className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  value={bankSearch}
+                  onChange={(event) => setBankSearch(event.target.value)}
+                  placeholder="Sök tunnel, kontaktfält, fart…"
+                  className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-sm outline-none focus:border-primary"
+                />
+              </label>
+              <select value={bankKind} onChange={(event) => setBankKind(event.target.value as BankKindFilter)} className="h-11 rounded-xl border border-border bg-background px-3 text-sm font-medium">
+                <option value="all">Alla bantyper</option>
+                <option value="agility">Agilityklass</option>
+                <option value="jumping">Hoppklass</option>
+              </select>
+              <select value={bankClass} onChange={(event) => setBankClass(event.target.value === "all" ? "all" : Number(event.target.value) as AgilityClass)} className="h-11 rounded-xl border border-border bg-background px-3 text-sm font-medium">
+                <option value="all">Alla klasser</option>
+                <option value="1">Klass 1</option>
+                <option value="2">Klass 2</option>
+                <option value="3">Klass 3</option>
+              </select>
+              <select value={bankFocus} onChange={(event) => setBankFocus(event.target.value as BankFocusFilter)} className="h-11 rounded-xl border border-border bg-background px-3 text-sm font-medium">
+                <option value="all">Alla fokus</option>
+                {Object.entries(FOCUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              </select>
+            </div>
+            <div className="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+              <span>{filteredCourses.length} av {COURSE_BANK.length} banor visas</span>
+              {(bankKind !== "all" || bankClass !== "all" || bankFocus !== "all" || bankSearch) && (
+                <button type="button" onClick={() => { setBankKind("all"); setBankClass("all"); setBankFocus("all"); setBankSearch(""); }} className="font-semibold text-primary hover:underline">Rensa filter</button>
+              )}
+            </div>
+          </section>
+
+          {filteredCourses.length > 0 ? (
+            <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {filteredCourses.map((course) => (
+                <article key={course.id} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+                  <div className="aspect-[4/3] bg-muted p-4 text-foreground">
+                    <div className="relative h-full w-full overflow-hidden rounded-2xl border border-border bg-background p-2">
+                      <CoursePreview course={course} />
+                      <span className="absolute left-2 top-2 rounded-lg border border-border bg-background/90 px-2 py-1 text-[10px] font-bold">{course.ring.widthM} × {course.ring.heightM} m</span>
+                      <span className="absolute bottom-2 right-2 rounded-lg bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground">{course.obstacles.length} hinder</span>
                     </div>
-                    <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">Svenska regler</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => loadCourse(course)}
-                    className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-                  >
-                    <Copy size={16} /> Använd den här banan
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
+                  <div className="p-5">
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">Klass {course.competitionClass}</span>
+                      <span className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold">{course.kind === "agility" ? "Agility" : "Hopp"}</span>
+                      {course.focus.slice(0, 2).map((focus) => <span key={focus} className="rounded-full border border-border px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">{FOCUS_LABELS[focus]}</span>)}
+                    </div>
+                    <h2 className="mt-3 font-display text-xl font-semibold">{course.title}</h2>
+                    <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{course.description}</p>
+                    <div className="mt-4 flex items-center gap-2 text-[11px] font-medium text-emerald-700">
+                      <ShieldCheck size={14} /> Automatisk svensk bancheck
+                    </div>
+                    <div className="mt-5 grid grid-cols-[1fr_auto] gap-2">
+                      <button
+                        type="button"
+                        onClick={() => loadCourse(course)}
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                      >
+                        <Copy size={16} /> Använd banan
+                      </button>
+                      <Link
+                        to={`/banplanerare?course=${encodeURIComponent(course.id)}`}
+                        aria-label={`Direktlänk till ${course.title}`}
+                        className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-background px-3 text-xs font-semibold hover:bg-muted"
+                      >
+                        Länk
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-6 rounded-3xl border border-dashed border-border bg-muted/40 p-10 text-center">
+              <Search className="mx-auto h-7 w-7 text-muted-foreground" />
+              <h2 className="mt-3 font-display text-xl font-semibold">Ingen bana matchar filtret</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Rensa något filter eller sök på ett annat träningsfokus.</p>
+            </div>
+          )}
+
+          <section className="mt-10 grid gap-4 lg:grid-cols-3">
+            <div className="rounded-3xl border border-border bg-card p-5">
+              <div className="text-sm font-bold">1. Välj en bana</div>
+              <p className="mt-2 text-sm text-muted-foreground">Filtrera på klass, Agility/Hopp och vad du vill träna.</p>
+            </div>
+            <div className="rounded-3xl border border-border bg-card p-5">
+              <div className="text-sm font-bold">2. Kopiera till ritbordet</div>
+              <p className="mt-2 text-sm text-muted-foreground">Banan öppnas som en egen kopia. Originalet ändras aldrig.</p>
+            </div>
+            <div className="rounded-3xl border border-border bg-card p-5">
+              <div className="text-sm font-bold">3. Anpassa efter din plan</div>
+              <p className="mt-2 text-sm text-muted-foreground">Flytta, rotera och byt hinder medan bancheck och mått uppdateras.</p>
+            </div>
+          </section>
 
           <div className="mt-8 rounded-3xl border border-dashed border-primary/30 bg-primary/5 p-6 text-center">
-            <h2 className="font-display text-xl font-semibold">Nästa steg: användarnas banor</h2>
+            <h2 className="font-display text-xl font-semibold">Banbanken ska växa med användarna</h2>
             <p className="mx-auto mt-2 max-w-2xl text-sm text-muted-foreground">
-              Publicering under eget namn och publika länkar kopplas till gratis konto. Själva ritandet, lokal lagring och kopiering av banor förblir öppet.
+              Ritandet och de öppna banorna är gratis. Ett gratiskonto ska senare ge molnsparning, favoriter och möjlighet att publicera egna banor under eget namn.
             </p>
-            <Link to={signupUrl} className="mt-4 inline-flex h-10 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground">
-              Skapa gratis konto
-            </Link>
+            <Link to={signupUrl} className="mt-4 inline-flex h-10 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground">Skapa gratis konto</Link>
           </div>
         </main>
       ) : (
@@ -514,19 +628,25 @@ export default function FreeCoursePlannerPage() {
             <div className="order-1 min-w-0 xl:order-2">
               <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl shadow-foreground/5">
                 <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-3 sm:px-4">
-                  <select value={ruleset} onChange={(e) => setRuleset(e.target.value as Ruleset)} className="h-9 rounded-lg border border-border bg-background px-2 text-xs font-medium">
+                  <select value={ruleset} onChange={(event) => setRuleset(event.target.value as Ruleset)} className="h-9 rounded-lg border border-border bg-background px-2 text-xs font-medium">
                     <option value="sweden">Svenska regler</option>
                     <option value="fci">FCI</option>
                   </select>
-                  <select value={kind} onChange={(e) => {
-                    const next = e.target.value as CourseKind;
-                    setKind(next);
-                    if (obstacles.length === 20) setObstacles(cloneCourse(next === "agility" ? SWEDISH_AGILITY_TEMPLATE : SWEDISH_JUMPING_TEMPLATE));
+                  <select value={kind} onChange={(event) => {
+                    const nextKind = event.target.value as CourseKind;
+                    setKind(nextKind);
+                    const template = nextKind === "agility" ? PRIMARY_AGILITY_TEMPLATE : PRIMARY_JUMPING_TEMPLATE;
+                    if (obstacles.length === 20) {
+                      setCompetitionClass(template.competitionClass);
+                      setRuleset(template.ruleset);
+                      setRing({ ...template.ring });
+                      setObstacles(cloneBankCourseObstacles(template));
+                    }
                   }} className="h-9 rounded-lg border border-border bg-background px-2 text-xs font-medium">
                     <option value="agility">Agilityklass</option>
                     <option value="jumping">Hoppklass</option>
                   </select>
-                  <select value={competitionClass} onChange={(e) => setCompetitionClass(Number(e.target.value) as AgilityClass)} className="h-9 rounded-lg border border-border bg-background px-2 text-xs font-medium">
+                  <select value={competitionClass} onChange={(event) => setCompetitionClass(Number(event.target.value) as AgilityClass)} className="h-9 rounded-lg border border-border bg-background px-2 text-xs font-medium">
                     <option value={1}>Klass 1</option>
                     <option value={2}>Klass 2</option>
                     <option value={3}>Klass 3</option>
@@ -534,9 +654,9 @@ export default function FreeCoursePlannerPage() {
                   <div className="ml-auto flex items-center gap-1.5">
                     <label className="hidden items-center gap-1 text-[11px] text-muted-foreground sm:flex">
                       Ring
-                      <input type="number" min={18} max={80} value={ring.widthM} onChange={(e) => setRing((r) => ({ ...r, widthM: Math.max(1, Number(e.target.value) || 1) }))} className="h-8 w-14 rounded-md border border-border bg-background px-1.5 text-center text-xs" />
+                      <input type="number" min={18} max={80} value={ring.widthM} onChange={(event) => setRing((current) => ({ ...current, widthM: Math.max(1, Number(event.target.value) || 1) }))} className="h-8 w-14 rounded-md border border-border bg-background px-1.5 text-center text-xs" />
                       ×
-                      <input type="number" min={18} max={80} value={ring.heightM} onChange={(e) => setRing((r) => ({ ...r, heightM: Math.max(1, Number(e.target.value) || 1) }))} className="h-8 w-14 rounded-md border border-border bg-background px-1.5 text-center text-xs" />
+                      <input type="number" min={18} max={80} value={ring.heightM} onChange={(event) => setRing((current) => ({ ...current, heightM: Math.max(1, Number(event.target.value) || 1) }))} className="h-8 w-14 rounded-md border border-border bg-background px-1.5 text-center text-xs" />
                       m
                     </label>
                   </div>
@@ -548,7 +668,7 @@ export default function FreeCoursePlannerPage() {
                     onPointerMove={pointerMove}
                     onPointerUp={pointerUp}
                     onPointerCancel={pointerUp}
-                    onClick={(e) => { if (e.target === e.currentTarget) setSelectedId(null); }}
+                    onClick={(event) => { if (event.target === event.currentTarget) setSelectedId(null); }}
                     className="relative mx-auto w-full overflow-hidden rounded-2xl border-2 border-foreground/20 bg-background select-none"
                     style={{ aspectRatio: `${ring.widthM} / ${ring.heightM}`, touchAction: "none" }}
                     aria-label={`Agilitybana ${ring.widthM} gånger ${ring.heightM} meter`}
@@ -578,36 +698,36 @@ export default function FreeCoursePlannerPage() {
                       </svg>
                     )}
 
-                    {sorted.map((obs) => {
-                      const selectedObstacle = obs.id === selectedId;
+                    {sorted.map((obstacle) => {
+                      const isSelected = obstacle.id === selectedId;
                       return (
                         <button
-                          key={obs.id}
+                          key={obstacle.id}
                           type="button"
-                          onPointerDown={(e) => pointerDown(e, obs)}
+                          onPointerDown={(event) => pointerDown(event, obstacle)}
                           className={cn(
                             "absolute z-20 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-xl border bg-card shadow-sm transition-shadow sm:h-14 sm:w-14",
-                            selectedObstacle ? "border-primary ring-2 ring-primary/25" : "border-border hover:border-primary/40",
+                            isSelected ? "border-primary ring-2 ring-primary/25" : "border-border hover:border-primary/40",
                           )}
-                          style={{ left: `${obs.x}%`, top: `${obs.y}%`, touchAction: "none" }}
-                          aria-label={`${obs.number}. ${LABEL_BY_TYPE[obs.type]}`}
+                          style={{ left: `${obstacle.x}%`, top: `${obstacle.y}%`, touchAction: "none" }}
+                          aria-label={`${obstacle.number}. ${LABEL_BY_TYPE[obstacle.type]}`}
                         >
-                          <span style={{ transform: `rotate(${obs.rotation}deg)` }}>
-                            <FreeObstacleGlyph type={GLYPH_BY_TYPE[obs.type]} size={34} />
+                          <span style={{ transform: `rotate(${obstacle.rotation}deg)` }}>
+                            <FreeObstacleGlyph type={GLYPH_BY_TYPE[obstacle.type]} size={34} />
                           </span>
                         </button>
                       );
                     })}
 
-                    {sorted.map((obs, index) => {
+                    {sorted.map((obstacle, index) => {
                       const offset = badgeOffset(index, sorted, ring);
                       return (
                         <span
-                          key={`number-${obs.id}`}
+                          key={`number-${obstacle.id}`}
                           className="pointer-events-none absolute z-30 grid h-6 w-6 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-background bg-foreground text-[10px] font-bold text-background shadow"
-                          style={{ left: `calc(${obs.x}% + ${offset.x}px)`, top: `calc(${obs.y}% + ${offset.y}px)` }}
+                          style={{ left: `calc(${obstacle.x}% + ${offset.x}px)`, top: `calc(${obstacle.y}% + ${offset.y}px)` }}
                         >
-                          {obs.number}
+                          {obstacle.number}
                         </span>
                       );
                     })}
@@ -705,9 +825,19 @@ export default function FreeCoursePlannerPage() {
               </div>
 
               <div className="mt-4 rounded-2xl border border-border bg-muted/50 p-3 text-[11px] leading-relaxed text-muted-foreground">
-                <strong className="text-foreground">Viktigt:</strong> automatiken kontrollerar planritningsbara regler. Hundens verkliga linje, fysisk hinderutrustning, säkerhet och slutlig bankonstruktion måste alltid verifieras av behörig domare/arrangör för officiell tävling.
+                <strong className="text-foreground">Viktigt:</strong> automatiken kontrollerar regler som kan avgöras från planritningen. Hundens verkliga linje, fysisk hinderutrustning, säkerhet och slutlig bankonstruktion måste alltid verifieras av behörig domare/arrangör för officiell tävling.
               </div>
             </aside>
+          </section>
+
+          <section className="mt-8 rounded-3xl border border-border bg-card p-5 sm:p-7">
+            <div className="max-w-3xl">
+              <p className="text-xs font-bold uppercase tracking-[.15em] text-primary">Gratis på riktigt</p>
+              <h2 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Rita först. Konto först när det faktiskt ger värde.</h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                Du kan rita, ändra, kontrollera, spara lokalt, exportera och kopiera banor från Banbanken utan att registrera dig. Ett konto är tänkt för sådant som kräver en identitet: molnsynk, favoriter, publicering och delning mellan enheter.
+              </p>
+            </div>
           </section>
         </main>
       )}
@@ -725,7 +855,7 @@ export default function FreeCoursePlannerPage() {
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {OBSTACLES.map((def) => (
-                <button key={def.type} type="button" onClick={() => addObstacle(def.type)} className="rounded-2xl border border-border bg-background p-3 text-left">
+                <button key={def.type} type="button" onClick={() => addObstacle(def.type)} disabled={obstacles.length >= FREE_MAX_COMPETITION_OBSTACLES} className="rounded-2xl border border-border bg-background p-3 text-left disabled:opacity-40">
                   <FreeObstacleGlyph type={def.glyph} size={32} />
                   <span className="mt-2 block text-sm font-semibold">{def.label}</span>
                   <span className="text-[11px] text-muted-foreground">{def.description}</span>
@@ -735,15 +865,6 @@ export default function FreeCoursePlannerPage() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function Stat({ label, value, good }: { label: string; value: string; good: boolean }) {
-  return (
-    <div className="rounded-xl bg-muted/60 p-2 text-center">
-      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className={cn("mt-0.5 text-sm font-bold", good ? "text-foreground" : "text-amber-700")}>{value}</div>
     </div>
   );
 }

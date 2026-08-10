@@ -3,8 +3,8 @@
  * Alla koordinater i procent (0–100) av canvasens bredd/höjd.
  */
 
-export const FREE_MIN_PCT = 3;
-export const FREE_MAX_PCT = 97;
+export const FREE_MIN_PCT = 2;
+export const FREE_MAX_PCT = 98;
 
 export interface PercentPoint {
   x: number;
@@ -19,7 +19,10 @@ export interface FreeObstacleLike {
 }
 
 export const MARKER_TYPES = new Set(["start", "finish"]);
-export const FREE_MAX_COMPETITION_OBSTACLES = 8;
+
+/** FCI-banor innehåller 15–22 hinder. */
+export const FREE_MIN_COMPETITION_OBSTACLES = 15;
+export const FREE_MAX_COMPETITION_OBSTACLES = 22;
 
 export function clampPercent(value: number): number {
   if (Number.isNaN(value)) return FREE_MIN_PCT;
@@ -54,13 +57,14 @@ export function obstacleCountExcludingMarkers(obstacles: FreeObstacleLike[]): nu
 }
 
 /**
- * Ger en rimlig start-position för nya hinder så att de inte staplas.
- * index är obstacles.length efter tillägg (1-baserat räknare).
+ * Ger en rimlig startposition för nya hinder så att de inte staplas.
+ * index är obstacles.length efter tillägg (1-baserad räknare).
  */
 export function nextFreeObstaclePosition(index: number): PercentPoint {
-  const stepX = 11;
-  const stepY = 9;
-  const x = 18 + ((index * stepX) % 64);
-  const y = 26 + ((index * stepY) % 50);
+  const columns = 5;
+  const col = index % columns;
+  const row = Math.floor(index / columns) % 4;
+  const x = 12 + col * 19;
+  const y = 18 + row * 21;
   return clampPercentPoint({ x, y });
 }

@@ -21,45 +21,45 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install dependencies
-        shell: bash
+      # npm CLI kraschar för närvarande reproducerbart med "Exit handler never called"
+      # på GitHub-runnern. Behåll package-lock.json som källa och importera dess
+      # versionsval till en tillfällig pnpm-lock för just CI-installationen.
+      - name: Enable pnpm with Corepack
         run: |
-          set -o pipefail
-          if ! npm ci --no-audit --no-fund; then
-            echo "npm ci hit an npm CLI failure; retrying from a clean cache with npm install."
-            rm -rf node_modules
-            npm cache clean --force
-            npm install --no-audit --no-fund
-          fi
+          corepack enable
+          corepack prepare pnpm@10.15.0 --activate
+          pnpm --version
+
+      - name: Import npm lockfile
+        run: pnpm import
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: npm run lint
-        continue-on-error: true # Lint-regler skärps stegvis (steg 15) — bryt inte CI än.
+        run: pnpm lint
+        continue-on-error: true # Lint-regler skärps stegvis — bryt inte CI än.
 
       - name: Typecheck
-        run: npx tsc --noEmit
+        run: pnpm exec tsc --noEmit
         continue-on-error: true # Typecheck skärps stegvis. Vi vill se rapporten utan att stoppa CI initialt.
 
       - name: Hardcoded color scan
-        # Varnar om nya hårdkodade hex-/Tailwind-färger smyger in i UI-komponenter.
-        # Tröskel sätts via HARDCODED_COLOR_THRESHOLD så vi kan migrera stegvis
-        # utan att stoppa CI. Skärp tröskeln i takt med att vi tokenar mer.
         env:
           HARDCODED_COLOR_THRESHOLD: '265'
-        run: npm run check:colors:strict
+        run: pnpm check:colors:strict
         continue-on-error: true
 
       - name: Test
         env:
-          # Tester använder mockad Supabase-klient men Vite kräver att envs definieras.
           VITE_SUPABASE_URL: https://example.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: test-anon-key
           VITE_SUPABASE_PROJECT_ID: test-project
-        run: npm test
+        run: pnpm test
 
       - name: Build (no static prerender)
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
-        run: npm run build:no-snap
+        run: pnpm build:no-snap

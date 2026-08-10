@@ -26,7 +26,7 @@ interface Props {
 
 type Tab = "prebuilt" | "mine" | "clubs";
 type SportFilter = "all" | "agility" | "hoopers";
-type ClassFilter = "all" | "1" | "2" | "3";
+type ClassFilter = "all" | "1" | "2" | "3" | "noll";
 type LayoutFilter = "all" | "original" | "mirror";
 
 function classNumber(course: PrebuiltCourse): "1" | "2" | "3" | null {
@@ -36,14 +36,25 @@ function classNumber(course: PrebuiltCourse): "1" | "2" | "3" | null {
   return null;
 }
 
+function isNollklass(course: PrebuiltCourse): boolean {
+  return course.classTemplate === "noll_mur" || course.classTemplate === "noll_slalom" || course.classTemplate === "noll_balans";
+}
+
 function disciplineLabel(course: PrebuiltCourse): string {
   if (course.sport === "hoopers") return "Hoopers";
+  if (isNollklass(course)) return "Nollklass";
   if (course.classTemplate.startsWith("agility_hopp")) return "Hoppklass";
   return "Agilityklass";
 }
 
 function numberedCount(course: PrebuiltCourse): number {
   return course.obstacles.filter((o) => o.number != null).length;
+}
+
+function matchesClassFilter(course: PrebuiltCourse, filter: ClassFilter): boolean {
+  if (filter === "all") return true;
+  if (filter === "noll") return isNollklass(course);
+  return classNumber(course) === filter;
 }
 
 export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Props) {
@@ -87,7 +98,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
     const needle = query.trim().toLocaleLowerCase("sv-SE");
     return COURSE_BANK.filter((course) => {
       if (sport !== "all" && course.sport !== sport) return false;
-      if (courseClass !== "all" && classNumber(course) !== courseClass) return false;
+      if (!matchesClassFilter(course, courseClass)) return false;
       if (layout !== "all" && course.bankKind !== layout) return false;
       if (!needle) return true;
       const haystack = [
@@ -95,6 +106,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
         course.description,
         disciplineLabel(course),
         course.bankKind === "mirror" ? "spegel spegelbana" : "original",
+        isNollklass(course) ? "nollklass clear round nybörjare 15x30 25x30" : "",
         ...(course.focus ?? []),
       ].join(" ").toLocaleLowerCase("sv-SE");
       return haystack.includes(needle);
@@ -155,8 +167,8 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
           {tab === "prebuilt" && (
             <div className="space-y-4">
               <div className="rounded-2xl border border-primary/15 bg-primary/5 p-3 text-xs leading-5 text-muted-foreground">
-                <div className="flex items-center gap-2 font-semibold text-foreground"><ShieldCheck size={15} className="text-primary" /> 12 svenska klassbanor kontrolleras maskinellt i CI</div>
-                <p className="mt-1">Sex original och sex spegelversioner testas mot de maskinellt kontrollerbara svenska klassreglerna och samma beräknade hundlinje som visas i planaren. Fysisk slutkontroll på plats är fortfarande domarens/arrangörens ansvar.</p>
+                <div className="flex items-center gap-2 font-semibold text-foreground"><ShieldCheck size={15} className="text-primary" /> 24 svenska kartor kvalitetskontrolleras maskinellt i CI</div>
+                <p className="mt-1">12 klass 1–3-kartor och 12 Nollklasskartor testas mot samma beräknade hundlinje som visas i planaren. Nollklasskartorna är AgilityManager-original byggda efter SAgiK:s publicerade 2026-ram – inte kopior av SAgiK:s domarkartor. Fysisk slutkontroll på plats är fortfarande arrangörens ansvar.</p>
               </div>
 
               <div className="grid gap-2 lg:grid-cols-[1fr_auto]">
@@ -165,7 +177,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Sök t.ex. slalom, kontaktfält, flow, spegel…"
+                    placeholder="Sök slalom, Nollklass, kontaktfält, 15×30, flow, spegel…"
                     className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
                   />
                 </label>
@@ -186,8 +198,8 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Klass</span>
-                {(["all", "1", "2", "3"] as ClassFilter[]).map((value) => (
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Nivå</span>
+                {(["all", "noll", "1", "2", "3"] as ClassFilter[]).map((value) => (
                   <button
                     key={value}
                     onClick={() => setCourseClass(value)}
@@ -196,7 +208,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
                       courseClass === value ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground",
                     )}
                   >
-                    {value === "all" ? "Alla klasser" : `Klass ${value}`}
+                    {value === "all" ? "Alla nivåer" : value === "noll" ? "Nollklass" : `Klass ${value}`}
                   </button>
                 ))}
                 <span className="ml-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Variant</span>
@@ -221,6 +233,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {filteredPrebuilt.map((p: CourseBankEntry) => {
                     const cls = classNumber(p);
+                    const noll = isNollklass(p);
                     const verified = p.qualityLabel?.startsWith("Kontrollerad") ?? false;
                     return (
                       <button
@@ -235,6 +248,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
                             <div className="mt-1 flex flex-wrap gap-1.5">
                               <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">{disciplineLabel(p)}</span>
                               {cls && <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">Klass {cls}</span>}
+                              {noll && <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">Clear round</span>}
                               {p.bankKind === "mirror" && <span className="rounded-full border border-primary/25 px-2 py-0.5 text-[10px] font-semibold text-primary">Spegel</span>}
                               <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">{numberedCount(p)} passager</span>
                             </div>

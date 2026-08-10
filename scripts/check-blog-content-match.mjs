@@ -3,7 +3,7 @@
  * CI-check: blog_posts content sanity.
  *
  * Hämtar alla publicerade blogginlägg från Supabase och flaggar inlägg där
- * de första 200 tecknen av `content` inte verkar matcha `slug` + `title`.
+ * artikelns inledning inte verkar matcha `slug` + `title`.
  *
  * Bakgrund: vid migration har vi sett fall där fel artikelinnehåll fastnat
  * på fel slug (t.ex. content om "klicker-träning" på slug
@@ -13,7 +13,9 @@
  * Heuristik:
  *   1. Tokenisera title + slug till nyckelord (>= 4 tecken, rensa
  *      stoppord och vanliga ord).
- *   2. Tokenisera de första 200 tecknen av content (markdown-rensat).
+ *   2. Tokenisera de första 800 tecknen av content (markdown-rensat).
+ *      800 tecken ger plats för en ingress eller första resonemanget utan
+ *      att checken börjar matcha mot hela artikeln.
  *   3. Kräv att MINST 1 nyckelord från title eller slug förekommer i
  *      content-prefixet. Inlägg utan match flaggas som mismatch.
  *
@@ -30,9 +32,9 @@ const SUPABASE_URL =
   process.env.VITE_SUPABASE_URL || 'https://rcubbmnosawdtaupixnm.supabase.co';
 const SUPABASE_ANON_KEY =
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjdWJibW5vc2F3ZHRhdXBpeG5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NTE2MDIsImV4cCI6MjA4ODUyNzYwMn0.8YWtXNIWkDLU90G7EgOMTsXUh1jY8SOv1eHSpeWpqcA';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InJjdWJibW5vc2F3ZHRhdXBpeG5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NTE2MDIsImV4cCI6MjA4ODUyNzYwMn0.8YWtXNIWkDLU90G7EgOMTsXUh1jY8SOv1eHSpeWpqcA';
 
-const PREFIX_LENGTH = 200;
+const PREFIX_LENGTH = 800;
 const MIN_KEYWORD_LENGTH = 4;
 const STRICT = process.argv.includes('--strict');
 
@@ -44,18 +46,19 @@ const STOPWORDS = new Set([
   'detta', 'denna', 'dessa', 'dem', 'deras', 'vara', 'blir', 'blev', 'kan',
   'ska', 'skall', 'skulle', 'man', 'mig', 'dig', 'sig', 'oss', 'ert', 'era',
   'guide', 'guiden', 'allt', 'alla', 'mer', 'mest', 'mycket', 'lite',
+  'varför', 'varje', 'behöver',
   'this', 'that', 'with', 'from', 'have', 'will', 'your', 'about',
 ]);
 
 /** Markdown → ren text: ta bort headings, länkar, formatering, kodblock. */
 function stripMarkdown(md) {
   return md
-    .replace(/```[\s\S]*?```/g, ' ')           // kodblock
-    .replace(/`[^`]*`/g, ' ')                  // inline code
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')     // bilder
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')   // länkar → linktext
-    .replace(/^#{1,6}\s+/gm, '')               // headings
-    .replace(/[*_~>#-]/g, ' ')                 // formatering
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`]*`/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/[*_~>#-]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -105,7 +108,7 @@ function checkPost(post) {
   if (matches.length === 0) {
     return {
       status: 'error',
-      reason: 'inga nyckelord från title/slug i content-prefix',
+      reason: 'inga nyckelord från title/slug i artikelns inledning',
       expected: [...expected].slice(0, 6),
       preview: prefix.slice(0, 120),
     };

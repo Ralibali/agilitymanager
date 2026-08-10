@@ -1,7 +1,7 @@
 name: CI
 
 # Kör vid varje push och PR mot main. Kör install, lint, typecheck, test
-# och build så att vi fångar regressioner innan de når produktion.
+# och hela produktionsbygget så att även statisk SEO, bansidor och sitemap verifieras.
 on:
   push:
     branches: [main]
@@ -19,40 +19,57 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '22'
+
+      # npm CLI kraschar för närvarande reproducerbart med "Exit handler never called"
+      # på GitHub-runnern. Behåll package-lock.json som källa och importera dess
+      # versionsval till en tillfällig pnpm-lock för just CI-installationen.
+      - name: Enable pnpm with Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.15.0 --activate
+          pnpm --version
+
+      - name: Import npm lockfile
+        run: pnpm import
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: npm run lint
-        continue-on-error: true # Lint-regler skärps stegvis (steg 15) — bryt inte CI än.
+        run: pnpm lint
+        continue-on-error: true # Lint-regler skärps stegvis — bryt inte CI än.
 
       - name: Typecheck
-        run: npx tsc --noEmit
+        run: pnpm exec tsc --noEmit
         continue-on-error: true # Typecheck skärps stegvis. Vi vill se rapporten utan att stoppa CI initialt.
 
       - name: Hardcoded color scan
-        # Varnar om nya hårdkodade hex-/Tailwind-färger smyger in i UI-komponenter.
-        # Tröskel sätts via HARDCODED_COLOR_THRESHOLD så vi kan migrera stegvis
-        # utan att stoppa CI. Skärp tröskeln i takt med att vi tokenar mer.
         env:
           HARDCODED_COLOR_THRESHOLD: '265'
-        run: npm run check:colors:strict
+        run: pnpm check:colors:strict
         continue-on-error: true
 
       - name: Test
         env:
-          # Tester använder mockad Supabase-klient men Vite kräver att envs definieras.
           VITE_SUPABASE_URL: https://example.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: test-anon-key
           VITE_SUPABASE_PROJECT_ID: test-project
-        run: npm test
+        run: pnpm test
 
-      - name: Build (no static prerender)
+      - name: Full production build + static SEO
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
-        run: npm run build:no-snap
+        run: pnpm build
+
+      - name: Verify public course SEO output
+        shell: bash
+        run: |
+          test -f dist/banplanerare/index.html
+          test -f dist/banor/klass-1-agility-grundflyt/index.html
+          test -f dist/banor/klass-3-hopp-teknik/index.html
+          grep -q "klass-1-agility-grundflyt" dist/sitemap-pages.xml
+          grep -q "Gratis banplanerare för agility" dist/index.html
+          echo "Static planner/course SEO output verified."

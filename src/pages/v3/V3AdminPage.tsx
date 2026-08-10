@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Helmet } from "react-helmet-async";
 import {
   Users, Loader2, Shield, Dog, Dumbbell, Trophy, Heart, Timer,
@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserDetailModal from "@/components/admin/UserDetailModal";
+import DeleteUserButton from "@/components/admin/DeleteUserButton";
 import SupportTicketsTab from "@/components/admin/SupportTicketsTab";
 import AnalyticsTab from "@/components/admin/AnalyticsTab";
 import ReferralStatsTab from "@/components/admin/ReferralStatsTab";
@@ -238,6 +239,14 @@ export default function V3AdminPage() {
                       >
                         <Eye className="h-3.5 w-3.5" /> Visa
                       </button>
+                      <DeleteUserButton
+                        userId={u.user_id}
+                        userName={u.display_name || "Namnlös"}
+                        onDeleted={() => {
+                          queryClient.invalidateQueries({ queryKey: ["admin-users-v3"] });
+                          queryClient.invalidateQueries({ queryKey: ["admin-stats-v3"] });
+                        }}
+                      />
                     </div>
                   </div>
                 );

@@ -44,14 +44,34 @@ Deno.serve(async (req) => {
     });
 
   try {
-    const userId = await requireAuth(req);
-    if (!userId) return json({ error: "Ej inloggad" }, 401);
+    const callerId = await requireAuth(req);
+    if (!callerId) return json({ error: "Ej inloggad" }, 401);
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { auth: { persistSession: false } },
     );
+
+    // Valfritt mål-id: endast admin får radera någon annans konto.
+    let target: string | null = null;
+    try {
+      const body = await req.json();
+      const raw = (body as { target_user_id?: unknown } | null)?.target_user_id;
+      if (typeof raw === "string" && /^[0-9a-f-]{36}$/i.test(raw)) target = raw;
+    } catch { /* ingen body */ }
+
+    let userId = callerId;
+    if (target && target !== callerId) {
+      const { data: roles } = await admin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", callerId)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!roles) return json({ error: "Endast admin får radera andra konton" }, 403);
+      userId = target;
+    }
 
     // Vänskapsrelationer och meddelanden har två användarkolumner.
     await admin.from("messages").delete().or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);

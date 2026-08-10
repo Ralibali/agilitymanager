@@ -1,37 +1,39 @@
 /**
- * Banplaneraren v2 — Prompt C
+ * Banplaneraren v2 — hundlinjebaserad ansats- och bananalys.
  *
- * Två funktioner:
- *  1) `computeApproachIssues` — säkerhetsvarningar baserade på vinkeln
- *     mellan hundens väg och hindrets riktning vid ankomst (däck, långhopp,
- *     kontaktfält, tunnelmynning).
- *  2) `analyzeCourse` — bananalys/svårighet (riktningsbyten, sidbyten,
- *     längsta raksträcka, medelsvängskärpa) presenterat transparent.
+ * Officiella svenska regler kräver naturligt rak ansats mot däck, oxer,
+ * långhopp, A-hinder, gungbräda och balansbom. FCI:s domaranvisningar
+ * betonar dessutom att säkerheten ska bedömas utifrån den linje och fart
+ * hunden sannolikt faktiskt får, inte bara en ideal linje på kartan.
  *
- * Båda läser från `buildDogPath` så de speglar EXAKT samma kurva som
- * användaren ser på canvasen.
- *
- * ⚠️ Värden för tröskelvinklar är TODO VERIFIERA mot SAgiK "Säkra hinder".
- * Placeholders dokumenterade nedan.
+ * Regelverken anger inte ett generellt gradtal för vad "rak" betyder.
+ * Trösklarna nedan är därför uttryckligen AgilityManagers konservativa
+ * planeringsheuristik och får aldrig presenteras som ett officiellt gradkrav.
  */
 
 import { buildDogPath, type DogPathObstacle, type CourseDogPathOverride } from "./dogPath";
 import type { ValidationIssue, ObstacleLite } from "./validation";
 import type { ObstacleTypeV2 } from "./config";
 
-const STRAIGHT_REQUIRED: ObstacleTypeV2[] = ["tire", "longjump"];
-const CONTACT_TYPES: ObstacleTypeV2[] = ["aframe", "dogwalk", "seesaw"];
+const STRAIGHT_REQUIRED: ObstacleTypeV2[] = [
+  "tire",
+  "longjump",
+  "combo",
+  "aframe",
+  "dogwalk",
+  "seesaw",
+];
 
-/** Tröskelvinklar (grader). TODO VERIFIERA mot SAgiK Säkra hinder. */
+/**
+ * Konservativa UI-trösklar, inte officiella regelvärden.
+ * De hjälper ritverktyget att hitta uppenbart sneda ansatser som sedan
+ * måste bedömas tillsammans med fart, föregående hinder och verklig hundlinje.
+ */
 export const APPROACH_THRESHOLDS = {
-  /** Däck/långhopp — varning över X°, fel över Y°. */
   straightWarn: 20,
-  straightError: 35,
-  /** Kontaktfält — varning över X°. */
-  contactWarn: 25,
-  /** Tunnelmynning — varning över X°. */
+  straightSevere: 35,
   tunnelWarn: 45,
-  /** Hopp i kurva — info över X° kurvatur runt entry. */
+  wallWarn: 35,
   jumpCurvatureInfo: 70,
 } as const;
 
@@ -51,7 +53,7 @@ function angleBetweenDeg(a: Vec2, b: Vec2): number {
   return (Math.acos(dot) * 180) / Math.PI;
 }
 
-/** Riktningsvinkel — 0–180, oavsett pil-riktning. */
+/** Riktningsvinkel — 0–90 mot hindrets axel, oavsett genomgångshåll. */
 function unsignedAxisAngleDeg(approach: Vec2, axis: Vec2): number {
   const a = angleBetweenDeg(approach, axis);
   return Math.min(a, 180 - a);
@@ -84,30 +86,19 @@ export function computeApproachIssues(
     const number = cur.obstacle.number;
 
     if (STRAIGHT_REQUIRED.includes(type)) {
-      // Rak ansats krävs — vinkel mot hindrets travel-axel (entryDir)
       const dev = unsignedAxisAngleDeg(approach, cur.entryDir);
-      if (dev >= APPROACH_THRESHOLDS.straightError) {
+      if (dev >= APPROACH_THRESHOLDS.straightSevere) {
         issues.push({
           level: "error",
           code: "bad_approach_angle",
-          message: `${labelFor(type)} ${number ?? ""}: ansatsvinkel ${dev.toFixed(0)}° — kräver rak ansats (< ${APPROACH_THRESHOLDS.straightError}°)`,
+          message: `${labelFor(type)} ${number ?? ""}: den beräknade hundlinjen ger en tydligt sned ansats (${dev.toFixed(0)}°). Regelverket kräver naturligt rak ansats; gradtalet är AgilityManagers säkerhetsheuristik.`,
           obstacleId: cur.obstacle.id,
         });
       } else if (dev >= APPROACH_THRESHOLDS.straightWarn) {
         issues.push({
           level: "warning",
           code: "bad_approach_angle",
-          message: `${labelFor(type)} ${number ?? ""}: ansatsvinkel ${dev.toFixed(0)}° — bör vara så rak som möjligt`,
-          obstacleId: cur.obstacle.id,
-        });
-      }
-    } else if (CONTACT_TYPES.includes(type)) {
-      const dev = unsignedAxisAngleDeg(approach, cur.entryDir);
-      if (dev >= APPROACH_THRESHOLDS.contactWarn) {
-        issues.push({
-          level: "warning",
-          code: "bad_approach_angle",
-          message: `${labelFor(type)} ${number ?? ""}: ansatsvinkel ${dev.toFixed(0)}° — kontaktfält bör tas rakt`,
+          message: `${labelFor(type)} ${number ?? ""}: kontrollera ansatsen (${dev.toFixed(0)}° i beräknad hundlinje). Regelverket kräver naturligt rak ansats; gradtalet är endast planeringsstöd.`,
           obstacleId: cur.obstacle.id,
         });
       }
@@ -117,12 +108,21 @@ export function computeApproachIssues(
         issues.push({
           level: "warning",
           code: "bad_approach_angle",
-          message: `Tunnel ${number ?? ""}: ankomst i ${dev.toFixed(0)}° vinkel mot mynningen`,
+          message: `Tunnel ${number ?? ""}: hundlinjen kommer snett mot mynningen (${dev.toFixed(0)}°). Kontrollera fart, infångning och verklig linje.`,
           obstacleId: cur.obstacle.id,
         });
       }
-    } else if (type === "jump" || type === "wall" || type === "combo") {
-      // Hopp i kurva: jämför inkommande mot utgående riktning vid samma hinder.
+    } else if (type === "wall") {
+      const dev = unsignedAxisAngleDeg(approach, cur.entryDir);
+      if (dev >= APPROACH_THRESHOLDS.wallWarn) {
+        issues.push({
+          level: "warning",
+          code: "wall_approach_risk",
+          message: `Mur ${number ?? ""}: sned ansats (${dev.toFixed(0)}°) kan ge en osäker linje. Kontrollera särskilt föregående hinders fart och placering.`,
+          obstacleId: cur.obstacle.id,
+        });
+      }
+    } else if (type === "jump") {
       if (i + 1 < path.anchors.length) {
         const next = path.anchors[i + 1];
         const outVec: Vec2 = {
@@ -135,7 +135,7 @@ export function computeApproachIssues(
             issues.push({
               level: "info",
               code: "jump_in_curve",
-              message: `Hopp ${number ?? ""} tas i ${turn.toFixed(0)}° kurva — kräver tidig kommunikation`,
+              message: `Hopp ${number ?? ""} ligger i en kraftig riktningsändring (${turn.toFixed(0)}° i modellen). Bedöm hundens fart och landningslinje.`,
               obstacleId: cur.obstacle.id,
             });
           }
@@ -157,7 +157,7 @@ function labelFor(t: ObstacleTypeV2): string {
     case "tunnel": return "Tunnel";
     case "jump": return "Hopp";
     case "wall": return "Mur";
-    case "combo": return "Kombination";
+    case "combo": return "Oxer";
     default: return t;
   }
 }
@@ -217,9 +217,6 @@ export function analyzeCourse(
     }
   }
 
-  // Sidbyten — beräknas som antal segment-segment-skärningar i luften.
-  // För enkelhet: räkna skärningar mellan alla par av luftsegment
-  // (anchor.exit_i → anchor.entry_{i+1}).
   let sideChanges = 0;
   const air: [Vec2, Vec2][] = [];
   for (let i = 0; i < path.anchors.length - 1; i++) {
@@ -233,7 +230,6 @@ export function analyzeCourse(
 
   const avgCurvatureDegPerM = path.total > 0 ? totalTurnDeg / path.total : 0;
 
-  // Sammanvägd poäng — transparent, varje del begränsad.
   const cTurns = Math.min(40, sharpTurns * 8);
   const cSides = Math.min(25, sideChanges * 8);
   const cCurv = Math.min(25, avgCurvatureDegPerM * 1.5);
@@ -261,8 +257,6 @@ export function analyzeCourse(
     },
   };
 }
-
-/* ───────────── Segment-intersection (för sidbyten) ───────────── */
 
 function segmentsIntersect(p1: Vec2, p2: Vec2, p3: Vec2, p4: Vec2): boolean {
   const d = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x);

@@ -1,5 +1,6 @@
 import type { ClassTemplateKey, ObstacleTypeV2 } from "./config";
 import { PREBUILT_COURSES, type PrebuiltCourse, type PrebuiltObstacle } from "./templates";
+import { NOLLKLASS_COURSES } from "./nollklassCourses";
 
 export type CourseBankKind = "original" | "mirror";
 
@@ -17,17 +18,18 @@ const SWEDISH_COMPETITION_TEMPLATES = new Set<ClassTemplateKey>([
   "agility_3",
 ]);
 
+const NOLL_TEMPLATES = new Set<ClassTemplateKey>(["noll_mur", "noll_slalom", "noll_balans"]);
+
 function isSwedishCompetitionCourse(course: PrebuiltCourse): boolean {
   return SWEDISH_COMPETITION_TEMPLATES.has(course.classTemplate);
 }
 
+function isNollklassCourse(course: PrebuiltCourse): boolean {
+  return NOLL_TEMPLATES.has(course.classTemplate);
+}
+
 /**
  * Speglar en hinderrotation över arenans lodräta mittaxel.
- *
- * De flesta agilityhinder färdas genom sin depth-axel i dogPath.ts, där en
- * x-spegling motsvarar -rotation. Tunnelns färdriktning ligger längs width-
- * axeln och speglas därför med 180° - rotation. Start/mål är punktmarkörer
- * och följer samma visuella konvention som tunnelns x-axel.
  */
 function mirrorRotation(type: ObstacleTypeV2, rotation: number): number {
   if (type === "tunnel" || type === "start" || type === "finish" || type === "number") {
@@ -46,34 +48,43 @@ function mirrorObstacle(obstacle: PrebuiltObstacle, arenaWidthM: number): Prebui
 }
 
 export function createMirrorCourse(course: PrebuiltCourse): CourseBankEntry {
+  const noll = isNollklassCourse(course);
   return {
     ...course,
     key: `${course.key}_mirror`,
     label: `${course.label} · spegel`,
     description: `${course.description} Spegelvänd över banans mittlinje för att träna samma idé från motsatt handlingssida.`,
     focus: [...(course.focus ?? []), "spegelträning", "båda handlingssidor"],
-    qualityLabel: "Kontrollerad mot svenska klassregler · spegel",
+    qualityLabel: noll
+      ? "Kontrollerad mot SAgiK:s Nollklassram 2026 · spegel · AgilityManager-original"
+      : "Kontrollerad mot svenska klassregler · spegel",
     bankKind: "mirror",
     sourceKey: course.key,
     obstacles: course.obstacles.map((obstacle) => mirrorObstacle(obstacle, course.arenaWidthM)),
   };
 }
 
-const originals: CourseBankEntry[] = PREBUILT_COURSES.map((course) => ({
+const allOriginalSources = [...PREBUILT_COURSES, ...NOLLKLASS_COURSES];
+
+const originals: CourseBankEntry[] = allOriginalSources.map((course) => ({
   ...course,
   bankKind: "original",
 }));
 
-const mirrors: CourseBankEntry[] = PREBUILT_COURSES
-  .filter(isSwedishCompetitionCourse)
+const mirrors: CourseBankEntry[] = allOriginalSources
+  .filter((course) => isSwedishCompetitionCourse(course) || isNollklassCourse(course))
   .map(createMirrorCourse);
 
 /**
  * Banbanken som visas i den riktiga V2-planeraren.
- * 6 svenska original + 6 regeltestade spegelvarianter + Hoopers-banan.
+ * 12 svenska klass 1–3-kartor + 12 Nollklasskartor + Hoopers.
  */
 export const COURSE_BANK: CourseBankEntry[] = [...originals, ...mirrors];
 
 export const SWEDISH_COMPETITION_COURSES = COURSE_BANK.filter((course) =>
   isSwedishCompetitionCourse(course),
+);
+
+export const NOLLKLASS_BANK_COURSES = COURSE_BANK.filter((course) =>
+  isNollklassCourse(course),
 );

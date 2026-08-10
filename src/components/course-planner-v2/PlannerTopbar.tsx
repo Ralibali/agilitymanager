@@ -67,6 +67,10 @@ export function PlannerTopbar({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const backHref = isAuthenticated ? "/v3/courses" : "/";
+  const backLabel = isAuthenticated ? "Tillbaka till banor" : "Tillbaka till AgilityManager";
+  const trainTitle = isAuthenticated ? "Skapa träningspass från denna bana" : "Logga in för att koppla banan till träningsloggen";
+
   return (
     <header
       className={cn(
@@ -76,10 +80,10 @@ export function PlannerTopbar({
     >
       <div className="flex w-full items-center gap-2">
         <Link
-          to="/v3/courses"
+          to={backHref}
           className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white text-slate-950 shadow-sm transition hover:bg-slate-200 sm:h-9 sm:w-9 sm:rounded-full sm:bg-neutral-100 sm:text-neutral-700 sm:hover:bg-neutral-200"
-          aria-label="Tillbaka till banor"
-          title="Tillbaka till banor"
+          aria-label={backLabel}
+          title={backLabel}
         >
           <ArrowLeft size={18} />
         </Link>
@@ -134,7 +138,7 @@ export function PlannerTopbar({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-60">
             <DropdownMenuLabel>Mer</DropdownMenuLabel>
-            <DropdownMenuItem onSelect={onTrain}>
+            <DropdownMenuItem onSelect={onTrain} disabled={!isAuthenticated} title={trainTitle}>
               <Dumbbell size={14} className="mr-2" /> Skapa träningspass
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={onLibrary}>
@@ -153,7 +157,7 @@ export function PlannerTopbar({
         <div className="shrink-0">{validationBadge}</div>
         <div className="ml-auto flex items-center gap-1.5">
           <IconBtn icon={<Library size={14} />} label="Bibliotek" title="Öppna banbibliotek" onClick={onLibrary} />
-          <IconBtn icon={<Dumbbell size={14} />} label="Träna" title="Skapa träningspass från denna bana" onClick={onTrain} />
+          <IconBtn icon={<Dumbbell size={14} />} label="Träna" title={trainTitle} onClick={onTrain} disabled={!isAuthenticated} />
           <IconBtn icon={<Share2 size={14} />} label="Dela" title={shareTitle} onClick={onShare} disabled={shareDisabled} />
           {exportMenu}
         </div>

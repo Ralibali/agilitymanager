@@ -1,8 +1,37 @@
+import { useEffect, useState } from "react";
 import { LayoutGrid, ArrowRight } from "lucide-react";
 
+const NAVIGATION_EVENT = "agilitymanager:navigation";
+let historyPatched = false;
+
+function patchHistoryEvents() {
+  if (historyPatched || typeof window === "undefined") return;
+  historyPatched = true;
+
+  for (const method of ["pushState", "replaceState"] as const) {
+    const original = window.history[method].bind(window.history);
+    window.history[method] = ((...args: Parameters<History[typeof method]>) => {
+      const result = original(...args);
+      window.dispatchEvent(new Event(NAVIGATION_EVENT));
+      return result;
+    }) as History[typeof method];
+  }
+}
+
 export function GlobalPlannerRibbon() {
-  if (typeof window === "undefined") return null;
-  const path = window.location.pathname;
+  const [path, setPath] = useState(() => typeof window === "undefined" ? "/" : window.location.pathname);
+
+  useEffect(() => {
+    patchHistoryEvents();
+    const syncPath = () => setPath(window.location.pathname);
+    window.addEventListener("popstate", syncPath);
+    window.addEventListener(NAVIGATION_EVENT, syncPath);
+    return () => {
+      window.removeEventListener("popstate", syncPath);
+      window.removeEventListener(NAVIGATION_EVENT, syncPath);
+    };
+  }, []);
+
   if (path === "/banplanerare" || path.startsWith("/v3") || path.startsWith("/auth") || path.startsWith("/reset-password")) return null;
 
   return (

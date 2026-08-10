@@ -1,7 +1,7 @@
 name: CI
 
 # Kör vid varje push och PR mot main. Kör install, lint, typecheck, test
-# och hela produktionsbygget så att även statisk SEO, bansidor och sitemap verifieras.
+# och hela produktionsbygget så att även statisk SEO, V2-bansidor och sitemap verifieras.
 on:
   push:
     branches: [main]
@@ -64,12 +64,31 @@ jobs:
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
         run: pnpm build
 
-      - name: Verify public course SEO output
+      - name: Verify public V2 course SEO output
         shell: bash
         run: |
           test -f dist/banplanerare/index.html
+          test -f dist/banor/index.html
+          test -f dist/banor/sv_agility_1_balans_01/index.html
+          test -f dist/banor/sv_hopp_3_fart_01_mirror/index.html
+          test -f dist/banor/noll_2026_slalom_15x30/index.html
+          test -f dist/banor/noll_2026_balans_25x30_mirror/index.html
+          test -f dist/banor/hoopers_1_basic/index.html
+
+          # /banor-index ska länka vidare till riktiga V2-kartor.
+          grep -q "noll_2026_slalom_15x30" dist/banor/index.html
+          grep -q "sv_agility_3_master_01_mirror" dist/banor/index.html
+
+          # Gamla URL:er ska fortfarande fungera, men canonical pekar på V2-id:t.
           test -f dist/banor/klass-1-agility-grundflyt/index.html
-          test -f dist/banor/klass-3-hopp-teknik/index.html
-          grep -q "klass-1-agility-grundflyt" dist/sitemap-pages.xml
-          grep -q "Gratis banplanerare för agility" dist/index.html
-          echo "Static planner/course SEO output verified."
+          grep -q "https://agilitymanager.se/banor/sv_agility_1_balans_01" dist/banor/klass-1-agility-grundflyt/index.html
+
+          # Bara de nya V2-id:na skickas till sitemap; /banor är indexets nav.
+          grep -q "<loc>https://agilitymanager.se/banor</loc>" dist/sitemap-pages.xml
+          grep -q "sv_agility_1_balans_01" dist/sitemap-pages.xml
+          grep -q "noll_2026_slalom_15x30" dist/sitemap-pages.xml
+          grep -q "hoopers_1_basic" dist/sitemap-pages.xml
+          ! grep -q "klass-1-agility-grundflyt" dist/sitemap-pages.xml
+
+          grep -q "25 färdiga kartor" dist/index.html
+          echo "Static V2 planner/course SEO output verified."

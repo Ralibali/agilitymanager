@@ -43,6 +43,7 @@ const InvitePage = React.lazy(() => import("./pages/InvitePage"));
 const ClubInvitePage = React.lazy(() => import("./pages/ClubInvitePage"));
 const DesignDemoPage = React.lazy(() => import("./pages/DesignDemoPage"));
 const FreeCoursePlannerPage = React.lazy(() => import("./pages/FreeCoursePlannerPage"));
+const PublicCourseBankPage = React.lazy(() => import("./pages/PublicCourseBankPage"));
 const PublicCoursePage = React.lazy(() => import("./pages/PublicCoursePage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const PublicCompetitionsPage = React.lazy(() => import("./pages/PublicCompetitionsPage"));
@@ -132,6 +133,7 @@ const App = () => (
                   <Route path="/hoopers-regler" element={<HoopersRulesPage />} />
                   <Route path="/blogg" element={<BlogPage />} />
                   <Route path="/banplanerare" element={<FreeCoursePlannerPage />} />
+                  <Route path="/banor" element={<PublicCourseBankPage />} />
                   <Route path="/banor/:courseId" element={<PublicCoursePage />} />
                   <Route path="/gratis-banplanerare-agility" element={<Navigate to="/banplanerare" replace />} />
                   <Route path="/agility-bana-ritverktyg" element={<Navigate to="/banplanerare" replace />} />

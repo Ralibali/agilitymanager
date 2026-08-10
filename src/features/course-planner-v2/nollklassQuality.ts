@@ -1,6 +1,6 @@
 import { getObstacleDefV2, type ClassTemplateKey, type ObstacleTypeV2 } from "./config";
 import { buildDogPath, computeDogPathPairDistances, type DogPathObstacle } from "./dogPath";
-import { rotatedAabb, edgesOutsideArena } from "./geometry";
+import { aabbsOverlap, rotatedAabb, edgesOutsideArena, type AABB } from "./geometry";
 import { computeApproachIssues } from "./courseAnalysis";
 import type { PrebuiltCourse } from "./templates";
 
@@ -39,6 +39,13 @@ function rayDistanceToBoundary(
     }
   }
   return candidates.length ? Math.min(...candidates) : 0;
+}
+
+function meaningfulAabbOverlap(a: AABB, b: AABB, toleranceM = 0.02): boolean {
+  if (!aabbsOverlap(a, b)) return false;
+  const overlapX = Math.min(a.maxX, b.maxX) - Math.max(a.minX, b.minX);
+  const overlapY = Math.min(a.maxY, b.maxY) - Math.max(a.minY, b.minY);
+  return overlapX > toleranceM && overlapY > toleranceM;
 }
 
 /**
@@ -109,12 +116,28 @@ export function validateNollklassCourse(course: PrebuiltCourse): NollklassQualit
     }
   }
 
+  const boxes: { number?: number; box: AABB }[] = [];
   for (const o of sequence) {
     const def = getObstacleDefV2(o.type);
     if (!def) continue;
     const box = rotatedAabb({ x: o.x, y: o.y }, def.sizeM.w, def.sizeM.d, o.rotation);
+    boxes.push({ number: o.number, box });
     if (edgesOutsideArena(box, course.arenaWidthM, course.arenaHeightM, 1).length > 0) {
       issues.push({ level: "error", code: "noll_border", message: `Hinder #${o.number} ligger närmare bankanten än 1 m.`, obstacleNumber: o.number });
+    }
+  }
+
+  // Förbyggda kartor ska aldrig behöva representera två olika fysiska hinder
+  // ovanpå varandra. Det undviker både byggproblem och falska linjer i kartan.
+  for (let i = 0; i < boxes.length; i++) {
+    for (let j = i + 1; j < boxes.length; j++) {
+      if (!meaningfulAabbOverlap(boxes[i].box, boxes[j].box)) continue;
+      issues.push({
+        level: "error",
+        code: "noll_overlap",
+        message: `Hinder #${boxes[i].number} och #${boxes[j].number} överlappar geometriskt.`,
+        obstacleNumber: boxes[j].number,
+      });
     }
   }
 

@@ -1,32 +1,10 @@
 /**
- * Banplaneraren v2 — Hundens väg (Prompt B).
+ * Banplaneraren v2 — hundens väg.
  *
- * Genererar en mjuk Catmull-Rom-kurva genom hindren i nummerordning, där
- * varje hinder bidrar med sin egen genomgångslängd (tunnelböjning,
- * slalomlängd, kontaktfält). Detta är skillnaden mot center-till-center-
- * mätningen i `validation.ts → computeCourseLength`.
- *
- * Designval:
- *  - Vi använder hinderets `rotation` och dess `sizeM` (från OBSTACLES_V2)
- *    för att räkna ut entry/exit-punkter (hundens in- och utgång genom
- *    hindret) snarare än mittpunkter.
- *  - Hopp/däck/mur/långhopp: dog crossar bommen längs djup-axeln (d).
- *    Entry/exit ligger d/2 från centrum åt vardera håll.
- *  - Tunnel: huvudaxeln är `w` (default 3 m). Med `curveDeg` adderas en
- *    bågkorrektion: arc ≈ w * (θ/2) / sin(θ/2). Endpunkterna lämnas som
- *    chord-ändar (alltså w/2 ut från centrum) — det stämmer geometriskt
- *    eftersom tunnelns chord = w.
- *  - Slalom (weave_*): huvudaxel `d`, entry/exit i ändarna.
- *  - Kontaktfält (aframe/dogwalk/seesaw): huvudaxel `d`.
- *  - Bord/start/finish/number: behandlas som punkter.
- *
- * Vägen mellan hindrens exit_i → entry_{i+1} sampla via centripetal
- * Catmull-Rom så att skarpa kurvor inte överskjuter.
- *
- * Editbara kontrollpunkter (`dogPath.controlPoints`) är förberedda i
- * typen `CourseDogPathOverride` men UI för dragning kommer i senare
- * iteration — `buildDogPath` läser dem om de finns och hoppar då över
- * default-anchors mellan hindren.
+ * Hundlinjen byggs i nummerordning och används både för rendering,
+ * banlängd och säkerhetskontroller. Viktigt: ett hinder kan tas från två håll.
+ * Entry/exit orienteras därför efter den faktiska nummerföljden i stället för
+ * att blint anta en fast färdriktning från hindrets rotationsvärde.
  */
 
 import { getObstacleDefV2, type ObstacleTypeV2 } from "./config";
@@ -38,7 +16,7 @@ export interface DogPathObstacle {
   y: number;
   rotation: number;
   number?: number | null;
-  /** Tunnelböjning 0–90°. */
+  /** Tunnelböjning 0–180°. */
   curveDeg?: number;
   /** Tunnelsida ("left"/"right"). */
   curveSide?: "left" | "right";
@@ -53,9 +31,9 @@ export interface ObstacleAnchors {
   exit: Vec2;
   /** Längd som hunden faktiskt rör sig längs INUTI hindret (m). */
   internalLengthM: number;
-  /** Tangent vid entry (riktning hunden kommer in i). */
+  /** Tangent vid entry (riktning hunden färdas in i hindret). */
   entryDir: Vec2;
-  /** Tangent vid exit (riktning hunden lämnar). */
+  /** Tangent vid exit (riktning hunden färdas ut ur hindret). */
   exitDir: Vec2;
 }
 
@@ -68,10 +46,19 @@ export interface DogPath {
   cum: number[];
   /** Total längd i meter. */
   total: number;
-  /** Hur mycket av total kommer från obstacle-interna längder. */
+  /** Hur mycket av totalen kommer från hinderinternt avstånd. */
   obstacleM: number;
-  /** Hur mycket kommer från luft-segment mellan hinder. */
+  /** Hur mycket kommer från luftsegment mellan hinder. */
   airM: number;
+}
+
+export interface DogPathPairDistance {
+  fromId?: string;
+  toId?: string;
+  fromNumber: number;
+  toNumber: number;
+  /** Beräknad hundväg från föregående hinders exit till nästa hinders entry. */
+  distanceM: number;
 }
 
 /** Editbar override sparad i banans JSON. Tom = auto-genererad väg. */
@@ -79,13 +66,15 @@ export interface CourseDogPathOverride {
   controlPoints?: Vec2[];
 }
 
+const SAMPLES_PER_AIR_SEGMENT = 18;
+
 /* ───────────── Hjälpfunktioner ───────────── */
 
 /** Vilken axel är "huvudriktningen" hunden tar genom hindret. */
 function travelAxis(type: ObstacleTypeV2): "depth" | "width" | "point" {
   switch (type) {
     case "tunnel":
-      return "width"; // tunneln ligger längs sin bredd (w = längd)
+      return "width";
     case "weave_8":
     case "weave_10":
     case "weave_12":
@@ -108,10 +97,17 @@ function rotateVec(v: Vec2, rad: number): Vec2 {
   return { x: v.x * c - v.y * s, y: v.x * s + v.y * c };
 }
 
+function negate(v: Vec2): Vec2 {
+  return { x: -v.x, y: -v.y };
+}
+
+function distance(a: Vec2, b: Vec2): number {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
 /** Båglängd för en tunnel med chord = w och böjningsvinkel θ (rad). */
 function tunnelArcLength(chordM: number, thetaRad: number): number {
   if (thetaRad <= 0.0001) return chordM;
-  // arc = chord * (θ/2) / sin(θ/2)
   return (chordM * (thetaRad / 2)) / Math.sin(thetaRad / 2);
 }
 
@@ -133,16 +129,16 @@ export function getObstacleAnchors(ob: DogPathObstacle): ObstacleAnchors {
 
   const axis = travelAxis(ob.type);
   if (axis === "point") {
+    const dir = { x: Math.cos(rotRad), y: Math.sin(rotRad) };
     return {
       obstacle: ob, center, entry: center, exit: center,
       internalLengthM: 0,
-      entryDir: { x: Math.cos(rotRad), y: Math.sin(rotRad) },
-      exitDir: { x: Math.cos(rotRad), y: Math.sin(rotRad) },
+      entryDir: dir,
+      exitDir: dir,
     };
   }
 
   if (axis === "width") {
-    // tunnel: huvudaxel är x (width) vid rotation 0
     const halfW = def.sizeM.w / 2;
     const dir = rotateVec({ x: 1, y: 0 }, rotRad);
     const entry: Vec2 = { x: center.x - dir.x * halfW, y: center.y - dir.y * halfW };
@@ -153,12 +149,56 @@ export function getObstacleAnchors(ob: DogPathObstacle): ObstacleAnchors {
     return { obstacle: ob, center, entry, exit, internalLengthM, entryDir: dir, exitDir: dir };
   }
 
-  // axis === "depth": huvudaxel är y (depth) vid rotation 0
   const halfD = def.sizeM.d / 2;
   const dir = rotateVec({ x: 0, y: 1 }, rotRad);
   const entry: Vec2 = { x: center.x - dir.x * halfD, y: center.y - dir.y * halfD };
   const exit: Vec2 = { x: center.x + dir.x * halfD, y: center.y + dir.y * halfD };
   return { obstacle: ob, center, entry, exit, internalLengthM: def.sizeM.d, entryDir: dir, exitDir: dir };
+}
+
+/** Samma fysiska hinder taget från motsatt håll. */
+function flipAnchor(a: ObstacleAnchors): ObstacleAnchors {
+  if (travelAxis(a.obstacle.type) === "point") return a;
+  return {
+    ...a,
+    entry: a.exit,
+    exit: a.entry,
+    entryDir: negate(a.exitDir),
+    exitDir: negate(a.entryDir),
+  };
+}
+
+/**
+ * Välj färdriktning genom varje hinder utifrån nummerföljden.
+ *
+ * Första hindret väljs så att utgången pekar mot nästa hinder. Därefter väljs
+ * den sida på varje hinder vars entry ligger närmast föregående hinders exit.
+ * Detta gör att hundlinjen följer den sannolika färdriktningen i banan, även
+ * när samma hinderrotation kan representera passage från två håll.
+ */
+export function orientAnchorsToCourse(base: ObstacleAnchors[]): ObstacleAnchors[] {
+  if (base.length <= 1) return base;
+  const oriented: ObstacleAnchors[] = [];
+
+  for (let i = 0; i < base.length; i++) {
+    const normal = base[i];
+    const flipped = flipAnchor(normal);
+    if (normal === flipped) {
+      oriented.push(normal);
+      continue;
+    }
+
+    if (i === 0) {
+      const nextCenter = base[i + 1].center;
+      oriented.push(distance(normal.exit, nextCenter) <= distance(flipped.exit, nextCenter) ? normal : flipped);
+      continue;
+    }
+
+    const prevExit = oriented[i - 1].exit;
+    oriented.push(distance(prevExit, normal.entry) <= distance(prevExit, flipped.entry) ? normal : flipped);
+  }
+
+  return oriented;
 }
 
 /* ───────────── Catmull-Rom sampling ───────────── */
@@ -178,16 +218,13 @@ function catmullRom(p0: Vec2, p1: Vec2, p2: Vec2, p3: Vec2, t: number, alpha = 0
   const b2 = lerpVec(a2, a3, (tt - t1) / (t3 - t1));
   return lerpVec(b1, b2, (tt - t1) / (t2 - t1));
 }
+
 function lerpVec(a: Vec2, b: Vec2, t: number): Vec2 {
   return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
 }
 
 /* ───────────── Bygg banan ───────────── */
 
-/**
- * Bygger hundens väg från numrerade hinder.
- * Om `override.controlPoints` är satta används de istället för auto-anchors.
- */
 export function buildDogPath(
   obstacles: DogPathObstacle[],
   override?: CourseDogPathOverride,
@@ -196,15 +233,14 @@ export function buildDogPath(
     .filter((o) => o.number != null)
     .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
 
-  const anchors = numbered.map(getObstacleAnchors);
+  const anchors = orientAnchorsToCourse(numbered.map(getObstacleAnchors));
 
-  // Specialfall: editbar väg (framtida UI för kontrollpunkter)
   if (override?.controlPoints && override.controlPoints.length >= 2) {
     const points = override.controlPoints.slice();
     const cum: number[] = [0];
     let total = 0;
     for (let i = 1; i < points.length; i++) {
-      total += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+      total += distance(points[i], points[i - 1]);
       cum.push(total);
     }
     return { anchors, points, cum, total, obstacleM: 0, airM: total };
@@ -224,34 +260,23 @@ export function buildDogPath(
     };
   }
 
-  // Bygg "knots": entry₁, exit₁, entry₂, exit₂, ...
   const knots: Vec2[] = [];
-  // Märk knot-typ så vi vet vilka segment som ska ersättas av obstacle-intern längd.
-  // 0..2N-1 där par (2i, 2i+1) tillhör hinder i.
   for (const a of anchors) {
     knots.push(a.entry);
     knots.push(a.exit);
   }
 
-  // Samla samplade punkter
   const points: Vec2[] = [];
-  // För varje segment mellan knot i och knot i+1: bestäm om det är
-  // "inuti hinder" eller "i luft mellan hinder".
-  const SAMPLES_PER_AIR_SEGMENT = 18;
   for (let i = 0; i < knots.length - 1; i++) {
-    const isInside = i % 2 === 0; // 0,2,4… = inom samma hinder
+    const isInside = i % 2 === 0;
     const startKnot = knots[i];
     const endKnot = knots[i + 1];
 
     if (i === 0) points.push(startKnot);
 
     if (isInside) {
-      // För tunnel med curve hade vi kunnat sampla en båge, men för längd
-      // räcker det att rapportera internalLengthM. Vi pushar bara endpunkten.
       points.push(endKnot);
     } else {
-      // Luft-segment mellan exit_(j-1) och entry_j — Catmull-Rom genom
-      // omgivande knots för mjuk kurva.
       const p0 = i - 1 >= 0 ? knots[i - 1] : startKnot;
       const p1 = startKnot;
       const p2 = endKnot;
@@ -266,77 +291,102 @@ export function buildDogPath(
   return finalize(points, anchors);
 }
 
+/**
+ * Returnerar den verkliga, samplade hundvägen mellan varje två på varandra
+ * följande hinder. För auto-genererad väg används exakt samma kurva som syns
+ * i editorn. Med manuell override kan vi inte entydigt dela kontrollpunkterna
+ * per hinderpar och faller därför tillbaka till exit→entry som konservativ
+ * teknisk approximation.
+ */
+export function computeDogPathPairDistances(
+  obstacles: DogPathObstacle[],
+  override?: CourseDogPathOverride,
+): DogPathPairDistance[] {
+  const path = buildDogPath(obstacles, override);
+  if (path.anchors.length < 2) return [];
+
+  if (override?.controlPoints && override.controlPoints.length >= 2) {
+    return path.anchors.slice(0, -1).map((a, i) => {
+      const b = path.anchors[i + 1];
+      return {
+        fromId: a.obstacle.id,
+        toId: b.obstacle.id,
+        fromNumber: a.obstacle.number as number,
+        toNumber: b.obstacle.number as number,
+        distanceM: distance(a.exit, b.entry),
+      };
+    });
+  }
+
+  const result: DogPathPairDistance[] = [];
+  let idx = 1; // index 1 är exit för första hindret
+  for (let i = 0; i < path.anchors.length - 1; i++) {
+    let segmentM = 0;
+    for (let s = 0; s < SAMPLES_PER_AIR_SEGMENT; s++) {
+      const from = path.points[idx + s];
+      const to = path.points[idx + s + 1];
+      if (!from || !to) break;
+      segmentM += distance(from, to);
+    }
+    const a = path.anchors[i];
+    const b = path.anchors[i + 1];
+    result.push({
+      fromId: a.obstacle.id,
+      toId: b.obstacle.id,
+      fromNumber: a.obstacle.number as number,
+      toNumber: b.obstacle.number as number,
+      distanceM: segmentM,
+    });
+    // exit_i -> 18 luftsteg -> entry_{i+1}, därefter ett steg till exit_{i+1}
+    idx += SAMPLES_PER_AIR_SEGMENT + 1;
+  }
+  return result;
+}
+
 function finalize(points: Vec2[], anchors: ObstacleAnchors[]): DogPath {
   const cum: number[] = [0];
   let total = 0;
-  // Vi måste skilja på obstacle-interna och luft. För enkelhet räknar vi
-  // total som faktisk samplad polyline-längd; sedan separerar vi för
-  // statistik genom att ersätta varje "inuti hinder"-segmentlängd med
-  // det teoretiska obstacle.internalLengthM (mer korrekt för t.ex.
-  // krökt tunnel där polylinen bara är rak chord).
   for (let i = 1; i < points.length; i++) {
-    const dx = points[i].x - points[i - 1].x;
-    const dy = points[i].y - points[i - 1].y;
-    total += Math.hypot(dx, dy);
+    total += distance(points[i], points[i - 1]);
     cum.push(total);
   }
 
-  // Justera tunnel-bågkorrektion: vid varje "inuti hinder"-segment
-  // (vid index 2*idx → 2*idx+1) ersätt segmentlängden med anchor.internalLengthM.
-  // points-layouten: [entry0, exit0, ...air..., entry1, exit1, ...]
-  // OK detta är knepigt — gör enklare: rebuild cum från segments-listan.
-
-  // Rebuild från grunden för korrekt mätning:
-  // Skapa list av "segmentlängder" där:
-  //   - varje obstacle-intern bidrar med anchor.internalLengthM
-  //   - varje air-segment bidrar med samplad polyline-längd mellan dess punkter
-  // Vi hittar obstacle-interna segment genom att räkna entries.
-  // Vi vet att points = [entry0, exit0, <air pts>..., entry1, exit1, <air>..., entryN, exitN]
-  // Hitta indices för entry/exit-punkterna genom att stega.
   let obstacleM = 0;
   let airM = 0;
   if (anchors.length >= 1) {
-    // Rekonstruera indexsekvens:
-    // Början: index 0 = entry0, index 1 = exit0.
-    // Sedan SAMPLES_PER_AIR_SEGMENT luft-pts → entry1, exit1 …
-    const SAMPLES_PER_AIR_SEGMENT = 18;
     let idx = 0;
     for (let i = 0; i < anchors.length; i++) {
-      const entryIdx = idx;
-      const exitIdx = entryIdx + 1;
+      const exitIdx = idx + 1;
       obstacleM += anchors[i].internalLengthM;
       idx = exitIdx;
       if (i < anchors.length - 1) {
-        // air-segment mellan exit_i och entry_{i+1}: SAMPLES_PER_AIR_SEGMENT punkter
         let segLen = 0;
         for (let s = 0; s < SAMPLES_PER_AIR_SEGMENT; s++) {
           const from = points[idx + s];
           const to = points[idx + s + 1];
           if (!from || !to) break;
-          segLen += Math.hypot(to.x - from.x, to.y - from.y);
+          segLen += distance(from, to);
         }
         airM += segLen;
-        idx = idx + SAMPLES_PER_AIR_SEGMENT;
+        idx += SAMPLES_PER_AIR_SEGMENT;
       }
     }
   }
 
   const correctedTotal = obstacleM + airM;
-  // Rebuild cum proportionellt med corrected total om det skiljer från
-  // den naiva summan (skillnaden = tunnel-bågkorrektion).
   if (Math.abs(correctedTotal - total) > 0.001 && total > 0) {
     const scale = correctedTotal / total;
-    for (let i = 0; i < cum.length; i++) cum[i] = cum[i] * scale;
+    for (let i = 0; i < cum.length; i++) cum[i] *= scale;
     total = correctedTotal;
   }
 
   return { anchors, points, cum, total, obstacleM, airM };
 }
 
-/* ───────────── Sampling-helpers (för uppspelning + render) ───────────── */
+/* ───────────── Sampling-helpers ───────────── */
 
 export interface DogPathPose extends Vec2 {
-  heading: number; // radianer
+  heading: number;
 }
 
 export function sampleDogPathAt(path: DogPath, t: number): DogPathPose | null {
@@ -384,7 +434,6 @@ export function dogPathToSvgDUntil(path: DogPath, t: number): string {
   return parts.join(" ");
 }
 
-/** Bekvämlighetsfunktion: total längd direkt. */
 export function computeDogPathLength(obstacles: DogPathObstacle[], override?: CourseDogPathOverride): number {
   return buildDogPath(obstacles, override).total;
 }

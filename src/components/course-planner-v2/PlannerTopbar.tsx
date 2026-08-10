@@ -10,7 +10,7 @@
  */
 import { ArrowLeft, Library, Dumbbell, Share2, Cloud, CloudOff, MoreHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
@@ -59,6 +59,7 @@ export function PlannerTopbar({
   onSave, saveDisabled, isAuthenticated,
 }: Props) {
   const [scrolled, setScrolled] = useState(false);
+  const openedLibraryFromQuery = useRef(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 4);
@@ -66,6 +67,15 @@ export function PlannerTopbar({
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Startsidans/Banbankens CTA använder ?view=bank. Nu öppnar den parametern
+  // den riktiga V2-planerarens eget bibliotek i stället för en separat bankvy.
+  useEffect(() => {
+    if (openedLibraryFromQuery.current || typeof window === "undefined") return;
+    if (new URLSearchParams(window.location.search).get("view") !== "bank") return;
+    openedLibraryFromQuery.current = true;
+    onLibrary();
+  }, [onLibrary]);
 
   const backHref = isAuthenticated ? "/v3/courses" : "/";
   const backLabel = isAuthenticated ? "Tillbaka till banor" : "Tillbaka till AgilityManager";

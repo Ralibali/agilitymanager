@@ -2,130 +2,17 @@
 <html lang="sv">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0F1712" />
-    <meta name="google-site-verification" content="fa-5zMNo_yaIhxp5QB9LjFxpuxZ3lhOmBKpwWJeObgA" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
-
-    <title>AgilityManager – Träningsapp för agility och hoopers</title>
-    <meta name="description" content="Logga träningspass, följ framsteg och analysera din hund i agility och hoopers. Stöd för SHoK:s officiella klasser och SKK:s regelverk." />
-    <meta name="keywords" content="agility hund, hoopers hund, träningsapp agility, hoopers app, hoopers Sverige, SHoK, agilityträning" />
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <link rel="canonical" href="https://agilitymanager.se/" />
-
-    <!-- Preconnect & font (Inter, latin + latin-extended) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="AgilityManager — rita agility- och hoopersbanor gratis i webbläsaren. Träningslogg, tävlingskalender och statistik för dig och din hund." />
+    <title>AgilityManager — Rita banor. Spring fortare.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://supabase.co" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&family=Epilogue:wght@400;500;600&display=swap" />
-
-    <!-- Hreflang -->
-    <link rel="alternate" hreflang="sv" href="https://agilitymanager.se/" />
-    <link rel="alternate" hreflang="x-default" href="https://agilitymanager.se/" />
-
-    <!-- Open Graph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="AgilityManager" />
-    <meta property="og:locale" content="sv_SE" />
-    <meta property="og:title" content="AgilityManager – Träningsapp för agility och hoopers" />
-    <meta property="og:description" content="Träningsapp för svenska hundförare. Agility och hoopers i samma app." />
-    <meta property="og:url" content="https://agilitymanager.se/" />
-    <meta property="og:image" content="https://agilitymanager.se/og-image.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="AgilityManager – träningsapp för agilityhundar" />
-
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="AgilityManager – Träningsapp för agility och hoopers" />
-    <meta name="twitter:description" content="Träningsapp för svenska hundförare. Agility och hoopers i samma app." />
-    <meta name="twitter:image" content="https://agilitymanager.se/og-image.png" />
-
-    <!-- JSON-LD: WebApplication -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "AgilityManager",
-      "url": "https://agilitymanager.se",
-      "description": "Sveriges träningsapp för agility och hoopers. Logga träningspass, planera banor, följ tävlingsresultat och hantera din hunds hälsa – för nybörjare och tävlare.",
-      "applicationCategory": "SportsApplication",
-      "operatingSystem": "Web",
-      "inLanguage": "sv",
-      "featureList": [
-        "Träningslogg för agility och hoopers",
-        "Banplanerare med drag-and-drop hinderelement",
-        "Tävlingskalender med automatisk hämtning från SAgiK och SHoK",
-        "Tävlingsresultat och statistik per hund",
-        "Hoopers-stöd med klasser, poäng och dirigering",
-        "Hundprofiler med ras, storlek och tävlingsklass",
-        "Hälsodagbok med vikt, vaccination och veterinärbesök",
-        "Mål och progression per hund",
-        "Meritspårning (Brons, Silver, Guld)",
-        "Hundförsäkringsjämförelse",
-        "Klubbfunktioner med grupper och evenemang",
-        "Vänner, chat och delning av banor",
-        "AI-drivna träningsinsikter",
-        "Stoppur med felräkning"
-      ],
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "SEK",
-        "description": "Gratis grundversion. Pro från 79 kr/mån eller 790 kr/år."
-      },
-      "keywords": "agility app, träningsapp agility, hoopers app, agility sverige, hundsport app, banplanerare agility, träningsdagbok hund, agilitydata, SAgiK, SHoK",
-      "author": {
-        "@type": "Organization",
-        "name": "AgilityManager",
-        "url": "https://agilitymanager.se",
-        "email": "info@auroramedia.se"
-      }
-    }
-    </script>
-
-    <!-- JSON-LD: Organization -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "AgilityManager",
-      "url": "https://agilitymanager.se",
-      "logo": "https://agilitymanager.se/icon-512.png",
-      "email": "info@auroramedia.se",
-      "sameAs": [
-        "https://www.facebook.com/agilitymanager",
-        "https://www.instagram.com/agilitymanager"
-      ]
-    }
-    </script>
-
-    <!-- JSON-LD: WebSite (with SearchAction) -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "AgilityManager",
-      "url": "https://agilitymanager.se",
-      "inLanguage": "sv-SE",
-      "publisher": { "@type": "Organization", "name": "AgilityManager" },
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": "https://agilitymanager.se/blogg?q={search_term_string}",
-        "query-input": "required name=search_term_string"
-      }
-    }
-    </script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Archivo+Black&display=swap"
+      rel="stylesheet"
+    />
   </head>
-
   <body>
-    <noscript>
-      <div style="text-align:center;padding:2rem;font-family:sans-serif"><h1>AgilityManager</h1><p>För full interaktivitet behöver du aktivera JavaScript. Innehållet på denna sida är ändå läsbart nedan.</p></div>
-    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

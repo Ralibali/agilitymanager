@@ -1,775 +1,165 @@
-/* Inter laddas via index.html för snabbare LCP */
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* === Slate / Amber / Cyan-skala (rebrand v5 — alltid tillgänglig som rå skala) === */
-    --slate-950: 213 32% 6%;     /* #0A0E13 */
-    --slate-900: 213 27% 9%;     /* #11161D */
-    --slate-800: 213 21% 13%;    /* #1A2129 */
-    --slate-700: 213 19% 18%;    /* #252E38 */
-    --slate-600: 213 17% 28%;    /* #3A4552 */
-    --slate-500: 213 15% 36%;    /* #4F5C6B */
-    --slate-400: 213 9% 59%;     /* #8B95A1 */
-    --slate-300: 213 11% 74%;    /* #B4BCC7 */
-    --slate-200: 213 14% 86%;    /* #D4DAE2 */
-    --slate-100: 213 19% 93%;    /* #E8ECF1 */
-    --slate-50:  213 22% 97%;    /* #F5F7FA */
-
-    --amber-50:  48 100% 96%;
-    --amber-100: 48 96% 89%;
-    --amber-300: 45 97% 65%;     /* #FCD34D */
-    --amber-500: 38 92% 50%;     /* #F59E0B  PRIMÄR ACCENT */
-    --amber-600: 32 95% 44%;     /* #D97706 */
-    --amber-700: 26 90% 37%;     /* #B45309 */
-
-    --cyan-300: 187 85% 69%;     /* #67E8F9 */
-    --cyan-500: 189 94% 43%;     /* #06B6D4 */
-    --cyan-600: 192 91% 36%;     /* #0891B2 */
-
-    --coral-400: 351 95% 71%;
-    --coral-500: 350 89% 60%;
-    --emerald-500: 160 84% 39%;
-
-    /* === Brand foundation CSS-vars (light = original "Varm Sand"-värden) === */
-    --bf-bone: 42 39% 94%;       /* #F5F1E8 */
-    --bf-bone-2: 41 28% 89%;     /* #ECE7DA */
-    --bf-cream: 42 51% 96%;      /* #FAF6EE */
-    --bf-forest: 153 38% 9%;     /* #0E1F18 */
-    --bf-forest-soft: 150 25% 16%;
-    --bf-moss: 108 22% 75%;      /* #B8C9B2 */
-    --bf-moss-deep: 144 19% 21%; /* #2C4135 */
-    --bf-lime: 82 94% 64%;       /* #B5F94A */
-    --bf-coral: 12 76% 62%;      /* #E76F51 */
-    --bf-stone: 60 5% 39%;       /* #6B6B5F */
-
-    --font-display: 'Outfit', sans-serif;
-    --font-body: 'Figtree', sans-serif;
-
-    --font-display: 'Outfit', sans-serif;
-    --font-body: 'Figtree', sans-serif;
-
-    /* Background: warm off-white */
-    --background: 40 14% 97%;
-    /* Text primary */
-    --foreground: 0 0% 7%;
-
-    /* Surface (cards) */
+    --background: 43 38% 94%;
+    --foreground: 90 9% 8%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 7%;
-
+    --card-foreground: 90 9% 8%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 7%;
-
-    /* Accent green (primary) */
-    --primary: 148 62% 26%;
+    --popover-foreground: 90 9% 8%;
+    --primary: 150 100% 20%;
     --primary-foreground: 0 0% 100%;
-
-    /* Surface 2 */
-    --secondary: 36 16% 95%;
-    --secondary-foreground: 0 0% 22%;
-
-    /* Muted — bumpat för WCAG AA-kontrast (≥4.5:1 mot bg) */
-    --muted: 36 16% 95%;
-    --muted-foreground: 0 0% 38%;
-
-    /* Accent orange */
-    --accent: 22 75% 45%;
+    --secondary: 40 30% 88%;
+    --secondary-foreground: 90 9% 8%;
+    --muted: 40 22% 90%;
+    --muted-foreground: 80 6% 34%;
+    --accent: 24 100% 50%;
     --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 72% 55%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* Border */
-    --border: 36 10% 90%;
-    --input: 36 10% 90%;
-    --ring: 148 62% 26%;
-
-    --radius: 1rem;
-    --radius-card: 1rem;
-    --radius-button: 0.75rem;
-    --radius-badge: 0.5rem;
-    --radius-pill: 2.5rem;
-
-    --sidebar-background: 40 14% 97%;
-    --sidebar-foreground: 0 0% 7%;
-    --sidebar-primary: 148 62% 26%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 36 16% 95%;
-    --sidebar-accent-foreground: 0 0% 7%;
-    --sidebar-border: 36 10% 90%;
-    --sidebar-ring: 148 62% 26%;
-
-    /* Custom tokens */
-    --success: 148 62% 26%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 85% 52%;
-    --warning-foreground: 0 0% 10%;
-
-    /* Named surfaces */
-    --surface: 0 0% 100%;
-    --surface-elevated: 0 0% 100%;
-    --surface-2: 36 16% 95%;
-
-    /* Accent light variants */
-    --accent-green-light: 148 40% 95%;
-    --accent-orange-light: 25 85% 96%;
-
-    /* Shadows */
-    --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
-    --shadow-elevated: 0 4px 20px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
-    --shadow-focus: 0 0 0 3px hsl(148 62% 26% / 0.15);
-
-    /* Radii */
-    --radius-card: 14px;
-    --radius-sm: 8px;
-    --radius-button: 10px;
-    --radius-pill: 40px;
-
-    /* Border as rgba */
-    --border-rgba: rgba(0,0,0,0.06);
-
-    /* === Fas 1 designsystem (Linear/Vercel-stil) === */
-    --font-sans: 'Inter', 'Figtree', sans-serif;
-
-    /* Surfaces */
-    /* Brand foundation: --bg-page mappad till bone (#F5F1E8) – följer hela publika ytan. */
-    --bg-page: 42 39% 94%;
-    --bg-surface: 0 0% 100%;
-    --bg-subtle: 45 17% 95%;
-    --bg-inverse: 150 21% 7%;
-
-    /* Text — bumpat för WCAG AA */
-    --text-primary: 150 21% 7%;
-    --text-secondary: 45 6% 28%;
-    --text-tertiary: 48 5% 38%;
-    --text-on-inverse: 120 11% 92%;
-
-    /* Borders (HSL alpha-ready) */
-    --ds-border-subtle: 150 21% 7%;
-    --ds-border-default: 150 21% 7%;
-    --ds-border-strong: 150 21% 7%;
-
-    /* Brand */
-    --brand-50: 158 53% 92%;
-    --brand-100: 158 51% 75%;
-    --brand-500: 158 69% 37%;
-    --brand-600: 163 76% 25%;
-    --brand-900: 168 80% 11%;
-
-    /* Accent (bärnsten) */
-    --accent-50-new: 36 81% 92%;
-    --accent-500-new: 33 79% 41%;
-    --accent-900-new: 30 95% 13%;
-
-    /* Semantic */
-    --semantic-success: 158 69% 37%;
-    --semantic-warning: 33 79% 41%;
-    --semantic-danger: 0 57% 41%;
-    --semantic-info: 212 71% 54%;
-
-    /* Radius (Fas 1) */
-    --r-sm: 6px;
-    --r-md: 10px;
-    --r-lg: 14px;
-
-    /* === v3 – mappade till brand-paletten ('Varm sand' / Forest+Lime) === */
-    /* Canvas-skikt: bone (#F5F1E8) som standardyta, white som "elevated", bone-2 som "sunken" */
-    --v3-canvas: 40 32% 93%;            /* bone   #F5F1E8 */
-    --v3-canvas-secondary: 41 28% 89%;  /* bone-2 #ECE7DA */
-    --v3-canvas-elevated: 0 0% 100%;    /* white  #FFFFFF */
-    --v3-canvas-sunken: 41 28% 89%;     /* bone-2 #ECE7DA */
-
-    /* Brand-skala: forest (#0E1F18) som "primär mörk", moss-tones som ljusare */
-    --v3-brand-50:  108 16% 88%;        /* moss light */
-    --v3-brand-100: 108 16% 75%;        /* moss      #B8C9B2 */
-    --v3-brand-200: 108 16% 65%;
-    --v3-brand-300: 144 19% 35%;
-    --v3-brand-400: 144 19% 25%;
-    --v3-brand-500: 144 19% 21%;        /* moss-deep #2C4135 */
-    --v3-brand-600: 150 25% 16%;        /* forest-soft #1F3329 */
-    --v3-brand-700: 153 38% 9%;         /* forest    #0E1F18 */
-    --v3-brand-800: 153 38% 9%;
-    --v3-brand-900: 153 38% 9%;
-
-    /* Text-färger: forest / stone — bumpat för WCAG AA */
-    --v3-text-primary: 153 38% 9%;      /* forest #0E1F18 */
-    --v3-text-secondary: 60 5% 28%;     /* stone mörkare */
-    --v3-text-tertiary: 60 5% 38%;      /* stone mörkare */
-    --v3-text-inverse: 40 32% 93%;      /* bone */
-
-    /* Accent-domäner mappade till brand-paletten */
-    --v3-accent-tavlings: 12 76% 62%;   /* coral  #E76F51 */
-    --v3-accent-traning: 144 19% 21%;   /* moss-deep */
-    --v3-accent-prestation: 12 76% 62%; /* coral */
-    --v3-accent-halsa: 12 76% 62%;      /* coral */
-
-    --v3-success: 82 94% 64%;           /* lime */
-    --v3-warning: 12 76% 62%;           /* coral */
-    --v3-error: 12 76% 62%;
-    --v3-info: 144 19% 21%;             /* moss-deep */
-
-    /* Domän-text-tokens (mörka mot ljus accent-bakgrund) */
-    --v3-accent-tavlings-text: 12 76% 32%;
-    --v3-accent-traning-text:  144 19% 18%;
-    --v3-accent-prestation-text: 12 76% 32%;
-    --v3-accent-halsa-text:    12 76% 28%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 60 6% 16%;
+    --input: 60 6% 16%;
+    --ring: 150 100% 20%;
+    --radius: 0.75rem;
   }
 
-  /* ===========================================================
-     DARK MODE — Slate + Amber rebrand (v5)
-     Dark är default-tema. Hela appen flippas till slate/amber via
-     denna cascade. Komponenter som använder semantiska tokens
-     (bg-background, text-foreground, brand-foundation-klasser
-     bg-forest, text-lime, bg-bone osv.) får nya värden gratis.
-     =========================================================== */
-  .dark {
-    /* shadcn semantic tokens → slate + amber */
-    --background: var(--slate-900);
-    --foreground: var(--slate-100);
-    --card: var(--slate-800);
-    --card-foreground: var(--slate-100);
-    --popover: var(--slate-700);
-    --popover-foreground: var(--slate-100);
-    --primary: var(--amber-500);
-    --primary-foreground: var(--slate-950);
-    --secondary: var(--slate-800);
-    --secondary-foreground: var(--slate-200);
-    --muted: var(--slate-800);
-    --muted-foreground: var(--slate-400);
-    --accent: var(--amber-500);
-    --accent-foreground: var(--slate-950);
-    --destructive: var(--coral-500);
-    --destructive-foreground: var(--slate-50);
-    --border: var(--slate-700);
-    --input: var(--slate-700);
-    --ring: var(--amber-500);
-
-    --sidebar-background: var(--slate-900);
-    --sidebar-foreground: var(--slate-300);
-    --sidebar-primary: var(--amber-500);
-    --sidebar-primary-foreground: var(--slate-950);
-    --sidebar-accent: var(--slate-800);
-    --sidebar-accent-foreground: var(--slate-100);
-    --sidebar-border: var(--slate-800);
-    --sidebar-ring: var(--amber-500);
-
-    --success: var(--emerald-500);
-    --success-foreground: var(--slate-50);
-    --warning: var(--amber-500);
-    --warning-foreground: var(--slate-950);
-    --surface: var(--slate-800);
-    --surface-elevated: var(--slate-700);
-    --surface-2: var(--slate-800);
-    --accent-green-light: var(--slate-800);
-    --accent-orange-light: var(--slate-800);
-    --shadow-card: 0 1px 0 0 rgba(255,255,255,0.04) inset, 0 4px 12px -4px rgba(0,0,0,0.5);
-    --shadow-elevated: 0 1px 0 0 rgba(255,255,255,0.05) inset, 0 8px 24px -8px rgba(0,0,0,0.6);
-    --shadow-focus: 0 0 0 3px hsl(var(--amber-500) / 0.4);
-    --border-rgba: rgba(255,255,255,0.08);
-
-    /* Fas 1 designsystem → slate */
-    --bg-page: var(--slate-900);
-    --bg-surface: var(--slate-800);
-    --bg-subtle: var(--slate-700);
-    --bg-inverse: var(--slate-100);
-    --text-primary: var(--slate-100);
-    --text-secondary: var(--slate-300);
-    --text-tertiary: var(--slate-400);
-    --text-on-inverse: var(--slate-950);
-    --ds-border-subtle: var(--slate-100);
-    --ds-border-default: var(--slate-100);
-    --ds-border-strong: var(--slate-100);
-
-    /* Brand-skala (Fas 1) → amber */
-    --brand-50: var(--amber-50);
-    --brand-100: var(--amber-100);
-    --brand-500: var(--amber-500);
-    --brand-600: var(--amber-600);
-    --brand-900: var(--amber-700);
-    --accent-50-new: var(--amber-50);
-    --accent-500-new: var(--amber-500);
-    --accent-900-new: var(--amber-700);
-    --semantic-success: var(--emerald-500);
-    --semantic-warning: var(--amber-500);
-    --semantic-danger: var(--coral-500);
-    --semantic-info: var(--cyan-500);
-
-    /* === BRAND FOUNDATION CASCADE — kärnan i rebranden ===
-       Forest/Lime/Moss/Bone-tokens får nya värden så att alla
-       komponenter som skriver bg-forest / text-lime / bg-bone
-       automatiskt blir slate+amber utan kodändring. */
-    --bf-bone: var(--slate-900);
-    --bf-bone-2: var(--slate-800);
-    --bf-cream: var(--slate-800);
-    --bf-forest: var(--slate-100);
-    --bf-forest-soft: var(--slate-200);
-    --bf-moss: var(--cyan-500);
-    --bf-moss-deep: var(--cyan-600);
-    --bf-lime: var(--amber-500);              /* ⚡ Lime → Amber */
-    --bf-coral: var(--coral-500);
-    --bf-stone: var(--slate-400);
-
-    /* v3 canvas/text → slate */
-    --v3-canvas: var(--slate-900);
-    --v3-canvas-secondary: var(--slate-800);
-    --v3-canvas-elevated: var(--slate-800);
-    --v3-canvas-sunken: var(--slate-950);
-    --v3-text-primary: var(--slate-100);
-    --v3-text-secondary: var(--slate-300);
-    --v3-text-tertiary: var(--slate-400);
-    --v3-text-inverse: var(--slate-950);
-
-    /* v3 brand-skala → amber/slate */
-    --v3-brand-50:  var(--amber-50);
-    --v3-brand-100: var(--amber-100);
-    --v3-brand-200: var(--amber-300);
-    --v3-brand-300: var(--amber-300);
-    --v3-brand-400: var(--amber-500);
-    --v3-brand-500: var(--amber-500);
-    --v3-brand-600: var(--amber-600);
-    --v3-brand-700: var(--amber-700);
-    --v3-brand-800: var(--slate-100);
-    --v3-brand-900: var(--slate-100);
-
-    /* v3 domänaccenter */
-    --v3-accent-tavlings: var(--cyan-500);
-    --v3-accent-traning: var(--amber-500);
-    --v3-accent-prestation: var(--coral-500);
-    --v3-accent-halsa: var(--emerald-500);
-    --v3-success: var(--emerald-500);
-    --v3-warning: var(--amber-500);
-    --v3-error: var(--coral-500);
-    --v3-info: var(--cyan-500);
-
-    --v3-accent-tavlings-text: var(--cyan-300);
-    --v3-accent-traning-text:  var(--amber-300);
-    --v3-accent-prestation-text: var(--coral-400);
-    --v3-accent-halsa-text:    160 70% 70%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-background text-foreground font-body antialiased;
-    font-size: 14px;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    @apply bg-paper text-ink font-sans antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
-    letter-spacing: -0.01em;
+  ::selection {
+    background: #ff6900;
+    color: #161812;
   }
 }
 
 @layer utilities {
-  .font-v3-sans {
-    font-family: 'Epilogue', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* ---- Scroll reveal (driven by IntersectionObserver in Reveal.tsx) ---- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition:
+      opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
   }
-  .font-v3-display {
-    font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-  }
-  .tabular-nums {
-    font-variant-numeric: tabular-nums;
-  }
-  /* Brand foundation alias — samma effekt som .tabular-nums, kortare namn. */
-  .tabular {
-    font-variant-numeric: tabular-nums;
-  }
-  .v3-selection ::selection {
-    background-color: hsl(var(--v3-brand-100));
-    color: hsl(var(--v3-text-primary));
-  }
-  .v3-focus-ring:focus-visible {
-    outline: 2px solid hsl(var(--v3-brand-500));
-    outline-offset: 2px;
-  }
-  .font-display {
-    font-family: var(--font-display);
-  }
-  .font-body {
-    font-family: var(--font-body);
-  }
-  .font-sans-ds {
-    font-family: var(--font-sans);
-    font-feature-settings: 'cv11', 'ss01';
-  }
-  .gradient-primary {
-    background: linear-gradient(135deg, hsl(148, 62%, 26%), hsl(148, 55%, 35%));
-  }
-  .gradient-accent {
-    background: linear-gradient(135deg, hsl(22, 75%, 45%), hsl(22, 65%, 52%));
-  }
-  .shadow-card {
-    box-shadow: var(--shadow-card);
-  }
-  .shadow-elevated {
-    box-shadow: var(--shadow-elevated);
-  }
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  /* Tappable card active state */
-  .tappable {
-    transition: transform 150ms ease, box-shadow 150ms ease;
-  }
-  .tappable:active {
-    transform: scale(0.98);
-  }
-  /* Button active press */
-  .btn-press:active {
-    transform: scale(0.97);
-  }
-  /* Glass effect */
-  .glass {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-  }
-  /* Subtle card hover */
-  .card-hover {
-    transition: transform 200ms ease, box-shadow 200ms ease;
-  }
-  .card-hover:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-elevated);
-  }
-}
-
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* ============================================
-   V3 polish utilities (motion + skeleton + focus)
-   ============================================ */
-@layer utilities {
-  /* Stagger-children: tilldelar varje barn en växande delay för en
-     "gardin"-känsla när en lista renderas. Använd tillsammans med
-     animate-v3-fade-up på barnen. */
-  .v3-stagger > * { animation-delay: 0ms; }
-  .v3-stagger > *:nth-child(1) { animation-delay: 40ms; }
-  .v3-stagger > *:nth-child(2) { animation-delay: 80ms; }
-  .v3-stagger > *:nth-child(3) { animation-delay: 120ms; }
-  .v3-stagger > *:nth-child(4) { animation-delay: 160ms; }
-  .v3-stagger > *:nth-child(5) { animation-delay: 200ms; }
-  .v3-stagger > *:nth-child(6) { animation-delay: 240ms; }
-  .v3-stagger > *:nth-child(7) { animation-delay: 280ms; }
-  .v3-stagger > *:nth-child(8) { animation-delay: 320ms; }
-  .v3-stagger > *:nth-child(9) { animation-delay: 360ms; }
-  .v3-stagger > *:nth-child(n + 10) { animation-delay: 400ms; }
-
-  /* Tappable cards i v3 – mjukt scale + skugg-lyft */
-  .v3-tappable {
-    transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
-                box-shadow 180ms ease,
-                background-color 180ms ease;
-  }
-  .v3-tappable:hover { transform: translateY(-1px); }
-  .v3-tappable:active { transform: scale(0.985); }
-
-  /* Skeleton-shimmer för v3 – mjuk neutral grå-till-vit */
-  .v3-skeleton {
-    background: linear-gradient(
-      90deg,
-      hsl(var(--v3-canvas-elevated)) 0%,
-      hsl(var(--v3-canvas-sunken)) 50%,
-      hsl(var(--v3-canvas-elevated)) 100%
-    );
-    background-size: 200% 100%;
-    animation: v3-shimmer 1.8s ease-in-out infinite;
-    border-radius: 0.75rem;
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
   }
 
-  /* Focus-ring konsekvent över v3 */
-  .v3-focus-ring:focus-visible {
-    outline: none;
-    box-shadow:
-      0 0 0 2px hsl(var(--v3-canvas)),
-      0 0 0 4px hsl(var(--v3-brand-500));
+  /* ---- Hero word stagger ---- */
+  .word-mask {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    padding-bottom: 0.08em;
+    margin-bottom: -0.08em;
   }
-
-  /* Reduced-motion respekt */
-  @media (prefers-reduced-motion: reduce) {
-    .animate-v3-fade-up,
-    .animate-v3-fade-in,
-    .animate-v3-sheet-in,
-    .animate-v3-scale-in,
-    .v3-stagger > * {
-      animation: none !important;
-      opacity: 1 !important;
-      transform: none !important;
+  .word-mask > span {
+    display: inline-block;
+    transform: translateY(110%);
+    animation: word-rise 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes word-rise {
+    to {
+      transform: translateY(0);
     }
   }
 
-  /* Domän-kontext: sätt --v3-domain-accent och --v3-domain-text som
-     lokala CSS-variabler. Komponenter inuti kan använda dessa istället
-     för att hårdkoda domännamnet, vilket möjliggör generiska mönster. */
-  .v3-domain-traning {
-    --v3-domain-accent: var(--v3-accent-traning);
-    --v3-domain-text:   var(--v3-accent-traning-text);
-  }
-  .v3-domain-tavlings {
-    --v3-domain-accent: var(--v3-accent-tavlings);
-    --v3-domain-text:   var(--v3-accent-tavlings-text);
-  }
-  .v3-domain-prestation {
-    --v3-domain-accent: var(--v3-accent-prestation);
-    --v3-domain-text:   var(--v3-accent-prestation-text);
-  }
-  .v3-domain-halsa {
-    --v3-domain-accent: var(--v3-accent-halsa);
-    --v3-domain-text:   var(--v3-accent-halsa-text);
-  }
-}
-
-@keyframes v3-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-/* ============================================
-   Global reduced-motion guard (Fas 1 motion-system)
-   ============================================ */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Scroll-progress-bar – sätts via inline width från komponenten */
-.scroll-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 2px;
-  background: hsl(var(--brand-600));
-  z-index: 100;
-  transition: width 80ms linear;
-  pointer-events: none;
-}
-
-/* ============================================================
-   Slate + Amber rebrand — globala dark-mode-effekter
-   ============================================================ */
-
-/* Subtle ambient gradient overlay (Whoop/Linear-känsla) */
-.dark body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 80% 50% at top, hsl(var(--amber-500) / 0.04) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at bottom right, hsl(var(--cyan-500) / 0.03) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: 0;
-}
-.dark body > * { position: relative; z-index: 1; }
-
-/* Selection */
-.dark ::selection {
-  background: hsl(var(--amber-500));
-  color: hsl(var(--slate-950));
-}
-
-/* Globala focus-rings — amber */
-.dark *:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px hsl(var(--amber-500) / 0.45);
-  border-radius: inherit;
-}
-
-/* Scrollbar (Webkit) */
-.dark ::-webkit-scrollbar { width: 12px; height: 12px; }
-.dark ::-webkit-scrollbar-track { background: hsl(var(--slate-900)); }
-.dark ::-webkit-scrollbar-thumb {
-  background: hsl(var(--slate-700));
-  border-radius: 6px;
-  border: 3px solid hsl(var(--slate-900));
-}
-.dark ::-webkit-scrollbar-thumb:hover { background: hsl(var(--slate-600)); }
-
-/* Metric display — KPI-tal i Whoop-stil */
-.metric-display {
-  font-family: 'Geist', system-ui, sans-serif;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-.metric-display.large  { font-size: 3rem; }
-.metric-display.xlarge { font-size: 4rem; letter-spacing: -0.04em; }
-
-/* Shimmer-skeleton för dark mode */
-.dark .skeleton,
-.dark .v3-skeleton {
-  background: linear-gradient(
-    90deg,
-    hsl(var(--slate-800)) 0%,
-    hsl(var(--slate-700)) 50%,
-    hsl(var(--slate-800)) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.4s ease-in-out infinite;
-  border-radius: 6px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dark body::before { background: none; }
-  .dark .skeleton, .dark .v3-skeleton { animation: none; }
-}
-
-/* ============================================================
-   Steg C — Premium panel/lager-effekter (Linear/Whoop)
-   ============================================================ */
-
-/* panel-elevated: huvudkort med inset top-glow + djup-skugga */
-.panel-elevated {
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
-  position: relative;
-}
-.dark .panel-elevated {
-  background: linear-gradient(180deg, hsl(var(--slate-800)) 0%, hsl(var(--slate-800) / 0.92) 100%);
-  border-color: hsl(var(--slate-700));
-  box-shadow:
-    inset 0 1px 0 0 hsl(var(--slate-100) / 0.05),
-    0 1px 0 0 hsl(var(--slate-950) / 0.4),
-    0 8px 24px -12px hsl(var(--slate-950) / 0.6);
-}
-
-/* panel-glow: hero / KPI-paneler med mjuk amber-aura */
-.panel-glow {
-  position: relative;
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius-card);
-}
-.dark .panel-glow {
-  background: linear-gradient(180deg, hsl(var(--slate-800)) 0%, hsl(var(--slate-900)) 100%);
-  border-color: hsl(var(--slate-700));
-  box-shadow:
-    inset 0 1px 0 0 hsl(var(--amber-500) / 0.08),
-    0 0 0 1px hsl(var(--slate-950) / 0.3),
-    0 12px 32px -16px hsl(var(--slate-950) / 0.7),
-    0 0 48px -12px hsl(var(--amber-500) / 0.06);
-}
-
-/* hover-lift: subtil 1px lyft på hover */
-.hover-lift {
-  transition: transform 180ms cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 180ms cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 180ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-.hover-lift:hover {
-  transform: translateY(-1px);
-}
-.dark .hover-lift:hover {
-  border-color: hsl(var(--slate-600));
-  box-shadow:
-    inset 0 1px 0 0 hsl(var(--slate-100) / 0.06),
-    0 12px 28px -10px hsl(var(--slate-950) / 0.7);
-}
-
-/* divider-glow: tunn lysande avskiljare i mörkt läge */
-.divider-glow {
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    hsl(var(--border)) 50%,
-    transparent 100%
-  );
-  border: 0;
-}
-.dark .divider-glow {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    hsl(var(--amber-500) / 0.18) 50%,
-    transparent 100%
-  );
-}
-
-/* surface-tier: för djupa "panel-i-panel"-ytor (sänkt yta) */
-.surface-sunken {
-  background: hsl(var(--muted));
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius-card);
-}
-.dark .surface-sunken {
-  background: hsl(var(--slate-900));
-  border-color: hsl(var(--slate-800));
-  box-shadow: inset 0 1px 2px 0 hsl(var(--slate-950) / 0.5);
-}
-
-/* ============================================================
-   Global kontraktssäkring (WCAG AA)
-   Höjer låg-opacitets-text-utilities till lägsta säkra nivå
-   så att hela appen automatiskt undviker kontrastproblem.
-   ============================================================ */
-@layer utilities {
-  /* Vit text med låg opacitet — minst 0.75 för läsbarhet på mörka ytor */
-  .text-white\/10, .text-white\/15, .text-white\/20, .text-white\/25,
-  .text-white\/30, .text-white\/35, .text-white\/40, .text-white\/45,
-  .text-white\/50, .text-white\/55, .text-white\/60, .text-white\/65 {
-    color: hsl(0 0% 100% / 0.78) !important;
+  @keyframes dash-run {
+    to {
+      stroke-dashoffset: 0;
+    }
   }
 
-  /* Foreground med låg opacitet → bumpa till säker nivå */
-  .text-foreground\/10, .text-foreground\/20, .text-foreground\/30,
-  .text-foreground\/40, .text-foreground\/50, .text-foreground\/60 {
-    color: hsl(var(--foreground) / 0.78) !important;
+  /* ---- Hard offset shadow (sports poster material) ---- */
+  .shadow-hard {
+    box-shadow: 6px 6px 0 0 #161812;
+  }
+  .shadow-hard-sm {
+    box-shadow: 4px 4px 0 0 #161812;
+  }
+  .shadow-hard-tang {
+    box-shadow: 6px 6px 0 0 #ff6900;
+  }
+  .shadow-hard-paper {
+    box-shadow: 6px 6px 0 0 rgba(246, 241, 231, 0.9);
+  }
+  .pressable {
+    transition:
+      transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+      gap 0.25s ease,
+      background-color 0.25s ease,
+      color 0.25s ease;
+  }
+  .pressable:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0 0 #161812;
+  }
+  .pressable:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 0 #161812;
+  }
+  .pressable-light:hover {
+    box-shadow: 8px 8px 0 0 rgba(246, 241, 231, 0.9);
   }
 
-  /* Muted-foreground med extra opacitet → minst 0.85 */
-  .text-muted-foreground\/30, .text-muted-foreground\/40,
-  .text-muted-foreground\/50, .text-muted-foreground\/60,
-  .text-muted-foreground\/70 {
-    color: hsl(var(--muted-foreground) / 0.9) !important;
+  /* ---- Cinematic slow zoom on card imagery ---- */
+  .zoom-slow {
+    transition: transform 2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .group:hover .zoom-slow {
+    transform: scale(1.06);
   }
 
-  /* Tailwind-grå-utilities som ofta hamnar för ljust på vita bakgrunder */
-  .text-gray-300, .text-gray-400, .text-slate-300, .text-slate-400,
-  .text-zinc-300, .text-zinc-400, .text-neutral-300, .text-neutral-400 {
-    color: hsl(var(--muted-foreground));
-  }
-  .dark .text-gray-300, .dark .text-gray-400, .dark .text-slate-300,
-  .dark .text-slate-400, .dark .text-zinc-300, .dark .text-zinc-400,
-  .dark .text-neutral-300, .dark .text-neutral-400 {
-    color: hsl(var(--slate-300));
+  /* ---- Outlined display text ---- */
+  .text-outline {
+    -webkit-text-stroke: 2px currentColor;
+    color: transparent;
   }
 
-  /* Placeholder-text — säkerställ läsbar opacitet */
-  .placeholder\:text-gray-400::placeholder,
-  .placeholder\:text-slate-400::placeholder {
-    color: hsl(var(--muted-foreground));
-    opacity: 1;
+  /* ---- Dog dot running along the course line ---- */
+  .dog-runner {
+    offset-rotate: auto;
+    animation: dog-run 9s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+  }
+
+  /* ---- Planner canvas ---- */
+  .planner-svg {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .obstacle-drag {
+    cursor: grab;
+  }
+  .obstacle-drag:active {
+    cursor: grabbing;
+  }
+
+  /* ---- Thin ruler grid ---- */
+  .field-grid {
+    background-image:
+      linear-gradient(to right, rgba(22, 24, 18, 0.055) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(22, 24, 18, 0.055) 1px, transparent 1px);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

@@ -1,1 +1,0 @@
-ALTER TYPE public.training_type ADD VALUE IF NOT EXISTS 'Kombination';

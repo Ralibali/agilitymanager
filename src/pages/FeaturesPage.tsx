@@ -1,143 +1,125 @@
-import { Helmet } from "react-helmet-async";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router";
 import {
-  Activity,
-  ArrowRight,
-  BarChart3,
-  CalendarDays,
-  Check,
-  Dog,
-  HeartPulse,
-  LayoutGrid,
-  MessageCircle,
-  Sparkles,
-  Target,
-  Trophy,
-  Users,
+  ArrowRight, CalendarDays, FileDown, LayoutGrid, Medal,
+  MousePointer2, NotebookPen, Ruler, ShieldCheck, Smartphone, Spline, Users, Video,
 } from "lucide-react";
-import { LandingNav } from "@/components/landing/LandingNav";
-import { LandingFooterV2 } from "@/components/landing/LandingFooterV2";
-import { Button } from "@/components/ui/button";
+import { SiteNav } from "@/components/SiteNav";
+import { SiteFooter } from "@/components/SiteFooter";
+import { PageHero } from "@/components/PageHero";
+import { Marquee } from "@/components/Marquee";
+import { Reveal } from "@/components/Reveal";
 
-const featureGroups = [
+const GROUPS = [
   {
-    eyebrow: "Träna smartare",
-    title: "Från magkänsla till tydlig utveckling",
-    description: "Logga det som faktiskt spelar roll och få en samlad bild av hundens träning, känsla och nästa steg.",
+    kicker: "Banplaneraren",
+    title: "Rita som en domare.",
+    text: "Hela editorn är gratis — inget konto, ingen betalvägg. Meterskala, snap, banlinje och export som ser ut som en riktig domarritning.",
     items: [
-      { icon: Activity, title: "Snabb träningslogg", text: "Spara sport, fokus, tid, känsla och anteckningar på några få tryck." },
-      { icon: Target, title: "Mål som går att följa", text: "Bryt ner stora ambitioner i konkreta delmål och se framstegen över tid." },
-      { icon: BarChart3, title: "Statistik som hjälper", text: "Upptäck kontinuitet, styrkor och återkommande utmaningar utan kalkylblad." },
-      { icon: HeartPulse, title: "Hälsa i samma flöde", text: "Följ vikt, återhämtning och händelser som påverkar träningen." },
+      { icon: MousePointer2, t: "Full hindereditor", d: "Placera, flytta, rotera, duplicera och numrera. Dra rotationshandtaget eller snabbrotera i 45°-steg." },
+      { icon: Ruler, t: "Meterskala & rutnät", d: "Plan upp till 40×25 m med meterrutnät, 0,25 m-snap, zoom och live-uppmätt banlängd." },
+      { icon: Spline, t: "Banlinje live", d: "Hundens linje ritas automatiskt genom hindren i nummerordning — se flödet innan ni springer." },
+      { icon: ShieldCheck, t: "Agility + Hoopers", d: "Byt sport med ett klick och få rätt hinderpalett och planstorlek för din gren." },
     ],
   },
   {
-    eyebrow: "Planera och tävla",
-    title: "Allt inför nästa pass och start",
-    description: "Skapa banor, hitta tävlingar och samla resultaten där du redan planerar träningen.",
+    kicker: "Dela & exportera",
+    title: "Från din skärm till träningsplanen.",
+    text: "Banan ska inte leva kvar i verktyget — den ska ut till gruppen, klubben och planen.",
     items: [
-      { icon: LayoutGrid, title: "Modern banplanerare", text: "Bygg agility- och hoopersbanor, spara upplägg och exportera för träning eller klubb." },
-      { icon: CalendarDays, title: "Tävlingskalender", text: "Hitta relevanta tävlingar och samla planerade starter i en tydlig översikt." },
-      { icon: Trophy, title: "Resultat och klassresa", text: "Spara lopp, följ utvecklingen per hund och se vad träningen leder till." },
-      { icon: Dog, title: "En profil per hund", text: "Separera mål, historik, hälsa och resultat när du tränar flera hundar." },
+      { icon: FileDown, t: "PNG-export", d: "Ladda ner en crisp bankarta att slänga in i träningsgruppen eller skriva ut till planen." },
+      { icon: Users, t: "Delningslänkar", d: "Dela banan med en länk — mottagaren öppnar den direkt i sin egen planerare, gratis. Mot din e-post, det är allt vi ber om." },
+      { icon: NotebookPen, t: "Autosparat lokalt", d: "Banan sparas i din webbläsare medan du ritar. Tappar du fliken finns den kvar när du kommer tillbaka." },
+      { icon: LayoutGrid, t: "Mallar & bibliotek", d: "Börja aldrig från noll om du inte vill — ladda en färdig bana och bygg vidare." },
     ],
   },
   {
-    eyebrow: "Tillsammans",
-    title: "Bygg en träningsvardag som håller",
-    description: "Dela kunskap och håll kontakten med människorna som hjälper dig och hunden framåt.",
+    kicker: "Mer på gång",
+    title: "Vi bygger sportens verktygslåda.",
+    text: "Banplaneraren är hjärtat — och den andas in i allt annat vi gör. Och ja: allt är gratis.",
     items: [
-      { icon: Users, title: "Vänner och klubbar", text: "Samla träningskompisar, klubbar och gemensamma aktiviteter i appen." },
-      { icon: MessageCircle, title: "Chatt och delning", text: "Dela banor och idéer utan att hoppa mellan flera olika tjänster." },
-      { icon: Sparkles, title: "Smartare rekommendationer", text: "Få mer relevanta insikter när träningshistoriken växer." },
-      { icon: Check, title: "Byggt för Sverige", text: "Agility och hoopers i ett svenskt, mobilanpassat arbetsflöde." },
+      { icon: CalendarDays, t: "Tävlingskalender", d: "Agility- och hooperstarter över hela landet, samlade och sökbara." },
+      { icon: Medal, t: "Banor till tävling", d: "Träna på banlayouter inspirerade av riktiga klasser och nivåer." },
+      { icon: Video, t: "Coachtips i nyhetsbrevet", d: "SM-meriterade tips om handling, banläsning och träningsupplägg — rakt i inkorgen." },
+      { icon: Smartphone, t: "Mobil först", d: "Hela upplevelsen är byggd touch-first. Planen är där du är." },
     ],
   },
 ];
 
 export default function FeaturesPage() {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Helmet>
-        <title>Funktioner – AgilityManager för agility och hoopers</title>
-        <meta
-          name="description"
-          content="Upptäck AgilityManagers träningslogg, banplanerare, tävlingskalender, statistik, mål, hundprofiler och funktioner för agility och hoopers."
-        />
-        <link rel="canonical" href="https://agilitymanager.se/funktioner" />
-      </Helmet>
+    <div className="min-h-screen bg-paper text-ink">
+      <SiteNav />
+      <PageHero kicker="Funktioner" title="Allt banplaneraren kan.">
+        Från första hindret till färdig delningslänk — här är hela verktygslådan.
+        Gratis, för alltid, för både agility och hoopers.
+      </PageHero>
 
-      <LandingNav />
-      <main id="main-content">
-        <section className="relative overflow-hidden px-5 pb-16 pt-32 sm:pb-20 sm:pt-36">
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_10%,hsl(var(--primary)/0.12),transparent_32%),radial-gradient(circle_at_85%_35%,hsl(var(--secondary)/0.7),transparent_36%)]" />
-          <div className="mx-auto max-w-5xl text-center">
-            <span className="inline-flex rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-              Ett system för hela träningsresan
-            </span>
-            <h1 className="mx-auto mt-6 max-w-4xl text-balance font-display text-4xl font-semibold leading-[1.02] tracking-[-0.04em] sm:text-6xl">
-              Mindre administration. Mer riktning med din hund.
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-7 text-muted-foreground sm:text-lg">
-              AgilityManager samlar träning, banor, mål, tävlingar, resultat och hälsa i en enkel produkt som fungerar lika bra i mobilen som hemma vid datorn.
-            </p>
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <Button variant="brand" className="h-12 px-6" onClick={() => navigate("/auth?mode=signup")}>Skapa gratis konto</Button>
-              <Button variant="brand-outline" className="h-12 px-6" onClick={() => navigate("/banplanerare")}>Testa banplaneraren</Button>
+      {GROUPS.map((g, gi) => (
+        <section
+          key={g.kicker}
+          className={`border-b-2 border-ink ${gi === 1 ? "bg-forest text-paper" : gi === 2 ? "bg-ink text-paper" : ""}`}
+        >
+          <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:py-24">
+            <div className="lg:sticky lg:top-28 lg:self-start">
+              <Reveal>
+                <p className={`text-xs font-bold uppercase tracking-[0.24em] ${gi === 0 ? "text-forest" : "text-tang"}`}>
+                  {g.kicker}
+                </p>
+                <h2 className="mt-3 font-display text-5xl leading-[0.95] sm:text-6xl">{g.title}</h2>
+                <p className={`mt-5 text-lg leading-relaxed ${gi === 0 ? "text-ink/65" : "text-paper/65"}`}>
+                  {g.text}
+                </p>
+                <ShieldCheck className={`mt-8 h-9 w-9 ${gi === 0 ? "text-forest" : "text-tang"}`} strokeWidth={2} />
+              </Reveal>
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">Gratis för en hund · Inga kortuppgifter krävs · Pro från 79 kr/mån</p>
-          </div>
-        </section>
-
-        <section className="border-y border-border bg-muted/30 px-5 py-16 sm:py-20">
-          <div className="mx-auto max-w-6xl space-y-16 sm:space-y-20">
-            {featureGroups.map((group, groupIndex) => (
-              <article key={group.title} className="grid gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:gap-14">
-                <div className={groupIndex % 2 === 1 ? "lg:order-2" : undefined}>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{group.eyebrow}</p>
-                  <h2 className="mt-3 text-balance font-display text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">{group.title}</h2>
-                  <p className="mt-4 max-w-lg leading-7 text-muted-foreground">{group.description}</p>
-                </div>
-                <div className={`grid gap-4 sm:grid-cols-2 ${groupIndex % 2 === 1 ? "lg:order-1" : ""}`}>
-                  {group.items.map((item) => (
-                    <div key={item.title} className="rounded-3xl border border-border bg-card p-5 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 sm:p-6">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                        <item.icon aria-hidden="true" size={21} />
-                      </div>
-                      <h3 className="mt-4 font-display text-xl font-semibold">{item.title}</h3>
-                      <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.text}</p>
-                    </div>
-                  ))}
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="px-5 py-20 sm:py-24">
-          <div className="mx-auto max-w-5xl overflow-hidden rounded-[2rem] bg-foreground px-6 py-10 text-background shadow-xl sm:px-10 sm:py-12">
-            <div className="grid items-center gap-8 lg:grid-cols-[1fr_auto]">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-background/60">Börja där nyttan är störst</p>
-                <h2 className="mt-3 max-w-2xl text-balance font-display text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
-                  Logga första passet i dag. Låt historiken göra nästa beslut enklare.
-                </h2>
-                <p className="mt-4 max-w-2xl leading-7 text-background/70">Grundversionen är gratis. När du vill ha djupare analys, fler möjligheter och export finns Pro för 79 kr/mån eller 790 kr/år.</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate("/auth?mode=signup")}
-                className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-background px-6 text-sm font-semibold text-foreground transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
-              >
-                Kom igång gratis <ArrowRight aria-hidden="true" size={17} />
-              </button>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {g.items.map((it, i) => (
+                <Reveal key={it.t} delay={i * 100}>
+                  <article
+                    className={`h-full rounded-3xl border-2 p-6 transition-transform duration-300 hover:-translate-y-1.5 ${
+                      gi === 0
+                        ? "border-ink bg-[#FCFAF4] shadow-hard"
+                        : gi === 1
+                          ? "border-paper/20 bg-pine hover:border-paper/40"
+                          : "border-paper/15 bg-[#1E211B] hover:border-paper/35"
+                    }`}
+                  >
+                    <it.icon className={`h-7 w-7 ${gi === 0 ? "text-forest" : "text-tang"}`} strokeWidth={2.2} />
+                    <h3 className="mt-5 text-lg font-extrabold tracking-tight">{it.t}</h3>
+                    <p className={`mt-2 text-[0.95rem] leading-relaxed ${gi === 0 ? "text-ink/60" : "text-paper/60"}`}>
+                      {it.d}
+                    </p>
+                  </article>
+                </Reveal>
+              ))}
             </div>
           </div>
         </section>
-      </main>
-      <LandingFooterV2 />
+      ))}
+
+      <Marquee
+        items={["Banplanerare", "Agility", "Hoopers", "Delningslänkar", "PNG-export", "Tävlingskalender"]}
+        className="border-b-2 border-ink bg-paper text-ink"
+        reverse
+      />
+
+      <section className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6">
+        <Reveal>
+          <h2 className="mx-auto max-w-3xl font-display text-5xl leading-[0.95] sm:text-7xl">
+            Testa själv — direkt i webbläsaren.
+          </h2>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link to="/banplanerare" className="pressable shadow-hard inline-flex h-14 items-center gap-2 rounded-full bg-tang px-8 text-lg font-bold text-ink">
+              Öppna banplaneraren <ArrowRight className="h-5 w-5" />
+            </Link>
+            <Link to="/priser" className="pressable shadow-hard inline-flex h-14 items-center gap-2 rounded-full border-2 border-ink bg-paper px-8 text-lg font-bold">
+              Varför är allt gratis?
+            </Link>
+          </div>
+        </Reveal>
+      </section>
+
+      <SiteFooter />
     </div>
   );
 }

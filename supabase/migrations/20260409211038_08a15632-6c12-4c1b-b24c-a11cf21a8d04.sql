@@ -1,1 +1,0 @@
-UPDATE public.training_sessions SET type = 'Kombination' WHERE type = 'Freestyle';

@@ -1,112 +1,73 @@
-# AgilityManager
+# React + TypeScript + Vite
 
-AgilityManager är en svensk webbapp för agility- och hoopersförare. Produkten samlar träningslogg, banplanerare, mål, tävlingskalender, resultat, hundprofiler, hälsa, klubbar och coachning i ett mobilanpassat gränssnitt.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Målet med repot är att kännas som en riktig produkt: snabbt, stabilt, SEO-vänligt, lätt att vidareutveckla och tydligt för både användare och utvecklare.
+Currently, two official plugins are available:
 
-## Produktfokus
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-- **Mobil först:** alla viktiga flöden ska vara läsbara, tryckvänliga och utan horisontell scroll på små skärmar.
-- **Publik SEO:** startsida, blogg, raser, hoopers, agilityinformation, banplanerare och tävlingssidor ska kunna indexeras korrekt.
-- **Appupplevelse:** inloggade användare ska snabbt kunna logga pass, följa hundar, planera banor och analysera utveckling.
-- **Trovärdighet:** tydlig metadata, canonical, sitemap, robots, 404, datakällor och ansvarsfriskrivningar.
-- **Prestanda:** Vite-baserad build, lazy loading av tunga app-sidor och cache headers för statiska assets.
+## React Compiler
 
-## Teknik
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-- React 18
-- TypeScript
-- Vite
-- React Router
-- Tailwind CSS
-- shadcn/ui + Radix UI
-- Supabase
-- TanStack Query
-- react-helmet-async för SEO-metadata
-- Vitest för tester
-- Vercel-konfiguration för headers, rewrites och redirects
+## Expanding the ESLint configuration
 
-## Kom igång lokalt
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-```bash
-npm install
-npm run dev
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
 
-Öppna sedan den lokala Vite-adressen som visas i terminalen.
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-## Viktiga scripts
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-```bash
-npm run dev          # Startar lokal utvecklingsserver
-npm run build        # Produktionsbuild + statiska sidor + sitemap
-npm run build:no-snap # Endast Vite-build
-npm run lint         # ESLint
-npm run test         # Vitest
-npm run preview      # Förhandsgranska produktionsbuild lokalt
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
-
-## Struktur på hög nivå
-
-```text
-src/
-  components/        Återanvändbara UI-, landing-, app- och SEO-komponenter
-  contexts/          Autentisering och global app-state
-  lib/               Hjälpfunktioner, analytics, motion, utilities
-  pages/             Publika sidor, auth-sidor och app-sidor
-  pages/v3/          Inloggad produktupplevelse
-  styles/            Globala polish- och hardening-lager
-scripts/             Build-, sitemap- och innehållskontroller
-public/              Robots, manifest, ikoner, OG-assets och genererade sitemaps
-```
-
-## Routing och SEO
-
-Publika routes hanteras i React Router och viktiga legacy-URL:er fångas även i `vercel.json` så att gamla länkar kan redirectas innan React laddas. Gemensam SEO-logik finns i `src/components/SEO.tsx` och ska användas för publika sidor som behöver title, meta description, canonical, Open Graph, Twitter Cards och JSON-LD.
-
-Sitemap genereras via:
-
-```bash
-node scripts/generate-sitemap.mjs
-```
-
-Robots-regler finns i `public/robots.txt`.
-
-## Kvalitetskrav innan deploy
-
-Kör minst:
-
-```bash
-npm run lint
-npm run test
-npm run build
-```
-
-Kontrollera därefter manuellt:
-
-- startsidan på mobil och desktop
-- auth-flöde
-- 404-sida
-- publika SEO-sidor, särskilt `/`, `/blogg`, `/banplanerare`, `/tavlingar`, `/raser` och `/hoopers`
-- att sitemap och robots exponeras korrekt i produktion
-- att viktiga redirects fungerar via Vercel
-
-## Deployment
-
-Projektet är förberett för Vercel med `vercel.json`:
-
-- `npm run build` som build-kommando
-- `dist` som output
-- SPA-rewrite till `index.html`
-- cache headers för assets och sitemap
-- security headers
-- legacy redirects för SEO och gamla app-routes
-
-## Kodprinciper
-
-- Skriv mobile-first CSS och undvik horisontell overflow.
-- Använd gemensamma komponenter och tokens innan nya engångslösningar skapas.
-- Lägg inte publik SEO direkt i många separata Helmet-block om `SEO`-komponenten täcker behovet.
-- Behåll befintliga användarflöden vid refaktorering.
-- Undvik TODO-kommentarer som ersätter riktig implementation.
-- Gör små, tydliga commits med verifierbara ändringar.

@@ -1,1 +1,0 @@
-ALTER TABLE public.competition_results ADD COLUMN course_length_m numeric NULL;

@@ -1,1 +1,0 @@
-GRANT SELECT ON public.hoopers_competitions_public TO anon, authenticated;

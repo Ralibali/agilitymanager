@@ -1,1 +1,0 @@
-ALTER TABLE public.competition_results ADD COLUMN disqualified boolean NOT NULL DEFAULT false;

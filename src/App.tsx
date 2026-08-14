@@ -1,238 +1,38 @@
-import React, { Suspense } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import CookieBanner from "@/components/CookieBanner";
-import { AppErrorBoundary } from "@/components/AppErrorBoundary";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
-import { ThemeProvider } from "next-themes";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { V3Layout } from "@/components/v3/V3Layout";
-import { ScrollToTop } from "@/components/motion/ScrollToTop";
-import { PageviewTracker } from "@/components/PageviewTracker";
-import { captureUtmParams } from "@/lib/utm";
-import { initAnalyticsLoader } from "@/lib/analyticsLoader";
+import { useEffect } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router";
+import Home from "./pages/Home";
+import PlannerPage from "./pages/PlannerPage";
+import FeaturesPage from "./pages/FeaturesPage";
+import GratisPage from "./pages/GratisPage";
+import CompetitionsPage from "./pages/CompetitionsPage";
+import CoursesPage from "./pages/CoursesPage";
+import { NotFound } from "./pages/NotFound";
 
-captureUtmParams();
-initAnalyticsLoader();
-
-try {
-  if (typeof window !== "undefined" && !window.localStorage.getItem("theme-rebrand-v5")) {
-    window.localStorage.removeItem("theme");
-    window.localStorage.setItem("theme-rebrand-v5", "1");
-  }
-} catch { /* privata lägen kan kasta */ }
-
-import LandingPage from "./pages/LandingPage";
-import AuthPage from "./pages/AuthPage";
-
-const FeaturesPage = React.lazy(() => import("./pages/FeaturesPage"));
-const ResetPasswordPage = React.lazy(() => import("./pages/ResetPasswordPage"));
-const InsurancePage = React.lazy(() => import("./pages/InsurancePage"));
-const BlogPage = React.lazy(() => import("./pages/BlogPage"));
-const BlogPostPage = React.lazy(() => import("./pages/BlogPostPage"));
-const AboutAgilityPage = React.lazy(() => import("./pages/AboutAgilityPage"));
-const HoopersLandingPage = React.lazy(() => import("./pages/HoopersLandingPage"));
-const HoopersRulesPage = React.lazy(() => import("./pages/HoopersRulesPage"));
-const PrivacyPolicyPage = React.lazy(() => import("./pages/PrivacyPolicyPage"));
-const CookiePolicyPage = React.lazy(() => import("./pages/CookiePolicyPage"));
-const DisclaimerPage = React.lazy(() => import("./pages/DisclaimerPage"));
-const UnsubscribePage = React.lazy(() => import("./pages/UnsubscribePage"));
-const InvitePage = React.lazy(() => import("./pages/InvitePage"));
-const ClubInvitePage = React.lazy(() => import("./pages/ClubInvitePage"));
-const DesignDemoPage = React.lazy(() => import("./pages/DesignDemoPage"));
-const FreeCoursePlannerPage = React.lazy(() => import("./pages/FreeCoursePlannerPage"));
-const PublicCourseBankPage = React.lazy(() => import("./pages/PublicCourseBankPage"));
-const PublicCoursePage = React.lazy(() => import("./pages/PublicCoursePage"));
-const NotFound = React.lazy(() => import("./pages/NotFound"));
-const PublicCompetitionsPage = React.lazy(() => import("./pages/PublicCompetitionsPage"));
-const CompetitionDetailPage = React.lazy(() => import("./pages/CompetitionDetailPage"));
-const HoopersCompetitionDetailPage = React.lazy(() => import("./pages/HoopersCompetitionDetailPage"));
-const BreedsIndexPage = React.lazy(() => import("./pages/BreedsIndexPage"));
-const BreedDetailPage = React.lazy(() => import("./pages/BreedDetailPage"));
-const HelpResultImportPage = React.lazy(() => import("./pages/HelpResultImportPage"));
-const PublicCoachPage = React.lazy(() => import("./pages/PublicCoachPage"));
-const PricingPage = React.lazy(() => import("./pages/PricingPage"));
-const ClubsLandingPage = React.lazy(() => import("./pages/ClubsLandingPage"));
-
-const V3HomePage = React.lazy(() => import("./pages/v3/V3HomePage"));
-const V3TrainingPage = React.lazy(() => import("./pages/v3/V3TrainingPage"));
-const V3DogsPage = React.lazy(() => import("./pages/v3/V3DogsPage"));
-const V3CompetitionsPage = React.lazy(() => import("./pages/v3/V3CompetitionsPage"));
-const V3CompetitionsCalendarPage = React.lazy(() => import("./pages/v3/V3CompetitionsCalendarPage"));
-const V3GoalsPage = React.lazy(() => import("./pages/v3/V3GoalsPage"));
-const V3StatsPage = React.lazy(() => import("./pages/v3/V3StatsPage"));
-const V3HealthPage = React.lazy(() => import("./pages/v3/V3HealthPage"));
-const V3CoursesPage = React.lazy(() => import("./pages/v3/V3CoursesPage"));
-const V3CoachPage = React.lazy(() => import("./pages/v3/V3CoachPage"));
-const V3CoachStatusPage = React.lazy(() => import("./pages/v3/V3CoachStatusPage"));
-const V3CoursePlannerV2Page = React.lazy(() => import("./pages/v3/V3CoursePlannerV2Page"));
-const V3CoursePlannerV2JudgePage = React.lazy(() => import("./pages/v3/V3CoursePlannerV2JudgePage"));
-const V3FriendsPage = React.lazy(() => import("./pages/v3/V3FriendsPage"));
-const V3ChatListPage = React.lazy(() => import("./pages/v3/V3ChatListPage"));
-const V3ChatPage = React.lazy(() => import("./pages/v3/V3ChatPage"));
-const V3ClubsPage = React.lazy(() => import("./pages/v3/V3ClubsPage"));
-const V3StopwatchPage = React.lazy(() => import("./pages/v3/V3StopwatchPage"));
-const V3SettingsPage = React.lazy(() => import("./pages/v3/V3SettingsPage"));
-const V3AdminPage = React.lazy(() => import("./pages/v3/V3AdminPage"));
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 30_000,
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-function V3Guard() {
-  const { user, loading } = useAuth();
-  const location = useLocation();
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-v3-canvas"><div className="text-v3-text-tertiary font-v3-sans">Laddar…</div></div>;
-  if (!user) {
-    const redirect = encodeURIComponent(`${location.pathname}${location.search}`);
-    return <Navigate to={`/auth?redirect=${redirect}`} replace />;
-  }
-  return <V3Layout />;
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  }, [pathname]);
+  return null;
 }
 
-function AuthGuard() {
-  const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><div className="text-muted-foreground font-display">Laddar...</div></div>;
-  if (user) return <Navigate to="/v3" replace />;
-  return <Outlet />;
+export default function App() {
+  return (
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/banplanerare" element={<PlannerPage />} />
+        <Route path="/funktioner" element={<FeaturesPage />} />
+        <Route path="/priser" element={<GratisPage />} />
+        <Route path="/gratis" element={<Navigate to="/priser" replace />} />
+        <Route path="/tavlingar" element={<CompetitionsPage />} />
+        <Route path="/banor" element={<CoursesPage />} />
+        {/* Inloggat läge är borttaget — allt leder till planeraren */}
+        <Route path="/auth" element={<Navigate to="/banplanerare" replace />} />
+        <Route path="/logga-in" element={<Navigate to="/banplanerare" replace />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
 }
-
-const LazyFallback = () => <div className="min-h-screen flex items-center justify-center bg-background"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full animate-pulse bg-primary" /><div className="w-2 h-2 rounded-full animate-pulse bg-primary" style={{ animationDelay: "0.15s" }} /><div className="w-2 h-2 rounded-full animate-pulse bg-primary" style={{ animationDelay: "0.3s" }} /></div></div>;
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AuthProvider>
-          <AppErrorBoundary>
-            <BrowserRouter>
-              <CookieBanner />
-              <ScrollToTop />
-              <PageviewTracker />
-              <Suspense fallback={<LazyFallback />}>
-                <Routes>
-                  <Route element={<AuthGuard />}>
-                    <Route path="/" element={<LandingPage />} />
-                    <Route path="/auth" element={<AuthPage />} />
-                  </Route>
-                  <Route path="/funktioner" element={<FeaturesPage />} />
-                  <Route path="/reset-password" element={<ResetPasswordPage />} />
-                  <Route path="/hundforsakring" element={<InsurancePage />} />
-                  <Route path="/om-agility" element={<AboutAgilityPage />} />
-                  <Route path="/hoopers" element={<HoopersLandingPage />} />
-                  <Route path="/hoopers-regler" element={<HoopersRulesPage />} />
-                  <Route path="/blogg" element={<BlogPage />} />
-                  <Route path="/banplanerare" element={<FreeCoursePlannerPage />} />
-                  <Route path="/banor" element={<PublicCourseBankPage />} />
-                  <Route path="/banor/:courseId" element={<PublicCoursePage />} />
-                  <Route path="/gratis-banplanerare-agility" element={<Navigate to="/banplanerare" replace />} />
-                  <Route path="/agility-bana-ritverktyg" element={<Navigate to="/banplanerare" replace />} />
-                  <Route path="/raser" element={<BreedsIndexPage />} />
-                  <Route path="/raser/:slug" element={<BreedDetailPage />} />
-                  <Route path="/tavlingar" element={<PublicCompetitionsPage />} />
-                  <Route path="/tavlingar/hoopers/:id" element={<HoopersCompetitionDetailPage />} />
-                  <Route path="/tavlingar/hoopers/:id/:slug" element={<HoopersCompetitionDetailPage />} />
-                  <Route path="/tavlingar/:id" element={<CompetitionDetailPage />} />
-                  <Route path="/tavlingar/:id/:slug" element={<CompetitionDetailPage />} />
-                  <Route path="/blogg/agility-kurs-nyb%C3%B6rjare" element={<Navigate to="/blogg/agility-kurs-nyborjare" replace />} />
-                  <Route path="/blogg/agility-kurs-nybörjare" element={<Navigate to="/blogg/agility-kurs-nyborjare" replace />} />
-                  <Route path="/agility-kurs-nyb%C3%B6rjare" element={<Navigate to="/blogg/agility-kurs-nyborjare" replace />} />
-                  <Route path="/agility-kurs-nybörjare" element={<Navigate to="/blogg/agility-kurs-nyborjare" replace />} />
-                  <Route path="/blogg/:slug" element={<BlogPostPage />} />
-                  <Route path="/integritetspolicy" element={<PrivacyPolicyPage />} />
-                  <Route path="/cookiepolicy" element={<CookiePolicyPage />} />
-                  <Route path="/ansvarsfriskrivning" element={<DisclaimerPage />} />
-                  <Route path="/avregistrera" element={<UnsubscribePage />} />
-                  <Route path="/invite/:code" element={<InvitePage />} />
-                  <Route path="/club-invite/:code" element={<ClubInvitePage />} />
-                  <Route path="/design-demo" element={<DesignDemoPage />} />
-                  <Route path="/hjalp/resultathamtning" element={<HelpResultImportPage />} />
-                  <Route path="/coach" element={<PublicCoachPage />} />
-                  <Route path="/priser" element={<PricingPage />} />
-                  <Route path="/klubb" element={<ClubsLandingPage />} />
-                  <Route path="/v3/course-planner-v2/judge/:slug" element={<V3CoursePlannerV2JudgePage />} />
-
-                  <Route path="/v3" element={<V3Guard />}>
-                    <Route index element={<V3HomePage />} />
-                    <Route path="training" element={<V3TrainingPage />} />
-                    <Route path="competition" element={<V3CompetitionsPage />} />
-                    <Route path="competition/kalender" element={<V3CompetitionsCalendarPage />} />
-                    <Route path="tavlingar/kalender" element={<V3CompetitionsCalendarPage />} />
-                    <Route path="goals" element={<V3GoalsPage />} />
-                    <Route path="stats" element={<V3StatsPage />} />
-                    <Route path="dogs" element={<V3DogsPage />} />
-                    <Route path="health" element={<V3HealthPage />} />
-                    <Route path="courses" element={<V3CoursesPage />} />
-                    <Route path="coach" element={<V3CoachPage />} />
-                    <Route path="coach/status" element={<V3CoachStatusPage />} />
-                    <Route path="course-planner" element={<Navigate to="/v3/course-planner-v2" replace />} />
-                    <Route path="course-planner-legacy" element={<Navigate to="/v3/course-planner-v2" replace />} />
-                    <Route path="course-planner-v2" element={<V3CoursePlannerV2Page />} />
-                    <Route path="stopwatch" element={<V3StopwatchPage />} />
-                    <Route path="friends" element={<V3FriendsPage />} />
-                    <Route path="chat" element={<V3ChatListPage />} />
-                    <Route path="chat/:friendId" element={<V3ChatPage />} />
-                    <Route path="clubs" element={<V3ClubsPage />} />
-                    <Route path="settings" element={<V3SettingsPage />} />
-                    <Route path="admin" element={<V3AdminPage />} />
-                  </Route>
-
-                  <Route path="/dashboard" element={<Navigate to="/v3" replace />} />
-                  <Route path="/stats" element={<Navigate to="/v3/stats" replace />} />
-                  <Route path="/training" element={<Navigate to="/v3/training" replace />} />
-                  <Route path="/course-planner" element={<Navigate to="/v3/course-planner-v2" replace />} />
-                  <Route path="/course-planner-beta" element={<Navigate to="/v3/course-planner-v2" replace />} />
-                  <Route path="/stopwatch" element={<Navigate to="/v3/stopwatch" replace />} />
-                  <Route path="/goals" element={<Navigate to="/v3/goals" replace />} />
-                  <Route path="/app/competition" element={<Navigate to="/v3/competition" replace />} />
-                  <Route path="/competition" element={<Navigate to="/v3/competition" replace />} />
-                  <Route path="/competition-calendar" element={<Navigate to="/v3/competition" replace />} />
-                  <Route path="/dogs" element={<Navigate to="/v3/dogs" replace />} />
-                  <Route path="/health" element={<Navigate to="/v3/health" replace />} />
-                  <Route path="/friends" element={<Navigate to="/v3/friends" replace />} />
-                  <Route path="/friend-stats/:userId" element={<Navigate to="/v3/friends" replace />} />
-                  <Route path="/chat" element={<Navigate to="/v3/chat" replace />} />
-                  <Route path="/chat/:friendId" element={<Navigate to="/v3/chat" replace />} />
-                  <Route path="/app/clubs" element={<Navigate to="/v3/clubs" replace />} />
-                  <Route path="/clubs" element={<Navigate to="/v3/clubs" replace />} />
-                  <Route path="/courses" element={<Navigate to="/v3/courses" replace />} />
-                  <Route path="/settings" element={<Navigate to="/v3/settings" replace />} />
-                  <Route path="/admin" element={<Navigate to="/v3/admin" replace />} />
-                  <Route path="/index" element={<Navigate to="/v3" replace />} />
-                  <Route path="/v2" element={<Navigate to="/v3" replace />} />
-                  <Route path="/v2/stats" element={<Navigate to="/v3/stats" replace />} />
-                  <Route path="/v2/training" element={<Navigate to="/v3/training" replace />} />
-                  <Route path="/v2/course-planner" element={<Navigate to="/v3/course-planner-v2" replace />} />
-                  <Route path="/v2/stopwatch" element={<Navigate to="/v3/stopwatch" replace />} />
-                  <Route path="/v2/goals" element={<Navigate to="/v3/goals" replace />} />
-                  <Route path="/v2/competition" element={<Navigate to="/v3/competition" replace />} />
-                  <Route path="/v2/dogs" element={<Navigate to="/v3/dogs" replace />} />
-                  <Route path="/v2/health" element={<Navigate to="/v3/health" replace />} />
-                  <Route path="/v2/friends" element={<Navigate to="/v3/friends" replace />} />
-                  <Route path="/v2/chat" element={<Navigate to="/v3/chat" replace />} />
-                  <Route path="/v2/clubs" element={<Navigate to="/v3/clubs" replace />} />
-                  <Route path="/v2/courses" element={<Navigate to="/v3/courses" replace />} />
-                  <Route path="/v2/settings" element={<Navigate to="/v3/settings" replace />} />
-                  <Route path="/v2/admin" element={<Navigate to="/v3/admin" replace />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </BrowserRouter>
-          </AppErrorBoundary>
-        </AuthProvider>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
-
-export default App;

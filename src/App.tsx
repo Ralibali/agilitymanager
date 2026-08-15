@@ -31,6 +31,8 @@ export default function App() {
         <Route path="/priser" element={<GratisPage />} />
         <Route path="/gratis" element={<Navigate to="/priser" replace />} />
         <Route path="/tavlingar" element={<CompetitionsPage />} />
+        <Route path="/tavlingar/lan/:countySlug" element={<CountyCompetitionsPage />} />
+        <Route path="/tavlingar/klubb/:clubSlug" element={<ClubCompetitionsPage />} />
         <Route path="/tavlingar/hoopers/:id" element={<HoopersCompetitionDetailPage />} />
         <Route path="/tavlingar/hoopers/:id/:slug" element={<HoopersCompetitionDetailPage />} />
         <Route path="/tavlingar/:id" element={<CompetitionDetailPage />} />

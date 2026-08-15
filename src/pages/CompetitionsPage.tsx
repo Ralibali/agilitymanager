@@ -14,6 +14,7 @@ import {
   monthLabel,
   type UnifiedCompetition,
 } from "@/lib/competitionData";
+import { COUNTIES, nearestCounty } from "@/lib/swedishCounties";
 
 type SportFilter = "alla" | "agility" | "hoopers";
 
@@ -24,6 +25,24 @@ export default function CompetitionsPage() {
   const [county, setCounty] = useState<string>("alla");
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [geoState, setGeoState] = useState<"idle" | "locating" | "denied">("idle");
+
+  const locateMe = () => {
+    if (!navigator.geolocation) {
+      setGeoState("denied");
+      return;
+    }
+    setGeoState("locating");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCounty(nearestCounty(pos.coords.latitude, pos.coords.longitude).name);
+        setGeoState("idle");
+      },
+      () => setGeoState("denied"),
+      { timeout: 8000 },
+    );
+  };
+
 
   useEffect(() => {
     let cancelled = false;

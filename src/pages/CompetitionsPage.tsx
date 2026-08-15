@@ -194,6 +194,25 @@ export default function CompetitionsPage() {
           </div>
         ))}
 
+        <Reveal className="mt-20">
+          <h2 className="font-display text-4xl tracking-wide">Tävlingar län för län</h2>
+          <p className="mt-2 text-sm font-semibold text-ink/45">
+            Egen sida per län med kommande agility- och hooperstävlingar.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {COUNTIES.map((c) => (
+              <Link
+                key={c.slug}
+                to={`/tavlingar/lan/${c.slug}`}
+                className="rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-bold text-ink/70 transition-colors hover:border-ink hover:text-ink"
+              >
+                {c.name}
+              </Link>
+            ))}
+          </div>
+        </Reveal>
+
+
         <Reveal className="mt-16">
           <div className="mx-auto grid max-w-4xl items-center gap-8 rounded-3xl border-2 border-ink bg-ink p-8 text-paper shadow-hard sm:p-10 lg:grid-cols-[1fr_1.1fr]">
             <div>

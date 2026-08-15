@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight, LocateFixed, Search } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
@@ -14,6 +14,7 @@ import {
   monthLabel,
   type UnifiedCompetition,
 } from "@/lib/competitionData";
+import { COUNTIES, nearestCounty } from "@/lib/swedishCounties";
 
 type SportFilter = "alla" | "agility" | "hoopers";
 
@@ -24,6 +25,24 @@ export default function CompetitionsPage() {
   const [county, setCounty] = useState<string>("alla");
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [geoState, setGeoState] = useState<"idle" | "locating" | "denied">("idle");
+
+  const locateMe = () => {
+    if (!navigator.geolocation) {
+      setGeoState("denied");
+      return;
+    }
+    setGeoState("locating");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCounty(nearestCounty(pos.coords.latitude, pos.coords.longitude).name);
+        setGeoState("idle");
+      },
+      () => setGeoState("denied"),
+      { timeout: 8000 },
+    );
+  };
+
 
   useEffect(() => {
     let cancelled = false;
@@ -127,6 +146,14 @@ export default function CompetitionsPage() {
               ))}
             </select>
 
+            <button
+              onClick={locateMe}
+              className="inline-flex items-center gap-2 rounded-full border-2 border-ink/15 px-5 py-2.5 text-sm font-bold text-ink/70 transition-colors hover:border-ink hover:text-ink"
+            >
+              <LocateFixed className="h-4 w-4" />
+              {geoState === "locating" ? "Söker position…" : "Nära dig"}
+            </button>
+
             <label className="relative ml-auto w-full sm:w-72">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
               <input
@@ -142,12 +169,14 @@ export default function CompetitionsPage() {
             {loading
               ? "Hämtar tävlingar…"
               : `${filtered.length} av ${all.length} kommande tävlingar · ${openCount} med öppen anmälan`}
+            {geoState === "denied" && " · kunde inte hämta din position — välj län manuellt"}
           </p>
         </Reveal>
 
         {!loading && groups.length === 0 && (
           <p className="mt-16 text-lg font-semibold text-ink/50">Inga tävlingar matchar filtret.</p>
         )}
+
 
         {groups.map(([month, comps]) => (
           <div key={month} className="mt-14">
@@ -164,6 +193,25 @@ export default function CompetitionsPage() {
             </div>
           </div>
         ))}
+
+        <Reveal className="mt-20">
+          <h2 className="font-display text-4xl tracking-wide">Tävlingar län för län</h2>
+          <p className="mt-2 text-sm font-semibold text-ink/45">
+            Egen sida per län med kommande agility- och hooperstävlingar.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {COUNTIES.map((c) => (
+              <Link
+                key={c.slug}
+                to={`/tavlingar/lan/${c.slug}`}
+                className="rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-bold text-ink/70 transition-colors hover:border-ink hover:text-ink"
+              >
+                {c.name}
+              </Link>
+            ))}
+          </div>
+        </Reveal>
+
 
         <Reveal className="mt-16">
           <div className="mx-auto grid max-w-4xl items-center gap-8 rounded-3xl border-2 border-ink bg-ink p-8 text-paper shadow-hard sm:p-10 lg:grid-cols-[1fr_1.1fr]">

@@ -14,6 +14,8 @@ import {
   type UnifiedCompetition,
 } from "@/lib/competitionData";
 import { SITE_URL } from "@/components/Seo";
+import { countySlug } from "@/lib/swedishCounties";
+import { slugify } from "@/lib/competitionSlug";
 
 const TONE_STYLE: Record<string, string> = {
   open: "bg-forest text-paper",
@@ -99,9 +101,24 @@ export function CompetitionDetailView({
             <span className="flex items-center gap-2">
               <MapPin className="h-5 w-5 text-forest" />
               {comp.location || "Plats ej angiven"}
-              {comp.county ? ` · ${comp.county}` : ""}
+              {comp.county && (
+                <>
+                  {" · "}
+                  <Link to={`/tavlingar/lan/${countySlug(comp.county)}`} className="underline decoration-2 underline-offset-4 hover:text-ink">
+                    {comp.county} län
+                  </Link>
+                </>
+              )}
             </span>
             <span>{dateRange(comp.dateStart, comp.dateEnd)}</span>
+            {comp.club && (
+              <Link
+                to={`/tavlingar/klubb/${slugify(comp.club)}`}
+                className="underline decoration-2 underline-offset-4 hover:text-ink"
+              >
+                Alla tävlingar från {comp.club}
+              </Link>
+            )}
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">

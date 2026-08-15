@@ -14,6 +14,8 @@ import {
   type UnifiedCompetition,
 } from "@/lib/competitionData";
 import { SITE_URL } from "@/components/Seo";
+import { countySlug } from "@/lib/swedishCounties";
+import { slugify } from "@/lib/competitionSlug";
 
 const TONE_STYLE: Record<string, string> = {
   open: "bg-forest text-paper",

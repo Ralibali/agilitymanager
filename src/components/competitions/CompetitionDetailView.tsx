@@ -109,6 +109,14 @@ export function CompetitionDetailView({
               )}
             </span>
             <span>{dateRange(comp.dateStart, comp.dateEnd)}</span>
+            {comp.club && (
+              <Link
+                to={`/tavlingar/klubb/${slugify(comp.club)}`}
+                className="underline decoration-2 underline-offset-4 hover:text-ink"
+              >
+                Alla tävlingar från {comp.club}
+              </Link>
+            )}
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">

@@ -6,6 +6,8 @@ import FeaturesPage from "./pages/FeaturesPage";
 import GratisPage from "./pages/GratisPage";
 import CompetitionsPage from "./pages/CompetitionsPage";
 import CompetitionDetailPage from "./pages/CompetitionDetailPage";
+import CountyCompetitionsPage from "./pages/CountyCompetitionsPage";
+import ClubCompetitionsPage from "./pages/ClubCompetitionsPage";
 import HoopersCompetitionDetailPage from "./pages/HoopersCompetitionDetailPage";
 import CoursesPage from "./pages/CoursesPage";
 import { NotFound } from "./pages/NotFound";

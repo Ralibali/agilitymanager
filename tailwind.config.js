@@ -12,6 +12,10 @@ module.exports = {
         pine: "#0A3D24",
         tang: "#FF6900",
         ember: "#E24C00",
+        // Porterade v2-komponenter (3D-vy m.fl.) använder dessa tokens
+        "v3-text-primary": "#161812",
+        "v3-text-secondary": "rgba(22,24,18,0.68)",
+        "v3-text-tertiary": "rgba(22,24,18,0.45)",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -65,6 +69,7 @@ module.exports = {
       },
       boxShadow: {
         xs: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        "v3-xl": "0 24px 60px -12px rgb(22 24 18 / 0.25)",
       },
       fontFamily: {
         display: ['"Bebas Neue"', '"Archivo Black"', 'sans-serif'],

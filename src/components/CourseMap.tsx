@@ -80,10 +80,10 @@ export function CourseMap({
 
       {/* hinder */}
       {course.obstacles.map((ob, i) => (
-        <g key={ob.id} transform={`translate(${ob.x} ${ob.y}) rotate(${ob.rot})`}>
-          <ObstacleGlyph type={ob.type} stroke={stroke} sw={0.09} />
+        <g key={ob.id} transform={`translate(${ob.x} ${ob.y}) rotate(${ob.rotation})`}>
+          <ObstacleGlyph type={ob.type} stroke={stroke} sw={0.09} curveDeg={ob.curveDeg} curveSide={ob.curveSide} />
           {showNumbers && (
-            <g transform={`rotate(${-ob.rot})`}>
+            <g transform={`rotate(${-ob.rotation})`}>
               <circle cx="1.05" cy="-1.05" r="0.62" fill={dark ? "#FF6900" : "#161812"} />
               <text
                 x="1.05"

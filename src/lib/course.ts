@@ -1,26 +1,22 @@
 // ── Datamodell för banplaneraren ────────────────────────────────────────────
+// Bygger på v2-motorn i @/features/course-planner-v2 (regelverk, hinder, klasser)
 
-export type Sport = "agility" | "hoopers";
+import type { ObstacleTypeV2, Sport } from "@/features/course-planner-v2/config";
 
-export type ObstacleType =
-  | "jump"
-  | "double"
-  | "tunnel"
-  | "weave"
-  | "aframe"
-  | "seesaw"
-  | "dogwalk"
-  | "longjump"
-  | "tyre"
-  | "hoop"
-  | "barrel";
+export type { Sport };
+export type ObstacleType = ObstacleTypeV2;
 
 export interface PlacedObstacle {
   id: string;
   type: ObstacleType;
   x: number; // meter
   y: number; // meter
-  rot: number; // grader
+  rotation: number; // grader
+  number?: number;
+  curveDeg?: number;
+  curveSide?: "left" | "right";
+  locked?: boolean;
+  zIndex?: number;
 }
 
 export interface Course {
@@ -32,29 +28,25 @@ export interface Course {
   obstacles: PlacedObstacle[];
 }
 
-export interface ObstacleDef {
-  type: ObstacleType;
-  label: string;
-  sports: Sport[];
-  /** ungefärlig utsträckning i meter, för kollisionsindikation */
-  size: [number, number];
-}
-
-export const OBSTACLES: ObstacleDef[] = [
-  { type: "jump", label: "Hopp", sports: ["agility"], size: [2, 0.4] },
-  { type: "double", label: "Dubbelhopp", sports: ["agility"], size: [2, 0.8] },
-  { type: "tunnel", label: "Tunnel", sports: ["agility", "hoopers"], size: [3, 2] },
-  { type: "weave", label: "Slalom", sports: ["agility"], size: [6, 0.5] },
-  { type: "aframe", label: "A-hinder", sports: ["agility"], size: [5, 1.2] },
-  { type: "seesaw", label: "Vippa", sports: ["agility"], size: [3.7, 0.4] },
-  { type: "dogwalk", label: "Brygga", sports: ["agility"], size: [3.7, 0.4] },
-  { type: "longjump", label: "Längdhopp", sports: ["agility"], size: [2, 1.2] },
-  { type: "tyre", label: "Däck", sports: ["agility"], size: [1.2, 1.2] },
-  { type: "hoop", label: "Båge", sports: ["hoopers"], size: [1.2, 1] },
-  { type: "barrel", label: "Tunna", sports: ["hoopers"], size: [0.9, 0.9] },
-];
-
 export const uid = () => Math.random().toString(36).slice(2, 9);
+
+// ── Adapter: riktiga banbiblioteket (v2) → visningskort ─────────────────────
+
+import { getClassTemplate } from "@/features/course-planner-v2/config";
+import type { CourseBankEntry } from "@/features/course-planner-v2/courseBank";
+
+export function courseFromBankEntry(entry: CourseBankEntry): Course {
+  const tpl = getClassTemplate(entry.classTemplate);
+  const count = entry.obstacles.filter((ob) => ob.number != null).length;
+  return {
+    slug: entry.key,
+    name: entry.label,
+    sport: entry.sport,
+    level: `${tpl?.label ?? "Fri bana"} · ${count} hinder`,
+    field: [entry.arenaWidthM, entry.arenaHeightM],
+    obstacles: entry.obstacles.map((ob) => ({ ...ob, id: uid() })),
+  };
+}
 
 // ── Banlinje: Catmull-Rom → kubiska Bézierkurvor ────────────────────────────
 
@@ -92,8 +84,8 @@ const o = (
   type: ObstacleType,
   x: number,
   y: number,
-  rot = 0
-): PlacedObstacle => ({ id, type, x, y, rot });
+  rotation = 0
+): PlacedObstacle => ({ id, type, x, y, rotation });
 
 export const SAMPLE_COURSES: Course[] = [
   {
@@ -107,7 +99,7 @@ export const SAMPLE_COURSES: Course[] = [
       o("a2", "jump", 10, 14, 35),
       o("a3", "tunnel", 16, 20, 0),
       o("a4", "jump", 22, 15, -20),
-      o("a5", "weave", 26, 8, 90),
+      o("a5", "weave_12", 26, 8, 90),
       o("a6", "jump", 32, 14, -60),
       o("a7", "aframe", 34, 6, 90),
       o("a8", "jump", 26, 18, 10),
@@ -124,9 +116,9 @@ export const SAMPLE_COURSES: Course[] = [
     obstacles: [
       o("b1", "jump", 5, 17, 90),
       o("b2", "jump", 10, 10, 0),
-      o("b3", "tyre", 16, 15, 90),
+      o("b3", "tire", 16, 15, 90),
       o("b4", "jump", 21, 8, 90),
-      o("b5", "weave", 26, 14, 0),
+      o("b5", "weave_12", 26, 14, 0),
       o("b6", "tunnel", 31, 7, 45),
       o("b7", "jump", 26, 4, 90),
       o("b8", "jump", 14, 5, 0),
@@ -145,7 +137,7 @@ export const SAMPLE_COURSES: Course[] = [
       o("c4", "jump", 24, 11, 90),
       o("c5", "dogwalk", 30, 17, 0),
       o("c6", "jump", 33, 9, -35),
-      o("c7", "weave", 25, 4, 0),
+      o("c7", "weave_12", 25, 4, 0),
       o("c8", "jump", 17, 8, 15),
       o("c9", "tunnel", 9, 5, -70),
       o("c10", "jump", 5, 12, 90),

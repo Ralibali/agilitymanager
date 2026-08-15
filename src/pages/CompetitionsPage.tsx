@@ -146,6 +146,14 @@ export default function CompetitionsPage() {
               ))}
             </select>
 
+            <button
+              onClick={locateMe}
+              className="inline-flex items-center gap-2 rounded-full border-2 border-ink/15 px-5 py-2.5 text-sm font-bold text-ink/70 transition-colors hover:border-ink hover:text-ink"
+            >
+              <LocateFixed className="h-4 w-4" />
+              {geoState === "locating" ? "Söker position…" : "Nära dig"}
+            </button>
+
             <label className="relative ml-auto w-full sm:w-72">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
               <input
@@ -161,12 +169,14 @@ export default function CompetitionsPage() {
             {loading
               ? "Hämtar tävlingar…"
               : `${filtered.length} av ${all.length} kommande tävlingar · ${openCount} med öppen anmälan`}
+            {geoState === "denied" && " · kunde inte hämta din position — välj län manuellt"}
           </p>
         </Reveal>
 
         {!loading && groups.length === 0 && (
           <p className="mt-16 text-lg font-semibold text-ink/50">Inga tävlingar matchar filtret.</p>
         )}
+
 
         {groups.map(([month, comps]) => (
           <div key={month} className="mt-14">

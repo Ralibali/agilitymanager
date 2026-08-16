@@ -92,20 +92,25 @@ export function ProfileQuickSwitch({
 
             {profiles.map((p, i) => {
               const isActive = active && p.id === activeId;
+              const isSelected = !active && p.id === activeId;
               const label = profileLabel(p, i);
               return (
                 <div
                   key={p.id}
                   className={`flex shrink-0 items-center rounded-full border-2 transition-all ${
                     isActive
-                      ? "border-ink bg-forest text-paper shadow-hard ring-2 ring-forest/30 ring-offset-2 ring-offset-paper"
-                      : "border-ink/15 bg-paper text-ink/70 hover:border-ink"
+                      ? "border-ink bg-forest text-paper shadow-hard ring-2 ring-forest/40 ring-offset-2 ring-offset-paper"
+                      : isSelected
+                        ? "border-forest bg-forest/10 text-ink hover:border-ink"
+                        : "border-ink/15 bg-paper text-ink/70 hover:border-ink"
                   }`}
                 >
                   <button
                     type="button"
                     onClick={() => onActivate(p.id)}
                     aria-pressed={isActive}
+                    aria-current={isActive ? "true" : undefined}
+                    title={isActive ? `${label} styr filtret` : `Filtrera på ${label}`}
                     className="flex items-center gap-2 rounded-l-full py-2 pl-4 pr-2 text-left"
                   >
                     {isActive ? (
@@ -113,14 +118,29 @@ export function ProfileQuickSwitch({
                         <CheckCircle2 className="h-4 w-4" />
                       </span>
                     ) : (
-                      <Dog className="h-4 w-4 shrink-0 text-ink/60" />
+                      <Dog className={`h-4 w-4 shrink-0 ${isSelected ? "text-forest" : "text-ink/60"}`} />
                     )}
                     <span className="leading-tight">
-                      <span className="block text-sm font-bold">{label}</span>
+                      <span className="flex items-center gap-1.5 text-sm font-bold">
+                        {label}
+                        {isActive && (
+                          <span className="rounded-full bg-paper px-1.5 py-0.5 text-[0.55rem] font-extrabold uppercase tracking-wider text-forest">
+                            Aktiv
+                          </span>
+                        )}
+                        {isSelected && (
+                          <span className="rounded-full bg-forest/15 px-1.5 py-0.5 text-[0.55rem] font-extrabold uppercase tracking-wider text-forest">
+                            Vald
+                          </span>
+                        )}
+                      </span>
                       <span className={`block text-[0.68rem] font-semibold ${isActive ? "text-paper/80" : "text-ink/45"}`}>
                         {summary(p)}
                         {!loading && (
-                          <span className={`ml-1.5 inline-flex items-center rounded-full px-1.5 py-0.5 text-[0.6rem] font-extrabold ${isActive ? "bg-paper/20 text-paper" : "bg-ink/10 text-ink/60"}`}>
+                          <span
+                            key={counts[p.id] ?? 0}
+                            className={`ml-1.5 inline-flex items-center rounded-full px-1.5 py-0.5 text-[0.6rem] font-extrabold ${isActive ? "bg-paper text-forest" : "bg-ink/10 text-ink/60"}`}
+                          >
                             {counts[p.id] ?? 0}
                           </span>
                         )}
@@ -128,6 +148,7 @@ export function ProfileQuickSwitch({
                       </span>
                     </span>
                   </button>
+
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -176,7 +197,19 @@ export function ProfileQuickSwitch({
             )}
           </div>
 
+          {(() => {
+            const idx = profiles.findIndex((p) => p.id === activeId);
+            const current = idx >= 0 ? profiles[idx] : undefined;
+            return (
+              <p aria-live="polite" className="w-full text-xs font-semibold text-ink/55">
+                {active && current
+                  ? `Visar ${counts[current.id] ?? 0} tävlingar som matchar ${profileLabel(current, idx)}.`
+                  : "Ingen hundprofil styr filtret just nu — tryck på en hund för att bara se matchande tävlingar."}
+              </p>
+            );
+          })()}
         </div>
+
       </div>
 
       <AlertDialog open={!!pendingDeleteId} onOpenChange={(open) => !open && setPendingDeleteId(null)}>

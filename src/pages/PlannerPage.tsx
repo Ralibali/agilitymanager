@@ -1577,6 +1577,18 @@ export default function PlannerPage() {
 
           {/* ── Mobildocka ── */}
           <div className="border-t-2 border-ink bg-paper p-2.5 sm:hidden">
+            <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-ink/50">
+                {numbered.filter((o) => o.number != null).length} hinder
+                {coursePath.points.length >= 2 && ` · ~${coursePath.total.toFixed(0)} m`}
+              </span>
+              <button
+                onClick={() => setLibraryOpen(true)}
+                className="inline-flex h-9 items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 text-xs font-bold text-ink/70"
+              >
+                <BookOpen className="h-3.5 w-3.5" /> Färdiga banor
+              </button>
+            </div>
             <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
               <button
                 onClick={undo}

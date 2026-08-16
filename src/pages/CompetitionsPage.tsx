@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
-import { ArrowRight, Heart, LocateFixed, Search } from "lucide-react";
+import { ArrowRight, Heart, LocateFixed, MapPin, Search } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
@@ -14,8 +14,14 @@ import {
   monthLabel,
   type UnifiedCompetition,
 } from "@/lib/competitionData";
+import { formatDistance, sortByDistance, type GeoPoint } from "@/lib/competitionGeo";
 import { COUNTIES, nearestCounty } from "@/lib/swedishCounties";
 import { useFavoriteCompetitions } from "@/lib/favoriteCompetitions";
+
+const CompetitionMap = lazy(() =>
+  import("@/components/competitions/CompetitionMap").then((m) => ({ default: m.CompetitionMap })),
+);
+
 
 type SportFilter = "alla" | "agility" | "hoopers";
 
@@ -27,6 +33,7 @@ export default function CompetitionsPage() {
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [geoState, setGeoState] = useState<"idle" | "locating" | "denied">("idle");
+  const [userPos, setUserPos] = useState<GeoPoint | null>(null);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const { keys: favoriteKeys, count: favoriteCount } = useFavoriteCompetitions();
 
@@ -38,6 +45,7 @@ export default function CompetitionsPage() {
     setGeoState("locating");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setCounty(nearestCounty(pos.coords.latitude, pos.coords.longitude).name);
         setGeoState("idle");
       },
@@ -45,6 +53,7 @@ export default function CompetitionsPage() {
       { timeout: 8000 },
     );
   };
+
 
 
   useEffect(() => {
@@ -89,6 +98,13 @@ export default function CompetitionsPage() {
     });
     return [...byMonth.entries()];
   }, [filtered]);
+
+  /** Tävlingar i det filtrerade urvalet med koordinat, närmast först. */
+  const nearby = useMemo(
+    () => (userPos ? sortByDistance(filtered, userPos) : []),
+    [filtered, userPos],
+  );
+
 
   const openCount = useMemo(
     () => all.filter((c) => deadlineInfo(c.registrationCloses).tone !== "closed").length,
@@ -196,6 +212,44 @@ export default function CompetitionsPage() {
             {geoState === "denied" && " · kunde inte hämta din position — välj län manuellt"}
           </p>
         </Reveal>
+
+        {userPos && nearby.length > 0 && (
+          <Reveal className="mt-10">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <h2 className="font-display text-4xl tracking-wide">Nära dig</h2>
+              <p className="text-sm font-semibold text-ink/45">
+                {nearby.length} tävlingar på kartan · närmast {formatDistance(nearby[0].distanceKm)} bort
+              </p>
+            </div>
+            <Suspense
+              fallback={
+                <div className="mt-5 h-64 animate-pulse rounded-3xl border-2 border-ink/10 bg-ink/5" />
+              }
+            >
+              <CompetitionMap center={userPos} competitions={nearby.slice(0, 60)} className="mt-5" />
+            </Suspense>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {nearby.slice(0, 6).map((c) => (
+                <Link
+                  key={c.key}
+                  to={c.path}
+                  className="flex items-start gap-3 rounded-2xl border-2 border-ink/15 bg-[#FCFAF4] p-4 transition-colors hover:border-ink"
+                >
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-ember" />
+                  <span>
+                    <span className="block text-sm font-bold text-ink">{c.name}</span>
+                    <span className="block text-xs font-semibold text-ink/55">
+                      {c.location || c.county} · {formatDistance(c.distanceKm)}
+                      {c.approximate ? " (ungefärligt)" : ""}
+                    </span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </Reveal>
+        )}
+
+
 
         {!loading && groups.length === 0 && (
           <p className="mt-16 text-lg font-semibold text-ink/50">

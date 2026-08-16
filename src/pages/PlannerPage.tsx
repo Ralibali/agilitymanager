@@ -877,7 +877,7 @@ export default function PlannerPage() {
       disabled={disabled}
       title={label}
       aria-label={label}
-      className={`grid h-11 w-11 place-items-center rounded-xl border-2 transition-all disabled:cursor-not-allowed disabled:opacity-30 ${
+      className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border-2 transition-all disabled:cursor-not-allowed disabled:opacity-30 sm:h-11 sm:w-11 ${
         active ? "border-ink bg-tang text-ink shadow-hard-sm" : "border-ink/15 bg-paper text-ink/70 hover:border-ink hover:text-ink"
       }`}
     >

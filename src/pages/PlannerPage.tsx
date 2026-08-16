@@ -877,7 +877,7 @@ export default function PlannerPage() {
       disabled={disabled}
       title={label}
       aria-label={label}
-      className={`grid h-11 w-11 place-items-center rounded-xl border-2 transition-all disabled:cursor-not-allowed disabled:opacity-30 ${
+      className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border-2 transition-all disabled:cursor-not-allowed disabled:opacity-30 sm:h-11 sm:w-11 ${
         active ? "border-ink bg-tang text-ink shadow-hard-sm" : "border-ink/15 bg-paper text-ink/70 hover:border-ink hover:text-ink"
       }`}
     >
@@ -902,11 +902,12 @@ export default function PlannerPage() {
         <div className="mx-auto flex h-16 max-w-[110rem] items-center gap-2 px-3 sm:gap-3 sm:px-5">
           <Link
             to="/"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-ink bg-paper transition-colors hover:bg-cream"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-ink bg-paper transition-colors hover:bg-cream sm:h-11 sm:w-11"
             aria-label="Tillbaka till startsidan"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
+
           <div className="hidden md:block">
             <Logo />
           </div>
@@ -914,9 +915,10 @@ export default function PlannerPage() {
           <input
             value={name}
             onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-            className="min-w-0 flex-1 rounded-xl border-2 border-transparent bg-transparent px-2 py-2 font-display text-2xl tracking-wide outline-none transition-colors focus:border-ink md:max-w-xs"
+            className="min-w-0 flex-1 rounded-xl border-2 border-transparent bg-transparent px-2 py-2 font-display text-lg tracking-wide outline-none transition-colors focus:border-ink sm:text-2xl md:max-w-xs"
             aria-label="Banans namn"
           />
+
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
             <span
               className={`hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors lg:inline-flex ${
@@ -944,9 +946,12 @@ export default function PlannerPage() {
               </ToolButton>
             </span>
 
-            <ToolButton onClick={() => setView3D("view")} label="3D-vy (3)">
-              <Box className="h-5 w-5" />
-            </ToolButton>
+            <span className="hidden sm:inline-flex">
+              <ToolButton onClick={() => setView3D("view")} label="3D-vy (3)">
+                <Box className="h-5 w-5" />
+              </ToolButton>
+            </span>
+
             <div className="relative">
               <ExportMenu
                 onJudge={onJudgePdf}
@@ -966,7 +971,7 @@ export default function PlannerPage() {
             <button
               onClick={openShare}
               disabled={!obstacles.length}
-              className="pressable shadow-hard-sm inline-flex h-11 items-center gap-2 rounded-full border-2 border-ink bg-tang px-3.5 text-sm font-bold text-ink disabled:opacity-40 sm:px-5"
+              className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-tang px-3 text-sm font-bold text-ink disabled:opacity-40 sm:h-11 sm:px-5"
             >
               <Share2 className="h-4 w-4" /> <span className="hidden sm:inline">Dela bana</span>
             </button>
@@ -974,11 +979,12 @@ export default function PlannerPage() {
               onClick={() => (user ? saveToCloud() : setAuthOpen(true))}
               disabled={savingCloud}
               title={user ? (cloudId ? "Uppdatera molnkopian" : "Spara i molnet") : "Logga in för molnlagring, kommentarer och klubbdelning"}
-              className="grid h-11 w-11 place-items-center rounded-full border-2 border-ink bg-paper transition-colors hover:bg-cream disabled:opacity-40"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-ink bg-paper transition-colors hover:bg-cream disabled:opacity-40 sm:h-11 sm:w-11"
               aria-label={user ? "Spara i molnet" : "Logga in"}
             >
               {savingCloud ? <Loader2 className="h-5 w-5 animate-spin" /> : <Cloud className="h-5 w-5" />}
             </button>
+
           </div>
         </div>
       </header>

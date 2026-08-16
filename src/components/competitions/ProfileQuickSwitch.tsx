@@ -1,4 +1,4 @@
-import { Copy, Dog, MoreVertical, Plus, Trash2, Zap } from "lucide-react";
+import { CheckCircle2, Copy, Dog, MoreVertical, Plus, Trash2, Zap } from "lucide-react";
 import {
   JUMP_HEIGHT_CM,
   hoopersSizeFor,
@@ -84,7 +84,7 @@ export function ProfileQuickSwitch({
                 key={p.id}
                 className={`flex shrink-0 items-center rounded-full border-2 transition-all ${
                   isActive
-                    ? "border-ink bg-forest text-paper shadow-hard-sm"
+                    ? "border-ink bg-forest text-paper shadow-hard ring-2 ring-forest/30 ring-offset-2 ring-offset-paper"
                     : "border-ink/15 bg-paper text-ink/70 hover:border-ink"
                 }`}
               >
@@ -94,12 +94,23 @@ export function ProfileQuickSwitch({
                   aria-pressed={isActive}
                   className="flex items-center gap-2 rounded-l-full py-2 pl-4 pr-2 text-left"
                 >
-                  <Dog className="h-4 w-4 shrink-0" />
+                  {isActive ? (
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-paper text-forest">
+                      <CheckCircle2 className="h-4 w-4" />
+                    </span>
+                  ) : (
+                    <Dog className="h-4 w-4 shrink-0 text-ink/60" />
+                  )}
                   <span className="leading-tight">
                     <span className="block text-sm font-bold">{label}</span>
-                    <span className={`block text-[0.68rem] font-semibold ${isActive ? "text-paper/70" : "text-ink/45"}`}>
+                    <span className={`block text-[0.68rem] font-semibold ${isActive ? "text-paper/80" : "text-ink/45"}`}>
                       {summary(p)}
-                      {!loading ? ` · ${counts[p.id] ?? 0} matchar` : ""}
+                      {!loading && (
+                        <span className={`ml-1.5 inline-flex items-center rounded-full px-1.5 py-0.5 text-[0.6rem] font-extrabold ${isActive ? "bg-paper/20 text-paper" : "bg-ink/10 text-ink/60"}`}>
+                          {counts[p.id] ?? 0}
+                        </span>
+                      )}
+                      {!loading && <span className="ml-1 font-medium">matchar</span>}
                     </span>
                   </span>
                 </button>

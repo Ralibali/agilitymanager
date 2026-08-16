@@ -13,6 +13,7 @@ import {
   type UnifiedCompetition,
 } from "@/lib/competitionData";
 import { useFavoriteCompetitions } from "@/lib/favoriteCompetitions";
+import { PushReminderCard } from "@/components/competitions/PushReminderCard";
 
 export default function FavoriteCompetitionsPage() {
   const [all, setAll] = useState<UnifiedCompetition[]>([]);
@@ -79,6 +80,10 @@ export default function FavoriteCompetitionsPage() {
               {loading ? "Hämtar tävlingar…" : `${favorites.length} sparade tävlingar`}
             </span>
           </div>
+        </Reveal>
+
+        <Reveal className="mt-8">
+          <PushReminderCard competitionKeys={keys} />
         </Reveal>
 
         {!loading && favorites.length === 0 && (

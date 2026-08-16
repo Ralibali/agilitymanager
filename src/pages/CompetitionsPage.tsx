@@ -10,6 +10,7 @@ import { Seo, SITE_URL } from "@/components/Seo";
 import { CompetitionCard } from "@/components/competitions/CompetitionCard";
 import {
   deadlineInfo,
+  downloadIcs,
   fetchUpcomingCompetitions,
   monthLabel,
   type UnifiedCompetition,

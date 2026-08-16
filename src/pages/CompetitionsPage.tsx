@@ -213,6 +213,44 @@ export default function CompetitionsPage() {
           </p>
         </Reveal>
 
+        {userPos && nearby.length > 0 && (
+          <Reveal className="mt-10">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <h2 className="font-display text-4xl tracking-wide">Nära dig</h2>
+              <p className="text-sm font-semibold text-ink/45">
+                {nearby.length} tävlingar på kartan · närmast {formatDistance(nearby[0].distanceKm)} bort
+              </p>
+            </div>
+            <Suspense
+              fallback={
+                <div className="mt-5 h-64 animate-pulse rounded-3xl border-2 border-ink/10 bg-ink/5" />
+              }
+            >
+              <CompetitionMap center={userPos} competitions={nearby.slice(0, 60)} className="mt-5" />
+            </Suspense>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {nearby.slice(0, 6).map((c) => (
+                <Link
+                  key={c.key}
+                  to={c.path}
+                  className="flex items-start gap-3 rounded-2xl border-2 border-ink/15 bg-[#FCFAF4] p-4 transition-colors hover:border-ink"
+                >
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-ember" />
+                  <span>
+                    <span className="block text-sm font-bold text-ink">{c.name}</span>
+                    <span className="block text-xs font-semibold text-ink/55">
+                      {c.location || c.county} · {formatDistance(c.distanceKm)}
+                      {c.approximate ? " (ungefärligt)" : ""}
+                    </span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </Reveal>
+        )}
+
+
+
         {!loading && groups.length === 0 && (
           <p className="mt-16 text-lg font-semibold text-ink/50">
             {onlyFavorites && favoriteCount === 0

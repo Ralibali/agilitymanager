@@ -28,7 +28,7 @@ type Props = {
 };
 
 export default function FeedbackDialog({ open, onOpenChange, courseData }: Props) {
-  const profile = usePlannerProfile();
+  const { profile } = usePlannerProfile();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [category, setCategory] = useState<Category>("ide");

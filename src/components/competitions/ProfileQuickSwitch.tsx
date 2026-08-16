@@ -78,30 +78,79 @@ export function ProfileQuickSwitch({
 
           {profiles.map((p, i) => {
             const isActive = active && p.id === activeId;
+            const label = profileLabel(p, i);
             return (
-              <button
+              <div
                 key={p.id}
-                type="button"
-                onClick={() => onActivate(p.id)}
-                aria-pressed={isActive}
-                className={`flex shrink-0 items-center gap-2 rounded-full border-2 px-4 py-2 text-left transition-all ${
+                className={`flex shrink-0 items-center rounded-full border-2 transition-all ${
                   isActive
                     ? "border-ink bg-forest text-paper shadow-hard-sm"
                     : "border-ink/15 bg-paper text-ink/70 hover:border-ink"
                 }`}
               >
-                <Dog className="h-4 w-4 shrink-0" />
-                <span className="leading-tight">
-                  <span className="block text-sm font-bold">{profileLabel(p, i)}</span>
-                  <span className={`block text-[0.68rem] font-semibold ${isActive ? "text-paper/70" : "text-ink/45"}`}>
-                    {summary(p)}
-                    {!loading ? ` · ${counts[p.id] ?? 0} matchar` : ""}
+                <button
+                  type="button"
+                  onClick={() => onActivate(p.id)}
+                  aria-pressed={isActive}
+                  className="flex items-center gap-2 rounded-l-full py-2 pl-4 pr-2 text-left"
+                >
+                  <Dog className="h-4 w-4 shrink-0" />
+                  <span className="leading-tight">
+                    <span className="block text-sm font-bold">{label}</span>
+                    <span className={`block text-[0.68rem] font-semibold ${isActive ? "text-paper/70" : "text-ink/45"}`}>
+                      {summary(p)}
+                      {!loading ? ` · ${counts[p.id] ?? 0} matchar` : ""}
+                    </span>
                   </span>
-                </span>
-              </button>
+                </button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={`Hantera ${label}`}
+                      className={`rounded-r-full py-2 pl-1 pr-3 transition-colors ${
+                        isActive ? "text-paper/80 hover:text-paper" : "text-ink/40 hover:text-ink"
+                      }`}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52 border-2 border-ink/15 bg-paper">
+                    <DropdownMenuItem onSelect={() => onActivate(p.id)} className="font-semibold">
+                      <Zap className="mr-2 h-4 w-4" /> Använd som filter
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => onDuplicate(p.id)}
+                      disabled={!canAdd}
+                      className="font-semibold"
+                    >
+                      <Copy className="mr-2 h-4 w-4" /> Duplicera
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => onRemove(p.id)}
+                      disabled={profiles.length <= 1}
+                      className="font-semibold text-clay focus:text-clay"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" /> Ta bort
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             );
           })}
+
+          {canAdd && (
+            <button
+              type="button"
+              onClick={onAdd}
+              className="flex shrink-0 items-center gap-1.5 rounded-full border-2 border-dashed border-ink/25 bg-paper px-4 py-2 text-sm font-bold text-ink/60 transition-all hover:border-ink hover:text-ink"
+            >
+              <Plus className="h-4 w-4" /> Ny profil
+            </button>
+          )}
         </div>
+
       </div>
     </div>
   );

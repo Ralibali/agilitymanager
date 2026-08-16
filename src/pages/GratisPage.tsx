@@ -115,9 +115,19 @@ export default function GratisPage() {
                 <Heart className="h-5 w-5" />
               </span>
               <p className="leading-relaxed text-ink/75">
-                <b className="text-ink">Vill du dela din bana?</b> Då ber vi om din e-post —
-                det är vår enda "valuta". Du får en delningslänk, vi får skicka
+                <b className="text-ink">Vill du dela din bana?</b> Då ber vi om namn och
+                e-post — det är vår enda "valuta". Du får en delningslänk, vi får skicka
                 nyhetsbrevet. Snygg deal.
+              </p>
+            </div>
+            <div className="flex items-start gap-4 rounded-2xl border-2 border-ink bg-[#FCFAF4] p-5 shadow-hard-sm">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ink text-paper">
+                <Sparkles className="h-5 w-5" />
+              </span>
+              <p className="leading-relaxed text-ink/75">
+                <b className="text-ink">Och framtiden?</b> Nya extrafunktioner kan komma att
+                kosta pengar. Då är det tydligt märkt innan du väljer dem — och
+                banplaneraren du använder idag fortsätter vara gratis.
               </p>
             </div>
           </div>

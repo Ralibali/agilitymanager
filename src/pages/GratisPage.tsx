@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { ArrowRight, Check, Gift, Heart, Infinity as InfinityIcon, PenLine } from "lucide-react";
+import { ArrowRight, Check, Gift, Heart, Infinity as InfinityIcon, PenLine, Sparkles } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";

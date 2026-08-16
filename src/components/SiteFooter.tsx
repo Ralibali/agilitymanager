@@ -8,7 +8,7 @@ const COLS: { title: string; links: { to: string; label: string }[] }[] = [
       { to: "/banplanerare", label: "Banplaneraren" },
       { to: "/funktioner", label: "Funktioner" },
       { to: "/banor", label: "Banbibliotek" },
-      { to: "/priser", label: "Allt är gratis" },
+      { to: "/priser", label: "Priser" },
     ],
   },
   {
@@ -46,14 +46,15 @@ export function SiteFooter() {
               </span>
             </div>
             <p className="mt-5 max-w-sm leading-relaxed text-paper/60">
-              Sportens gratisverktyg — banplanerare, banbibliotek och
-              tävlingskalender för agility och hoopers. Rita fritt, dela mot din e-post.
+              Verktygen för sporten — banplanerare, banbibliotek och
+              tävlingskalender för agility och hoopers. Banplaneraren är gratis att
+              använda; kommande extrafunktioner kan bli betalda.
             </p>
             <Link
               to="/banplanerare"
               className="pressable pressable-light shadow-hard-paper mt-7 inline-flex items-center gap-2 rounded-full bg-tang px-6 py-3.5 font-bold text-ink"
             >
-              Börja rita — helt gratis
+              Börja rita gratis
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">

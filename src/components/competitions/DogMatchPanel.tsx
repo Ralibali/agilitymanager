@@ -1,4 +1,5 @@
-import { CheckCircle2, Copy, Dog, Plus, Ruler, Sparkles, X } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, Copy, Dog, Plus, Ruler, Sparkles, Trash2, X } from "lucide-react";
 import {
   AGILITY_LEVELS,
   HOOPERS_LEVELS,
@@ -10,6 +11,16 @@ import {
   type SavedDogProfile,
   type SizeClass,
 } from "@/lib/dogMatch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const SIZES: SizeClass[] = ["XS", "S", "M", "L"];
 

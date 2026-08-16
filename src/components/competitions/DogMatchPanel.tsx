@@ -66,11 +66,11 @@ export function DogMatchPanel({
 
   return (
     <>
-      <div className="rounded-3xl border-2 border-ink bg-[#FCFAF4] p-5 shadow-hard sm:p-6">
+      <div className="rounded-3xl border-2 border-ink bg-card p-5 shadow-hard sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border-2 border-ink bg-forest text-paper">
-              <Dog className="h-5 w-5" />
+              <Dog className="h-5 w-5" aria-hidden="true" />
             </span>
             <div>
               <h2 className="font-display text-2xl tracking-wide">Matcha mot din hund</h2>
@@ -83,13 +83,14 @@ export function DogMatchPanel({
           <button
             onClick={() => onToggle(!active)}
             aria-pressed={active}
-            className={`inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold transition-all ${
+            aria-label={active ? "Matchning är påslagen, visa bara tävlingar som passar den valda hundprofilen" : "Slå på matchning för att bara se tävlingar som passar den valda hundprofilen"}
+            className={`inline-flex min-h-11 items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold transition-all ${
               active
                 ? "border-ink bg-forest text-paper shadow-hard-sm"
-                : "border-ink/15 bg-paper text-ink/60 hover:border-ink"
+                : "border-ink/15 bg-paper text-ink hover:border-ink"
             }`}
           >
-            <Sparkles className="h-4 w-4" />
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
             {active ? "Matchning på" : "Visa bara matchande"}
           </button>
         </div>
@@ -98,28 +99,39 @@ export function DogMatchPanel({
           <span className="text-xs font-bold uppercase tracking-wider text-ink/45">Profiler</span>
           {profiles.map((p, i) => {
             const isActive = p.id === activeId;
+            const label = profileLabel(p, i);
             return (
               <span
                 key={p.id}
-                className={`inline-flex items-center gap-1 rounded-full border-2 pl-1 pr-1 transition-all ${
-                  isActive ? "border-ink bg-forest text-paper shadow-hard ring-2 ring-forest/25 ring-offset-2 ring-offset-paper" : "border-ink/15 bg-paper text-ink/70"
+                className={`inline-flex items-center rounded-full border-2 pl-1 pr-1 transition-all ${
+                  isActive
+                    ? "border-ink bg-forest text-paper shadow-hard ring-2 ring-forest/25 ring-offset-2 ring-offset-paper"
+                    : "border-ink/15 bg-paper text-ink"
                 }`}
               >
                 <button
                   onClick={() => onSelect(p.id)}
                   aria-pressed={isActive}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold"
+                  aria-current={isActive ? "true" : undefined}
+                  aria-label={`${isActive ? "Aktiv profil" : "Välj profil"}: ${label}, ${
+                    p.sport === "agility" ? p.agilityLevel : p.hoopersLevel
+                  }, ${p.sport === "agility" ? `${JUMP_HEIGHT_CM[p.size]} cm` : hoopersSizeFor(p.size)}`}
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold transition-colors"
                 >
-                  {isActive ? <CheckCircle2 className="h-4 w-4" /> : <Dog className="h-4 w-4 text-ink/50" />}
-                  {profileLabel(p, i)}
+                  {isActive ? (
+                    <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <Dog className="h-5 w-5 text-ink/70" aria-hidden="true" />
+                  )}
+                  {label}
                 </button>
                 {profiles.length > 1 && (
                   <button
                     onClick={() => setPendingDeleteId(p.id)}
-                    aria-label={`Ta bort ${profileLabel(p, i)}`}
-                    className="grid h-6 w-6 place-items-center rounded-full hover:bg-ink/10"
+                    aria-label={`Ta bort ${label}`}
+                    className="grid min-h-8 min-w-8 place-items-center rounded-full text-ink/60 transition-colors hover:bg-ink/10 hover:text-ink"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-4 w-4" aria-hidden="true" />
                   </button>
                 )}
               </span>
@@ -129,15 +141,15 @@ export function DogMatchPanel({
             <>
               <button
                 onClick={onAdd}
-                className="inline-flex items-center gap-1.5 rounded-full border-2 border-dashed border-ink/25 px-3 py-1.5 text-sm font-bold text-ink/60 hover:border-ink hover:text-ink"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full border-2 border-dashed border-ink/25 px-3 py-1.5 text-sm font-bold text-ink/60 transition-all hover:border-ink hover:text-ink"
               >
-                <Plus className="h-4 w-4" /> Ny profil
+                <Plus className="h-4 w-4" aria-hidden="true" /> Ny profil
               </button>
               <button
                 onClick={() => onDuplicate(activeId)}
-                className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 py-1.5 text-sm font-bold text-ink/60 hover:border-ink hover:text-ink"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 py-1.5 text-sm font-bold text-ink/60 transition-all hover:border-ink hover:text-ink"
               >
-                <Copy className="h-4 w-4" /> Duplicera
+                <Copy className="h-4 w-4" aria-hidden="true" /> Duplicera
               </button>
             </>
           )}

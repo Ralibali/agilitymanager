@@ -70,7 +70,7 @@ export function ProfileQuickSwitch({
 
   return (
     <>
-      <div className="rounded-3xl border-2 border-ink/15 bg-[#FCFAF4] p-3 sm:p-4">
+      <div className="rounded-3xl border-2 border-ink/15 bg-card p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-1.5 pr-1 text-xs font-extrabold uppercase tracking-wider text-ink/45">
             <Zap className="h-3.5 w-3.5 text-forest" /> Snabbväxla hund
@@ -81,10 +81,11 @@ export function ProfileQuickSwitch({
               type="button"
               onClick={onClear}
               aria-pressed={!active}
-              className={`shrink-0 rounded-full border-2 px-4 py-2 text-sm font-bold transition-all ${
+              aria-label={active ? "Visa alla tävlingar, stäng av matchningsfilter" : "Alla tävlingar visas"}
+              className={`min-h-11 shrink-0 rounded-full border-2 px-4 py-2 text-sm font-bold transition-all ${
                 !active
                   ? "border-ink bg-ink text-paper shadow-hard-sm"
-                  : "border-ink/15 bg-paper text-ink/60 hover:border-ink"
+                  : "border-ink/15 bg-paper text-ink hover:border-ink"
               }`}
             >
               Alla tävlingar
@@ -94,6 +95,8 @@ export function ProfileQuickSwitch({
               const isActive = active && p.id === activeId;
               const isSelected = !active && p.id === activeId;
               const label = profileLabel(p, i);
+              const count = counts[p.id] ?? 0;
+              const description = `${summary(p)}, ${count} matchande tävlingar`;
               return (
                 <div
                   key={p.id}
@@ -102,7 +105,7 @@ export function ProfileQuickSwitch({
                       ? "border-ink bg-forest text-paper shadow-hard ring-2 ring-forest/40 ring-offset-2 ring-offset-paper"
                       : isSelected
                         ? "border-forest bg-forest/10 text-ink hover:border-ink"
-                        : "border-ink/15 bg-paper text-ink/70 hover:border-ink"
+                        : "border-ink/15 bg-paper text-ink hover:border-ink"
                   }`}
                 >
                   <button
@@ -110,38 +113,43 @@ export function ProfileQuickSwitch({
                     onClick={() => onActivate(p.id)}
                     aria-pressed={isActive}
                     aria-current={isActive ? "true" : undefined}
-                    title={isActive ? `${label} styr filtret` : `Filtrera på ${label}`}
-                    className="flex items-center gap-2 rounded-l-full py-2 pl-4 pr-2 text-left"
+                    aria-label={`${isActive ? "Aktiv profil" : "Välj profil"}: ${label}, ${description}`}
+                    aria-describedby="profile-switch-description"
+                    className="flex min-h-11 items-center gap-2 rounded-l-full py-2 pl-4 pr-3 text-left transition-colors"
                   >
                     {isActive ? (
-                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-paper text-forest">
-                        <CheckCircle2 className="h-4 w-4" />
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-paper text-forest shadow-sm">
+                        <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
                       </span>
                     ) : (
-                      <Dog className={`h-4 w-4 shrink-0 ${isSelected ? "text-forest" : "text-ink/60"}`} />
+                      <Dog
+                        className={`h-5 w-5 shrink-0 ${isSelected ? "text-forest" : "text-ink/80"}`}
+                        aria-hidden="true"
+                      />
                     )}
                     <span className="leading-tight">
                       <span className="flex items-center gap-1.5 text-sm font-bold">
                         {label}
                         {isActive && (
-                          <span className="rounded-full bg-paper px-1.5 py-0.5 text-[0.55rem] font-extrabold uppercase tracking-wider text-forest">
+                          <span className="rounded-full bg-paper px-2 py-0.5 text-xs font-extrabold uppercase tracking-wider text-forest">
                             Aktiv
                           </span>
                         )}
                         {isSelected && (
-                          <span className="rounded-full bg-forest/15 px-1.5 py-0.5 text-[0.55rem] font-extrabold uppercase tracking-wider text-forest">
+                          <span className="rounded-full bg-forest/15 px-2 py-0.5 text-xs font-extrabold uppercase tracking-wider text-forest">
                             Vald
                           </span>
                         )}
                       </span>
-                      <span className={`block text-[0.68rem] font-semibold ${isActive ? "text-paper/80" : "text-ink/45"}`}>
+                      <span className={`block text-xs font-semibold ${isActive ? "text-paper/90" : "text-ink/60"}`}>
                         {summary(p)}
                         {!loading && (
                           <span
-                            key={counts[p.id] ?? 0}
-                            className={`ml-1.5 inline-flex items-center rounded-full px-1.5 py-0.5 text-[0.6rem] font-extrabold ${isActive ? "bg-paper text-forest" : "bg-ink/10 text-ink/60"}`}
+                            className={`ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-extrabold ${
+                              isActive ? "bg-paper text-forest" : "bg-ink/10 text-ink"
+                            }`}
                           >
-                            {counts[p.id] ?? 0}
+                            {count}
                           </span>
                         )}
                         {!loading && <span className="ml-1 font-medium">matchar</span>}
@@ -149,17 +157,22 @@ export function ProfileQuickSwitch({
                     </span>
                   </button>
 
+                  <div
+                    className={`mx-1 h-5 w-px shrink-0 ${isActive ? "bg-paper/30" : "bg-ink/15"}`}
+                    aria-hidden="true"
+                  />
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
                         type="button"
-                        aria-label={`Hantera ${label}`}
-                        className={`rounded-r-full py-2 pl-1 pr-3 transition-colors ${
-                          isActive ? "text-paper/80 hover:text-paper" : "text-ink/40 hover:text-ink"
+                        aria-label={`Hantera profil ${label}`}
+                        aria-describedby="profile-switch-description"
+                        className={`flex min-h-11 min-w-11 items-center justify-center rounded-r-full py-2 pl-1 pr-3 transition-colors ${
+                          isActive ? "text-paper/90 hover:text-paper" : "text-ink/60 hover:text-ink"
                         }`}
                       >
-                        <MoreVertical className="h-4 w-4" />
+                        <MoreVertical className="h-4 w-4" aria-hidden="true" />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-52 border-2 border-ink/15 bg-paper">
@@ -190,9 +203,9 @@ export function ProfileQuickSwitch({
               <button
                 type="button"
                 onClick={onAdd}
-                className="flex shrink-0 items-center gap-1.5 rounded-full border-2 border-dashed border-ink/25 bg-paper px-4 py-2 text-sm font-bold text-ink/60 transition-all hover:border-ink hover:text-ink"
+                className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border-2 border-dashed border-ink/25 bg-paper px-4 py-2 text-sm font-bold text-ink/60 transition-all hover:border-ink hover:text-ink"
               >
-                <Plus className="h-4 w-4" /> Ny profil
+                <Plus className="h-4 w-4" aria-hidden="true" /> Ny profil
               </button>
             )}
           </div>
@@ -201,7 +214,7 @@ export function ProfileQuickSwitch({
             const idx = profiles.findIndex((p) => p.id === activeId);
             const current = idx >= 0 ? profiles[idx] : undefined;
             return (
-              <p aria-live="polite" className="w-full text-xs font-semibold text-ink/55">
+              <p id="profile-switch-description" aria-live="polite" className="w-full text-xs font-semibold text-ink/60">
                 {active && current
                   ? `Visar ${counts[current.id] ?? 0} tävlingar som matchar ${profileLabel(current, idx)}.`
                   : "Ingen hundprofil styr filtret just nu — tryck på en hund för att bara se matchande tävlingar."}

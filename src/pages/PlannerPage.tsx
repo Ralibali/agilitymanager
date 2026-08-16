@@ -1049,14 +1049,18 @@ export default function PlannerPage() {
               onClick={openSaveShare}
               disabled={!obstacles.length || savingCloud}
               className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-forest px-3 text-sm font-bold text-paper disabled:opacity-40 sm:h-11 sm:px-5"
-              title="Spara banan på din profil och välj publik eller privat"
+              title={obstacles.length ? "Spara banan på din profil och välj publik eller privat" : "Placera minst ett hinder först"}
+              aria-label="Spara och dela banan på din profil"
             >
-              <CloudCheck className="h-4 w-4" /> <span className="hidden sm:inline">Spara & dela</span>
+              {savingCloud ? <Loader2 className="h-4 w-4 animate-spin" /> : <CloudCheck className="h-4 w-4" />}{" "}
+              <span className="hidden sm:inline">Spara & dela</span>
             </button>
             <button
               onClick={openShare}
               disabled={!obstacles.length}
               className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-tang px-3 text-sm font-bold text-ink disabled:opacity-40 sm:h-11 sm:px-5"
+              title={obstacles.length ? "Skapa en länk med hela banan — mottagaren behöver inget konto" : "Placera minst ett hinder först"}
+              aria-label="Dela banan via länk"
             >
               <Share2 className="h-4 w-4" /> <span className="hidden sm:inline">Dela bana</span>
             </button>

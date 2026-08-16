@@ -81,10 +81,11 @@ export function ProfileQuickSwitch({
               type="button"
               onClick={onClear}
               aria-pressed={!active}
-              className={`shrink-0 rounded-full border-2 px-4 py-2 text-sm font-bold transition-all ${
+              aria-label={active ? "Visa alla tävlingar, stäng av matchningsfilter" : "Alla tävlingar visas"}
+              className={`min-h-11 shrink-0 rounded-full border-2 px-4 py-2 text-sm font-bold transition-all ${
                 !active
                   ? "border-ink bg-ink text-paper shadow-hard-sm"
-                  : "border-ink/15 bg-paper text-ink/60 hover:border-ink"
+                  : "border-ink/15 bg-paper text-ink hover:border-ink"
               }`}
             >
               Alla tävlingar

@@ -287,21 +287,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── 100% GRATIS + NYHETSBREV ─────────────────────────── */}
+      {/* ── PRISER (freemium) + NYHETSBREV ───────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:py-28">
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <Reveal>
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-forest">Priser</p>
             <h2 className="mt-3 font-display text-5xl leading-[0.95] sm:text-7xl">
-              Priset? <span className="text-tang">Noll kronor.</span>
+              Gratis att <span className="text-tang">komma igång.</span>
             </h2>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-ink/65">
-              Hela banplaneraren, banbiblioteket, exporten och tävlingskalendern är
-              gratis — för alltid. Inget konto, inget kort, inga dolda nivåer.
-              Det enda vi någonsin ber om är din e-post när du vill dela en bana.
+              Banplaneraren, banbiblioteket, exporten och tävlingskalendern använder du
+              gratis — utan konto och utan kort. Vi bygger vidare på AgilityManager, och
+              framtida extrafunktioner kan komma att kosta. Vi säger till i förväg.
             </p>
             <ul className="mt-7 space-y-3 font-medium text-ink/75">
-              {["Alla funktioner, alla sporter, alla hundar", "Rita anonymt — autosparas i din webbläsare", "Dela banan med länk mot din e-post"].map((f) => (
+              {["Hela banplaneraren gratis — agility och hoopers", "Rita anonymt — autosparas i din webbläsare", "Dela banan med länk mot din e-post"].map((f) => (
                 <li key={f} className="flex items-start gap-2.5">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-forest" strokeWidth={3} /> {f}
                 </li>

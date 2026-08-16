@@ -382,6 +382,8 @@ export function drawHeaderBand(doc: jsPDF, opts: {
     doc.text(opts.badge, PDF_PAGE.width - PDF_PAGE.margin - w / 2, 11.5, { align: "center" });
   }
   doc.setTextColor(0);
+}
+
 
 /**
  * Diagonalt vattenmärke tvärs över sidan.

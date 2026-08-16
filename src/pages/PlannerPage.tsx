@@ -251,7 +251,8 @@ export default function PlannerPage() {
   const [playbackActive, setPlaybackActive] = useState(false);
   const [view3D, setView3D] = useState<"view" | "walk" | null>(null);
   const [exporting, setExporting] = useState<string | null>(null);
-  const [showWatermark, setShowWatermark] = useState(true);
+  // Vattenstämpeln är alltid på i gratisläget — export utan stämpel blir en betald funktion.
+  const showWatermark = true;
   const [cloudId, setCloudId] = useState<string | null>(() => {
     try { return localStorage.getItem(CLOUD_ID_KEY); } catch { return null; }
   });

@@ -408,6 +408,11 @@ export function drawFooterAllPages(
 
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
+
+    if (showWatermark) {
+      drawDiagonalWatermark(doc);
+    }
+
     const y = PDF_PAGE.height - 6;
     doc.setDrawColor(...PDF_BRAND.line);
     doc.setLineWidth(0.2);
@@ -418,7 +423,7 @@ export function drawFooterAllPages(
       doc.setFont("helvetica", "italic");
       doc.setFontSize(7.5);
       doc.setTextColor(...PDF_BRAND.muted);
-      const prefix = opts.authorName ? `Banan skapad av ${opts.authorName} på ` : "Skapad i Banplaneraren · ";
+      const prefix = opts.authorName ? `Banan skapad av ${opts.authorName} på ` : "Skapad i Banbyggaren · ";
       doc.text(prefix, PDF_PAGE.margin, y);
       const prefixW = doc.getTextWidth(prefix);
 
@@ -427,6 +432,17 @@ export function drawFooterAllPages(
       doc.setTextColor(...PDF_BRAND.primary);
       const linkX = PDF_PAGE.margin + prefixW;
       doc.textWithLink(SITE, linkX, y, { url: linkUrl });
+
+      // Reklamrad ovanför footer-linjen
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7);
+      doc.setTextColor(...PDF_BRAND.primary);
+      doc.textWithLink(
+        "Rita egna agility- och hoopersbanor gratis just nu på agilitymanager.se",
+        PDF_PAGE.width / 2,
+        y - 7,
+        { url: linkUrl, align: "center" },
+      );
     }
 
     doc.setFont("helvetica", "italic");
@@ -437,6 +453,7 @@ export function drawFooterAllPages(
     // varumärkesrad
     doc.setFillColor(...PDF_BRAND.primary);
     doc.rect(0, PDF_PAGE.height - 3, PDF_PAGE.width, 3, "F");
+
 
     // QR-kod nere till vänster på sida 1
     if (i === 1 && opts.qrDataUrl) {

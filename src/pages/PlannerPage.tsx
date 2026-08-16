@@ -1395,8 +1395,11 @@ export default function PlannerPage() {
             {/* Valt hinder — åtgärdsrad */}
             {selected && !playbackActive && (
               <div className="absolute bottom-24 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1.5 rounded-2xl border-2 border-ink bg-paper p-1.5 shadow-hard sm:bottom-28">
-                <span className="hidden px-2 text-xs font-bold text-ink/60 sm:block">
+                <span className="hidden px-2 text-xs font-bold leading-tight text-ink/70 sm:block">
                   {selectedNumbered?.number != null && `#${selectedNumbered.number} `}{selectedDef?.label}
+                  <span className="block font-semibold text-ink/45">
+                    {selected.x.toFixed(2).replace(".", ",")} × {selected.y.toFixed(2).replace(".", ",")} m · {Math.round(selected.rotation)}°
+                  </span>
                 </span>
                 <ToolButton onClick={() => rotateBy(-45)} label="Rotera 45° moturs (Shift+R)" disabled={selected.locked}>
                   <RotateCcw className="h-4 w-4" />

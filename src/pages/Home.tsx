@@ -60,9 +60,9 @@ export default function Home() {
             </h1>
             <Reveal delay={650}>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink/70 sm:text-xl">
-                AgilityManager är sportens gratisverktyg: rita banor i meterskala,
-                dela dem med klubben via länk och hitta nästa tävling — allt gratis,
-                allt byggt för hundfolk.
+                AgilityManager är verktyget för sporten: rita banor i meterskala,
+                dela dem med klubben via länk och hitta nästa tävling. Banplaneraren
+                är gratis att använda — inget konto krävs för att komma igång.
               </p>
             </Reveal>
             <Reveal delay={780}>
@@ -174,8 +174,8 @@ export default function Home() {
             </Reveal>
             <Reveal delay={150}>
               <p className="max-w-md text-lg leading-relaxed text-paper/70">
-                Full kraft från första klicket — det finns ingen betalversion att låsa upp.
-                Allt är gratis, för alltid, för hela sporten.
+                Full kraft från första klicket. Hela banplaneraren är gratis att använda —
+                du behöver varken konto eller kort för att rita, exportera och dela.
               </p>
             </Reveal>
           </div>

@@ -1461,24 +1461,67 @@ export default function PlannerPage() {
               </div>
             )}
 
-            {/* Tom bana-hint */}
+            {/* Tom bana — kom igång */}
             {obstacles.length === 0 && !placing && (
-              <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center p-6">
-                <div className="max-w-sm rounded-3xl border-2 border-dashed border-ink/25 bg-paper/85 p-6 text-center backdrop-blur">
+              <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center p-4">
+                <div className="max-w-md rounded-3xl border-2 border-dashed border-ink/25 bg-paper/90 p-5 text-center shadow-hard-sm backdrop-blur sm:p-6">
                   <MousePointerClick className="mx-auto mb-3 h-8 w-8 text-forest" />
-                  <p className="font-display text-2xl uppercase tracking-wide">Börja bygga din bana</p>
-                  <p className="mt-2 text-sm leading-relaxed text-ink/60">
-                    <span className="hidden lg:inline">Välj ett hinder i panelen till vänster</span>
-                    <span className="lg:hidden">Välj ett hinder i raden längst ner</span>
-                    {" "}och tryck på planen — eller öppna
-                    <span className="font-bold text-ink"> banbiblioteket</span> för färdiga officiella banor.
-                  </p>
+                  <p className="font-display text-2xl uppercase tracking-wide">Kom igång på 3 steg</p>
 
+                  <ol className="mx-auto mt-4 max-w-xs space-y-2 text-left">
+                    {[
+                      "Välj hinder i hinderpaletten",
+                      "Tryck på planen för att placera — dra för att flytta",
+                      "Spara & dela banan när du är nöjd",
+                    ].map((step, i) => (
+                      <li key={step} className="flex items-start gap-2.5 text-sm font-semibold leading-snug text-ink/70">
+                        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-forest text-xs font-black text-paper">
+                          {i + 1}
+                        </span>
+                        {step}
+                      </li>
+                    ))}
+                  </ol>
+
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                    {palette[0] && (
+                      <button
+                        onClick={() => setPlacing(palette[0].type)}
+                        className="pressable shadow-hard-sm pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full border-2 border-ink bg-forest px-5 text-sm font-bold text-paper"
+                      >
+                        <MousePointerClick className="h-4 w-4" /> Placera {palette[0].label.toLowerCase()}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setLibraryOpen(true)}
+                      className="pressable shadow-hard-sm pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full border-2 border-ink bg-tang px-5 text-sm font-bold"
+                    >
+                      <BookOpen className="h-4 w-4" /> Färdiga banor
+                    </button>
+                  </div>
+                  <p className="mt-3 text-xs font-semibold text-ink/45">
+                    Allt autosparas lokalt — du kan börja om när du vill.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Placeringsläge — tydlig status + avbryt */}
+            {placing && (
+              <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3">
+                <div className="pointer-events-auto flex items-center gap-2 rounded-full border-2 border-ink bg-forest px-3 py-1.5 text-paper shadow-hard">
+                  <MousePointerClick className="h-4 w-4 shrink-0" />
+                  <span className="text-xs font-bold leading-tight">
+                    Tryck på planen för att placera {getObstacleDefV2(placing)?.label.toLowerCase()}
+                    <span className="hidden font-semibold text-paper/70 sm:inline"> · fortsätt trycka för fler</span>
+                  </span>
                   <button
-                    onClick={() => setLibraryOpen(true)}
-                    className="pressable pointer-events-auto mt-4 inline-flex h-11 items-center gap-2 rounded-full border-2 border-ink bg-tang px-5 text-sm font-bold shadow-hard-sm"
+                    onClick={() => setPlacing(null)}
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-paper/20 transition-colors hover:bg-paper/35"
+                    aria-label="Avbryt placering (Esc)"
+                    title="Avbryt placering (Esc)"
                   >
-                    <BookOpen className="h-4 w-4" /> Öppna banbiblioteket
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               </div>

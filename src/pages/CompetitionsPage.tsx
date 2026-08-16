@@ -224,6 +224,11 @@ export default function CompetitionsPage() {
             active={matchOn}
             counts={profileCounts}
             onActivate={activateProfile}
+            onDuplicate={duplicateDogProfile}
+            onRemove={removeDogProfile}
+            onAdd={addDogProfile}
+            canAdd={canAddDogProfile}
+
             onClear={() => {
               setMatchOn(false);
               setSport("alla");

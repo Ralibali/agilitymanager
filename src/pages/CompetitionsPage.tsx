@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
-import { ArrowRight, LocateFixed, Search } from "lucide-react";
+import { ArrowRight, Heart, LocateFixed, Search } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
@@ -15,6 +15,7 @@ import {
   type UnifiedCompetition,
 } from "@/lib/competitionData";
 import { COUNTIES, nearestCounty } from "@/lib/swedishCounties";
+import { useFavoriteCompetitions } from "@/lib/favoriteCompetitions";
 
 type SportFilter = "alla" | "agility" | "hoopers";
 
@@ -26,6 +27,8 @@ export default function CompetitionsPage() {
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [geoState, setGeoState] = useState<"idle" | "locating" | "denied">("idle");
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const { keys: favoriteKeys, count: favoriteCount } = useFavoriteCompetitions();
 
   const locateMe = () => {
     if (!navigator.geolocation) {
@@ -68,6 +71,7 @@ export default function CompetitionsPage() {
     return all.filter((c) => {
       if (sport !== "alla" && c.sport !== sport) return false;
       if (county !== "alla" && c.county !== county) return false;
+      if (onlyFavorites && !favoriteKeys.includes(c.key)) return false;
       if (onlyOpen && deadlineInfo(c.registrationCloses).tone === "closed") return false;
       if (q) {
         const hay = `${c.name} ${c.club} ${c.location} ${c.county ?? ""} ${c.judges.join(" ")}`.toLowerCase();
@@ -75,7 +79,7 @@ export default function CompetitionsPage() {
       }
       return true;
     });
-  }, [all, sport, county, onlyOpen, query]);
+  }, [all, sport, county, onlyOpen, query, onlyFavorites, favoriteKeys]);
 
   const groups = useMemo(() => {
     const byMonth = new Map<string, UnifiedCompetition[]>();
@@ -147,6 +151,26 @@ export default function CompetitionsPage() {
             </select>
 
             <button
+              onClick={() => setOnlyFavorites((v) => !v)}
+              aria-pressed={onlyFavorites}
+              className={`inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold transition-all ${
+                onlyFavorites
+                  ? "border-ink bg-ember text-paper shadow-hard-sm"
+                  : "border-ink/15 bg-paper text-ink/60 hover:border-ink"
+              }`}
+            >
+              <Heart className={`h-4 w-4 ${onlyFavorites ? "fill-current" : ""}`} />
+              Mina favoriter{favoriteCount > 0 ? ` (${favoriteCount})` : ""}
+            </button>
+
+            <Link
+              to="/tavlingar/favoriter"
+              className="inline-flex items-center gap-2 rounded-full border-2 border-ink/15 px-5 py-2.5 text-sm font-bold text-ink/60 transition-colors hover:border-ink hover:text-ink"
+            >
+              Öppna favoritlistan <ArrowRight className="h-4 w-4" />
+            </Link>
+
+            <button
               onClick={locateMe}
               className="inline-flex items-center gap-2 rounded-full border-2 border-ink/15 px-5 py-2.5 text-sm font-bold text-ink/70 transition-colors hover:border-ink hover:text-ink"
             >
@@ -174,7 +198,11 @@ export default function CompetitionsPage() {
         </Reveal>
 
         {!loading && groups.length === 0 && (
-          <p className="mt-16 text-lg font-semibold text-ink/50">Inga tävlingar matchar filtret.</p>
+          <p className="mt-16 text-lg font-semibold text-ink/50">
+            {onlyFavorites && favoriteCount === 0
+              ? "Du har inga favoriter än — tryck på hjärtat på en tävling för att spara den."
+              : "Inga tävlingar matchar filtret."}
+          </p>
         )}
 
 

@@ -22,6 +22,8 @@ import { filterMatching, matchCompetition, sortByMatchScore, useDogProfile } fro
 import { useDogProfileSync } from "@/lib/dogMatchSync";
 import { DogMatchPanel } from "@/components/competitions/DogMatchPanel";
 import { ProfileQuickSwitch } from "@/components/competitions/ProfileQuickSwitch";
+import { FriendProfilesPanel } from "@/components/competitions/FriendProfilesPanel";
+import { useFriendDogProfiles } from "@/lib/dogMatchFriends";
 import { readFilterPrefs, writeFilterPrefs } from "@/lib/competitionFilterPrefs";
 
 import { buildIcsFeed, icsFeedCount, icsFeedFilename } from "@/lib/competitionIcsFeed";
@@ -62,8 +64,16 @@ export default function CompetitionsPage() {
     add: addDogProfile,
     duplicate: duplicateDogProfile,
     remove: removeDogProfile,
+    importProfile: importDogProfile,
     canAdd: canAddDogProfile,
   } = useDogProfile();
+
+  const {
+    state: friendsState,
+    owners: friendOwners,
+    updateFriendProfile,
+    refresh: refreshFriendProfiles,
+  } = useFriendDogProfiles();
 
   const { state: syncState } = useDogProfileSync();
 
@@ -269,6 +279,21 @@ export default function CompetitionsPage() {
               setSport("alla");
             }}
             loading={loading && all.length === 0}
+          />
+        </Reveal>
+
+        <Reveal className="mb-6">
+          <FriendProfilesPanel
+            state={friendsState}
+            owners={friendOwners}
+            countFor={(p) => filterMatching(base, p).length}
+            onUse={(p) => {
+              importDogProfile({ ...p, name: p.name.trim() ? `${p.name} (delad)` : "" });
+              setMatchOn(true);
+              setSport(p.sport);
+            }}
+            onEdit={updateFriendProfile}
+            onRefresh={refreshFriendProfiles}
           />
         </Reveal>
 

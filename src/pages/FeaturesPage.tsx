@@ -35,7 +35,7 @@ const GROUPS = [
   {
     kicker: "Mer på gång",
     title: "Vi bygger sportens verktygslåda.",
-    text: "Banplaneraren är hjärtat — och den andas in i allt annat vi gör. Och ja: allt är gratis.",
+    text: "Banplaneraren är hjärtat — och den andas in i allt annat vi gör. Den är gratis att använda; nya extrafunktioner kan bli betalda och märks då tydligt.",
     items: [
       { icon: CalendarDays, t: "Tävlingskalender", d: "Agility- och hooperstarter över hela landet, samlade och sökbara." },
       { icon: Medal, t: "Banor till tävling", d: "Träna på banlayouter inspirerade av riktiga klasser och nivåer." },
@@ -51,7 +51,7 @@ export default function FeaturesPage() {
       <SiteNav />
       <PageHero kicker="Funktioner" title="Allt banplaneraren kan.">
         Från första hindret till färdig delningslänk — här är hela verktygslådan.
-        Gratis, för alltid, för både agility och hoopers.
+        Gratis att använda, för både agility och hoopers.
       </PageHero>
 
       {GROUPS.map((g, gi) => (
@@ -113,7 +113,7 @@ export default function FeaturesPage() {
               Öppna banplaneraren <ArrowRight className="h-5 w-5" />
             </Link>
             <Link to="/priser" className="pressable shadow-hard inline-flex h-14 items-center gap-2 rounded-full border-2 border-ink bg-paper px-8 text-lg font-bold">
-              Varför är allt gratis?
+              Se vad som är gratis
             </Link>
           </div>
         </Reveal>

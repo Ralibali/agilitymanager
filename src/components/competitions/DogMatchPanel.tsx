@@ -88,14 +88,15 @@ export function DogMatchPanel({
             <span
               key={p.id}
               className={`inline-flex items-center gap-1 rounded-full border-2 pl-1 pr-1 transition-all ${
-                isActive ? "border-ink bg-forest text-paper shadow-hard-sm" : "border-ink/15 bg-paper text-ink/70"
+                isActive ? "border-ink bg-forest text-paper shadow-hard ring-2 ring-forest/25 ring-offset-2 ring-offset-paper" : "border-ink/15 bg-paper text-ink/70"
               }`}
             >
               <button
                 onClick={() => onSelect(p.id)}
                 aria-pressed={isActive}
-                className="rounded-full px-3 py-1.5 text-sm font-bold"
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold"
               >
+                {isActive ? <CheckCircle2 className="h-4 w-4" /> : <Dog className="h-4 w-4 text-ink/50" />}
                 {profileLabel(p, i)}
               </button>
               {profiles.length > 1 && (

@@ -82,13 +82,17 @@ export default function CompetitionsPage() {
       if (county !== "alla" && c.county !== county) return false;
       if (onlyFavorites && !favoriteKeys.includes(c.key)) return false;
       if (onlyOpen && deadlineInfo(c.registrationCloses).tone === "closed") return false;
+      if (matchOn && !matchCompetition(c, dogProfile).matches) return false;
       if (q) {
         const hay = `${c.name} ${c.club} ${c.location} ${c.county ?? ""} ${c.judges.join(" ")}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [all, sport, county, onlyOpen, query, onlyFavorites, favoriteKeys]);
+  }, [all, sport, county, onlyOpen, query, onlyFavorites, favoriteKeys, matchOn, dogProfile]);
+
+  const matchCount = useMemo(() => filterMatching(all, dogProfile).length, [all, dogProfile]);
+
 
   const groups = useMemo(() => {
     const byMonth = new Map<string, UnifiedCompetition[]>();

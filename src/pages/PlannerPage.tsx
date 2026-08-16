@@ -242,6 +242,7 @@ export default function PlannerPage() {
   const [, forceShareRefresh] = useState(0);
   const [issuesOpen, setIssuesOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);

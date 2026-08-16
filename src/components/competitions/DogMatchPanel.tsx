@@ -141,15 +141,15 @@ export function DogMatchPanel({
             <>
               <button
                 onClick={onAdd}
-                className="inline-flex items-center gap-1.5 rounded-full border-2 border-dashed border-ink/25 px-3 py-1.5 text-sm font-bold text-ink/60 hover:border-ink hover:text-ink"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full border-2 border-dashed border-ink/25 px-3 py-1.5 text-sm font-bold text-ink/60 transition-all hover:border-ink hover:text-ink"
               >
-                <Plus className="h-4 w-4" /> Ny profil
+                <Plus className="h-4 w-4" aria-hidden="true" /> Ny profil
               </button>
               <button
                 onClick={() => onDuplicate(activeId)}
-                className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 py-1.5 text-sm font-bold text-ink/60 hover:border-ink hover:text-ink"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 py-1.5 text-sm font-bold text-ink/60 transition-all hover:border-ink hover:text-ink"
               >
-                <Copy className="h-4 w-4" /> Duplicera
+                <Copy className="h-4 w-4" aria-hidden="true" /> Duplicera
               </button>
             </>
           )}

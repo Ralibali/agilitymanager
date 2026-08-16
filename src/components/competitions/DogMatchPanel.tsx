@@ -70,7 +70,7 @@ export function DogMatchPanel({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border-2 border-ink bg-forest text-paper">
-              <Dog className="h-5 w-5" />
+              <Dog className="h-5 w-5" aria-hidden="true" />
             </span>
             <div>
               <h2 className="font-display text-2xl tracking-wide">Matcha mot din hund</h2>

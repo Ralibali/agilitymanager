@@ -219,7 +219,17 @@ export default function CompetitionsPage() {
             matchCount={matchCount}
             loading={loading}
           />
+          <p className="mt-2 text-xs text-muted-foreground">
+            {syncState === "synced"
+              ? "Dina matchningsprofiler är sparade på ditt konto och följer med till andra enheter."
+              : syncState === "syncing"
+                ? "Synkar dina matchningsprofiler med ditt konto …"
+                : syncState === "error"
+                  ? "Kunde inte synka profilerna just nu — de sparas ändå i den här webbläsaren."
+                  : "Profilerna sparas i den här webbläsaren. Logga in för att synka dem mellan enheter."}
+          </p>
         </Reveal>
+
 
         <Reveal className="mb-6">
           <ProfileQuickSwitch

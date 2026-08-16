@@ -285,7 +285,10 @@ export default function CompetitionsPage() {
           <p className="mt-16 text-lg font-semibold text-ink/50">
             {onlyFavorites && favoriteCount === 0
               ? "Du har inga favoriter än — tryck på hjärtat på en tävling för att spara den."
-              : "Inga tävlingar matchar filtret."}
+              : matchOn
+                ? "Inga tävlingar matchar hundens klass just nu — prova en annan klass eller stäng av matchningen."
+                : "Inga tävlingar matchar filtret."}
+
           </p>
         )}
 

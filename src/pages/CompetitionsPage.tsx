@@ -88,51 +88,67 @@ export default function CompetitionsPage() {
 
 
 
-  useEffect(() => {
+  /** Hämtar listan. Vid omladdning behålls befintliga siffror så de aldrig blinkar bort. */
+  const loadCompetitions = useCallback((mode: "initial" | "refresh") => {
+    if (mode === "refresh") setRefreshing(true);
     let cancelled = false;
     fetchUpcomingCompetitions()
       .then((list) => {
         if (!cancelled) setAll(list);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (cancelled) return;
+        setLoading(false);
+        setRefreshing(false);
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
+  useEffect(() => loadCompetitions("initial"), [loadCompetitions]);
+
   const counties = useMemo(
     () => [...new Set(all.map((c) => c.county).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, "sv")),
     [all],
   );
 
-  const filtered = useMemo(() => {
+  /** Urval utan matchningsfiltret – bas för alla live-räknare. */
+  const base = useMemo(() => {
     const q = query.trim().toLowerCase();
     return all.filter((c) => {
-      if (sport !== "alla" && c.sport !== sport) return false;
       if (county !== "alla" && c.county !== county) return false;
       if (onlyFavorites && !favoriteKeys.includes(c.key)) return false;
       if (onlyOpen && deadlineInfo(c.registrationCloses).tone === "closed") return false;
-      if (matchOn && !matchCompetition(c, dogProfile).matches) return false;
       if (q) {
         const hay = `${c.name} ${c.club} ${c.location} ${c.county ?? ""} ${c.judges.join(" ")}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [all, sport, county, onlyOpen, query, onlyFavorites, favoriteKeys, matchOn, dogProfile]);
+  }, [all, county, onlyOpen, query, onlyFavorites, favoriteKeys]);
 
-  const matchCount = useMemo(() => filterMatching(all, dogProfile).length, [all, dogProfile]);
+  const filtered = useMemo(
+    () =>
+      base.filter((c) => {
+        if (sport !== "alla" && c.sport !== sport) return false;
+        if (matchOn && !matchCompetition(c, dogProfile).matches) return false;
+        return true;
+      }),
+    [base, sport, matchOn, dogProfile],
+  );
 
-  /** Antal matchande tävlingar per sparad profil, för snabbväxeln. */
+  const matchCount = useMemo(() => filterMatching(base, dogProfile).length, [base, dogProfile]);
+
+  /** Antal matchande tävlingar per sparad profil inom nuvarande filter. */
   const profileCounts = useMemo(() => {
     const map: Record<string, number> = {};
     dogProfiles.forEach((p) => {
-      map[p.id] = filterMatching(all, p).length;
+      map[p.id] = filterMatching(base, p).length;
     });
     return map;
-  }, [all, dogProfiles]);
+  }, [base, dogProfiles]);
+
 
   /** Tävlingar som hamnar i iCal-filen: matchande inom nuvarande filter. */
   const icsList = useMemo(

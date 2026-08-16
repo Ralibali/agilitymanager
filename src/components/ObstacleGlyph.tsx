@@ -78,8 +78,8 @@ export function ObstacleGlyph({
     case "tire":
       return (
         <g {...s}>
-          <circle r={Math.min(w, d) / 2 - 0.05} strokeWidth={sw * 1.4} />
-          <circle r={Math.min(w, d) / 2 - 0.28} strokeWidth={sw * 1.8} />
+          <circle r={Math.max(0.02, Math.min(w, d) / 2 - 0.05)} strokeWidth={sw * 1.4} />
+          <circle r={Math.max(0.02, Math.min(w, d) / 2 - 0.28)} strokeWidth={sw * 1.8} />
           <line x1={-w / 2} y1={d / 2 + 0.15} x2={w / 2} y2={d / 2 + 0.15} strokeWidth={sw * 1.6} />
         </g>
       );
@@ -185,7 +185,7 @@ export function ObstacleGlyph({
       return (
         <g {...s}>
           <circle r={Math.min(w, d) / 2} strokeWidth={sw * 1.4} fill={`${stroke}14`} />
-          <circle r={Math.min(w, d) / 2 - 0.18} strokeWidth={sw * 0.8} strokeDasharray="0.15 0.15" />
+          <circle r={Math.max(0.02, Math.min(w, d) / 2 - 0.18)} strokeWidth={sw * 0.8} strokeDasharray="0.15 0.15" />
         </g>
       );
     case "fence":

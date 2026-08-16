@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { CheckCircle2, Copy, Dog, MoreVertical, Plus, Trash2, Zap } from "lucide-react";
 import {
   JUMP_HEIGHT_CM,
@@ -11,6 +12,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Props {
   profiles: SavedDogProfile[];

@@ -382,7 +382,30 @@ export function drawHeaderBand(doc: jsPDF, opts: {
     doc.text(opts.badge, PDF_PAGE.width - PDF_PAGE.margin - w / 2, 11.5, { align: "center" });
   }
   doc.setTextColor(0);
+
+/**
+ * Diagonalt vattenmärke tvärs över sidan.
+ * Ritas på varje sida för gratisexporter.
+ */
+export function drawDiagonalWatermark(doc: jsPDF, label = "agilitymanager.se") {
+  const gs = (doc as unknown as {
+    GState?: (o: { opacity: number }) => unknown;
+    setGState?: (s: unknown) => void;
+  });
+  const hasGState = typeof gs.GState === "function" && typeof gs.setGState === "function";
+  if (hasGState) gs.setGState!(gs.GState!({ opacity: 0.09 }));
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(52);
+  doc.setTextColor(...PDF_BRAND.primary);
+  doc.text(label, PDF_PAGE.width / 2, PDF_PAGE.height / 2, {
+    align: "center",
+    baseline: "middle",
+    angle: 30,
+  });
+  if (hasGState) gs.setGState!(gs.GState!({ opacity: 1 }));
+  doc.setTextColor(0);
 }
+
 
 /**
  * Renderar footer på alla sidor i dokumentet.

@@ -203,9 +203,9 @@ export function ProfileQuickSwitch({
               <button
                 type="button"
                 onClick={onAdd}
-                className="flex shrink-0 items-center gap-1.5 rounded-full border-2 border-dashed border-ink/25 bg-paper px-4 py-2 text-sm font-bold text-ink/60 transition-all hover:border-ink hover:text-ink"
+                className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border-2 border-dashed border-ink/25 bg-paper px-4 py-2 text-sm font-bold text-ink/60 transition-all hover:border-ink hover:text-ink"
               >
-                <Plus className="h-4 w-4" /> Ny profil
+                <Plus className="h-4 w-4" aria-hidden="true" /> Ny profil
               </button>
             )}
           </div>

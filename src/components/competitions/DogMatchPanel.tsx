@@ -66,7 +66,7 @@ export function DogMatchPanel({
 
   return (
     <>
-      <div className="rounded-3xl border-2 border-ink bg-[#FCFAF4] p-5 shadow-hard sm:p-6">
+      <div className="rounded-3xl border-2 border-ink bg-card p-5 shadow-hard sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border-2 border-ink bg-forest text-paper">

@@ -1,0 +1,1 @@
+delete from public.planner_courses where id = '21252505-70ff-4841-9641-2421910957fd'; delete from public.planner_profiles where email = 'test.forare@example.com';

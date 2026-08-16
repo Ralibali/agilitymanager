@@ -150,7 +150,11 @@ export default function CompetitionsPage() {
             profile={dogProfile}
             profiles={dogProfiles}
             activeId={dogProfileId}
-            onSelect={selectDogProfile}
+            onSelect={(id) => {
+              selectDogProfile(id);
+              const next = dogProfiles.find((p) => p.id === id);
+              if (matchOn && next) setSport(next.sport);
+            }}
             onAdd={addDogProfile}
             onDuplicate={duplicateDogProfile}
             onRemove={removeDogProfile}

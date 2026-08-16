@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
-import { ArrowRight, CalendarPlus, Heart, LocateFixed, MapPin, Search } from "lucide-react";
+import { ArrowRight, CalendarPlus, Heart, LocateFixed, MapPin, RefreshCw, Search } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
@@ -238,7 +238,7 @@ export default function CompetitionsPage() {
               if (next) setSport(dogProfile.sport);
             }}
             matchCount={matchCount}
-            loading={loading}
+            loading={loading && all.length === 0}
           />
           <p className="mt-2 text-xs text-muted-foreground">
             {syncState === "synced"
@@ -268,7 +268,7 @@ export default function CompetitionsPage() {
               setMatchOn(false);
               setSport("alla");
             }}
-            loading={loading}
+            loading={loading && all.length === 0}
           />
         </Reveal>
 

@@ -1369,9 +1369,12 @@ export default function PlannerPage() {
                   <MousePointerClick className="mx-auto mb-3 h-8 w-8 text-forest" />
                   <p className="font-display text-2xl uppercase tracking-wide">Börja bygga din bana</p>
                   <p className="mt-2 text-sm leading-relaxed text-ink/60">
-                    Välj ett hinder i panelen till vänster och klicka på planen — eller öppna
+                    <span className="hidden lg:inline">Välj ett hinder i panelen till vänster</span>
+                    <span className="lg:hidden">Välj ett hinder i raden längst ner</span>
+                    {" "}och tryck på planen — eller öppna
                     <span className="font-bold text-ink"> banbiblioteket</span> för färdiga officiella banor.
                   </p>
+
                   <button
                     onClick={() => setLibraryOpen(true)}
                     className="pressable pointer-events-auto mt-4 inline-flex h-11 items-center gap-2 rounded-full border-2 border-ink bg-tang px-5 text-sm font-bold shadow-hard-sm"

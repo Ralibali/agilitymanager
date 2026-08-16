@@ -27,12 +27,14 @@ interface Props {
   /** Om byline-vattenmärket ska visas i exporten. Default = true. */
   showWatermark?: boolean;
   onToggleWatermark?: (next: boolean) => void;
+  /** Anropas när en gratisanvändare klickar på "ta bort vattenstämpel". */
+  onWatermarkUpsell?: () => void;
 }
 
 export function ExportMenu({
   onJudge, onTraining, onBuild, onStartlist, onJson, onImportJson,
   onShareImage, on3DView, on3DWalk,
-  isPremium = false, showWatermark = true, onToggleWatermark,
+  isPremium = false, showWatermark = true, onToggleWatermark, onWatermarkUpsell,
 }: Props) {
   return (
     <DropdownMenu>
@@ -72,32 +74,24 @@ export function ExportMenu({
             </DropdownMenuItem>
           </>
         )}
-        {onToggleWatermark && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>Vattenmärke</DropdownMenuLabel>
-            {isPremium ? (
-              <DropdownMenuCheckboxItem
-                checked={showWatermark}
-                onCheckedChange={(v) => onToggleWatermark(Boolean(v))}
-                onSelect={(e) => e.preventDefault()}
-              >
-                Visa agilitymanager.se-byline
-              </DropdownMenuCheckboxItem>
-            ) : (
-              <DropdownMenuItem
-                disabled
-                className="opacity-70"
-                onSelect={(e) => e.preventDefault()}
-              >
-                <Lock size={12} className="mr-2" />
-                <span className="flex-1">Visa agilitymanager.se-byline</span>
-                <span className="ml-2 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
-                  Premium
-                </span>
-              </DropdownMenuItem>
-            )}
-          </>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Vattenstämpel</DropdownMenuLabel>
+        {isPremium && onToggleWatermark ? (
+          <DropdownMenuCheckboxItem
+            checked={showWatermark}
+            onCheckedChange={(v) => onToggleWatermark(Boolean(v))}
+            onSelect={(e) => e.preventDefault()}
+          >
+            Visa agilitymanager.se-stämpel
+          </DropdownMenuCheckboxItem>
+        ) : (
+          <DropdownMenuItem onSelect={() => onWatermarkUpsell?.()}>
+            <Lock size={12} className="mr-2" />
+            <span className="flex-1">Exportera utan vattenstämpel</span>
+            <span className="ml-2 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+              Betald
+            </span>
+          </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuLabel>Backup och import</DropdownMenuLabel>

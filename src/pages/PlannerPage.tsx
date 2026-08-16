@@ -945,9 +945,12 @@ export default function PlannerPage() {
               </ToolButton>
             </span>
 
-            <ToolButton onClick={() => setView3D("view")} label="3D-vy (3)">
-              <Box className="h-5 w-5" />
-            </ToolButton>
+            <span className="hidden sm:inline-flex">
+              <ToolButton onClick={() => setView3D("view")} label="3D-vy (3)">
+                <Box className="h-5 w-5" />
+              </ToolButton>
+            </span>
+
             <div className="relative">
               <ExportMenu
                 onJudge={onJudgePdf}

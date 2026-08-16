@@ -377,17 +377,28 @@ export default function CompetitionsPage() {
             </label>
           </div>
 
-          <p className="mt-4 text-sm font-semibold text-ink/45">
-            {loading
-              ? "Hämtar tävlingar…"
-              : `${filtered.length} av ${all.length} kommande tävlingar · ${openCount} med öppen anmälan`}
-            {matchOn &&
-              ` · matchade mot ${dogProfile.name.trim() || "din hund"} (${
-                dogProfile.sport === "agility" ? dogProfile.agilityLevel : dogProfile.hoopersLevel
-              }, ${dogProfile.size})`}
+          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <p aria-live="polite" className="text-sm font-semibold text-ink/45">
+              {loading && all.length === 0
+                ? "Hämtar tävlingar…"
+                : `${filtered.length} av ${all.length} kommande tävlingar · ${openCount} med öppen anmälan`}
+              {matchOn &&
+                ` · matchade mot ${dogProfile.name.trim() || "din hund"} (${
+                  dogProfile.sport === "agility" ? dogProfile.agilityLevel : dogProfile.hoopersLevel
+                }, ${dogProfile.size})`}
+              {refreshing && all.length > 0 && " · uppdaterar i bakgrunden…"}
+              {geoState === "denied" && " · kunde inte hämta din position — välj län manuellt"}
+            </p>
+            <button
+              onClick={() => loadCompetitions("refresh")}
+              disabled={refreshing}
+              className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 py-1 text-xs font-bold text-ink/60 transition-colors hover:border-ink hover:text-ink disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+              Uppdatera listan
+            </button>
+          </div>
 
-            {geoState === "denied" && " · kunde inte hämta din position — välj län manuellt"}
-          </p>
         </Reveal>
 
         {userPos && nearby.length > 0 && (

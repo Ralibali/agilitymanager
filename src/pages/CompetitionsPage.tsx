@@ -1,15 +1,16 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
-import { ArrowRight, Heart, LocateFixed, MapPin, Search } from "lucide-react";
+import { ArrowRight, CalendarPlus, Heart, LocateFixed, MapPin, Search } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { EmailCapture } from "@/components/EmailCapture";
-import { Seo } from "@/components/Seo";
+import { Seo, SITE_URL } from "@/components/Seo";
 import { CompetitionCard } from "@/components/competitions/CompetitionCard";
 import {
   deadlineInfo,
+  downloadIcs,
   fetchUpcomingCompetitions,
   monthLabel,
   type UnifiedCompetition,
@@ -20,6 +21,7 @@ import { useFavoriteCompetitions } from "@/lib/favoriteCompetitions";
 import { filterMatching, matchCompetition, useDogProfile } from "@/lib/dogMatch";
 import { DogMatchPanel } from "@/components/competitions/DogMatchPanel";
 import { ProfileQuickSwitch } from "@/components/competitions/ProfileQuickSwitch";
+import { buildIcsFeed, icsFeedCount, icsFeedFilename } from "@/lib/competitionIcsFeed";
 
 
 const CompetitionMap = lazy(() =>
@@ -118,6 +120,25 @@ export default function CompetitionsPage() {
     });
     return map;
   }, [all, dogProfiles]);
+
+  /** Tävlingar som hamnar i iCal-filen: matchande inom nuvarande filter. */
+  const icsList = useMemo(
+    () => (matchOn ? filtered : filterMatching(filtered, dogProfile)),
+    [matchOn, filtered, dogProfile],
+  );
+  const icsCount = useMemo(() => icsFeedCount(icsList), [icsList]);
+
+  /** Laddar ner de filtrerade tävlingarna som en iCal-fil till mobilkalendern. */
+  const exportIcsFeed = () => {
+    if (icsList.length === 0) return;
+    downloadIcs(
+      icsFeedFilename(dogProfile.name),
+      buildIcsFeed(icsList, {
+        calendarName: `AgilityManager – tävlingar för ${dogProfile.name.trim() || "din hund"}`,
+        siteUrl: SITE_URL,
+      }),
+    );
+  };
 
   /** Aktiverar matchning för en profil och sätter sportfiltret därefter. */
   const activateProfile = (id: string) => {
@@ -264,6 +285,15 @@ export default function CompetitionsPage() {
             >
               Öppna favoritlistan <ArrowRight className="h-4 w-4" />
             </Link>
+
+            <button
+              onClick={exportIcsFeed}
+              disabled={icsCount === 0}
+              className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-tang px-5 py-2.5 text-sm font-bold text-ink shadow-hard-sm transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:border-ink/15 disabled:bg-paper disabled:text-ink/35 disabled:shadow-none"
+            >
+              <CalendarPlus className="h-4 w-4" />
+              Lägg matchande i kalendern{icsCount > 0 ? ` (${icsCount})` : ""}
+            </button>
 
             <button
               onClick={locateMe}

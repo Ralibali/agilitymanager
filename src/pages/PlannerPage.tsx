@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import {
   ArrowLeft, BookOpen, Box, Check, ChevronDown, ChevronUp, Cloud, CloudCheck,
-  Command, Copy, Download, Eraser, Footprints, Grid2x2, Link2, Loader2, Lock,
-  Lightbulb, MessageSquare, MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler,
-  Share2, ShieldCheck, Spline, Trash2, Undo2, Unlock, Users, ZoomIn, ZoomOut,
+  Command, Copy, Download, Eraser, Footprints, Grid2x2, Keyboard, Link2, Loader2, Lock,
+  Lightbulb, MessageSquare, MoreHorizontal, MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler,
+  Share2, ShieldCheck, Spline, Trash2, Undo2, Unlock, Users, X, ZoomIn, ZoomOut,
 } from "lucide-react";
 import { toast } from "sonner";
 import { uid, type PlacedObstacle, type Sport } from "@/lib/course";

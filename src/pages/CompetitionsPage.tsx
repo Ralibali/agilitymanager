@@ -234,6 +234,11 @@ export default function CompetitionsPage() {
             {loading
               ? "Hämtar tävlingar…"
               : `${filtered.length} av ${all.length} kommande tävlingar · ${openCount} med öppen anmälan`}
+            {matchOn &&
+              ` · matchade mot ${dogProfile.name.trim() || "din hund"} (${
+                dogProfile.sport === "agility" ? dogProfile.agilityLevel : dogProfile.hoopersLevel
+              }, ${dogProfile.size})`}
+
             {geoState === "denied" && " · kunde inte hämta din position — välj län manuellt"}
           </p>
         </Reveal>

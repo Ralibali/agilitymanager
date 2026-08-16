@@ -16,7 +16,6 @@ export function CompetitionCard({ comp }: { comp: UnifiedCompetition }) {
 
   return (
     <div className="relative h-full">
-      <FavoriteButton compKey={comp.key} className="absolute bottom-4 right-4 z-10" />
     <Link
       to={comp.path}
       className="group flex h-full flex-col rounded-3xl border-2 border-ink bg-[#FCFAF4] p-6 shadow-hard transition-transform duration-300 hover:-translate-y-1.5"
@@ -66,6 +65,7 @@ export function CompetitionCard({ comp }: { comp: UnifiedCompetition }) {
         </span>
       </div>
     </Link>
+      <FavoriteButton compKey={comp.key} className="absolute bottom-4 right-4 z-20 shadow-hard-sm" />
     </div>
   );
 }

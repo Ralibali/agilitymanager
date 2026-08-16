@@ -39,7 +39,17 @@ export default function CompetitionsPage() {
   const [userPos, setUserPos] = useState<GeoPoint | null>(null);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [matchOn, setMatchOn] = useState(false);
-  const { profile: dogProfile, update: updateDogProfile } = useDogProfile();
+  const {
+    profile: dogProfile,
+    profiles: dogProfiles,
+    activeId: dogProfileId,
+    update: updateDogProfile,
+    select: selectDogProfile,
+    add: addDogProfile,
+    duplicate: duplicateDogProfile,
+    remove: removeDogProfile,
+    canAdd: canAddDogProfile,
+  } = useDogProfile();
 
   const { keys: favoriteKeys, count: favoriteCount } = useFavoriteCompetitions();
 
@@ -138,6 +148,17 @@ export default function CompetitionsPage() {
         <Reveal className="mb-8">
           <DogMatchPanel
             profile={dogProfile}
+            profiles={dogProfiles}
+            activeId={dogProfileId}
+            onSelect={(id) => {
+              selectDogProfile(id);
+              const next = dogProfiles.find((p) => p.id === id);
+              if (matchOn && next) setSport(next.sport);
+            }}
+            onAdd={addDogProfile}
+            onDuplicate={duplicateDogProfile}
+            onRemove={removeDogProfile}
+            canAdd={canAddDogProfile}
             onChange={updateDogProfile}
             active={matchOn}
             onToggle={(next) => {

@@ -6,6 +6,15 @@ import {
   hoopersSizeFor,
   matchCompetition,
   type DogProfile,
+  addProfile,
+  createProfile,
+  duplicateProfile,
+  patchActive,
+  profileLabel,
+  removeProfile,
+  selectProfile,
+  MAX_DOG_PROFILES,
+  type DogProfileStore,
 } from "./dogMatch";
 
 function comp(partial: Partial<UnifiedCompetition>): UnifiedCompetition {
@@ -78,5 +87,56 @@ describe("hoopersSizeFor", () => {
     expect(hoopersSizeFor("S")).toBe("Small");
     expect(hoopersSizeFor("M")).toBe("Large");
     expect(hoopersSizeFor("L")).toBe("Large");
+  });
+});
+
+
+describe("flera matchningsprofiler", () => {
+  function store(): DogProfileStore {
+    const first = createProfile({ name: "Rio" });
+    return { profiles: [first], activeId: first.id };
+  }
+
+  it("lägger till och aktiverar en ny profil", () => {
+    const next = addProfile(store());
+    expect(next.profiles).toHaveLength(2);
+    expect(next.activeId).toBe(next.profiles[1].id);
+  });
+
+  it("respekterar maxantalet profiler", () => {
+    let s = store();
+    for (let i = 0; i < MAX_DOG_PROFILES + 3; i += 1) s = addProfile(s);
+    expect(s.profiles).toHaveLength(MAX_DOG_PROFILES);
+  });
+
+  it("uppdaterar endast den aktiva profilen", () => {
+    const s = addProfile(store(), { name: "Nova" });
+    const next = patchActive(s, { size: "S" });
+    expect(next.profiles[0].size).toBe("M");
+    expect(next.profiles[1].size).toBe("S");
+  });
+
+  it("växlar aktiv profil", () => {
+    const s = addProfile(store(), { name: "Nova" });
+    const next = selectProfile(s, s.profiles[0].id);
+    expect(next.activeId).toBe(s.profiles[0].id);
+  });
+
+  it("duplicerar en profil med kopienamn", () => {
+    const s = store();
+    const next = duplicateProfile(s, s.profiles[0].id);
+    expect(next.profiles[1].name).toBe("Rio (kopia)");
+    expect(next.profiles[1].id).not.toBe(s.profiles[0].id);
+  });
+
+  it("tar bort profiler men behåller minst en", () => {
+    const s = addProfile(store(), { name: "Nova" });
+    const one = removeProfile(s, s.profiles[1].id);
+    expect(one.profiles).toHaveLength(1);
+    expect(removeProfile(one, one.profiles[0].id).profiles).toHaveLength(1);
+  });
+
+  it("faller tillbaka på ett läsbart namn", () => {
+    expect(profileLabel({ ...DEFAULT_DOG_PROFILE, name: "  " }, 1)).toBe("Profil 2");
   });
 });

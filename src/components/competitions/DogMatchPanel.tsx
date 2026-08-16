@@ -1,11 +1,13 @@
-import { Dog, Ruler, Sparkles } from "lucide-react";
+import { Copy, Dog, Plus, Ruler, Sparkles, X } from "lucide-react";
 import {
   AGILITY_LEVELS,
   HOOPERS_LEVELS,
   JUMP_HEIGHT_CM,
   SIZE_WITHERS,
   hoopersSizeFor,
+  profileLabel,
   type DogProfile,
+  type SavedDogProfile,
   type SizeClass,
 } from "@/lib/dogMatch";
 
@@ -13,6 +15,13 @@ const SIZES: SizeClass[] = ["XS", "S", "M", "L"];
 
 interface Props {
   profile: DogProfile;
+  profiles: SavedDogProfile[];
+  activeId: string;
+  onSelect: (id: string) => void;
+  onAdd: () => void;
+  onDuplicate: (id: string) => void;
+  onRemove: (id: string) => void;
+  canAdd: boolean;
   onChange: (patch: Partial<DogProfile>) => void;
   active: boolean;
   onToggle: (next: boolean) => void;
@@ -26,6 +35,13 @@ const selectClass =
 /** Matchningsvy: filtrerar kalendern efter hundens sport, klass och storlek. */
 export function DogMatchPanel({
   profile,
+  profiles,
+  activeId,
+  onSelect,
+  onAdd,
+  onDuplicate,
+  onRemove,
+  canAdd,
   onChange,
   active,
   onToggle,
@@ -62,6 +78,54 @@ export function DogMatchPanel({
           <Sparkles className="h-4 w-4" />
           {active ? "Matchning på" : "Visa bara matchande"}
         </button>
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-bold uppercase tracking-wider text-ink/45">Profiler</span>
+        {profiles.map((p, i) => {
+          const isActive = p.id === activeId;
+          return (
+            <span
+              key={p.id}
+              className={`inline-flex items-center gap-1 rounded-full border-2 pl-1 pr-1 transition-all ${
+                isActive ? "border-ink bg-forest text-paper shadow-hard-sm" : "border-ink/15 bg-paper text-ink/70"
+              }`}
+            >
+              <button
+                onClick={() => onSelect(p.id)}
+                aria-pressed={isActive}
+                className="rounded-full px-3 py-1.5 text-sm font-bold"
+              >
+                {profileLabel(p, i)}
+              </button>
+              {profiles.length > 1 && (
+                <button
+                  onClick={() => onRemove(p.id)}
+                  aria-label={`Ta bort ${profileLabel(p, i)}`}
+                  className="grid h-6 w-6 place-items-center rounded-full hover:bg-ink/10"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </span>
+          );
+        })}
+        {canAdd && (
+          <>
+            <button
+              onClick={onAdd}
+              className="inline-flex items-center gap-1.5 rounded-full border-2 border-dashed border-ink/25 px-3 py-1.5 text-sm font-bold text-ink/60 hover:border-ink hover:text-ink"
+            >
+              <Plus className="h-4 w-4" /> Ny profil
+            </button>
+            <button
+              onClick={() => onDuplicate(activeId)}
+              className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 py-1.5 text-sm font-bold text-ink/60 hover:border-ink hover:text-ink"
+            >
+              <Copy className="h-4 w-4" /> Duplicera
+            </button>
+          </>
+        )}
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -83,13 +83,14 @@ export function DogMatchPanel({
           <button
             onClick={() => onToggle(!active)}
             aria-pressed={active}
-            className={`inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold transition-all ${
+            aria-label={active ? "Matchning är påslagen, visa bara tävlingar som passar den valda hundprofilen" : "Slå på matchning för att bara se tävlingar som passar den valda hundprofilen"}
+            className={`inline-flex min-h-11 items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold transition-all ${
               active
                 ? "border-ink bg-forest text-paper shadow-hard-sm"
-                : "border-ink/15 bg-paper text-ink/60 hover:border-ink"
+                : "border-ink/15 bg-paper text-ink hover:border-ink"
             }`}
           >
-            <Sparkles className="h-4 w-4" />
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
             {active ? "Matchning på" : "Visa bara matchande"}
           </button>
         </div>

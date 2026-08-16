@@ -1,6 +1,6 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
-import { ArrowRight, CalendarPlus, Heart, LocateFixed, MapPin, Search } from "lucide-react";
+import { ArrowRight, CalendarPlus, Heart, LocateFixed, MapPin, RefreshCw, Search } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
@@ -38,6 +38,7 @@ export default function CompetitionsPage() {
   const initialPrefs = useMemo(() => readFilterPrefs(), []);
   const [all, setAll] = useState<UnifiedCompetition[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [sport, setSport] = useState<SportFilter>(initialPrefs.sport);
   const [county, setCounty] = useState<string>(initialPrefs.county);
   const [onlyOpen, setOnlyOpen] = useState(initialPrefs.onlyOpen);
@@ -88,51 +89,67 @@ export default function CompetitionsPage() {
 
 
 
-  useEffect(() => {
+  /** Hämtar listan. Vid omladdning behålls befintliga siffror så de aldrig blinkar bort. */
+  const loadCompetitions = useCallback((mode: "initial" | "refresh") => {
+    if (mode === "refresh") setRefreshing(true);
     let cancelled = false;
     fetchUpcomingCompetitions()
       .then((list) => {
         if (!cancelled) setAll(list);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (cancelled) return;
+        setLoading(false);
+        setRefreshing(false);
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
+  useEffect(() => loadCompetitions("initial"), [loadCompetitions]);
+
   const counties = useMemo(
     () => [...new Set(all.map((c) => c.county).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, "sv")),
     [all],
   );
 
-  const filtered = useMemo(() => {
+  /** Urval utan matchningsfiltret – bas för alla live-räknare. */
+  const base = useMemo(() => {
     const q = query.trim().toLowerCase();
     return all.filter((c) => {
-      if (sport !== "alla" && c.sport !== sport) return false;
       if (county !== "alla" && c.county !== county) return false;
       if (onlyFavorites && !favoriteKeys.includes(c.key)) return false;
       if (onlyOpen && deadlineInfo(c.registrationCloses).tone === "closed") return false;
-      if (matchOn && !matchCompetition(c, dogProfile).matches) return false;
       if (q) {
         const hay = `${c.name} ${c.club} ${c.location} ${c.county ?? ""} ${c.judges.join(" ")}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [all, sport, county, onlyOpen, query, onlyFavorites, favoriteKeys, matchOn, dogProfile]);
+  }, [all, county, onlyOpen, query, onlyFavorites, favoriteKeys]);
 
-  const matchCount = useMemo(() => filterMatching(all, dogProfile).length, [all, dogProfile]);
+  const filtered = useMemo(
+    () =>
+      base.filter((c) => {
+        if (sport !== "alla" && c.sport !== sport) return false;
+        if (matchOn && !matchCompetition(c, dogProfile).matches) return false;
+        return true;
+      }),
+    [base, sport, matchOn, dogProfile],
+  );
 
-  /** Antal matchande tävlingar per sparad profil, för snabbväxeln. */
+  const matchCount = useMemo(() => filterMatching(base, dogProfile).length, [base, dogProfile]);
+
+  /** Antal matchande tävlingar per sparad profil inom nuvarande filter. */
   const profileCounts = useMemo(() => {
     const map: Record<string, number> = {};
     dogProfiles.forEach((p) => {
-      map[p.id] = filterMatching(all, p).length;
+      map[p.id] = filterMatching(base, p).length;
     });
     return map;
-  }, [all, dogProfiles]);
+  }, [base, dogProfiles]);
+
 
   /** Tävlingar som hamnar i iCal-filen: matchande inom nuvarande filter. */
   const icsList = useMemo(
@@ -221,7 +238,7 @@ export default function CompetitionsPage() {
               if (next) setSport(dogProfile.sport);
             }}
             matchCount={matchCount}
-            loading={loading}
+            loading={loading && all.length === 0}
           />
           <p className="mt-2 text-xs text-muted-foreground">
             {syncState === "synced"
@@ -251,7 +268,7 @@ export default function CompetitionsPage() {
               setMatchOn(false);
               setSport("alla");
             }}
-            loading={loading}
+            loading={loading && all.length === 0}
           />
         </Reveal>
 
@@ -360,17 +377,28 @@ export default function CompetitionsPage() {
             </label>
           </div>
 
-          <p className="mt-4 text-sm font-semibold text-ink/45">
-            {loading
-              ? "Hämtar tävlingar…"
-              : `${filtered.length} av ${all.length} kommande tävlingar · ${openCount} med öppen anmälan`}
-            {matchOn &&
-              ` · matchade mot ${dogProfile.name.trim() || "din hund"} (${
-                dogProfile.sport === "agility" ? dogProfile.agilityLevel : dogProfile.hoopersLevel
-              }, ${dogProfile.size})`}
+          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <p aria-live="polite" className="text-sm font-semibold text-ink/45">
+              {loading && all.length === 0
+                ? "Hämtar tävlingar…"
+                : `${filtered.length} av ${all.length} kommande tävlingar · ${openCount} med öppen anmälan`}
+              {matchOn &&
+                ` · matchade mot ${dogProfile.name.trim() || "din hund"} (${
+                  dogProfile.sport === "agility" ? dogProfile.agilityLevel : dogProfile.hoopersLevel
+                }, ${dogProfile.size})`}
+              {refreshing && all.length > 0 && " · uppdaterar i bakgrunden…"}
+              {geoState === "denied" && " · kunde inte hämta din position — välj län manuellt"}
+            </p>
+            <button
+              onClick={() => loadCompetitions("refresh")}
+              disabled={refreshing}
+              className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 py-1 text-xs font-bold text-ink/60 transition-colors hover:border-ink hover:text-ink disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+              Uppdatera listan
+            </button>
+          </div>
 
-            {geoState === "denied" && " · kunde inte hämta din position — välj län manuellt"}
-          </p>
         </Reveal>
 
         {userPos && nearby.length > 0 && (

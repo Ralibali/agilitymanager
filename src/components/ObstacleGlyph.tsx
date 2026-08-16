@@ -89,8 +89,9 @@ export function ObstacleGlyph({
         return (
           <g {...s}>
             <rect x={-w / 2} y={-d / 2} width={w} height={d} rx={d / 2} ry={d / 2} strokeWidth={sw * 1.4} fill={`${stroke}14`} />
-            <circle cx={-w / 2 + d / 2} cy="0" r={d / 2 - sw * 1.6} strokeWidth={sw * 0.8} strokeDasharray="0.16 0.16" />
-            <circle cx={w / 2 - d / 2} cy="0" r={d / 2 - sw * 1.6} strokeWidth={sw * 0.8} strokeDasharray="0.16 0.16" />
+            <circle cx={-w / 2 + d / 2} cy="0" r={Math.max(0.02, d / 2 - sw * 1.6)} strokeWidth={sw * 0.8} strokeDasharray="0.16 0.16" />
+            <circle cx={w / 2 - d / 2} cy="0" r={Math.max(0.02, d / 2 - sw * 1.6)} strokeWidth={sw * 0.8} strokeDasharray="0.16 0.16" />
+
           </g>
         );
       }

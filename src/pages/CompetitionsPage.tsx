@@ -38,6 +38,9 @@ export default function CompetitionsPage() {
   const [geoState, setGeoState] = useState<"idle" | "locating" | "denied">("idle");
   const [userPos, setUserPos] = useState<GeoPoint | null>(null);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const [matchOn, setMatchOn] = useState(false);
+  const { profile: dogProfile, update: updateDogProfile } = useDogProfile();
+
   const { keys: favoriteKeys, count: favoriteCount } = useFavoriteCompetitions();
 
   const locateMe = () => {

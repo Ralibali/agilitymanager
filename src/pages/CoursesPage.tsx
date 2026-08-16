@@ -121,13 +121,22 @@ export default function CoursesPage() {
           <h2 className="mx-auto max-w-2xl font-display text-5xl leading-[0.95] sm:text-6xl">
             Eller börja på en blank plan.
           </h2>
-          <Link
-            to="/banplanerare"
-            className="pressable shadow-hard mt-8 inline-flex h-14 items-center gap-2 rounded-full bg-tang px-8 text-lg font-bold text-ink"
-          >
-            Öppna tom plan <ArrowRight className="h-5 w-5" />
-          </Link>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link
+              to="/banplanerare"
+              className="pressable shadow-hard inline-flex h-14 items-center gap-2 rounded-full bg-tang px-8 text-lg font-bold text-ink"
+            >
+              Öppna tom plan <ArrowRight className="h-5 w-5" />
+            </Link>
+            <Link
+              to="/delade-banor"
+              className="pressable shadow-hard inline-flex h-14 items-center gap-2 rounded-full border-2 border-ink bg-paper px-8 text-lg font-bold text-ink"
+            >
+              Se banor från communityn
+            </Link>
+          </div>
         </Reveal>
+
       </section>
 
       <SiteFooter />

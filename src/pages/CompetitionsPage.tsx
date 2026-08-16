@@ -17,6 +17,9 @@ import {
 import { formatDistance, sortByDistance, type GeoPoint } from "@/lib/competitionGeo";
 import { COUNTIES, nearestCounty } from "@/lib/swedishCounties";
 import { useFavoriteCompetitions } from "@/lib/favoriteCompetitions";
+import { filterMatching, matchCompetition, useDogProfile } from "@/lib/dogMatch";
+import { DogMatchPanel } from "@/components/competitions/DogMatchPanel";
+
 
 const CompetitionMap = lazy(() =>
   import("@/components/competitions/CompetitionMap").then((m) => ({ default: m.CompetitionMap })),

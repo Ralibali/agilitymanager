@@ -70,7 +70,7 @@ export function ProfileQuickSwitch({
 
   return (
     <>
-      <div className="rounded-3xl border-2 border-ink/15 bg-[#FCFAF4] p-3 sm:p-4">
+      <div className="rounded-3xl border-2 border-ink/15 bg-card p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-1.5 pr-1 text-xs font-extrabold uppercase tracking-wider text-ink/45">
             <Zap className="h-3.5 w-3.5 text-forest" /> Snabbväxla hund

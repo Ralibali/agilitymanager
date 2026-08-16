@@ -1252,8 +1252,9 @@ export default function PlannerPage() {
                       className="cursor-grab active:cursor-grabbing"
                       opacity={ob.locked ? 0.75 : 1}
                     >
-                      {/* truffyta */}
-                      <circle r="1.6" fill="transparent" />
+                      {/* träffyta — extra stor så att hindret är lätt att peka på i mobilen */}
+                      <circle r="2.1" fill="transparent" />
+                      {isSelected && <circle r="1.95" fill="#E24C00" opacity="0.07" />}
                       <ObstacleGlyph
                         type={ob.type}
                         stroke={isSelected ? "#E24C00" : hasIssue ? "#E24C00" : "#161812"}

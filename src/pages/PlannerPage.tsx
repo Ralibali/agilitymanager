@@ -1001,9 +1001,14 @@ export default function PlannerPage() {
                 onShareImage={exportPNG}
                 on3DView={() => setView3D("view")}
                 on3DWalk={() => setView3D("walk")}
-                isPremium
+                isPremium={false}
                 showWatermark={showWatermark}
-                onToggleWatermark={setShowWatermark}
+                onWatermarkUpsell={() =>
+                  toast("Export utan vattenstämpel blir en betald funktion", {
+                    description:
+                      "Banbyggaren är gratis just nu och exporterna märks med agilitymanager.se. Vi återkommer med pris och släpp.",
+                  })
+                }
               />
             </div>
             <button

@@ -98,40 +98,133 @@ export function filterMatching(
   return list.filter((c) => matchCompetition(c, dog).matches);
 }
 
-// ── Lokal lagring av hundprofilen ──────────────────────────────────────────
+// ── Lokal lagring av hundprofiler ──────────────────────────────────────────
 
 const STORAGE_KEY = "am_match_dog_profile";
+const STORE_KEY = "am_match_dog_profiles";
 const EVENT = "am:dog-profile";
+export const MAX_DOG_PROFILES = 6;
 
-export function readDogProfile(): DogProfile {
-  if (typeof window === "undefined") return DEFAULT_DOG_PROFILE;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_DOG_PROFILE;
-    const parsed = JSON.parse(raw) as Partial<DogProfile>;
-    return { ...DEFAULT_DOG_PROFILE, ...parsed };
-  } catch {
-    return DEFAULT_DOG_PROFILE;
-  }
+/** En sparad matchningsprofil. Flera per användare, en är aktiv. */
+export interface SavedDogProfile extends DogProfile {
+  id: string;
 }
 
-export function writeDogProfile(profile: DogProfile): void {
+export interface DogProfileStore {
+  profiles: SavedDogProfile[];
+  activeId: string;
+}
+
+function newId(): string {
+  return `dp_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export function createProfile(patch: Partial<DogProfile> = {}): SavedDogProfile {
+  return { ...DEFAULT_DOG_PROFILE, ...patch, id: newId() };
+}
+
+/** Etikett som alltid är läsbar även när namnet saknas. */
+export function profileLabel(profile: DogProfile, index: number): string {
+  return profile.name.trim() || `Profil ${index + 1}`;
+}
+
+function sanitizeStore(raw: unknown): DogProfileStore | null {
+  if (!raw || typeof raw !== "object") return null;
+  const value = raw as Partial<DogProfileStore>;
+  if (!Array.isArray(value.profiles) || value.profiles.length === 0) return null;
+  const profiles = value.profiles
+    .slice(0, MAX_DOG_PROFILES)
+    .map((p) => ({ ...DEFAULT_DOG_PROFILE, ...p, id: p?.id || newId() }));
+  const activeId = profiles.some((p) => p.id === value.activeId)
+    ? (value.activeId as string)
+    : profiles[0].id;
+  return { profiles, activeId };
+}
+
+export function readProfileStore(): DogProfileStore {
+  if (typeof window === "undefined") {
+    const first = createProfile();
+    return { profiles: [first], activeId: first.id };
+  }
+  try {
+    const raw = window.localStorage.getItem(STORE_KEY);
+    const parsed = sanitizeStore(raw ? JSON.parse(raw) : null);
+    if (parsed) return parsed;
+    // Migrering från den tidigare enskilda profilen.
+    const legacy = window.localStorage.getItem(STORAGE_KEY);
+    if (legacy) {
+      const first = createProfile(JSON.parse(legacy) as Partial<DogProfile>);
+      return { profiles: [first], activeId: first.id };
+    }
+  } catch {
+    /* trasig lagring – börja om med en tom profil */
+  }
+  const first = createProfile();
+  return { profiles: [first], activeId: first.id };
+}
+
+export function writeProfileStore(store: DogProfileStore): void {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    window.localStorage.setItem(STORE_KEY, JSON.stringify(store));
+    const active = store.profiles.find((p) => p.id === store.activeId);
+    if (active) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(active));
   } catch {
     /* lagring kan vara blockerad – matchningen fungerar ändå i sessionen */
   }
   window.dispatchEvent(new CustomEvent(EVENT));
 }
 
-/** Hundprofil som sparas lokalt i webbläsaren, inget konto krävs. */
+export function activeProfile(store: DogProfileStore): SavedDogProfile {
+  return store.profiles.find((p) => p.id === store.activeId) ?? store.profiles[0];
+}
+
+export function readDogProfile(): DogProfile {
+  return activeProfile(readProfileStore());
+}
+
+/** Uppdaterar den aktiva profilen. */
+export function patchActive(store: DogProfileStore, patch: Partial<DogProfile>): DogProfileStore {
+  return {
+    ...store,
+    profiles: store.profiles.map((p) => (p.id === store.activeId ? { ...p, ...patch } : p)),
+  };
+}
+
+export function addProfile(store: DogProfileStore, patch: Partial<DogProfile> = {}): DogProfileStore {
+  if (store.profiles.length >= MAX_DOG_PROFILES) return store;
+  const created = createProfile(patch);
+  return { profiles: [...store.profiles, created], activeId: created.id };
+}
+
+/** Duplicerar en profil så man snabbt kan skapa en variant. */
+export function duplicateProfile(store: DogProfileStore, id: string): DogProfileStore {
+  const source = store.profiles.find((p) => p.id === id);
+  if (!source) return store;
+  return addProfile(store, { ...source, name: source.name.trim() ? `${source.name} (kopia)` : "" });
+}
+
+export function removeProfile(store: DogProfileStore, id: string): DogProfileStore {
+  if (store.profiles.length <= 1) return store;
+  const profiles = store.profiles.filter((p) => p.id !== id);
+  const activeId = profiles.some((p) => p.id === store.activeId) ? store.activeId : profiles[0].id;
+  return { profiles, activeId };
+}
+
+export function selectProfile(store: DogProfileStore, id: string): DogProfileStore {
+  return store.profiles.some((p) => p.id === id) ? { ...store, activeId: id } : store;
+}
+
+/** Hundprofiler som sparas lokalt i webbläsaren, inget konto krävs. */
 export function useDogProfile() {
-  const [profile, setProfile] = useState<DogProfile>(DEFAULT_DOG_PROFILE);
+  const [store, setStore] = useState<DogProfileStore>(() => ({
+    profiles: [DEFAULT_ACTIVE],
+    activeId: DEFAULT_ACTIVE.id,
+  }));
 
   useEffect(() => {
-    setProfile(readDogProfile());
-    const sync = () => setProfile(readDogProfile());
+    setStore(readProfileStore());
+    const sync = () => setStore(readProfileStore());
     window.addEventListener(EVENT, sync);
     window.addEventListener("storage", sync);
     return () => {
@@ -140,11 +233,33 @@ export function useDogProfile() {
     };
   }, []);
 
-  const update = useCallback((patch: Partial<DogProfile>) => {
-    const next = { ...readDogProfile(), ...patch };
-    writeDogProfile(next);
-    setProfile(next);
+  const commit = useCallback((next: DogProfileStore) => {
+    setStore(next);
+    writeProfileStore(next);
   }, []);
 
-  return { profile, update };
+  const update = useCallback(
+    (patch: Partial<DogProfile>) => commit(patchActive(readProfileStore(), patch)),
+    [commit],
+  );
+  const select = useCallback((id: string) => commit(selectProfile(readProfileStore(), id)), [commit]);
+  const add = useCallback(() => commit(addProfile(readProfileStore())), [commit]);
+  const duplicate = useCallback(
+    (id: string) => commit(duplicateProfile(readProfileStore(), id)),
+    [commit],
+  );
+  const remove = useCallback((id: string) => commit(removeProfile(readProfileStore(), id)), [commit]);
+
+  return {
+    profile: activeProfile(store),
+    profiles: store.profiles,
+    activeId: store.activeId,
+    update,
+    select,
+    add,
+    duplicate,
+    remove,
+    canAdd: store.profiles.length < MAX_DOG_PROFILES,
+  };
 }
+

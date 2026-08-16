@@ -1606,9 +1606,12 @@ export default function PlannerPage() {
               ))}
             </div>
             {placing && (
-              <p className="pt-1.5 text-center text-xs font-bold text-forest">
-                Klicka på planen för att placera {getObstacleDefV2(placing)?.label.toLowerCase()}
-              </p>
+              <button
+                onClick={() => setPlacing(null)}
+                className="mt-1.5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-ink/15 text-xs font-bold text-forest"
+              >
+                <X className="h-4 w-4" /> Avbryt placering av {getObstacleDefV2(placing)?.label.toLowerCase()}
+              </button>
             )}
           </div>
         </main>

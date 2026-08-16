@@ -27,6 +27,7 @@ export default function CompetitionsPage() {
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [geoState, setGeoState] = useState<"idle" | "locating" | "denied">("idle");
+  const [userPos, setUserPos] = useState<GeoPoint | null>(null);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const { keys: favoriteKeys, count: favoriteCount } = useFavoriteCompetitions();
 
@@ -38,6 +39,7 @@ export default function CompetitionsPage() {
     setGeoState("locating");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setCounty(nearestCounty(pos.coords.latitude, pos.coords.longitude).name);
         setGeoState("idle");
       },
@@ -45,6 +47,7 @@ export default function CompetitionsPage() {
       { timeout: 8000 },
     );
   };
+
 
 
   useEffect(() => {

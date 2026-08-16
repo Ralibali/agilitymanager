@@ -137,6 +137,11 @@ export function SaveShareDialog({
             {savedId ? "Uppdatera bana" : "Spara bana"}
           </Button>
 
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            Att rita, spara och dela banor ingår i gratisnivån. Nya extrafunktioner kan
+            bli betalda framöver — då märker vi dem tydligt innan du väljer dem.
+          </p>
+
           {savedId && isPublic && (
             <div className="space-y-1.5">
               <Label htmlFor="save-course-link">Delningslänk</Label>

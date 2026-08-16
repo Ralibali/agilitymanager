@@ -1622,6 +1622,71 @@ export type Database = {
         }
         Relationships: []
       }
+      push_notifications_sent: {
+        Row: {
+          competition_key: string
+          id: string
+          kind: string
+          sent_at: string
+          subscription_id: string
+        }
+        Insert: {
+          competition_key: string
+          id?: string
+          kind: string
+          sent_at?: string
+          subscription_id: string
+        }
+        Update: {
+          competition_key?: string
+          id?: string
+          kind?: string
+          sent_at?: string
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_notifications_sent_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "push_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          competition_keys: string[]
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          auth: string
+          competition_keys?: string[]
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          auth?: string
+          competition_keys?: string[]
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       referral_rewards: {
         Row: {
           created_at: string

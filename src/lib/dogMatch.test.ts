@@ -6,6 +6,8 @@ import {
   hoopersSizeFor,
   matchCompetition,
   explainMatch,
+  matchScore,
+  sortByMatchScore,
   type DogProfile,
   addProfile,
   createProfile,

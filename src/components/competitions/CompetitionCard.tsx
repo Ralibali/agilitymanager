@@ -3,6 +3,7 @@ import { CalendarDays, MapPin } from "lucide-react";
 import { deadlineInfo, shortDate, type UnifiedCompetition } from "@/lib/competitionData";
 import { FavoriteButton } from "./FavoriteButton";
 import { MatchExplainer } from "./MatchExplainer";
+import { MatchScoreBadge } from "./MatchScoreBadge";
 
 const TONE_STYLE: Record<string, string> = {
   open: "bg-forest text-paper",
@@ -26,6 +27,7 @@ export function CompetitionCard({ comp }: { comp: UnifiedCompetition }) {
           >
             {deadline.label}
           </span>
+          <MatchScoreBadge comp={comp} className="ml-2 align-middle" />
           <h3 className="mt-3 text-2xl font-extrabold leading-tight tracking-tight">{comp.name}</h3>
         </div>
         <span className="grid h-16 w-14 shrink-0 place-items-center rounded-2xl border-2 border-ink bg-cream text-center font-display leading-none">

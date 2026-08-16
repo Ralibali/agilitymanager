@@ -12,6 +12,8 @@ import CountyCompetitionsPage from "./pages/CountyCompetitionsPage";
 import ClubCompetitionsPage from "./pages/ClubCompetitionsPage";
 import HoopersCompetitionDetailPage from "./pages/HoopersCompetitionDetailPage";
 import CoursesPage from "./pages/CoursesPage";
+import SharedCoursesPage from "./pages/SharedCoursesPage";
+
 import { NotFound } from "./pages/NotFound";
 
 function ScrollToTop() {
@@ -41,6 +43,8 @@ export default function App() {
         <Route path="/tavlingar/:id" element={<CompetitionDetailPage />} />
         <Route path="/tavlingar/:id/:slug" element={<CompetitionDetailPage />} />
         <Route path="/banor" element={<CoursesPage />} />
+        <Route path="/delade-banor" element={<SharedCoursesPage />} />
+
         <Route path="/bana/:id" element={<PublicCoursePage />} />
         {/* Inloggat läge är borttaget — allt leder till planeraren */}
         <Route path="/auth" element={<Navigate to="/banplanerare" replace />} />

@@ -7,6 +7,8 @@ export const NAV_LINKS = [
   { to: "/funktioner", label: "Funktioner" },
   { to: "/banplanerare", label: "Banplanerare" },
   { to: "/banor", label: "Banbibliotek" },
+  { to: "/delade-banor", label: "Delade banor" },
+
   { to: "/tavlingar", label: "Tävlingar" },
   { to: "/tavlingar/favoriter", label: "Favoriter" },
 

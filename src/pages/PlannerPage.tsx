@@ -279,6 +279,31 @@ export default function PlannerPage() {
   const w = draft.arenaWidthM;
   const h = draft.arenaHeightM;
 
+  // Öppna en delad bana från communityn (?delad=<id>) och bygg vidare på den
+  const sharedParam = search.get("delad");
+  useEffect(() => {
+    if (!sharedParam) return;
+    let cancelled = false;
+    void (async () => {
+      const { data } = await supabase
+        .from("planner_courses")
+        .select("id, name, sport, course_data")
+        .eq("id", sharedParam)
+        .eq("is_public", true)
+        .maybeSingle();
+      if (cancelled || !data) return;
+      const next = draftFromLibraryCourse(data as unknown as LibraryCourse);
+      if (!next) {
+        toast.error("Kunde inte öppna den delade banan");
+        return;
+      }
+      setDraft({ ...next, name: `${next.name} (kopia)` });
+      toast.success("Delad bana öppnad — bygg vidare!");
+    })();
+    return () => { cancelled = true; };
+  }, [sharedParam]);
+
+
   // Numrerade hinder = det som validering, PDF, uppspelning och 3D använder
   const numbered = useMemo(() => withNumbers(obstacles), [obstacles]);
   const ruleSet = useMemo(

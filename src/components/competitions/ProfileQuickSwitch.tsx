@@ -1,4 +1,4 @@
-import { Copy, Dog, MoreVertical, Plus, Trash2, Zap } from "lucide-react";
+import { CheckCircle2, Copy, Dog, MoreVertical, Plus, Trash2, Zap } from "lucide-react";
 import {
   JUMP_HEIGHT_CM,
   hoopersSizeFor,

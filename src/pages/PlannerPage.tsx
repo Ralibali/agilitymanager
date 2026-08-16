@@ -50,6 +50,9 @@ import {
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
 import { makeQrDataUrl } from "@/lib/qrDataUrl";
+import { usePlannerProfile } from "@/lib/plannerProfile";
+import PlannerProfileDialog from "@/features/planner-social/PlannerProfileDialog";
+import SaveShareDialog from "@/features/planner-social/SaveShareDialog";
 
 // ── Banmodell (v2) ──────────────────────────────────────────────────────────
 
@@ -66,6 +69,7 @@ interface Draft {
 
 const STORAGE_KEY = "am-redesign-planner-v2";
 const CLOUD_ID_KEY = "am-redesign-planner-v2-cloud";
+const SOCIAL_ID_KEY = "am-planner-shared-course";
 const RULER_PX = 24;
 
 /** Hinder som inte numreras i banordningen. */

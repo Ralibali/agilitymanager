@@ -1556,6 +1556,155 @@ export type Database = {
           },
         ]
       }
+      planner_course_comments: {
+        Row: {
+          author_name: string
+          body: string
+          course_id: string
+          created_at: string
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          author_name: string
+          body: string
+          course_id: string
+          created_at?: string
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          author_name?: string
+          body?: string
+          course_id?: string
+          created_at?: string
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planner_course_comments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "planner_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planner_course_comments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "planner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planner_course_ratings: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          profile_id: string
+          rating: number
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          profile_id: string
+          rating: number
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          profile_id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planner_course_ratings_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "planner_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planner_course_ratings_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "planner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planner_courses: {
+        Row: {
+          author_name: string
+          course_data: Json
+          created_at: string
+          id: string
+          is_public: boolean
+          name: string
+          profile_id: string
+          sport: string
+          updated_at: string
+        }
+        Insert: {
+          author_name: string
+          course_data: Json
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          name: string
+          profile_id: string
+          sport?: string
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string
+          course_data?: Json
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          name?: string
+          profile_id?: string
+          sport?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planner_courses_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "planner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planner_profiles: {
+        Row: {
+          created_at: string
+          edit_token: string
+          email: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          edit_token?: string
+          email: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          edit_token?: string
+          email?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

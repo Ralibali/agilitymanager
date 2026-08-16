@@ -1,0 +1,1 @@
+delete from public.planner_profiles where lower(email) in ('test-planner@example.com','anna-test@example.com');

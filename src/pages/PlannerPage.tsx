@@ -50,6 +50,9 @@ import {
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
 import { makeQrDataUrl } from "@/lib/qrDataUrl";
+import { usePlannerProfile } from "@/lib/plannerProfile";
+import PlannerProfileDialog from "@/features/planner-social/PlannerProfileDialog";
+import SaveShareDialog from "@/features/planner-social/SaveShareDialog";
 
 // ── Banmodell (v2) ──────────────────────────────────────────────────────────
 
@@ -66,6 +69,7 @@ interface Draft {
 
 const STORAGE_KEY = "am-redesign-planner-v2";
 const CLOUD_ID_KEY = "am-redesign-planner-v2-cloud";
+const SOCIAL_ID_KEY = "am-planner-shared-course";
 const RULER_PX = 24;
 
 /** Hinder som inte numreras i banordningen. */
@@ -218,6 +222,7 @@ function loadInitial(search: URLSearchParams): Draft {
 export default function PlannerPage() {
   const [search] = useSearchParams();
   const { user } = useAuth();
+  const { profile: plannerProfile } = usePlannerProfile();
   const [draft, setDraft] = useState<Draft>(() => loadInitial(search));
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [placing, setPlacing] = useState<ObstacleTypeV2 | null>(null);
@@ -249,6 +254,12 @@ export default function PlannerPage() {
     try { return localStorage.getItem(CLOUD_ID_KEY); } catch { return null; }
   });
   const [savingCloud, setSavingCloud] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [saveShareOpen, setSaveShareOpen] = useState(false);
+  const [pendingSaveShare, setPendingSaveShare] = useState(false);
+  const [socialCourseId, setSocialCourseId] = useState<string | null>(() => {
+    try { return localStorage.getItem(SOCIAL_ID_KEY); } catch { return null; }
+  });
   const [canvasPx, setCanvasPx] = useState({ w: 800, h: 600 });
 
   const svgRef = useRef<SVGSVGElement>(null);
@@ -779,6 +790,27 @@ export default function PlannerPage() {
     }
   };
 
+  // ── Lättviktsprofil: spara & dela ───────────────────────────
+  const socialCourseData = () => ({
+    version: 2,
+    sport,
+    sizeClass: draft.sizeClass,
+    arenaWidthM: w,
+    arenaHeightM: h,
+    classTemplate: draft.classTemplate,
+    obstacles: numbered,
+    ruleSetId: draft.ruleSetId,
+  });
+
+  const openSaveShare = () => {
+    if (!plannerProfile) {
+      setPendingSaveShare(true);
+      setProfileOpen(true);
+      return;
+    }
+    setSaveShareOpen(true);
+  };
+
   const openComments = async () => {
     const id = cloudId ?? (await saveToCloud({ silent: true }));
     if (!id) return;
@@ -969,6 +1001,14 @@ export default function PlannerPage() {
               />
             </div>
             <button
+              onClick={openSaveShare}
+              disabled={!obstacles.length || savingCloud}
+              className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-forest px-3 text-sm font-bold text-paper disabled:opacity-40 sm:h-11 sm:px-5"
+              title="Spara banan på din profil och välj publik eller privat"
+            >
+              <CloudCheck className="h-4 w-4" /> <span className="hidden sm:inline">Spara & dela</span>
+            </button>
+            <button
               onClick={openShare}
               disabled={!obstacles.length}
               className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-tang px-3 text-sm font-bold text-ink disabled:opacity-40 sm:h-11 sm:px-5"
@@ -976,13 +1016,17 @@ export default function PlannerPage() {
               <Share2 className="h-4 w-4" /> <span className="hidden sm:inline">Dela bana</span>
             </button>
             <button
-              onClick={() => (user ? saveToCloud() : setAuthOpen(true))}
-              disabled={savingCloud}
-              title={user ? (cloudId ? "Uppdatera molnkopian" : "Spara i molnet") : "Logga in för molnlagring, kommentarer och klubbdelning"}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-ink bg-paper transition-colors hover:bg-cream disabled:opacity-40 sm:h-11 sm:w-11"
-              aria-label={user ? "Spara i molnet" : "Logga in"}
+              onClick={() => setProfileOpen(true)}
+              title={plannerProfile ? `Inloggad som ${plannerProfile.name}` : "Skapa din banprofil (namn + e-post)"}
+              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-paper px-2.5 text-sm font-bold transition-colors hover:bg-cream sm:h-11 sm:px-3"
+              aria-label={plannerProfile ? "Din banprofil" : "Skapa banprofil"}
             >
-              {savingCloud ? <Loader2 className="h-5 w-5 animate-spin" /> : <Cloud className="h-5 w-5" />}
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-forest text-xs text-paper">
+                {plannerProfile ? plannerProfile.name.trim().charAt(0).toUpperCase() : "?"}
+              </span>
+              <span className="hidden max-w-[8rem] truncate lg:inline">
+                {plannerProfile ? plannerProfile.name : "Din profil"}
+              </span>
             </button>
 
           </div>
@@ -1553,6 +1597,26 @@ export default function PlannerPage() {
       <ClubShareDialog open={clubShareOpen} onOpenChange={setClubShareOpen} courseId={cloudId} courseName={name} />
 
       <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
+
+      <PlannerProfileDialog
+        open={profileOpen}
+        onOpenChange={(o) => { setProfileOpen(o); if (!o) setPendingSaveShare(false); }}
+        reason={pendingSaveShare ? "Ange namn och e-post för att spara och dela banan." : undefined}
+        onReady={() => { if (pendingSaveShare) { setPendingSaveShare(false); setSaveShareOpen(true); } }}
+      />
+
+      <SaveShareDialog
+        open={saveShareOpen}
+        onOpenChange={setSaveShareOpen}
+        courseName={name}
+        sport={sport}
+        courseData={socialCourseData()}
+        courseId={socialCourseId}
+        onSaved={({ id }) => {
+          setSocialCourseId(id);
+          try { localStorage.setItem(SOCIAL_ID_KEY, id); } catch { /* ignorera */ }
+        }}
+      />
 
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} commands={commands} />
       <KeyboardShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} />

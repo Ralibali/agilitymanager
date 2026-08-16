@@ -1,1 +1,4 @@
 project_id = "rcubbmnosawdtaupixnm"
+
+[functions.planner-social]
+verify_jwt = false

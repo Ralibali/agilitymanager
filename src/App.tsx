@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router";
 import Home from "./pages/Home";
 import PlannerPage from "./pages/PlannerPage";
+import PublicCoursePage from "./pages/PublicCoursePage";
 import FeaturesPage from "./pages/FeaturesPage";
 import GratisPage from "./pages/GratisPage";
 import CompetitionsPage from "./pages/CompetitionsPage";
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/tavlingar/:id" element={<CompetitionDetailPage />} />
         <Route path="/tavlingar/:id/:slug" element={<CompetitionDetailPage />} />
         <Route path="/banor" element={<CoursesPage />} />
+        <Route path="/bana/:id" element={<PublicCoursePage />} />
         {/* Inloggat läge är borttaget — allt leder till planeraren */}
         <Route path="/auth" element={<Navigate to="/banplanerare" replace />} />
         <Route path="/logga-in" element={<Navigate to="/banplanerare" replace />} />

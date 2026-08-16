@@ -1,4 +1,4 @@
-import { Copy, Dog, Plus, Ruler, Sparkles, X } from "lucide-react";
+import { CheckCircle2, Copy, Dog, Plus, Ruler, Sparkles, X } from "lucide-react";
 import {
   AGILITY_LEVELS,
   HOOPERS_LEVELS,

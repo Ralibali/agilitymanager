@@ -259,6 +259,15 @@ export function useDogProfile() {
     [commit],
   );
   const remove = useCallback((id: string) => commit(removeProfile(readProfileStore(), id)), [commit]);
+  /** Lägger till en profil från t.ex. en vän i den egna listan. */
+  const importProfile = useCallback(
+    (patch: Partial<DogProfile>) => {
+      const next = addProfile(readProfileStore(), patch);
+      commit(next);
+      return next.activeId;
+    },
+    [commit],
+  );
 
   return {
     profile: activeProfile(store),
@@ -269,6 +278,7 @@ export function useDogProfile() {
     add,
     duplicate,
     remove,
+    importProfile,
     canAdd: store.profiles.length < MAX_DOG_PROFILES,
   };
 }

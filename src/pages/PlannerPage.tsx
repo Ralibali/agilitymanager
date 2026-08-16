@@ -970,7 +970,7 @@ export default function PlannerPage() {
             <button
               onClick={openShare}
               disabled={!obstacles.length}
-              className="pressable shadow-hard-sm inline-flex h-11 items-center gap-2 rounded-full border-2 border-ink bg-tang px-3.5 text-sm font-bold text-ink disabled:opacity-40 sm:px-5"
+              className="pressable shadow-hard-sm inline-flex h-11 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-tang px-3 text-sm font-bold text-ink disabled:opacity-40 sm:px-5"
             >
               <Share2 className="h-4 w-4" /> <span className="hidden sm:inline">Dela bana</span>
             </button>
@@ -978,11 +978,12 @@ export default function PlannerPage() {
               onClick={() => (user ? saveToCloud() : setAuthOpen(true))}
               disabled={savingCloud}
               title={user ? (cloudId ? "Uppdatera molnkopian" : "Spara i molnet") : "Logga in för molnlagring, kommentarer och klubbdelning"}
-              className="grid h-11 w-11 place-items-center rounded-full border-2 border-ink bg-paper transition-colors hover:bg-cream disabled:opacity-40"
+              className="hidden h-11 w-11 place-items-center rounded-full border-2 border-ink bg-paper transition-colors hover:bg-cream disabled:opacity-40 sm:grid"
               aria-label={user ? "Spara i molnet" : "Logga in"}
             >
               {savingCloud ? <Loader2 className="h-5 w-5 animate-spin" /> : <Cloud className="h-5 w-5" />}
             </button>
+
           </div>
         </div>
       </header>

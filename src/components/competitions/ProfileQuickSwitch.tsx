@@ -1,10 +1,16 @@
-import { Dog, Zap } from "lucide-react";
+import { Copy, Dog, MoreVertical, Plus, Trash2, Zap } from "lucide-react";
 import {
   JUMP_HEIGHT_CM,
   hoopersSizeFor,
   profileLabel,
   type SavedDogProfile,
 } from "@/lib/dogMatch";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Props {
   profiles: SavedDogProfile[];
@@ -17,6 +23,14 @@ interface Props {
   onActivate: (id: string) => void;
   /** Stänger av matchningen och visar alla tävlingar. */
   onClear: () => void;
+  /** Duplicerar en profil. */
+  onDuplicate: (id: string) => void;
+  /** Tar bort en profil. */
+  onRemove: (id: string) => void;
+  /** Skapar en ny tom profil. */
+  onAdd: () => void;
+  /** Fler profiler får skapas. */
+  canAdd: boolean;
   loading: boolean;
 }
 
@@ -34,8 +48,13 @@ export function ProfileQuickSwitch({
   counts,
   onActivate,
   onClear,
+  onDuplicate,
+  onRemove,
+  onAdd,
+  canAdd,
   loading,
 }: Props) {
+
   return (
     <div className="rounded-3xl border-2 border-ink/15 bg-[#FCFAF4] p-3 sm:p-4">
       <div className="flex flex-wrap items-center gap-2">

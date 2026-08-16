@@ -18,7 +18,7 @@ import {
 import { formatDistance, sortByDistance, type GeoPoint } from "@/lib/competitionGeo";
 import { COUNTIES, nearestCounty } from "@/lib/swedishCounties";
 import { useFavoriteCompetitions } from "@/lib/favoriteCompetitions";
-import { filterMatching, matchCompetition, useDogProfile } from "@/lib/dogMatch";
+import { filterMatching, matchCompetition, sortByMatchScore, useDogProfile } from "@/lib/dogMatch";
 import { DogMatchPanel } from "@/components/competitions/DogMatchPanel";
 import { ProfileQuickSwitch } from "@/components/competitions/ProfileQuickSwitch";
 import { readFilterPrefs, writeFilterPrefs } from "@/lib/competitionFilterPrefs";
@@ -45,6 +45,7 @@ export default function CompetitionsPage() {
   const [userPos, setUserPos] = useState<GeoPoint | null>(null);
   const [onlyFavorites, setOnlyFavorites] = useState(initialPrefs.onlyFavorites);
   const [matchOn, setMatchOn] = useState(initialPrefs.matchOn);
+  const [sortMode, setSortMode] = useState<"datum" | "match">("datum");
 
   useEffect(() => {
     writeFilterPrefs({ sport, county, onlyOpen, onlyFavorites, matchOn });
@@ -157,6 +158,9 @@ export default function CompetitionsPage() {
   };
 
 
+  /** Tävlingar sorterade efter matchstyrka mot aktiv hundprofil. */
+  const ranked = useMemo(() => sortByMatchScore(filtered, dogProfile), [filtered, dogProfile]);
+
   const groups = useMemo(() => {
     const byMonth = new Map<string, UnifiedCompetition[]>();
     filtered.forEach((c) => {
@@ -253,6 +257,21 @@ export default function CompetitionsPage() {
                 {f === "alla" ? "Alla sporter" : f}
               </button>
             ))}
+
+            <div className="inline-flex overflow-hidden rounded-full border-2 border-ink/15">
+              {(["datum", "match"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setSortMode(m)}
+                  aria-pressed={sortMode === m}
+                  className={`px-4 py-2.5 text-sm font-bold transition-colors ${
+                    sortMode === m ? "bg-ink text-paper" : "bg-paper text-ink/60 hover:text-ink"
+                  }`}
+                >
+                  {m === "datum" ? "Datum" : "Matchstyrka"}
+                </button>
+              ))}
+            </div>
 
             <button
               onClick={() => setOnlyOpen((v) => !v)}
@@ -390,7 +409,26 @@ export default function CompetitionsPage() {
         )}
 
 
-        {groups.map(([month, comps]) => (
+        {sortMode === "match" && ranked.length > 0 && (
+          <div className="mt-14">
+            <Reveal>
+              <h2 className="font-display text-5xl tracking-wide">Bäst match först</h2>
+              <p className="mt-2 text-sm font-semibold text-ink/45">
+                Rangordnat mot {dogProfile.name.trim() || "din hund"} — sport, klass och storlek.
+              </p>
+              <div className="mt-3 h-0.5 w-full bg-ink/10" />
+            </Reveal>
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {ranked.map((c, i) => (
+                <Reveal key={c.key} delay={Math.min(i, 6) * 70}>
+                  <CompetitionCard comp={c} />
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {sortMode === "datum" && groups.map(([month, comps]) => (
           <div key={month} className="mt-14">
             <Reveal>
               <h2 className="font-display text-5xl capitalize tracking-wide">{month}</h2>

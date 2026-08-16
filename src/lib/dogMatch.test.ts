@@ -6,6 +6,8 @@ import {
   hoopersSizeFor,
   matchCompetition,
   explainMatch,
+  matchScore,
+  sortByMatchScore,
   type DogProfile,
   addProfile,
   createProfile,
@@ -166,5 +168,33 @@ describe("explainMatch", () => {
     const hoop = { ...DEFAULT_DOG_PROFILE, sport: "hoopers" as const, size: "S" as const };
     const res = explainMatch(comp({ sport: "hoopers", classes: ["Startklass"] }), hoop);
     expect(res.reasons.find((r) => r.key === "size")?.detail).toContain("Small");
+  });
+});
+
+describe("matchScore", () => {
+  const dog = { ...DEFAULT_DOG_PROFILE, sport: "agility" as const, agilityLevel: "Klass 1" as const };
+  const base = { key: "k", sport: "agility", classes: ["Klass 1"], dateStart: "2026-05-01" } as never;
+
+  it("ger full match när klassen finns", () => {
+    const r = matchScore(base, dog);
+    expect(r.tier).toBe("strong");
+    expect(r.label).toBe("Bra match");
+  });
+
+  it("ger 'Nästan' när klasslistan saknas", () => {
+    const r = matchScore({ ...(base as object), classes: [] } as never, dog);
+    expect(r.tier).toBe("likely");
+  });
+
+  it("ger ingen match vid fel sport", () => {
+    const r = matchScore({ ...(base as object), sport: "hoopers" } as never, dog);
+    expect(r.score).toBe(0);
+    expect(r.tier).toBe("none");
+  });
+
+  it("sorterar starkast match först", () => {
+    const weak = { ...(base as object), key: "w", classes: ["Klass 3"], dateStart: "2026-04-01" } as never;
+    const list = sortByMatchScore([weak, base], dog);
+    expect(list[0]).toBe(base);
   });
 });

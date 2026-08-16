@@ -330,3 +330,63 @@ export function explainMatch(comp: UnifiedCompetition, dog: DogProfile): MatchEx
 
   return { ...result, reasons, summary };
 }
+
+// ── Matchstyrka: rangordning av hur väl en tävling passar hunden ───────────
+
+export type MatchTier = "strong" | "likely" | "weak" | "none";
+
+export interface MatchScore {
+  /** 0–100 där 100 är en full träff på sport, klass och storlek. */
+  score: number;
+  tier: MatchTier;
+  /** Kort etikett att visa på tävlingskortet. */
+  label: string;
+  /** En mening som förklarar rangordningen. */
+  hint: string;
+}
+
+const TIER_LABEL: Record<MatchTier, string> = {
+  strong: "Bra match",
+  likely: "Nästan",
+  weak: "Svag match",
+  none: "Ingen match",
+};
+
+/** Räknar ut hur väl en tävling matchar hunden, för sortering och etikett. */
+export function matchScore(comp: UnifiedCompetition, dog: DogProfile): MatchScore {
+  const level = dog.sport === "agility" ? dog.agilityLevel : dog.hoopersLevel;
+  if (comp.sport !== dog.sport) {
+    return {
+      score: 0,
+      tier: "none",
+      label: TIER_LABEL.none,
+      hint: `Tävlingen är ${comp.sport} — din profil tävlar i ${dog.sport}.`,
+    };
+  }
+
+  const result = matchCompetition(comp, dog);
+  // Sport 40 p, klass upp till 45 p, storlek 15 p (alla storlekar tas emot).
+  const classPoints = result.unknownClasses ? 15 : result.matchedClasses.length > 0 ? 45 : 0;
+  const score = 40 + classPoints + 15;
+  const tier: MatchTier = score >= 85 ? "strong" : score >= 65 ? "likely" : "weak";
+
+  const hint = result.unknownClasses
+    ? "Klasslistan är inte publicerad ännu — kan mycket väl passa."
+    : result.matchedClasses.length > 0
+      ? `${level} finns i tävlingen (${result.matchedClasses.join(", ")}).`
+      : `${level} saknas bland klasserna.`;
+
+  return { score, tier, label: TIER_LABEL[tier], hint };
+}
+
+/** Sorterar tävlingar efter matchstyrka, med datum som andrahandsordning. */
+export function sortByMatchScore<T extends UnifiedCompetition>(
+  list: T[],
+  dog: DogProfile,
+): T[] {
+  return [...list].sort((a, b) => {
+    const diff = matchScore(b, dog).score - matchScore(a, dog).score;
+    if (diff !== 0) return diff;
+    return (a.dateStart ?? "").localeCompare(b.dateStart ?? "");
+  });
+}

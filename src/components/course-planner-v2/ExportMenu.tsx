@@ -39,13 +39,14 @@ export function ExportMenu({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="course-planner-export-trigger inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-3.5 text-sm font-black text-slate-100 transition hover:bg-white/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/40 sm:h-9 sm:rounded-full sm:border-border sm:bg-card sm:px-3 sm:text-[12px] sm:font-semibold sm:text-foreground sm:hover:border-neutral-400"
+          className="course-planner-export-trigger inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border-2 border-ink/15 bg-paper px-2.5 text-sm font-bold text-ink/70 transition hover:border-ink hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 sm:h-11 sm:px-3.5"
           title="Ladda ner eller exportera bana"
           aria-label="Ladda ner eller exportera bana"
         >
-          <FileDown size={16} />
-          <span>Ladda ner</span>
-          <ChevronDown size={13} className="opacity-70" />
+          <FileDown size={18} />
+          <span className="hidden sm:inline">Ladda ner</span>
+          <ChevronDown size={13} className="hidden opacity-70 sm:block" />
+
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">

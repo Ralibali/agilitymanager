@@ -135,7 +135,22 @@ export default function CompetitionsPage() {
       </PageHero>
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
+        <Reveal className="mb-8">
+          <DogMatchPanel
+            profile={dogProfile}
+            onChange={updateDogProfile}
+            active={matchOn}
+            onToggle={(next) => {
+              setMatchOn(next);
+              if (next) setSport(dogProfile.sport);
+            }}
+            matchCount={matchCount}
+            loading={loading}
+          />
+        </Reveal>
+
         <Reveal>
+
           <div className="flex flex-wrap items-center gap-2">
             {(["alla", "agility", "hoopers"] as SportFilter[]).map((f) => (
               <button

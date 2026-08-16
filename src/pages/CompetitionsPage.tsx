@@ -63,6 +63,9 @@ export default function CompetitionsPage() {
     canAdd: canAddDogProfile,
   } = useDogProfile();
 
+  const { state: syncState } = useDogProfileSync();
+
+
   const { keys: favoriteKeys, count: favoriteCount } = useFavoriteCompetitions();
 
   const locateMe = () => {

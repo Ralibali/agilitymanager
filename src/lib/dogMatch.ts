@@ -113,6 +113,8 @@ export interface SavedDogProfile extends DogProfile {
 export interface DogProfileStore {
   profiles: SavedDogProfile[];
   activeId: string;
+  /** Tidpunkt (ms) för senaste ändringen — används vid synk mellan enheter. */
+  updatedAt?: number;
 }
 
 function newId(): string {

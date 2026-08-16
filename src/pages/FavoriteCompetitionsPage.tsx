@@ -50,7 +50,7 @@ export default function FavoriteCompetitionsPage() {
         title="Mina favorittävlingar | AgilityManager"
         description="Din egen lista med sparade agility- och hooperstävlingar — datum, klasser och sista anmälningsdag samlat på ett ställe."
         canonicalPath="/tavlingar/favoriter"
-        noindex
+        noIndex
       />
       <SiteNav />
       <PageHero kicker="Mina favoriter" title="Tävlingarna du sparat.">

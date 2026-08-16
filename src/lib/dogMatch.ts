@@ -130,7 +130,8 @@ export function profileLabel(profile: DogProfile, index: number): string {
   return profile.name.trim() || `Profil ${index + 1}`;
 }
 
-function sanitizeStore(raw: unknown): DogProfileStore | null {
+/** Läser in och rensar upp en lagrad profillista (lokal eller från kontot). */
+export function sanitizeStore(raw: unknown): DogProfileStore | null {
   if (!raw || typeof raw !== "object") return null;
   const value = raw as Partial<DogProfileStore>;
   if (!Array.isArray(value.profiles) || value.profiles.length === 0) return null;
@@ -140,7 +141,8 @@ function sanitizeStore(raw: unknown): DogProfileStore | null {
   const activeId = profiles.some((p) => p.id === value.activeId)
     ? (value.activeId as string)
     : profiles[0].id;
-  return { profiles, activeId };
+  const updatedAt = typeof value.updatedAt === "number" ? value.updatedAt : undefined;
+  return { profiles, activeId, updatedAt };
 }
 
 export function readProfileStore(): DogProfileStore {

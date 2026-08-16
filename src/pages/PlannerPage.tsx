@@ -1002,7 +1002,7 @@ export default function PlannerPage() {
             </div>
             <button
               onClick={openSaveShare}
-              disabled={!obstacles.length}
+              disabled={!obstacles.length || savingCloud}
               className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-forest px-3 text-sm font-bold text-paper disabled:opacity-40 sm:h-11 sm:px-5"
               title="Spara banan på din profil och välj publik eller privat"
             >

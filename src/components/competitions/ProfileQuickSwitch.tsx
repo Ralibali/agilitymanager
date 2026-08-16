@@ -95,6 +95,8 @@ export function ProfileQuickSwitch({
               const isActive = active && p.id === activeId;
               const isSelected = !active && p.id === activeId;
               const label = profileLabel(p, i);
+              const count = counts[p.id] ?? 0;
+              const description = `${summary(p)}, ${count} matchande tävlingar`;
               return (
                 <div
                   key={p.id}
@@ -103,7 +105,7 @@ export function ProfileQuickSwitch({
                       ? "border-ink bg-forest text-paper shadow-hard ring-2 ring-forest/40 ring-offset-2 ring-offset-paper"
                       : isSelected
                         ? "border-forest bg-forest/10 text-ink hover:border-ink"
-                        : "border-ink/15 bg-paper text-ink/70 hover:border-ink"
+                        : "border-ink/15 bg-paper text-ink hover:border-ink"
                   }`}
                 >
                   <button
@@ -111,38 +113,43 @@ export function ProfileQuickSwitch({
                     onClick={() => onActivate(p.id)}
                     aria-pressed={isActive}
                     aria-current={isActive ? "true" : undefined}
-                    title={isActive ? `${label} styr filtret` : `Filtrera på ${label}`}
-                    className="flex items-center gap-2 rounded-l-full py-2 pl-4 pr-2 text-left"
+                    aria-label={`${isActive ? "Aktiv profil" : "Välj profil"}: ${label}, ${description}`}
+                    aria-describedby="profile-switch-description"
+                    className="flex min-h-11 items-center gap-2 rounded-l-full py-2 pl-4 pr-3 text-left transition-colors"
                   >
                     {isActive ? (
-                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-paper text-forest">
-                        <CheckCircle2 className="h-4 w-4" />
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-paper text-forest shadow-sm">
+                        <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
                       </span>
                     ) : (
-                      <Dog className={`h-4 w-4 shrink-0 ${isSelected ? "text-forest" : "text-ink/60"}`} />
+                      <Dog
+                        className={`h-5 w-5 shrink-0 ${isSelected ? "text-forest" : "text-ink/80"}`}
+                        aria-hidden="true"
+                      />
                     )}
                     <span className="leading-tight">
                       <span className="flex items-center gap-1.5 text-sm font-bold">
                         {label}
                         {isActive && (
-                          <span className="rounded-full bg-paper px-1.5 py-0.5 text-[0.55rem] font-extrabold uppercase tracking-wider text-forest">
+                          <span className="rounded-full bg-paper px-2 py-0.5 text-xs font-extrabold uppercase tracking-wider text-forest">
                             Aktiv
                           </span>
                         )}
                         {isSelected && (
-                          <span className="rounded-full bg-forest/15 px-1.5 py-0.5 text-[0.55rem] font-extrabold uppercase tracking-wider text-forest">
+                          <span className="rounded-full bg-forest/15 px-2 py-0.5 text-xs font-extrabold uppercase tracking-wider text-forest">
                             Vald
                           </span>
                         )}
                       </span>
-                      <span className={`block text-[0.68rem] font-semibold ${isActive ? "text-paper/80" : "text-ink/45"}`}>
+                      <span className={`block text-xs font-semibold ${isActive ? "text-paper/90" : "text-ink/60"}`}>
                         {summary(p)}
                         {!loading && (
                           <span
-                            key={counts[p.id] ?? 0}
-                            className={`ml-1.5 inline-flex items-center rounded-full px-1.5 py-0.5 text-[0.6rem] font-extrabold ${isActive ? "bg-paper text-forest" : "bg-ink/10 text-ink/60"}`}
+                            className={`ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-extrabold ${
+                              isActive ? "bg-paper text-forest" : "bg-ink/10 text-ink"
+                            }`}
                           >
-                            {counts[p.id] ?? 0}
+                            {count}
                           </span>
                         )}
                         {!loading && <span className="ml-1 font-medium">matchar</span>}
@@ -150,17 +157,22 @@ export function ProfileQuickSwitch({
                     </span>
                   </button>
 
+                  <div
+                    className={`mx-1 h-5 w-px shrink-0 ${isActive ? "bg-paper/30" : "bg-ink/15"}`}
+                    aria-hidden="true"
+                  />
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
                         type="button"
-                        aria-label={`Hantera ${label}`}
-                        className={`rounded-r-full py-2 pl-1 pr-3 transition-colors ${
-                          isActive ? "text-paper/80 hover:text-paper" : "text-ink/40 hover:text-ink"
+                        aria-label={`Hantera profil ${label}`}
+                        aria-describedby="profile-switch-description"
+                        className={`flex min-h-11 min-w-11 items-center justify-center rounded-r-full py-2 pl-1 pr-3 transition-colors ${
+                          isActive ? "text-paper/90 hover:text-paper" : "text-ink/60 hover:text-ink"
                         }`}
                       >
-                        <MoreVertical className="h-4 w-4" />
+                        <MoreVertical className="h-4 w-4" aria-hidden="true" />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-52 border-2 border-ink/15 bg-paper">

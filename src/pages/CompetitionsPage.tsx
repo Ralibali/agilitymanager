@@ -99,6 +99,13 @@ export default function CompetitionsPage() {
     return [...byMonth.entries()];
   }, [filtered]);
 
+  /** Tävlingar i det filtrerade urvalet med koordinat, närmast först. */
+  const nearby = useMemo(
+    () => (userPos ? sortByDistance(filtered, userPos) : []),
+    [filtered, userPos],
+  );
+
+
   const openCount = useMemo(
     () => all.filter((c) => deadlineInfo(c.registrationCloses).tone !== "closed").length,
     [all],

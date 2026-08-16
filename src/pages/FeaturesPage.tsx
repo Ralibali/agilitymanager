@@ -13,7 +13,7 @@ const GROUPS = [
   {
     kicker: "Banplaneraren",
     title: "Rita som en domare.",
-    text: "Hela editorn är gratis — inget konto, ingen betalvägg. Meterskala, snap, banlinje och export som ser ut som en riktig domarritning.",
+    text: "Hela editorn är gratis att använda — inget konto behövs för att börja. Meterskala, snap, banlinje och export som ser ut som en riktig domarritning.",
     items: [
       { icon: MousePointer2, t: "Full hindereditor", d: "Placera, flytta, rotera, duplicera och numrera. Dra rotationshandtaget eller snabbrotera i 45°-steg." },
       { icon: Ruler, t: "Meterskala & rutnät", d: "Plan upp till 40×25 m med meterrutnät, 0,25 m-snap, zoom och live-uppmätt banlängd." },
@@ -35,7 +35,7 @@ const GROUPS = [
   {
     kicker: "Mer på gång",
     title: "Vi bygger sportens verktygslåda.",
-    text: "Banplaneraren är hjärtat — och den andas in i allt annat vi gör. Och ja: allt är gratis.",
+    text: "Banplaneraren är hjärtat — och den andas in i allt annat vi gör. Den är gratis att använda; nya extrafunktioner kan bli betalda och märks då tydligt.",
     items: [
       { icon: CalendarDays, t: "Tävlingskalender", d: "Agility- och hooperstarter över hela landet, samlade och sökbara." },
       { icon: Medal, t: "Banor till tävling", d: "Träna på banlayouter inspirerade av riktiga klasser och nivåer." },
@@ -51,7 +51,7 @@ export default function FeaturesPage() {
       <SiteNav />
       <PageHero kicker="Funktioner" title="Allt banplaneraren kan.">
         Från första hindret till färdig delningslänk — här är hela verktygslådan.
-        Gratis, för alltid, för både agility och hoopers.
+        Gratis att använda, för både agility och hoopers.
       </PageHero>
 
       {GROUPS.map((g, gi) => (
@@ -113,7 +113,7 @@ export default function FeaturesPage() {
               Öppna banplaneraren <ArrowRight className="h-5 w-5" />
             </Link>
             <Link to="/priser" className="pressable shadow-hard inline-flex h-14 items-center gap-2 rounded-full border-2 border-ink bg-paper px-8 text-lg font-bold">
-              Varför är allt gratis?
+              Se vad som är gratis
             </Link>
           </div>
         </Reveal>

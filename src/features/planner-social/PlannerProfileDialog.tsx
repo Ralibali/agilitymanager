@@ -65,7 +65,7 @@ export function PlannerProfileDialog({
           </DialogTitle>
           <DialogDescription>
             {reason ?? "Ange namn och e-post så kan du spara, dela och få kommentarer på dina banor."}
-            {" "}Inget lösenord behövs.
+            {" "}Inget lösenord behövs och profilen är gratis.
           </DialogDescription>
         </DialogHeader>
 

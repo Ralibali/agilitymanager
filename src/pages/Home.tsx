@@ -60,9 +60,9 @@ export default function Home() {
             </h1>
             <Reveal delay={650}>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink/70 sm:text-xl">
-                AgilityManager är sportens gratisverktyg: rita banor i meterskala,
-                dela dem med klubben via länk och hitta nästa tävling — allt gratis,
-                allt byggt för hundfolk.
+                AgilityManager är verktyget för sporten: rita banor i meterskala,
+                dela dem med klubben via länk och hitta nästa tävling. Banplaneraren
+                är gratis att använda — inget konto krävs för att komma igång.
               </p>
             </Reveal>
             <Reveal delay={780}>
@@ -174,8 +174,8 @@ export default function Home() {
             </Reveal>
             <Reveal delay={150}>
               <p className="max-w-md text-lg leading-relaxed text-paper/70">
-                Full kraft från första klicket — det finns ingen betalversion att låsa upp.
-                Allt är gratis, för alltid, för hela sporten.
+                Full kraft från första klicket. Hela banplaneraren är gratis att använda —
+                du behöver varken konto eller kort för att rita, exportera och dela.
               </p>
             </Reveal>
           </div>
@@ -253,14 +253,14 @@ export default function Home() {
             <Reveal>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-tang">Banplaneraren</p>
               <h2 className="mt-3 font-display text-5xl leading-[0.95] sm:text-7xl lg:text-8xl">
-                Gratis idag.<br />Gratis för alltid.
+                Gratis att rita.<br />Inget konto.
               </h2>
             </Reveal>
             <Reveal delay={150}>
               <p className="mt-6 max-w-lg text-lg leading-relaxed text-paper/65">
                 Dra, rotera och numrera hinder i äkta meterskala. Banlinjen ritar sig
                 själv, längden räknas live och exporten är ett klick bort. Autosparat
-                i webbläsaren — utan konto, utan kostnad.
+                i webbläsaren — du börjar utan konto och utan att betala.
               </p>
             </Reveal>
             <Reveal delay={280}>
@@ -287,21 +287,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── 100% GRATIS + NYHETSBREV ─────────────────────────── */}
+      {/* ── PRISER (freemium) + NYHETSBREV ───────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:py-28">
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <Reveal>
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-forest">Priser</p>
             <h2 className="mt-3 font-display text-5xl leading-[0.95] sm:text-7xl">
-              Priset? <span className="text-tang">Noll kronor.</span>
+              Gratis att <span className="text-tang">komma igång.</span>
             </h2>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-ink/65">
-              Hela banplaneraren, banbiblioteket, exporten och tävlingskalendern är
-              gratis — för alltid. Inget konto, inget kort, inga dolda nivåer.
-              Det enda vi någonsin ber om är din e-post när du vill dela en bana.
+              Banplaneraren, banbiblioteket, exporten och tävlingskalendern använder du
+              gratis — utan konto och utan kort. Vi bygger vidare på AgilityManager, och
+              framtida extrafunktioner kan komma att kosta. Vi säger till i förväg.
             </p>
             <ul className="mt-7 space-y-3 font-medium text-ink/75">
-              {["Alla funktioner, alla sporter, alla hundar", "Rita anonymt — autosparas i din webbläsare", "Dela banan med länk mot din e-post"].map((f) => (
+              {["Hela banplaneraren gratis — agility och hoopers", "Rita anonymt — autosparas i din webbläsare", "Dela banan med länk mot din e-post"].map((f) => (
                 <li key={f} className="flex items-start gap-2.5">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-forest" strokeWidth={3} /> {f}
                 </li>
@@ -311,7 +311,7 @@ export default function Home() {
               to="/priser"
               className="group mt-6 inline-flex items-center gap-2 text-lg font-bold text-ink transition-colors hover:text-tang"
             >
-              Läs gratis-manifestet
+              Se vad som ingår gratis
               <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
             </Link>
           </Reveal>
@@ -339,8 +339,8 @@ export default function Home() {
           </Reveal>
           <Reveal delay={180}>
             <p className="mx-auto mt-6 max-w-xl text-lg font-semibold text-ink/75">
-              Öppna planaren, dra ut första hindret och känn skillnaden.
-              Det tar tio sekunder — och kostar ingenting.
+              Öppna planeraren, dra ut första hindret och känn skillnaden.
+              Det tar tio sekunder — och kostar dig inget att testa.
             </p>
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link

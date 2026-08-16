@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router";
 import {
   ArrowLeft, BookOpen, Box, Check, ChevronDown, ChevronUp, Cloud, CloudCheck,
   Command, Copy, Download, Eraser, Footprints, Grid2x2, Link2, Loader2, Lock,
-  MessageSquare, MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler,
+  Lightbulb, MessageSquare, MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler,
   Share2, ShieldCheck, Spline, Trash2, Undo2, Unlock, Users, ZoomIn, ZoomOut,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -53,6 +53,7 @@ import { makeQrDataUrl } from "@/lib/qrDataUrl";
 import { usePlannerProfile } from "@/lib/plannerProfile";
 import PlannerProfileDialog from "@/features/planner-social/PlannerProfileDialog";
 import SaveShareDialog from "@/features/planner-social/SaveShareDialog";
+import FeedbackDialog from "@/features/planner-social/FeedbackDialog";
 
 // ── Banmodell (v2) ──────────────────────────────────────────────────────────
 
@@ -241,6 +242,7 @@ export default function PlannerPage() {
   const [, forceShareRefresh] = useState(0);
   const [issuesOpen, setIssuesOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
@@ -843,6 +845,7 @@ export default function PlannerPage() {
     { id: "library", label: "Öppna banbibliotek", group: "Bana", icon: <BookOpen className="h-4 w-4" />, run: () => setLibraryOpen(true) },
     { id: "share", label: "Dela bana via länk", group: "Bana", icon: <Share2 className="h-4 w-4" />, run: openShare },
     { id: "cloud", label: "Spara i molnet", group: "Bana", icon: <Cloud className="h-4 w-4" />, run: () => void saveToCloud() },
+    { id: "feedback", label: "Skicka förslag till banbyggaren", group: "Bana", icon: <Lightbulb className="h-4 w-4" />, run: () => setFeedbackOpen(true) },
     { id: "comments", label: "Kommentarer", group: "Bana", icon: <MessageSquare className="h-4 w-4" />, run: () => void openComments() },
     { id: "club", label: "Dela till klubb", group: "Bana", icon: <Users className="h-4 w-4" />, run: () => void openClubShare() },
     { id: "playback", label: "Spela upp hundens väg", group: "Visa", shortcut: ["Space"], icon: <Play className="h-4 w-4" />, run: () => setPlaybackActive((v) => !v) },
@@ -966,6 +969,9 @@ export default function PlannerPage() {
             )}
             <ToolButton onClick={() => setLibraryOpen(true)} label="Banbibliotek — officiella banor och mallar">
               <BookOpen className="h-5 w-5" />
+            </ToolButton>
+            <ToolButton onClick={() => setFeedbackOpen(true)} label="Skicka in förslag och material — hjälp oss göra banbyggaren bättre">
+              <Lightbulb className="h-5 w-5" />
             </ToolButton>
             <span className="hidden sm:inline-flex">
               <ToolButton onClick={() => setPaletteOpen(true)} label="Kommandopalett (Ctrl+K)">
@@ -1616,6 +1622,12 @@ export default function PlannerPage() {
           setSocialCourseId(id);
           try { localStorage.setItem(SOCIAL_ID_KEY, id); } catch { /* ignorera */ }
         }}
+      />
+
+      <FeedbackDialog
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        courseData={obstacles.length ? socialCourseData() : undefined}
       />
 
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} commands={commands} />

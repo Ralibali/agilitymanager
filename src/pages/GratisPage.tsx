@@ -51,7 +51,7 @@ export default function GratisPage() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       <SiteNav />
-      <PageHero kicker="Priser" title="Banplaneraren är gratis.">
+      <PageHero kicker="Priser" title="Banbyggaren är gratis just nu.">
         Ingen provperiod, inget konto och inget kort för att rita, exportera och dela.
         Framöver kan vi lägga till betalda extrafunktioner ovanpå — men själva
         banplaneraren använder du gratis.

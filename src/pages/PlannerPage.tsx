@@ -902,11 +902,12 @@ export default function PlannerPage() {
         <div className="mx-auto flex h-16 max-w-[110rem] items-center gap-2 px-3 sm:gap-3 sm:px-5">
           <Link
             to="/"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-ink bg-paper transition-colors hover:bg-cream"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-ink bg-paper transition-colors hover:bg-cream sm:h-11 sm:w-11"
             aria-label="Tillbaka till startsidan"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
+
           <div className="hidden md:block">
             <Logo />
           </div>

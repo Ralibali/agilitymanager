@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { ArrowRight, CalendarPlus, Heart, LocateFixed, MapPin, Search } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
@@ -38,6 +38,7 @@ export default function CompetitionsPage() {
   const initialPrefs = useMemo(() => readFilterPrefs(), []);
   const [all, setAll] = useState<UnifiedCompetition[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [sport, setSport] = useState<SportFilter>(initialPrefs.sport);
   const [county, setCounty] = useState<string>(initialPrefs.county);
   const [onlyOpen, setOnlyOpen] = useState(initialPrefs.onlyOpen);

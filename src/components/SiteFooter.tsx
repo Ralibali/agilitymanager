@@ -47,8 +47,8 @@ export function SiteFooter() {
             </div>
             <p className="mt-5 max-w-sm leading-relaxed text-paper/60">
               Verktygen för sporten — banplanerare, banbibliotek och
-              tävlingskalender för agility och hoopers. Banplaneraren är gratis att
-              använda; kommande extrafunktioner kan bli betalda.
+              tävlingskalender för agility och hoopers. Banbyggaren är gratis just
+              nu; kommande extrafunktioner kan bli betalda.
             </p>
             <Link
               to="/banplanerare"

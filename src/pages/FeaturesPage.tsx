@@ -13,7 +13,7 @@ const GROUPS = [
   {
     kicker: "Banplaneraren",
     title: "Rita som en domare.",
-    text: "Hela editorn är gratis att använda — inget konto behövs för att börja. Meterskala, snap, banlinje och export som ser ut som en riktig domarritning.",
+    text: "Hela editorn är gratis just nu — inget konto behövs för att börja. Meterskala, snap, banlinje och export som ser ut som en riktig domarritning.",
     items: [
       { icon: MousePointer2, t: "Full hindereditor", d: "Placera, flytta, rotera, duplicera och numrera. Dra rotationshandtaget eller snabbrotera i 45°-steg." },
       { icon: Ruler, t: "Meterskala & rutnät", d: "Plan upp till 40×25 m med meterrutnät, 0,25 m-snap, zoom och live-uppmätt banlängd." },

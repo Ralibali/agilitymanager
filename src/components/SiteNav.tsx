@@ -10,7 +10,7 @@ export const NAV_LINKS = [
   { to: "/tavlingar", label: "Tävlingar" },
   { to: "/tavlingar/favoriter", label: "Favoriter" },
 
-  { to: "/priser", label: "100% gratis" },
+  { to: "/priser", label: "Gratis just nu" },
 ];
 
 export function Logo({ dark = false }: { dark?: boolean }) {
@@ -60,7 +60,7 @@ export function SiteNav() {
           className="group flex h-10 items-center justify-center gap-2 border-b-2 border-ink bg-tang px-3 text-center text-[0.8rem] font-extrabold uppercase tracking-[0.12em] text-ink transition-colors hover:bg-ember hover:text-paper sm:text-[0.85rem]"
         >
           <Paw className="h-4 w-4 shrink-0" />
-          <span>Banplaneraren är gratis att använda — börja utan konto</span>
+          <span>Banbyggaren är gratis just nu — börja utan konto</span>
           <ArrowRight className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1.5" />
         </Link>
         <div

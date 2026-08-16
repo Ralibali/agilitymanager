@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
-import { ArrowRight, Heart, LocateFixed, Search } from "lucide-react";
+import { ArrowRight, Heart, LocateFixed, MapPin, Search } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
@@ -14,8 +14,14 @@ import {
   monthLabel,
   type UnifiedCompetition,
 } from "@/lib/competitionData";
+import { formatDistance, sortByDistance, type GeoPoint } from "@/lib/competitionGeo";
 import { COUNTIES, nearestCounty } from "@/lib/swedishCounties";
 import { useFavoriteCompetitions } from "@/lib/favoriteCompetitions";
+
+const CompetitionMap = lazy(() =>
+  import("@/components/competitions/CompetitionMap").then((m) => ({ default: m.CompetitionMap })),
+);
+
 
 type SportFilter = "alla" | "agility" | "hoopers";
 

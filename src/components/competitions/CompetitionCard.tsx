@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { CalendarDays, MapPin } from "lucide-react";
 import { deadlineInfo, shortDate, type UnifiedCompetition } from "@/lib/competitionData";
+import { FavoriteButton } from "./FavoriteButton";
 
 const TONE_STYLE: Record<string, string> = {
   open: "bg-forest text-paper",
@@ -14,10 +15,13 @@ export function CompetitionCard({ comp }: { comp: UnifiedCompetition }) {
   const d = shortDate(comp.dateStart);
 
   return (
+    <div className="relative h-full">
+      <FavoriteButton compKey={comp.key} className="absolute bottom-4 right-4 z-10" />
     <Link
       to={comp.path}
       className="group flex h-full flex-col rounded-3xl border-2 border-ink bg-[#FCFAF4] p-6 shadow-hard transition-transform duration-300 hover:-translate-y-1.5"
     >
+
       <div className="flex items-start justify-between gap-3">
         <div>
           <span

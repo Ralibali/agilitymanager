@@ -21,6 +21,10 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   OBSTACLES_V2, CLASS_TEMPLATES, SIZE_CLASSES, ARENA_PRESETS,
   getObstacleDefV2, getClassTemplate,
   type ClassTemplateKey, type ObstacleTypeV2, type SizeClassKey,

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_FILTER_PREFS,
   readFilterPrefs,
@@ -25,7 +25,20 @@ describe("competitionFilterPrefs", () => {
   });
 
   it("sparar och läser tillbaka filtren", () => {
+    const store = new Map<string, string>();
+    vi.stubGlobal("window", {
+      localStorage: {
+        getItem: (k: string) => store.get(k) ?? null,
+        setItem: (k: string, v: string) => void store.set(k, v),
+      },
+      dispatchEvent: () => true,
+      CustomEvent: class {
+        constructor(public type: string) {}
+      },
+    });
     writeFilterPrefs({ ...DEFAULT_FILTER_PREFS, sport: "agility", matchOn: true });
     expect(readFilterPrefs()).toMatchObject({ sport: "agility", matchOn: true });
+    vi.unstubAllGlobals();
   });
 });
+

@@ -21,6 +21,8 @@ import { useFavoriteCompetitions } from "@/lib/favoriteCompetitions";
 import { filterMatching, matchCompetition, useDogProfile } from "@/lib/dogMatch";
 import { DogMatchPanel } from "@/components/competitions/DogMatchPanel";
 import { ProfileQuickSwitch } from "@/components/competitions/ProfileQuickSwitch";
+import { readFilterPrefs, writeFilterPrefs } from "@/lib/competitionFilterPrefs";
+
 import { buildIcsFeed, icsFeedCount, icsFeedFilename } from "@/lib/competitionIcsFeed";
 
 
@@ -32,16 +34,22 @@ const CompetitionMap = lazy(() =>
 type SportFilter = "alla" | "agility" | "hoopers";
 
 export default function CompetitionsPage() {
+  const initialPrefs = useMemo(() => readFilterPrefs(), []);
   const [all, setAll] = useState<UnifiedCompetition[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sport, setSport] = useState<SportFilter>("alla");
-  const [county, setCounty] = useState<string>("alla");
-  const [onlyOpen, setOnlyOpen] = useState(false);
+  const [sport, setSport] = useState<SportFilter>(initialPrefs.sport);
+  const [county, setCounty] = useState<string>(initialPrefs.county);
+  const [onlyOpen, setOnlyOpen] = useState(initialPrefs.onlyOpen);
   const [query, setQuery] = useState("");
   const [geoState, setGeoState] = useState<"idle" | "locating" | "denied">("idle");
   const [userPos, setUserPos] = useState<GeoPoint | null>(null);
-  const [onlyFavorites, setOnlyFavorites] = useState(false);
-  const [matchOn, setMatchOn] = useState(false);
+  const [onlyFavorites, setOnlyFavorites] = useState(initialPrefs.onlyFavorites);
+  const [matchOn, setMatchOn] = useState(initialPrefs.matchOn);
+
+  useEffect(() => {
+    writeFilterPrefs({ sport, county, onlyOpen, onlyFavorites, matchOn });
+  }, [sport, county, onlyOpen, onlyFavorites, matchOn]);
+
   const {
     profile: dogProfile,
     profiles: dogProfiles,

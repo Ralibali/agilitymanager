@@ -53,7 +53,7 @@ export function CompetitionCard({ comp }: { comp: UnifiedCompetition }) {
         )}
       </div>
 
-      <div className="mt-auto flex items-center justify-between gap-3 border-t-2 border-dashed border-ink/10 pt-4">
+      <div className="mt-auto flex items-center justify-between gap-3 border-t-2 border-dashed border-ink/10 pt-4 pr-12">
         <span className="text-sm font-bold text-ink/60">
           {comp.classes.length ? comp.classes.join(" · ") : "Klasser ej angivna"}
         </span>
@@ -66,5 +66,7 @@ export function CompetitionCard({ comp }: { comp: UnifiedCompetition }) {
         </span>
       </div>
     </Link>
+    </div>
   );
 }
+

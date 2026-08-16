@@ -12,6 +12,8 @@ import CountyCompetitionsPage from "./pages/CountyCompetitionsPage";
 import ClubCompetitionsPage from "./pages/ClubCompetitionsPage";
 import HoopersCompetitionDetailPage from "./pages/HoopersCompetitionDetailPage";
 import CoursesPage from "./pages/CoursesPage";
+import SharedCoursesPage from "./pages/SharedCoursesPage";
+
 import { NotFound } from "./pages/NotFound";
 
 function ScrollToTop() {

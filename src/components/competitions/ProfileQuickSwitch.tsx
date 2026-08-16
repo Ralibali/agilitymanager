@@ -214,7 +214,7 @@ export function ProfileQuickSwitch({
             const idx = profiles.findIndex((p) => p.id === activeId);
             const current = idx >= 0 ? profiles[idx] : undefined;
             return (
-              <p aria-live="polite" className="w-full text-xs font-semibold text-ink/55">
+              <p id="profile-switch-description" aria-live="polite" className="w-full text-xs font-semibold text-ink/60">
                 {active && current
                   ? `Visar ${counts[current.id] ?? 0} tävlingar som matchar ${profileLabel(current, idx)}.`
                   : "Ingen hundprofil styr filtret just nu — tryck på en hund för att bara se matchande tävlingar."}

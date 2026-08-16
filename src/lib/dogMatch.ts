@@ -217,10 +217,10 @@ export function selectProfile(store: DogProfileStore, id: string): DogProfileSto
 
 /** Hundprofiler som sparas lokalt i webbläsaren, inget konto krävs. */
 export function useDogProfile() {
-  const [store, setStore] = useState<DogProfileStore>(() => ({
-    profiles: [DEFAULT_ACTIVE],
-    activeId: DEFAULT_ACTIVE.id,
-  }));
+  const [store, setStore] = useState<DogProfileStore>(() => {
+    const first = createProfile();
+    return { profiles: [first], activeId: first.id };
+  });
 
   useEffect(() => {
     setStore(readProfileStore());

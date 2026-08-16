@@ -17,6 +17,9 @@ import {
 import { formatDistance, sortByDistance, type GeoPoint } from "@/lib/competitionGeo";
 import { COUNTIES, nearestCounty } from "@/lib/swedishCounties";
 import { useFavoriteCompetitions } from "@/lib/favoriteCompetitions";
+import { filterMatching, matchCompetition, useDogProfile } from "@/lib/dogMatch";
+import { DogMatchPanel } from "@/components/competitions/DogMatchPanel";
+
 
 const CompetitionMap = lazy(() =>
   import("@/components/competitions/CompetitionMap").then((m) => ({ default: m.CompetitionMap })),
@@ -35,6 +38,9 @@ export default function CompetitionsPage() {
   const [geoState, setGeoState] = useState<"idle" | "locating" | "denied">("idle");
   const [userPos, setUserPos] = useState<GeoPoint | null>(null);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const [matchOn, setMatchOn] = useState(false);
+  const { profile: dogProfile, update: updateDogProfile } = useDogProfile();
+
   const { keys: favoriteKeys, count: favoriteCount } = useFavoriteCompetitions();
 
   const locateMe = () => {
@@ -82,13 +88,17 @@ export default function CompetitionsPage() {
       if (county !== "alla" && c.county !== county) return false;
       if (onlyFavorites && !favoriteKeys.includes(c.key)) return false;
       if (onlyOpen && deadlineInfo(c.registrationCloses).tone === "closed") return false;
+      if (matchOn && !matchCompetition(c, dogProfile).matches) return false;
       if (q) {
         const hay = `${c.name} ${c.club} ${c.location} ${c.county ?? ""} ${c.judges.join(" ")}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [all, sport, county, onlyOpen, query, onlyFavorites, favoriteKeys]);
+  }, [all, sport, county, onlyOpen, query, onlyFavorites, favoriteKeys, matchOn, dogProfile]);
+
+  const matchCount = useMemo(() => filterMatching(all, dogProfile).length, [all, dogProfile]);
+
 
   const groups = useMemo(() => {
     const byMonth = new Map<string, UnifiedCompetition[]>();
@@ -125,7 +135,22 @@ export default function CompetitionsPage() {
       </PageHero>
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
+        <Reveal className="mb-8">
+          <DogMatchPanel
+            profile={dogProfile}
+            onChange={updateDogProfile}
+            active={matchOn}
+            onToggle={(next) => {
+              setMatchOn(next);
+              if (next) setSport(dogProfile.sport);
+            }}
+            matchCount={matchCount}
+            loading={loading}
+          />
+        </Reveal>
+
         <Reveal>
+
           <div className="flex flex-wrap items-center gap-2">
             {(["alla", "agility", "hoopers"] as SportFilter[]).map((f) => (
               <button
@@ -209,6 +234,11 @@ export default function CompetitionsPage() {
             {loading
               ? "Hämtar tävlingar…"
               : `${filtered.length} av ${all.length} kommande tävlingar · ${openCount} med öppen anmälan`}
+            {matchOn &&
+              ` · matchade mot ${dogProfile.name.trim() || "din hund"} (${
+                dogProfile.sport === "agility" ? dogProfile.agilityLevel : dogProfile.hoopersLevel
+              }, ${dogProfile.size})`}
+
             {geoState === "denied" && " · kunde inte hämta din position — välj län manuellt"}
           </p>
         </Reveal>
@@ -255,7 +285,10 @@ export default function CompetitionsPage() {
           <p className="mt-16 text-lg font-semibold text-ink/50">
             {onlyFavorites && favoriteCount === 0
               ? "Du har inga favoriter än — tryck på hjärtat på en tävling för att spara den."
-              : "Inga tävlingar matchar filtret."}
+              : matchOn
+                ? "Inga tävlingar matchar hundens klass just nu — prova en annan klass eller stäng av matchningen."
+                : "Inga tävlingar matchar filtret."}
+
           </p>
         )}
 

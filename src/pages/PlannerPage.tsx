@@ -249,6 +249,12 @@ export default function PlannerPage() {
     try { return localStorage.getItem(CLOUD_ID_KEY); } catch { return null; }
   });
   const [savingCloud, setSavingCloud] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [saveShareOpen, setSaveShareOpen] = useState(false);
+  const [pendingSaveShare, setPendingSaveShare] = useState(false);
+  const [socialCourseId, setSocialCourseId] = useState<string | null>(() => {
+    try { return localStorage.getItem(SOCIAL_ID_KEY); } catch { return null; }
+  });
   const [canvasPx, setCanvasPx] = useState({ w: 800, h: 600 });
 
   const svgRef = useRef<SVGSVGElement>(null);

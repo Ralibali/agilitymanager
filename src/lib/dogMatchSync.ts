@@ -47,12 +47,13 @@ async function fetchRemote(userId: string): Promise<DogProfileStore | null> {
 }
 
 async function pushRemote(userId: string, store: DogProfileStore): Promise<void> {
-  await supabase
-    .from("dog_match_profiles")
-    .upsert(
-      { user_id: userId, store: store as unknown as Record<string, unknown> },
-      { onConflict: "user_id" },
-    );
+  await supabase.from("dog_match_profiles").upsert(
+    {
+      user_id: userId,
+      store: JSON.parse(JSON.stringify(store)),
+    },
+    { onConflict: "user_id" },
+  );
 }
 
 /**

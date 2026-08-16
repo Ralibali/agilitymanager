@@ -19,6 +19,7 @@ import { formatDistance, sortByDistance, type GeoPoint } from "@/lib/competition
 import { COUNTIES, nearestCounty } from "@/lib/swedishCounties";
 import { useFavoriteCompetitions } from "@/lib/favoriteCompetitions";
 import { filterMatching, matchCompetition, sortByMatchScore, useDogProfile } from "@/lib/dogMatch";
+import { useDogProfileSync } from "@/lib/dogMatchSync";
 import { DogMatchPanel } from "@/components/competitions/DogMatchPanel";
 import { ProfileQuickSwitch } from "@/components/competitions/ProfileQuickSwitch";
 import { readFilterPrefs, writeFilterPrefs } from "@/lib/competitionFilterPrefs";

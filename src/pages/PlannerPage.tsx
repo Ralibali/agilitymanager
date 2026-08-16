@@ -975,25 +975,54 @@ export default function PlannerPage() {
             <ToolButton onClick={() => setLibraryOpen(true)} label="Banbibliotek — officiella banor och mallar">
               <BookOpen className="h-5 w-5" />
             </ToolButton>
-            <ToolButton onClick={() => setFeedbackOpen(true)} label="Skicka in förslag och material — hjälp oss göra banbyggaren bättre">
-              <Lightbulb className="h-5 w-5" />
-            </ToolButton>
-            <span className="hidden sm:inline-flex">
-              <ToolButton onClick={() => setPaletteOpen(true)} label="Kommandopalett (Ctrl+K)">
-                <Command className="h-5 w-5" />
-              </ToolButton>
-            </span>
-            <span className="hidden sm:inline-flex">
-              <ToolButton onClick={() => setPlaybackActive((v) => !v)} active={playbackActive} label="Spela upp hundens väg" disabled={numbered.filter((o) => o.number != null).length < 2}>
-                <Play className="h-5 w-5" />
-              </ToolButton>
-            </span>
 
-            <span className="hidden sm:inline-flex">
-              <ToolButton onClick={() => setView3D("view")} label="3D-vy (3)">
-                <Box className="h-5 w-5" />
-              </ToolButton>
-            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Fler verktyg"
+                  title="Fler verktyg"
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border-2 border-ink/15 bg-paper text-ink/70 transition-all hover:border-ink hover:text-ink sm:h-11 sm:w-11"
+                >
+                  <MoreHorizontal className="h-5 w-5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 border-2 border-ink bg-paper">
+                <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-ink/50">
+                  Visa banan
+                </DropdownMenuLabel>
+                <DropdownMenuItem onSelect={() => setView3D("view")} className="min-h-11 font-semibold">
+                  <Box className="mr-2 h-4 w-4" /> 3D-vy
+                  <span className="ml-auto text-xs text-ink/40">3</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setView3D("walk")} className="min-h-11 font-semibold">
+                  <Footprints className="mr-2 h-4 w-4" /> Gå banan
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => setPlaybackActive((v) => !v)}
+                  disabled={numbered.filter((o) => o.number != null).length < 2}
+                  className="min-h-11 font-semibold"
+                >
+                  <Play className="mr-2 h-4 w-4" /> Spela upp hundens väg
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-ink/50">
+                  Hjälp
+                </DropdownMenuLabel>
+                <DropdownMenuItem onSelect={() => setPaletteOpen(true)} className="min-h-11 font-semibold">
+                  <Command className="mr-2 h-4 w-4" /> Kommandopalett
+                  <span className="ml-auto text-xs text-ink/40">Ctrl+K</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setHelpOpen(true)} className="min-h-11 font-semibold">
+                  <Keyboard className="mr-2 h-4 w-4" /> Tangentbordsgenvägar
+                  <span className="ml-auto text-xs text-ink/40">?</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => setFeedbackOpen(true)} className="min-h-11 font-semibold">
+                  <Lightbulb className="mr-2 h-4 w-4" /> Skicka förslag & material
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <div className="relative">
               <ExportMenu

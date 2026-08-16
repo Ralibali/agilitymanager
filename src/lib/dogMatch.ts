@@ -387,6 +387,6 @@ export function sortByMatchScore<T extends UnifiedCompetition>(
   return [...list].sort((a, b) => {
     const diff = matchScore(b, dog).score - matchScore(a, dog).score;
     if (diff !== 0) return diff;
-    return a.dateStart.localeCompare(b.dateStart);
+    return (a.dateStart ?? "").localeCompare(b.dateStart ?? "");
   });
 }

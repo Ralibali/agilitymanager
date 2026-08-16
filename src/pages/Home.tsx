@@ -311,7 +311,7 @@ export default function Home() {
               to="/priser"
               className="group mt-6 inline-flex items-center gap-2 text-lg font-bold text-ink transition-colors hover:text-tang"
             >
-              Läs gratis-manifestet
+              Se vad som ingår gratis
               <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
             </Link>
           </Reveal>
@@ -339,8 +339,8 @@ export default function Home() {
           </Reveal>
           <Reveal delay={180}>
             <p className="mx-auto mt-6 max-w-xl text-lg font-semibold text-ink/75">
-              Öppna planaren, dra ut första hindret och känn skillnaden.
-              Det tar tio sekunder — och kostar ingenting.
+              Öppna planeraren, dra ut första hindret och känn skillnaden.
+              Det tar tio sekunder — och kostar dig inget att testa.
             </p>
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link

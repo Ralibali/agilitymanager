@@ -5,6 +5,7 @@ import {
   filterMatching,
   hoopersSizeFor,
   matchCompetition,
+  explainMatch,
   type DogProfile,
   addProfile,
   createProfile,
@@ -138,5 +139,32 @@ describe("flera matchningsprofiler", () => {
 
   it("faller tillbaka på ett läsbart namn", () => {
     expect(profileLabel({ ...DEFAULT_DOG_PROFILE, name: "  " }, 1)).toBe("Profil 2");
+  });
+});
+
+describe("explainMatch", () => {
+  it("förklarar en matchande tävling", () => {
+    const res = explainMatch(comp({ classes: ["Ag1", "Ag2"] }), { ...dog, name: "Rio" });
+    expect(res.matches).toBe(true);
+    expect(res.summary).toContain("Rio");
+    expect(res.reasons.find((r) => r.key === "class")?.state).toBe("ok");
+    expect(res.reasons.find((r) => r.key === "size")?.detail).toContain("45 cm");
+  });
+
+  it("förklarar fel sport", () => {
+    const res = explainMatch(comp({ sport: "hoopers" }), dog);
+    expect(res.reasons.find((r) => r.key === "sport")?.state).toBe("no");
+    expect(res.summary).toContain("fel sport");
+  });
+
+  it("flaggar saknad klasslista som okänd", () => {
+    const res = explainMatch(comp({ classes: [] }), dog);
+    expect(res.reasons.find((r) => r.key === "class")?.state).toBe("unknown");
+  });
+
+  it("förklarar hoopersstorlek", () => {
+    const hoop = { ...DEFAULT_DOG_PROFILE, sport: "hoopers" as const, size: "S" as const };
+    const res = explainMatch(comp({ sport: "hoopers", classes: ["Startklass"] }), hoop);
+    expect(res.reasons.find((r) => r.key === "size")?.detail).toContain("Small");
   });
 });

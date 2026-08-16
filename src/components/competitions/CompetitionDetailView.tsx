@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { Reveal } from "@/components/Reveal";
 import { CompetitionCard } from "./CompetitionCard";
 import { FavoriteButton } from "./FavoriteButton";
+import { MatchExplainer } from "./MatchExplainer";
 import {
   buildIcs,
   dateRange,
@@ -181,6 +182,10 @@ export function CompetitionDetailView({
                   </div>
                 </div>
               )}
+
+              <div className="mt-8">
+                <MatchExplainer comp={comp} variant="detail" />
+              </div>
 
               {notes && <p className="mt-8 whitespace-pre-line leading-relaxed text-ink/70">{notes}</p>}
             </div>

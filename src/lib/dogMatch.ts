@@ -113,6 +113,8 @@ export interface SavedDogProfile extends DogProfile {
 export interface DogProfileStore {
   profiles: SavedDogProfile[];
   activeId: string;
+  /** Tidpunkt (ms) för senaste ändringen — används vid synk mellan enheter. */
+  updatedAt?: number;
 }
 
 function newId(): string {
@@ -128,7 +130,8 @@ export function profileLabel(profile: DogProfile, index: number): string {
   return profile.name.trim() || `Profil ${index + 1}`;
 }
 
-function sanitizeStore(raw: unknown): DogProfileStore | null {
+/** Läser in och rensar upp en lagrad profillista (lokal eller från kontot). */
+export function sanitizeStore(raw: unknown): DogProfileStore | null {
   if (!raw || typeof raw !== "object") return null;
   const value = raw as Partial<DogProfileStore>;
   if (!Array.isArray(value.profiles) || value.profiles.length === 0) return null;
@@ -138,7 +141,8 @@ function sanitizeStore(raw: unknown): DogProfileStore | null {
   const activeId = profiles.some((p) => p.id === value.activeId)
     ? (value.activeId as string)
     : profiles[0].id;
-  return { profiles, activeId };
+  const updatedAt = typeof value.updatedAt === "number" ? value.updatedAt : undefined;
+  return { profiles, activeId, updatedAt };
 }
 
 export function readProfileStore(): DogProfileStore {
@@ -163,11 +167,17 @@ export function readProfileStore(): DogProfileStore {
   return { profiles: [first], activeId: first.id };
 }
 
-export function writeProfileStore(store: DogProfileStore): void {
+export function writeProfileStore(
+  store: DogProfileStore,
+  options: { keepTimestamp?: boolean } = {},
+): void {
   if (typeof window === "undefined") return;
+  const stamped: DogProfileStore = options.keepTimestamp
+    ? store
+    : { ...store, updatedAt: Date.now() };
   try {
-    window.localStorage.setItem(STORE_KEY, JSON.stringify(store));
-    const active = store.profiles.find((p) => p.id === store.activeId);
+    window.localStorage.setItem(STORE_KEY, JSON.stringify(stamped));
+    const active = stamped.profiles.find((p) => p.id === stamped.activeId);
     if (active) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(active));
   } catch {
     /* lagring kan vara blockerad – matchningen fungerar ändå i sessionen */

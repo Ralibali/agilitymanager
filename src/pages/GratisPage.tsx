@@ -51,22 +51,23 @@ export default function GratisPage() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       <SiteNav />
-      <PageHero kicker="Priser" title="Allt är gratis. På riktigt.">
-        Ingen provperiod. Inget konto. Inget kort. Banplaneraren och allt runt
-        den kostar noll kronor — idag, imorgon och för alltid.
+      <PageHero kicker="Priser" title="Banplaneraren är gratis.">
+        Ingen provperiod, inget konto och inget kort för att rita, exportera och dela.
+        Framöver kan vi lägga till betalda extrafunktioner ovanpå — men själva
+        banplaneraren använder du gratis.
       </PageHero>
 
-      {/* 0 kr-manifestet */}
+      {/* Gratisnivån */}
       <section className="border-b-2 border-ink bg-forest text-paper">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:py-28">
           <Reveal>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-tang">Vår prislista, i sin helhet</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-tang">Gratisnivån — det du får idag</p>
             <p className="mt-4 font-display text-[10rem] leading-none sm:text-[14rem]">
               0 <span className="text-6xl sm:text-8xl">kr</span>
             </p>
             <div className="mt-6 flex items-center gap-3 text-xl font-bold text-paper/80">
               <InfinityIcon className="h-7 w-7 text-tang" />
-              Gäller alla funktioner, alla sporter, alla hundar
+              Hela banplaneraren, alla sporter, alla hundar
             </div>
             <Link
               to="/banplanerare"

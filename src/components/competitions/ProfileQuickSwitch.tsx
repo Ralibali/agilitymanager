@@ -197,16 +197,17 @@ export function ProfileQuickSwitch({
             )}
           </div>
 
-          <p aria-live="polite" className="w-full text-xs font-semibold text-ink/55">
-            {active
-              ? `Visar ${counts[activeId] ?? 0} tävlingar som matchar ${
-                  profileLabel(
-                    profiles.find((p) => p.id === activeId) ?? profiles[0],
-                    Math.max(0, profiles.findIndex((p) => p.id === activeId)),
-                  )
-                }.`
-              : "Ingen hundprofil styr filtret just nu — tryck på en hund för att bara se matchande tävlingar."}
-          </p>
+          {(() => {
+            const idx = profiles.findIndex((p) => p.id === activeId);
+            const current = idx >= 0 ? profiles[idx] : undefined;
+            return (
+              <p aria-live="polite" className="w-full text-xs font-semibold text-ink/55">
+                {active && current
+                  ? `Visar ${counts[current.id] ?? 0} tävlingar som matchar ${profileLabel(current, idx)}.`
+                  : "Ingen hundprofil styr filtret just nu — tryck på en hund för att bara se matchande tävlingar."}
+              </p>
+            );
+          })()}
         </div>
 
       </div>

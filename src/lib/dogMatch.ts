@@ -167,11 +167,17 @@ export function readProfileStore(): DogProfileStore {
   return { profiles: [first], activeId: first.id };
 }
 
-export function writeProfileStore(store: DogProfileStore): void {
+export function writeProfileStore(
+  store: DogProfileStore,
+  options: { keepTimestamp?: boolean } = {},
+): void {
   if (typeof window === "undefined") return;
+  const stamped: DogProfileStore = options.keepTimestamp
+    ? store
+    : { ...store, updatedAt: Date.now() };
   try {
-    window.localStorage.setItem(STORE_KEY, JSON.stringify(store));
-    const active = store.profiles.find((p) => p.id === store.activeId);
+    window.localStorage.setItem(STORE_KEY, JSON.stringify(stamped));
+    const active = stamped.profiles.find((p) => p.id === stamped.activeId);
     if (active) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(active));
   } catch {
     /* lagring kan vara blockerad – matchningen fungerar ändå i sessionen */

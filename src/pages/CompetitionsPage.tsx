@@ -20,6 +20,7 @@ import { useFavoriteCompetitions } from "@/lib/favoriteCompetitions";
 import { filterMatching, matchCompetition, useDogProfile } from "@/lib/dogMatch";
 import { DogMatchPanel } from "@/components/competitions/DogMatchPanel";
 import { ProfileQuickSwitch } from "@/components/competitions/ProfileQuickSwitch";
+import { buildIcsFeed, icsFeedCount, icsFeedFilename } from "@/lib/competitionIcsFeed";
 
 
 const CompetitionMap = lazy(() =>
@@ -118,6 +119,19 @@ export default function CompetitionsPage() {
     });
     return map;
   }, [all, dogProfiles]);
+
+  /** Laddar ner de filtrerade tävlingarna som en iCal-fil till mobilkalendern. */
+  const exportIcsFeed = () => {
+    const list = matchOn ? filtered : filterMatching(filtered, dogProfile);
+    if (list.length === 0) return;
+    downloadIcs(
+      icsFeedFilename(dogProfile.name),
+      buildIcsFeed(list, {
+        calendarName: `AgilityManager – tävlingar för ${dogProfile.name.trim() || "din hund"}`,
+        siteUrl: SITE_URL,
+      }),
+    );
+  };
 
   /** Aktiverar matchning för en profil och sätter sportfiltret därefter. */
   const activateProfile = (id: string) => {

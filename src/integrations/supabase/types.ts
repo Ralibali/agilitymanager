@@ -1681,6 +1681,42 @@ export type Database = {
           },
         ]
       }
+      planner_feedback: {
+        Row: {
+          category: string
+          course_snapshot: Json | null
+          created_at: string
+          email: string | null
+          id: string
+          message: string
+          name: string | null
+          page_url: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          category?: string
+          course_snapshot?: Json | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          message: string
+          name?: string | null
+          page_url?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          category?: string
+          course_snapshot?: Json | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          message?: string
+          name?: string | null
+          page_url?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       planner_profiles: {
         Row: {
           created_at: string

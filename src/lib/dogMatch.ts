@@ -263,3 +263,70 @@ export function useDogProfile() {
   };
 }
 
+
+// ── Förklaring: varför matchar tävlingen? ──────────────────────────────────
+
+export type ReasonState = "ok" | "no" | "unknown";
+
+export interface MatchReason {
+  key: "sport" | "class" | "size";
+  state: ReasonState;
+  label: string;
+  detail: string;
+}
+
+export interface MatchExplanation extends MatchResult {
+  reasons: MatchReason[];
+  summary: string;
+}
+
+/** Bygger en läsbar förklaring till varför en tävling matchar hunden eller inte. */
+export function explainMatch(comp: UnifiedCompetition, dog: DogProfile): MatchExplanation {
+  const result = matchCompetition(comp, dog);
+  const dogName = dog.name.trim() || "din hund";
+  const level = dog.sport === "agility" ? dog.agilityLevel : dog.hoopersLevel;
+  const classes = comp.classes.filter((c) => c.trim().length > 0);
+
+  const sportOk = comp.sport === dog.sport;
+  const reasons: MatchReason[] = [
+    {
+      key: "sport",
+      state: sportOk ? "ok" : "no",
+      label: "Sport",
+      detail: sportOk
+        ? `Tävlingen är ${comp.sport} och ${dogName} tävlar i ${dog.sport}.`
+        : `Tävlingen är ${comp.sport}, men ${dogName} är inställd på ${dog.sport}.`,
+    },
+    {
+      key: "class",
+      state: !sportOk ? "no" : result.unknownClasses ? "unknown" : result.matches ? "ok" : "no",
+      label: "Klass",
+      detail: !sportOk
+        ? "Klasserna bedöms inte eftersom sporten skiljer sig."
+        : result.unknownClasses
+          ? "Arrangören har inte publicerat klasslistan ännu — kontrollera i inbjudan."
+          : result.matches
+            ? `${level} matchar ${result.matchedClasses.join(", ")}.`
+            : `${level} finns inte bland klasserna: ${classes.join(", ")}.`,
+    },
+    {
+      key: "size",
+      state: "ok",
+      label: "Storlek",
+      detail:
+        dog.sport === "agility"
+          ? `Storleksklass ${dog.size} (${SIZE_WITHERS[dog.size]}) ger hopphöjd ${JUMP_HEIGHT_CM[dog.size]} cm. Svenska tävlingar tar emot alla storlekar.`
+          : `Storleksklass ${dog.size} motsvarar hoopersstorlek ${hoopersSizeFor(dog.size)}. Svenska tävlingar tar emot alla storlekar.`,
+    },
+  ];
+
+  const summary = !sportOk
+    ? `Matchar inte — fel sport för ${dogName}.`
+    : result.unknownClasses
+      ? `Klasslista saknas — kan passa ${dogName}.`
+      : result.matches
+        ? `Matchar ${dogName}: ${result.matchedClasses.join(", ")}.`
+        : `Matchar inte ${level}.`;
+
+  return { ...result, reasons, summary };
+}

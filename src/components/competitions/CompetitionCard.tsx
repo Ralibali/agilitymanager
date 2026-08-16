@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { CalendarDays, MapPin } from "lucide-react";
 import { deadlineInfo, shortDate, type UnifiedCompetition } from "@/lib/competitionData";
 import { FavoriteButton } from "./FavoriteButton";
+import { MatchExplainer } from "./MatchExplainer";
 
 const TONE_STYLE: Record<string, string> = {
   open: "bg-forest text-paper",
@@ -47,6 +48,10 @@ export function CompetitionCard({ comp }: { comp: UnifiedCompetition }) {
             <CalendarDays className="h-4 w-4 text-forest" /> {comp.club}
           </span>
         )}
+      </div>
+
+      <div className="relative z-20 mt-4">
+        <MatchExplainer comp={comp} />
       </div>
 
       <div className="mt-auto flex items-center justify-between gap-3 border-t-2 border-dashed border-ink/10 pt-4 pr-12">

@@ -4,6 +4,7 @@ import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Reveal } from "@/components/Reveal";
 import { CompetitionCard } from "./CompetitionCard";
+import { FavoriteButton } from "./FavoriteButton";
 import {
   buildIcs,
   dateRange,
@@ -128,6 +129,7 @@ export function CompetitionDetailView({
             >
               <CalendarPlus className="h-4 w-4" /> Lägg i kalendern
             </button>
+            <FavoriteButton compKey={comp.key} variant="pill" />
             <Link
               to="/banplanerare"
               className="group inline-flex items-center gap-2 rounded-full border-2 border-ink bg-tang px-6 py-3 text-sm font-bold text-ink shadow-hard-sm transition-transform hover:-translate-y-0.5"

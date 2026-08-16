@@ -8,6 +8,8 @@ export const NAV_LINKS = [
   { to: "/banplanerare", label: "Banplanerare" },
   { to: "/banor", label: "Banbibliotek" },
   { to: "/tavlingar", label: "Tävlingar" },
+  { to: "/tavlingar/favoriter", label: "Favoriter" },
+
   { to: "/priser", label: "100% gratis" },
 ];
 

@@ -5,6 +5,7 @@ import PlannerPage from "./pages/PlannerPage";
 import FeaturesPage from "./pages/FeaturesPage";
 import GratisPage from "./pages/GratisPage";
 import CompetitionsPage from "./pages/CompetitionsPage";
+import FavoriteCompetitionsPage from "./pages/FavoriteCompetitionsPage";
 import CompetitionDetailPage from "./pages/CompetitionDetailPage";
 import CountyCompetitionsPage from "./pages/CountyCompetitionsPage";
 import ClubCompetitionsPage from "./pages/ClubCompetitionsPage";
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="/priser" element={<GratisPage />} />
         <Route path="/gratis" element={<Navigate to="/priser" replace />} />
         <Route path="/tavlingar" element={<CompetitionsPage />} />
+        <Route path="/tavlingar/favoriter" element={<FavoriteCompetitionsPage />} />
         <Route path="/tavlingar/lan/:countySlug" element={<CountyCompetitionsPage />} />
         <Route path="/tavlingar/klubb/:clubSlug" element={<ClubCompetitionsPage />} />
         <Route path="/tavlingar/hoopers/:id" element={<HoopersCompetitionDetailPage />} />

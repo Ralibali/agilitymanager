@@ -933,12 +933,17 @@ export default function PlannerPage() {
             <ToolButton onClick={() => setLibraryOpen(true)} label="Banbibliotek — officiella banor och mallar">
               <BookOpen className="h-5 w-5" />
             </ToolButton>
-            <ToolButton onClick={() => setPaletteOpen(true)} label="Kommandopalett (Ctrl+K)">
-              <Command className="h-5 w-5" />
-            </ToolButton>
-            <ToolButton onClick={() => setPlaybackActive((v) => !v)} active={playbackActive} label="Spela upp hundens väg" disabled={numbered.filter((o) => o.number != null).length < 2}>
-              <Play className="h-5 w-5" />
-            </ToolButton>
+            <span className="hidden sm:inline-flex">
+              <ToolButton onClick={() => setPaletteOpen(true)} label="Kommandopalett (Ctrl+K)">
+                <Command className="h-5 w-5" />
+              </ToolButton>
+            </span>
+            <span className="hidden sm:inline-flex">
+              <ToolButton onClick={() => setPlaybackActive((v) => !v)} active={playbackActive} label="Spela upp hundens väg" disabled={numbered.filter((o) => o.number != null).length < 2}>
+                <Play className="h-5 w-5" />
+              </ToolButton>
+            </span>
+
             <ToolButton onClick={() => setView3D("view")} label="3D-vy (3)">
               <Box className="h-5 w-5" />
             </ToolButton>

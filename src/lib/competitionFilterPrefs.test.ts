@@ -32,9 +32,8 @@ describe("competitionFilterPrefs", () => {
         setItem: (k: string, v: string) => void store.set(k, v),
       },
       dispatchEvent: () => true,
-      CustomEvent: class {
-        constructor(public type: string) {}
-      },
+      CustomEvent: class {},
+
     });
     writeFilterPrefs({ ...DEFAULT_FILTER_PREFS, sport: "agility", matchOn: true });
     expect(readFilterPrefs()).toMatchObject({ sport: "agility", matchOn: true });

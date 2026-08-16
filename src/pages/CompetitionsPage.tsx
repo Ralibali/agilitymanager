@@ -19,6 +19,7 @@ import { COUNTIES, nearestCounty } from "@/lib/swedishCounties";
 import { useFavoriteCompetitions } from "@/lib/favoriteCompetitions";
 import { filterMatching, matchCompetition, useDogProfile } from "@/lib/dogMatch";
 import { DogMatchPanel } from "@/components/competitions/DogMatchPanel";
+import { ProfileQuickSwitch } from "@/components/competitions/ProfileQuickSwitch";
 
 
 const CompetitionMap = lazy(() =>
@@ -109,6 +110,23 @@ export default function CompetitionsPage() {
 
   const matchCount = useMemo(() => filterMatching(all, dogProfile).length, [all, dogProfile]);
 
+  /** Antal matchande tävlingar per sparad profil, för snabbväxeln. */
+  const profileCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    dogProfiles.forEach((p) => {
+      map[p.id] = filterMatching(all, p).length;
+    });
+    return map;
+  }, [all, dogProfiles]);
+
+  /** Aktiverar matchning för en profil och sätter sportfiltret därefter. */
+  const activateProfile = (id: string) => {
+    const next = dogProfiles.find((p) => p.id === id);
+    selectDogProfile(id);
+    setMatchOn(true);
+    if (next) setSport(next.sport);
+  };
+
 
   const groups = useMemo(() => {
     const byMonth = new Map<string, UnifiedCompetition[]>();
@@ -166,6 +184,21 @@ export default function CompetitionsPage() {
               if (next) setSport(dogProfile.sport);
             }}
             matchCount={matchCount}
+            loading={loading}
+          />
+        </Reveal>
+
+        <Reveal className="mb-6">
+          <ProfileQuickSwitch
+            profiles={dogProfiles}
+            activeId={dogProfileId}
+            active={matchOn}
+            counts={profileCounts}
+            onActivate={activateProfile}
+            onClear={() => {
+              setMatchOn(false);
+              setSport("alla");
+            }}
             loading={loading}
           />
         </Reveal>

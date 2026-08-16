@@ -99,28 +99,39 @@ export function DogMatchPanel({
           <span className="text-xs font-bold uppercase tracking-wider text-ink/45">Profiler</span>
           {profiles.map((p, i) => {
             const isActive = p.id === activeId;
+            const label = profileLabel(p, i);
             return (
               <span
                 key={p.id}
-                className={`inline-flex items-center gap-1 rounded-full border-2 pl-1 pr-1 transition-all ${
-                  isActive ? "border-ink bg-forest text-paper shadow-hard ring-2 ring-forest/25 ring-offset-2 ring-offset-paper" : "border-ink/15 bg-paper text-ink/70"
+                className={`inline-flex items-center rounded-full border-2 pl-1 pr-1 transition-all ${
+                  isActive
+                    ? "border-ink bg-forest text-paper shadow-hard ring-2 ring-forest/25 ring-offset-2 ring-offset-paper"
+                    : "border-ink/15 bg-paper text-ink"
                 }`}
               >
                 <button
                   onClick={() => onSelect(p.id)}
                   aria-pressed={isActive}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold"
+                  aria-current={isActive ? "true" : undefined}
+                  aria-label={`${isActive ? "Aktiv profil" : "Välj profil"}: ${label}, ${
+                    p.sport === "agility" ? p.agilityLevel : p.hoopersLevel
+                  }, ${p.sport === "agility" ? `${JUMP_HEIGHT_CM[p.size]} cm` : hoopersSizeFor(p.size)}`}
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold transition-colors"
                 >
-                  {isActive ? <CheckCircle2 className="h-4 w-4" /> : <Dog className="h-4 w-4 text-ink/50" />}
-                  {profileLabel(p, i)}
+                  {isActive ? (
+                    <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <Dog className="h-5 w-5 text-ink/70" aria-hidden="true" />
+                  )}
+                  {label}
                 </button>
                 {profiles.length > 1 && (
                   <button
                     onClick={() => setPendingDeleteId(p.id)}
-                    aria-label={`Ta bort ${profileLabel(p, i)}`}
-                    className="grid h-6 w-6 place-items-center rounded-full hover:bg-ink/10"
+                    aria-label={`Ta bort ${label}`}
+                    className="grid min-h-8 min-w-8 place-items-center rounded-full text-ink/60 transition-colors hover:bg-ink/10 hover:text-ink"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-4 w-4" aria-hidden="true" />
                   </button>
                 )}
               </span>

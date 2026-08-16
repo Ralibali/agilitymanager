@@ -17,29 +17,33 @@ const ALL_FREE = [
   "Delningslänkar till dina banor",
   "Tävlingskalender",
   "Mobil & dator, touch på riktigt",
-  "Inga konto. Inga kort. Inga gränser.",
+  "Inget konto och inget kort för att rita",
 ];
 
 const FAQ = [
   {
-    q: "Är allt verkligen gratis?",
-    a: "Ja. Banplaneraren, banbiblioteket, exporten, delningen och tävlingskalendern — allt kostar 0 kr, för alltid. Det finns inget konto att uppgradera och inga funktioner bakom betalvägg.",
+    q: "Vad kostar banplaneraren?",
+    a: "Ingenting. Hela banplaneraren — alla hinder, mallar, exporten, delningen, banbiblioteket och tävlingskalendern — använder du gratis. Du behöver varken konto eller kort för att komma igång.",
+  },
+  {
+    q: "Kommer allt vara gratis i framtiden?",
+    a: "Banplaneraren är gratis att använda och vi lovar inte mer än så. AgilityManager växer, och vi kan komma att ta betalt för nya extrafunktioner längre fram. Om något ändras säger vi till i förväg — och vi tar aldrig betalt i efterhand för något du redan använt gratis.",
   },
   {
     q: "Varför frågar ni efter min e-post när jag delar en bana?",
-    a: "Det är det enda vi någonsin ber om. Din e-post går till vårt nyhetsbrev med nya banor, tävlingspåminnelser och träningstips — det är så vi växer och kan hålla allt gratis. Du kan avsluta prenumerationen när du vill.",
+    a: "Det är det enda vi ber om när du delar. Din e-post går till vårt nyhetsbrev med nya banor, tävlingspåminnelser och träningstips. Du kan avsluta prenumerationen när du vill.",
   },
   {
     q: "Behöver jag e-post för att rita?",
-    a: "Nej! Rita hur mycket du vill, helt anonymt. Banan autosparas i din egen webbläsare. E-post behövs först när du vill dela en bana via länk.",
+    a: "Nej! Rita hur mycket du vill, helt anonymt. Banan autosparas i din egen webbläsare. Namn och e-post behövs först när du vill spara banan på en profil eller dela den.",
   },
   {
     q: "Vart tar mina banor vägen?",
-    a: "De sparas lokalt i din webbläsare — vi lagrar inga banor på någon server. Delningslänkar bär hela banan i själva länken, så mottagaren behöver inget heller.",
+    a: "Banan du ritar sparas lokalt i din webbläsare. Väljer du att spara den på din profil hamnar den hos oss, och då bestämmer du själv om den är publik eller privat.",
   },
   {
     q: "Hur tjänar ni pengar?",
-    a: "Just nu handlar allt om att bygga sportens bästa gratisverktyg och community. Nyhetsbrevet är vår kanal — där kan vi i framtiden presentera relevanta samarbeten, alltid tydligt märkta.",
+    a: "Idag handlar allt om att bygga sportens bästa verktyg och ett community runt det. Nyhetsbrevet är vår kanal, och framöver kan det tillkomma betalda extrafunktioner ovanpå den gratis banplaneraren — alltid tydligt märkta innan du väljer dem.",
   },
 ];
 

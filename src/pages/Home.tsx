@@ -253,14 +253,14 @@ export default function Home() {
             <Reveal>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-tang">Banplaneraren</p>
               <h2 className="mt-3 font-display text-5xl leading-[0.95] sm:text-7xl lg:text-8xl">
-                Gratis idag.<br />Gratis för alltid.
+                Gratis att rita.<br />Inget konto.
               </h2>
             </Reveal>
             <Reveal delay={150}>
               <p className="mt-6 max-w-lg text-lg leading-relaxed text-paper/65">
                 Dra, rotera och numrera hinder i äkta meterskala. Banlinjen ritar sig
                 själv, längden räknas live och exporten är ett klick bort. Autosparat
-                i webbläsaren — utan konto, utan kostnad.
+                i webbläsaren — du börjar utan konto och utan att betala.
               </p>
             </Reveal>
             <Reveal delay={280}>

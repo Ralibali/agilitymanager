@@ -978,7 +978,7 @@ export default function PlannerPage() {
               onClick={() => (user ? saveToCloud() : setAuthOpen(true))}
               disabled={savingCloud}
               title={user ? (cloudId ? "Uppdatera molnkopian" : "Spara i molnet") : "Logga in för molnlagring, kommentarer och klubbdelning"}
-              className="hidden h-11 w-11 place-items-center rounded-full border-2 border-ink bg-paper transition-colors hover:bg-cream disabled:opacity-40 sm:grid"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-ink bg-paper transition-colors hover:bg-cream disabled:opacity-40 sm:h-11 sm:w-11"
               aria-label={user ? "Spara i molnet" : "Logga in"}
             >
               {savingCloud ? <Loader2 className="h-5 w-5 animate-spin" /> : <Cloud className="h-5 w-5" />}

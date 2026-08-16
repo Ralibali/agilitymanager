@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import {
   ArrowLeft, BookOpen, Box, Check, ChevronDown, ChevronUp, Cloud, CloudCheck,
-  Command, Copy, Download, Eraser, Footprints, Grid2x2, Link2, Loader2, Lock,
-  Lightbulb, MessageSquare, MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler,
-  Share2, ShieldCheck, Spline, Trash2, Undo2, Unlock, Users, ZoomIn, ZoomOut,
+  Command, Copy, Download, Eraser, Footprints, Grid2x2, Keyboard, Link2, Loader2, Lock,
+  Lightbulb, MessageSquare, MoreHorizontal, MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler,
+  Share2, ShieldCheck, Spline, Trash2, Undo2, Unlock, Users, X, ZoomIn, ZoomOut,
 } from "lucide-react";
 import { toast } from "sonner";
 import { uid, type PlacedObstacle, type Sport } from "@/lib/course";
@@ -20,6 +20,10 @@ import {
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   OBSTACLES_V2, CLASS_TEMPLATES, SIZE_CLASSES, ARENA_PRESETS,
   getObstacleDefV2, getClassTemplate,
@@ -971,25 +975,54 @@ export default function PlannerPage() {
             <ToolButton onClick={() => setLibraryOpen(true)} label="Banbibliotek — officiella banor och mallar">
               <BookOpen className="h-5 w-5" />
             </ToolButton>
-            <ToolButton onClick={() => setFeedbackOpen(true)} label="Skicka in förslag och material — hjälp oss göra banbyggaren bättre">
-              <Lightbulb className="h-5 w-5" />
-            </ToolButton>
-            <span className="hidden sm:inline-flex">
-              <ToolButton onClick={() => setPaletteOpen(true)} label="Kommandopalett (Ctrl+K)">
-                <Command className="h-5 w-5" />
-              </ToolButton>
-            </span>
-            <span className="hidden sm:inline-flex">
-              <ToolButton onClick={() => setPlaybackActive((v) => !v)} active={playbackActive} label="Spela upp hundens väg" disabled={numbered.filter((o) => o.number != null).length < 2}>
-                <Play className="h-5 w-5" />
-              </ToolButton>
-            </span>
 
-            <span className="hidden sm:inline-flex">
-              <ToolButton onClick={() => setView3D("view")} label="3D-vy (3)">
-                <Box className="h-5 w-5" />
-              </ToolButton>
-            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Fler verktyg"
+                  title="Fler verktyg"
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border-2 border-ink/15 bg-paper text-ink/70 transition-all hover:border-ink hover:text-ink sm:h-11 sm:w-11"
+                >
+                  <MoreHorizontal className="h-5 w-5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 border-2 border-ink bg-paper">
+                <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-ink/50">
+                  Visa banan
+                </DropdownMenuLabel>
+                <DropdownMenuItem onSelect={() => setView3D("view")} className="min-h-11 font-semibold">
+                  <Box className="mr-2 h-4 w-4" /> 3D-vy
+                  <span className="ml-auto text-xs text-ink/40">3</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setView3D("walk")} className="min-h-11 font-semibold">
+                  <Footprints className="mr-2 h-4 w-4" /> Gå banan
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => setPlaybackActive((v) => !v)}
+                  disabled={numbered.filter((o) => o.number != null).length < 2}
+                  className="min-h-11 font-semibold"
+                >
+                  <Play className="mr-2 h-4 w-4" /> Spela upp hundens väg
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-ink/50">
+                  Hjälp
+                </DropdownMenuLabel>
+                <DropdownMenuItem onSelect={() => setPaletteOpen(true)} className="min-h-11 font-semibold">
+                  <Command className="mr-2 h-4 w-4" /> Kommandopalett
+                  <span className="ml-auto text-xs text-ink/40">Ctrl+K</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setHelpOpen(true)} className="min-h-11 font-semibold">
+                  <Keyboard className="mr-2 h-4 w-4" /> Tangentbordsgenvägar
+                  <span className="ml-auto text-xs text-ink/40">?</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => setFeedbackOpen(true)} className="min-h-11 font-semibold">
+                  <Lightbulb className="mr-2 h-4 w-4" /> Skicka förslag & material
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <div className="relative">
               <ExportMenu
@@ -1016,14 +1049,18 @@ export default function PlannerPage() {
               onClick={openSaveShare}
               disabled={!obstacles.length || savingCloud}
               className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-forest px-3 text-sm font-bold text-paper disabled:opacity-40 sm:h-11 sm:px-5"
-              title="Spara banan på din profil och välj publik eller privat"
+              title={obstacles.length ? "Spara banan på din profil och välj publik eller privat" : "Placera minst ett hinder först"}
+              aria-label="Spara och dela banan på din profil"
             >
-              <CloudCheck className="h-4 w-4" /> <span className="hidden sm:inline">Spara & dela</span>
+              {savingCloud ? <Loader2 className="h-4 w-4 animate-spin" /> : <CloudCheck className="h-4 w-4" />}{" "}
+              <span className="hidden sm:inline">Spara & dela</span>
             </button>
             <button
               onClick={openShare}
               disabled={!obstacles.length}
               className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-tang px-3 text-sm font-bold text-ink disabled:opacity-40 sm:h-11 sm:px-5"
+              title={obstacles.length ? "Skapa en länk med hela banan — mottagaren behöver inget konto" : "Placera minst ett hinder först"}
+              aria-label="Dela banan via länk"
             >
               <Share2 className="h-4 w-4" /> <span className="hidden sm:inline">Dela bana</span>
             </button>
@@ -1219,8 +1256,9 @@ export default function PlannerPage() {
                       className="cursor-grab active:cursor-grabbing"
                       opacity={ob.locked ? 0.75 : 1}
                     >
-                      {/* truffyta */}
-                      <circle r="1.6" fill="transparent" />
+                      {/* träffyta — extra stor så att hindret är lätt att peka på i mobilen */}
+                      <circle r="2.1" fill="transparent" />
+                      {isSelected && <circle r="1.95" fill="#E24C00" opacity="0.07" />}
                       <ObstacleGlyph
                         type={ob.type}
                         stroke={isSelected ? "#E24C00" : hasIssue ? "#E24C00" : "#161812"}
@@ -1361,8 +1399,11 @@ export default function PlannerPage() {
             {/* Valt hinder — åtgärdsrad */}
             {selected && !playbackActive && (
               <div className="absolute bottom-24 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1.5 rounded-2xl border-2 border-ink bg-paper p-1.5 shadow-hard sm:bottom-28">
-                <span className="hidden px-2 text-xs font-bold text-ink/60 sm:block">
+                <span className="hidden px-2 text-xs font-bold leading-tight text-ink/70 sm:block">
                   {selectedNumbered?.number != null && `#${selectedNumbered.number} `}{selectedDef?.label}
+                  <span className="block font-semibold text-ink/45">
+                    {selected.x.toFixed(2).replace(".", ",")} × {selected.y.toFixed(2).replace(".", ",")} m · {Math.round(selected.rotation)}°
+                  </span>
                 </span>
                 <ToolButton onClick={() => rotateBy(-45)} label="Rotera 45° moturs (Shift+R)" disabled={selected.locked}>
                   <RotateCcw className="h-4 w-4" />
@@ -1424,24 +1465,67 @@ export default function PlannerPage() {
               </div>
             )}
 
-            {/* Tom bana-hint */}
+            {/* Tom bana — kom igång */}
             {obstacles.length === 0 && !placing && (
-              <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center p-6">
-                <div className="max-w-sm rounded-3xl border-2 border-dashed border-ink/25 bg-paper/85 p-6 text-center backdrop-blur">
+              <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center p-4">
+                <div className="max-w-md rounded-3xl border-2 border-dashed border-ink/25 bg-paper/90 p-5 text-center shadow-hard-sm backdrop-blur sm:p-6">
                   <MousePointerClick className="mx-auto mb-3 h-8 w-8 text-forest" />
-                  <p className="font-display text-2xl uppercase tracking-wide">Börja bygga din bana</p>
-                  <p className="mt-2 text-sm leading-relaxed text-ink/60">
-                    <span className="hidden lg:inline">Välj ett hinder i panelen till vänster</span>
-                    <span className="lg:hidden">Välj ett hinder i raden längst ner</span>
-                    {" "}och tryck på planen — eller öppna
-                    <span className="font-bold text-ink"> banbiblioteket</span> för färdiga officiella banor.
-                  </p>
+                  <p className="font-display text-2xl uppercase tracking-wide">Kom igång på 3 steg</p>
 
+                  <ol className="mx-auto mt-4 max-w-xs space-y-2 text-left">
+                    {[
+                      "Välj hinder i hinderpaletten",
+                      "Tryck på planen för att placera — dra för att flytta",
+                      "Spara & dela banan när du är nöjd",
+                    ].map((step, i) => (
+                      <li key={step} className="flex items-start gap-2.5 text-sm font-semibold leading-snug text-ink/70">
+                        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-forest text-xs font-black text-paper">
+                          {i + 1}
+                        </span>
+                        {step}
+                      </li>
+                    ))}
+                  </ol>
+
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                    {palette[0] && (
+                      <button
+                        onClick={() => setPlacing(palette[0].type)}
+                        className="pressable shadow-hard-sm pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full border-2 border-ink bg-forest px-5 text-sm font-bold text-paper"
+                      >
+                        <MousePointerClick className="h-4 w-4" /> Placera {palette[0].label.toLowerCase()}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setLibraryOpen(true)}
+                      className="pressable shadow-hard-sm pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full border-2 border-ink bg-tang px-5 text-sm font-bold"
+                    >
+                      <BookOpen className="h-4 w-4" /> Färdiga banor
+                    </button>
+                  </div>
+                  <p className="mt-3 text-xs font-semibold text-ink/45">
+                    Allt autosparas lokalt — du kan börja om när du vill.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Placeringsläge — tydlig status + avbryt */}
+            {placing && (
+              <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3">
+                <div className="pointer-events-auto flex items-center gap-2 rounded-full border-2 border-ink bg-forest px-3 py-1.5 text-paper shadow-hard">
+                  <MousePointerClick className="h-4 w-4 shrink-0" />
+                  <span className="text-xs font-bold leading-tight">
+                    Tryck på planen för att placera {getObstacleDefV2(placing)?.label.toLowerCase()}
+                    <span className="hidden font-semibold text-paper/70 sm:inline"> · fortsätt trycka för fler</span>
+                  </span>
                   <button
-                    onClick={() => setLibraryOpen(true)}
-                    className="pressable pointer-events-auto mt-4 inline-flex h-11 items-center gap-2 rounded-full border-2 border-ink bg-tang px-5 text-sm font-bold shadow-hard-sm"
+                    onClick={() => setPlacing(null)}
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-paper/20 transition-colors hover:bg-paper/35"
+                    aria-label="Avbryt placering (Esc)"
+                    title="Avbryt placering (Esc)"
                   >
-                    <BookOpen className="h-4 w-4" /> Öppna banbiblioteket
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -1493,6 +1577,18 @@ export default function PlannerPage() {
 
           {/* ── Mobildocka ── */}
           <div className="border-t-2 border-ink bg-paper p-2.5 sm:hidden">
+            <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-ink/50">
+                {numbered.filter((o) => o.number != null).length} hinder
+                {coursePath.points.length >= 2 && ` · ~${coursePath.total.toFixed(0)} m`}
+              </span>
+              <button
+                onClick={() => setLibraryOpen(true)}
+                className="inline-flex h-9 items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 text-xs font-bold text-ink/70"
+              >
+                <BookOpen className="h-3.5 w-3.5" /> Färdiga banor
+              </button>
+            </div>
             <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
               <button
                 onClick={undo}
@@ -1526,9 +1622,12 @@ export default function PlannerPage() {
               ))}
             </div>
             {placing && (
-              <p className="pt-1.5 text-center text-xs font-bold text-forest">
-                Klicka på planen för att placera {getObstacleDefV2(placing)?.label.toLowerCase()}
-              </p>
+              <button
+                onClick={() => setPlacing(null)}
+                className="mt-1.5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-ink/15 text-xs font-bold text-forest"
+              >
+                <X className="h-4 w-4" /> Avbryt placering av {getObstacleDefV2(placing)?.label.toLowerCase()}
+              </button>
             )}
           </div>
         </main>

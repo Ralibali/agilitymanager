@@ -1,3 +1,10 @@
+/**
+ * Lättviktsprofil för banplaneraren.
+ *
+ * Profilen ligger lokalt i webbläsaren och identifieras mot edge-funktionen
+ * med ett slumpat edit-token. E-postadressen i sig används aldrig som
+ * autentisering för en redan existerande profil.
+ */
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -50,12 +57,23 @@ export function writeProfile(profile: PlannerProfile | null) {
   window.dispatchEvent(new Event(EVENT));
 }
 
-/** Skapar eller hämtar en lättviktsprofil (namn + e-post, inget lösenord). */
+/** Skapar en ny profil eller återanvänder en profil som denna webbläsare redan äger. */
 export async function signInWithNameEmail(name: string, email: string): Promise<PlannerProfile> {
   const invalid = validateProfileInput(name, email);
   if (invalid) throw new Error(invalid);
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const localProfile = readProfile();
+  const proofToken =
+    localProfile?.email.trim().toLowerCase() === normalizedEmail ? localProfile.token : undefined;
+
   const { data, error } = await supabase.functions.invoke("planner-social", {
-    body: { action: "profile", name: name.trim(), email: email.trim().toLowerCase() },
+    body: {
+      action: "profile",
+      name: name.trim(),
+      email: normalizedEmail,
+      ...(proofToken ? { token: proofToken } : {}),
+    },
   });
   if (error) throw new Error("Kunde inte spara profilen just nu");
   const payload = data as { profile?: PlannerProfile; error?: string };

@@ -93,10 +93,6 @@ function stdDev(values: number[]): number {
   return Math.sqrt(mean(values.map((v) => (v - m) ** 2)));
 }
 
-function clamp01(v: number): number {
-  return Math.max(0, Math.min(1, v));
-}
-
 /* ───────────── Approach-angle validering ───────────── */
 
 export function computeApproachIssues(
@@ -181,11 +177,6 @@ export function computeApproachIssues(
       }
     }
   }
-
-  // Lägg på banbyggarens coachlager. Dessa punkter är avsiktligt separerade
-  // från regelkontrollen: de beskriver flöde och teknisk belastning, inte
-  // officiella felgränser.
-  issues.push(...computeFlowCoachIssues(obstacles, override));
 
   return issues;
 }
@@ -459,8 +450,8 @@ export function analyzeCourse(
 }
 
 /**
- * Coachpunkter som kan visas i samma panel som regelkontrollen men som
- * uttryckligen presenteras som planeringsstöd, inte som officiella regler.
+ * Coachpunkter som kan visas bredvid regelkontrollen men som uttryckligen
+ * presenteras som planeringsstöd, inte som officiella regler eller varningar.
  */
 export function computeFlowCoachIssues(
   obstacles: ObstacleLite[],
@@ -477,7 +468,7 @@ export function computeFlowCoachIssues(
       .filter((n): n is number => n != null)
       .join("→");
     issues.push({
-      level: "warning",
+      level: "info",
       code: "flow_hotspot",
       message: `Coach: sekvens ${seq || "?"} är tekniskt tät (${hotspot.reasons.slice(0, 2).join(", ")}). Detta är AgilityManagers planeringsheuristik — kontrollera linjen praktiskt på planen.`,
       obstacleId: hotspot.obstacleId,

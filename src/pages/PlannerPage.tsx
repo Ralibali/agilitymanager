@@ -1348,7 +1348,7 @@ export default function PlannerPage() {
             {/* Regelkontroll-knapp (flytande) */}
             <button
               onClick={() => setIssuesOpen((v) => !v)}
-              className={`absolute ${showRulers ? "right-3 top-[2.2rem]" : "right-3 top-3"} z-30 inline-flex items-center gap-2 rounded-full border-2 px-3.5 py-2 text-xs font-bold shadow-hard-sm transition-all ${
+              className={`absolute right-3 ${placing ? "top-[4.6rem] sm:top-[2.2rem]" : showRulers ? "top-[2.2rem]" : "top-3"} z-30 inline-flex items-center gap-2 rounded-full border-2 px-3.5 py-2 text-xs font-bold shadow-hard-sm transition-all ${
                 issueCounts.error > 0
                   ? "border-ink bg-ember text-paper"
                   : issueCounts.warning > 0

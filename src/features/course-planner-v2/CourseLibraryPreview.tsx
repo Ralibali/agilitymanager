@@ -1,7 +1,9 @@
 import { useMemo } from "react";
 import { buildDogPath } from "./dogPath";
+import { analyzeCourse } from "./courseAnalysis";
 import { getObstacleDefV2 } from "./config";
 import type { CourseBankEntry } from "./courseBank";
+import type { ObstacleLite } from "./validation";
 
 interface Props {
   course: CourseBankEntry;
@@ -34,17 +36,32 @@ function obstacleShape(type: string, widthM: number, depthM: number) {
 
 export default function CourseLibraryPreview({ course }: Props) {
   const path = useMemo(() => buildDogPath(course.obstacles), [course]);
+  const analysis = useMemo(() => {
+    const obstacles: ObstacleLite[] = course.obstacles.map((obstacle, index) => ({
+      ...obstacle,
+      id: `${course.key}-${index}`,
+    }));
+    return analyzeCourse(obstacles);
+  }, [course]);
   const gridX = Array.from({ length: Math.floor(course.arenaWidthM / 5) + 1 }, (_, i) => i * 5);
   const gridY = Array.from({ length: Math.floor(course.arenaHeightM / 5) + 1 }, (_, i) => i * 5);
   const routePoints = path.points.map((point) => `${point.x},${point.y}`).join(" ");
 
   return (
-    <div className="mb-3 overflow-hidden rounded-xl border border-border bg-muted/20 p-2">
+    <div className="relative mb-3 overflow-hidden rounded-xl border border-border bg-muted/20 p-2">
+      <div className="pointer-events-none absolute right-2 top-2 z-10 flex flex-wrap justify-end gap-1.5">
+        <span className="rounded-full border border-foreground/10 bg-card/95 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-foreground shadow-sm backdrop-blur">
+          {analysis.difficultyLabel} · {analysis.difficultyScore}
+        </span>
+        <span className="rounded-full border border-primary/15 bg-primary/95 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-primary-foreground shadow-sm">
+          Flow {analysis.flowScore}
+        </span>
+      </div>
       <svg
         viewBox={`0 0 ${course.arenaWidthM} ${course.arenaHeightM}`}
         className="h-40 w-full"
         role="img"
-        aria-label={`Miniatyr av ${course.label}`}
+        aria-label={`Miniatyr av ${course.label}. ${analysis.difficultyLabel} svårighet ${analysis.difficultyScore} av 100, flow ${analysis.flowScore} av 100.`}
         preserveAspectRatio="xMidYMid meet"
       >
         <g className="text-border" opacity={0.7}>

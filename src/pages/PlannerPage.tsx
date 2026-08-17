@@ -961,10 +961,11 @@ export default function PlannerPage() {
   const selectedNumbered = selected ? numbered.find((ob) => ob.id === selected.id) : null;
 
   return (
-    <div className="flex min-h-screen flex-col bg-paper text-ink">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-paper text-ink">
       {/* ── Topprad ── */}
-      <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-[110rem] items-center gap-2 px-3 sm:gap-3 sm:px-5">
+      <header className="z-40 shrink-0 border-b-2 border-ink bg-paper/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-[110rem] items-center gap-1.5 px-2 sm:gap-3 sm:px-5">
+
           <Link
             to="/"
             className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-ink bg-paper transition-colors hover:bg-cream sm:h-11 sm:w-11"
@@ -980,11 +981,11 @@ export default function PlannerPage() {
           <input
             value={name}
             onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-            className="min-w-0 flex-1 rounded-xl border-2 border-transparent bg-transparent px-2 py-2 font-display text-lg tracking-wide outline-none transition-colors focus:border-ink sm:text-2xl md:max-w-xs"
+            className="w-0 min-w-0 flex-1 rounded-xl border-2 border-transparent bg-transparent px-1.5 py-2 font-display text-base tracking-wide outline-none transition-colors focus:border-ink sm:px-2 sm:text-2xl md:max-w-xs"
             aria-label="Banans namn"
           />
 
-          <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
             <span
               className={`hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors lg:inline-flex ${
                 savedFlash ? "bg-forest text-paper" : "bg-cream text-ink/50"
@@ -997,9 +998,12 @@ export default function PlannerPage() {
                 <CloudCheck className="h-3.5 w-3.5" /> Molnet
               </span>
             )}
-            <ToolButton onClick={() => setLibraryOpen(true)} label="Banbibliotek — officiella banor och mallar">
-              <BookOpen className="h-5 w-5" />
-            </ToolButton>
+            <div className="hidden sm:block">
+              <ToolButton onClick={() => setLibraryOpen(true)} label="Banbibliotek — officiella banor och mallar">
+                <BookOpen className="h-5 w-5" />
+              </ToolButton>
+            </div>
+
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -1107,7 +1111,7 @@ export default function PlannerPage() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* ── Vänster sidopanel (desktop) ── */}
         <aside className="hidden w-80 shrink-0 flex-col gap-5 overflow-y-auto border-r-2 border-ink/10 bg-paper p-5 lg:flex">
           {/* Sport */}
@@ -1344,7 +1348,7 @@ export default function PlannerPage() {
             {/* Regelkontroll-knapp (flytande) */}
             <button
               onClick={() => setIssuesOpen((v) => !v)}
-              className={`absolute ${showRulers ? "right-3 top-[2.2rem]" : "right-3 top-3"} z-30 inline-flex items-center gap-2 rounded-full border-2 px-3.5 py-2 text-xs font-bold shadow-hard-sm transition-all ${
+              className={`absolute right-3 ${placing ? "top-[4.6rem] sm:top-[2.2rem]" : showRulers ? "top-[2.2rem]" : "top-3"} z-30 inline-flex items-center gap-2 rounded-full border-2 px-3.5 py-2 text-xs font-bold shadow-hard-sm transition-all ${
                 issueCounts.error > 0
                   ? "border-ink bg-ember text-paper"
                   : issueCounts.warning > 0

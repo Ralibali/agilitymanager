@@ -81,36 +81,45 @@ function CanvasRulersImpl(props: CanvasRulersProps) {
         style={{ left: RULER_PX, height: RULER_PX, width: viewportWidthPx }}
       >
         <svg width={viewportWidthPx} height={RULER_PX} className="block">
-          {/* Bandtext "X m" centrerat över banan */}
           {(() => {
             const arenaStartPx = Math.max(0, (0 - viewMinXM) * pxPerMx);
             const arenaEndPx = Math.min(viewportWidthPx, (arenaWidthM - viewMinXM) * pxPerMx);
             const cx = (arenaStartPx + arenaEndPx) / 2;
-            if (arenaEndPx <= arenaStartPx) return null;
+            const showArenaLabel = arenaEndPx - arenaStartPx > 120;
             return (
-              <text x={cx} y={9} textAnchor="middle" fontSize={9} fontWeight={700} fill={FOREST} opacity={0.55}>
-                {arenaWidthM} m
-              </text>
+              <>
+                {/* Bandtext "X m" centrerat över banan */}
+                {showArenaLabel && (
+                  <text x={cx} y={9} textAnchor="middle" fontSize={9} fontWeight={700} fill={FOREST} opacity={0.55}>
+                    {arenaWidthM} m
+                  </text>
+                )}
+                {xTicks.map((t) => {
+                  // Hoppa över sifferetiketter som krockar med bandtexten.
+                  const collides = showArenaLabel && Math.abs(t.px - cx) < 26;
+                  return (
+                    <g key={`xt-${t.m}`}>
+                      <line
+                        x1={t.px} x2={t.px}
+                        y1={t.major ? RULER_PX - 8 : RULER_PX - 4}
+                        y2={RULER_PX}
+                        stroke={FOREST}
+                        strokeWidth={t.major ? 0.8 : 0.4}
+                        opacity={t.major ? 0.6 : 0.3}
+                      />
+                      {t.major && t.m > 0 && t.m < arenaWidthM && !collides && (
+                        <text x={t.px} y={RULER_PX - 11} textAnchor="middle" fontSize={9} fill={FOREST} opacity={0.8}>
+                          {t.m}
+                        </text>
+                      )}
+                    </g>
+                  );
+                })}
+              </>
             );
           })()}
-          {xTicks.map((t) => (
-            <g key={`xt-${t.m}`}>
-              <line
-                x1={t.px} x2={t.px}
-                y1={t.major ? RULER_PX - 8 : RULER_PX - 4}
-                y2={RULER_PX}
-                stroke={FOREST}
-                strokeWidth={t.major ? 0.8 : 0.4}
-                opacity={t.major ? 0.6 : 0.3}
-              />
-              {t.major && t.m > 0 && t.m < arenaWidthM && (
-                <text x={t.px} y={RULER_PX - 11} textAnchor="middle" fontSize={9} fill={FOREST} opacity={0.8}>
-                  {t.m}
-                </text>
-              )}
-            </g>
-          ))}
         </svg>
+
       </div>
 
       {/* Vänster-linjal */}

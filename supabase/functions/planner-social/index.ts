@@ -55,6 +55,7 @@ Deno.serve(async (req) => {
     if (action === "profile") {
       const name = str(body.name, 80);
       const email = str(body.email, 255).toLowerCase();
+      const presentedToken = str(body.token, 60);
       if (name.length < 2) return json({ error: "Ange ditt namn" }, 400);
       if (!EMAIL_RE.test(email)) return json({ error: "Ange en giltig e-postadress" }, 400);
 
@@ -65,6 +66,16 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (existing) {
+        // Viktigt: e-postadressen i sig är inte autentisering. Tidigare returnerades
+        // edit_token till vem som helst som kände till adressen, vilket gav full
+        // redigeringsåtkomst till profilens banor. En befintlig profil får bara
+        // återanvändas om klienten redan kan bevisa innehav av dess token.
+        if (!presentedToken || presentedToken !== existing.edit_token) {
+          return json({
+            error:
+              "Det finns redan en profil med den e-postadressen. Av säkerhetsskäl kan den inte återställas enbart via e-post. Använd den webbläsare där profilen skapades.",
+          });
+        }
         if (existing.name !== name) {
           await supabase.from("planner_profiles").update({ name }).eq("id", existing.id);
         }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analyzeCourse, computeFlowCoachIssues } from "./courseAnalysis";
+import { analyzeCourse, computeApproachIssues, computeFlowCoachIssues } from "./courseAnalysis";
 import type { ObstacleLite } from "./validation";
 
 function jump(id: string, number: number, x: number, y: number, rotation = 0): ObstacleLite {
@@ -62,5 +62,18 @@ describe("planner course intelligence", () => {
     expect(profile?.level).toBe("info");
     expect(profile?.message).toContain("planeringsstöd");
     expect(profile?.message.toLowerCase()).not.toContain("officiell klassning:");
+  });
+
+  it("keeps coach heuristics out of official approach validation", () => {
+    const obstacles = [
+      jump("1", 1, 5, 5),
+      jump("2", 2, 8, 5),
+      jump("3", 3, 5.2, 5.4),
+      jump("4", 4, 8.2, 5.8),
+      jump("5", 5, 5.4, 6.2),
+    ];
+    const ruleIssues = computeApproachIssues(obstacles);
+    const coachCodes = new Set(["flow_hotspot", "turn_bias", "pace_variation", "course_profile"]);
+    expect(ruleIssues.some((issue) => coachCodes.has(issue.code))).toBe(false);
   });
 });

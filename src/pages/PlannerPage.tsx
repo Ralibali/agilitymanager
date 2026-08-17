@@ -961,10 +961,11 @@ export default function PlannerPage() {
   const selectedNumbered = selected ? numbered.find((ob) => ob.id === selected.id) : null;
 
   return (
-    <div className="flex min-h-screen flex-col bg-paper text-ink">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-paper text-ink">
       {/* ── Topprad ── */}
-      <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-[110rem] items-center gap-2 px-3 sm:gap-3 sm:px-5">
+      <header className="z-40 shrink-0 border-b-2 border-ink bg-paper/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-[110rem] items-center gap-1.5 px-2 sm:gap-3 sm:px-5">
+
           <Link
             to="/"
             className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-ink bg-paper transition-colors hover:bg-cream sm:h-11 sm:w-11"

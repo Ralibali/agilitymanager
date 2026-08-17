@@ -1,10 +1,17 @@
 # Banplaneraren Pro – analysmodell
 
-Det här dokumentet beskriver AgilityManagers egna coachlager ovanpå regelkontrollen.
+Det här dokumentet beskriver AgilityManagers egna coachlager ovanpå den vanliga banbyggaren.
 
 ## Viktig princip
 
 `difficultyScore`, `flowScore`, hotspots, svängbalans och rytmvariation är **planeringsheuristik**. De är inte officiella tävlingsregler och får inte presenteras som officiell klassning.
+
+Regelkontrollen och coachlagret ska därför hållas separerade i både kod och UI:
+
+- **Regelkontroll** använder regeluppsättningar, geometri och säkerhetskontroller.
+- **Coachprofil** beskriver banans karaktär, rytm och tekniska belastning.
+- En tekniskt svår bana kan fortfarande vara regelriktig.
+- En hög eller låg coachscore får aldrig ensam avgöra om en bana är säker eller godkänd.
 
 ## Difficulty 0–100
 
@@ -16,34 +23,47 @@ Poängen väger samman:
 - variation i avstånd mellan passager,
 - stora tempoväxlingar mellan efterföljande segment.
 
-En lång raksträcka ger ett litet negativt bidrag för att inte en snabb men enkel bana ska klassas som tekniskt svår enbart på grund av längden.
+En lång raksträcka ger ett litet avdrag så att en snabb, flytande bana inte blir "svår" bara för att den är lång.
 
 ## Flow 0–100
 
-Flow är inte motsatsen till svårighet. En tekniskt avancerad bana kan ha högt flow. Poängen minskar främst vid:
+Flow är inte samma sak som låg svårighet. En teknisk bana kan ha högt flow om rytmen fortfarande är tydlig och läsbar.
 
-- extrema hotspots,
-- kraftigt varierande segmentlängder,
-- tydlig ensidighet i svängar,
-- många korsande linjer.
+Poängen minskar främst vid:
+
+- flera tunga hotspots,
+- mycket ojämna avstånd,
+- kraftig vänster-/högerdominans,
+- många korsande luftsegment.
 
 ## Hotspots
 
-En hotspot är ett lokalt parti kring tre passager. Riskpoängen påverkas av:
+Hotspots beskriver lokala sekvenser där hund/förare sannolikt behöver extra precision. Exempel på signaler:
 
-- svängvinkel,
-- kort ingång/utgång,
-- lång fartsträcka in i en kraftig sväng.
+- kraftig sväng,
+- kort ingång eller utgång,
+- lång fartsträcka in i kraftig sväng.
 
-Regelkontrollens coachmeddelanden visar högst tre starka hotspots för att undvika brus.
+Hotspots presenteras som coachinsikt, inte regelvarning.
 
-## Produktmål
+## Banvandring Pro
 
-Analysen ska hjälpa användaren att ställa bättre frågor:
+Uppspelningen använder samma beräknade hundlinje som övrig bananalys och visar:
 
-- Var tappar banan rytm?
-- Var kommer hunden in med hög fart i en snäv linje?
-- Är träningen ensidigt vänster-/högerdominerad?
-- Är avstånden medvetet varierade eller bara ojämna?
+- look-ahead längs kommande linje,
+- aktuell och nästa passage,
+- passagehopp som projiceras mot samplad hundlinje,
+- progress och visualiseringshastighet,
+- svårighet, Flow, svängbalans och mest krävande sekvens.
 
-Den praktiska bedömningen på den verkliga planen har alltid företräde framför heuristiken.
+Visualiseringshastigheten är inte referenstid eller maxtid.
+
+## Tester
+
+Tester fokuserar på robusta invariants:
+
+- poäng ska alltid vara 0–100,
+- hotspots ska vara deterministiskt sorterade,
+- enkel rak bana ska vara lätt/flytande,
+- coachprofil ska uttryckligen vara planeringsstöd,
+- coachkoder får inte läcka in i den officiella ansats-/regelvalideringen.

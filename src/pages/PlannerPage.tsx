@@ -981,11 +981,11 @@ export default function PlannerPage() {
           <input
             value={name}
             onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-            className="min-w-0 flex-1 rounded-xl border-2 border-transparent bg-transparent px-2 py-2 font-display text-lg tracking-wide outline-none transition-colors focus:border-ink sm:text-2xl md:max-w-xs"
+            className="w-0 min-w-0 flex-1 rounded-xl border-2 border-transparent bg-transparent px-1.5 py-2 font-display text-base tracking-wide outline-none transition-colors focus:border-ink sm:px-2 sm:text-2xl md:max-w-xs"
             aria-label="Banans namn"
           />
 
-          <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
             <span
               className={`hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors lg:inline-flex ${
                 savedFlash ? "bg-forest text-paper" : "bg-cream text-ink/50"
@@ -998,9 +998,12 @@ export default function PlannerPage() {
                 <CloudCheck className="h-3.5 w-3.5" /> Molnet
               </span>
             )}
-            <ToolButton onClick={() => setLibraryOpen(true)} label="Banbibliotek — officiella banor och mallar">
-              <BookOpen className="h-5 w-5" />
-            </ToolButton>
+            <div className="hidden sm:block">
+              <ToolButton onClick={() => setLibraryOpen(true)} label="Banbibliotek — officiella banor och mallar">
+                <BookOpen className="h-5 w-5" />
+              </ToolButton>
+            </div>
+
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

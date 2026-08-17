@@ -1,1 +1,0 @@
-Planner intelligence tests live next to the implementation in `courseAnalysis.test.ts` so Vitest can discover them without extra configuration. Keep heuristic tests focused on invariants (bounded scores, sorting, profile copy) rather than brittle exact scores.

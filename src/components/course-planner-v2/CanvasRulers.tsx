@@ -38,8 +38,22 @@ function CanvasRulersImpl(props: CanvasRulersProps) {
     zoom, onCornerClick,
   } = props;
 
-  const pxPerMx = viewportWidthPx / visibleWidthM;
-  const pxPerMy = viewportHeightPx / visibleHeightM;
+  // Matcha SVG:ns default preserveAspectRatio="xMidYMid meet". Om DOM-rutan
+  // har en annan proportion än viewBox uppstår letterboxing, och linjalerna
+  // måste använda samma uniforma skala + centrering för att meterstrecken ska
+  // hamna exakt över banan.
+  const safeVisibleWidth = Math.max(visibleWidthM, Number.EPSILON);
+  const safeVisibleHeight = Math.max(visibleHeightM, Number.EPSILON);
+  const scale = Math.min(
+    viewportWidthPx / safeVisibleWidth,
+    viewportHeightPx / safeVisibleHeight,
+  );
+  const renderedWidthPx = safeVisibleWidth * scale;
+  const renderedHeightPx = safeVisibleHeight * scale;
+  const offsetXPx = (viewportWidthPx - renderedWidthPx) / 2;
+  const offsetYPx = (viewportHeightPx - renderedHeightPx) / 2;
+  const pxPerMx = scale;
+  const pxPerMy = scale;
 
   // Bygg tickmark-listor — alla nuvarande synliga m-värden inom arenan.
   const startX = Math.max(0, Math.floor(viewMinXM));
@@ -51,14 +65,14 @@ function CanvasRulersImpl(props: CanvasRulersProps) {
   for (let m = startX; m <= endX; m++) {
     const major = m % tickStepM === 0;
     if (!major && !showFineTicks) continue;
-    const px = (m - viewMinXM) * pxPerMx;
+    const px = offsetXPx + (m - viewMinXM) * pxPerMx;
     xTicks.push({ m, px, major });
   }
   const yTicks: { m: number; px: number; major: boolean }[] = [];
   for (let m = startY; m <= endY; m++) {
     const major = m % tickStepM === 0;
     if (!major && !showFineTicks) continue;
-    const px = (m - viewMinYM) * pxPerMy;
+    const px = offsetYPx + (m - viewMinYM) * pxPerMy;
     yTicks.push({ m, px, major });
   }
 
@@ -82,8 +96,10 @@ function CanvasRulersImpl(props: CanvasRulersProps) {
       >
         <svg width={viewportWidthPx} height={RULER_PX} className="block">
           {(() => {
-            const arenaStartPx = Math.max(0, (0 - viewMinXM) * pxPerMx);
-            const arenaEndPx = Math.min(viewportWidthPx, (arenaWidthM - viewMinXM) * pxPerMx);
+            const contentStartPx = offsetXPx;
+            const contentEndPx = offsetXPx + renderedWidthPx;
+            const arenaStartPx = Math.max(contentStartPx, offsetXPx + (0 - viewMinXM) * pxPerMx);
+            const arenaEndPx = Math.min(contentEndPx, offsetXPx + (arenaWidthM - viewMinXM) * pxPerMx);
             const cx = (arenaStartPx + arenaEndPx) / 2;
             const showArenaLabel = arenaEndPx - arenaStartPx > 120;
             return (
@@ -95,7 +111,6 @@ function CanvasRulersImpl(props: CanvasRulersProps) {
                   </text>
                 )}
                 {xTicks.map((t) => {
-                  // Hoppa över sifferetiketter som krockar med bandtexten.
                   const collides = showArenaLabel && Math.abs(t.px - cx) < 26;
                   return (
                     <g key={`xt-${t.m}`}>
@@ -119,7 +134,6 @@ function CanvasRulersImpl(props: CanvasRulersProps) {
             );
           })()}
         </svg>
-
       </div>
 
       {/* Vänster-linjal */}
@@ -129,8 +143,10 @@ function CanvasRulersImpl(props: CanvasRulersProps) {
       >
         <svg width={RULER_PX} height={viewportHeightPx} className="block">
           {(() => {
-            const arenaStartPx = Math.max(0, (0 - viewMinYM) * pxPerMy);
-            const arenaEndPx = Math.min(viewportHeightPx, (arenaHeightM - viewMinYM) * pxPerMy);
+            const contentStartPx = offsetYPx;
+            const contentEndPx = offsetYPx + renderedHeightPx;
+            const arenaStartPx = Math.max(contentStartPx, offsetYPx + (0 - viewMinYM) * pxPerMy);
+            const arenaEndPx = Math.min(contentEndPx, offsetYPx + (arenaHeightM - viewMinYM) * pxPerMy);
             const cy = (arenaStartPx + arenaEndPx) / 2;
             const showArenaLabel = arenaEndPx - arenaStartPx > 120;
             return (
@@ -167,7 +183,6 @@ function CanvasRulersImpl(props: CanvasRulersProps) {
             );
           })()}
         </svg>
-
       </div>
     </>
   );

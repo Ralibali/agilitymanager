@@ -228,6 +228,7 @@ export default function PlannerPage() {
   const [search] = useSearchParams();
   const { user } = useAuth();
   const { profile: plannerProfile } = usePlannerProfile();
+  const isExternalCopy = search.has("bana") || search.has("template") || search.has("delad");
   const [draft, setDraft] = useState<Draft>(() => loadInitial(search));
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [placing, setPlacing] = useState<ObstacleTypeV2 | null>(null);
@@ -258,6 +259,7 @@ export default function PlannerPage() {
   // Vattenstämpeln är alltid på i gratisläget — export utan stämpel blir en betald funktion.
   const showWatermark = true;
   const [cloudId, setCloudId] = useState<string | null>(() => {
+    if (isExternalCopy) return null;
     try { return localStorage.getItem(CLOUD_ID_KEY); } catch { return null; }
   });
   const [savingCloud, setSavingCloud] = useState(false);
@@ -265,6 +267,7 @@ export default function PlannerPage() {
   const [saveShareOpen, setSaveShareOpen] = useState(false);
   const [pendingSaveShare, setPendingSaveShare] = useState(false);
   const [socialCourseId, setSocialCourseId] = useState<string | null>(() => {
+    if (isExternalCopy) return null;
     try { return localStorage.getItem(SOCIAL_ID_KEY); } catch { return null; }
   });
   const [canvasPx, setCanvasPx] = useState({ w: 800, h: 600 });
@@ -278,6 +281,24 @@ export default function PlannerPage() {
   const { sport, name, obstacles } = draft;
   const w = draft.arenaWidthM;
   const h = draft.arenaHeightM;
+
+  const resetCourseIdentity = useCallback((nextCloudId: string | null = null) => {
+    setCloudId(nextCloudId);
+    setSocialCourseId(null);
+    try {
+      if (nextCloudId) localStorage.setItem(CLOUD_ID_KEY, nextCloudId);
+      else localStorage.removeItem(CLOUD_ID_KEY);
+      localStorage.removeItem(SOCIAL_ID_KEY);
+    } catch {
+      /* localStorage kan vara avstängt */
+    }
+  }, []);
+
+  // Delade länkar och mall-länkar är alltid nya kopior. De får aldrig ärva
+  // spar-ID från den bana som råkade vara öppen i webbläsaren tidigare.
+  useEffect(() => {
+    if (isExternalCopy) resetCourseIdentity(null);
+  }, [isExternalCopy, resetCourseIdentity]);
 
   // Öppna en delad bana från communityn (?delad=<id>) och bygg vidare på den
   const sharedParam = search.get("delad");
@@ -297,12 +318,15 @@ export default function PlannerPage() {
         toast.error("Kunde inte öppna den delade banan");
         return;
       }
+      resetCourseIdentity(null);
       setDraft({ ...next, name: `${next.name} (kopia)` });
+      setPast([]);
+      setFuture([]);
+      setSelectedId(null);
       toast.success("Delad bana öppnad — bygg vidare!");
     })();
     return () => { cancelled = true; };
-  }, [sharedParam]);
-
+  }, [sharedParam, resetCourseIdentity]);
 
   // Numrerade hinder = det som validering, PDF, uppspelning och 3D använder
   const numbered = useMemo(() => withNumbers(obstacles), [obstacles]);
@@ -375,17 +399,20 @@ export default function PlannerPage() {
 
   // Autosparning (lokalt i webbläsaren)
   useEffect(() => {
-    const t = setTimeout(() => {
+    let flashTimer: ReturnType<typeof setTimeout> | null = null;
+    const saveTimer = setTimeout(() => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
         setSavedFlash(true);
-        const f = setTimeout(() => setSavedFlash(false), 1600);
-        return () => clearTimeout(f);
+        flashTimer = setTimeout(() => setSavedFlash(false), 1600);
       } catch {
         /* fullt/localStorage avstängt */
       }
     }, 600);
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(saveTimer);
+      if (flashTimer) clearTimeout(flashTimer);
+    };
   }, [draft]);
 
   // ── Koordinater ─────────────────────────────────────────────
@@ -398,13 +425,18 @@ export default function PlannerPage() {
     (clientX: number, clientY: number) => {
       const svg = svgRef.current;
       if (!svg) return { x: 0, y: 0 };
-      const rect = svg.getBoundingClientRect();
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return { x: 0, y: 0 };
+      const point = svg.createSVGPoint();
+      point.x = clientX;
+      point.y = clientY;
+      const local = point.matrixTransform(ctm.inverse());
       return {
-        x: clamp(viewMinX + ((clientX - rect.left) / rect.width) * vw, 0, w),
-        y: clamp(viewMinY + ((clientY - rect.top) / rect.height) * vh, 0, h),
+        x: clamp(local.x, 0, w),
+        y: clamp(local.y, 0, h),
       };
     },
-    [viewMinX, viewMinY, vw, vh, w, h]
+    [w, h]
   );
 
   // ── Undo/redo ───────────────────────────────────────────────
@@ -613,11 +645,7 @@ export default function PlannerPage() {
     setPast([]);
     setFuture([]);
     setSelectedId(null);
-    setCloudId(kind === "saved" ? (payload as LibraryCourse).id : null);
-    try {
-      if (kind === "saved") localStorage.setItem(CLOUD_ID_KEY, (payload as LibraryCourse).id);
-      else localStorage.removeItem(CLOUD_ID_KEY);
-    } catch { /* ignorera */ }
+    resetCourseIdentity(kind === "saved" ? (payload as LibraryCourse).id : null);
     toast.success(`Laddade "${next.name}"`);
   };
 
@@ -714,8 +742,10 @@ export default function PlannerPage() {
       classTemplate: c.classTemplate ?? null,
       obstacles: normalizeObstacles(c.obstacles.map((ob) => ({ ...ob, id: uid() }))),
     });
+    resetCourseIdentity(null);
     setPast([]);
     setFuture([]);
+    setSelectedId(null);
     toast.success(`Importerade "${c.name || "bana"}"`);
   };
 
@@ -802,9 +832,21 @@ export default function PlannerPage() {
       };
       let id = cloudId;
       if (id) {
-        const { error } = await supabase.from("saved_courses").update(payload).eq("id", id).eq("user_id", user.id);
+        const { data, error } = await supabase
+          .from("saved_courses")
+          .update(payload)
+          .eq("id", id)
+          .eq("user_id", user.id)
+          .select("id")
+          .maybeSingle();
         if (error) throw error;
-      } else {
+        if (!data) {
+          id = null;
+          setCloudId(null);
+          try { localStorage.removeItem(CLOUD_ID_KEY); } catch { /* ignorera */ }
+        }
+      }
+      if (!id) {
         const { data, error } = await supabase.from("saved_courses").insert(payload).select("id").single();
         if (error) throw error;
         id = data.id as string;
@@ -896,7 +938,8 @@ export default function PlannerPage() {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
       const typing = t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable;
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      const key = e.key.toLowerCase();
+      if ((e.metaKey || e.ctrlKey) && key === "k") {
         e.preventDefault();
         setPaletteOpen((v) => !v);
         return;
@@ -908,20 +951,30 @@ export default function PlannerPage() {
         setSelectedId(null);
       }
       if ((e.key === "Delete" || e.key === "Backspace") && selectedId) deleteSelected();
-      if ((e.metaKey || e.ctrlKey) && e.key === "z") {
+      if ((e.metaKey || e.ctrlKey) && key === "z") {
         e.preventDefault();
         if (e.shiftKey) redo(); else undo();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d") {
+      if ((e.metaKey || e.ctrlKey) && key === "y") {
+        e.preventDefault();
+        redo();
+      }
+      if ((e.metaKey || e.ctrlKey) && key === "d") {
         e.preventDefault();
         duplicateSelected();
       }
-      if (!e.metaKey && !e.ctrlKey && e.key.toLowerCase() === "r") {
+      if (!e.metaKey && !e.ctrlKey && key === "r") {
         if (e.shiftKey) rotateBy(-45); else rotateBy(45);
       }
-      if (!e.metaKey && !e.ctrlKey && e.key.toLowerCase() === "l") toggleLockSelected();
+      if (!e.metaKey && !e.ctrlKey && key === "l") toggleLockSelected();
       if (!e.metaKey && !e.ctrlKey && e.key === "3") setView3D("view");
       if (!e.metaKey && !e.ctrlKey && e.key === "?") setHelpOpen(true);
+      if (!e.metaKey && !e.ctrlKey && e.code === "Space") {
+        e.preventDefault();
+        if (numbered.filter((o) => o.number != null).length >= 2) {
+          setPlaybackActive((v) => !v);
+        }
+      }
       if (!e.metaKey && !e.ctrlKey && e.key === "+") setZoom((z) => clamp(z + 0.25, 1, 2.25));
       if (!e.metaKey && !e.ctrlKey && e.key === "-") setZoom((z) => clamp(z - 0.25, 1, 2.25));
       if (!e.metaKey && !e.ctrlKey && e.key === "0") setZoom(1);
@@ -1003,7 +1056,6 @@ export default function PlannerPage() {
                 <BookOpen className="h-5 w-5" />
               </ToolButton>
             </div>
-
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -1252,6 +1304,7 @@ export default function PlannerPage() {
                 onPointerDown={onSvgPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
+                onPointerCancel={onPointerUp}
                 onPointerLeave={onPointerUp}
               >
                 {/* plan */}
@@ -1318,14 +1371,12 @@ export default function PlannerPage() {
                           {/* rotationshandtag */}
                           <line x1="0" y1="-1.7" x2="0" y2="-2.9" stroke="#E24C00" strokeWidth="0.06" strokeDasharray="0.14 0.12" />
                           <g
-                            transform={`rotate(${-ob.rotation}) translate(0 ${-2.9 / 1}) `}
+                            transform={`translate(0 -2.9) rotate(${-ob.rotation})`}
                             onPointerDown={(e) => onRotatePointerDown(e, ob.id)}
                             className="cursor-crosshair"
                           >
-                            <circle cx="0" cy="-2.9" r="0.5" fill="#E24C00" stroke="#F6F1E7" strokeWidth="0.1" />
-                            <g transform={`rotate(${-ob.rotation}) translate(0 -2.9)`}>
-                              <RotateCw width="0.5" height="0.5" x="-0.25" y="-0.25" color="#F6F1E7" />
-                            </g>
+                            <circle r="0.5" fill="#E24C00" stroke="#F6F1E7" strokeWidth="0.1" />
+                            <RotateCw width="0.5" height="0.5" x="-0.25" y="-0.25" color="#F6F1E7" />
                           </g>
                         </g>
                       )}

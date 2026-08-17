@@ -1111,7 +1111,7 @@ export default function PlannerPage() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* ── Vänster sidopanel (desktop) ── */}
         <aside className="hidden w-80 shrink-0 flex-col gap-5 overflow-y-auto border-r-2 border-ink/10 bg-paper p-5 lg:flex">
           {/* Sport */}

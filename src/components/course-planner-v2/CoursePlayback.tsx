@@ -6,19 +6,23 @@
  *   - scrubber och hopp mellan hinder
  *   - beräknad tid vid vald visualiseringshastighet
  *   - aktuell/nästa passage och progress
+ *   - AgilityManagers coachprofil med flow, svårighet och hotspots
  *
- * Hastigheten är en visualiseringshastighet, inte en officiell referenstid.
+ * Hastigheten och coachpoängen är planeringsstöd, inte officiell klassning.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Activity,
   Eye,
   Footprints,
   Gauge,
   Pause,
   Play,
   RotateCcw,
+  Route,
   SkipBack,
   SkipForward,
+  Sparkles,
   X,
 } from "lucide-react";
 import {
@@ -27,7 +31,10 @@ import {
   toSvgPathDUntil,
   toSvgPathD,
   type CoursePathInput,
+  type SampledPath,
 } from "@/features/course-planner-v2/pathSampling";
+import { analyzeCourse, FLOW_THRESHOLDS } from "@/features/course-planner-v2/courseAnalysis";
+import type { ObstacleLite } from "@/features/course-planner-v2/validation";
 
 const SPEEDS = [0.25, 0.5, 1, 1.5, 2] as const;
 type Speed = typeof SPEEDS[number];
@@ -38,26 +45,48 @@ interface Checkpoint {
   t: number;
 }
 
-function buildCheckpoints(course: CoursePathInput): Checkpoint[] {
+/**
+ * Placera passage-checkpoints på den faktiska samplade hundlinjen i stället
+ * för att uppskatta dem från raka centrum-till-centrum-segment. Vid korsande
+ * linjer söker vi bara framåt så att passageordningen alltid förblir korrekt.
+ */
+function buildCheckpoints(course: CoursePathInput, path: SampledPath): Checkpoint[] {
   const numbered = course.obstacles
     .filter((o): o is typeof o & { number: number } => typeof o.number === "number")
     .sort((a, b) => a.number - b.number);
 
   if (numbered.length === 0) return [];
-  if (numbered.length === 1) return [{ number: numbered[0].number, t: 0 }];
-
-  const cumulative: number[] = [0];
-  let total = 0;
-  for (let i = 1; i < numbered.length; i++) {
-    total += Math.hypot(numbered[i].x - numbered[i - 1].x, numbered[i].y - numbered[i - 1].y);
-    cumulative.push(total);
+  if (path.points.length === 0 || path.total <= 0) {
+    return numbered.map((o, i) => ({
+      number: o.number,
+      t: numbered.length === 1 ? 0 : i / (numbered.length - 1),
+    }));
   }
 
-  if (total <= 0.001) {
-    return numbered.map((o, i) => ({ number: o.number, t: i / Math.max(1, numbered.length - 1) }));
-  }
+  let searchFrom = 0;
+  return numbered.map((obstacle, index) => {
+    let bestIdx = searchFrom;
+    let bestDistance = Number.POSITIVE_INFINITY;
 
-  return numbered.map((o, i) => ({ number: o.number, t: cumulative[i] / total }));
+    for (let i = searchFrom; i < path.points.length; i++) {
+      const point = path.points[i];
+      const distance = Math.hypot(point.x - obstacle.x, point.y - obstacle.y);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestIdx = i;
+      }
+    }
+
+    searchFrom = bestIdx;
+    const fallbackT = numbered.length === 1 ? 0 : index / (numbered.length - 1);
+    const distanceAlongPath = path.cum[bestIdx];
+    return {
+      number: obstacle.number,
+      t: typeof distanceAlongPath === "number" && path.total > 0
+        ? Math.max(0, Math.min(1, distanceAlongPath / path.total))
+        : fallbackT,
+    };
+  });
 }
 
 function formatSeconds(seconds: number): string {
@@ -66,6 +95,22 @@ function formatSeconds(seconds: number): string {
   const min = Math.floor(rounded / 60);
   const sec = rounded % 60;
   return `${min}:${String(sec).padStart(2, "0")}`;
+}
+
+function toAnalysisObstacles(course: CoursePathInput): ObstacleLite[] {
+  return course.obstacles.flatMap((obstacle, index) => {
+    if (obstacle.type == null || typeof obstacle.rotation !== "number") return [];
+    return [{
+      id: `playback-${index}`,
+      type: obstacle.type,
+      x: obstacle.x,
+      y: obstacle.y,
+      rotation: obstacle.rotation,
+      number: obstacle.number ?? undefined,
+      curveDeg: obstacle.curveDeg,
+      curveSide: obstacle.curveSide,
+    }];
+  });
 }
 
 /** SVG-overlay som ritar rutt + markör. Ska placeras inuti samma <svg>. */
@@ -207,7 +252,9 @@ export function CoursePlaybackControls({
   setSpeed: (s: Speed) => void;
 }) {
   const path = useMemo(() => buildCoursePath(course), [course]);
-  const checkpoints = useMemo(() => buildCheckpoints(course), [course]);
+  const checkpoints = useMemo(() => buildCheckpoints(course, path), [course, path]);
+  const analysisObstacles = useMemo(() => toAnalysisObstacles(course), [course]);
+  const analysis = useMemo(() => analyzeCourse(analysisObstacles), [analysisObstacles]);
   if (!active) return null;
 
   const noPath = path.points.length < 2;
@@ -219,6 +266,11 @@ export function CoursePlaybackControls({
   const totalSeconds = path.total > 0 ? path.total / (BASE_M_PER_S * speed) : 0;
   const elapsedSeconds = totalSeconds * t;
   const progressPct = Math.round(t * 100);
+  const topHotspot = analysis.hotspots.find((hotspot) => hotspot.score >= FLOW_THRESHOLDS.hotspotWarning);
+  const turnTotal = analysis.leftTurns + analysis.rightTurns;
+  const turnBalance = turnTotal > 0
+    ? `${analysis.leftTurns}V · ${analysis.rightTurns}H`
+    : "Rak profil";
 
   const jumpTo = (idx: number) => {
     const cp = checkpoints[idx];
@@ -227,16 +279,22 @@ export function CoursePlaybackControls({
     setT(Math.max(0, Math.min(1, cp.t)));
   };
 
+  const hotspotSequence = topHotspot
+    ? [topHotspot.fromNumber, topHotspot.atNumber, topHotspot.toNumber]
+      .filter((number): number is number => number != null)
+      .join("→")
+    : "";
+
   return (
-    <div className="mb-2 w-[min(92vw,46rem)] rounded-2xl border-2 border-ink bg-paper p-2.5 shadow-hard sm:p-3">
+    <div className="mb-2 w-[min(94vw,50rem)] rounded-2xl border-2 border-ink bg-paper p-2.5 shadow-hard sm:p-3">
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex min-w-0 items-center gap-2 pr-1">
           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-forest text-paper">
             <Footprints size={16} />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-xs font-black uppercase tracking-wider text-ink">Banvandring</p>
-            <p className="text-[10px] font-semibold text-ink/50">Look-ahead · passagekontroll · tempo</p>
+            <p className="truncate text-xs font-black uppercase tracking-wider text-ink">Banvandring Pro</p>
+            <p className="text-[10px] font-semibold text-ink/50">Look-ahead · passagekontroll · coachprofil</p>
           </div>
         </div>
 
@@ -329,23 +387,45 @@ export function CoursePlaybackControls({
         </div>
       </div>
 
-      <div className="mt-2 grid grid-cols-3 gap-1.5">
+      <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
         <div className="rounded-xl bg-cream px-2.5 py-2">
           <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Eye size={11} /> Sträcka</div>
           <div className="mt-0.5 text-xs font-black tabular-nums text-ink">{(t * path.total).toFixed(0)} / {path.total.toFixed(0)} m</div>
+          <div className="mt-0.5 text-[9px] font-semibold text-ink/40">{formatSeconds(elapsedSeconds)} / {formatSeconds(totalSeconds)}</div>
         </div>
         <div className="rounded-xl bg-cream px-2.5 py-2">
-          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Gauge size={11} /> Visningstid</div>
-          <div className="mt-0.5 text-xs font-black tabular-nums text-ink">{formatSeconds(elapsedSeconds)} / {formatSeconds(totalSeconds)}</div>
+          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Activity size={11} /> Svårighet</div>
+          <div className="mt-0.5 text-xs font-black tabular-nums text-ink">{analysis.difficultyLabel} · {analysis.difficultyScore}</div>
+          <div className="mt-0.5 text-[9px] font-semibold text-ink/40">0–100 coachscore</div>
         </div>
         <div className="rounded-xl bg-cream px-2.5 py-2">
-          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Footprints size={11} /> Nästa</div>
+          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Route size={11} /> Flow</div>
+          <div className="mt-0.5 text-xs font-black tabular-nums text-ink">{analysis.flowScore} / 100</div>
+          <div className="mt-0.5 text-[9px] font-semibold text-ink/40">{turnBalance}</div>
+        </div>
+        <div className="rounded-xl bg-cream px-2.5 py-2">
+          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Gauge size={11} /> Nästa</div>
           <div className="mt-0.5 text-xs font-black text-ink">{next && next !== current ? `#${next.number}` : "Mål"}</div>
+          <div className="mt-0.5 text-[9px] font-semibold text-ink/40">{analysis.paceChanges} tempoväxlingar</div>
         </div>
       </div>
 
+      {topHotspot && (
+        <div className="mt-2 flex items-start gap-2 rounded-xl border border-tang/25 bg-tang/10 px-3 py-2.5">
+          <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-tang text-ink">
+            <Sparkles size={13} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-wider text-ink/55">Coachens fokus {hotspotSequence ? `· ${hotspotSequence}` : ""}</p>
+            <p className="mt-0.5 text-xs font-semibold leading-relaxed text-ink/75">
+              {topHotspot.reasons.slice(0, 2).join(" · ")}. Testa särskilt fart, linje och handling genom sekvensen.
+            </p>
+          </div>
+        </div>
+      )}
+
       <p className="mt-2 text-[10px] font-semibold leading-relaxed text-ink/45">
-        Hastigheten är en visningsmodell för banvandring — inte officiell referens- eller maxtid.
+        Visningshastighet, Flow och svårighet är AgilityManagers planeringsstöd — inte officiell referenstid eller klassning.
       </p>
 
       {noPath && (

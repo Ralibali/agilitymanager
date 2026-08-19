@@ -1,30 +1,118 @@
 /**
  * Banplaneraren v2 — 2D-uppspelning ("Spela upp banan").
  *
- * Renderar inuti SVG:n (i meter-koordinater):
- *   - färgad rutt fram till nuvarande position
- *   - roterande hund-ikon (Footprints) på markörens plats
+ * Pro-läget gör uppspelningen användbar som faktisk banvandring:
+ *   - tydlig tillryggalagd väg + look-ahead-markör
+ *   - scrubber och exakt passage-navigering längs beräknad hundlinje
+ *   - klickbar sekvensrad med coach-hotspots
+ *   - beräknad tid vid vald visualiseringshastighet
+ *   - aktuell/nästa passage, avstånd och progress
+ *   - AgilityManagers coachprofil med flow, svårighet och hotspots
  *
- * Renderar utanför SVG:n en kompakt kontrollpanel:
- *   - Play/Paus, Restart, Stäng
- *   - Hastighetsval (0,5× / 1× / 2×)
- *   - Scrubber (range)
- *
- * Hastighet räknas i banlängd per sekund. 1× = 4 m/s (typisk förarhastighet).
+ * Hastigheten och coachpoängen är planeringsstöd, inte officiell klassning.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Play, Pause, RotateCcw, X, Footprints } from "lucide-react";
+import {
+  Activity,
+  Eye,
+  Footprints,
+  Gauge,
+  Pause,
+  Play,
+  RotateCcw,
+  Route,
+  SkipBack,
+  SkipForward,
+  Sparkles,
+  X,
+} from "lucide-react";
 import {
   buildCoursePath,
   sampleAt,
   toSvgPathDUntil,
   toSvgPathD,
   type CoursePathInput,
+  type SampledPath,
 } from "@/features/course-planner-v2/pathSampling";
+import { analyzeCourse, FLOW_THRESHOLDS } from "@/features/course-planner-v2/courseAnalysis";
+import type { ObstacleLite } from "@/features/course-planner-v2/validation";
 
-const SPEEDS = [0.5, 1, 2] as const;
+const SPEEDS = [0.25, 0.5, 1, 1.5, 2] as const;
 type Speed = typeof SPEEDS[number];
-const BASE_M_PER_S = 4; // 1× = 4 m/s
+const BASE_M_PER_S = 4; // 1× = 4 m/s, endast visualisering
+
+interface Checkpoint {
+  number: number;
+  t: number;
+}
+
+/**
+ * Placera passage-checkpoints på den faktiska samplade hundlinjen i stället
+ * för att uppskatta dem från raka centrum-till-centrum-segment. Vid korsande
+ * linjer söker vi bara framåt så att passageordningen alltid förblir korrekt.
+ */
+function buildCheckpoints(course: CoursePathInput, path: SampledPath): Checkpoint[] {
+  const numbered = course.obstacles
+    .filter((o): o is typeof o & { number: number } => typeof o.number === "number")
+    .sort((a, b) => a.number - b.number);
+
+  if (numbered.length === 0) return [];
+  if (path.points.length === 0 || path.total <= 0) {
+    return numbered.map((o, i) => ({
+      number: o.number,
+      t: numbered.length === 1 ? 0 : i / (numbered.length - 1),
+    }));
+  }
+
+  let searchFrom = 0;
+  return numbered.map((obstacle, index) => {
+    let bestIdx = searchFrom;
+    let bestDistance = Number.POSITIVE_INFINITY;
+
+    for (let i = searchFrom; i < path.points.length; i++) {
+      const point = path.points[i];
+      const distance = Math.hypot(point.x - obstacle.x, point.y - obstacle.y);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestIdx = i;
+      }
+    }
+
+    searchFrom = bestIdx;
+    const fallbackT = numbered.length === 1 ? 0 : index / (numbered.length - 1);
+    const distanceAlongPath = path.cum[bestIdx];
+    return {
+      number: obstacle.number,
+      t: typeof distanceAlongPath === "number" && path.total > 0
+        ? Math.max(0, Math.min(1, distanceAlongPath / path.total))
+        : fallbackT,
+    };
+  });
+}
+
+function formatSeconds(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+  const rounded = Math.round(seconds);
+  const min = Math.floor(rounded / 60);
+  const sec = rounded % 60;
+  return `${min}:${String(sec).padStart(2, "0")}`;
+}
+
+function toAnalysisObstacles(course: CoursePathInput): ObstacleLite[] {
+  return course.obstacles.flatMap((obstacle, index) => {
+    if (obstacle.type == null || typeof obstacle.rotation !== "number") return [];
+    return [{
+      id: `playback-${index}`,
+      type: obstacle.type,
+      x: obstacle.x,
+      y: obstacle.y,
+      rotation: obstacle.rotation,
+      number: obstacle.number ?? undefined,
+      curveDeg: obstacle.curveDeg,
+      curveSide: obstacle.curveSide,
+    }];
+  });
+}
 
 /** SVG-overlay som ritar rutt + markör. Ska placeras inuti samma <svg>. */
 export function CoursePlaybackOverlay({
@@ -44,23 +132,35 @@ export function CoursePlaybackOverlay({
   const pose = sampleAt(path, t);
   if (!pose) return null;
 
-  // Hund-ikonen är 24×24 px i Lucide. Vi skalar ner till ~1.4 m bred.
+  // Visa ca 2,5 meter framåt för att visualisera hundens nästa linje.
+  const lookAheadT = Math.min(1, t + (path.total > 0 ? Math.min(0.08, 2.5 / path.total) : 0));
+  const lookAhead = sampleAt(path, lookAheadT);
+
+  // Hund-ikonen är 24×24 px i Lucide. Vi skalar ner till ~1,4 m bred.
   const iconSizeM = 1.4;
   const headingDeg = (pose.heading * 180) / Math.PI;
 
   return (
     <g pointerEvents="none">
-      {/* Hela rutten — svag bakgrundslinje */}
       <path
         d={fullD}
         fill="none"
         stroke="hsl(var(--primary))"
-        strokeWidth={0.12}
+        strokeWidth={0.14}
         strokeDasharray="0.4 0.3"
         strokeLinecap="round"
-        opacity={0.35}
+        opacity={0.32}
       />
-      {/* Tillryggalagd del — solid varmare färg */}
+
+      <path
+        d={traveledD}
+        fill="none"
+        stroke="hsl(var(--card))"
+        strokeWidth={0.42}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity={0.9}
+      />
       <path
         d={traveledD}
         fill="none"
@@ -68,15 +168,26 @@ export function CoursePlaybackOverlay({
         strokeWidth={0.22}
         strokeLinecap="round"
         strokeLinejoin="round"
-        opacity={0.95}
+        opacity={0.98}
       />
-      {/* Markör: cirkel-bakgrund + roterande hund-ikon */}
+
+      {lookAhead && lookAheadT < 1 && (
+        <g transform={`translate(${lookAhead.x} ${lookAhead.y})`}>
+          <circle
+            r={0.48}
+            fill="hsl(var(--card))"
+            stroke="hsl(var(--primary))"
+            strokeWidth={0.07}
+            strokeDasharray="0.12 0.1"
+            opacity={0.9}
+          />
+          <circle r={0.12} fill="hsl(var(--primary))" opacity={0.85} />
+        </g>
+      )}
+
       <g transform={`translate(${pose.x} ${pose.y}) rotate(${headingDeg})`}>
-        <circle r={iconSizeM * 0.55} fill="hsl(var(--card))" stroke="hsl(var(--accent))" strokeWidth={0.08} />
-        {/* Footprints SVG path (Lucide), centrerad och skalad */}
-        <g
-          transform={`translate(${-iconSizeM / 2} ${-iconSizeM / 2}) scale(${iconSizeM / 24})`}
-        >
+        <circle r={iconSizeM * 0.62} fill="hsl(var(--card))" stroke="hsl(var(--accent))" strokeWidth={0.09} />
+        <g transform={`translate(${-iconSizeM / 2} ${-iconSizeM / 2}) scale(${iconSizeM / 24})`}>
           <path
             d="M4 16v-2.38c0-.97.32-1.71 1.34-2.99 1.04-1.32 1.32-2.04 1.32-3.12 0-1.85-1.25-3.5-3.16-3.5C2.34 4.01 2 5.7 2 7.5c0 .92.32 1.83.66 2.5"
             fill="none"
@@ -138,83 +249,247 @@ export function CoursePlaybackControls({
   setSpeed: (s: Speed) => void;
 }) {
   const path = useMemo(() => buildCoursePath(course), [course]);
+  const checkpoints = useMemo(() => buildCheckpoints(course, path), [course, path]);
+  const analysisObstacles = useMemo(() => toAnalysisObstacles(course), [course]);
+  const analysis = useMemo(() => analyzeCourse(analysisObstacles), [analysisObstacles]);
   if (!active) return null;
 
   const noPath = path.points.length < 2;
+  const currentIdx = checkpoints.reduce((best, cp, idx) => (cp.t <= t + 0.012 ? idx : best), 0);
+  const current = checkpoints[currentIdx];
+  const next = checkpoints[Math.min(checkpoints.length - 1, currentIdx + 1)];
+  const canPrev = checkpoints.length > 0 && currentIdx > 0;
+  const canNext = checkpoints.length > 0 && currentIdx < checkpoints.length - 1;
+  const totalSeconds = path.total > 0 ? path.total / (BASE_M_PER_S * speed) : 0;
+  const elapsedSeconds = totalSeconds * t;
+  const progressPct = Math.round(t * 100);
+  const topHotspot = analysis.hotspots.find((hotspot) => hotspot.score >= FLOW_THRESHOLDS.hotspotWarning);
+  const hotspotNumbers = new Set(
+    analysis.hotspots
+      .filter((hotspot) => hotspot.score >= FLOW_THRESHOLDS.hotspotWarning)
+      .map((hotspot) => hotspot.atNumber)
+      .filter((number): number is number => number != null),
+  );
+  const turnTotal = analysis.leftTurns + analysis.rightTurns;
+  const turnBalance = turnTotal > 0
+    ? `${analysis.leftTurns}V · ${analysis.rightTurns}H`
+    : "Rak profil";
+  const nextDistanceM = current && next && next !== current
+    ? Math.max(0, (next.t - current.t) * path.total)
+    : 0;
+
+  const jumpTo = (idx: number) => {
+    const cp = checkpoints[idx];
+    if (!cp) return;
+    setPlaying(false);
+    setT(Math.max(0, Math.min(1, cp.t)));
+  };
+
+  const hotspotSequence = topHotspot
+    ? [topHotspot.fromNumber, topHotspot.atNumber, topHotspot.toNumber]
+      .filter((number): number is number => number != null)
+      .join("→")
+    : "";
+  const hotspotIndex = topHotspot?.atNumber == null
+    ? -1
+    : checkpoints.findIndex((checkpoint) => checkpoint.number === topHotspot.atNumber);
 
   return (
-    <div className="mb-2 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 shadow-sm">
-      <Footprints size={16} className="text-primary" />
-      <span className="text-sm font-medium text-foreground">Spela upp banan</span>
-      <div className="mx-1 h-5 w-px bg-border" />
+    <div className="mb-2 w-[min(94vw,50rem)] rounded-2xl border-2 border-ink bg-paper p-2.5 shadow-hard sm:p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2 pr-1">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-forest text-paper">
+            <Footprints size={16} />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-xs font-black uppercase tracking-wider text-ink">Banvandring Pro</p>
+            <p className="text-[10px] font-semibold text-ink/50">Look-ahead · sekvensnavigator · coachprofil</p>
+          </div>
+        </div>
 
-      <button
-        type="button"
-        onClick={() => setPlaying(!playing)}
-        disabled={noPath}
-        className="inline-flex h-8 items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
-        aria-label={playing ? "Pausa uppspelning" : "Starta uppspelning"}
-      >
-        {playing ? <Pause size={14} /> : <Play size={14} />}
-        {playing ? "Paus" : "Spela"}
-      </button>
-
-      <button
-        type="button"
-        onClick={() => { setT(0); setPlaying(true); }}
-        disabled={noPath}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:bg-muted disabled:opacity-40"
-        aria-label="Börja om"
-        title="Börja om"
-      >
-        <RotateCcw size={14} />
-      </button>
-
-      <div className="mx-1 h-5 w-px bg-border" />
-
-      <div className="inline-flex h-8 items-center rounded-full border border-border bg-card p-0.5 text-xs">
-        {SPEEDS.map((s) => (
+        <div className="ml-auto flex items-center gap-1">
           <button
-            key={s}
             type="button"
-            onClick={() => setSpeed(s)}
-            className={`h-7 rounded-full px-2.5 transition ${
-              speed === s ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
-            }`}
-            aria-pressed={speed === s}
+            onClick={() => jumpTo(Math.max(0, currentIdx - 1))}
+            disabled={!canPrev || noPath}
+            className="grid h-9 w-9 place-items-center rounded-xl border-2 border-ink/15 bg-white text-ink/70 transition hover:border-ink disabled:opacity-30"
+            aria-label="Föregående hinder"
+            title="Föregående hinder"
           >
-            {s}×
+            <SkipBack size={15} />
           </button>
-        ))}
+          <button
+            type="button"
+            onClick={() => setPlaying(!playing)}
+            disabled={noPath}
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl border-2 border-ink bg-forest px-3 text-xs font-bold text-paper shadow-hard-sm disabled:opacity-40"
+            aria-label={playing ? "Pausa uppspelning" : "Starta uppspelning"}
+          >
+            {playing ? <Pause size={14} /> : <Play size={14} />}
+            {playing ? "Paus" : "Spela"}
+          </button>
+          <button
+            type="button"
+            onClick={() => jumpTo(Math.min(checkpoints.length - 1, currentIdx + 1))}
+            disabled={!canNext || noPath}
+            className="grid h-9 w-9 place-items-center rounded-xl border-2 border-ink/15 bg-white text-ink/70 transition hover:border-ink disabled:opacity-30"
+            aria-label="Nästa hinder"
+            title="Nästa hinder"
+          >
+            <SkipForward size={15} />
+          </button>
+          <button
+            type="button"
+            onClick={() => { setT(0); setPlaying(true); }}
+            disabled={noPath}
+            className="grid h-9 w-9 place-items-center rounded-xl border-2 border-ink/15 bg-white text-ink/70 transition hover:border-ink disabled:opacity-30"
+            aria-label="Börja om"
+            title="Börja om"
+          >
+            <RotateCcw size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid h-9 w-9 place-items-center rounded-xl border-2 border-ink/15 bg-white text-ink/70 transition hover:border-ink"
+            aria-label="Stäng uppspelning"
+            title="Stäng (Esc)"
+          >
+            <X size={14} />
+          </button>
+        </div>
       </div>
 
-      <input
-        type="range"
-        min={0}
-        max={1000}
-        value={Math.round(t * 1000)}
-        disabled={noPath}
-        onChange={(e) => { setPlaying(false); setT(Number(e.target.value) / 1000); }}
-        className="h-1.5 min-w-[120px] flex-1 cursor-pointer accent-primary"
-        aria-label="Position i banan"
-      />
+      <div className="mt-2.5 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
+        <div className="min-w-0">
+          <div className="mb-1.5 flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-wider text-ink/50">
+            <span>
+              {current ? `Passage #${current.number}` : "Start"}
+              {next && next !== current ? ` → #${next.number} · ${nextDistanceM.toFixed(1)} m` : " → mål"}
+            </span>
+            <span>{progressPct}%</span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={1000}
+            value={Math.round(t * 1000)}
+            disabled={noPath}
+            onChange={(e) => { setPlaying(false); setT(Number(e.target.value) / 1000); }}
+            className="h-2 w-full cursor-pointer accent-forest"
+            aria-label="Position i banan"
+          />
+        </div>
 
-      <span className="tabular-nums text-xs text-muted-foreground">
-        {Math.round(t * path.total)} / {Math.round(path.total)} m
-      </span>
+        <div className="inline-flex h-9 items-center rounded-xl border-2 border-ink/15 bg-white p-0.5 text-[10px] font-bold">
+          {SPEEDS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setSpeed(s)}
+              className={`h-7 rounded-lg px-2 transition ${
+                speed === s ? "bg-ink text-paper" : "text-ink/50 hover:bg-cream hover:text-ink"
+              }`}
+              aria-pressed={speed === s}
+              title={`${s}× visualiseringshastighet`}
+            >
+              {s}×
+            </button>
+          ))}
+        </div>
+      </div>
 
-      <button
-        type="button"
-        onClick={onClose}
-        className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:bg-muted"
-        aria-label="Stäng uppspelning"
-        title="Stäng (Esc)"
-      >
-        <X size={14} />
-      </button>
+      {checkpoints.length > 1 && (
+        <div className="mt-2 rounded-xl border border-ink/10 bg-white/70 p-2">
+          <div className="mb-1.5 flex items-center justify-between gap-2 px-0.5">
+            <span className="text-[9px] font-black uppercase tracking-wider text-ink/45">Sekvensnavigator</span>
+            <span className="text-[9px] font-semibold text-ink/35">Tryck på ett hinder för att hoppa dit</span>
+          </div>
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:thin]">
+            {checkpoints.map((checkpoint, index) => {
+              const isActive = index === currentIdx;
+              const isDone = checkpoint.t < t - 0.012;
+              const isHotspot = hotspotNumbers.has(checkpoint.number);
+              return (
+                <button
+                  key={`${checkpoint.number}-${index}`}
+                  type="button"
+                  onClick={() => jumpTo(index)}
+                  className={[
+                    "relative grid h-8 min-w-8 shrink-0 place-items-center rounded-lg border text-[10px] font-black tabular-nums transition",
+                    isActive
+                      ? "border-ink bg-ink text-paper shadow-hard-sm"
+                      : isDone
+                        ? "border-forest/25 bg-forest/10 text-forest"
+                        : "border-ink/10 bg-paper text-ink/55 hover:border-ink/30 hover:text-ink",
+                  ].join(" ")}
+                  aria-current={isActive ? "step" : undefined}
+                  aria-label={`Hoppa till hinder ${checkpoint.number}${isHotspot ? ", coach-hotspot" : ""}`}
+                  title={isHotspot ? `Hinder ${checkpoint.number} · coach-hotspot` : `Hinder ${checkpoint.number}`}
+                >
+                  {checkpoint.number}
+                  {isHotspot && (
+                    <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full border border-paper bg-tang" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+        <div className="rounded-xl bg-cream px-2.5 py-2">
+          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Eye size={11} /> Sträcka</div>
+          <div className="mt-0.5 text-xs font-black tabular-nums text-ink">{(t * path.total).toFixed(0)} / {path.total.toFixed(0)} m</div>
+          <div className="mt-0.5 text-[9px] font-semibold text-ink/40">{formatSeconds(elapsedSeconds)} / {formatSeconds(totalSeconds)}</div>
+        </div>
+        <div className="rounded-xl bg-cream px-2.5 py-2">
+          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Activity size={11} /> Svårighet</div>
+          <div className="mt-0.5 text-xs font-black tabular-nums text-ink">{analysis.difficultyLabel} · {analysis.difficultyScore}</div>
+          <div className="mt-0.5 text-[9px] font-semibold text-ink/40">0–100 coachscore</div>
+        </div>
+        <div className="rounded-xl bg-cream px-2.5 py-2">
+          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Route size={11} /> Flow</div>
+          <div className="mt-0.5 text-xs font-black tabular-nums text-ink">{analysis.flowScore} / 100</div>
+          <div className="mt-0.5 text-[9px] font-semibold text-ink/40">{turnBalance}</div>
+        </div>
+        <div className="rounded-xl bg-cream px-2.5 py-2">
+          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Gauge size={11} /> Nästa</div>
+          <div className="mt-0.5 text-xs font-black text-ink">{next && next !== current ? `#${next.number} · ${nextDistanceM.toFixed(1)} m` : "Mål"}</div>
+          <div className="mt-0.5 text-[9px] font-semibold text-ink/40">{analysis.paceChanges} tempoväxlingar</div>
+        </div>
+      </div>
+
+      {topHotspot && (
+        <div className="mt-2 flex items-start gap-2 rounded-xl border border-tang/25 bg-tang/10 px-3 py-2.5">
+          <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-tang text-ink">
+            <Sparkles size={13} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-black uppercase tracking-wider text-ink/55">Coachens fokus {hotspotSequence ? `· ${hotspotSequence}` : ""}</p>
+            <p className="mt-0.5 text-xs font-semibold leading-relaxed text-ink/75">
+              {topHotspot.reasons.slice(0, 2).join(" · ")}. Testa särskilt fart, linje och handling genom sekvensen.
+            </p>
+          </div>
+          {hotspotIndex >= 0 && (
+            <button
+              type="button"
+              onClick={() => jumpTo(hotspotIndex)}
+              className="shrink-0 rounded-lg border border-ink/15 bg-paper px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wide text-ink transition hover:border-ink"
+            >
+              Hoppa dit
+            </button>
+          )}
+        </div>
+      )}
+
+      <p className="mt-2 text-[10px] font-semibold leading-relaxed text-ink/45">
+        Visningshastighet, Flow och svårighet är AgilityManagers planeringsstöd — inte officiell referenstid eller klassning.
+      </p>
 
       {noPath && (
-        <p className="basis-full text-xs text-muted-foreground">
+        <p className="mt-2 rounded-xl bg-tang/15 px-3 py-2 text-xs font-semibold text-ink/70">
           Numrera minst två hinder för att kunna spela upp banan.
         </p>
       )}
@@ -231,7 +506,6 @@ export function useCoursePlayback(course: CoursePathInput, active: boolean) {
   const rafRef = useRef<number | null>(null);
   const lastRef = useRef<number | null>(null);
 
-  // Reset när uppspelningen stängs.
   useEffect(() => {
     if (!active) {
       setT(0);
@@ -240,20 +514,9 @@ export function useCoursePlayback(course: CoursePathInput, active: boolean) {
     }
   }, [active]);
 
-  // Esc stänger inte här — det hanteras av sidan, men vi pausar.
-  useEffect(() => {
-    if (!active) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === " " && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
-        e.preventDefault();
-        setPlaying((p) => !p);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [active]);
+  // Tangentbordet ägs av PlannerPage. Tidigare fanns en extra Space-listener
+  // här också, vilket kunde toggla play/pause två gånger på samma tangenttryck.
 
-  // RAF-loop.
   useEffect(() => {
     if (!active || !playing || path.total === 0) {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
@@ -267,12 +530,12 @@ export function useCoursePlayback(course: CoursePathInput, active: boolean) {
       lastRef.current = ts;
       const dT = (BASE_M_PER_S * speed * dt) / path.total;
       setT((prev) => {
-        const next = prev + dT;
-        if (next >= 1) {
+        const nextT = prev + dT;
+        if (nextT >= 1) {
           setPlaying(false);
           return 1;
         }
-        return next;
+        return nextT;
       });
       rafRef.current = requestAnimationFrame(step);
     };
@@ -287,5 +550,4 @@ export function useCoursePlayback(course: CoursePathInput, active: boolean) {
   return { t, setT, playing, setPlaying, speed, setSpeed };
 }
 
-// Exportera hjälp-typen för andra konsumenter.
 export type { Speed };

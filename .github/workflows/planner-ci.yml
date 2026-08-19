@@ -1,0 +1,50 @@
+name: Planner CI
+
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig*.json"
+      - "vite.config.*"
+      - ".github/workflows/planner-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig*.json"
+      - "vite.config.*"
+      - ".github/workflows/planner-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-planner:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # package-lock.json är sedan tidigare ur synk med package.json i projektet
+      # (bl.a. Leaflet/Vitest). npm install matchar nuvarande Vercel-flöde och
+      # låter CI verifiera kod/build tills lockfilen kan synkas separat.
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Typecheck and build
+        run: npm run build
+
+      - name: Planner intelligence tests
+        run: npm test -- src/features/course-planner-v2/courseAnalysis.test.ts

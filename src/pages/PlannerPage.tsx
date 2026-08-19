@@ -3,9 +3,10 @@ import { Link, useSearchParams } from "react-router";
 import {
   ArrowLeft, BookOpen, Box, Check, ChevronDown, ChevronUp, Cloud, CloudCheck,
   Command, Copy, Download, Eraser, Footprints, Grid2x2, Keyboard, Link2, Loader2, Lock,
-  Lightbulb, MessageSquare, MoreHorizontal, MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler,
+  Lightbulb, Maximize, MessageSquare, MoreHorizontal, MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler,
   Share2, ShieldCheck, Spline, Trash2, Undo2, Unlock, Users, X, ZoomIn, ZoomOut,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { uid, type PlacedObstacle, type Sport } from "@/lib/course";
 import { ObstacleGlyph } from "@/components/ObstacleGlyph";
@@ -58,6 +59,11 @@ import { usePlannerProfile } from "@/lib/plannerProfile";
 import PlannerProfileDialog from "@/features/planner-social/PlannerProfileDialog";
 import SaveShareDialog from "@/features/planner-social/SaveShareDialog";
 import FeedbackDialog from "@/features/planner-social/FeedbackDialog";
+import { CourseMenu } from "@/components/course-planner-v2/CourseMenu";
+import { OpenCourseDialog } from "@/components/course-planner-v2/OpenCourseDialog";
+import {
+  saveLocalCourse, type LocalCourse,
+} from "@/features/course-planner-v2/localCourses";
 
 // ── Banmodell (v2) ──────────────────────────────────────────────────────────
 
@@ -76,6 +82,11 @@ const STORAGE_KEY = "am-redesign-planner-v2";
 const CLOUD_ID_KEY = "am-redesign-planner-v2-cloud";
 const SOCIAL_ID_KEY = "am-planner-shared-course";
 const RULER_PX = 24;
+const ZOOM_MIN = 0.25;
+const ZOOM_MAX = 4;
+
+/** Zoom + panorering av banvyn (pan i meter). */
+interface ViewState { zoom: number; panX: number; panY: number }
 
 /** Hinder som inte numreras i banordningen. */
 const NON_COMPETING = new Set<ObstacleTypeV2>(["start", "finish", "number", "handler_zone"]);
@@ -237,7 +248,8 @@ export default function PlannerPage() {
   const [showNumbers, setShowNumbers] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
   const [showRulers, setShowRulers] = useState(true);
-  const [zoom, setZoom] = useState(1);
+  const [view, setView] = useState<ViewState>({ zoom: 1, panX: 0, panY: 0 });
+  const zoom = view.zoom;
   const [past, setPast] = useState<PlacedObstacle[][]>([]);
   const [future, setFuture] = useState<PlacedObstacle[][]>([]);
   const [savedFlash, setSavedFlash] = useState(false);
@@ -271,12 +283,20 @@ export default function PlannerPage() {
     try { return localStorage.getItem(SOCIAL_ID_KEY); } catch { return null; }
   });
   const [canvasPx, setCanvasPx] = useState({ w: 800, h: 600 });
+  const [openCourseOpen, setOpenCourseOpen] = useState(false);
+  const [localCourseId, setLocalCourseId] = useState<string | null>(null);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
 
   const svgRef = useRef<SVGSVGElement>(null);
   const canvasWrapRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragRef = useRef<{ id: string; dx: number; dy: number; moved: boolean; start: PlacedObstacle[] } | null>(null);
   const rotateRef = useRef<{ id: string; start: PlacedObstacle[] } | null>(null);
+  const panRef = useRef<{ id: number; lastX: number; lastY: number; moved: boolean } | null>(null);
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchRef = useRef<{ dist: number } | null>(null);
+  const spaceRef = useRef(false);
 
   const { sport, name, obstacles } = draft;
   const w = draft.arenaWidthM;
@@ -418,8 +438,8 @@ export default function PlannerPage() {
   // ── Koordinater ─────────────────────────────────────────────
   const vw = w / zoom;
   const vh = h / zoom;
-  const viewMinX = (w - vw) / 2;
-  const viewMinY = (h - vh) / 2;
+  const viewMinX = (w - vw) / 2 + view.panX;
+  const viewMinY = (h - vh) / 2 + view.panY;
 
   const toField = useCallback(
     (clientX: number, clientY: number) => {
@@ -438,6 +458,91 @@ export default function PlannerPage() {
     },
     [w, h]
   );
+
+  // ── Zoom & panorering ───────────────────────────────────────
+  /** Zooma till ett nytt värde och håll punkten under (clientX, clientY) stilla. */
+  const zoomToValue = useCallback(
+    (resolve: (current: number) => number, clientX?: number, clientY?: number) => {
+      setView((v) => {
+        const next = clamp(resolve(v.zoom), ZOOM_MIN, ZOOM_MAX);
+        if (Math.abs(next - v.zoom) < 1e-4) return v;
+        const rect = svgRef.current?.getBoundingClientRect();
+        const hasAnchor = rect && clientX !== undefined && clientY !== undefined && rect.width > 0 && rect.height > 0;
+        if (!hasAnchor) return { ...v, zoom: next };
+        const fx = (clientX! - rect!.left) / rect!.width;
+        const fy = (clientY! - rect!.top) / rect!.height;
+        const vwOld = w / v.zoom;
+        const vhOld = h / v.zoom;
+        const px = (w - vwOld) / 2 + v.panX + fx * vwOld;
+        const py = (h - vhOld) / 2 + v.panY + fy * vhOld;
+        const vwNew = w / next;
+        const vhNew = h / next;
+        return {
+          zoom: next,
+          panX: clamp(px - fx * vwNew - (w - vwNew) / 2, -w / 2, w / 2),
+          panY: clamp(py - fy * vhNew - (h - vhNew) / 2, -h / 2, h / 2),
+        };
+      });
+    },
+    [w, h]
+  );
+
+  const zoomStep = useCallback(
+    (dir: 1 | -1, clientX?: number, clientY?: number) =>
+      zoomToValue((z) => (dir === 1 ? z * 1.25 : z / 1.25), clientX, clientY),
+    [zoomToValue]
+  );
+
+  const resetView = useCallback(() => setView({ zoom: 1, panX: 0, panY: 0 }), []);
+
+  /** Passa hela banan i vyn (bredd och höjd). */
+  const fitToScreen = useCallback(() => {
+    const rect = svgRef.current?.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) { resetView(); return; }
+    // Vid zoom=1 visas w × h i viewBox, utsträckt över hela ytan. Vi vill att
+    // banans proportion får plats: minsta av bredd-/höjdförhållandet.
+    const fit = Math.min(1, (rect.width / rect.height) / (w / h));
+    setView({ zoom: clamp(fit, ZOOM_MIN, ZOOM_MAX), panX: 0, panY: 0 });
+  }, [w, h, resetView]);
+
+  const panByPx = useCallback(
+    (dxPx: number, dyPx: number) => {
+      const rect = svgRef.current?.getBoundingClientRect();
+      if (!rect || rect.width === 0 || rect.height === 0) return;
+      setView((v) => {
+        const dxM = -dxPx * ((w / v.zoom) / rect.width);
+        const dyM = -dyPx * ((h / v.zoom) / rect.height);
+        return {
+          ...v,
+          panX: clamp(v.panX + dxM, -w / 2, w / 2),
+          panY: clamp(v.panY + dyM, -h / 2, h / 2),
+        };
+      });
+    },
+    [w, h]
+  );
+
+  // Scrollhjul + styrplattans nyp — native lyssnare (React onWheel är passiv).
+  const wheelRef = useRef<(e: WheelEvent) => void>(() => {});
+  wheelRef.current = (e: WheelEvent) => {
+    const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+    if (e.ctrlKey || e.metaKey || !e.shiftKey) {
+      zoomToValue((z) => z * Math.exp(-dy * 0.0018), e.clientX, e.clientY);
+    } else {
+      panByPx(-e.deltaX, -dy);
+    }
+  };
+  useEffect(() => {
+    const el = canvasWrapRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      wheelRef.current(e);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
 
   // ── Undo/redo ───────────────────────────────────────────────
   const undo = useCallback(() => {
@@ -510,6 +615,21 @@ export default function PlannerPage() {
 
   // ── Pointer-hantering ───────────────────────────────────────
   const onSvgPointerDown = (e: React.PointerEvent) => {
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    // Två fingrar = nyp-zoom + panorering
+    if (pointersRef.current.size === 2) {
+      const [a, b] = [...pointersRef.current.values()];
+      pinchRef.current = { dist: Math.hypot(b.x - a.x, b.y - a.y) };
+      panRef.current = null;
+      dragRef.current = null;
+      return;
+    }
+    // Mellanknapp eller mellanslag = panorera
+    if (e.button === 1 || spaceRef.current) {
+      (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+      panRef.current = { id: e.pointerId, lastX: e.clientX, lastY: e.clientY, moved: false };
+      return;
+    }
     const pt = toField(e.clientX, e.clientY);
     if (placing) {
       const ob: PlacedObstacle = { id: uid(), type: placing, x: snapM(pt.x), y: snapM(pt.y), rotation: 0 };
@@ -517,7 +637,9 @@ export default function PlannerPage() {
       setSelectedId(ob.id);
       return;
     }
-    setSelectedId(null);
+    // Ett finger/mus på tom yta: panorera vid drag, avmarkera vid klick.
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    panRef.current = { id: e.pointerId, lastX: e.clientX, lastY: e.clientY, moved: false };
   };
 
   const onObstaclePointerDown = (e: React.PointerEvent, ob: PlacedObstacle) => {
@@ -536,6 +658,36 @@ export default function PlannerPage() {
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
+    if (pointersRef.current.has(e.pointerId)) {
+      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+    // Nyp-zoom
+    if (pinchRef.current && pointersRef.current.size >= 2) {
+      const [a, b] = [...pointersRef.current.values()];
+      const dist = Math.hypot(b.x - a.x, b.y - a.y);
+      const midX = (a.x + b.x) / 2;
+      const midY = (a.y + b.y) / 2;
+      const prev = pinchRef.current.dist;
+      if (prev > 1) {
+        const factor = dist / prev;
+        if (Math.abs(factor - 1) > 0.002) zoomToValue((z) => z * factor, midX, midY);
+      }
+      pinchRef.current = { dist };
+      return;
+    }
+    if (panRef.current && panRef.current.id === e.pointerId) {
+      const dx = e.clientX - panRef.current.lastX;
+      const dy = e.clientY - panRef.current.lastY;
+      if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
+        if (Math.hypot(e.clientX - panRef.current.lastX, e.clientY - panRef.current.lastY) > 0.5) {
+          panRef.current.moved = panRef.current.moved || Math.hypot(dx, dy) > 2;
+        }
+        if (panRef.current.moved) panByPx(dx, dy);
+        panRef.current.lastX = e.clientX;
+        panRef.current.lastY = e.clientY;
+      }
+      if (panRef.current.moved) return;
+    }
     const pt = toField(e.clientX, e.clientY);
     if (placing) setGhost(pt);
     if (dragRef.current) {
@@ -566,7 +718,14 @@ export default function PlannerPage() {
     }
   };
 
-  const onPointerUp = () => {
+  const onPointerUp = (e?: React.PointerEvent) => {
+    if (e) pointersRef.current.delete(e.pointerId);
+    if (pointersRef.current.size < 2) pinchRef.current = null;
+    if (panRef.current && (!e || panRef.current.id === e.pointerId)) {
+      const wasClick = !panRef.current.moved;
+      panRef.current = null;
+      if (wasClick && !placing) setSelectedId(null);
+    }
     if (dragRef.current?.moved) {
       const start = dragRef.current.start;
       setPast((p) => [...p.slice(-49), start]);
@@ -582,6 +741,7 @@ export default function PlannerPage() {
     dragRef.current = null;
     rotateRef.current = null;
   };
+
 
   // håll en färsk referens till draft för pointer-up-hantering
   const draftRef = useRef(draft);
@@ -806,7 +966,9 @@ export default function PlannerPage() {
   };
 
   // ── Molnlagring (för kommentarer & klubbdelning) ────────────
-  const saveToCloud = async (opts?: { silent?: boolean }): Promise<string | null> => {
+  const saveToCloud = async (
+    opts?: { silent?: boolean; forceNew?: boolean; nameOverride?: string },
+  ): Promise<string | null> => {
     if (!user) {
       setAuthOpen(true);
       return null;
@@ -815,7 +977,7 @@ export default function PlannerPage() {
     try {
       const payload = {
         user_id: user.id,
-        name,
+        name: opts?.nameOverride ?? name,
         description: "",
         course_data: {
           version: 2,
@@ -830,7 +992,7 @@ export default function PlannerPage() {
         canvas_width: Math.round(w * 20),
         canvas_height: Math.round(h * 20),
       };
-      let id = cloudId;
+      let id = opts?.forceNew ? null : cloudId;
       if (id) {
         const { data, error } = await supabase
           .from("saved_courses")
@@ -863,6 +1025,87 @@ export default function PlannerPage() {
       setSavingCloud(false);
     }
   };
+
+  // ── Spara / öppna banor (meny) ──────────────────────────────
+  const draftSnapshot = useMemo(() => JSON.stringify(draft), [draft]);
+  const dirty = savedSnapshot !== draftSnapshot;
+
+  const persistCourse = async (opts?: { asNew?: boolean; name?: string }) => {
+    const targetName = (opts?.name ?? name).trim() || "Min bana";
+    const nextDraft: Draft = { ...draftRef.current, name: targetName };
+    if (targetName !== name) setDraft((d) => ({ ...d, name: targetName }));
+    const id = saveLocalCourse({
+      id: opts?.asNew ? null : localCourseId,
+      name: targetName,
+      sport: nextDraft.sport,
+      obstacleCount: nextDraft.obstacles.length,
+      data: nextDraft,
+    });
+    setLocalCourseId(id);
+    if (user) {
+      await saveToCloud({ silent: true, forceNew: opts?.asNew, nameOverride: targetName });
+    }
+    setSavedSnapshot(JSON.stringify(nextDraft));
+    setLastSavedAt(new Date().toISOString());
+    toast.success(
+      user ? `"${targetName}" sparad på ditt konto` : `"${targetName}" sparad i den här webbläsaren`,
+    );
+  };
+
+  const handleSaveAs = () => {
+    const next = window.prompt("Namn på den nya banan", `${name} (kopia)`);
+    if (!next) return;
+    void persistCourse({ asNew: true, name: next });
+  };
+
+  const handleNewCourse = () => {
+    if (dirty && obstacles.length && !window.confirm("Skapa en ny tom bana? Osparade ändringar försvinner.")) return;
+    setDraft(defaultDraft(sport));
+    setPast([]);
+    setFuture([]);
+    setSelectedId(null);
+    setPlacing(null);
+    setLocalCourseId(null);
+    setSavedSnapshot(null);
+    setLastSavedAt(null);
+    resetCourseIdentity(null);
+    resetView();
+  };
+
+  const applyOpenedDraft = (next: Draft, ids: { local?: string | null; cloud?: string | null }) => {
+    if (dirty && obstacles.length && !window.confirm(`Öppna "${next.name}"? Osparade ändringar försvinner.`)) return;
+    setDraft(next);
+    setPast([]);
+    setFuture([]);
+    setSelectedId(null);
+    setPlacing(null);
+    setLocalCourseId(ids.local ?? null);
+    resetCourseIdentity(ids.cloud ?? null);
+    setSavedSnapshot(JSON.stringify(next));
+    setLastSavedAt(new Date().toISOString());
+    setOpenCourseOpen(false);
+    resetView();
+    toast.success(`Öppnade "${next.name}"`);
+  };
+
+  const openLocalCourse = (c: LocalCourse) => {
+    const data = c.data as Draft | null;
+    if (!data || !Array.isArray(data.obstacles)) {
+      toast.error("Kunde inte läsa den sparade banan");
+      return;
+    }
+    applyOpenedDraft({ ...defaultDraft(data.sport === "hoopers" ? "hoopers" : "agility"), ...data }, { local: c.id });
+  };
+
+  const openCloudCourse = (c: LibraryCourse) => {
+    const next = draftFromLibraryCourse(c);
+    if (!next) {
+      toast.error("Kunde inte läsa den sparade banan");
+      return;
+    }
+    applyOpenedDraft(next, { cloud: c.id });
+  };
+
 
   // ── Lättviktsprofil: spara & dela ───────────────────────────
   const socialCourseData = () => ({
@@ -910,9 +1153,14 @@ export default function PlannerPage() {
     { id: "numbers", label: showNumbers ? "Dölj nummer" : "Visa nummer", group: "Visa", run: () => setShowNumbers((v) => !v) },
     { id: "grid", label: showGrid ? "Dölj rutnät" : "Visa rutnät", group: "Visa", icon: <Grid2x2 className="h-4 w-4" />, run: () => setShowGrid((v) => !v) },
     { id: "rulers", label: showRulers ? "Dölj linjaler" : "Visa linjaler", group: "Visa", icon: <Ruler className="h-4 w-4" />, run: () => setShowRulers((v) => !v) },
-    { id: "zoom-in", label: "Zooma in", group: "Visa", shortcut: ["+"], icon: <ZoomIn className="h-4 w-4" />, run: () => setZoom((z) => clamp(z + 0.25, 1, 2.25)) },
-    { id: "zoom-out", label: "Zooma ut", group: "Visa", shortcut: ["-"], icon: <ZoomOut className="h-4 w-4" />, run: () => setZoom((z) => clamp(z - 0.25, 1, 2.25)) },
-    { id: "zoom-reset", label: "Zoom 100%", group: "Visa", shortcut: ["0"], run: () => setZoom(1) },
+    { id: "zoom-in", label: "Zooma in", group: "Visa", shortcut: ["+"], icon: <ZoomIn className="h-4 w-4" />, run: () => zoomStep(1) },
+    { id: "zoom-out", label: "Zooma ut", group: "Visa", shortcut: ["-"], icon: <ZoomOut className="h-4 w-4" />, run: () => zoomStep(-1) },
+    { id: "zoom-reset", label: "Zoom 100%", group: "Visa", shortcut: ["0"], run: resetView },
+    { id: "zoom-fit", label: "Passa banan i skärmen", group: "Visa", icon: <Maximize className="h-4 w-4" />, run: fitToScreen },
+    { id: "save-course", label: "Spara bana", group: "Bana", shortcut: ["Ctrl", "S"], run: () => void persistCourse() },
+    { id: "save-course-as", label: "Spara bana som…", group: "Bana", run: handleSaveAs },
+    { id: "open-course", label: "Öppna sparad bana", group: "Bana", shortcut: ["Ctrl", "O"], run: () => setOpenCourseOpen(true) },
+    { id: "new-course", label: "Ny bana", group: "Bana", run: handleNewCourse },
     { id: "issues", label: "Visa regelkontroll", group: "Granska", icon: <ShieldCheck className="h-4 w-4" />, run: () => setIssuesOpen(true) },
     { id: "library", label: "Öppna banbibliotek", group: "Bana", icon: <BookOpen className="h-4 w-4" />, run: () => setLibraryOpen(true) },
     { id: "share", label: "Dela bana via länk", group: "Bana", icon: <Share2 className="h-4 w-4" />, run: openShare },
@@ -975,9 +1223,17 @@ export default function PlannerPage() {
           setPlaybackActive((v) => !v);
         }
       }
-      if (!e.metaKey && !e.ctrlKey && e.key === "+") setZoom((z) => clamp(z + 0.25, 1, 2.25));
-      if (!e.metaKey && !e.ctrlKey && e.key === "-") setZoom((z) => clamp(z - 0.25, 1, 2.25));
-      if (!e.metaKey && !e.ctrlKey && e.key === "0") setZoom(1);
+      if (!e.metaKey && !e.ctrlKey && (e.key === "+" || e.key === "=")) zoomStep(1);
+      if (!e.metaKey && !e.ctrlKey && e.key === "-") zoomStep(-1);
+      if (!e.metaKey && !e.ctrlKey && e.key === "0") resetView();
+      if ((e.metaKey || e.ctrlKey) && key === "s") {
+        e.preventDefault();
+        void persistCourse();
+      }
+      if ((e.metaKey || e.ctrlKey) && key === "o") {
+        e.preventDefault();
+        setOpenCourseOpen(true);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -1039,6 +1295,15 @@ export default function PlannerPage() {
           />
 
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+            <CourseMenu
+              onSave={() => void persistCourse()}
+              onSaveAs={handleSaveAs}
+              onOpen={() => setOpenCourseOpen(true)}
+              onNew={handleNewCourse}
+              dirty={dirty}
+              lastSavedAt={lastSavedAt}
+              saving={savingCloud}
+            />
             <span
               className={`hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors lg:inline-flex ${
                 savedFlash ? "bg-forest text-paper" : "bg-cream text-ink/50"
@@ -1290,7 +1555,7 @@ export default function PlannerPage() {
                 tickStepM={5}
                 showFineTicks={zoom >= 1.5}
                 zoom={zoom}
-                onCornerClick={() => setZoom(1)}
+                onCornerClick={resetView}
               />
             )}
             <div
@@ -1634,14 +1899,17 @@ export default function PlannerPage() {
               <Ruler className="h-5 w-5" />
             </ToolButton>
             <div className="mx-1.5 h-8 w-px bg-ink/15" />
-            <ToolButton onClick={() => setZoom((z) => clamp(z - 0.25, 1, 2.25))} label="Zooma ut (−)" disabled={zoom <= 1}>
+            <ToolButton onClick={() => zoomStep(-1)} label="Zooma ut (−)" disabled={zoom <= ZOOM_MIN + 0.001}>
               <ZoomOut className="h-5 w-5" />
             </ToolButton>
-            <button onClick={() => setZoom(1)} className="h-11 w-14 rounded-xl border-2 border-ink/15 text-xs font-bold text-ink/70 hover:border-ink" title="Återställ zoom (0)">
+            <button onClick={resetView} className="h-11 w-14 rounded-xl border-2 border-ink/15 text-xs font-bold text-ink/70 hover:border-ink" title="Återställ zoom och panorering (0)">
               {Math.round(zoom * 100)}%
             </button>
-            <ToolButton onClick={() => setZoom((z) => clamp(z + 0.25, 1, 2.25))} label="Zooma in (+)" disabled={zoom >= 2.25}>
+            <ToolButton onClick={() => zoomStep(1)} label="Zooma in (+)" disabled={zoom >= ZOOM_MAX - 0.001}>
               <ZoomIn className="h-5 w-5" />
+            </ToolButton>
+            <ToolButton onClick={fitToScreen} label="Passa banan i skärmen">
+              <Maximize className="h-5 w-5" />
             </ToolButton>
             <div className="mx-1.5 h-8 w-px bg-ink/15" />
             <ToolButton onClick={clearAll} label="Rensa banan" disabled={!obstacles.length}>
@@ -1662,12 +1930,44 @@ export default function PlannerPage() {
                 {numbered.filter((o) => o.number != null).length} hinder
                 {coursePath.points.length >= 2 && ` · ~${coursePath.total.toFixed(0)} m`}
               </span>
-              <button
-                onClick={() => setLibraryOpen(true)}
-                className="inline-flex h-9 items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 text-xs font-bold text-ink/70"
-              >
-                <BookOpen className="h-3.5 w-3.5" /> Färdiga banor
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => zoomStep(-1)}
+                  disabled={zoom <= ZOOM_MIN + 0.001}
+                  className="grid h-9 w-9 place-items-center rounded-full border-2 border-ink/15 disabled:opacity-30"
+                  aria-label="Zooma ut"
+                >
+                  <ZoomOut className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={resetView}
+                  className="h-9 min-w-[3.25rem] rounded-full border-2 border-ink/15 px-2 text-[11px] font-bold text-ink/70"
+                  aria-label={`Zoom ${Math.round(zoom * 100)} procent. Tryck för att återställa`}
+                >
+                  {Math.round(zoom * 100)}%
+                </button>
+                <button
+                  onClick={() => zoomStep(1)}
+                  disabled={zoom >= ZOOM_MAX - 0.001}
+                  className="grid h-9 w-9 place-items-center rounded-full border-2 border-ink/15 disabled:opacity-30"
+                  aria-label="Zooma in"
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={fitToScreen}
+                  className="grid h-9 w-9 place-items-center rounded-full border-2 border-ink/15"
+                  aria-label="Passa banan i skärmen"
+                >
+                  <Maximize className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setLibraryOpen(true)}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 text-xs font-bold text-ink/70"
+                >
+                  <BookOpen className="h-3.5 w-3.5" /> Banor
+                </button>
+              </div>
             </div>
             <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
               <button
@@ -1773,6 +2073,13 @@ export default function PlannerPage() {
 
       {/* ── Bibliotek, kommentarer, klubbdelning, auth ── */}
       <CourseLibraryDialog open={libraryOpen} onOpenChange={setLibraryOpen} onPick={pickFromLibrary} />
+      <OpenCourseDialog
+        open={openCourseOpen}
+        onOpenChange={setOpenCourseOpen}
+        userId={user?.id ?? null}
+        onPickLocal={openLocalCourse}
+        onPickCloud={openCloudCourse}
+      />
 
       <Sheet open={commentsOpen} onOpenChange={setCommentsOpen}>
         <SheetContent className="w-full border-l-2 border-ink bg-paper sm:max-w-md">

@@ -2041,6 +2041,13 @@ export default function PlannerPage() {
 
       {/* ── Bibliotek, kommentarer, klubbdelning, auth ── */}
       <CourseLibraryDialog open={libraryOpen} onOpenChange={setLibraryOpen} onPick={pickFromLibrary} />
+      <OpenCourseDialog
+        open={openCourseOpen}
+        onOpenChange={setOpenCourseOpen}
+        userId={user?.id ?? null}
+        onPickLocal={openLocalCourse}
+        onPickCloud={openCloudCourse}
+      />
 
       <Sheet open={commentsOpen} onOpenChange={setCommentsOpen}>
         <SheetContent className="w-full border-l-2 border-ink bg-paper sm:max-w-md">

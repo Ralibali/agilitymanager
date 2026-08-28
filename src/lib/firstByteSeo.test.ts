@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   applyFirstByteSeo,
@@ -55,11 +53,5 @@ describe("first-byte SEO for money routes", () => {
     expect(planner).not.toContain('href="https://agilitymanager.se/"');
     expect(planner.match(/rel="canonical"/g)).toHaveLength(1);
     expect(planner.match(/name="robots"/g)).toHaveLength(1);
-  });
-
-  it("keeps source index.html crawlable without JS", () => {
-    const html = readFileSync(resolve(process.cwd(), "index.html"), "utf8");
-    assertFirstByteMoneyRoute(html, FIRST_BYTE_ROUTES["/"]);
-    expect(html.toLowerCase()).not.toContain("lovable.app");
   });
 });

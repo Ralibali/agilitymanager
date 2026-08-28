@@ -64,6 +64,7 @@ import { OpenCourseDialog } from "@/components/course-planner-v2/OpenCourseDialo
 import {
   saveLocalCourse, type LocalCourse,
 } from "@/features/course-planner-v2/localCourses";
+import { track, trackPlannerUsedOnce } from "@/lib/firstPartyEvents";
 
 // ── Banmodell (v2) ──────────────────────────────────────────────────────────
 
@@ -411,6 +412,7 @@ export default function PlannerPage() {
       if (commit) {
         setPast((p) => [...p.slice(-49), obstacles]);
         setFuture([]);
+        trackPlannerUsedOnce();
       }
       setDraft((d) => ({ ...d, obstacles: next }));
     },
@@ -948,6 +950,7 @@ export default function PlannerPage() {
     setShareUrl(shareUrlForQr());
     setCopied(false);
     setShareOpen(true);
+    track("share", { via: "link" });
   };
 
   const copyShare = async () => {
@@ -963,6 +966,7 @@ export default function PlannerPage() {
     }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    track("share", { via: "copy" });
   };
 
   // ── Molnlagring (för kommentarer & klubbdelning) ────────────
@@ -971,6 +975,7 @@ export default function PlannerPage() {
   ): Promise<string | null> => {
     if (!user) {
       setAuthOpen(true);
+      track("auth", { via: "cloud_save" });
       return null;
     }
     setSavingCloud(true);
@@ -1123,6 +1128,7 @@ export default function PlannerPage() {
     if (!plannerProfile) {
       setPendingSaveShare(true);
       setProfileOpen(true);
+      track("auth", { via: "cloud_save" });
       return;
     }
     setSaveShareOpen(true);

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { plannerApi, usePlannerProfile } from "@/lib/plannerProfile";
+import { track } from "@/lib/firstPartyEvents";
 
 export interface SavedCourseRef {
   id: string;
@@ -64,6 +65,7 @@ export function SaveShareDialog({
       });
       setSavedId(res.course.id);
       onSaved({ id: res.course.id, isPublic: res.course.is_public });
+      if (res.course.is_public) track("share", { via: "cloud" });
       toast.success(isPublic ? "Bana sparad och publik" : "Bana sparad privat");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Kunde inte spara banan");
@@ -77,6 +79,7 @@ export function SaveShareDialog({
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      track("share", { via: "copy" });
     } catch {
       toast.error("Kunde inte kopiera länken");
     }

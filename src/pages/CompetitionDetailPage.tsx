@@ -24,7 +24,9 @@ export default function CompetitionDetailPage() {
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
-    setState("loading");
+    queueMicrotask(() => {
+      if (!cancelled) setState("loading");
+    });
     (async () => {
       const { data, error } = await supabase
         .from("competitions")

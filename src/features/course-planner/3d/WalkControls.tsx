@@ -4,6 +4,13 @@ import * as THREE from "three";
 
 type RefObj<T> = { current: T };
 
+// Återanvända temp-objekt i frame-loopen för att undvika GC-churn varje frame.
+const _euler = new THREE.Euler(0, 0, 0, "YXZ");
+const _forward = new THREE.Vector3();
+const _up = new THREE.Vector3(0, 1, 0);
+const _right = new THREE.Vector3();
+const _move = new THREE.Vector3();
+
 export function WalkControls({
   joystickRef,
   lookDeltaRef,
@@ -97,17 +104,17 @@ export function WalkControls({
       }
     }
     // Apply rotation
-    const euler = new THREE.Euler(pitch.current, yaw.current, 0, "YXZ");
-    camera.quaternion.setFromEuler(euler);
+    _euler.set(pitch.current, yaw.current, 0, "YXZ");
+    camera.quaternion.setFromEuler(_euler);
 
     // Movement
     const sprint = keys.current["shift"] || sprintRef?.current ? sprintMul : 1;
     const v = speed * sprint * dt;
-    const forward = new THREE.Vector3();
+    const forward = _forward;
     camera.getWorldDirection(forward);
     forward.y = 0;
     if (forward.lengthSq() > 0) forward.normalize();
-    const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+    const right = _right.crossVectors(forward, _up).normalize();
 
     let mx = 0;
     let mz = 0;
@@ -120,16 +127,20 @@ export function WalkControls({
     mz += -js.y;
 
     if (mx !== 0 || mz !== 0) {
-      const move = new THREE.Vector3()
+      const move = _move.set(0, 0, 0)
         .addScaledVector(forward, mz)
         .addScaledVector(right, mx);
       if (move.lengthSq() > 0) move.normalize().multiplyScalar(v);
       camera.position.add(move);
     }
     const margin = 0.4;
-    camera.position.x = Math.max(-bounds.w / 2 + margin, Math.min(bounds.w / 2 - margin, camera.position.x));
-    camera.position.z = Math.max(-bounds.h / 2 + margin, Math.min(bounds.h / 2 - margin, camera.position.z));
-    camera.position.y = 1.65;
+    // Kläm kameran inom arenan. position.set() istället för property-mutation —
+    // samma resultat, men kompatibelt med React Compilers frysningsanalys.
+    camera.position.set(
+      Math.max(-bounds.w / 2 + margin, Math.min(bounds.w / 2 - margin, camera.position.x)),
+      1.65,
+      Math.max(-bounds.h / 2 + margin, Math.min(bounds.h / 2 - margin, camera.position.z)),
+    );
   });
 
   return null;

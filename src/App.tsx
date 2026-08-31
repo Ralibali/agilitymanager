@@ -2,8 +2,8 @@ import { lazy, Suspense, useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router";
 import Home from "./pages/Home";
 
-// Route-level code splitting: startsidan laddas direkt. De två produktmotorerna
-// (tävlingskalendern och banplaneraren) är båda first-class och får egna routes.
+// Route-nivå code splitting: startsidan (Home) laddas direkt, övriga sidor —
+// särskilt banplaneraren med 3D/PDF — hämtas först när routen besöks.
 const PlannerPage = lazy(() => import("./pages/PlannerPage"));
 const PublicCoursePage = lazy(() => import("./pages/PublicCoursePage"));
 const FeaturesPage = lazy(() => import("./pages/FeaturesPage"));
@@ -16,6 +16,8 @@ const ClubCompetitionsPage = lazy(() => import("./pages/ClubCompetitionsPage"));
 const HoopersCompetitionDetailPage = lazy(() => import("./pages/HoopersCompetitionDetailPage"));
 const CoursesPage = lazy(() => import("./pages/CoursesPage"));
 const SharedCoursesPage = lazy(() => import("./pages/SharedCoursesPage"));
+const BlogIndexPage = lazy(() => import("./pages/BlogIndexPage"));
+const BlogArticlePage = lazy(() => import("./pages/BlogArticlePage"));
 const NotFound = lazy(() => import("./pages/NotFound").then((m) => ({ default: m.NotFound })));
 
 function ScrollToTop() {
@@ -26,14 +28,12 @@ function ScrollToTop() {
   return null;
 }
 
+/** Fallback medan en lazy-route laddas. role="status" ger skärmläsare besked. */
 function RouteFallback() {
   return (
     <div role="status" aria-live="polite" className="min-h-[40vh] grid place-items-center p-8">
       <span className="sr-only">Laddar sidan…</span>
-      <div
-        aria-hidden="true"
-        className="h-8 w-8 animate-spin rounded-full border-2 border-black/15 border-t-black/60"
-      />
+      <div aria-hidden="true" className="h-8 w-8 rounded-full border-2 border-black/15 border-t-black/60 animate-spin" />
     </div>
   );
 }
@@ -45,6 +45,10 @@ export default function App() {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Home />} />
+
+          {/* Kunskapsbanken: blogg/guider */}
+          <Route path="/blogg" element={<BlogIndexPage />} />
+          <Route path="/blogg/:slug" element={<BlogArticlePage />} />
 
           {/* Motor 1: banplanerare, banbibliotek och delning */}
           <Route path="/banplanerare" element={<PlannerPage />} />

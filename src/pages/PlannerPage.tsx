@@ -1,26 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import {
-  ArrowLeft, BookOpen, Box, Check, ChevronDown, ChevronUp, Cloud, CloudCheck,
+  ArrowLeft, BookOpen, Box, Check, ChevronDown, ChevronUp, CloudCheck,
   Command, Copy, Download, Eraser, Footprints, Grid2x2, Keyboard, Link2, Loader2, Lock,
-  Lightbulb, Maximize, MessageSquare, MoreHorizontal, MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler,
-  Share2, ShieldCheck, Spline, Trash2, Undo2, Unlock, Users, X, ZoomIn, ZoomOut,
+  Lightbulb, Maximize, MoreHorizontal, MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler,
+  Share2, ShieldCheck, Spline, Trash2, Undo2, Unlock, X, ZoomIn, ZoomOut,
 } from "lucide-react";
 
 import { toast } from "sonner";
+import { Seo } from "@/components/Seo";
 import { uid, type PlacedObstacle, type Sport } from "@/lib/course";
 import { ObstacleGlyph } from "@/components/ObstacleGlyph";
 import { Logo } from "@/components/SiteNav";
-import { EmailCapture, isSubscribed } from "@/components/EmailCapture";
-import { AuthDialog } from "@/components/AuthDialog";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Sheet, SheetContent, SheetHeader, SheetTitle,
-} from "@/components/ui/sheet";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -37,21 +32,21 @@ import {
   validateCourse, computeCourseTimes, type ValidationIssue,
 } from "@/features/course-planner-v2/validation";
 import { buildCoursePath, toSvgPathD } from "@/features/course-planner-v2/pathSampling";
-import { parseCourseJson } from "@/features/course-planner-v2/importJson";
+import { MAX_IMPORT_JSON_CHARS, parseCourseJson } from "@/features/course-planner-v2/importJson";
+import { clampArenaM, gridTicks } from "@/lib/courseSafety";
 import { instantiatePrebuilt, type PrebuiltCourse } from "@/features/course-planner-v2/templates";
 import { COURSE_BANK } from "@/features/course-planner-v2/courseBank";
 import type { LibraryCourse } from "@/features/course-planner-v2/library";
 import CourseLibraryDialog from "@/features/course-planner-v2/CourseLibraryDialog";
-import CourseCommentsPanel from "@/features/course-planner-v2/CourseCommentsPanel";
-import ClubShareDialog from "@/features/course-planner-v2/ClubShareDialog";
 import { CommandPalette, type PaletteCommand } from "@/components/course-planner-v2/CommandPalette";
 import { KeyboardShortcutsHelp } from "@/components/course-planner-v2/KeyboardShortcutsHelp";
 import { CanvasRulers } from "@/components/course-planner-v2/CanvasRulers";
 import { ExportMenu } from "@/components/course-planner-v2/ExportMenu";
 import { RuleSetTrustBadge } from "@/components/course-planner-v2/RuleSetTrustBadge";
 import {
-  CoursePlaybackControls, CoursePlaybackOverlay, useCoursePlayback,
+  CoursePlaybackControls, CoursePlaybackOverlay,
 } from "@/components/course-planner-v2/CoursePlayback";
+import { useCoursePlayback } from "@/components/course-planner-v2/useCoursePlayback";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
 import { makeQrDataUrl } from "@/lib/qrDataUrl";
@@ -61,6 +56,7 @@ import SaveShareDialog from "@/features/planner-social/SaveShareDialog";
 import FeedbackDialog from "@/features/planner-social/FeedbackDialog";
 import { CourseMenu } from "@/components/course-planner-v2/CourseMenu";
 import { OpenCourseDialog } from "@/components/course-planner-v2/OpenCourseDialog";
+import { ConfirmDialog, NameCourseDialog } from "@/components/course-planner-v2/ConfirmDialog";
 import {
   saveLocalCourse, type LocalCourse,
 } from "@/features/course-planner-v2/localCourses";
@@ -79,7 +75,6 @@ interface Draft {
 }
 
 const STORAGE_KEY = "am-redesign-planner-v2";
-const CLOUD_ID_KEY = "am-redesign-planner-v2-cloud";
 const SOCIAL_ID_KEY = "am-planner-shared-course";
 const RULER_PX = 24;
 const ZOOM_MIN = 0.25;
@@ -127,6 +122,37 @@ function defaultDraft(sport: Sport): Draft {
   };
 }
 
+function draftFromRawCourse(raw: unknown): Draft | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  let json = "";
+  try {
+    json = JSON.stringify(raw);
+  } catch {
+    return null;
+  }
+  if (!json || json.length > MAX_IMPORT_JSON_CHARS) return null;
+
+  const parsed = parseCourseJson(json);
+  if (!parsed.ok) return null;
+  const base = defaultDraft(parsed.course.sport);
+  const rawRuleSetId = (raw as { ruleSetId?: unknown }).ruleSetId;
+  const ruleSetId = typeof rawRuleSetId === "string" && getRuleSet(rawRuleSetId)
+    ? rawRuleSetId
+    : base.ruleSetId;
+
+  return {
+    ...base,
+    name: parsed.course.name,
+    sport: parsed.course.sport,
+    sizeClass: parsed.course.sizeClass,
+    arenaWidthM: parsed.course.arenaWidthM,
+    arenaHeightM: parsed.course.arenaHeightM,
+    classTemplate: parsed.course.classTemplate,
+    obstacles: normalizeObstacles(parsed.course.obstacles),
+    ruleSetId,
+  };
+}
+
 // ── Delningslänkar: hela banan kodad i URL:en ───────────────────────────────
 
 function encodeCourse(d: Draft): string {
@@ -151,26 +177,10 @@ function decodeCourse(s: string): Draft | null {
   try {
     const b64 = s.replace(/-/g, "+").replace(/_/g, "/");
     const json = decodeURIComponent(escape(atob(b64)));
-    const raw = JSON.parse(json);
-    if (!raw || !Array.isArray(raw.obstacles)) return null;
-    const sport: Sport = raw.sport === "hoopers" ? "hoopers" : "agility";
-    const base = defaultDraft(sport);
-    const obstacles = normalizeObstacles(
-      raw.obstacles.map((ob: PlacedObstacle & { rot?: number }) => ({
-        ...ob,
-        rotation: typeof ob.rotation === "number" ? ob.rotation : (ob.rot ?? 0),
-      }))
-    );
-    return {
-      ...base,
-      name: String(raw.name || "Delad bana"),
-      sizeClass: raw.sizeClass ?? base.sizeClass,
-      arenaWidthM: Number(raw.arenaWidthM) || base.arenaWidthM,
-      arenaHeightM: Number(raw.arenaHeightM) || base.arenaHeightM,
-      classTemplate: raw.classTemplate ?? null,
-      ruleSetId: raw.ruleSetId ?? base.ruleSetId,
-      obstacles,
-    };
+    if (json.length > MAX_IMPORT_JSON_CHARS) return null;
+    // Samma hårdning som JSON-import: storlek, hinder-tak, textlängder,
+    // numeriska klampar, okända fält/typer strippas innan state nås.
+    return draftFromRawCourse(JSON.parse(json));
   } catch {
     return null;
   }
@@ -191,19 +201,11 @@ function draftFromPrebuilt(p: PrebuiltCourse): Draft {
 
 function draftFromLibraryCourse(c: LibraryCourse): Draft | null {
   try {
-    const data = c.course_data;
-    if (!data || !Array.isArray(data.obstacles)) return null;
-    const sport: Sport = data.sport === "hoopers" ? "hoopers" : "agility";
-    const base = defaultDraft(sport);
+    const parsed = draftFromRawCourse(c.course_data);
+    if (!parsed) return null;
     return {
-      ...base,
-      name: c.name || "Sparad bana",
-      sizeClass: data.sizeClass ?? base.sizeClass,
-      arenaWidthM: Number(data.arenaWidthM) || base.arenaWidthM,
-      arenaHeightM: Number(data.arenaHeightM) || base.arenaHeightM,
-      classTemplate: data.classTemplate ?? null,
-      obstacles: normalizeObstacles(data.obstacles),
-      ruleSetId: data.ruleSetId ?? base.ruleSetId,
+      ...parsed,
+      name: String(c.name || parsed.name || "Sparad bana").slice(0, 120),
     };
   } catch {
     return null;
@@ -226,7 +228,9 @@ function loadInitial(search: URLSearchParams): Draft {
     if (raw) {
       const d = JSON.parse(raw) as Draft;
       if (d && Array.isArray(d.obstacles)) {
-        return { ...defaultDraft(d.sport === "hoopers" ? "hoopers" : "agility"), ...d };
+        if (d.obstacles.length === 0) return defaultDraft(d.sport === "hoopers" ? "hoopers" : "agility");
+        const parsed = draftFromRawCourse(d);
+        if (parsed) return parsed;
       }
     }
   } catch {
@@ -237,10 +241,16 @@ function loadInitial(search: URLSearchParams): Draft {
 
 export default function PlannerPage() {
   const [search] = useSearchParams();
-  const { user } = useAuth();
   const { profile: plannerProfile } = usePlannerProfile();
   const isExternalCopy = search.has("bana") || search.has("template") || search.has("delad");
   const [draft, setDraft] = useState<Draft>(() => loadInitial(search));
+  // Externa kopior (?bana=/?template=/?delad=) får aldrig skriva över
+  // användarens egen autosparade bana förrän hen faktiskt redigerar kopian.
+  // Referensen håller exakt det innehåll som kom utifrån.
+  const externalSnapshotRef = useRef<string | null>(null);
+  if (isExternalCopy && externalSnapshotRef.current === null) {
+    externalSnapshotRef.current = JSON.stringify(draft);
+  }
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [placing, setPlacing] = useState<ObstacleTypeV2 | null>(null);
   const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null);
@@ -256,25 +266,17 @@ export default function PlannerPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [copied, setCopied] = useState(false);
-  const [, forceShareRefresh] = useState(0);
   const [issuesOpen, setIssuesOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
-  const [commentsOpen, setCommentsOpen] = useState(false);
-  const [clubShareOpen, setClubShareOpen] = useState(false);
   const [playbackActive, setPlaybackActive] = useState(false);
   const [view3D, setView3D] = useState<"view" | "walk" | null>(null);
   const [exporting, setExporting] = useState<string | null>(null);
-  // Vattenstämpeln är alltid på i gratisläget — export utan stämpel blir en betald funktion.
+  // PDF-exporterna märks alltid med en liten agilitymanager.se-byline.
+  // Det finns ingen betald nivå — bylinen är bara attribution, inte en upsell.
   const showWatermark = true;
-  const [cloudId, setCloudId] = useState<string | null>(() => {
-    if (isExternalCopy) return null;
-    try { return localStorage.getItem(CLOUD_ID_KEY); } catch { return null; }
-  });
-  const [savingCloud, setSavingCloud] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [saveShareOpen, setSaveShareOpen] = useState(false);
   const [pendingSaveShare, setPendingSaveShare] = useState(false);
@@ -287,6 +289,19 @@ export default function PlannerPage() {
   const [localCourseId, setLocalCourseId] = useState<string | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
+  // Bekräftelsedialoger (ersätter window.confirm/prompt för a11y + tydlighet)
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false);
+  const [confirmNewOpen, setConfirmNewOpen] = useState(false);
+  const [saveAsOpen, setSaveAsOpen] = useState(false);
+  const [pendingOpenDraft, setPendingOpenDraft] = useState<{
+    next: Draft;
+    ids: { local?: string | null; social?: string | null };
+  } | null>(null);
+  const [pendingLibraryPick, setPendingLibraryPick] = useState<{
+    kind: "prebuilt" | "saved";
+    payload: PrebuiltCourse | LibraryCourse;
+    next: Draft;
+  } | null>(null);
 
   const svgRef = useRef<SVGSVGElement>(null);
   const canvasWrapRef = useRef<HTMLDivElement>(null);
@@ -299,16 +314,16 @@ export default function PlannerPage() {
   const spaceRef = useRef(false);
 
   const { sport, name, obstacles } = draft;
-  const w = draft.arenaWidthM;
-  const h = draft.arenaHeightM;
+  const w = clampArenaM(draft.arenaWidthM, 30);
+  const h = clampArenaM(draft.arenaHeightM, 40);
 
-  const resetCourseIdentity = useCallback((nextCloudId: string | null = null) => {
-    setCloudId(nextCloudId);
-    setSocialCourseId(null);
+  // Banidentitet = vilken community-bana (planner-social) som en ev.
+  // "Spara & dela" ska uppdatera. Delade länkar/mallar är alltid nya kopior.
+  const resetCourseIdentity = useCallback((nextSocialId: string | null = null) => {
+    setSocialCourseId(nextSocialId);
     try {
-      if (nextCloudId) localStorage.setItem(CLOUD_ID_KEY, nextCloudId);
-      else localStorage.removeItem(CLOUD_ID_KEY);
-      localStorage.removeItem(SOCIAL_ID_KEY);
+      if (nextSocialId) localStorage.setItem(SOCIAL_ID_KEY, nextSocialId);
+      else localStorage.removeItem(SOCIAL_ID_KEY);
     } catch {
       /* localStorage kan vara avstängt */
     }
@@ -322,28 +337,53 @@ export default function PlannerPage() {
 
   // Öppna en delad bana från communityn (?delad=<id>) och bygg vidare på den
   const sharedParam = search.get("delad");
+  const [sharedDone, setSharedDone] = useState(false);
+  const [sharedFailed, setSharedFailed] = useState(false);
+  const loadingShared = !!sharedParam && !sharedDone && !sharedFailed;
   useEffect(() => {
     if (!sharedParam) return;
     let cancelled = false;
     void (async () => {
-      const { data } = await supabase
-        .from("planner_courses")
-        .select("id, name, sport, course_data")
-        .eq("id", sharedParam)
-        .eq("is_public", true)
-        .maybeSingle();
-      if (cancelled || !data) return;
-      const next = draftFromLibraryCourse(data as unknown as LibraryCourse);
-      if (!next) {
-        toast.error("Kunde inte öppna den delade banan");
-        return;
+      try {
+        const { data, error } = await supabase
+          .from("planner_courses")
+          .select("id, name, sport, course_data")
+          .eq("id", sharedParam)
+          .eq("is_public", true)
+          .maybeSingle();
+        if (cancelled) return;
+        if (error || !data) {
+          setSharedFailed(true);
+          toast.error("Hittade inte den delade banan", {
+            description: "Länken kan vara felaktig eller banan har tagits bort.",
+          });
+          return;
+        }
+        const next = draftFromLibraryCourse(data as unknown as LibraryCourse);
+        if (!next) {
+          setSharedFailed(true);
+          toast.error("Kunde inte öppna den delade banan");
+          return;
+        }
+        const copy = { ...next, name: `${next.name} (kopia)` };
+        resetCourseIdentity(null);
+        // Markera kopians ursprungsinnehåll så att autosparningen inte
+        // skriver över användarens lokala bana förrän hen redigerar kopian.
+        externalSnapshotRef.current = JSON.stringify(copy);
+        setDraft(copy);
+        setPast([]);
+        setFuture([]);
+        setSelectedId(null);
+        setSharedDone(true);
+        toast.success("Delad bana öppnad — bygg vidare!");
+      } catch {
+        // Nätverksfel/okonfigurerad backend — aldrig fastna i laddningsläge.
+        if (cancelled) return;
+        setSharedFailed(true);
+        toast.error("Kunde inte hämta den delade banan", {
+          description: "Kontrollera din uppkoppling och öppna länken igen.",
+        });
       }
-      resetCourseIdentity(null);
-      setDraft({ ...next, name: `${next.name} (kopia)` });
-      setPast([]);
-      setFuture([]);
-      setSelectedId(null);
-      toast.success("Delad bana öppnad — bygg vidare!");
     })();
     return () => { cancelled = true; };
   }, [sharedParam, resetCourseIdentity]);
@@ -419,6 +459,12 @@ export default function PlannerPage() {
 
   // Autosparning (lokalt i webbläsaren)
   useEffect(() => {
+    // En oredigerad extern kopia (delad länk/mall) får inte skriva över
+    // användarens egen autosparade bana. Först vid faktisk redigering
+    // blir kopian det nya autosparade utkastet.
+    if (isExternalCopy && JSON.stringify(draft) === externalSnapshotRef.current) {
+      return;
+    }
     let flashTimer: ReturnType<typeof setTimeout> | null = null;
     const saveTimer = setTimeout(() => {
       try {
@@ -433,7 +479,7 @@ export default function PlannerPage() {
       clearTimeout(saveTimer);
       if (flashTimer) clearTimeout(flashTimer);
     };
-  }, [draft]);
+  }, [draft, isExternalCopy]);
 
   // ── Koordinater ─────────────────────────────────────────────
   const vw = w / zoom;
@@ -788,25 +834,36 @@ export default function PlannerPage() {
 
   const clearAll = () => {
     if (!obstacles.length) return;
-    if (!window.confirm("Rensa hela banan? Alla hinder tas bort.")) return;
+    setConfirmClearOpen(true);
+  };
+
+  const doClearAll = () => {
     setObstacles([]);
     setSelectedId(null);
+    toast.success("Banan rensad", { description: "Du kan ångra med Ctrl+Z." });
   };
 
   // ── Bibliotek ───────────────────────────────────────────────
-  const pickFromLibrary = (kind: "prebuilt" | "saved", payload: PrebuiltCourse | LibraryCourse) => {
-    const next = kind === "prebuilt" ? draftFromPrebuilt(payload as PrebuiltCourse) : draftFromLibraryCourse(payload as LibraryCourse);
-    if (!next) {
-      toast.error("Kunde inte läsa banan");
-      return;
-    }
-    if (obstacles.length > 0 && !window.confirm(`Ladda "${next.name}"? Nuvarande bana ersätts (autosparad lokalt först).`)) return;
+  const applyLibraryPick = (kind: "prebuilt" | "saved", payload: PrebuiltCourse | LibraryCourse, next: Draft) => {
     setDraft(next);
     setPast([]);
     setFuture([]);
     setSelectedId(null);
     resetCourseIdentity(kind === "saved" ? (payload as LibraryCourse).id : null);
     toast.success(`Laddade "${next.name}"`);
+  };
+
+  const pickFromLibrary = (kind: "prebuilt" | "saved", payload: PrebuiltCourse | LibraryCourse) => {
+    const next = kind === "prebuilt" ? draftFromPrebuilt(payload as PrebuiltCourse) : draftFromLibraryCourse(payload as LibraryCourse);
+    if (!next) {
+      toast.error("Kunde inte läsa banan");
+      return;
+    }
+    if (obstacles.length > 0) {
+      setPendingLibraryPick({ kind, payload, next });
+      return;
+    }
+    applyLibraryPick(kind, payload, next);
   };
 
   // ── Exporter ────────────────────────────────────────────────
@@ -965,67 +1022,6 @@ export default function PlannerPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // ── Molnlagring (för kommentarer & klubbdelning) ────────────
-  const saveToCloud = async (
-    opts?: { silent?: boolean; forceNew?: boolean; nameOverride?: string },
-  ): Promise<string | null> => {
-    if (!user) {
-      setAuthOpen(true);
-      return null;
-    }
-    setSavingCloud(true);
-    try {
-      const payload = {
-        user_id: user.id,
-        name: opts?.nameOverride ?? name,
-        description: "",
-        course_data: {
-          version: 2,
-          sport,
-          sizeClass: draft.sizeClass,
-          arenaWidthM: w,
-          arenaHeightM: h,
-          classTemplate: draft.classTemplate,
-          obstacles: numbered,
-          ruleSetId: draft.ruleSetId,
-        } as never,
-        canvas_width: Math.round(w * 20),
-        canvas_height: Math.round(h * 20),
-      };
-      let id = opts?.forceNew ? null : cloudId;
-      if (id) {
-        const { data, error } = await supabase
-          .from("saved_courses")
-          .update(payload)
-          .eq("id", id)
-          .eq("user_id", user.id)
-          .select("id")
-          .maybeSingle();
-        if (error) throw error;
-        if (!data) {
-          id = null;
-          setCloudId(null);
-          try { localStorage.removeItem(CLOUD_ID_KEY); } catch { /* ignorera */ }
-        }
-      }
-      if (!id) {
-        const { data, error } = await supabase.from("saved_courses").insert(payload).select("id").single();
-        if (error) throw error;
-        id = data.id as string;
-        setCloudId(id);
-        try { localStorage.setItem(CLOUD_ID_KEY, id); } catch { /* ignorera */ }
-      }
-      if (!opts?.silent) toast.success("Bana sparad i molnet");
-      return id;
-    } catch (err) {
-      console.error(err);
-      if (!opts?.silent) toast.error("Kunde inte spara i molnet");
-      return null;
-    } finally {
-      setSavingCloud(false);
-    }
-  };
-
   // ── Spara / öppna banor (meny) ──────────────────────────────
   const draftSnapshot = useMemo(() => JSON.stringify(draft), [draft]);
   const dirty = savedSnapshot !== draftSnapshot;
@@ -1042,24 +1038,14 @@ export default function PlannerPage() {
       data: nextDraft,
     });
     setLocalCourseId(id);
-    if (user) {
-      await saveToCloud({ silent: true, forceNew: opts?.asNew, nameOverride: targetName });
-    }
     setSavedSnapshot(JSON.stringify(nextDraft));
     setLastSavedAt(new Date().toISOString());
-    toast.success(
-      user ? `"${targetName}" sparad på ditt konto` : `"${targetName}" sparad i den här webbläsaren`,
-    );
+    toast.success(`"${targetName}" sparad i den här webbläsaren`);
   };
 
-  const handleSaveAs = () => {
-    const next = window.prompt("Namn på den nya banan", `${name} (kopia)`);
-    if (!next) return;
-    void persistCourse({ asNew: true, name: next });
-  };
+  const handleSaveAs = () => setSaveAsOpen(true);
 
-  const handleNewCourse = () => {
-    if (dirty && obstacles.length && !window.confirm("Skapa en ny tom bana? Osparade ändringar försvinner.")) return;
+  const doNewCourse = () => {
     setDraft(defaultDraft(sport));
     setPast([]);
     setFuture([]);
@@ -1072,20 +1058,35 @@ export default function PlannerPage() {
     resetView();
   };
 
-  const applyOpenedDraft = (next: Draft, ids: { local?: string | null; cloud?: string | null }) => {
-    if (dirty && obstacles.length && !window.confirm(`Öppna "${next.name}"? Osparade ändringar försvinner.`)) return;
+  const handleNewCourse = () => {
+    if (dirty && obstacles.length) {
+      setConfirmNewOpen(true);
+      return;
+    }
+    doNewCourse();
+  };
+
+  const doApplyOpenedDraft = (next: Draft, ids: { local?: string | null; social?: string | null }) => {
     setDraft(next);
     setPast([]);
     setFuture([]);
     setSelectedId(null);
     setPlacing(null);
     setLocalCourseId(ids.local ?? null);
-    resetCourseIdentity(ids.cloud ?? null);
+    resetCourseIdentity(ids.social ?? null);
     setSavedSnapshot(JSON.stringify(next));
     setLastSavedAt(new Date().toISOString());
     setOpenCourseOpen(false);
     resetView();
     toast.success(`Öppnade "${next.name}"`);
+  };
+
+  const applyOpenedDraft = (next: Draft, ids: { local?: string | null; social?: string | null }) => {
+    if (dirty && obstacles.length) {
+      setPendingOpenDraft({ next, ids });
+      return;
+    }
+    doApplyOpenedDraft(next, ids);
   };
 
   const openLocalCourse = (c: LocalCourse) => {
@@ -1097,13 +1098,15 @@ export default function PlannerPage() {
     applyOpenedDraft({ ...defaultDraft(data.sport === "hoopers" ? "hoopers" : "agility"), ...data }, { local: c.id });
   };
 
-  const openCloudCourse = (c: LibraryCourse) => {
+  // Öppna en bana från "Mina banor" (planner-social). Banan kopplas till
+  // sin community-rad så att nästa "Spara & dela" uppdaterar samma bana.
+  const openSavedSharedCourse = (c: LibraryCourse) => {
     const next = draftFromLibraryCourse(c);
     if (!next) {
       toast.error("Kunde inte läsa den sparade banan");
       return;
     }
-    applyOpenedDraft(next, { cloud: c.id });
+    applyOpenedDraft(next, { social: c.id });
   };
 
 
@@ -1128,27 +1131,19 @@ export default function PlannerPage() {
     setSaveShareOpen(true);
   };
 
-  const openComments = async () => {
-    const id = cloudId ?? (await saveToCloud({ silent: true }));
-    if (!id) return;
-    setCommentsOpen(true);
-  };
-  const openClubShare = async () => {
-    const id = cloudId ?? (await saveToCloud({ silent: true }));
-    if (!id) return;
-    setClubShareOpen(true);
-  };
-
   // ── Kommandopalett ──────────────────────────────────────────
+  const hasSelection = !!selected;
+  const canPlay = numbered.filter((o) => o.number != null).length >= 2;
+  const hasObstacles = obstacles.length > 0;
   const commands: PaletteCommand[] = useMemo(() => [
-    { id: "undo", label: "Ångra", group: "Redigera", shortcut: ["Ctrl", "Z"], icon: <Undo2 className="h-4 w-4" />, run: undo },
-    { id: "redo", label: "Gör om", group: "Redigera", shortcut: ["Ctrl", "Shift", "Z"], icon: <Redo2 className="h-4 w-4" />, run: redo },
-    { id: "duplicate", label: "Duplicera valt hinder", group: "Redigera", shortcut: ["Ctrl", "D"], run: duplicateSelected },
-    { id: "delete", label: "Ta bort valt hinder", group: "Redigera", shortcut: ["Delete"], icon: <Trash2 className="h-4 w-4" />, run: deleteSelected },
-    { id: "rotate-cw", label: "Rotera 45° medurs", group: "Redigera", shortcut: ["R"], icon: <RotateCw className="h-4 w-4" />, run: () => rotateBy(45) },
-    { id: "rotate-ccw", label: "Rotera 45° moturs", group: "Redigera", shortcut: ["Shift", "R"], icon: <RotateCcw className="h-4 w-4" />, run: () => rotateBy(-45) },
-    { id: "lock", label: "Lås/lås upp valt hinder", group: "Redigera", shortcut: ["L"], icon: <Lock className="h-4 w-4" />, run: toggleLockSelected },
-    { id: "clear", label: "Rensa banan", group: "Redigera", icon: <Eraser className="h-4 w-4" />, run: clearAll },
+    { id: "undo", label: "Ångra", group: "Redigera", shortcut: ["Ctrl", "Z"], icon: <Undo2 className="h-4 w-4" />, run: undo, disabled: past.length === 0, hint: past.length === 0 ? "Inget att ångra ännu" : undefined },
+    { id: "redo", label: "Gör om", group: "Redigera", shortcut: ["Ctrl", "Shift", "Z"], icon: <Redo2 className="h-4 w-4" />, run: redo, disabled: future.length === 0, hint: future.length === 0 ? "Inget att göra om" : undefined },
+    { id: "duplicate", label: "Duplicera valt hinder", group: "Redigera", shortcut: ["Ctrl", "D"], run: duplicateSelected, disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
+    { id: "delete", label: "Ta bort valt hinder", group: "Redigera", shortcut: ["Delete"], icon: <Trash2 className="h-4 w-4" />, run: deleteSelected, disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
+    { id: "rotate-cw", label: "Rotera 45° medurs", group: "Redigera", shortcut: ["R"], icon: <RotateCw className="h-4 w-4" />, run: () => rotateBy(45), disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
+    { id: "rotate-ccw", label: "Rotera 45° moturs", group: "Redigera", shortcut: ["Shift", "R"], icon: <RotateCcw className="h-4 w-4" />, run: () => rotateBy(-45), disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
+    { id: "lock", label: "Lås/lås upp valt hinder", group: "Redigera", shortcut: ["L"], icon: <Lock className="h-4 w-4" />, run: toggleLockSelected, disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
+    { id: "clear", label: "Rensa banan", group: "Redigera", icon: <Eraser className="h-4 w-4" />, run: clearAll, disabled: !hasObstacles, hint: hasObstacles ? undefined : "Banan är redan tom" },
     { id: "line", label: showLine ? "Dölj springlinje" : "Visa springlinje", group: "Visa", icon: <Spline className="h-4 w-4" />, run: () => setShowLine((v) => !v) },
     { id: "numbers", label: showNumbers ? "Dölj nummer" : "Visa nummer", group: "Visa", run: () => setShowNumbers((v) => !v) },
     { id: "grid", label: showGrid ? "Dölj rutnät" : "Visa rutnät", group: "Visa", icon: <Grid2x2 className="h-4 w-4" />, run: () => setShowGrid((v) => !v) },
@@ -1157,35 +1152,41 @@ export default function PlannerPage() {
     { id: "zoom-out", label: "Zooma ut", group: "Visa", shortcut: ["-"], icon: <ZoomOut className="h-4 w-4" />, run: () => zoomStep(-1) },
     { id: "zoom-reset", label: "Zoom 100%", group: "Visa", shortcut: ["0"], run: resetView },
     { id: "zoom-fit", label: "Passa banan i skärmen", group: "Visa", icon: <Maximize className="h-4 w-4" />, run: fitToScreen },
-    { id: "save-course", label: "Spara bana", group: "Bana", shortcut: ["Ctrl", "S"], run: () => void persistCourse() },
-    { id: "save-course-as", label: "Spara bana som…", group: "Bana", run: handleSaveAs },
+    { id: "save-course", label: "Spara bana", group: "Bana", shortcut: ["Ctrl", "S"], run: () => void persistCourse(), disabled: !hasObstacles, hint: hasObstacles ? undefined : "Lägg till hinder först" },
+    { id: "save-course-as", label: "Spara bana som…", group: "Bana", run: handleSaveAs, disabled: !hasObstacles, hint: hasObstacles ? undefined : "Lägg till hinder först" },
     { id: "open-course", label: "Öppna sparad bana", group: "Bana", shortcut: ["Ctrl", "O"], run: () => setOpenCourseOpen(true) },
     { id: "new-course", label: "Ny bana", group: "Bana", run: handleNewCourse },
     { id: "issues", label: "Visa regelkontroll", group: "Granska", icon: <ShieldCheck className="h-4 w-4" />, run: () => setIssuesOpen(true) },
     { id: "library", label: "Öppna banbibliotek", group: "Bana", icon: <BookOpen className="h-4 w-4" />, run: () => setLibraryOpen(true) },
-    { id: "share", label: "Dela bana via länk", group: "Bana", icon: <Share2 className="h-4 w-4" />, run: openShare },
-    { id: "cloud", label: "Spara i molnet", group: "Bana", icon: <Cloud className="h-4 w-4" />, run: () => void saveToCloud() },
+    { id: "share", label: "Dela bana via länk", group: "Bana", icon: <Share2 className="h-4 w-4" />, run: openShare, disabled: !hasObstacles, hint: hasObstacles ? undefined : "Lägg till hinder först" },
+    { id: "save-share", label: "Spara & dela publikt", group: "Bana", icon: <Share2 className="h-4 w-4" />, run: openSaveShare, disabled: !hasObstacles, hint: hasObstacles ? "Betyg & kommentarer via communityn" : "Lägg till hinder först" },
     { id: "feedback", label: "Skicka förslag till banbyggaren", group: "Bana", icon: <Lightbulb className="h-4 w-4" />, run: () => setFeedbackOpen(true) },
-    { id: "comments", label: "Kommentarer", group: "Bana", icon: <MessageSquare className="h-4 w-4" />, run: () => void openComments() },
-    { id: "club", label: "Dela till klubb", group: "Bana", icon: <Users className="h-4 w-4" />, run: () => void openClubShare() },
-    { id: "playback", label: "Spela upp hundens väg", group: "Visa", shortcut: ["Space"], icon: <Play className="h-4 w-4" />, run: () => setPlaybackActive((v) => !v) },
-    { id: "3d", label: "Öppna 3D-vy", group: "Visa", shortcut: ["3"], icon: <Box className="h-4 w-4" />, run: () => setView3D("view") },
-    { id: "3d-walk", label: "Gå banan i 3D", group: "Visa", icon: <Footprints className="h-4 w-4" />, run: () => setView3D("walk") },
-    { id: "png", label: "Exportera PNG-bild", group: "Exportera", icon: <Download className="h-4 w-4" />, run: exportPNG },
-    { id: "pdf-judge", label: "Exportera domar-PDF", group: "Exportera", run: onJudgePdf },
-    { id: "pdf-training", label: "Exportera tränings-PDF", group: "Exportera", run: onTrainingPdf },
-    { id: "pdf-build", label: "Exportera bygg-PDF", group: "Exportera", run: onBuildPdf },
-    { id: "pdf-startlist", label: "Exportera startlista", group: "Exportera", run: onStartlistPdf },
-    { id: "json", label: "Exportera JSON", group: "Exportera", run: onJson },
+    { id: "playback", label: "Spela upp hundens väg", group: "Visa", shortcut: ["Space"], icon: <Play className="h-4 w-4" />, run: () => setPlaybackActive((v) => !v), disabled: !canPlay, hint: canPlay ? undefined : "Numrera minst två hinder först" },
+    { id: "3d", label: "Öppna 3D-vy", group: "Visa", shortcut: ["3"], icon: <Box className="h-4 w-4" />, run: () => setView3D("view"), disabled: !hasObstacles, hint: hasObstacles ? undefined : "Lägg till hinder först" },
+    { id: "3d-walk", label: "Gå banan i 3D", group: "Visa", icon: <Footprints className="h-4 w-4" />, run: () => setView3D("walk"), disabled: !hasObstacles, hint: hasObstacles ? undefined : "Lägg till hinder först" },
+    { id: "png", label: "Exportera PNG-bild", group: "Exportera", icon: <Download className="h-4 w-4" />, run: exportPNG, disabled: !hasObstacles, hint: hasObstacles ? undefined : "Lägg till hinder först" },
+    { id: "pdf-judge", label: "Exportera domar-PDF", group: "Exportera", run: onJudgePdf, disabled: !hasObstacles },
+    { id: "pdf-training", label: "Exportera tränings-PDF", group: "Exportera", run: onTrainingPdf, disabled: !hasObstacles },
+    { id: "pdf-build", label: "Exportera bygg-PDF", group: "Exportera", run: onBuildPdf, disabled: !hasObstacles },
+    { id: "pdf-startlist", label: "Exportera startlista", group: "Exportera", run: onStartlistPdf, disabled: !hasObstacles },
+    { id: "json", label: "Exportera JSON", group: "Exportera", run: onJson, disabled: !hasObstacles },
     { id: "help", label: "Tangentbordsgenvägar", group: "Hjälp", shortcut: ["?"], run: () => setHelpOpen(true) },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ], [undo, redo, showLine, showNumbers, showGrid, showRulers, selected, obstacles, draft, numbered, cloudId, user, exporting]);
+  ], [undo, redo, showLine, showNumbers, showGrid, showRulers, selected, obstacles, draft, numbered, exporting, past.length, future.length, hasSelection, canPlay, hasObstacles, plannerProfile]);
 
   // ── Tangentbord ─────────────────────────────────────────────
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
-      const typing = t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable;
+      const tag = t.tagName;
+      // Fält där användaren skriver/väljer — inklusive <select> (annars
+      // öppnar t.ex. "3" 3D-vyn medan klassmallen ändras).
+      const typing =
+        tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t.isContentEditable;
+      // Interaktiva ytor (knappar, länkar, dialoger): Space/Enter ska
+      // aktivera det fokuserade elementet — aldrig planerarens genvägar.
+      const interactive =
+        !!t.closest?.("button, a, [role='dialog'], [role='listbox'], [role='menu'], [role='combobox'], [role='option']");
       const key = e.key.toLowerCase();
       if ((e.metaKey || e.ctrlKey) && key === "k") {
         e.preventDefault();
@@ -1198,7 +1199,6 @@ export default function PlannerPage() {
         setPlacing(null);
         setSelectedId(null);
       }
-      if ((e.key === "Delete" || e.key === "Backspace") && selectedId) deleteSelected();
       if ((e.metaKey || e.ctrlKey) && key === "z") {
         e.preventDefault();
         if (e.shiftKey) redo(); else undo();
@@ -1211,21 +1211,6 @@ export default function PlannerPage() {
         e.preventDefault();
         duplicateSelected();
       }
-      if (!e.metaKey && !e.ctrlKey && key === "r") {
-        if (e.shiftKey) rotateBy(-45); else rotateBy(45);
-      }
-      if (!e.metaKey && !e.ctrlKey && key === "l") toggleLockSelected();
-      if (!e.metaKey && !e.ctrlKey && e.key === "3") setView3D("view");
-      if (!e.metaKey && !e.ctrlKey && e.key === "?") setHelpOpen(true);
-      if (!e.metaKey && !e.ctrlKey && e.code === "Space") {
-        e.preventDefault();
-        if (numbered.filter((o) => o.number != null).length >= 2) {
-          setPlaybackActive((v) => !v);
-        }
-      }
-      if (!e.metaKey && !e.ctrlKey && (e.key === "+" || e.key === "=")) zoomStep(1);
-      if (!e.metaKey && !e.ctrlKey && e.key === "-") zoomStep(-1);
-      if (!e.metaKey && !e.ctrlKey && e.key === "0") resetView();
       if ((e.metaKey || e.ctrlKey) && key === "s") {
         e.preventDefault();
         void persistCourse();
@@ -1234,6 +1219,25 @@ export default function PlannerPage() {
         e.preventDefault();
         setOpenCourseOpen(true);
       }
+      // Alla enkeltangents-genvägar kräver att fokus inte ligger på en
+      // interaktiv kontroll — annars kapar vi t.ex. Space på en knapp.
+      if (e.metaKey || e.ctrlKey || interactive) return;
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedId) deleteSelected();
+      if (key === "r") {
+        if (e.shiftKey) rotateBy(-45); else rotateBy(45);
+      }
+      if (key === "l") toggleLockSelected();
+      if (e.key === "3") setView3D("view");
+      if (e.key === "?") setHelpOpen(true);
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (numbered.filter((o) => o.number != null).length >= 2) {
+          setPlaybackActive((v) => !v);
+        }
+      }
+      if (e.key === "+" || e.key === "=") zoomStep(1);
+      if (e.key === "-") zoomStep(-1);
+      if (e.key === "0") resetView();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -1242,16 +1246,19 @@ export default function PlannerPage() {
   // ── Render ──────────────────────────────────────────────────
 
   const ToolButton = ({
-    onClick, active, label, children, disabled,
+    onClick, active, label, children, disabled, toggle,
   }: {
     onClick: () => void; active?: boolean; label: string; children: React.ReactNode; disabled?: boolean;
+    /** true = knappen är en på/av-toggle och får aria-pressed. */
+    toggle?: boolean;
   }) => (
     <button
       onClick={onClick}
       disabled={disabled}
       title={label}
       aria-label={label}
-      className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border-2 transition-all disabled:cursor-not-allowed disabled:opacity-30 sm:h-11 sm:w-11 ${
+      aria-pressed={toggle ? !!active : undefined}
+      className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/40 disabled:cursor-not-allowed disabled:opacity-30 sm:h-11 sm:w-11 ${
         active ? "border-ink bg-tang text-ink shadow-hard-sm" : "border-ink/15 bg-paper text-ink/70 hover:border-ink hover:text-ink"
       }`}
     >
@@ -1271,6 +1278,11 @@ export default function PlannerPage() {
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-paper text-ink">
+      <Seo
+        title="Banplanerare — rita agility- och hoopersbanor gratis | AgilityManager"
+        description="Rita banor i meterskala direkt i webbläsaren. Hindereditor, live banlinje, PNG-export och delningslänkar för agility och hoopers — gratis, utan konto."
+        canonicalPath="/banplanerare"
+      />
       {/* ── Topprad ── */}
       <header className="z-40 shrink-0 border-b-2 border-ink bg-paper/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-[110rem] items-center gap-1.5 px-2 sm:gap-3 sm:px-5">
@@ -1302,7 +1314,6 @@ export default function PlannerPage() {
               onNew={handleNewCourse}
               dirty={dirty}
               lastSavedAt={lastSavedAt}
-              saving={savingCloud}
             />
             <span
               className={`hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors lg:inline-flex ${
@@ -1311,11 +1322,6 @@ export default function PlannerPage() {
             >
               {savedFlash ? "Sparad ✓" : "Autosparas lokalt"}
             </span>
-            {cloudId && (
-              <span className="hidden items-center gap-1 rounded-full bg-pine px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-paper md:inline-flex">
-                <CloudCheck className="h-3.5 w-3.5" /> Molnet
-              </span>
-            )}
             <div className="hidden sm:block">
               <ToolButton onClick={() => setLibraryOpen(true)} label="Banbibliotek — officiella banor och mallar">
                 <BookOpen className="h-5 w-5" />
@@ -1381,24 +1387,16 @@ export default function PlannerPage() {
                 onShareImage={exportPNG}
                 on3DView={() => setView3D("view")}
                 on3DWalk={() => setView3D("walk")}
-                isPremium={false}
-                showWatermark={showWatermark}
-                onWatermarkUpsell={() =>
-                  toast("Export utan vattenstämpel blir en betald funktion", {
-                    description:
-                      "Banbyggaren är gratis just nu och exporterna märks med agilitymanager.se. Vi återkommer med pris och släpp.",
-                  })
-                }
               />
             </div>
             <button
               onClick={openSaveShare}
-              disabled={!obstacles.length || savingCloud}
+              disabled={!obstacles.length}
               className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-forest px-3 text-sm font-bold text-paper disabled:opacity-40 sm:h-11 sm:px-5"
               title={obstacles.length ? "Spara banan på din profil och välj publik eller privat" : "Placera minst ett hinder först"}
               aria-label="Spara och dela banan på din profil"
             >
-              {savingCloud ? <Loader2 className="h-4 w-4 animate-spin" /> : <CloudCheck className="h-4 w-4" />}{" "}
+              <CloudCheck className="h-4 w-4" />{" "}
               <span className="hidden sm:inline">Spara & dela</span>
             </button>
             <button
@@ -1520,6 +1518,8 @@ export default function PlannerPage() {
                         key={def.type}
                         onClick={() => setPlacing(placing === def.type ? null : def.type)}
                         title={def.description}
+                        aria-pressed={placing === def.type}
+                        aria-label={`Placera ${def.label.toLowerCase()} — ${def.description}`}
                         className={`flex flex-col items-center gap-1.5 rounded-xl border-2 p-2 transition-all ${
                           placing === def.type ? "border-ink bg-tang shadow-hard-sm" : "border-ink/10 bg-white hover:border-ink"
                         }`}
@@ -1576,10 +1576,10 @@ export default function PlannerPage() {
                 <rect x="0" y="0" width={w} height={h} fill="#FCFAF4" />
                 {showGrid && (
                   <g>
-                    {Array.from({ length: Math.floor(w) + 1 }).map((_, i) => (
+                    {gridTicks(w).map((i) => (
                       <line key={`v${i}`} x1={i} y1="0" x2={i} y2={h} stroke="#161812" strokeOpacity={i % 5 === 0 ? 0.12 : 0.05} strokeWidth={(i % 5 === 0 ? 0.05 : 0.025) / Math.sqrt(zoom)} />
                     ))}
-                    {Array.from({ length: Math.floor(h) + 1 }).map((_, i) => (
+                    {gridTicks(h).map((i) => (
                       <line key={`h${i}`} x1="0" y1={i} x2={w} y2={i} stroke="#161812" strokeOpacity={i % 5 === 0 ? 0.12 : 0.05} strokeWidth={(i % 5 === 0 ? 0.05 : 0.025) / Math.sqrt(zoom)} />
                     ))}
                   </g>
@@ -1664,6 +1664,14 @@ export default function PlannerPage() {
             {/* Regelkontroll-knapp (flytande) */}
             <button
               onClick={() => setIssuesOpen((v) => !v)}
+              aria-expanded={issuesOpen}
+              aria-label={
+                issueCounts.error > 0
+                  ? `Regelkontroll — ${issueCounts.error} fel, visa lista`
+                  : issueCounts.warning > 0
+                    ? `Regelkontroll — ${issueCounts.warning} varningar, visa lista`
+                    : "Regelkontroll — inga anmärkningar"
+              }
               className={`absolute right-3 ${placing ? "top-[4.6rem] sm:top-[2.2rem]" : showRulers ? "top-[2.2rem]" : "top-3"} z-30 inline-flex items-center gap-2 rounded-full border-2 px-3.5 py-2 text-xs font-bold shadow-hard-sm transition-all ${
                 issueCounts.error > 0
                   ? "border-ink bg-ember text-paper"
@@ -1810,8 +1818,18 @@ export default function PlannerPage() {
               </div>
             )}
 
+            {/* Hämtar delad bana */}
+            {loadingShared && (
+              <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center p-4" role="status">
+                <div className="flex items-center gap-3 rounded-2xl border-2 border-ink bg-paper px-5 py-4 shadow-hard">
+                  <Loader2 className="h-5 w-5 animate-spin text-forest" aria-hidden="true" />
+                  <span className="text-sm font-bold">Hämtar delad bana…</span>
+                </div>
+              </div>
+            )}
+
             {/* Tom bana — kom igång */}
-            {obstacles.length === 0 && !placing && (
+            {obstacles.length === 0 && !placing && !loadingShared && (
               <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center p-4">
                 <div className="max-w-md rounded-3xl border-2 border-dashed border-ink/25 bg-paper/90 p-5 text-center shadow-hard-sm backdrop-blur sm:p-6">
                   <MousePointerClick className="mx-auto mb-3 h-8 w-8 text-forest" />
@@ -1879,23 +1897,31 @@ export default function PlannerPage() {
 
           {/* ── Verktygsrad (desktop) ── */}
           <div className="hidden items-center justify-center gap-1.5 border-t-2 border-ink/10 bg-paper px-4 py-2.5 sm:flex">
-            <ToolButton onClick={undo} label="Ångra (Ctrl+Z)" disabled={!past.length}>
+            <ToolButton
+              onClick={undo}
+              label={past.length ? `Ångra (Ctrl+Z) — ${past.length} steg att ångra` : "Ångra (Ctrl+Z) — inget att ångra ännu"}
+              disabled={!past.length}
+            >
               <Undo2 className="h-5 w-5" />
             </ToolButton>
-            <ToolButton onClick={redo} label="Gör om (Ctrl+Shift+Z)" disabled={!future.length}>
+            <ToolButton
+              onClick={redo}
+              label={future.length ? `Gör om (Ctrl+Shift+Z) — ${future.length} steg att göra om` : "Gör om (Ctrl+Shift+Z) — inget att göra om"}
+              disabled={!future.length}
+            >
               <Redo2 className="h-5 w-5" />
             </ToolButton>
             <div className="mx-1.5 h-8 w-px bg-ink/15" />
-            <ToolButton onClick={() => setShowLine((v) => !v)} active={showLine} label="Springlinje">
+            <ToolButton onClick={() => setShowLine((v) => !v)} active={showLine} toggle label={showLine ? "Dölj springlinje" : "Visa springlinje"}>
               <Spline className="h-5 w-5" />
             </ToolButton>
-            <ToolButton onClick={() => setShowNumbers((v) => !v)} active={showNumbers} label="Nummer">
+            <ToolButton onClick={() => setShowNumbers((v) => !v)} active={showNumbers} toggle label={showNumbers ? "Dölj nummer" : "Visa nummer"}>
               <span className="text-sm font-black">#</span>
             </ToolButton>
-            <ToolButton onClick={() => setShowGrid((v) => !v)} active={showGrid} label="Rutnät">
+            <ToolButton onClick={() => setShowGrid((v) => !v)} active={showGrid} toggle label={showGrid ? "Dölj rutnät" : "Visa rutnät"}>
               <Grid2x2 className="h-5 w-5" />
             </ToolButton>
-            <ToolButton onClick={() => setShowRulers((v) => !v)} active={showRulers} label="Linjaler">
+            <ToolButton onClick={() => setShowRulers((v) => !v)} active={showRulers} toggle label={showRulers ? "Dölj linjaler" : "Visa linjaler"}>
               <Ruler className="h-5 w-5" />
             </ToolButton>
             <div className="mx-1.5 h-8 w-px bg-ink/15" />
@@ -1974,7 +2000,7 @@ export default function PlannerPage() {
                 onClick={undo}
                 disabled={!past.length}
                 className="grid h-14 w-14 shrink-0 place-items-center rounded-xl border-2 border-ink/15 bg-white disabled:opacity-30"
-                aria-label="Ångra"
+                aria-label={past.length ? "Ångra" : "Ångra — inget att ångra ännu"}
               >
                 <Undo2 className="h-5 w-5" />
               </button>
@@ -1982,7 +2008,7 @@ export default function PlannerPage() {
                 onClick={redo}
                 disabled={!future.length}
                 className="grid h-14 w-14 shrink-0 place-items-center rounded-xl border-2 border-ink/15 bg-white disabled:opacity-30"
-                aria-label="Gör om"
+                aria-label={future.length ? "Gör om" : "Gör om — inget att göra om"}
               >
                 <Redo2 className="h-5 w-5" />
               </button>
@@ -1990,6 +2016,8 @@ export default function PlannerPage() {
                 <button
                   key={def.type}
                   onClick={() => setPlacing(placing === def.type ? null : def.type)}
+                  aria-pressed={placing === def.type}
+                  aria-label={`Placera ${def.label.toLowerCase()}`}
                   className={`flex w-16 shrink-0 flex-col items-center gap-1 rounded-xl border-2 p-1.5 ${
                     placing === def.type ? "border-ink bg-tang" : "border-ink/10 bg-white"
                   }`}
@@ -2013,7 +2041,7 @@ export default function PlannerPage() {
         </main>
       </div>
 
-      {/* ── Dela-dialog (e-postgrinden) ── */}
+      {/* ── Dela-dialog (direktlänk — ingen e-postgrind) ── */}
       <Dialog open={shareOpen} onOpenChange={setShareOpen}>
         <DialogContent className="border-2 border-ink bg-paper sm:max-w-lg">
           <DialogHeader>
@@ -2022,79 +2050,96 @@ export default function PlannerPage() {
               Hela banan kodas i länken — mottagaren behöver varken konto eller app.
             </DialogDescription>
           </DialogHeader>
-          {isSubscribed() ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <input
-                  readOnly
-                  value={shareUrl}
-                  onFocus={(e) => e.target.select()}
-                  className="h-12 min-w-0 flex-1 rounded-xl border-2 border-ink/20 bg-white px-3 font-mono text-xs outline-none"
-                />
-                <button
-                  onClick={copyShare}
-                  className="pressable shadow-hard-sm inline-flex h-12 shrink-0 items-center gap-2 rounded-xl border-2 border-ink bg-tang px-4 text-sm font-bold"
-                >
-                  {copied ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
-                  {copied ? "Kopierad!" : "Kopiera"}
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <button
-                  onClick={() => void openComments()}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border-2 border-ink/15 bg-white text-sm font-bold transition-colors hover:border-ink"
-                >
-                  <MessageSquare className="h-4 w-4" /> Kommentarer
-                </button>
-                <button
-                  onClick={() => void openClubShare()}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border-2 border-ink/15 bg-white text-sm font-bold transition-colors hover:border-ink"
-                >
-                  <Users className="h-4 w-4" /> Dela till klubb
-                </button>
-              </div>
-              {!user && (
-                <p className="text-xs leading-relaxed text-ink/50">
-                  Kommentarer och klubbdelning kräver ett gratis konto — banan sparas då i molnet.
-                </p>
-              )}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <input
+                readOnly
+                value={shareUrl}
+                onFocus={(e) => e.target.select()}
+                aria-label="Delningslänk"
+                className="h-12 min-w-0 flex-1 rounded-xl border-2 border-ink/20 bg-white px-3 font-mono text-xs outline-none"
+              />
+              <button
+                onClick={copyShare}
+                className="pressable shadow-hard-sm inline-flex h-12 shrink-0 items-center gap-2 rounded-xl border-2 border-ink bg-tang px-4 text-sm font-bold"
+              >
+                {copied ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
+                {copied ? "Kopierad!" : "Kopiera"}
+              </button>
             </div>
-          ) : (
-            <div className="rounded-2xl border-2 border-ink/10 bg-white p-4">
-              <p className="mb-3 text-sm leading-relaxed text-ink/70">
-                För att dela behöver vi din e-post — det är vår enda "valuta". Du får nyheter,
-                nya banor och tävlingstips. Inga pengar, inget krångel.
-              </p>
-              <EmailCapture compact onDone={() => forceShareRefresh((x) => x + 1)} />
-            </div>
-          )}
+            <button
+              onClick={() => { setShareOpen(false); openSaveShare(); }}
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-ink/15 bg-white text-sm font-bold transition-colors hover:border-ink"
+            >
+              <Share2 className="h-4 w-4" /> Dela publikt till communityn (betyg & kommentarer)
+            </button>
+            <p className="text-xs leading-relaxed text-ink/50">
+              Länken fungerar direkt. Delar du publikt kan andra hitta banan på
+              sidan Delade banor, betygsätta och bygga vidare på den.
+            </p>
+          </div>
         </DialogContent>
       </Dialog>
 
-      {/* ── Bibliotek, kommentarer, klubbdelning, auth ── */}
+      {/* ── Bibliotek och sparade banor ── */}
       <CourseLibraryDialog open={libraryOpen} onOpenChange={setLibraryOpen} onPick={pickFromLibrary} />
       <OpenCourseDialog
         open={openCourseOpen}
         onOpenChange={setOpenCourseOpen}
-        userId={user?.id ?? null}
         onPickLocal={openLocalCourse}
-        onPickCloud={openCloudCourse}
+        onPickShared={openSavedSharedCourse}
       />
 
-      <Sheet open={commentsOpen} onOpenChange={setCommentsOpen}>
-        <SheetContent className="w-full border-l-2 border-ink bg-paper sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle className="font-display text-2xl uppercase tracking-wide">Kommentarer</SheetTitle>
-          </SheetHeader>
-          <div className="mt-4">
-            <CourseCommentsPanel courseId={cloudId} enabled={!!cloudId} />
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      <ClubShareDialog open={clubShareOpen} onOpenChange={setClubShareOpen} courseId={cloudId} courseName={name} />
-
-      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
+      {/* ── Bekräftelser och namngivning (ersätter window.confirm/prompt) ── */}
+      <ConfirmDialog
+        open={confirmClearOpen}
+        onOpenChange={setConfirmClearOpen}
+        title="Rensa hela banan?"
+        description={`Alla ${obstacles.length} hinder tas bort. Du kan ångra direkt efteråt med Ctrl+Z.`}
+        confirmLabel="Rensa banan"
+        destructive
+        onConfirm={doClearAll}
+      />
+      <ConfirmDialog
+        open={confirmNewOpen}
+        onOpenChange={setConfirmNewOpen}
+        title="Skapa ny tom bana?"
+        description="Du har osparade ändringar som försvinner. Välj Spara i bana-menyn först om du vill behålla dem."
+        confirmLabel="Ny bana"
+        destructive
+        onConfirm={doNewCourse}
+      />
+      <ConfirmDialog
+        open={pendingOpenDraft !== null}
+        onOpenChange={(v) => { if (!v) setPendingOpenDraft(null); }}
+        title={`Öppna "${pendingOpenDraft?.next.name ?? ""}"?`}
+        description="Du har osparade ändringar i den nuvarande banan som försvinner."
+        confirmLabel="Öppna banan"
+        onConfirm={() => {
+          if (pendingOpenDraft) doApplyOpenedDraft(pendingOpenDraft.next, pendingOpenDraft.ids);
+          setPendingOpenDraft(null);
+        }}
+      />
+      <ConfirmDialog
+        open={pendingLibraryPick !== null}
+        onOpenChange={(v) => { if (!v) setPendingLibraryPick(null); }}
+        title={`Ladda "${pendingLibraryPick?.next.name ?? ""}"?`}
+        description="Nuvarande bana ersätts (den är autosparad lokalt i webbläsaren)."
+        confirmLabel="Ladda banan"
+        onConfirm={() => {
+          if (pendingLibraryPick) applyLibraryPick(pendingLibraryPick.kind, pendingLibraryPick.payload, pendingLibraryPick.next);
+          setPendingLibraryPick(null);
+        }}
+      />
+      <NameCourseDialog
+        open={saveAsOpen}
+        onOpenChange={setSaveAsOpen}
+        title="Spara som ny bana"
+        description="Den nuvarande banan ligger kvar orörd — du skapar en kopia med nytt namn."
+        initialName={`${name} (kopia)`}
+        confirmLabel="Spara kopia"
+        onSubmit={(newName) => void persistCourse({ asNew: true, name: newName })}
+      />
 
       <PlannerProfileDialog
         open={profileOpen}

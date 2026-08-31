@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Dynamiska delade banor är noindex per sida (tunt/dynamiskt innehåll) —
+# blockeras inte här så att crawlern kan se noindex-taggen.
+
+Sitemap: https://agilitymanager.se/sitemap.xml

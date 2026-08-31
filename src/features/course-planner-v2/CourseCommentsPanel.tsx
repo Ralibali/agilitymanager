@@ -2,10 +2,10 @@
  * Sprint 5 — Kommentarer på en bana.
  * Funkar både inloggad (där man kan posta) och anonymt (read-only via publik länk).
  */
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MessageSquare, Send, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { fetchComments, addComment, deleteComment, type CourseComment } from "@/features/course-planner-v2/library";
 
 interface Props {
@@ -20,16 +20,18 @@ export default function CourseCommentsPanel({ courseId, enabled }: Props) {
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState("");
   const [posting, setPosting] = useState(false);
+  /** Tvåstegsbekräftelse för radering — säkrare än window.confirm. */
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     if (!courseId) return;
     setLoading(true);
     try { setItems(await fetchComments(courseId)); }
     catch (e) { console.error(e); }
     finally { setLoading(false); }
-  }
+  }, [courseId]);
 
-  useEffect(() => { if (enabled) refresh();   }, [courseId, enabled]);
+  useEffect(() => { if (enabled) void Promise.resolve().then(refresh); }, [enabled, refresh]);
 
   async function submit() {
     if (!user || !courseId) { toast.error("Logga in för att kommentera"); return; }
@@ -39,13 +41,12 @@ export default function CourseCommentsPanel({ courseId, enabled }: Props) {
       await addComment(courseId, user.id, text);
       setText("");
       await refresh();
-    } catch (e: any) {
-      console.error(e); toast.error(e?.message ?? "Kunde inte spara kommentar");
+    } catch (e: unknown) {
+      console.error(e); toast.error(e instanceof Error ? e.message : "Kunde inte spara kommentar");
     } finally { setPosting(false); }
   }
 
   async function remove(id: string) {
-    if (!confirm("Ta bort kommentaren?")) return;
     try { await deleteComment(id); setItems((xs) => xs.filter((x) => x.id !== id)); } catch { toast.error("Kunde inte ta bort"); }
   }
 
@@ -59,9 +60,12 @@ export default function CourseCommentsPanel({ courseId, enabled }: Props) {
         <div className="flex items-start gap-1.5 mb-3">
           <textarea value={text} onChange={(e) => setText(e.target.value)} rows={2} maxLength={2000}
             placeholder="Skriv en kommentar..."
+            aria-label="Skriv en kommentar"
             className="flex-1 text-[12px] rounded-lg border border-border px-2 py-1.5 outline-none focus:ring-2 focus:ring-[#1a6b3c]/25 resize-none" />
           <button onClick={submit} disabled={posting || !text.trim()}
-            className="h-8 w-8 grid place-items-center rounded-lg bg-[#1a6b3c] text-white disabled:opacity-40">
+            aria-label="Skicka kommentar"
+            title="Skicka kommentar"
+            className="h-8 w-8 grid place-items-center rounded-lg bg-[#1a6b3c] text-white disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a6b3c]/40">
             {posting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
           </button>
         </div>
@@ -75,7 +79,26 @@ export default function CourseCommentsPanel({ courseId, enabled }: Props) {
                 <span className="font-semibold text-neutral-800 truncate">{c.author_name ?? "Okänd"}</span>
                 <span className="text-[10px] text-neutral-400">{new Date(c.created_at).toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" })}</span>
                 {user?.id === c.user_id && (
-                  <button onClick={() => remove(c.id)} className="text-neutral-400 hover:text-red-600"><Trash2 size={11} /></button>
+                  confirmDeleteId === c.id ? (
+                    <span className="inline-flex items-center gap-1">
+                      <button
+                        onClick={() => { setConfirmDeleteId(null); void remove(c.id); }}
+                        className="rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+                      >Ta bort?</button>
+                      <button
+                        onClick={() => setConfirmDeleteId(null)}
+                        aria-label="Avbryt radering"
+                        className="rounded px-1.5 py-0.5 text-[10px] font-semibold text-neutral-500 hover:text-neutral-800"
+                      >Behåll</button>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmDeleteId(c.id)}
+                      aria-label="Ta bort kommentar"
+                      title="Ta bort kommentar"
+                      className="text-neutral-400 hover:text-red-600"
+                    ><Trash2 size={11} /></button>
+                  )
                 )}
               </div>
               <p className="text-neutral-700 whitespace-pre-wrap break-words">{c.content}</p>

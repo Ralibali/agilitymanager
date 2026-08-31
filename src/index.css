@@ -40,6 +40,26 @@
     background: #ff6900;
     color: #161812;
   }
+
+  /* Globalt fokus-fallback: alla interaktiva element som saknar egen
+     focus-visible-styling (t.ex. custom-knappar i 3D/överlägg) får en tydlig
+     ring med tillräcklig kontrast på både ljusa och mörka ytor. */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Respektera reduced motion: ingen smooth-scroll och inga reveal-animationer. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
 }
 
 @layer utilities {

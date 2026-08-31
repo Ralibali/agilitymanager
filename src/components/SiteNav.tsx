@@ -4,13 +4,14 @@ import { Menu, X, ArrowRight } from "lucide-react";
 import { Paw } from "./Marquee";
 
 // AgilityManager har två first-class produktspår:
-// 1) tävlingskalender/matchning och 2) banplanerare/bibliotek.
-export const NAV_LINKS = [
+// 1) tävlingskalender/matchning och 2) banplanerare/bibliotek — plus kunskapsbanken.
+const NAV_LINKS = [
   { to: "/tavlingar", label: "Tävlingar" },
   { to: "/banplanerare", label: "Banplanerare" },
   { to: "/banor", label: "Banbibliotek" },
   { to: "/delade-banor", label: "Delade banor" },
   { to: "/tavlingar/favoriter", label: "Favoriter" },
+  { to: "/blogg", label: "Blogg" },
   { to: "/funktioner", label: "Funktioner" },
   { to: "/priser", label: "Gratis just nu" },
 ];
@@ -33,7 +34,13 @@ export function SiteNav() {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
-  useEffect(() => setOpen(false), [location.pathname]);
+  // Stäng mobilmenyn vid navigation — state-justering under render
+  // (undviker setState i effect, se react.dev/learn/you-might-not-need-an-effect)
+  const [lastPath, setLastPath] = useState(location.pathname);
+  if (lastPath !== location.pathname) {
+    setLastPath(location.pathname);
+    setOpen(false);
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);

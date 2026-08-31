@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { ArrowLeft, Loader2, MessageSquare, Star, UserRound } from "lucide-react";
 import { toast } from "sonner";
+import { Seo } from "@/components/Seo";
 import { supabase } from "@/integrations/supabase/client";
+import { isPubliclyVisible } from "@/features/planner-social/courseVisibility";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import CoursePreviewSvg, { type PreviewCourseData } from "@/features/planner-social/CoursePreviewSvg";
@@ -16,6 +18,7 @@ interface CourseRow {
   author_name: string;
   created_at: string;
   course_data: PreviewCourseData;
+  is_public?: boolean;
 }
 
 interface CommentRow {
@@ -32,6 +35,7 @@ export default function PublicCoursePage() {
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [ratings, setRatings] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [body, setBody] = useState("");
   const [posting, setPosting] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -39,15 +43,28 @@ export default function PublicCoursePage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: c }, { data: cm }, { data: rt }] = await Promise.all([
-      supabase.from("planner_courses").select("id, name, sport, author_name, created_at, course_data").eq("id", id).maybeSingle(),
-      supabase.from("planner_course_comments").select("id, author_name, body, created_at").eq("course_id", id).order("created_at", { ascending: false }),
-      supabase.from("planner_course_ratings").select("rating").eq("course_id", id),
-    ]);
-    setCourse((c as unknown as CourseRow) ?? null);
-    setComments((cm as CommentRow[]) ?? []);
-    setRatings(((rt as { rating: number }[]) ?? []).map((r) => r.rating));
-    setLoading(false);
+    setLoadError(false);
+    try {
+      const [{ data: c }, { data: cm }, { data: rt }] = await Promise.all([
+        // Bara explicit publika banor — RLS spärrar redan, men dubbelkolla här
+        // så att privata banor aldrig exponeras även om en policy ändras.
+        supabase.from("planner_courses").select("id, name, sport, author_name, created_at, course_data, is_public").eq("id", id).eq("is_public", true).maybeSingle(),
+        // Bounded reads: utan limit kan en bana med extremt många rader
+        // hämta obegränsat mycket data till varje besökare.
+        supabase.from("planner_course_comments").select("id, author_name, body, created_at").eq("course_id", id).order("created_at", { ascending: false }).limit(100),
+        supabase.from("planner_course_ratings").select("rating").eq("course_id", id).limit(1000),
+      ]);
+      const row = (c as unknown as CourseRow) ?? null;
+      setCourse(isPubliclyVisible(row) ? row : null);
+      setComments((cm as CommentRow[]) ?? []);
+      setRatings(((rt as { rating: number }[]) ?? []).map((r) => r.rating));
+    } catch {
+      // Nätverksfel/okonfigurerad backend — visa felstate i stället för
+      // en evig spinner.
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
   useEffect(() => { void load(); }, [load]);
@@ -91,14 +108,43 @@ export default function PublicCoursePage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
+        <Seo
+          title="Laddar bana | AgilityManager"
+          description="En delad bana laddas i AgilityManager."
+          noIndex
+        />
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
-  if (!course) {
+  if (loadError) {
     return (
       <div className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center gap-4 p-6 text-center">
+        <Seo
+          title="Kunde inte ladda banan | AgilityManager"
+          description="Ett nätverksfel uppstod vid hämtning av banan."
+          noIndex
+        />
+        <h1 className="text-xl font-semibold">Kunde inte ladda banan</h1>
+        <p className="text-sm text-muted-foreground">Kontrollera din uppkoppling och försök igen.</p>
+        <div className="flex gap-2">
+          <Button onClick={() => void load()}>Försök igen</Button>
+          <Button asChild variant="outline"><Link to="/banplanerare">Till banplaneraren</Link></Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!course) {
+    // Privat/borttagen bana: mjuk 404 — ska inte indexeras av sökmotorer.
+    return (
+      <div className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center gap-4 p-6 text-center">
+        <Seo
+          title="Banan hittades inte | AgilityManager"
+          description="Banan kan ha tagits bort eller vara privat."
+          noIndex
+        />
         <h1 className="text-xl font-semibold">Banan hittades inte</h1>
         <p className="text-sm text-muted-foreground">Den kan ha tagits bort eller vara privat.</p>
         <Button asChild><Link to="/banplanerare">Till banplaneraren</Link></Button>
@@ -108,6 +154,12 @@ export default function PublicCoursePage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Dynamiskt användarinnehåll — undvik massindexering av tunna banskisser */}
+      <Seo
+        title={`${course.name} — delad bana | AgilityManager`}
+        description={`${course.sport === "hoopers" ? "Hoopers" : "Agility"}bana delad av ${course.author_name}. Öppna och bygg vidare i banplaneraren.`}
+        noIndex
+      />
       <header className="border-b border-border px-4 py-3">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">
           <Link to="/banplanerare" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
@@ -132,6 +184,18 @@ export default function PublicCoursePage() {
         <section className="overflow-hidden rounded-2xl border border-border bg-card p-3">
           <CoursePreviewSvg data={course.course_data ?? {}} label={`Banskiss: ${course.name}`} className="h-[55vh] w-full text-foreground" />
         </section>
+
+        {/* Löftet i delningslänken: öppna exakt den här banan och bygg vidare */}
+        <div className="flex flex-wrap gap-2">
+          <Button asChild>
+            <Link to={`/banplanerare?delad=${encodeURIComponent(course.id)}`}>
+              Öppna i planeraren
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/banplanerare">Rita en egen bana från grunden</Link>
+          </Button>
+        </div>
 
         <section className="rounded-2xl border border-border bg-card p-4">
           <h2 className="text-sm font-semibold">Betyg</h2>

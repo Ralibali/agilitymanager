@@ -6,9 +6,26 @@ import { brokeredPreviewStorage } from './previewAuthStorage';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+if (typeof SUPABASE_PUBLISHABLE_KEY === 'string' && SUPABASE_PUBLISHABLE_KEY.startsWith('sb_secret_')) {
+  throw new Error('VITE_SUPABASE_PUBLISHABLE_KEY must be a publishable client key, not a secret key.');
+}
+
+const hasSupabaseConfig =
+  typeof SUPABASE_URL === 'string' &&
+  SUPABASE_URL.length > 0 &&
+  typeof SUPABASE_PUBLISHABLE_KEY === 'string' &&
+  SUPABASE_PUBLISHABLE_KEY.length > 0;
+
+export const isSupabaseConfigured = hasSupabaseConfig;
+
+// The blog and local-first planner must render even when cloud credentials are
+// absent (local preview, offline QA, forked deployments). Cloud calls still
+// fail explicitly instead of silently talking to an unintended backend.
+const SAFE_SUPABASE_URL: string = hasSupabaseConfig ? SUPABASE_URL! : 'https://unconfigured.supabase.co';
+const SAFE_SUPABASE_KEY: string = hasSupabaseConfig ? SUPABASE_PUBLISHABLE_KEY! : 'sb_publishable_unconfigured';
 
 function isNewSupabaseApiKey(value: string): boolean {
-  return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
+  return value.startsWith('sb_publishable_');
 }
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
@@ -34,9 +51,11 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+export const supabase = createClient<Database>(SAFE_SUPABASE_URL, SAFE_SUPABASE_KEY, {
   global: {
-    fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
+    fetch: hasSupabaseConfig
+      ? createSupabaseFetch(SAFE_SUPABASE_KEY)
+      : () => Promise.reject(new Error('Supabase is not configured for this deployment.')),
   },
   auth: {
     storage: brokeredPreviewStorage(),

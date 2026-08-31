@@ -4,7 +4,6 @@ import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
-import { EmailCapture } from "@/components/EmailCapture";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
@@ -135,15 +134,17 @@ export default function GratisPage() {
         <Reveal delay={150}>
           <div className="rounded-3xl border-2 border-ink bg-ink p-8 text-paper shadow-hard lg:sticky lg:top-40">
             <span className="inline-flex items-center gap-2 rounded-full bg-tang px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-ink">
-              <PenLine className="h-3.5 w-3.5" /> Nyhetsbrevet
+              <PenLine className="h-3.5 w-3.5" /> Kunskapsbanken
             </span>
-            <div className="mt-5">
-              <EmailCapture variant="dark" />
-            </div>
-            <p className="mt-5 text-xs leading-relaxed text-paper/40">
-              Vi delar aldrig din adress med tredje part och du kan avregistrera dig
-              med ett klick i varje mejl.
+            <h3 className="mt-5 font-display text-3xl leading-tight">Lär dig bandesign på riktigt</h3>
+            <p className="mt-4 text-sm leading-relaxed text-paper/70">
+              Fördjupande guider om bandesign, regler och träningsupplägg —
+              gratis att läsa, utan konto.
             </p>
+            <Link to="/blogg" className="group mt-6 inline-flex items-center gap-2 rounded-xl bg-tang px-5 py-3 text-sm font-extrabold text-ink transition-transform hover:-translate-y-0.5">
+              Utforska kunskapsbanken
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
           </div>
         </Reveal>
       </section>

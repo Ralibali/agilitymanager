@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { buildDogPath } from "./dogPath";
 import { analyzeCourse } from "./courseAnalysis";
 import { getObstacleDefV2 } from "./config";
+import { clampArenaM, gridTicks } from "@/lib/courseSafety";
 import type { CourseBankEntry } from "./courseBank";
 import type { ObstacleLite } from "./validation";
 
@@ -43,8 +44,10 @@ export default function CourseLibraryPreview({ course }: Props) {
     }));
     return analyzeCourse(obstacles);
   }, [course]);
-  const gridX = Array.from({ length: Math.floor(course.arenaWidthM / 5) + 1 }, (_, i) => i * 5);
-  const gridY = Array.from({ length: Math.floor(course.arenaHeightM / 5) + 1 }, (_, i) => i * 5);
+  const arenaWidthM = clampArenaM(course.arenaWidthM, 30);
+  const arenaHeightM = clampArenaM(course.arenaHeightM, 40);
+  const gridX = gridTicks(arenaWidthM, 5);
+  const gridY = gridTicks(arenaHeightM, 5);
   const routePoints = path.points.map((point) => `${point.x},${point.y}`).join(" ");
 
   return (
@@ -58,15 +61,15 @@ export default function CourseLibraryPreview({ course }: Props) {
         </span>
       </div>
       <svg
-        viewBox={`0 0 ${course.arenaWidthM} ${course.arenaHeightM}`}
+        viewBox={`0 0 ${arenaWidthM} ${arenaHeightM}`}
         className="h-40 w-full"
         role="img"
         aria-label={`Miniatyr av ${course.label}. ${analysis.difficultyLabel} svårighet ${analysis.difficultyScore} av 100, flow ${analysis.flowScore} av 100.`}
         preserveAspectRatio="xMidYMid meet"
       >
         <g className="text-border" opacity={0.7}>
-          {gridX.map((x) => <line key={`gx-${x}`} x1={x} y1={0} x2={x} y2={course.arenaHeightM} stroke="currentColor" strokeWidth={0.08} />)}
-          {gridY.map((y) => <line key={`gy-${y}`} x1={0} y1={y} x2={course.arenaWidthM} y2={y} stroke="currentColor" strokeWidth={0.08} />)}
+          {gridX.map((x) => <line key={`gx-${x}`} x1={x} y1={0} x2={x} y2={arenaHeightM} stroke="currentColor" strokeWidth={0.08} />)}
+          {gridY.map((y) => <line key={`gy-${y}`} x1={0} y1={y} x2={arenaWidthM} y2={y} stroke="currentColor" strokeWidth={0.08} />)}
         </g>
 
         {routePoints && (

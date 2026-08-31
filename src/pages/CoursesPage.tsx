@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { CourseMap } from "@/components/CourseMap";
+import { Seo } from "@/components/Seo";
 import { courseFromBankEntry, type Sport } from "@/lib/course";
 import { COURSE_BANK } from "@/features/course-planner-v2/courseBank";
 import { getClassTemplate } from "@/features/course-planner-v2/config";
@@ -37,11 +38,16 @@ export default function CoursesPage() {
 
   return (
     <div className="min-h-screen bg-paper text-ink">
+      <Seo
+        title="Banbibliotek — färdiga banor för agility och hoopers | AgilityManager"
+        description="Nivåmärkta banor för agility och hoopers, inspirerade av svenska klassnivåer. Öppna direkt i banplaneraren, justera och exportera — gratis utan konto."
+        canonicalPath="/banor"
+      />
       <SiteNav />
       <PageHero kicker="Banbibliotek" title="Officiellt inspirerade banor — granskade mot regelverket.">
-        Tävlingsbanor och nollklasskurser byggda efter SAgiK/SKK och Svenska
-        Hooperssällskapets regler. Öppna direkt i planeraren, justera och exportera.
-        Allt är gratis — även utan konto.
+        Tävlingsinspirerade banor och nollklasskurser byggda efter SAgiK/SKK och
+        Svenska Hooperssällskapets regler. Öppna direkt i planeraren, justera och
+        exportera. Allt är gratis — även utan konto.
       </PageHero>
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
@@ -73,11 +79,11 @@ export default function CoursesPage() {
           </div>
         </Reveal>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2">
+        <div className="mt-10 grid min-w-0 gap-6 sm:grid-cols-2">
           {entries.map((entry, i) => {
             const c = courseFromBankEntry(entry);
             return (
-              <Reveal key={entry.key} delay={Math.min(i, 6) * 80}>
+              <Reveal key={entry.key} delay={Math.min(i, 6) * 80} className="min-w-0">
                 <article className="group flex h-full flex-col overflow-hidden rounded-3xl border-2 border-ink bg-[#FCFAF4] shadow-hard transition-transform duration-300 hover:-translate-y-1.5">
                   <div className="relative overflow-hidden border-b-2 border-ink">
                     <CourseMap course={c} className="zoom-slow w-full" />

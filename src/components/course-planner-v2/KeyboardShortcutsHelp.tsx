@@ -1,10 +1,9 @@
 /**
- * Banplaneraren v2 — Sprint 6 (DEL 2)
- * Portad från banplanerare-branchen.
+ * Banplaneraren v2 — kortkommandon.
  *
- * VIKTIGT: Endast kortkommandon som FAKTISKT är wired upp i
- * useCoursePlannerHotkeys + V3CoursePlannerV2Page får listas här.
- * Att visa kortkommandon som inte fungerar = ljuga för användaren.
+ * VIKTIGT: Endast kortkommandon som FAKTISKT är wired upp i PlannerPage:s
+ * keydown-lyssnare får listas här. Att visa kortkommandon som inte fungerar
+ * = ljuga för användaren.
  */
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Keyboard } from "lucide-react";
@@ -18,9 +17,9 @@ const SECTIONS: Section[] = [
     items: [
       { keys: ["Ctrl", "K"], label: "Öppna kommandopalett" },
       { keys: ["Ctrl", "S"], label: "Spara bana" },
-      { keys: ["Ctrl", "P"], label: "Exportera Domar-PDF" },
+      { keys: ["Ctrl", "O"], label: "Öppna sparad bana" },
       { keys: ["?"], label: "Visa denna hjälp" },
-      { keys: ["Esc"], label: "Avmarkera / stäng panel" },
+      { keys: ["Esc"], label: "Avmarkera / stäng panel / avsluta uppspelning" },
     ],
   },
   {
@@ -32,22 +31,19 @@ const SECTIONS: Section[] = [
       { keys: ["Ctrl", "D"], label: "Duplicera markerat hinder" },
       { keys: ["Delete"], label: "Ta bort markerat hinder" },
       { keys: ["Backspace"], label: "Ta bort markerat hinder" },
-      { keys: ["R"], label: "Rotera markerat hinder 15°" },
-      { keys: ["Shift", "R"], label: "Rotera markerat hinder -15°" },
+      { keys: ["R"], label: "Rotera markerat hinder 45° medurs" },
+      { keys: ["Shift", "R"], label: "Rotera markerat hinder 45° moturs" },
       { keys: ["L"], label: "Lås / lås upp markerat hinder" },
-      { keys: ["Ctrl", "]"], label: "Flytta hinder framåt (z-order)" },
-      { keys: ["Ctrl", "["], label: "Flytta hinder bakåt (z-order)" },
-      { keys: ["Ctrl", "Shift", "]"], label: "Längst fram" },
-      { keys: ["Ctrl", "Shift", "["], label: "Längst bak" },
     ],
   },
   {
-    title: "Verktyg",
+    title: "Visa",
     items: [
-      { keys: ["V"], label: "Välj-verktyg" },
-      { keys: ["E"], label: "Sudda-verktyg" },
-      { keys: ["N"], label: "Nummer-verktyg" },
-      { keys: ["G"], label: "Visa/dölj banlinje" },
+      { keys: ["Space"], label: "Spela upp / pausa hundens väg" },
+      { keys: ["3"], label: "Öppna 3D-vy" },
+      { keys: ["+"], label: "Zooma in" },
+      { keys: ["-"], label: "Zooma ut" },
+      { keys: ["0"], label: "Återställ zoom till 100 %" },
     ],
   },
 ];

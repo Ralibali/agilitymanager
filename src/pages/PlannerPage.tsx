@@ -12,6 +12,8 @@ import { uid, type PlacedObstacle, type Sport } from "@/lib/course";
 import { ObstacleGlyph } from "@/components/ObstacleGlyph";
 import { Logo } from "@/components/SiteNav";
 import { EmailCapture, isSubscribed } from "@/components/EmailCapture";
+import { Seo } from "@/components/Seo";
+import { FIRST_BYTE_ROUTES } from "@/lib/firstByteSeo";
 import { AuthDialog } from "@/components/AuthDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -1269,8 +1271,15 @@ export default function PlannerPage() {
   const selectedDef = selected ? getObstacleDefV2(selected.type) : null;
   const selectedNumbered = selected ? numbered.find((ob) => ob.id === selected.id) : null;
 
+  const plannerSeo = FIRST_BYTE_ROUTES["/banplanerare"];
+
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-paper text-ink">
+      <Seo
+        title={plannerSeo.title}
+        description={plannerSeo.description}
+        canonicalPath="/banplanerare"
+      />
       {/* ── Topprad ── */}
       <header className="z-40 shrink-0 border-b-2 border-ink bg-paper/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-[110rem] items-center gap-1.5 px-2 sm:gap-3 sm:px-5">

@@ -10,7 +10,9 @@ import { Reveal, RisingWords } from "@/components/Reveal";
 import { CourseMap } from "@/components/CourseMap";
 import { RotatingBadge } from "@/components/RotatingBadge";
 import { EmailCapture } from "@/components/EmailCapture";
+import { Seo } from "@/components/Seo";
 import { SAMPLE_COURSES } from "@/lib/course";
+import { FIRST_BYTE_ROUTES } from "@/lib/firstByteSeo";
 
 const FEATURES = [
   { icon: MousePointer2, title: "Full hindereditor", text: "Placera, flytta, rotera, duplicera och numrera hinder. Komplett från första klicket — utan konto." },
@@ -29,9 +31,16 @@ const STEPS = [
 
 const heroCourse = SAMPLE_COURSES[0];
 
+const homeSeo = FIRST_BYTE_ROUTES["/"];
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-paper text-ink">
+      <Seo
+        title={homeSeo.title}
+        description={homeSeo.description}
+        canonicalPath="/"
+      />
       <SiteNav />
 
       {/* ── HERO ─────────────────────────────────────────────── */}

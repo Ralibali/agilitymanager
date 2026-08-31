@@ -3,15 +3,15 @@ import { Link, NavLink, useLocation } from "react-router";
 import { Menu, X, ArrowRight } from "lucide-react";
 import { Paw } from "./Marquee";
 
+// AgilityManager har två first-class produktspår:
+// 1) tävlingskalender/matchning och 2) banplanerare/bibliotek.
 export const NAV_LINKS = [
-  { to: "/funktioner", label: "Funktioner" },
+  { to: "/tavlingar", label: "Tävlingar" },
   { to: "/banplanerare", label: "Banplanerare" },
   { to: "/banor", label: "Banbibliotek" },
   { to: "/delade-banor", label: "Delade banor" },
-
-  { to: "/tavlingar", label: "Tävlingar" },
   { to: "/tavlingar/favoriter", label: "Favoriter" },
-
+  { to: "/funktioner", label: "Funktioner" },
   { to: "/priser", label: "Gratis just nu" },
 ];
 

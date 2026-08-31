@@ -67,3 +67,5 @@ export function sanitizePreviewObstacles(
     return [obstacle];
   });
 }
+
+// CI-trigger: verifiera att pull_request-workflödet körs efter lockfile-fix.

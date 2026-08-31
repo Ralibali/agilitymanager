@@ -7,6 +7,7 @@ on:
       - "src/**"
       - "public/**"
       - "scripts/**"
+      - "supabase/**"
       - "index.html"
       - "package.json"
       - "package-lock.json"
@@ -21,6 +22,7 @@ on:
       - "src/**"
       - "public/**"
       - "scripts/**"
+      - "supabase/**"
       - "index.html"
       - "package.json"
       - "package-lock.json"
@@ -57,3 +59,18 @@ jobs:
 
       - name: Typecheck and production build
         run: npm run build
+
+  verify-edge-function:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Typecheck planner-social Edge Function
+        run: deno check supabase/functions/planner-social/index.ts

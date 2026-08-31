@@ -5,7 +5,6 @@ import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
-import { EmailCapture } from "@/components/EmailCapture";
 import { Seo, SITE_URL } from "@/components/Seo";
 import { CompetitionCard } from "@/components/competitions/CompetitionCard";
 import {
@@ -117,7 +116,16 @@ export default function CompetitionsPage() {
     };
   }, []);
 
-  useEffect(() => loadCompetitions("initial"), [loadCompetitions]);
+  useEffect(() => {
+    let cleanup: (() => void) | undefined;
+    const timer = window.setTimeout(() => {
+      cleanup = loadCompetitions("initial");
+    }, 0);
+    return () => {
+      window.clearTimeout(timer);
+      cleanup?.();
+    };
+  }, [loadCompetitions]);
 
   const counties = useMemo(
     () => [...new Set(all.map((c) => c.county).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, "sv")),
@@ -537,15 +545,24 @@ export default function CompetitionsPage() {
                 Tävlingar är bättre med en plan.
               </h2>
               <p className="mt-4 leading-relaxed text-paper/60">
-                Rita träningsbanan inför starten, dela den med klubben — och få
-                tävlingspåminnelser och nya banor i nyhetsbrevet.
+                Rita träningsbanan inför starten och dela den med klubben —
+                mottagaren behöver inget konto.
               </p>
               <Link to="/banplanerare" className="group mt-5 inline-flex items-center gap-2 font-bold text-tang">
                 Öppna planeraren
                 <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
               </Link>
             </div>
-            <EmailCapture variant="dark" compact />
+            <div className="rounded-2xl border border-paper/15 p-5">
+              <p className="text-sm font-bold uppercase tracking-wider text-tang">Kunskapsbanken</p>
+              <p className="mt-2 text-sm leading-relaxed text-paper/70">
+                Fördjupa dig i bandesign, regler och träningsupplägg inför tävlingssäsongen.
+              </p>
+              <Link to="/blogg" className="group mt-4 inline-flex items-center gap-2 text-sm font-bold text-paper hover:text-tang">
+                Läs guiderna
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+            </div>
           </div>
         </Reveal>
       </section>

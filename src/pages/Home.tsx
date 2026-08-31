@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import {
-  ArrowRight, Check, FileDown, LayoutGrid, MousePointer2, Ruler,
+  ArrowRight, BookOpen, Check, FileDown, LayoutGrid, MousePointer2, Ruler,
   ShieldCheck, Smartphone, Spline, Trophy, BarChart3, NotebookPen,
 } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
@@ -9,8 +9,12 @@ import { Marquee } from "@/components/Marquee";
 import { Reveal, RisingWords } from "@/components/Reveal";
 import { CourseMap } from "@/components/CourseMap";
 import { RotatingBadge } from "@/components/RotatingBadge";
-import { EmailCapture } from "@/components/EmailCapture";
-import { SAMPLE_COURSES } from "@/lib/course";
+import { Seo, SITE_URL } from "@/components/Seo";
+import { courseFromBankEntry, type Course } from "@/lib/course";
+import { COURSE_BANK } from "@/features/course-planner-v2/courseBank";
+import { ARTICLES } from "@/content/articles";
+import { blogArticlePath } from "@/lib/routes";
+import { fmtDate } from "@/lib/format";
 
 const FEATURES = [
   { icon: MousePointer2, title: "Full hindereditor", text: "Placera, flytta, rotera, duplicera och numrera hinder. Komplett från första klicket — utan konto." },
@@ -24,14 +28,60 @@ const FEATURES = [
 const STEPS = [
   { n: "01", title: "Öppna planaren", text: "Inget konto, ingen nedladdning, inget kort. Planaren laddar direkt i webbläsaren — på mobilen vid planen om du vill." },
   { n: "02", title: "Dra ut hindren", text: "Välj ur paletten, dra ut på planen i meterskala, rotera med ett svep. Banlinjen och längden räknas ut live." },
-  { n: "03", title: "Dela & spring", text: "Exportera som bild till träningsgruppen, eller dela banan med en länk — mot din e-post, det är det enda vi ber om." },
+  { n: "03", title: "Dela & spring", text: "Exportera som bild till träningsgruppen, eller dela banan med en länk — mottagaren behöver inget konto." },
 ];
 
-const heroCourse = SAMPLE_COURSES[0];
+/**
+ * Utvalda banor på startsidan är riktiga banbiblioteks-poster, så kortens
+ * namn, hinderantal och planstorlek alltid stämmer med banan som öppnas.
+ */
+const FEATURED_KEYS = [
+  "sv_agility_3_master_01",
+  "sv_agility_1_balans_01",
+  "sv_hopp_2_teknik_01",
+  "hoopers_1_basic",
+];
+const FEATURED_COURSES: Course[] = FEATURED_KEYS.map((key) => {
+  const entry = COURSE_BANK.find((e) => e.key === key);
+  if (!entry) throw new Error(`Banbiblioteket saknar ${key}`);
+  return courseFromBankEntry(entry);
+});
+
+const heroCourse = FEATURED_COURSES[0];
+
+/** Hinderantal och klassisk banlängd (rak linje mellan numrerade hinder). */
+function heroStats(course: Course) {
+  const numbered = course.obstacles
+    .filter((o) => o.number != null)
+    .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+  const pts = numbered.length >= 2 ? numbered : course.obstacles;
+  let lengthM = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    lengthM += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+  }
+  return { count: numbered.length || course.obstacles.length, lengthM: Math.round(lengthM) };
+}
 
 export default function Home() {
+  const latestArticles = [...ARTICLES]
+    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+    .slice(0, 3);
+
   return (
     <div className="min-h-screen bg-paper text-ink">
+      <Seo
+        title="AgilityManager — Rita agility- och hoopersbanor gratis i webbläsaren"
+        description="Rita banor i meterskala för agility och hoopers, testa hundens linje live och dela med träningsgruppen via länk. Gratis, utan konto — plus guider om bandesign och regler."
+        canonicalPath="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "AgilityManager",
+          url: SITE_URL,
+          inLanguage: "sv-SE",
+          description: "Banplanerare och kunskapsbank för agility och hoopers.",
+        }}
+      />
       <SiteNav />
 
       {/* ── HERO ─────────────────────────────────────────────── */}
@@ -61,8 +111,8 @@ export default function Home() {
             <Reveal delay={650}>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink/70 sm:text-xl">
                 AgilityManager är verktyget för sporten: rita banor i meterskala,
-                dela dem med klubben via länk och hitta nästa tävling. Banplaneraren
-                är gratis just nu — inget konto krävs för att komma igång.
+                dela dem med träningsgruppen via länk och lär dig bandesign i våra
+                guider. Banplaneraren är gratis just nu — inget konto krävs.
               </p>
             </Reveal>
             <Reveal delay={780}>
@@ -114,9 +164,9 @@ export default function Home() {
               />
               <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 {[
-                  ["10", "hinder"],
-                  ["142 m", "banlängd"],
-                  ["40×25", "meter"],
+                  [`${heroStats(heroCourse).count}`, "hinder"],
+                  [`${heroStats(heroCourse).lengthM} m`, "banlängd"],
+                  [`${heroCourse.field[0]}×${heroCourse.field[1]}`, "meter"],
                 ].map(([v, l]) => (
                   <div key={l} className="rounded-xl bg-cream/70 px-2 py-2.5">
                     <b className="block font-display text-2xl leading-none tracking-wide">{v}</b>
@@ -135,7 +185,7 @@ export default function Home() {
       {/* ── MARQUEE ──────────────────────────────────────────── */}
       <div className="overflow-hidden">
         <Marquee
-          items={["Gratis banplanerare", "Agility", "Hoopers", "Dela din bana", "Banbibliotek", "Tävlingskalender", "Nyhetsbrev"]}
+          items={["Gratis banplanerare", "Agility", "Hoopers", "Dela din bana", "Banbibliotek", "Blogg & guider"]}
           className="rotate-[-1.2deg] scale-[1.02] border-y-2 border-ink bg-tang text-ink"
         />
       </div>
@@ -219,7 +269,7 @@ export default function Home() {
         </div>
         <Reveal delay={200}>
           <div className="no-scrollbar mt-12 flex gap-6 overflow-x-auto px-4 pb-4 sm:px-6 lg:px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))]">
-            {SAMPLE_COURSES.map((c, i) => (
+            {FEATURED_COURSES.map((c, i) => (
               <Link
                 key={c.slug}
                 to={`/banplanerare?template=${c.slug}`}
@@ -279,50 +329,104 @@ export default function Home() {
             <div className="rounded-[1.75rem] border-2 border-paper/25 bg-pine p-3 shadow-hard-paper sm:p-4">
               <div className="flex items-center justify-between px-2 pb-3 pt-1 text-paper/70">
                 <span className="text-xs font-bold uppercase tracking-[0.18em]">Hoopersläge</span>
-                <span className="rounded-full bg-tang px-3 py-1 text-[0.7rem] font-bold uppercase tracking-wider text-ink">36 × 22 m</span>
+                <span className="rounded-full bg-tang px-3 py-1 text-[0.7rem] font-bold uppercase tracking-wider text-ink">{FEATURED_COURSES[3].field[0]} × {FEATURED_COURSES[3].field[1]} m</span>
               </div>
-              <CourseMap course={SAMPLE_COURSES[3]} variant="dark" className="w-full rounded-xl border border-paper/15" />
+              <CourseMap course={FEATURED_COURSES[3]} variant="dark" className="w-full rounded-xl border border-paper/15" />
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* ── PRISER (freemium) + NYHETSBREV ───────────────────── */}
+      {/* ── BLOGG / KUNSKAPSBANK ─────────────────────────────── */}
+      <section className="border-b-2 border-ink bg-cream/40">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:py-28">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <Reveal>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-forest">Blogg & kunskapsbank</p>
+              <h2 className="mt-3 font-display text-5xl leading-[0.95] sm:text-7xl">
+                Lär dig banan.<br />Innan du bygger den.
+              </h2>
+            </Reveal>
+            <Reveal delay={150}>
+              <Link
+                to="/blogg"
+                className="group inline-flex items-center gap-2 text-lg font-bold text-ink transition-colors hover:text-tang"
+              >
+                Alla guider
+                <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
+              </Link>
+            </Reveal>
+          </div>
+          <div className="mt-12 grid gap-5 md:grid-cols-3">
+            {latestArticles.map((a, i) => (
+              <Reveal key={a.slug} delay={i * 120} className="h-full">
+                <Link to={blogArticlePath(a.slug)} className="group block h-full">
+                  <article className="flex h-full flex-col rounded-3xl border-2 border-ink bg-[#FCFAF4] p-7 shadow-hard transition-transform duration-300 group-hover:-translate-y-1.5">
+                    <span className="text-[0.7rem] font-extrabold uppercase tracking-[0.18em] text-forest">
+                      {a.category} · {fmtDate(a.publishedAt)}
+                    </span>
+                    <h3 className="mt-3 text-xl font-extrabold leading-snug tracking-tight group-hover:underline">
+                      {a.title}
+                    </h3>
+                    <p className="mt-3 flex-1 text-[0.95rem] leading-relaxed text-ink/60">{a.description}</p>
+                    <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-forest">
+                      Läs guiden <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </span>
+                  </article>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── GRATIS + NYHETSBREV ──────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:py-28">
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <Reveal>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-forest">Priser</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-forest">Utan konto</p>
             <h2 className="mt-3 font-display text-5xl leading-[0.95] sm:text-7xl">
               Gratis att <span className="text-tang">komma igång.</span>
             </h2>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-ink/65">
-              Banplaneraren, banbiblioteket, exporten och tävlingskalendern använder du
-              gratis — utan konto och utan kort. Vi bygger vidare på AgilityManager, och
-              framtida extrafunktioner kan komma att kosta. Vi säger till i förväg.
+              Banplaneraren, banbiblioteket, exporten och delningen använder du
+              gratis — utan konto och utan kort. Kunskapsbanken med guider om
+              bandesign och regler ingår också, så klart.
             </p>
             <ul className="mt-7 space-y-3 font-medium text-ink/75">
-              {["Hela banplaneraren gratis — agility och hoopers", "Rita anonymt — autosparas i din webbläsare", "Dela banan med länk mot din e-post"].map((f) => (
+              {["Hela banplaneraren gratis — agility och hoopers", "Rita anonymt — autosparas i din webbläsare", "Dela banan med en länk — mottagaren behöver inget konto"].map((f) => (
                 <li key={f} className="flex items-start gap-2.5">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-forest" strokeWidth={3} /> {f}
                 </li>
               ))}
             </ul>
             <Link
-              to="/priser"
+              to="/funktioner"
               className="group mt-6 inline-flex items-center gap-2 text-lg font-bold text-ink transition-colors hover:text-tang"
             >
-              Se vad som ingår gratis
+              Se allt som ingår
               <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
             </Link>
           </Reveal>
           <Reveal delay={150}>
             <div className="rounded-3xl border-2 border-ink bg-ink p-8 text-paper shadow-hard">
               <span className="inline-flex items-center gap-2 rounded-full bg-tang px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-ink">
-                Nyhetsbrevet
+                Kunskapsbanken
               </span>
-              <div className="mt-5">
-                <EmailCapture variant="dark" />
-              </div>
+              <h3 className="mt-5 font-display text-3xl leading-tight sm:text-4xl">
+                Lär dig bandesign på riktigt
+              </h3>
+              <p className="mt-4 leading-relaxed text-paper/70">
+                Fördjupande guider om bandesign, linjer, regler och träningsupplägg —
+                skrivna för svenska förare, från Nollklass till klass 3.
+              </p>
+              <Link
+                to="/blogg"
+                className="group mt-6 inline-flex items-center gap-2 rounded-xl bg-tang px-5 py-3 text-sm font-extrabold text-ink transition-transform hover:-translate-y-0.5"
+              >
+                Utforska kunskapsbanken
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
             </div>
           </Reveal>
         </div>
@@ -358,7 +462,7 @@ export default function Home() {
             </div>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-bold uppercase tracking-wider text-ink/60">
               <span className="flex items-center gap-2"><NotebookPen className="h-4 w-4" /> Rita gratis</span>
-              <span className="flex items-center gap-2"><Trophy className="h-4 w-4" /> Tävla smart</span>
+              <span className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> Lär dig bandesign</span>
               <span className="flex items-center gap-2"><BarChart3 className="h-4 w-4" /> Dela med länk</span>
             </div>
           </Reveal>

@@ -146,8 +146,11 @@ export type ClassTemplateKey =
   | "agility_1" | "agility_2" | "agility_3"
   | "agility_hopplag"
   | "noll_slalom" | "noll_balans" | "noll_mur"
-  // Hoopers
-  | "hoopers_1" | "hoopers_2" | "hoopers_3" | "hoopers_4";
+  // Hoopers (SHoK)
+  | "hoopers_1" | "hoopers_2" | "hoopers_3" | "hoopers_4"
+  // Hoopers (FCI) — mallar definieras i rules/hoopers-fci.ts, inte i
+  // CLASS_TEMPLATES nedan, så att de inte dyker upp i vanliga mall-listor.
+  | "hoopers_fci_h1" | "hoopers_fci_h2" | "hoopers_fci_h3";
 
 export interface ClassTemplate {
   key: ClassTemplateKey;

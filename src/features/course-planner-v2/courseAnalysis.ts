@@ -127,6 +127,7 @@ export function computeApproachIssues(
           code: "bad_approach_angle",
           message: `${labelFor(type)} ${number ?? ""}: den beräknade hundlinjen ger en tydligt sned ansats (${dev.toFixed(0)}°). Regelverket kräver naturligt rak ansats; gradtalet är AgilityManagers säkerhetsheuristik.`,
           obstacleId: cur.obstacle.id,
+          basis: "safety_heuristic",
         });
       } else if (dev >= APPROACH_THRESHOLDS.straightWarn) {
         issues.push({
@@ -134,6 +135,7 @@ export function computeApproachIssues(
           code: "bad_approach_angle",
           message: `${labelFor(type)} ${number ?? ""}: kontrollera ansatsen (${dev.toFixed(0)}° i beräknad hundlinje). Regelverket kräver naturligt rak ansats; gradtalet är endast planeringsstöd.`,
           obstacleId: cur.obstacle.id,
+          basis: "safety_heuristic",
         });
       }
     } else if (type === "tunnel") {
@@ -144,6 +146,7 @@ export function computeApproachIssues(
           code: "bad_approach_angle",
           message: `Tunnel ${number ?? ""}: hundlinjen kommer snett mot mynningen (${dev.toFixed(0)}°). Kontrollera fart, infångning och verklig linje.`,
           obstacleId: cur.obstacle.id,
+          basis: "safety_heuristic",
         });
       }
     } else if (type === "wall") {
@@ -154,6 +157,7 @@ export function computeApproachIssues(
           code: "wall_approach_risk",
           message: `Mur ${number ?? ""}: sned ansats (${dev.toFixed(0)}°) kan ge en osäker linje. Kontrollera särskilt föregående hinders fart och placering.`,
           obstacleId: cur.obstacle.id,
+          basis: "safety_heuristic",
         });
       }
     } else if (type === "jump") {
@@ -171,6 +175,7 @@ export function computeApproachIssues(
               code: "jump_in_curve",
               message: `Hopp ${number ?? ""} ligger i en kraftig riktningsändring (${turn.toFixed(0)}° i modellen). Bedöm hundens fart och landningslinje.`,
               obstacleId: cur.obstacle.id,
+              basis: "safety_heuristic",
             });
           }
         }
@@ -472,6 +477,7 @@ export function computeFlowCoachIssues(
       code: "flow_hotspot",
       message: `Coach: sekvens ${seq || "?"} är tekniskt tät (${hotspot.reasons.slice(0, 2).join(", ")}). Detta är AgilityManagers planeringsheuristik — kontrollera linjen praktiskt på planen.`,
       obstacleId: hotspot.obstacleId,
+      basis: "coaching_analysis",
     });
   }
 
@@ -482,6 +488,7 @@ export function computeFlowCoachIssues(
       level: "info",
       code: "turn_bias",
       message: `Coach: banan är tydligt ${dominant}dominerad (${Math.max(analysis.leftTurns, analysis.rightTurns)} av ${directionalTurns} tydliga svängar). Överväg variation om målet är allsidig träning.`,
+      basis: "coaching_analysis",
     });
   }
 
@@ -490,6 +497,7 @@ export function computeFlowCoachIssues(
       level: "info",
       code: "pace_variation",
       message: `Coach: stora växlingar i avstånd ger många tempobyten (ca ${analysis.minSpacingM.toFixed(1)}–${analysis.maxSpacingM.toFixed(1)} m mellan passager). Det kan vara avsiktligt, men kontrollera rytmen.`,
+      basis: "coaching_analysis",
     });
   }
 
@@ -497,6 +505,7 @@ export function computeFlowCoachIssues(
     level: "info",
     code: "course_profile",
     message: `Banprofil: ${analysis.difficultyLabel.toLowerCase()} · svårighet ${analysis.difficultyScore}/100 · flöde ${analysis.flowScore}/100 · ${analysis.sharpTurns} skarpa svängar. Poängen är planeringsstöd, inte officiell klassning.`,
+    basis: "coaching_analysis",
   });
 
   return issues;

@@ -20,4 +20,16 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // src/components/ui/** är genererade shadcn/ui-komponenter. De exporterar
+    // av design både komponenter och variant-/hook-hjälpare (t.ex.
+    // buttonVariants, useFormField, useSidebar) från samma fil. Att bryta ut
+    // dessa skulle göra onödig avvikelse från upstream shadcn-mallen och
+    // försvåra framtida uppdateringar, så fast-refresh-regeln stängs av
+    // scoped till just denna katalog. (Beslut dokumenterat i sprint-rapporten.)
+    files: ['src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])

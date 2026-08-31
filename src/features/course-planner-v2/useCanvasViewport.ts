@@ -68,8 +68,8 @@ function clamp(v: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, v));
 }
 
-/** Hittar närmaste värde i en sorterad lista. */
-function nearestStep(value: number, dir: 1 | -1): number {
+/** Hittar närmaste värde i en sorterad lista. Exporterad för enhetstester. */
+export function nearestStep(value: number, dir: 1 | -1): number {
   if (dir === 1) {
     for (const z of ZOOM_STEPS) if (z > value + 0.001) return z;
     return ZOOM_MAX;
@@ -114,8 +114,11 @@ export interface UseCanvasViewportApi {
 }
 
 export function useCanvasViewport(opts: UseCanvasViewportOpts): UseCanvasViewportApi {
+  // Destrukturera opts en gång — stabila primitiver gör att useCallback-deps
+  // kan bevaras av React Compiler (member-expressions i deps kan det inte).
+  const { arenaWidthM, arenaHeightM, storageKey: storageKeyOpt } = opts;
   const padding = opts.paddingM ?? 1;
-  const storageKey = `${STORAGE_PREFIX}_${opts.storageKey ?? "default"}`;
+  const storageKey = `${STORAGE_PREFIX}_${storageKeyOpt ?? "default"}`;
 
   const [state, setState] = useState<ViewportState>(() => loadState(storageKey));
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -143,16 +146,16 @@ export function useCanvasViewport(opts: UseCanvasViewportOpts): UseCanvasViewpor
   }, [state, storageKey]);
 
   // Beräknar viewBox från state. Bas-skala (zoom=1) = arena+padding fyller bredden.
-  const baseWidthM = opts.arenaWidthM + padding * 2;
-  const baseHeightM = opts.arenaHeightM + padding * 2;
+  const baseWidthM = arenaWidthM + padding * 2;
+  const baseHeightM = arenaHeightM + padding * 2;
   const aspect = size.h / size.w;
   // Vid zoom=1 visar viewBox baseWidthM brett. Höjd = baseWidthM * aspect.
   const visibleWidthM = baseWidthM / state.zoom;
   const visibleHeightM = baseWidthM * aspect / state.zoom;
   // ViewBox top-left: börja med arena top-left (-padding, -padding) centrerad,
   // sedan addera pan.
-  const centerXM = opts.arenaWidthM / 2;
-  const centerYM = opts.arenaHeightM / 2;
+  const centerXM = arenaWidthM / 2;
+  const centerYM = arenaHeightM / 2;
   const viewMinXM = centerXM - visibleWidthM / 2 + state.panX;
   const viewMinYM = centerYM - visibleHeightM / 2 + state.panY;
   const viewBox = `${viewMinXM} ${viewMinYM} ${visibleWidthM} ${visibleHeightM}`;
@@ -205,11 +208,11 @@ export function useCanvasViewport(opts: UseCanvasViewportOpts): UseCanvasViewpor
         // Härleder nytt panX/Y
         const newPanX = newViewMinX - (centerXM - newVisibleW / 2);
         const newPanY = newViewMinY - (centerYM - newVisibleH / 2);
-        return { zoom: nextZoom, panX: clampPan(newPanX, opts.arenaWidthM, newVisibleW), panY: clampPan(newPanY, opts.arenaHeightM, newVisibleH) };
+        return { zoom: nextZoom, panX: clampPan(newPanX, arenaWidthM, newVisibleW), panY: clampPan(newPanY, arenaHeightM, newVisibleH) };
       }
       return { ...s, zoom: nextZoom };
     });
-  }, [viewMinXM, viewMinYM, visibleWidthM, visibleHeightM, baseWidthM, aspect, centerXM, centerYM, opts.arenaWidthM, opts.arenaHeightM]);
+  }, [viewMinXM, viewMinYM, visibleWidthM, visibleHeightM, baseWidthM, aspect, centerXM, centerYM, arenaWidthM, arenaHeightM]);
 
   const zoomIn = useCallback((ax?: number, ay?: number) => {
     setState((s) => {
@@ -226,11 +229,11 @@ export function useCanvasViewport(opts: UseCanvasViewportOpts): UseCanvasViewpor
         const newVh = baseWidthM * aspect / next;
         const newPanX = beforeX - fx * newVw - (centerXM - newVw / 2);
         const newPanY = beforeY - fy * newVh - (centerYM - newVh / 2);
-        return { zoom: next, panX: clampPan(newPanX, opts.arenaWidthM, newVw), panY: clampPan(newPanY, opts.arenaHeightM, newVh) };
+        return { zoom: next, panX: clampPan(newPanX, arenaWidthM, newVw), panY: clampPan(newPanY, arenaHeightM, newVh) };
       }
       return { ...s, zoom: next };
     });
-  }, [viewMinXM, viewMinYM, visibleWidthM, baseWidthM, aspect, centerXM, centerYM, opts.arenaWidthM, opts.arenaHeightM]);
+  }, [viewMinXM, viewMinYM, visibleWidthM, visibleHeightM, baseWidthM, aspect, centerXM, centerYM, arenaWidthM, arenaHeightM]);
 
   const zoomOut = useCallback((ax?: number, ay?: number) => {
     setState((s) => {
@@ -246,11 +249,11 @@ export function useCanvasViewport(opts: UseCanvasViewportOpts): UseCanvasViewpor
         const newVh = baseWidthM * aspect / next;
         const newPanX = beforeX - fx * newVw - (centerXM - newVw / 2);
         const newPanY = beforeY - fy * newVh - (centerYM - newVh / 2);
-        return { zoom: next, panX: clampPan(newPanX, opts.arenaWidthM, newVw), panY: clampPan(newPanY, opts.arenaHeightM, newVh) };
+        return { zoom: next, panX: clampPan(newPanX, arenaWidthM, newVw), panY: clampPan(newPanY, arenaHeightM, newVh) };
       }
       return { ...s, zoom: next };
     });
-  }, [viewMinXM, viewMinYM, visibleWidthM, baseWidthM, aspect, centerXM, centerYM, opts.arenaWidthM, opts.arenaHeightM]);
+  }, [viewMinXM, viewMinYM, visibleWidthM, visibleHeightM, baseWidthM, aspect, centerXM, centerYM, arenaWidthM, arenaHeightM]);
 
   const zoomAtClient = useCallback((factor: number, clientX: number, clientY: number) => {
     setState((s) => {
@@ -268,11 +271,11 @@ export function useCanvasViewport(opts: UseCanvasViewportOpts): UseCanvasViewpor
       const newPanY = beforeY - fy * newVh - (centerYM - newVh / 2);
       return {
         zoom: nextZoom,
-        panX: clampPan(newPanX, opts.arenaWidthM, newVw),
-        panY: clampPan(newPanY, opts.arenaHeightM, newVh),
+        panX: clampPan(newPanX, arenaWidthM, newVw),
+        panY: clampPan(newPanY, arenaHeightM, newVh),
       };
     });
-  }, [viewMinXM, viewMinYM, visibleWidthM, visibleHeightM, baseWidthM, aspect, centerXM, centerYM, opts.arenaWidthM, opts.arenaHeightM]);
+  }, [viewMinXM, viewMinYM, visibleWidthM, visibleHeightM, baseWidthM, aspect, centerXM, centerYM, arenaWidthM, arenaHeightM]);
 
   const resetZoom = useCallback(() => {
     setState({ zoom: 1.0, panX: 0, panY: 0 });
@@ -292,12 +295,12 @@ export function useCanvasViewport(opts: UseCanvasViewportOpts): UseCanvasViewpor
       const dyM = -dyPx / pxPerM;
       const visW = baseWidthM / s.zoom;
       const visH = baseWidthM * aspect / s.zoom;
-      const nextX = clampPan(s.panX + dxM, opts.arenaWidthM, visW);
-      const nextY = clampPan(s.panY + dyM, opts.arenaHeightM, visH);
+      const nextX = clampPan(s.panX + dxM, arenaWidthM, visW);
+      const nextY = clampPan(s.panY + dyM, arenaHeightM, visH);
       if (nextX === s.panX && nextY === s.panY) return s;
       return { ...s, panX: nextX, panY: nextY };
     });
-  }, [pxPerM, baseWidthM, aspect, opts.arenaWidthM, opts.arenaHeightM]);
+  }, [pxPerM, baseWidthM, aspect, arenaWidthM, arenaHeightM]);
 
   const setPan = useCallback((panXM: number, panYM: number) => {
     setState((s) => {
@@ -305,11 +308,11 @@ export function useCanvasViewport(opts: UseCanvasViewportOpts): UseCanvasViewpor
       const visH = baseWidthM * aspect / s.zoom;
       return {
         ...s,
-        panX: clampPan(panXM, opts.arenaWidthM, visW),
-        panY: clampPan(panYM, opts.arenaHeightM, visH),
+        panX: clampPan(panXM, arenaWidthM, visW),
+        panY: clampPan(panYM, arenaHeightM, visH),
       };
     });
-  }, [baseWidthM, aspect, opts.arenaWidthM, opts.arenaHeightM]);
+  }, [baseWidthM, aspect, arenaWidthM, arenaHeightM]);
 
   // Tickstep väljs så att tickmarks är lagom täta i pixlar.
   const tickStepM = useMemo(() => {
@@ -323,11 +326,12 @@ export function useCanvasViewport(opts: UseCanvasViewportOpts): UseCanvasViewpor
   }, [pxPerM]);
   const showFineTicks = state.zoom >= 1.5;
 
-  const metrics: ViewportMetrics = {
-    pxPerM,
-    viewportWidthPx: size.w,
-    viewportHeightPx: size.h,
-  };
+  // Memoiserat metrics-objekt — stabil identitet så länge måtten inte ändras,
+  // så memoiserade konsumenter inte renderas om i onödan.
+  const metrics: ViewportMetrics = useMemo(
+    () => ({ pxPerM, viewportWidthPx: size.w, viewportHeightPx: size.h }),
+    [pxPerM, size.w, size.h]
+  );
 
   return {
     state,
@@ -360,7 +364,7 @@ export function useCanvasViewport(opts: UseCanvasViewportOpts): UseCanvasViewpor
  * viewport-kanten, men eftersom pxPerM beror på zoom använder vi en
  * konservativ grov regel: min 2 m av arenan måste vara synlig på varje sida.)
  */
-function clampPan(panM: number, arenaSizeM: number, visibleSizeM: number): number {
+export function clampPan(panM: number, arenaSizeM: number, visibleSizeM: number): number {
   // Arena-rect i kurs-koord = [0, arenaSizeM]
   // ViewBox = [centerM - visibleSizeM/2 + panM, centerM + visibleSizeM/2 + panM]
   const center = arenaSizeM / 2;

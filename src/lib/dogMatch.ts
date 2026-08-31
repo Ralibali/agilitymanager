@@ -233,8 +233,8 @@ export function useDogProfile() {
   });
 
   useEffect(() => {
-    setStore(readProfileStore());
     const sync = () => setStore(readProfileStore());
+    queueMicrotask(sync);
     window.addEventListener(EVENT, sync);
     window.addEventListener("storage", sync);
     return () => {

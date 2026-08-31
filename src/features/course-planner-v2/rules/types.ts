@@ -50,8 +50,36 @@ export interface SafetyRules {
   minComboMBySize: Partial<Record<SizeClassKey, number>>;
   /** Min-avstånd mellan kontaktfält efter tunnel innan det räknas som risk (m). */
   contactAfterTunnelMinM: number;
-  /** Hoopers — min-avstånd mellan på varandra följande hinder (m). */
+  /**
+   * Hoopers — min-avstånd (m) mellan hinder som INTE följer på varandra i
+   * nummerföljden, resp. mellan hinder och hundens tänkta väg.
+   * SHoK 2025-11-01 §4.4: 2,5 m. FCI §3.1: 2 m.
+   */
   hoopersMinM?: number;
+  /**
+   * Hoopers — min-avstånd (m) mellan PÅ VARANDRA FÖLJANDE hinder per
+   * klassmall (undre gränsen i regelverkets intervall). SHoK mäter längs
+   * hundens tänkta väg (§2.3), FCI center-till-center i rak linje (§3.1) —
+   * planeraren approximerar med centrumavstånd, se kommentar i validation.ts.
+   */
+  hoopersConsecutiveMinMByClass?: Record<string, number>;
+  /**
+   * Hoopers — MAX-avstånd (m) från dirigeringsområdet/handling area till det
+   * mest avlägsna hindret, per klassmall. SHoK §2.3: 13/15/20/25 m.
+   * FCI §3.1: 15/20/30 m för Large (Small: 12/18/25 m).
+   */
+  hoopersMaxDistanceFromHandlerZoneMByClass?: Record<string, number>;
+  /**
+   * Hoopers — regelverket kräver att banan börjar och slutar med en hoop
+   * (SHoK §4.4, FCI §3.1).
+   */
+  hoopersStartEndHoopRequired?: boolean;
+  /** Hoopers — minsta andel hoops bland tävlingshindren (FCI §3.1: 0,5). */
+  hoopersMinHoopShare?: number;
+  /** Hoopers — minsta banyta i m² (FCI §3.1: 800 m², undantag kan godkännas). */
+  arenaMinAreaM2?: number;
+  /** Hoopers — minsta kortsida i m (FCI §3.1: 20 m). */
+  arenaMinShortSideM?: number;
   /** Hoopers — min-avstånd från dirigeringsområdet till närmsta hinder (m). */
   hoopersHandlerZoneMinM?: number;
 }
@@ -67,6 +95,12 @@ export interface TimeRules {
   refSpeedMsByClass: Record<string, number>;
   /** Maxtid = referenstid × faktor. */
   maxTimeFactorByClass: Record<string, number>;
+  /**
+   * Fast maxtid i sekunder oavsett banlängd, när regelverket anger det
+   * (FCI Hoopers §3.3.1/§7.2: maxtid 180 s, ingen referenstid alls).
+   * Om satt åsidosätter den maxTimeFactor-beräkningen.
+   */
+  fixedMaxCourseTimeS?: number;
 }
 
 /** Ett versionerat regelverk. */
@@ -75,8 +109,23 @@ export interface RuleSet {
   id: string;
   /** Visningsnamn, t.ex. "SAgiK/SKK Agility 2022–2026". */
   name: string;
-  /** Utgivare. */
+  /** Utgivare (fullständigt namn). */
   authority: string;
+  /**
+   * Kort organisationsbeteckning, t.ex. "SAgiK/SKK", "SHoK", "FCI".
+   * Avsedd för kompakta UI-etiketter där `authority` är för lång.
+   */
+  organization?: string;
+  /**
+   * Land/område som regelverket gäller, ISO 3166-1 alpha-2 (t.ex. "SE")
+   * eller "international" för FCI:s regelverk.
+   */
+  country?: string;
+  /**
+   * Version/utgåva av källdokumentet, t.ex. "2025-11-01–2028-10-31" eller
+   * FCI:s dokumentkod. Ska vara spårbar mot `sourceDocuments`.
+   */
+  version?: string;
   /** ISO-datum (YYYY-MM-DD), inklusive. */
   validFrom: string;
   /** ISO-datum (YYYY-MM-DD), inklusive. null = pågående. */

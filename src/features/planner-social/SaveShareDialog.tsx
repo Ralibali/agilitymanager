@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Check, Copy, Globe, Loader2, Lock, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -37,18 +37,23 @@ export function SaveShareDialog({
 }) {
   const { profile } = usePlannerProfile();
   const [name, setName] = useState(courseName);
-  const [isPublic, setIsPublic] = useState(true);
+  // Privat är säker standard — användaren väljer aktivt att publicera.
+  const [isPublic, setIsPublic] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(courseId);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
+  // Återställ formuläret när dialogen öppnas — justering under render i
+  // stället för synkron setState i en effekt.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (open) {
       setName(courseName || "Min bana");
       setSavedId(courseId);
       setCopied(false);
     }
-  }, [open, courseName, courseId]);
+  }
 
   const shareUrl = savedId ? `${window.location.origin}/bana/${savedId}` : "";
 
@@ -105,28 +110,30 @@ export function SaveShareDialog({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Synlighet">
             <button
               type="button"
+              role="radio"
+              aria-checked={isPublic}
               onClick={() => setIsPublic(true)}
-              aria-pressed={isPublic}
               className={`rounded-xl border p-3 text-left transition ${
                 isPublic ? "border-primary bg-primary/10" : "border-border hover:bg-muted/50"
               }`}
             >
-              <Globe className="mb-1 h-4 w-4" />
+              <Globe className="mb-1 h-4 w-4" aria-hidden="true" />
               <div className="text-sm font-semibold">Publik</div>
               <div className="text-xs text-muted-foreground">Andra kan se, kommentera och betygsätta</div>
             </button>
             <button
               type="button"
+              role="radio"
+              aria-checked={!isPublic}
               onClick={() => setIsPublic(false)}
-              aria-pressed={!isPublic}
               className={`rounded-xl border p-3 text-left transition ${
                 !isPublic ? "border-primary bg-primary/10" : "border-border hover:bg-muted/50"
               }`}
             >
-              <Lock className="mb-1 h-4 w-4" />
+              <Lock className="mb-1 h-4 w-4" aria-hidden="true" />
               <div className="text-sm font-semibold">Privat</div>
               <div className="text-xs text-muted-foreground">Bara du kommer åt banan</div>
             </button>

@@ -8,16 +8,16 @@ const COLS: { title: string; links: { to: string; label: string }[] }[] = [
       { to: "/banplanerare", label: "Banplaneraren" },
       { to: "/funktioner", label: "Funktioner" },
       { to: "/banor", label: "Banbibliotek" },
-      { to: "/priser", label: "Priser" },
+      { to: "/delade-banor", label: "Delade banor" },
     ],
   },
   {
-    title: "Community",
+    title: "Kunskap",
     links: [
-      { to: "/tavlingar", label: "Tävlingskalender" },
-      { to: "/banor", label: "Färdiga banor" },
-      { to: "/priser", label: "Nyhetsbrevet" },
-      { to: "/banplanerare", label: "Dela en bana" },
+      { to: "/blogg", label: "Blogg & guider" },
+      { to: "/blogg/bygga-saker-traningsbana-agility", label: "Säkra träningsbanor" },
+      { to: "/blogg/hoopers-for-nyborjare", label: "Hoopers för nybörjare" },
+      { to: "/blogg/regelverk-agility-hoopers-sverige", label: "Regelverken i korthet" },
     ],
   },
   {
@@ -25,8 +25,8 @@ const COLS: { title: string; links: { to: string; label: string }[] }[] = [
     links: [
       { to: "/banplanerare", label: "Agility" },
       { to: "/banplanerare?sport=hoopers", label: "Hoopers" },
-      { to: "/tavlingar", label: "Tävla" },
-      { to: "/", label: "Träna" },
+      { to: "/banor", label: "Färdiga banor" },
+      { to: "/blogg", label: "Träningsguider" },
     ],
   },
 ];
@@ -46,9 +46,9 @@ export function SiteFooter() {
               </span>
             </div>
             <p className="mt-5 max-w-sm leading-relaxed text-paper/60">
-              Verktygen för sporten — banplanerare, banbibliotek och
-              tävlingskalender för agility och hoopers. Banbyggaren är gratis just
-              nu; kommande extrafunktioner kan bli betalda.
+              Verktyget och kunskapsbanken för sporten — banplanerare,
+              banbibliotek och guider för agility och hoopers. Banbyggaren är
+              gratis just nu.
             </p>
             <Link
               to="/banplanerare"
@@ -87,12 +87,8 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-paper/10 pt-6 text-sm text-paper/45 sm:flex-row sm:items-center">
-          <p>© 2026 AgilityManager · Redesignkoncept</p>
-          <div className="flex gap-5">
-            <span className="cursor-pointer transition-colors hover:text-paper">Integritet</span>
-            <span className="cursor-pointer transition-colors hover:text-paper">Cookies</span>
-            <span className="cursor-pointer transition-colors hover:text-paper">Villkor</span>
-          </div>
+          <p>© 2026 AgilityManager</p>
+          <p className="text-paper/35">Byggt för svensk agility och hoopers</p>
         </div>
       </div>
     </footer>

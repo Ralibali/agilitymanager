@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router";
+import { trackArriveOnce } from "./lib/firstPartyEvents";
 import Home from "./pages/Home";
 import PlannerPage from "./pages/PlannerPage";
 import PublicCoursePage from "./pages/PublicCoursePage";
@@ -24,10 +25,20 @@ function ScrollToTop() {
   return null;
 }
 
+/** Tyst arrive på organiska ytor. Ingen UI-ändring. */
+function FirstPartyArrive() {
+  const { pathname, search } = useLocation();
+  useEffect(() => {
+    trackArriveOnce();
+  }, [pathname, search]);
+  return null;
+}
+
 export default function App() {
   return (
     <>
       <ScrollToTop />
+      <FirstPartyArrive />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/banplanerare" element={<PlannerPage />} />

@@ -7,6 +7,13 @@ import Home from "./pages/Home";
 const PlannerPage = lazy(() => import("./pages/PlannerPage"));
 const PublicCoursePage = lazy(() => import("./pages/PublicCoursePage"));
 const FeaturesPage = lazy(() => import("./pages/FeaturesPage"));
+const GratisPage = lazy(() => import("./pages/GratisPage"));
+const CompetitionsPage = lazy(() => import("./pages/CompetitionsPage"));
+const FavoriteCompetitionsPage = lazy(() => import("./pages/FavoriteCompetitionsPage"));
+const CompetitionDetailPage = lazy(() => import("./pages/CompetitionDetailPage"));
+const CountyCompetitionsPage = lazy(() => import("./pages/CountyCompetitionsPage"));
+const ClubCompetitionsPage = lazy(() => import("./pages/ClubCompetitionsPage"));
+const HoopersCompetitionDetailPage = lazy(() => import("./pages/HoopersCompetitionDetailPage"));
 const CoursesPage = lazy(() => import("./pages/CoursesPage"));
 const SharedCoursesPage = lazy(() => import("./pages/SharedCoursesPage"));
 const BlogIndexPage = lazy(() => import("./pages/BlogIndexPage"));
@@ -37,27 +44,36 @@ export default function App() {
       <ScrollToTop />
       <Suspense fallback={<RouteFallback />}>
         <Routes>
-          {/* Publik produktyta: blogg/kunskap + banplanerare (se src/lib/routes.ts) */}
-        <Route path="/" element={<Home />} />
-        <Route path="/blogg" element={<BlogIndexPage />} />
-        <Route path="/blogg/:slug" element={<BlogArticlePage />} />
-        <Route path="/banplanerare" element={<PlannerPage />} />
-        <Route path="/funktioner" element={<FeaturesPage />} />
-        <Route path="/banor" element={<CoursesPage />} />
-        <Route path="/delade-banor" element={<SharedCoursesPage />} />
-        <Route path="/bana/:id" element={<PublicCoursePage />} />
+          <Route path="/" element={<Home />} />
 
-        {/* Out of scope: pricing/billing — gamla länkar landar i planeraren */}
-        <Route path="/priser" element={<Navigate to="/banplanerare" replace />} />
-        <Route path="/gratis" element={<Navigate to="/banplanerare" replace />} />
+          {/* Kunskapsbanken: blogg/guider */}
+          <Route path="/blogg" element={<BlogIndexPage />} />
+          <Route path="/blogg/:slug" element={<BlogArticlePage />} />
 
-        {/* Out of scope: tävlingsytor — redirecta samtliga gamla tävlingslänkar */}
-        <Route path="/tavlingar/*" element={<Navigate to="/" replace />} />
+          {/* Motor 1: banplanerare, banbibliotek och delning */}
+          <Route path="/banplanerare" element={<PlannerPage />} />
+          <Route path="/funktioner" element={<FeaturesPage />} />
+          <Route path="/priser" element={<GratisPage />} />
+          <Route path="/gratis" element={<Navigate to="/priser" replace />} />
+          <Route path="/banor" element={<CoursesPage />} />
+          <Route path="/delade-banor" element={<SharedCoursesPage />} />
+          <Route path="/bana/:id" element={<PublicCoursePage />} />
 
-        {/* Out of scope: auth-ytor — allt leder till planeraren */}
-        <Route path="/auth" element={<Navigate to="/banplanerare" replace />} />
-        <Route path="/logga-in" element={<Navigate to="/banplanerare" replace />} />
-        <Route path="*" element={<NotFound />} />
+          {/* Motor 2: svensk tävlingskalender, matchning och favoriter.
+              Behåll dessa routes som first-class även när planeraren utvecklas. */}
+          <Route path="/tavlingar" element={<CompetitionsPage />} />
+          <Route path="/tavlingar/favoriter" element={<FavoriteCompetitionsPage />} />
+          <Route path="/tavlingar/lan/:countySlug" element={<CountyCompetitionsPage />} />
+          <Route path="/tavlingar/klubb/:clubSlug" element={<ClubCompetitionsPage />} />
+          <Route path="/tavlingar/hoopers/:id" element={<HoopersCompetitionDetailPage />} />
+          <Route path="/tavlingar/hoopers/:id/:slug" element={<HoopersCompetitionDetailPage />} />
+          <Route path="/tavlingar/:id" element={<CompetitionDetailPage />} />
+          <Route path="/tavlingar/:id/:slug" element={<CompetitionDetailPage />} />
+
+          {/* Inloggat läge är borttaget — allt leder till planeraren */}
+          <Route path="/auth" element={<Navigate to="/banplanerare" replace />} />
+          <Route path="/logga-in" element={<Navigate to="/banplanerare" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </>

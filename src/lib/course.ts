@@ -89,7 +89,7 @@ const o = (
 
 export const SAMPLE_COURSES: Course[] = [
   {
-    slug: "sm-slug",
+    slug: "sv_agility_3_master_01",
     name: "Mästerskapsloopen",
     sport: "agility",
     level: "Klass 3 · 18 hinder",
@@ -108,7 +108,7 @@ export const SAMPLE_COURSES: Course[] = [
     ],
   },
   {
-    slug: "pinch",
+    slug: "sv_agility_1_balans_01",
     name: "Nyckeln",
     sport: "agility",
     level: "Klass 1–2 · 12 hinder",
@@ -125,7 +125,7 @@ export const SAMPLE_COURSES: Course[] = [
     ],
   },
   {
-    slug: "serpentin",
+    slug: "sv_hopp_2_teknik_01",
     name: "Serpentinen",
     sport: "agility",
     level: "Öppen · 14 hinder",
@@ -144,7 +144,7 @@ export const SAMPLE_COURSES: Course[] = [
     ],
   },
   {
-    slug: "hoopers-flow",
+    slug: "hoopers_1_basic",
     name: "Hoopersflödet",
     sport: "hoopers",
     level: "Hoopers · 10 moment",

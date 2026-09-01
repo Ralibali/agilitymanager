@@ -69,7 +69,6 @@ function obstacleDistanceMeters(a?: Planner3DObstacle, b?: Planner3DObstacle, wi
 }
 
 export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightMeters, initialMode = "view", courseName, onClose }: CoursePlanner3DProps) {
-  void courseName;
   const [mode, setMode] = useState<"view" | "walk">(initialMode);
   const [webglOk] = useState(() => detectWebGL());
   const isMobile = useMemo(() => typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches, []);
@@ -94,9 +93,15 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
   useEffect(() => {
     try { window.localStorage.setItem(TUNNEL_CURVE_KEY, JSON.stringify(curveOverrides)); } catch { /* ignore */ }
   }, [curveOverrides]);
-  useEffect(() => {
-    if (selectedTunnelId && !obstacles.some((o) => o.id === selectedTunnelId)) setSelectedTunnelId(null);
-  }, [obstacles, selectedTunnelId]);
+  // Rensa borttagen tunnel under render (React-mönstret "adjust state during
+  // render") istället för synkron setState i en effect.
+  const [prevObstacles, setPrevObstacles] = useState(obstacles);
+  if (prevObstacles !== obstacles) {
+    setPrevObstacles(obstacles);
+    if (selectedTunnelId && !obstacles.some((o) => o.id === selectedTunnelId)) {
+      setSelectedTunnelId(null);
+    }
+  }
 
   const updateTunnelCurve = (patch: Partial<TunnelCurve>) => {
     if (!selectedTunnel) return;
@@ -114,8 +119,8 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") { if (mode === "walk") setMode("view"); else onClose(); }
-      if (mode === "walk" && e.key.toLowerCase() === "n") setCurrentIdx((i) => Math.min(numbered.length - 1, i + 1));
-      if (mode === "walk" && e.key.toLowerCase() === "p") setCurrentIdx((i) => Math.max(0, i - 1));
+      if (mode === "walk" && e.key.toLowerCase() === "n") { setCurrentIdx((i) => Math.min(numbered.length - 1, i + 1)); setTeleportV((v) => v + 1); }
+      if (mode === "walk" && e.key.toLowerCase() === "p") { setCurrentIdx((i) => Math.max(0, i - 1)); setTeleportV((v) => v + 1); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -128,7 +133,9 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
     document.body.style.overscrollBehavior = "none";
     return () => { document.body.style.overflow = prevOverflow; document.body.style.overscrollBehavior = prevOverscroll; };
   }, []);
-  useEffect(() => { if (mode === "walk") setTeleportV((v) => v + 1); }, [mode, currentIdx]);
+  // Teleport triggas av CameraTeleport vid mount (walk-läge monteras villkorligt)
+  // samt när walkPose ändras (currentIdx/mode). teleportV bumpas i event-hanterare
+  // för att tvinga om-teleport även när posen är oförändrad.
   useEffect(() => { if (!showHint) return; const t = window.setTimeout(() => setShowHint(false), 3200); return () => window.clearTimeout(t); }, [showHint]);
 
   const walkPose = useMemo(() => {
@@ -148,16 +155,16 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
   const overviewCamera = useMemo(() => isMobile ? ([widthMeters * 0.42, maxDim * 0.42, heightMeters * 0.74] as [number, number, number]) : ([widthMeters * 0.5, maxDim * 0.46, heightMeters * 0.68] as [number, number, number]), [isMobile, widthMeters, heightMeters, maxDim]);
 
   if (!webglOk) {
-    return <div className="fixed inset-0 z-[1100] bg-[#f6f2ea] text-v3-text-primary grid place-items-center p-6"><div className="max-w-md text-center space-y-4 rounded-[28px] bg-white border border-black/8 shadow-v3-xl p-6"><div className="text-2xl font-semibold">3D-läget kan inte visas</div><p className="text-v3-text-secondary">Din enhet eller webbläsare stöder inte WebGL.</p><button onClick={onClose} className="h-11 px-5 rounded-full bg-v3-text-primary text-white font-semibold">Tillbaka till 2D</button></div></div>;
+    return <div role="alertdialog" aria-modal="true" aria-label="3D-läget kan inte visas" className="fixed inset-0 z-[1100] bg-[#f6f2ea] text-v3-text-primary grid place-items-center p-6"><div className="max-w-md text-center space-y-4 rounded-[28px] bg-white border border-black/8 shadow-v3-xl p-6"><div className="text-2xl font-semibold">3D-läget kan inte visas</div><p className="text-v3-text-secondary">Din enhet eller webbläsare stöder inte WebGL.</p><button onClick={onClose} className="h-11 px-5 rounded-full bg-v3-text-primary text-white font-semibold">Tillbaka till 2D</button></div></div>;
   }
 
   const startWalk = () => { setCurrentIdx(0); setShowHint(true); setMode("walk"); };
 
 
   return (
-    <div className="fixed inset-0 z-[1100] bg-[#f6f2ea]" style={{ touchAction: "none" }}>
+    <div role="dialog" aria-modal="true" aria-label={courseName ? `3D-vy av ${courseName}` : "3D-vy av banan"} className="fixed inset-0 z-[1100] bg-[#f6f2ea]" style={{ touchAction: "none" }}>
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between gap-2 px-3 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] bg-gradient-to-b from-black/35 to-transparent text-white">
-        <button onClick={onClose} className="h-10 px-3 rounded-full bg-black/45 hover:bg-black/55 backdrop-blur inline-flex items-center gap-2 text-sm font-semibold shadow-lg"><X size={16} /> Avsluta</button>
+        <button autoFocus onClick={onClose} className="h-10 px-3 rounded-full bg-black/45 hover:bg-black/55 backdrop-blur inline-flex items-center gap-2 text-sm font-semibold shadow-lg"><X size={16} /> Avsluta</button>
         <div className="flex items-center gap-1 rounded-full bg-black/35 backdrop-blur p-1 shadow-lg">
           <button onClick={() => setMode("view")} className={`h-9 px-3 rounded-full text-sm font-semibold inline-flex items-center gap-1.5 ${mode === "view" ? "bg-white text-black" : "text-white/85"}`}><Eye size={15} /> 3D</button>
           <button onClick={startWalk} className={`h-9 px-3 rounded-full text-sm font-semibold inline-flex items-center gap-1.5 ${mode === "walk" ? "bg-white text-black" : "text-white/85"}`}><Footprints size={15} /> Gå banan</button>
@@ -166,13 +173,13 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
 
       {mode === "walk" && numbered.length === 0 && <div className="absolute left-1/2 top-[88px] z-40 w-[min(92vw,420px)] -translate-x-1/2 rounded-[24px] bg-white/92 border border-black/10 shadow-2xl backdrop-blur-xl p-4 text-center"><div className="text-[11px] uppercase tracking-[0.12em] font-semibold text-v3-text-tertiary mb-1">Gå banan</div><div className="text-lg font-semibold text-v3-text-primary">Numrera hindren i 2D först</div><p className="mt-1 text-sm text-v3-text-secondary">För att kunna gå banan i rätt ordning behöver hindren ha nummer.</p><button onClick={onClose} className="mt-3 h-10 px-4 rounded-full bg-v3-text-primary text-white text-sm font-semibold">Tillbaka till 2D</button></div>}
       {mode === "walk" && numbered.length > 0 && <div className="absolute top-[72px] left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-[18px] bg-black/58 backdrop-blur text-white text-xs sm:text-sm font-semibold max-w-[92vw] text-center shadow-lg"><div>Hinder {currentObstacle?.number}: {currentObstacle?.label ?? currentObstacle?.type}</div>{nextObstacle ? <div className="opacity-75 text-[11px] mt-0.5">Nästa: {nextObstacle.number} {nextObstacle.label ?? nextObstacle.type}{distanceToNext != null ? ` · ca ${distanceToNext} m` : ""}</div> : <div className="opacity-75 text-[11px] mt-0.5">Sista hindret</div>}</div>}
-      {mode === "walk" && numbered.length > 1 && <div className="absolute right-3 top-[126px] z-30 flex flex-col gap-2"><button onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))} className="h-11 w-11 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg"><ChevronLeft size={20} /></button><button onClick={() => setCurrentIdx((i) => Math.min(numbered.length - 1, i + 1))} className="h-11 w-11 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg"><ChevronRight size={20} /></button><button onClick={() => setCurrentIdx(0)} className="h-11 w-11 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg"><RotateCcw size={17} /></button></div>}
+      {mode === "walk" && numbered.length > 1 && <div className="absolute right-3 top-[126px] z-30 flex flex-col gap-2"><button aria-label="Föregående hinder" onClick={() => { setCurrentIdx((i) => Math.max(0, i - 1)); setTeleportV((v) => v + 1); }} className="h-11 w-11 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg"><ChevronLeft size={20} /></button><button aria-label="Nästa hinder" onClick={() => { setCurrentIdx((i) => Math.min(numbered.length - 1, i + 1)); setTeleportV((v) => v + 1); }} className="h-11 w-11 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg"><ChevronRight size={20} /></button><button aria-label="Börja om vid första hindret" onClick={() => { setCurrentIdx(0); setTeleportV((v) => v + 1); }} className="h-11 w-11 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg"><RotateCcw size={17} /></button></div>}
 
       {selectedTunnel && selectedTunnelCurve && (
         <div className="absolute left-3 right-3 bottom-[max(3.2rem,calc(env(safe-area-inset-bottom)+3.2rem))] sm:left-auto sm:right-4 sm:bottom-4 sm:w-[340px] z-40 rounded-[24px] bg-white/92 border border-black/10 shadow-2xl backdrop-blur-xl p-4 text-v3-text-primary" style={{ touchAction: "auto" }}>
           <div className="flex items-start justify-between gap-3 mb-3">
             <div><div className="text-xs uppercase tracking-[0.12em] font-bold text-v3-text-tertiary">Tunnel</div><div className="text-base font-semibold">Böjning {selectedTunnelCurve.curveDeg}°</div></div>
-            <button onClick={() => setSelectedTunnelId(null)} className="h-8 w-8 rounded-full bg-black/5 grid place-items-center"><X size={15} /></button>
+            <button aria-label="Stäng tunnelpanelen" onClick={() => setSelectedTunnelId(null)} className="h-8 w-8 rounded-full bg-black/5 grid place-items-center"><X size={15} /></button>
           </div>
           <input type="range" min={0} max={90} step={5} value={selectedTunnelCurve.curveDeg} onChange={(e) => updateTunnelCurve({ curveDeg: Number(e.target.value) })} className="w-full accent-[#173d2c]" />
           <div className="mt-3 grid grid-cols-2 gap-2">

@@ -55,17 +55,17 @@ export function CourseMenu({ onSave, onSaveAs, onOpen, onNew, dirty, lastSavedAt
         <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-ink/50">
           {status}
         </DropdownMenuLabel>
-        <DropdownMenuItem onSelect={onSave} className="min-h-11 font-semibold">
+        <DropdownMenuItem onSelect={onSave} aria-keyshortcuts="Control+S" className="min-h-11 font-semibold">
           <Save className="mr-2 h-4 w-4" /> Spara bana
-          <span className="ml-auto text-xs text-ink/40">Ctrl+S</span>
+          <span className="ml-auto text-xs text-ink/40" aria-hidden="true">Ctrl+S</span>
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={onSaveAs} className="min-h-11 font-semibold">
           <SaveAll className="mr-2 h-4 w-4" /> Spara som…
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={onOpen} className="min-h-11 font-semibold">
+        <DropdownMenuItem onSelect={onOpen} aria-keyshortcuts="Control+O" className="min-h-11 font-semibold">
           <FolderOpen className="mr-2 h-4 w-4" /> Öppna bana…
-          <span className="ml-auto text-xs text-ink/40">Ctrl+O</span>
+          <span className="ml-auto text-xs text-ink/40" aria-hidden="true">Ctrl+O</span>
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={onNew} className="min-h-11 font-semibold">
           <FilePlus2 className="mr-2 h-4 w-4" /> Ny bana

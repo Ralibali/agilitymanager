@@ -1,0 +1,40 @@
+{
+  "redirects": [
+    {
+      "source": "/priser",
+      "destination": "/banplanerare",
+      "permanent": true
+    },
+    {
+      "source": "/gratis",
+      "destination": "/banplanerare",
+      "permanent": true
+    },
+    {
+      "source": "/auth",
+      "destination": "/banplanerare",
+      "permanent": true
+    },
+    {
+      "source": "/logga-in",
+      "destination": "/banplanerare",
+      "permanent": true
+    },
+    {
+      "source": "/tavlingar",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/tavlingar/:path*",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

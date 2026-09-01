@@ -33,6 +33,9 @@ export const SKK_AGILITY_2023: RuleSet = {
   id: "skk-agility-2023",
   name: "SAgiK/SKK Agility 2022–2026",
   authority: "Svenska Agilityklubben (SAgiK) / Svenska Kennelklubben (SKK)",
+  organization: "SAgiK/SKK",
+  country: "SE",
+  version: "2022-01-01–2026-12-31",
   validFrom: "2022-01-01",
   validTo: "2026-12-31",
   sourceUrl: "https://www.agilityklubben.se/regler",
@@ -40,7 +43,8 @@ export const SKK_AGILITY_2023: RuleSet = {
     {
       name: "Regler för agilitytävlingar 2022-01-01–2026-12-31",
       url: "http://agilityklubben.se/wp-content/uploads/2022/02/REGLER_AGILITY-_TAVLINGAR_2022_2026.pdf",
-      notes: "Huvudregelverk — verifierat 2026-07: storleksgrupper (§2.1), banområde och hinderavstånd (§3.1), tidtagning (§3.4), hopphöjder (§4.5), långhopp (§4.7), däck (§4.8).",
+      notes: "Huvudregelverk — verifierat 2026-07, omkontrollerat 2026-08-31: storleksgrupper (§2.1), banområde och hinderavstånd 6–8 m (§3.1), tidtagning (§3.4), hopphöjder (§4.5), långhopp (§4.7), däck (§4.8).",
+      section: "§2.1, §3.1, §3.4, §4.5, §4.7, §4.8",
     },
     {
       name: "Referenstid – regelverkets modell",
@@ -98,6 +102,7 @@ export const SKK_AGILITY_2023: RuleSet = {
   // hopphöjder, långhopp, däck, maxtidsfaktor) är citerade mot SAgiK/SKK
   // 2022–2026 enligt sourceDocuments. Kvar: tunnel→kontaktfält-avstånd.
   verificationStatus: "partially_verified",
+  verifiedAt: "2026-08-31",
   verifiedFields: [
     "sizeClasses.jumpHeightCm",
     "sizeClasses.tireHeightCm",

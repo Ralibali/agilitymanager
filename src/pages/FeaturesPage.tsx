@@ -1,13 +1,14 @@
 import { Link } from "react-router";
 import {
-  ArrowRight, CalendarDays, FileDown, LayoutGrid, Medal,
-  MousePointer2, NotebookPen, Ruler, ShieldCheck, Smartphone, Spline, Users, Video,
+  ArrowRight, BookOpen, FileDown, LayoutGrid, Medal,
+  MousePointer2, NotebookPen, Ruler, ShieldCheck, Smartphone, Spline, Users,
 } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Marquee } from "@/components/Marquee";
 import { Reveal } from "@/components/Reveal";
+import { Seo } from "@/components/Seo";
 
 const GROUPS = [
   {
@@ -33,13 +34,13 @@ const GROUPS = [
     ],
   },
   {
-    kicker: "Mer på gång",
+    kicker: "Kunskap & kvalitet",
     title: "Vi bygger sportens verktygslåda.",
-    text: "Banplaneraren är hjärtat — och den andas in i allt annat vi gör. Den är gratis att använda; nya extrafunktioner kan bli betalda och märks då tydligt.",
+    text: "Banplaneraren är hjärtat — och runt den växer en kunskapsbank som hjälper dig bli en bättre banbyggare, oavsett nivå.",
     items: [
-      { icon: CalendarDays, t: "Tävlingskalender", d: "Agility- och hooperstarter över hela landet, samlade och sökbara." },
-      { icon: Medal, t: "Banor till tävling", d: "Träna på banlayouter inspirerade av riktiga klasser och nivåer." },
-      { icon: Video, t: "Coachtips i nyhetsbrevet", d: "SM-meriterade tips om handling, banläsning och träningsupplägg — rakt i inkorgen." },
+      { icon: BookOpen, t: "Blogg & guider", d: "Fördjupningar om bandesign, säkerhet, regler och träningsupplägg — på svenska." },
+      { icon: Medal, t: "Nivåmärkta banor", d: "Träna på banlayouter inspirerade av riktiga klasser och nivåer, från nollklass uppåt." },
+      { icon: NotebookPen, t: "Regelöversikter", d: "Vi håller reda på var de officiella regelverken finns — och märker tydligt vad som är vår egen analys." },
       { icon: Smartphone, t: "Mobil först", d: "Hela upplevelsen är byggd touch-first. Planen är där du är." },
     ],
   },
@@ -48,6 +49,11 @@ const GROUPS = [
 export default function FeaturesPage() {
   return (
     <div className="min-h-screen bg-paper text-ink">
+      <Seo
+        title="Funktioner — allt banplaneraren kan | AgilityManager"
+        description="Hindereditor i meterskala, live banlinje, PNG-export, delningslänkar, nivåmärkt banbibliotek och kunskapsbank för agility och hoopers. Gratis, utan konto."
+        canonicalPath="/funktioner"
+      />
       <SiteNav />
       <PageHero kicker="Funktioner" title="Allt banplaneraren kan.">
         Från första hindret till färdig delningslänk — här är hela verktygslådan.
@@ -98,7 +104,7 @@ export default function FeaturesPage() {
       ))}
 
       <Marquee
-        items={["Banplanerare", "Agility", "Hoopers", "Delningslänkar", "PNG-export", "Tävlingskalender"]}
+        items={["Banplanerare", "Agility", "Hoopers", "Delningslänkar", "PNG-export", "Blogg & guider"]}
         className="border-b-2 border-ink bg-paper text-ink"
         reverse
       />
@@ -112,8 +118,8 @@ export default function FeaturesPage() {
             <Link to="/banplanerare" className="pressable shadow-hard inline-flex h-14 items-center gap-2 rounded-full bg-tang px-8 text-lg font-bold text-ink">
               Öppna banplaneraren <ArrowRight className="h-5 w-5" />
             </Link>
-            <Link to="/priser" className="pressable shadow-hard inline-flex h-14 items-center gap-2 rounded-full border-2 border-ink bg-paper px-8 text-lg font-bold">
-              Se vad som är gratis
+            <Link to="/blogg" className="pressable shadow-hard inline-flex h-14 items-center gap-2 rounded-full border-2 border-ink bg-paper px-8 text-lg font-bold">
+              Läs guiderna först
             </Link>
           </div>
         </Reveal>

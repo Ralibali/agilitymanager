@@ -1,3 +1,8 @@
 node_modules/
 dist/
+
+# Local environment files may contain deployment-specific configuration.
+# Keep only placeholder examples in version control.
 .env
+.env.*
+!.env.example

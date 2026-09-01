@@ -11,7 +11,7 @@
  *
  * Hastigheten och coachpoängen är planeringsstöd, inte officiell klassning.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import {
   Activity,
   Eye,
@@ -36,10 +36,7 @@ import {
 } from "@/features/course-planner-v2/pathSampling";
 import { analyzeCourse, FLOW_THRESHOLDS } from "@/features/course-planner-v2/courseAnalysis";
 import type { ObstacleLite } from "@/features/course-planner-v2/validation";
-
-const SPEEDS = [0.25, 0.5, 1, 1.5, 2] as const;
-type Speed = typeof SPEEDS[number];
-const BASE_M_PER_S = 4; // 1× = 4 m/s, endast visualisering
+import { BASE_M_PER_S, SPEEDS, type Speed } from "./useCoursePlayback";
 
 interface Checkpoint {
   number: number;
@@ -363,7 +360,7 @@ export function CoursePlaybackControls({
       <div className="mt-2.5 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
         <div className="min-w-0">
           <div className="mb-1.5 flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-wider text-ink/50">
-            <span>
+            <span aria-live="polite">
               {current ? `Passage #${current.number}` : "Start"}
               {next && next !== current ? ` → #${next.number} · ${nextDistanceM.toFixed(1)} m` : " → mål"}
             </span>
@@ -496,58 +493,3 @@ export function CoursePlaybackControls({
     </div>
   );
 }
-
-/** Hook som hanterar tid + animation. */
-export function useCoursePlayback(course: CoursePathInput, active: boolean) {
-  const [t, setT] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const [speed, setSpeed] = useState<Speed>(1);
-  const path = useMemo(() => buildCoursePath(course), [course]);
-  const rafRef = useRef<number | null>(null);
-  const lastRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!active) {
-      setT(0);
-      setPlaying(false);
-      lastRef.current = null;
-    }
-  }, [active]);
-
-  // Tangentbordet ägs av PlannerPage. Tidigare fanns en extra Space-listener
-  // här också, vilket kunde toggla play/pause två gånger på samma tangenttryck.
-
-  useEffect(() => {
-    if (!active || !playing || path.total === 0) {
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-      lastRef.current = null;
-      return;
-    }
-    const step = (ts: number) => {
-      if (lastRef.current == null) lastRef.current = ts;
-      const dt = (ts - lastRef.current) / 1000;
-      lastRef.current = ts;
-      const dT = (BASE_M_PER_S * speed * dt) / path.total;
-      setT((prev) => {
-        const nextT = prev + dT;
-        if (nextT >= 1) {
-          setPlaying(false);
-          return 1;
-        }
-        return nextT;
-      });
-      rafRef.current = requestAnimationFrame(step);
-    };
-    rafRef.current = requestAnimationFrame(step);
-    return () => {
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-      lastRef.current = null;
-    };
-  }, [active, playing, speed, path.total]);
-
-  return { t, setT, playing, setPlaying, speed, setSpeed };
-}
-
-export type { Speed };

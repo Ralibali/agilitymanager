@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Loader2, Send, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlannerProfile } from "@/lib/plannerProfile";
@@ -20,6 +20,19 @@ const CATEGORIES = [
 
 type Category = (typeof CATEGORIES)[number]["id"];
 
+/** Maxstorlek på bifogad bana — speglar migrationens policy-cap (60 kB). */
+const MAX_SNAPSHOT_CHARS = 50_000;
+
+/** Serialisera och storlekskapa en bansnapshot; hoppa över om den är för stor. */
+function boundedSnapshot(courseData: unknown): unknown {
+  try {
+    const s = JSON.stringify(courseData);
+    return s.length <= MAX_SNAPSHOT_CHARS ? courseData : null;
+  } catch {
+    return null;
+  }
+}
+
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -36,11 +49,16 @@ export default function FeedbackDialog({ open, onOpenChange, courseData }: Props
   const [attach, setAttach] = useState(true);
   const [sending, setSending] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
-    setName((n) => n || profile?.name || "");
-    setEmail((e) => e || profile?.email || "");
-  }, [open, profile]);
+  // Fyll i namn/e-post från profilen när dialogen öppnas — justering under
+  // render i stället för en effekt (undviker cascaderande renders).
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setName((n) => n || profile?.name || "");
+      setEmail((e) => e || profile?.email || "");
+    }
+  }
 
   async function submit() {
     const text = message.trim();
@@ -49,23 +67,28 @@ export default function FeedbackDialog({ open, onOpenChange, courseData }: Props
       return;
     }
     setSending(true);
-    const { error } = await supabase.from("planner_feedback").insert({
-      name: name.trim() || null,
-      email: email.trim() || null,
-      category,
-      message: text.slice(0, 4000),
-      course_snapshot: attach && courseData ? (courseData as never) : null,
-      page_url: typeof window !== "undefined" ? window.location.href.slice(0, 500) : null,
-      user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 300) : null,
-    });
-    setSending(false);
-    if (error) {
+    try {
+      const { error } = await supabase.from("planner_feedback").insert({
+        name: name.trim() || null,
+        email: email.trim() || null,
+        category,
+        message: text.slice(0, 4000),
+        course_snapshot: attach ? (boundedSnapshot(courseData) as never) : null,
+        page_url: typeof window !== "undefined" ? window.location.href.slice(0, 500) : null,
+        user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 300) : null,
+      });
+      if (error) {
+        toast.error("Kunde inte skicka just nu — försök igen");
+        return;
+      }
+      toast.success("Tack! Ditt förslag är skickat.");
+      setMessage("");
+      onOpenChange(false);
+    } catch {
       toast.error("Kunde inte skicka just nu — försök igen");
-      return;
+    } finally {
+      setSending(false);
     }
-    toast.success("Tack! Ditt förslag är skickat.");
-    setMessage("");
-    onOpenChange(false);
   }
 
   return (
@@ -82,11 +105,13 @@ export default function FeedbackDialog({ open, onOpenChange, courseData }: Props
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Typ av förslag">
             {CATEGORIES.map((c) => (
               <button
                 key={c.id}
                 type="button"
+                role="radio"
+                aria-checked={category === c.id}
                 onClick={() => setCategory(c.id)}
                 className={`rounded-full border-2 border-ink px-3 py-1.5 text-sm font-bold transition-colors ${
                   category === c.id ? "bg-forest text-paper" : "bg-paper hover:bg-cream"
@@ -103,6 +128,7 @@ export default function FeedbackDialog({ open, onOpenChange, courseData }: Props
             rows={5}
             maxLength={4000}
             placeholder="Vad saknas? Vad krånglar? Vilka hinder eller funktioner vill du se?"
+            aria-label="Ditt förslag eller felmeddelande"
             className="w-full rounded-xl border-2 border-ink bg-paper p-3 text-sm outline-none focus:border-forest"
           />
 
@@ -111,13 +137,16 @@ export default function FeedbackDialog({ open, onOpenChange, courseData }: Props
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Namn (frivilligt)"
+              aria-label="Namn (frivilligt)"
               maxLength={80}
               className="rounded-xl border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-forest"
             />
             <input
               value={email}
+              type="email"
               onChange={(e) => setEmail(e.target.value)}
               placeholder="E-post (om du vill ha svar)"
+              aria-label="E-post (om du vill ha svar)"
               maxLength={255}
               className="rounded-xl border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-forest"
             />

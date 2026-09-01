@@ -2,9 +2,11 @@ import { Link } from "react-router";
 import { ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/SiteNav";
 import { Marquee } from "@/components/Marquee";
+import { Seo } from "@/components/Seo";
 
 export function NotFound() {  return (
     <div className="flex min-h-screen flex-col bg-paper text-ink">
+      <Seo title="Sidan hittades inte | AgilityManager" description="Sidan du letar efter finns inte." noIndex />
       <header className="flex h-[4.25rem] items-center px-4 sm:px-6">
         <Logo />
       </header>

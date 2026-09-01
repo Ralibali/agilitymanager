@@ -2,17 +2,40 @@
  * Sprint 5 — Banbibliotek (egna sparade banor + klubb-delade).
  */
 import { supabase } from "@/integrations/supabase/client";
+import type { ClassTemplateKey, SizeClassKey } from "./config";
+import type { PlacedObstacle } from "@/lib/course";
+
+/** Känt schema för sparad bandata. Okända extrafält tolereras men typas som unknown. */
+export interface LibraryCourseData {
+  version?: number;
+  sport?: string;
+  sizeClass?: SizeClassKey;
+  arenaWidthM?: number;
+  arenaHeightM?: number;
+  classTemplate?: ClassTemplateKey | null;
+  ruleSetId?: string;
+  obstacles?: PlacedObstacle[];
+  [key: string]: unknown;
+}
 
 export interface LibraryCourse {
   id: string;
   user_id: string;
   name: string;
   description: string;
-  course_data: any;
+  course_data: LibraryCourseData;
   created_at: string;
   updated_at: string;
   is_public?: boolean;
   public_slug?: string | null;
+}
+
+interface ClubShareJoinRow {
+  saved_courses: LibraryCourse;
+}
+
+interface ClubJoinRow {
+  clubs: { id: string; name: string };
 }
 
 export async function fetchMyCourses(userId: string): Promise<LibraryCourse[]> {
@@ -37,7 +60,7 @@ export async function fetchClubCourses(clubId: string): Promise<LibraryCourse[]>
     .eq("club_id", clubId)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return ((data ?? []) as any[]).map((r) => r.saved_courses as LibraryCourse);
+  return ((data ?? []) as unknown as ClubShareJoinRow[]).map((r) => r.saved_courses);
 }
 
 export async function fetchMyClubs(userId: string): Promise<{ id: string; name: string }[]> {
@@ -47,7 +70,7 @@ export async function fetchMyClubs(userId: string): Promise<{ id: string; name: 
     .eq("user_id", userId)
     .eq("status", "accepted");
   if (error) throw error;
-  return ((data ?? []) as any[]).map((r) => r.clubs);
+  return ((data ?? []) as unknown as ClubJoinRow[]).map((r) => r.clubs);
 }
 
 export async function shareCourseToClub(courseId: string, clubId: string, userId: string) {
@@ -71,14 +94,20 @@ export async function fetchCourseClubShares(courseId: string) {
     .select("club_id, clubs!inner(id, name)")
     .eq("course_id", courseId);
   if (error) throw error;
-  return ((data ?? []) as any[]).map((r) => r.clubs);
+  return ((data ?? []) as unknown as ClubJoinRow[]).map((r) => r.clubs);
 }
 
 /* ───────── Publik delningslänk ───────── */
 
-function randomSlug() {
-  return Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 6);
+/** Kryptografiskt slumpad slug — delningslänkar ska inte vara gissningsbara. */
+function randomSlug(): string {
+  const bytes = new Uint8Array(9);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => (b % 36).toString(36)).join("");
 }
+
+/** Slugs genereras som [a-z0-9] — avvisa allt annat innan databasanrop. */
+const PUBLIC_SLUG_RE = /^[a-z0-9]{6,32}$/;
 
 export async function enablePublicLink(courseId: string): Promise<string> {
   // Hämta ev. befintlig slug
@@ -99,6 +128,7 @@ export async function disablePublicLink(courseId: string) {
 }
 
 export async function fetchPublicCourse(slug: string): Promise<LibraryCourse | null> {
+  if (!PUBLIC_SLUG_RE.test(slug)) return null;
   const { data, error } = await supabase
     .from("saved_courses")
     .select("id,user_id,name,description,course_data,created_at,updated_at,is_public,public_slug")

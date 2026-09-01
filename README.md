@@ -71,3 +71,9 @@ export default defineConfig([
   },
 ])
 ```
+
+## Produktionsdeploy och SEO
+
+`vercel.json` definierar permanenta server-side redirects för utgående ytor (`/priser`, `/gratis`, `/auth`, `/logga-in` och `/tavlingar/*`) samt SPA-fallback till `index.html` för appens giltiga routes.
+
+Eftersom detta är en Vite SPA utan server-side routing kan okända nya slugs inte returnera en äkta HTTP 404 utan ett middleware- eller SSR-lager. Sidans klientmarkerar därför 404 och dynamiska delade banor som `noindex,follow`; om en framtida host stödjer edge middleware bör okända routes dessutom returnera HTTP 404.

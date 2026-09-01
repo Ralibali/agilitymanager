@@ -1,4 +1,5 @@
 import { ObstacleGlyph } from "@/components/ObstacleGlyph";
+import { clampArenaM, gridTicks, sanitizePreviewObstacles } from "@/lib/courseSafety";
 import type { PlacedObstacle } from "@/lib/course";
 
 export interface PreviewCourseData {
@@ -17,11 +18,11 @@ export function CoursePreviewSvg({
   className?: string;
   label?: string;
 }) {
-  const w = data.arenaWidthM ?? 30;
-  const h = data.arenaHeightM ?? 40;
-  const obstacles = data.obstacles ?? [];
-  const gridX = Array.from({ length: Math.floor(w / 5) + 1 }, (_, i) => i * 5);
-  const gridY = Array.from({ length: Math.floor(h / 5) + 1 }, (_, i) => i * 5);
+  const w = clampArenaM(data.arenaWidthM, 30);
+  const h = clampArenaM(data.arenaHeightM, 40);
+  const obstacles = sanitizePreviewObstacles(data.obstacles, w, h);
+  const gridX = gridTicks(w, 5);
+  const gridY = gridTicks(h, 5);
 
   return (
     <svg

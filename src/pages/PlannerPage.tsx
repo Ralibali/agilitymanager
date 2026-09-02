@@ -1616,6 +1616,16 @@ export default function PlannerPage() {
                       {/* träffyta — extra stor så att hindret är lätt att peka på i mobilen */}
                       <circle r={2.1 * detail} fill="transparent" />
                       {isSelected && <circle r={1.95 * detail} fill="#E24C00" opacity="0.07" />}
+                      {/* Markörplatta — gör hindret lätt att se även på stora skärmar */}
+                      <circle
+                        r={1.25 * detail}
+                        fill="#FFFFFF"
+                        fillOpacity="0.72"
+                        stroke={isSelected || hasIssue ? "#E24C00" : "#161812"}
+                        strokeOpacity={isSelected ? 0.9 : 0.28}
+                        strokeWidth={0.07 * detail}
+                        data-ui
+                      />
                       <ObstacleGlyph
                         type={ob.type}
                         stroke={isSelected ? "#E24C00" : hasIssue ? "#E24C00" : "#161812"}

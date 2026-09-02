@@ -1150,7 +1150,7 @@ export default function PlannerPage() {
     { id: "rulers", label: showRulers ? "Dölj linjaler" : "Visa linjaler", group: "Visa", icon: <Ruler className="h-4 w-4" />, run: () => setShowRulers((v) => !v) },
     { id: "zoom-in", label: "Zooma in", group: "Visa", shortcut: ["+"], icon: <ZoomIn className="h-4 w-4" />, run: () => zoomStep(1) },
     { id: "zoom-out", label: "Zooma ut", group: "Visa", shortcut: ["-"], icon: <ZoomOut className="h-4 w-4" />, run: () => zoomStep(-1) },
-    { id: "zoom-reset", label: "Zoom 100%", group: "Visa", shortcut: ["0"], run: resetView },
+    { id: "zoom-reset", label: "Zoom 100 %", group: "Visa", shortcut: ["0"], run: resetView },
     { id: "zoom-fit", label: "Passa banan i skärmen", group: "Visa", icon: <Maximize className="h-4 w-4" />, run: fitToScreen },
     { id: "save-course", label: "Spara bana", group: "Bana", shortcut: ["Ctrl", "S"], run: () => void persistCourse(), disabled: !hasObstacles, hint: hasObstacles ? undefined : "Lägg till hinder först" },
     { id: "save-course-as", label: "Spara bana som…", group: "Bana", run: handleSaveAs, disabled: !hasObstacles, hint: hasObstacles ? undefined : "Lägg till hinder först" },

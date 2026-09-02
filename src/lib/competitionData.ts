@@ -228,7 +228,7 @@ export function deadlineInfo(registrationCloses: string | null, now: Date = new 
   const days = daysUntil(registrationCloses, now);
   if (days === null) return { tone: "unknown", label: "Anmälningsdatum saknas" };
   if (days < 0) return { tone: "closed", label: "Anmälan stängd" };
-  if (days === 0) return { tone: "urgent", label: "Sista anmälningsdag idag" };
+  if (days === 0) return { tone: "urgent", label: "Sista anmälningsdag i dag" };
   if (days <= 7) return { tone: "urgent", label: `Anmälan stänger om ${days} ${days === 1 ? "dag" : "dagar"}` };
   return { tone: "open", label: `Anmälan öppen — ${days} dagar kvar` };
 }

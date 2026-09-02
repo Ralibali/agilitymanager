@@ -60,7 +60,7 @@ export default function GratisPage() {
       <section className="border-b-2 border-ink bg-forest text-paper">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:py-28">
           <Reveal>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-tang">Gratisnivån — det du får idag</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-tang">Gratisnivån — det du får i dag</p>
             <p className="mt-4 font-display text-[10rem] leading-none sm:text-[14rem]">
               0 <span className="text-6xl sm:text-8xl">kr</span>
             </p>
@@ -126,7 +126,7 @@ export default function GratisPage() {
               <p className="leading-relaxed text-ink/75">
                 <b className="text-ink">Och framtiden?</b> Nya extrafunktioner kan komma att
                 kosta pengar. Då är det tydligt märkt innan du väljer dem — och
-                banplaneraren du använder idag fortsätter vara gratis.
+                banplaneraren du använder i dag fortsätter vara gratis.
               </p>
             </div>
           </div>

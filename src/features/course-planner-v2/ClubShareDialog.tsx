@@ -106,7 +106,7 @@ export default function ClubShareDialog({ open, onOpenChange, courseId, courseNa
         <div className="p-4 space-y-5">
           <section>
             <div className="flex items-center gap-2 mb-2"><Link2 size={14} className="text-[#1a6b3c]" /><h3 className="text-[12px] uppercase tracking-wide font-semibold text-neutral-600">Domarlänk</h3></div>
-            <p className="text-[12px] text-neutral-500 mb-2">Skapa en publik länk som domare kan öppna utan inlogg.</p>
+            <p className="text-[12px] text-neutral-500 mb-2">Skapa en publik länk som domare kan öppna utan att logga in.</p>
             <button onClick={togglePublic} disabled={working || !courseId}
               aria-busy={working}
               className={`w-full h-9 rounded-lg text-[12px] font-semibold transition ${

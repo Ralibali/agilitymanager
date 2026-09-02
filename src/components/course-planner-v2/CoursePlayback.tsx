@@ -300,7 +300,7 @@ export function CoursePlaybackControls({
           </span>
           <div className="min-w-0">
             <p className="truncate text-xs font-black uppercase tracking-wider text-ink">Banvandring Pro</p>
-            <p className="text-[10px] font-semibold text-ink/50">Look-ahead · sekvensnavigator · coachprofil</p>
+            <p className="text-[10px] font-semibold text-ink/50">Framförhållning · sekvensnavigator · coachprofil</p>
           </div>
         </div>
 
@@ -444,7 +444,7 @@ export function CoursePlaybackControls({
         <div className="rounded-xl bg-cream px-2.5 py-2">
           <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Activity size={11} /> Svårighet</div>
           <div className="mt-0.5 text-xs font-black tabular-nums text-ink">{analysis.difficultyLabel} · {analysis.difficultyScore}</div>
-          <div className="mt-0.5 text-[9px] font-semibold text-ink/40">0–100 coachscore</div>
+          <div className="mt-0.5 text-[9px] font-semibold text-ink/40">0–100 i coachpoäng</div>
         </div>
         <div className="rounded-xl bg-cream px-2.5 py-2">
           <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Route size={11} /> Flow</div>

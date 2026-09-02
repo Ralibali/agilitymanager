@@ -128,7 +128,7 @@ export default function FeedbackDialog({ open, onOpenChange, courseData }: Props
             rows={5}
             maxLength={4000}
             placeholder="Vad saknas? Vad krånglar? Vilka hinder eller funktioner vill du se?"
-            aria-label="Ditt förslag eller felmeddelande"
+            aria-label="Ditt förslag eller din felbeskrivning"
             className="w-full rounded-xl border-2 border-ink bg-paper p-3 text-sm outline-none focus:border-forest"
           />
 

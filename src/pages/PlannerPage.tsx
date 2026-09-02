@@ -487,6 +487,16 @@ export default function PlannerPage() {
   const viewMinX = (w - vw) / 2 + view.panX;
   const viewMinY = (h - vh) / 2 + view.panY;
 
+  // Hur många skärmpixlar en meter blir just nu. På stora skärmar med liten bana
+  // blir linjerna annars hårfina — vi skalar upp detaljerna så hindren syns.
+  const pxPerMeter = useMemo(() => {
+    const availW = canvasPx.w || 800;
+    const availH = canvasPx.h || 600;
+    return Math.min(availW / vw, availH / vh) || 20;
+  }, [canvasPx.w, canvasPx.h, vw, vh]);
+  const detail = clamp(22 / pxPerMeter, 1, 2.6);
+
+
   const toField = useCallback(
     (clientX: number, clientY: number) => {
       const svg = svgRef.current;
@@ -1584,11 +1594,11 @@ export default function PlannerPage() {
                     ))}
                   </g>
                 )}
-                <rect x="0.15" y="0.15" width={w - 0.3} height={h - 0.3} fill="none" stroke="#161812" strokeOpacity="0.6" strokeWidth={0.12 / Math.sqrt(zoom)} />
+                <rect x="0.15" y="0.15" width={w - 0.3} height={h - 0.3} fill="none" stroke="#161812" strokeOpacity="0.6" strokeWidth={(0.12 * detail) / Math.sqrt(zoom)} />
 
                 {/* springlinje (hundens väg) */}
                 {showLine && runLineD && (
-                  <path d={runLineD} fill="none" stroke="#FF6900" strokeWidth={0.22 / Math.sqrt(zoom)} strokeDasharray={`${0.65 / Math.sqrt(zoom)} ${0.45 / Math.sqrt(zoom)}`} strokeLinecap="round" opacity="0.85" />
+                  <path d={runLineD} fill="none" stroke="#FF6900" strokeWidth={(0.24 * detail) / Math.sqrt(zoom)} strokeDasharray={`${(0.65 * detail) / Math.sqrt(zoom)} ${(0.45 * detail) / Math.sqrt(zoom)}`} strokeLinecap="round" opacity="0.85" />
                 )}
 
                 {/* hinder */}
@@ -1604,17 +1614,27 @@ export default function PlannerPage() {
                       opacity={ob.locked ? 0.75 : 1}
                     >
                       {/* träffyta — extra stor så att hindret är lätt att peka på i mobilen */}
-                      <circle r="2.1" fill="transparent" />
-                      {isSelected && <circle r="1.95" fill="#E24C00" opacity="0.07" />}
+                      <circle r={2.1 * detail} fill="transparent" />
+                      {isSelected && <circle r={1.95 * detail} fill="#E24C00" opacity="0.07" />}
+                      {/* Markörplatta — gör hindret lätt att se även på stora skärmar */}
+                      <circle
+                        r={1.25 * detail}
+                        fill="#FFFFFF"
+                        fillOpacity="0.72"
+                        stroke={isSelected || hasIssue ? "#E24C00" : "#161812"}
+                        strokeOpacity={isSelected ? 0.9 : 0.28}
+                        strokeWidth={0.07 * detail}
+                        data-ui
+                      />
                       <ObstacleGlyph
                         type={ob.type}
                         stroke={isSelected ? "#E24C00" : hasIssue ? "#E24C00" : "#161812"}
-                        sw={0.09}
+                        sw={0.1 * detail}
                         curveDeg={ob.curveDeg}
                         curveSide={ob.curveSide}
                       />
                       {hasIssue && !isSelected && (
-                        <circle r="1.15" fill="none" stroke="#E24C00" strokeWidth="0.08" strokeDasharray="0.2 0.14" data-ui />
+                        <circle r={1.15 * detail} fill="none" stroke="#E24C00" strokeWidth={0.09 * detail} strokeDasharray={`${0.2 * detail} ${0.14 * detail}`} data-ui />
                       )}
                       {ob.locked && (
                         <g transform={`rotate(${-ob.rotation})`} data-ui>
@@ -1624,24 +1644,24 @@ export default function PlannerPage() {
                       )}
                       {showNumbers && ob.number != null && (
                         <g transform={`rotate(${-ob.rotation})`}>
-                          <circle cx="1.05" cy="-1.05" r="0.62" fill={isSelected ? "#E24C00" : "#161812"} />
-                          <text x="1.05" y="-0.78" textAnchor="middle" fontSize="0.78" fontWeight="800" fill="#F6F1E7" fontFamily="Archivo, sans-serif">
+                          <circle cx={1.05 * detail} cy={-1.05 * detail} r={0.62 * detail} fill={isSelected ? "#E24C00" : "#161812"} stroke="#F6F1E7" strokeWidth={0.08 * detail} />
+                          <text x={1.05 * detail} y={-0.78 * detail} textAnchor="middle" fontSize={0.78 * detail} fontWeight="800" fill="#F6F1E7" fontFamily="Archivo, sans-serif">
                             {ob.number}
                           </text>
                         </g>
                       )}
                       {isSelected && (
                         <g data-ui>
-                          <circle r="1.7" fill="none" stroke="#E24C00" strokeWidth="0.07" strokeDasharray="0.25 0.18" />
+                          <circle r={1.7 * detail} fill="none" stroke="#E24C00" strokeWidth={0.08 * detail} strokeDasharray={`${0.25 * detail} ${0.18 * detail}`} />
                           {/* rotationshandtag */}
-                          <line x1="0" y1="-1.7" x2="0" y2="-2.9" stroke="#E24C00" strokeWidth="0.06" strokeDasharray="0.14 0.12" />
+                          <line x1="0" y1={-1.7 * detail} x2="0" y2={-2.9 * detail} stroke="#E24C00" strokeWidth={0.07 * detail} strokeDasharray={`${0.14 * detail} ${0.12 * detail}`} />
                           <g
-                            transform={`translate(0 -2.9) rotate(${-ob.rotation})`}
+                            transform={`translate(0 ${-2.9 * detail}) rotate(${-ob.rotation})`}
                             onPointerDown={(e) => onRotatePointerDown(e, ob.id)}
                             className="cursor-crosshair"
                           >
-                            <circle r="0.5" fill="#E24C00" stroke="#F6F1E7" strokeWidth="0.1" />
-                            <RotateCw width="0.5" height="0.5" x="-0.25" y="-0.25" color="#F6F1E7" />
+                            <circle r={0.5 * detail} fill="#E24C00" stroke="#F6F1E7" strokeWidth={0.1 * detail} />
+                            <RotateCw width={0.5 * detail} height={0.5 * detail} x={-0.25 * detail} y={-0.25 * detail} color="#F6F1E7" />
                           </g>
                         </g>
                       )}
@@ -1652,7 +1672,7 @@ export default function PlannerPage() {
                 {/* spökhinder vid placering */}
                 {placing && ghost && (
                   <g transform={`translate(${ghost.x} ${ghost.y})`} opacity="0.55" data-ui>
-                    <ObstacleGlyph type={placing} stroke="#006937" sw={0.09} />
+                    <ObstacleGlyph type={placing} stroke="#006937" sw={0.1 * detail} />
                   </g>
                 )}
 

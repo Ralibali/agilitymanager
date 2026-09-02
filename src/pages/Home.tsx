@@ -91,7 +91,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       <Seo
-        title="AgilityManager — Tävlingskalender + gratis banplanerare för agility & Hoopers"
+        title="AgilityManager — Tävlingskalender + gratis banplanerare för agility och hoopers"
         description="Hitta svenska agilitytävlingar, spara favoriter och bygg träningsbanor i meterskala för agility och hoopers. Regelkontroll, banbibliotek, export och delning — gratis att börja använda."
         canonicalPath="/"
         jsonLd={{

@@ -82,7 +82,7 @@ function CanvasRulersImpl(props: CanvasRulersProps) {
       <button
         type="button"
         onClick={onCornerClick}
-        title="Återställ zoom till 100%"
+        title="Återställ zoom till 100 %"
         className="absolute top-0 left-0 z-20 grid place-items-center bg-[#f5f3ee] border-r border-b border-[#173d2c]/15 text-[9px] font-bold text-[#173d2c]/70 hover:bg-white"
         style={{ width: RULER_PX, height: RULER_PX }}
       >

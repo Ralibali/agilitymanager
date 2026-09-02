@@ -56,9 +56,9 @@ const FCI_ALLOWED: ClassTemplate["allowedTypes"] = [
 
 export const FCI_HOOPERS_CLASS_TEMPLATES: ClassTemplate[] = [
   // VERIFIERAT §3.1: hinderantal per klass. Banmått 20×40 m = 800 m² (minimiyta).
-  { key: "hoopers_fci_h1", sport: "hoopers", label: "FCI Hoopers 1", arenaWidthM: 20, arenaHeightM: 40, obstacleRange: [12, 18], defaultSize: "L", allowedTypes: FCI_ALLOWED, refSpeedMs: 2.0, maxTimeFactor: 2.0, description: "Hinder 5–8 m isär (center–center), max 15 m från handling area" },
-  { key: "hoopers_fci_h2", sport: "hoopers", label: "FCI Hoopers 2", arenaWidthM: 20, arenaHeightM: 40, obstacleRange: [16, 22], defaultSize: "L", allowedTypes: FCI_ALLOWED, refSpeedMs: 2.2, maxTimeFactor: 2.0, description: "Hinder 6–10 m isär, max 20 m från handling area" },
-  { key: "hoopers_fci_h3", sport: "hoopers", label: "FCI Hoopers 3", arenaWidthM: 20, arenaHeightM: 40, obstacleRange: [20, 26], defaultSize: "L", allowedTypes: FCI_ALLOWED, refSpeedMs: 2.4, maxTimeFactor: 2.0, description: "Hinder 7–12 m isär, max 30 m från handling area — internationell nivå" },
+  { key: "hoopers_fci_h1", sport: "hoopers", label: "FCI Hoopers 1", arenaWidthM: 20, arenaHeightM: 40, obstacleRange: [12, 18], defaultSize: "L", allowedTypes: FCI_ALLOWED, refSpeedMs: 2.0, maxTimeFactor: 2.0, description: "Hinder 5–8 m isär (center–center), max 15 m från dirigeringsområdet" },
+  { key: "hoopers_fci_h2", sport: "hoopers", label: "FCI Hoopers 2", arenaWidthM: 20, arenaHeightM: 40, obstacleRange: [16, 22], defaultSize: "L", allowedTypes: FCI_ALLOWED, refSpeedMs: 2.2, maxTimeFactor: 2.0, description: "Hinder 6–10 m isär, max 20 m från dirigeringsområdet" },
+  { key: "hoopers_fci_h3", sport: "hoopers", label: "FCI Hoopers 3", arenaWidthM: 20, arenaHeightM: 40, obstacleRange: [20, 26], defaultSize: "L", allowedTypes: FCI_ALLOWED, refSpeedMs: 2.4, maxTimeFactor: 2.0, description: "Hinder 7–12 m isär, max 30 m från dirigeringsområdet — internationell nivå" },
 ];
 
 export const HOOPERS_FCI_2026: RuleSet = {

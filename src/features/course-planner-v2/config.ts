@@ -110,7 +110,7 @@ export const OBSTACLES_V2: ObstacleDefV2[] = [
   // Slalom
   { type: "weave_8",  label: "Slalom 8",   category: "Slalom", sport: ["agility"], sizeM: { w: 0.4, d: 4.2 }, allowedInJumpClass: false, description: "Slalom med 8 pinnar" },
   { type: "weave_10", label: "Slalom 10",  category: "Slalom", sport: ["agility"], sizeM: { w: 0.4, d: 5.4 }, allowedInJumpClass: false, description: "Slalom med 10 pinnar" },
-  { type: "weave_12", label: "Slalom 12",  category: "Slalom", sport: ["agility"], sizeM: { w: 0.4, d: 6.6 }, allowedInJumpClass: false, description: "Slalom med 12 pinnar (default)" },
+  { type: "weave_12", label: "Slalom 12",  category: "Slalom", sport: ["agility"], sizeM: { w: 0.4, d: 6.6 }, allowedInJumpClass: false, description: "Slalom med 12 pinnar (standard)" },
 
   // Balans (kontaktfält)
   { type: "aframe",   label: "A-hinder",   category: "Balans", sport: ["agility"], sizeM: { w: 0.9, d: 2.7 }, allowedInJumpClass: false, hasContactZone: true, description: "A-hinder, sidor 270 cm" },

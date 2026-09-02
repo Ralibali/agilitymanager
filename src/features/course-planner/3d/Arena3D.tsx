@@ -189,10 +189,10 @@ export function Arena3D({ widthMeters, heightMeters, wallHeight = 4.45, showGrid
     const leftX = -widthMeters / 2 - 0.142;
     const rightX = widthMeters / 2 + 0.142;
     return [
-      { text: "Agilitymanager", sub: "Bygg bana · Träna smartare", position: [-widthMeters * 0.26, y, frontZ], rotation: [0, 0, 0], width: longAdW, accent: "green" },
+      { text: "AgilityManager", sub: "Bygg bana · Träna smartare", position: [-widthMeters * 0.26, y, frontZ], rotation: [0, 0, 0], width: longAdW, accent: "green" },
       { text: "Gå banan i 3D", sub: "Se linjerna innan passet", position: [widthMeters * 0.26, y, frontZ], rotation: [0, 0, 0], width: longAdW, accent: "navy" },
       { text: "Följ utvecklingen", sub: "Träning · mål · statistik", position: [-widthMeters * 0.26, y, backZ], rotation: [0, Math.PI, 0], width: longAdW, accent: "orange" },
-      { text: "Agilitymanager", sub: "Din digitala hundhall", position: [widthMeters * 0.26, y, backZ], rotation: [0, Math.PI, 0], width: longAdW, accent: "green" },
+      { text: "AgilityManager", sub: "Din digitala hundhall", position: [widthMeters * 0.26, y, backZ], rotation: [0, Math.PI, 0], width: longAdW, accent: "green" },
       { text: "Träna smartare", sub: "Planera varje bana", position: [leftX, y, -heightMeters * 0.22], rotation: [0, Math.PI / 2, 0], width: shortAdW, accent: "navy" },
       { text: "Bygg din bana", sub: "Exportera PDF och dela", position: [rightX, y, heightMeters * 0.22], rotation: [0, -Math.PI / 2, 0], width: shortAdW, accent: "green" },
     ];

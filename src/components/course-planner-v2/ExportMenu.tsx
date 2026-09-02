@@ -67,7 +67,7 @@ export function ExportMenu({
           </>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Backup och import</DropdownMenuLabel>
+        <DropdownMenuLabel>Säkerhetskopiering och import</DropdownMenuLabel>
         <DropdownMenuItem onSelect={onJson}>
           <FileDown size={14} className="mr-2" /> Exportera JSON
         </DropdownMenuItem>

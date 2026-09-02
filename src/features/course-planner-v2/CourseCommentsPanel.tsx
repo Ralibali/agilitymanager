@@ -59,7 +59,7 @@ export default function CourseCommentsPanel({ courseId, enabled }: Props) {
       {user && (
         <div className="flex items-start gap-1.5 mb-3">
           <textarea value={text} onChange={(e) => setText(e.target.value)} rows={2} maxLength={2000}
-            placeholder="Skriv en kommentar..."
+            placeholder="Skriv en kommentar…"
             aria-label="Skriv en kommentar"
             className="flex-1 text-[12px] rounded-lg border border-border px-2 py-1.5 outline-none focus:ring-2 focus:ring-[#1a6b3c]/25 resize-none" />
           <button onClick={submit} disabled={posting || !text.trim()}

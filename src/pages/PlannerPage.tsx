@@ -487,6 +487,16 @@ export default function PlannerPage() {
   const viewMinX = (w - vw) / 2 + view.panX;
   const viewMinY = (h - vh) / 2 + view.panY;
 
+  // Hur många skärmpixlar en meter blir just nu. På stora skärmar med liten bana
+  // blir linjerna annars hårfina — vi skalar upp detaljerna så hindren syns.
+  const pxPerMeter = useMemo(() => {
+    const availW = canvasPx.w || 800;
+    const availH = canvasPx.h || 600;
+    return Math.min(availW / vw, availH / vh) || 20;
+  }, [canvasPx.w, canvasPx.h, vw, vh]);
+  const detail = clamp(22 / pxPerMeter, 1, 2.6);
+
+
   const toField = useCallback(
     (clientX: number, clientY: number) => {
       const svg = svgRef.current;

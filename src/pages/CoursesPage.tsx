@@ -124,7 +124,7 @@ export default function CoursesPage() {
         )}
 
         <Reveal className="mt-16 text-center">
-          <h2 className="mx-auto max-w-2xl font-display text-5xl leading-[0.95] sm:text-6xl">
+          <h2 className="mx-auto max-w-2xl font-display text-5xl leading-[1.02] sm:text-6xl">
             Eller börja på en blank plan.
           </h2>
           <div className="mt-8 flex flex-wrap justify-center gap-3">

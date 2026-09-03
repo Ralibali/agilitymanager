@@ -136,7 +136,7 @@ export function CompetitionLanding({
         <Reveal className="mt-16">
           <div className="mx-auto grid max-w-4xl items-center gap-8 rounded-3xl border-2 border-ink bg-ink p-8 text-paper shadow-hard sm:p-10 lg:grid-cols-[1fr_1.1fr]">
             <div>
-              <h2 className="font-display text-4xl leading-[0.95] sm:text-5xl">
+              <h2 className="font-display text-4xl leading-[1.02] sm:text-5xl">
                 Träna rätt saker fram till start.
               </h2>
               <p className="mt-4 leading-relaxed text-paper/60">

@@ -119,7 +119,7 @@ export default function Home() {
                 Tävlingskalender + banplanerare — gratis att börja
               </span>
             </Reveal>
-            <h1 className="mt-6 font-display text-[4rem] leading-[0.92] tracking-[0.01em] sm:text-[5.8rem] lg:text-[6.6rem]">
+            <h1 className="mt-6 font-display text-[4rem] leading-[1.02] tracking-[0.01em] sm:text-[5.8rem] lg:text-[6.6rem]">
               <RisingWords text="Hitta tävlingen." startDelay={150} />
               <br />
               <span className="text-forest">
@@ -229,7 +229,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:py-28">
         <Reveal>
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-forest">Från tävling till träningsplan</p>
-          <h2 className="mt-3 max-w-4xl font-display text-5xl leading-[0.95] tracking-[0.01em] sm:text-7xl">
+          <h2 className="mt-3 max-w-4xl font-display text-5xl leading-[1.02] tracking-[0.01em] sm:text-7xl">
             Ett flöde. Inte tre lösa verktyg.
           </h2>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink/65">
@@ -271,7 +271,7 @@ export default function Home() {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <Reveal>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-tang">En verktygslåda, inte en demo</p>
-              <h2 className="mt-3 max-w-xl font-display text-5xl leading-[0.95] sm:text-7xl">
+              <h2 className="mt-3 max-w-xl font-display text-5xl leading-[1.02] sm:text-7xl">
                 Byggd för planen.<br />Inte för skrivbordet.
               </h2>
             </Reveal>
@@ -305,7 +305,7 @@ export default function Home() {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <Reveal>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-forest">Banbiblioteket</p>
-              <h2 className="mt-3 font-display text-5xl leading-[0.95] sm:text-7xl">
+              <h2 className="mt-3 font-display text-5xl leading-[1.02] sm:text-7xl">
                 Låna en bana.<br />Gör den till din.
               </h2>
             </Reveal>
@@ -355,7 +355,7 @@ export default function Home() {
           <div>
             <Reveal>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-tang">Banplaneraren</p>
-              <h2 className="mt-3 font-display text-5xl leading-[0.95] sm:text-7xl lg:text-8xl">
+              <h2 className="mt-3 font-display text-5xl leading-[1.02] sm:text-7xl lg:text-8xl">
                 Gratis att rita.<br />Inget konto.
               </h2>
             </Reveal>
@@ -396,7 +396,7 @@ export default function Home() {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <Reveal>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-forest">Blogg & kunskapsbank</p>
-              <h2 className="mt-3 font-display text-5xl leading-[0.95] sm:text-7xl">
+              <h2 className="mt-3 font-display text-5xl leading-[1.02] sm:text-7xl">
                 Lär dig banan.<br />Innan du bygger den.
               </h2>
             </Reveal>
@@ -438,7 +438,7 @@ export default function Home() {
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <Reveal>
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-forest">Gratis att börja</p>
-            <h2 className="mt-3 font-display text-5xl leading-[0.95] sm:text-7xl">
+            <h2 className="mt-3 font-display text-5xl leading-[1.02] sm:text-7xl">
               Från kalender till <span className="text-tang">träningsplan.</span>
             </h2>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-ink/65">
@@ -490,7 +490,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 lg:py-28">
           <Reveal>
             <Trophy className="mx-auto h-10 w-10" strokeWidth={2.2} />
-            <h2 className="mx-auto mt-5 max-w-4xl font-display text-6xl leading-[0.92] sm:text-8xl">
+            <h2 className="mx-auto mt-5 max-w-4xl font-display text-6xl leading-[1.02] sm:text-8xl">
               Hitta målet. Bygg vägen dit.
             </h2>
           </Reveal>

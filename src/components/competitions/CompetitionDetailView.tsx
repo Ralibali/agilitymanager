@@ -95,7 +95,7 @@ export function CompetitionDetailView({
             )}
           </div>
 
-          <h1 className="mt-5 max-w-4xl font-display text-5xl leading-[0.95] tracking-[0.01em] sm:text-7xl">
+          <h1 className="mt-5 max-w-4xl font-display text-5xl leading-[1.02] tracking-[0.01em] sm:text-7xl">
             {comp.name}
           </h1>
 
@@ -193,7 +193,7 @@ export function CompetitionDetailView({
 
           <Reveal delay={120}>
             <div className="rounded-3xl border-2 border-ink bg-ink p-6 text-paper shadow-hard sm:p-8">
-              <h2 className="font-display text-4xl leading-[0.95]">Planera fram till start.</h2>
+              <h2 className="font-display text-4xl leading-[1.02]">Planera fram till start.</h2>
               <ul className="mt-5 space-y-3 text-paper/70">
                 <li>• Rita banan du vill träna inför tävlingen — gratis, direkt i webbläsaren.</li>
                 <li>• Spara tävlingen i kalendern och håll koll på sista anmälningsdag ({comp.registrationCloses ? longDate(comp.registrationCloses) : "ej angiven"}).</li>

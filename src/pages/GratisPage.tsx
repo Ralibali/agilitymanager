@@ -91,7 +91,7 @@ export default function GratisPage() {
       <section className="mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:py-28">
         <Reveal>
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-forest">Varför är planeraren gratis?</p>
-          <h2 className="mt-3 font-display text-5xl leading-[0.95] sm:text-6xl">
+          <h2 className="mt-3 font-display text-5xl leading-[1.02] sm:text-6xl">
             Planeraren är vårt skyltfönster.
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-ink/65">

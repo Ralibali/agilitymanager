@@ -71,7 +71,7 @@ export default function FeaturesPage() {
                 <p className={`text-xs font-bold uppercase tracking-[0.24em] ${gi === 0 ? "text-forest" : "text-tang"}`}>
                   {g.kicker}
                 </p>
-                <h2 className="mt-3 font-display text-5xl leading-[0.95] sm:text-6xl">{g.title}</h2>
+                <h2 className="mt-3 font-display text-5xl leading-[1.02] sm:text-6xl">{g.title}</h2>
                 <p className={`mt-5 text-lg leading-relaxed ${gi === 0 ? "text-ink/65" : "text-paper/65"}`}>
                   {g.text}
                 </p>
@@ -111,7 +111,7 @@ export default function FeaturesPage() {
 
       <section className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6">
         <Reveal>
-          <h2 className="mx-auto max-w-3xl font-display text-5xl leading-[0.95] sm:text-7xl">
+          <h2 className="mx-auto max-w-3xl font-display text-5xl leading-[1.02] sm:text-7xl">
             Testa själv — direkt i webbläsaren.
           </h2>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

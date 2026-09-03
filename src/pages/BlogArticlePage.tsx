@@ -34,7 +34,7 @@ function renderInline(text: string): ReactNode[] {
 function Block({ block }: { block: ArticleBlock }) {
   switch (block.type) {
     case "h2":
-      return <h2 className="mt-12 font-display text-4xl leading-[0.95] tracking-[0.01em] sm:text-5xl">{block.text}</h2>;
+      return <h2 className="mt-12 font-display text-4xl leading-[1.02] tracking-[0.01em] sm:text-5xl">{block.text}</h2>;
     case "p":
       return <p className="mt-5 text-lg leading-relaxed text-ink/75">{renderInline(block.text)}</p>;
     case "ul":
@@ -103,7 +103,7 @@ export default function BlogArticlePage() {
           <span className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-paper px-4 py-1.5 text-[0.75rem] font-extrabold uppercase tracking-[0.16em] shadow-hard-sm">
             <span className="h-2 w-2 rounded-full bg-tang" aria-hidden /> {article.category}
           </span>
-          <h1 className="mt-5 font-display text-5xl leading-[0.95] tracking-[0.01em] sm:text-6xl">
+          <h1 className="mt-5 font-display text-5xl leading-[1.02] tracking-[0.01em] sm:text-6xl">
             {article.title}
           </h1>
           <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-ink/55">
@@ -132,7 +132,7 @@ export default function BlogArticlePage() {
         {/* Kontextuell CTA in till planeraren */}
         <div className="mt-14 rounded-3xl border-2 border-ink bg-forest p-7 text-paper shadow-hard sm:p-9">
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-tang">Testa i praktiken</p>
-          <h2 className="mt-3 font-display text-4xl leading-[0.95] sm:text-5xl">{article.cta.heading}</h2>
+          <h2 className="mt-3 font-display text-4xl leading-[1.02] sm:text-5xl">{article.cta.heading}</h2>
           <p className="mt-4 max-w-xl leading-relaxed text-paper/75">{article.cta.text}</p>
           <Link
             to={article.cta.to}

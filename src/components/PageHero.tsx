@@ -20,7 +20,7 @@ export function PageHero({
             {kicker}
           </span>
         </Reveal>
-        <h1 className="mt-6 max-w-4xl font-display text-6xl leading-[0.92] tracking-[0.01em] sm:text-8xl">
+        <h1 className="mt-6 max-w-4xl font-display text-6xl leading-[1.02] tracking-[0.01em] sm:text-8xl">
           <RisingWords text={title} startDelay={120} />
         </h1>
         {children && (

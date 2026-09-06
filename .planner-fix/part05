@@ -1,0 +1,126 @@
++    pinchRef.current = { dist: Math.hypot(b.x-a.x, b.y-a.y), midX: (a.x+b.x)/2, midY: (a.y+b.y)/2 };
++    panRef.current = null; dragRef.current = null; rotateRef.current = null;
++    return true;
++  };
++  const onSvgPointerDown = (e: React.PointerEvent) => {
++    if (registerPointer(e)) return;
+@@ -703,0 +699,2 @@ export default function PlannerPage() {
++    if (registerPointer(e)) return;
++    if (e.button === 1 || spaceRef.current) { onSvgPointerDown(e); return; }
+@@ -705 +702 @@ export default function PlannerPage() {
+-    dragRef.current = { id: ob.id, dx: ob.x - pt.x, dy: ob.y - pt.y, moved: false, start: obstacles };
++    dragRef.current = { id: ob.id, dx: ob.x - pt.x, dy: ob.y - pt.y, moved: false, start: draftRef.current };
+@@ -713 +710,2 @@ export default function PlannerPage() {
+-    rotateRef.current = { id, start: obstacles };
++    if (registerPointer(e)) return;
++    rotateRef.current = { id, start: draftRef.current };
+@@ -729 +727 @@ export default function PlannerPage() {
+-        if (Math.abs(factor - 1) > 0.002) zoomToValue((z) => z * factor, midX, midY);
++        if (Math.abs(factor - 1) > 0.002) zoomToValue((z) => z * factor, pinchRef.current.midX, pinchRef.current.midY);
+@@ -731 +729,2 @@ export default function PlannerPage() {
+-      pinchRef.current = { dist };
++      panByPx(midX - pinchRef.current.midX, midY - pinchRef.current.midY);
++      pinchRef.current = { dist, midX, midY };
+@@ -792 +791 @@ export default function PlannerPage() {
+-      if (JSON.stringify(start) !== JSON.stringify(draftRef.current.obstacles)) {
++      if (JSON.stringify(start) !== JSON.stringify(draftRef.current)) {
+@@ -802,4 +800,0 @@ export default function PlannerPage() {
+-  // håll en färsk referens till draft för pointer-up-hantering
+-  const draftRef = useRef(draft);
+-  draftRef.current = draft;
+-
+@@ -808,2 +803,2 @@ export default function PlannerPage() {
+-    const tpl = key ? getClassTemplate(key) : null;
+-    setDraft((d) => ({
++    const tpl = getCourseClassTemplate(sport, draft.ruleSetId, key);
++    commitDraft((d) => ({
+@@ -823 +818 @@ export default function PlannerPage() {
+-    setDraft((d) => ({
++    commitDraft((d) => ({
+@@ -837 +832 @@ export default function PlannerPage() {
+-    setDraft((d) => ({
++    commitDraft((d) => ({
+@@ -937 +932 @@ export default function PlannerPage() {
+-        classTemplate: draft.classTemplate, obstacles: numbered,
++        classTemplate: draft.classTemplate, obstacles: numbered, ruleSetId: draft.ruleSetId,
+@@ -970 +965,2 @@ export default function PlannerPage() {
+-      obstacles: normalizeObstacles(c.obstacles.map((ob) => ({ ...ob, id: uid() }))),
++      ruleSetId: c.ruleSetId,
++      obstacles: normalizeObstacles(c.obstacles),
+@@ -976,0 +973 @@ export default function PlannerPage() {
++    if (result.warnings.length) toast.warning("Kontrollera importerad bana", { description: result.warnings.join(" ") });
+@@ -1042,0 +1040 @@ export default function PlannerPage() {
++    try {
+@@ -1052,0 +1051 @@ export default function PlannerPage() {
++    setNamedSaveError(false);
+@@ -1053,0 +1053,4 @@ export default function PlannerPage() {
++    } catch {
++      setNamedSaveError(true);
++      toast.error("Kunde inte spara banan", { description: "Banan finns kvar här. Försök igen eller exportera JSON innan du lämnar sidan." });
++    }
+@@ -1108 +1111,3 @@ export default function PlannerPage() {
+-    applyOpenedDraft({ ...defaultDraft(data.sport === "hoopers" ? "hoopers" : "agility"), ...data }, { local: c.id });
++    const parsed = draftFromRawCourse(data);
++    if (!parsed) { toast.error("Kunde inte läsa den sparade banan"); return; }
++    applyOpenedDraft(parsed, { local: c.id });
+@@ -1314 +1319 @@ export default function PlannerPage() {
+-            onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
++            onChange={(e) => commitDraft((d) => ({ ...d, name: e.target.value }))}
+@@ -1328,6 +1333,4 @@ export default function PlannerPage() {
+-            <span
+-              className={`hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors lg:inline-flex ${
+-                savedFlash ? "bg-forest text-paper" : "bg-cream text-ink/50"
+-              }`}
+-            >
+-              {savedFlash ? "Sparad ✓" : "Autosparas lokalt"}
++            <span role="status" className="hidden max-w-48 text-xs font-semibold lg:inline" aria-live="polite">
++              {saveResult?.ok === false ? "Kunde inte spara" : saveResult?.snapshot === JSON.stringify(draft)
++                ? "Sparad i den här webbläsaren" : isExternalCopy && JSON.stringify(draft) === externalSnapshotRef.current
++                  ? "Kopia — redigera för att spara" : "Sparar…"}
+@@ -1459,0 +1463,9 @@ export default function PlannerPage() {
++          {/* Regelverk */}
++          <div>
++            <label htmlFor="planner-rules" className="mb-2 block text-xs font-bold uppercase tracking-wider text-ink/50">Regelverk</label>
++            <select id="planner-rules" aria-label="Regelverk" value={draft.ruleSetId ?? getDefaultRuleSetIdForSport(sport)}
++              onChange={e => commitDraft(d => ({ ...d, ruleSetId: e.target.value, classTemplate: null }))}
++              className="h-11 w-full rounded-xl border-2 border-ink/15 bg-white px-3 text-sm">
++              {getRuleSetsForSport(sport).map(rs => <option key={rs.id} value={rs.id}>{rs.name}</option>)}
++            </select>
++          </div>
+@@ -1463,0 +1476 @@ export default function PlannerPage() {
++              aria-label="Klassmall"
+@@ -1469 +1482 @@ export default function PlannerPage() {
+-              {CLASS_TEMPLATES.filter((t) => t.sport === sport).map((t) => (
++              {(ruleSet?.classTemplates ?? []).map((t) => (
+@@ -1475 +1488 @@ export default function PlannerPage() {
+-                {getClassTemplate(draft.classTemplate)?.description}
++                {getCourseClassTemplate(sport, draft.ruleSetId, draft.classTemplate)?.description}
+@@ -1487 +1500 @@ export default function PlannerPage() {
+-                  onClick={() => setDraft((d) => ({ ...d, sizeClass: sc.key }))}
++                  onClick={() => commitDraft((d) => ({ ...d, sizeClass: sc.key }))}
+@@ -1553,0 +1567,7 @@ export default function PlannerPage() {
++          {(saveResult?.ok === false || namedSaveError) && <div role="alert" className="z-40 border-b-2 border-ink bg-tang p-3 text-sm">
++            <strong>Kunde inte spara.</strong> Banan finns kvar här. Exportera en säkerhetskopia innan du lämnar sidan.
++            <div className="mt-2 flex gap-3">
++              <button className="rounded border-2 border-ink px-3 py-2 font-bold" onClick={() => namedSaveError ? void persistCourse() : autosaver.retry()}>Försök igen</button>
++              <button className="rounded border-2 border-ink px-3 py-2 font-bold" onClick={onJson}>Exportera JSON</button>
++            </div>
++          </div>}
+@@ -1725 +1745,2 @@ export default function PlannerPage() {
+-                    Referenstid ca {(times.refTimeS ?? 0).toFixed(0)} s · Maxtid {(times.maxTimeS ?? 0).toFixed(0)} s
++                    {times.refTimeS != null ? `Beräknad tid ca ${times.refTimeS.toFixed(0)} s · ` : ""}
++                    {times.maxTimeS != null ? `${times.fixedMaxCourseTimeS != null ? "Fast maxtid" : "Beräknad maxtid"} ${times.maxTimeS.toFixed(0)} s` : "Ingen tidsuppskattning"}
+@@ -1816,0 +1838,2 @@ export default function PlannerPage() {
++                  aria-label="Tunnelböjning"
++                  disabled={selected.locked}
+@@ -1818 +1841 @@ export default function PlannerPage() {
+-                  max={90}
++                  max={180}
+@@ -1825,0 +1849 @@ export default function PlannerPage() {
++                    disabled={selected.locked}
+@@ -1831,0 +1856 @@ export default function PlannerPage() {
++                    disabled={selected.locked}
+@@ -2205 +2230,2 @@ export default function PlannerPage() {
+-          paths={[]}
++          paths={[{ id: "dog-path", points: coursePath.points.map(p => ({ x: p.x / w * 100, y: p.y / h * 100 })) }]}
++          onTunnelCurveChange={(id, curve) => setObstacles(obstacles.map(ob => ob.id === id && !ob.locked ? { ...ob, ...curve } : ob))}

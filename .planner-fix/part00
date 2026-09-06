@@ -1,0 +1,240 @@
+diff --git a/.github/workflows/planner-ci.yml b/.github/workflows/planner-ci.yml
+index fdfcbe6..da07aa4 100644
+--- a/.github/workflows/planner-ci.yml
++++ b/.github/workflows/planner-ci.yml
+@@ -85,0 +86,28 @@ jobs:
++
++  verify-browser:
++    needs: verify-planner
++    runs-on: ubuntu-latest
++    timeout-minutes: 12
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-node@v4
++        with:
++          node-version: 22
++          cache: npm
++      - uses: actions/setup-python@v5
++        with:
++          python-version: '3.13'
++      - run: npm ci --no-audit --no-fund
++      - run: pip install -r scripts/planner-browser-requirements.txt
++      - run: python -m playwright install --with-deps chromium
++      - name: Desktop and mobile planner regressions
++        run: |
++          npm run dev -- --host 127.0.0.1 > /tmp/planner-dev.log 2>&1 &
++          for i in {1..30}; do curl -fsS http://127.0.0.1:3000/ > /dev/null && break; sleep 1; done
++          python scripts/planner-browser-check.py
++      - uses: actions/upload-artifact@v4
++        if: always()
++        with:
++          name: planner-browser-evidence
++          path: qa-artifacts/
++          retention-days: 7
+diff --git a/.gitignore b/.gitignore
+index 7af1324..1b11c20 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -8,0 +9,4 @@ dist/
++
++# Isolated browser test exports and screenshots
++qa-artifacts/
++__pycache__/
+diff --git a/scripts/planner-browser-check.py b/scripts/planner-browser-check.py
+new file mode 100644
+index 0000000..7d81a5e
+--- /dev/null
++++ b/scripts/planner-browser-check.py
+@@ -0,0 +1,189 @@
++"""Isolated local-only browser regressions; never writes courses to production.
++Run against `npm run dev -- --host 127.0.0.1`, using the pinned requirements.
++Artifacts are screenshots, exported fixture PDFs, and the scenario report.
++"""
++import base64
++import json
++import os
++import re
++from pathlib import Path
++from playwright.sync_api import sync_playwright, expect
++
++BASE = os.environ.get('PLANNER_BASE_URL', 'http://127.0.0.1:3000').rstrip('/')
++OUT = Path(os.environ.get('PLANNER_QA_OUTPUT', 'qa-artifacts'))
++OUT.mkdir(parents=True, exist_ok=True)
++KEY = 'am-redesign-planner-v2'
++COURSE = {
++    'version': 2, 'name': 'External FCI fixture', 'sport': 'hoopers', 'sizeClass': 'L',
++    'arenaWidthM': 30, 'arenaHeightM': 40, 'classTemplate': 'hoopers_fci_h2',
++    'ruleSetId': 'hoopers-fci-2026', 'obstacles': [
++        {'id':'h1','type':'hoop','x':5,'y':10,'rotation':0,'number':1},
++        {'id':'t','type':'tunnel','x':15,'y':23,'rotation':0,'number':2,'curveDeg':90,'curveSide':'right'},
++        {'id':'h2','type':'hoop','x':24,'y':30,'rotation':0,'number':3},
++    ],
++}
++results = []
++
++def saved(page):
++    return page.evaluate('(key) => JSON.parse(localStorage.getItem(key))', KEY)
++
++def wait_saved(page, name):
++    page.wait_for_function('(args) => JSON.parse(localStorage.getItem(args.key) || "null")?.name === args.name', arg={'key':KEY,'name':name})
++
++def screen_point(page, x, y):
++    return page.locator('svg.planner-svg').evaluate('(svg, xy) => { const p=svg.createSVGPoint(); p.x=xy[0]; p.y=xy[1]; const s=p.matrixTransform(svg.getScreenCTM()); return {x:s.x,y:s.y}; }', [x,y])
++
++def select_tunnel(page):
++    p = screen_point(page, 15, 23)
++    page.mouse.click(p['x'], p['y'])
++    expect(page.get_by_label('Tunnelböjning', exact=True)).to_be_visible()
++
++def export(page, label, filename):
++    page.get_by_role('button', name='Ladda ner eller exportera bana', exact=True).click()
++    with page.expect_download(timeout=20000) as event:
++        page.get_by_role('menuitem', name=label, exact=True).click()
++    destination = OUT / filename
++    event.value.save_as(destination)
++    assert not event.value.failure(), f'{label} download failed'
++    return destination
++
++def context(browser, mobile=False, course=None):
++    ctx = browser.new_context(viewport={'width':390 if mobile else 1440, 'height':844 if mobile else 1000},
++                              has_touch=mobile, is_mobile=mobile, accept_downloads=True)
++    # Browser fixtures must not call the real backend, analytics or external sites.
++    ctx.route('**/*', lambda route: route.continue_() if route.request.url.startswith(BASE + '/') else route.abort())
++    initial = json.dumps(course or dict(COURSE, name='Existing local draft'))
++    ctx.add_init_script('''(() => {
++      if (!sessionStorage.getItem('qa-seeded')) {
++        localStorage.setItem(%s, JSON.stringify(%s)); sessionStorage.setItem('qa-seeded','1');
++      }
++      const original=Storage.prototype.setItem;
++      Storage.prototype.setItem=function(k,v) {
++        if ((window.__qaFailDraft && k===%s) || (window.__qaFailNamed && k==='am_planner_local_courses'))
++          throw new DOMException('QA quota failure','QuotaExceededError');
++        return original.call(this,k,v);
++      };
++    })();''' % (json.dumps(KEY), initial, json.dumps(KEY)))
++    return ctx
++
++with sync_playwright() as pw:
++    kwargs = {'headless':True}
++    if os.environ.get('CHROMIUM_EXECUTABLE'):
++        kwargs['executable_path'] = os.environ['CHROMIUM_EXECUTABLE']
++    browser = pw.chromium.launch(**kwargs)
++    page = None
++    errors = []
++    try:
++        ctx = context(browser)
++        page = ctx.new_page()
++        page.on('pageerror', lambda error: errors.append(str(error)))
++        encoded = base64.urlsafe_b64encode(json.dumps(COURSE).encode()).decode().rstrip('=')
++        page.goto(BASE + '/banplanerare?bana=' + encoded)
++        expect(page.get_by_label('Banans namn')).to_have_value(COURSE['name'])
++        page.wait_for_timeout(800)  # beyond the 600ms debounce; an unedited copy must remain protected
++        page.evaluate("window.dispatchEvent(new Event('pagehide'))")
++        assert saved(page)['name'] == 'Existing local draft'
++        results.append('desktop: opening an external copy and pagehide preserve the local draft')
++
++        page.get_by_label('Banans namn').fill('Edited FCI course')
++        wait_saved(page, 'Edited FCI course')
++        assert saved(page)['ruleSetId'] == COURSE['ruleSetId']
++        expect(page.get_by_label('Klassmall', exact=True)).to_have_value('hoopers_fci_h2')
++        page.get_by_label('Regelverk', exact=True).select_option('hoopers-shs-2022')
++        page.get_by_role('button', name=re.compile('^Ångra')).first.click()
++        expect(page.get_by_label('Regelverk', exact=True)).to_have_value('hoopers-fci-2026')
++        expect(page.get_by_label('Klassmall', exact=True)).to_have_value('hoopers_fci_h2')
++        page.get_by_role('button', name=re.compile('^Gör om')).first.click()
++        expect(page.get_by_label('Regelverk', exact=True)).to_have_value('hoopers-shs-2022')
++        page.get_by_role('button', name=re.compile('^Ångra')).first.click()
++        results.append('desktop: rule/class changes undo and redo together')
++
++        select_tunnel(page)
++        page.get_by_label('Tunnelböjning', exact=True).press('End')
++        page.get_by_role('button', name='Böj vänster', exact=True).click()
++        page.wait_for_function('(key)=>JSON.parse(localStorage.getItem(key)).obstacles[1].curveDeg===180 && JSON.parse(localStorage.getItem(key)).obstacles[1].curveSide==="left"', arg=KEY)
++        before = saved(page)
++        p, q = screen_point(page,15,23), screen_point(page,17,25)
++        page.mouse.move(p['x'],p['y']); page.mouse.down(); page.mouse.move(q['x'],q['y'],steps=8); page.mouse.up()
++        page.wait_for_function('(key)=>JSON.parse(localStorage.getItem(key)).obstacles[1].x!==15', arg=KEY)
++        page.get_by_role('button', name=re.compile('^Ångra')).first.click()
++        page.wait_for_function('(key)=>JSON.parse(localStorage.getItem(key)).obstacles[1].x===15', arg=KEY)
++        assert saved(page)['obstacles'] == before['obstacles']
++        results.append('desktop: curved-tunnel edit and whole-drag undo')
++
++        page.get_by_role('button', name=re.compile('^Bana-meny')).click()
++        page.get_by_role('menuitem', name=re.compile('^Spara bana')).click()
++        page.wait_for_function("() => JSON.parse(localStorage.getItem('am_planner_local_courses') || '[]').length === 1")
++        exported = export(page, 'Exportera JSON', 'course.json')
++        expected = json.loads(exported.read_text())
++        page.goto(BASE + '/banplanerare')
++        expect(page.get_by_label('Banans namn')).to_have_value('Edited FCI course')
++        page.locator('input[type=file]').set_input_files(exported)
++        expect(page.get_by_label('Regelverk', exact=True)).to_have_value('hoopers-fci-2026')
++        expect(page.get_by_label('Klassmall', exact=True)).to_have_value('hoopers_fci_h2')
++        again = json.loads(export(page,'Exportera JSON','roundtrip.json').read_text())
++        for field in ['name','sport','sizeClass','arenaWidthM','arenaHeightM','classTemplate','ruleSetId','obstacles']:
++            assert again[field] == expected[field], f'roundtrip changed {field}'
++        results.append('desktop: named save, reload, JSON export/import preserve course and non-default rules')
++        for label, file in [('Bygg-PDF','build.pdf'),('Tränings-PDF','training.pdf'),('Domar-PDF','judge.pdf'),('Startlista','startlist.pdf')]:
++            assert export(page,label,file).read_bytes().startswith(b'%PDF-')
++        page.screenshot(path=str(OUT/'desktop.png'),full_page=True)
++        results.append('desktop: all four PDF exports create valid PDF files')
++        assert not errors, errors
++        ctx.close()
++
++        ctx = context(browser, mobile=True)
++        page = ctx.new_page(); page.on('pageerror',lambda e:errors.append(str(e)))
++        page.goto(BASE+'/banplanerare'); expect(page.locator('svg.planner-svg')).to_be_visible()
++        page.get_by_label('Banans namn').fill('Mobile fixture')
++        wait_saved(page, 'Mobile fixture')
++        select_tunnel(page)
++        page.get_by_label('Tunnelböjning',exact=True).press('End')
++        page.wait_for_function('(key)=>JSON.parse(localStorage.getItem(key)).obstacles[1].curveDeg===180',arg=KEY)
++        before = saved(page)['obstacles']
++        p = screen_point(page,15,23)
++        cdp = ctx.new_cdp_session(page)
++        cdp.send('Input.dispatchTouchEvent', {'type':'touchStart','touchPoints':[{'x':p['x'],'y':p['y'],'id':1}]})
++        cdp.send('Input.dispatchTouchEvent', {'type':'touchStart','touchPoints':[{'x':p['x'],'y':p['y'],'id':1},{'x':p['x']+45,'y':p['y'],'id':2}]})
++        cdp.send('Input.dispatchTouchEvent', {'type':'touchMove','touchPoints':[{'x':p['x']-20,'y':p['y'],'id':1},{'x':p['x']+65,'y':p['y'],'id':2}]})
++        cdp.send('Input.dispatchTouchEvent', {'type':'touchEnd','touchPoints':[]})
++        page.evaluate("window.dispatchEvent(new Event('pagehide'))")
++        assert saved(page)['obstacles']==before, 'pinch gesture moved an obstacle'
++        page.screenshot(path=str(OUT/'mobile.png'),full_page=True)
++        results.append('mobile Chromium emulation: tunnel editing and pinch starting on an obstacle preserve placement')
++
++        page.evaluate('window.__qaFailDraft = true')
++        page.get_by_label('Banans namn').fill('Unsaved mobile work')
++        expect(page.get_by_role('button',name='Försök igen',exact=True)).to_be_visible()
++        assert saved(page)['name'] == 'Mobile fixture'
++        with page.expect_download() as download:
++            page.get_by_role('button',name='Exportera JSON',exact=True).click()
++        backup = OUT/'failure-backup.json'; download.value.save_as(backup)
++        assert json.loads(backup.read_text())['name']=='Unsaved mobile work'
++        page.screenshot(path=str(OUT/'storage-error-mobile.png'),full_page=True)
++        page.evaluate('window.__qaFailDraft = false')
++        page.get_by_role('button',name='Försök igen',exact=True).click()
++        wait_saved(page,'Unsaved mobile work')
++        expect(page.get_by_role('button',name='Försök igen',exact=True)).to_have_count(0)
++        results.append('mobile: quota failure stays visible, JSON backup keeps edits and retry saves successfully')
++        assert not errors, errors
++        ctx.close()
++
++        empty = dict(COURSE, name='Empty arena', obstacles=[], arenaWidthM=45, arenaHeightM=25)
++        ctx = context(browser,course=empty); page=ctx.new_page()
++        page.goto(BASE+'/banplanerare'); expect(page.get_by_label('Banans namn')).to_have_value('Empty arena')
++        page.get_by_label('Banans namn').fill('New empty name')
++        page.evaluate("window.dispatchEvent(new Event('pagehide'))")
++        page.reload(); expect(page.get_by_label('Banans namn')).to_have_value('New empty name')
++        assert saved(page)['arenaWidthM']==45 and saved(page)['ruleSetId']=='hoopers-fci-2026'
++        results.append('empty draft: name, arena and rules survive early pagehide and reload')
++        ctx.close()
++        print(json.dumps({'passed':len(results),'scenarios':results,'pageErrors':errors},ensure_ascii=False,indent=2))
++    except Exception:
++        if page and not page.is_closed():
++            page.screenshot(path=str(OUT/'failure.png'),full_page=True)
++            (OUT/'failure-dom.txt').write_text(page.locator('body').inner_text())
++        raise
++    finally:
++        (OUT/'report.json').write_text(json.dumps({'passed':len(results),'scenarios':results,'pageErrors':errors},ensure_ascii=False,indent=2))
++        browser.close()
+diff --git a/scripts/planner-browser-requirements.txt b/scripts/planner-browser-requirements.txt
+new file mode 100644
+index 0000000..51c511c

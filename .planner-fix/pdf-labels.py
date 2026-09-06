@@ -1,0 +1,12 @@
+from pathlib import Path
+p = Path('src/features/course-planner-v2/judgePdf.ts')
+s = p.read_text()
+s = s.replace('value: `${times.lengthM.toFixed(1)} m`, sub: "mellan numrerade"', 'value: `${times.lengthAlongPathM.toFixed(1)} m`, sub: "beräknad hundväg"')
+s = s.replace('label: "Referenstid"', 'label: "Beräknad tid"')
+s = s.replace('label: "Maxtid"', 'label: times.fixedMaxCourseTimeS != null ? "Fast maxtid" : "Beräknad maxtid"')
+s = s.replace('const statusY = pageH - 18;', 'const statusY = pageH - 18;\n  const statusX = margin + (input.qrDataUrl ? 22 : 0);')
+s = s.replace('`⚠ ${errs} regelfel · ${warns} varningar`, margin, statusY', '`${errs} fel · ${warns} varningar i förhandskontrollen.`, statusX, statusY')
+s = s.replace('`${warns} varningar — banan är godkänd att bygga`, margin, statusY', '`${warns} varningar. Kontrollera banan på plats.`, statusX, statusY')
+s = s.replace('`✓ Banan uppfyller regelverket`, margin, statusY', '"Inga upptäckta fel. Inte ett domar- eller säkerhetsgodkännande.", statusX, statusY')
+s = s.replace('!["start", "finish", "number"].includes', '!["start", "finish", "number", "handler_zone"].includes')
+p.write_text(s)

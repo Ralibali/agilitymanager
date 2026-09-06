@@ -1,4 +1,12 @@
 import { getObstacleDefV2, type ObstacleTypeV2 } from "@/features/course-planner-v2/config";
+import {
+  normalizeCurveDeg,
+  tunnelEdgeD,
+  tunnelEdgesLocal,
+  tunnelGeometryLocal,
+  tunnelOutlineD,
+} from "@/features/course-planner-v2/tunnelGeometry";
+
 
 /**
  * Ritar ett hinder i SVG, centrerat kring (0,0), i meter-enheter.
@@ -84,36 +92,33 @@ export function ObstacleGlyph({
         </g>
       );
     case "tunnel": {
-      const bend = Math.max(0, Math.min(90, curveDeg));
+      // Samma geometri som hundvägen och PDF:en använder.
+      const bend = normalizeCurveDeg(curveDeg);
       if (bend < 1) {
         return (
           <g {...s}>
             <rect x={-w / 2} y={-d / 2} width={w} height={d} rx={d / 2} ry={d / 2} strokeWidth={sw * 1.4} fill={`${stroke}14`} />
             <circle cx={-w / 2 + d / 2} cy="0" r={Math.max(0.02, d / 2 - sw * 1.6)} strokeWidth={sw * 0.8} strokeDasharray="0.16 0.16" />
             <circle cx={w / 2 - d / 2} cy="0" r={Math.max(0.02, d / 2 - sw * 1.6)} strokeWidth={sw * 0.8} strokeDasharray="0.16 0.16" />
-
           </g>
         );
       }
-      const side = curveSide === "left" ? -1 : 1;
-      const r = d / 2;
-      const offset = Math.tan(((bend * Math.PI) / 180) / 2) * (w / 2);
-      const x0 = -w / 2;
-      const x1 = w / 2;
-      const cy = side * offset;
-      const top = `M ${x0} ${-r} Q 0 ${cy - r} ${x1} ${-r}`;
-      const bot = `M ${x0} ${r} Q 0 ${cy + r} ${x1} ${r}`;
-      const fill = `M ${x0} ${-r} Q 0 ${cy - r} ${x1} ${-r} L ${x1} ${r} Q 0 ${cy + r} ${x0} ${r} Z`;
+      const edges = tunnelEdgesLocal(w, d, bend, curveSide);
+      const outline = tunnelOutlineD(w, d, bend, curveSide);
+      const ends = tunnelGeometryLocal(w, bend, curveSide).centerline;
+      const first = ends[0];
+      const last = ends[ends.length - 1];
       return (
         <g {...s}>
-          <path d={fill} fill={`${stroke}14`} stroke="none" />
-          <path d={top} strokeWidth={sw * 1.4} />
-          <path d={bot} strokeWidth={sw * 1.4} />
-          <circle cx={x0} cy="0" r={r * 0.85} strokeWidth={sw * 0.7} strokeDasharray="0.16 0.16" opacity="0.6" />
-          <circle cx={x1} cy="0" r={r * 0.85} strokeWidth={sw * 0.7} strokeDasharray="0.16 0.16" opacity="0.6" />
+          <path d={outline} fill={`${stroke}14`} stroke="none" />
+          <path d={tunnelEdgeD(edges.top)} strokeWidth={sw * 1.4} />
+          <path d={tunnelEdgeD(edges.bottom)} strokeWidth={sw * 1.4} />
+          <circle cx={first.x} cy={first.y} r={(d / 2) * 0.85} strokeWidth={sw * 0.7} strokeDasharray="0.16 0.16" opacity="0.6" />
+          <circle cx={last.x} cy={last.y} r={(d / 2) * 0.85} strokeWidth={sw * 0.7} strokeDasharray="0.16 0.16" opacity="0.6" />
         </g>
       );
     }
+
     case "weave_8":
     case "weave_10":
     case "weave_12": {

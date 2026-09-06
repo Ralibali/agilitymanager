@@ -140,7 +140,8 @@ describe("parseCourseJson — metadata och XSS-säkerhet", () => {
     expect(res.ok).toBe(true);
     if (res.ok) {
       expect(Object.keys(res.course).sort()).toEqual([
-        "arenaHeightM", "arenaWidthM", "classTemplate", "name", "obstacles", "sizeClass", "sport",
+        // ruleSetId ingår sedan regelverket bevaras genom import/export.
+        "arenaHeightM", "arenaWidthM", "classTemplate", "name", "obstacles", "ruleSetId", "sizeClass", "sport",
       ]);
       expect(Object.keys(res.course.obstacles[0]).sort()).toEqual(["id", "rotation", "type", "x", "y"]);
     }

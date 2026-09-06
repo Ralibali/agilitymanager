@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Billboard, Text } from "@react-three/drei";
 import * as THREE from "three";
+import { normalizeCurveDeg, tunnelGeometryLocal } from "@/features/course-planner-v2/tunnelGeometry";
 
 export type Obstacle3DProps = {
   type: string;
@@ -63,17 +64,10 @@ function LongJump() { return <group rotation={[0, Math.PI / 2, 0]}><Shadow w={1.
 function Wall({ color = RED }: { color?: string }) { return <group><Shadow w={1.7} d={0.75} /><mesh position={[0, 0.42 + EPS, 0]} castShadow receiveShadow><boxGeometry args={[1.48, 0.82, 0.32]} /><meshStandardMaterial color={color || RED} roughness={0.55} /></mesh>{[-0.48, 0, 0.48].map((x) => <mesh key={x} position={[x, 0.42, 0.166]}><boxGeometry args={[0.025, 0.78, 0.012]} /><meshBasicMaterial color="#ffffff" transparent opacity={0.45} /></mesh>)}{[0.26, 0.52, 0.78].map((y) => <mesh key={y} position={[0, y, 0.168]}><boxGeometry args={[1.42, 0.022, 0.012]} /><meshBasicMaterial color="#ffffff" transparent opacity={0.42} /></mesh>)}</group>; }
 
 function makeTunnelPath(length: number, curveDeg = 0, curveSide: "left" | "right" = "left") {
-  const deg = Math.max(0, Math.min(90, curveDeg));
-  if (deg < 1) return new THREE.CatmullRomCurve3([new THREE.Vector3(-length / 2, 0, 0), new THREE.Vector3(length / 2, 0, 0)]);
-  const theta = THREE.MathUtils.degToRad(deg);
-  const arcRadius = length / theta;
-  const side = curveSide === "left" ? 1 : -1;
-  const points = Array.from({ length: 34 }, (_, i) => {
-    const t = i / 33;
-    const a = -theta / 2 + t * theta;
-    return new THREE.Vector3(Math.sin(a) * arcRadius, 0, side * (Math.cos(a) - Math.cos(theta / 2)) * arcRadius);
-  });
-  return new THREE.CatmullRomCurve3(points);
+  // Samma geometriska definition som 2D-vyn, hundvägen och PDF:en:
+  // kordan är `length` och böjen är en cirkelbåge på `curveDeg` grader.
+  const geo = tunnelGeometryLocal(length, normalizeCurveDeg(curveDeg), curveSide, 33);
+  return new THREE.CatmullRomCurve3(geo.centerline.map((p) => new THREE.Vector3(p.x, 0, p.y)));
 }
 function Tunnel({ color = BLUE, length = 3.05, radius = 0.42, curveDeg = 0, curveSide = "left" }: { color?: string; length?: number; radius?: number; curveDeg?: number; curveSide?: "left" | "right" }) {
   const path = useMemo(() => makeTunnelPath(length, curveDeg, curveSide), [length, curveDeg, curveSide]);

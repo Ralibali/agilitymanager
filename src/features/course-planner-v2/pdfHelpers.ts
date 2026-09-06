@@ -8,6 +8,7 @@
 import type jsPDF from "jspdf";
 import { getObstacleDefV2, type ObstacleTypeV2 } from "./config";
 import type { ObstacleLite } from "./validation";
+import { normalizeCurveDeg, toWorld, tunnelEdgesLocal } from "./tunnelGeometry";
 
 /** Färgpalett som matchar appens "Varm Sand"-tema. */
 export const PDF_BRAND = {
@@ -216,38 +217,26 @@ function drawObstacleVector(
       break;
     }
     case "tunnel": {
-      const curveDeg = Math.max(0, Math.min(90, ob.curveDeg ?? 0));
+      const curveDeg = normalizeCurveDeg(ob.curveDeg ?? 0);
       doc.setFillColor(245, 235, 215);
       if (curveDeg < 1) {
         drawRotatedRoundedRect(doc, cx, cy, w, d, ob.rotation, Math.min(d, w) / 2.2, true);
       } else {
-        // Böjd tunnel — bezier mellan ändarna, kontrollpunkt offset åt curveSide.
-        const side = (ob.curveSide ?? "right") === "right" ? 1 : -1;
-        const r = d / 2;
-        const offset = Math.tan((curveDeg * Math.PI / 180) / 2) * (w / 2);
-        const ang = (ob.rotation * Math.PI) / 180;
-        const ux = Math.cos(ang), uy = Math.sin(ang);   // längs tunneln
-        const nx = -Math.sin(ang), ny = Math.cos(ang);  // sidan
-        const p = (lx: number, ly: number) => [cx + lx * ux + ly * nx, cy + lx * uy + ly * ny] as [number, number];
-        const [x0t, y0t] = p(-w / 2, -r);
-        const [x1t, y1t] = p(w / 2, -r);
-        const [cxT, cyT] = p(0, side * offset - r);
-        const [x0b, y0b] = p(-w / 2, r);
-        const [x1b, y1b] = p(w / 2, r);
-        const [cxB, cyB] = p(0, side * offset + r);
-        // Fyllnad via lines() med bezier-kurvor
-        doc.lines(
-          [
-            [(cxT - x0t), (cyT - y0t), (x1t - x0t), (y1t - y0t)], // bezier topp (kontroll relativ start, slut relativ start)
-            [(x1b - x1t), (y1b - y1t)],                            // höger sida
-            [(cxB - x1b), (cyB - y1b), (x0b - x1b), (y0b - y1b)], // bezier botten (omvänt)
-            [(x0t - x0b), (y0t - y0b)],                            // vänster sida (sluter formen)
-          ],
-          x0t, y0t, [1, 1], "FD", true,
+        // Böjd tunnel — exakt samma cirkelbåge som i editorn och hundvägen.
+        const { top, bottom } = tunnelEdgesLocal(w, d, curveDeg, ob.curveSide);
+        const outline = [...top, ...[...bottom].reverse()].map((p) =>
+          toWorld(p, cx, cy, ob.rotation),
         );
+        const deltas: number[][] = [];
+        for (let i = 1; i < outline.length; i++) {
+          deltas.push([outline[i].x - outline[i - 1].x, outline[i].y - outline[i - 1].y]);
+        }
+        deltas.push([outline[0].x - outline[outline.length - 1].x, outline[0].y - outline[outline.length - 1].y]);
+        doc.lines(deltas, outline[0].x, outline[0].y, [1, 1], "FD", true);
       }
       break;
     }
+
     case "weave_8": case "weave_10": case "weave_12": {
       const count = def.type === "weave_8" ? 8 : def.type === "weave_10" ? 10 : 12;
       const ang = (ob.rotation * Math.PI) / 180;

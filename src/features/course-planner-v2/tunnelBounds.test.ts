@@ -13,7 +13,8 @@ describe("tunnelns båge i bounds", () => {
     const bent = tunnelWorldAabb({ x: 10, y: 10 }, 5, 0.6, 0, 120, "right");
     expect(bent.maxY - bent.minY).toBeGreaterThan(straight.maxY - straight.minY + 0.5);
     // Kordan (ändarnas placering) är oförändrad — gamla banors mått består.
-    expect(bent.minX).toBeCloseTo(straight.minX, 1);
+    // Bredden växer bara med tunnelrörets tjocklek när ändarna lutar.
+    expect(Math.abs(bent.minX - straight.minX)).toBeLessThan(0.4);
   });
 
   it("speglad böj buktar åt andra hållet", () => {

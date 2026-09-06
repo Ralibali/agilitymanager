@@ -18,6 +18,8 @@ export interface BuildPdfInput {
   arenaHeightM: number;
   classTemplate: ClassTemplateKey | null;
   obstacles: ObstacleLite[];
+  /** Aktivt regelverk — PDF:en måste validera mot samma som editorn. */
+  ruleSetId?: string;
   authorName?: string;
   qrDataUrl?: string;
   showWatermark?: boolean;
@@ -138,6 +140,7 @@ export async function exportBuildPdf(input: BuildPdfInput) {
     sport: input.sport, sizeClass: input.sizeClass,
     arenaWidthM: input.arenaWidthM, arenaHeightM: input.arenaHeightM,
     classTemplate: input.classTemplate, obstacles: input.obstacles,
+    ruleSetId: input.ruleSetId,
   });
 
   if (y + 40 > pageH - 14) {

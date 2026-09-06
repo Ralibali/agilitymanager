@@ -60,6 +60,12 @@ import { ConfirmDialog, NameCourseDialog } from "@/components/course-planner-v2/
 import {
   saveLocalCourse, type LocalCourse,
 } from "@/features/course-planner-v2/localCourses";
+import {
+  draftSaveStatusLabel, saveDraftToStorage, type DraftSaveState,
+} from "@/features/course-planner-v2/draftStorage";
+import {
+  applySnapshot, pushHistory, snapshotDraft, snapshotsEqual, type DraftSnapshot,
+} from "@/features/course-planner-v2/plannerHistory";
 
 // ── Banmodell (v2) ──────────────────────────────────────────────────────────
 
@@ -135,10 +141,8 @@ function draftFromRawCourse(raw: unknown): Draft | null {
   const parsed = parseCourseJson(json);
   if (!parsed.ok) return null;
   const base = defaultDraft(parsed.course.sport);
-  const rawRuleSetId = (raw as { ruleSetId?: unknown }).ruleSetId;
-  const ruleSetId = typeof rawRuleSetId === "string" && getRuleSet(rawRuleSetId)
-    ? rawRuleSetId
-    : base.ruleSetId;
+  // parseCourseJson garanterar ett giltigt regelverk för rätt sport.
+  const ruleSetId = parsed.course.ruleSetId || base.ruleSetId;
 
   return {
     ...base,
@@ -260,9 +264,14 @@ export default function PlannerPage() {
   const [showRulers, setShowRulers] = useState(true);
   const [view, setView] = useState<ViewState>({ zoom: 1, panX: 0, panY: 0 });
   const zoom = view.zoom;
-  const [past, setPast] = useState<PlacedObstacle[][]>([]);
-  const [future, setFuture] = useState<PlacedObstacle[][]>([]);
-  const [savedFlash, setSavedFlash] = useState(false);
+  // håll en färsk referens till draft för pointer-/historikhantering
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
+  const [past, setPast] = useState<DraftSnapshot[]>([]);
+  const [future, setFuture] = useState<DraftSnapshot[]>([]);
+  const [saveState, setSaveState] = useState<DraftSaveState>("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveAttempt, setSaveAttempt] = useState(0);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [copied, setCopied] = useState(false);
@@ -306,8 +315,8 @@ export default function PlannerPage() {
   const svgRef = useRef<SVGSVGElement>(null);
   const canvasWrapRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const dragRef = useRef<{ id: string; dx: number; dy: number; moved: boolean; start: PlacedObstacle[] } | null>(null);
-  const rotateRef = useRef<{ id: string; start: PlacedObstacle[] } | null>(null);
+  const dragRef = useRef<{ id: string; dx: number; dy: number; moved: boolean; start: DraftSnapshot } | null>(null);
+  const rotateRef = useRef<{ id: string; start: DraftSnapshot } | null>(null);
   const panRef = useRef<{ id: number; lastX: number; lastY: number; moved: boolean } | null>(null);
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinchRef = useRef<{ dist: number } | null>(null);
@@ -446,40 +455,75 @@ export default function PlannerPage() {
     return [...groups.entries()];
   }, [palette]);
 
+  /**
+   * Ändrar utkastet OCH lägger ett ångra-steg med hela läget (hinder +
+   * inställningar som ytmått, storleksklass, klassmall och regelverk).
+   */
+  const commitDraft = useCallback((updater: (d: Draft) => Draft) => {
+    // Ta ögonblicksbilden NU — inuti en state-updater körs koden först vid
+    // omritningen, då draftRef redan pekar på det nya läget (inget att ångra).
+    const before = snapshotDraft(draftRef.current);
+    setPast((p) => pushHistory(p, before));
+    setFuture([]);
+    setDraft(updater);
+  }, []);
+
+
   const setObstacles = useCallback(
     (next: PlacedObstacle[], commit = true) => {
-      if (commit) {
-        setPast((p) => [...p.slice(-49), obstacles]);
-        setFuture([]);
-      }
-      setDraft((d) => ({ ...d, obstacles: next }));
+      if (commit) commitDraft((d) => ({ ...d, obstacles: next }));
+      else setDraft((d) => ({ ...d, obstacles: next }));
     },
-    [obstacles]
+    [commitDraft]
   );
 
-  // Autosparning (lokalt i webbläsaren)
-  useEffect(() => {
-    // En oredigerad extern kopia (delad länk/mall) får inte skriva över
-    // användarens egen autosparade bana. Först vid faktisk redigering
-    // blir kopian det nya autosparade utkastet.
-    if (isExternalCopy && JSON.stringify(draft) === externalSnapshotRef.current) {
-      return;
+  // ── Autosparning (lokalt i webbläsaren) ─────────────────────
+  // Sparar bara det som verkligen gick att spara: misslyckas lagringen visar
+  // vi "Kunde inte spara" med försök-igen och JSON-export. Banan ligger kvar
+  // i minnet oavsett.
+  const isExternalUnedited =
+    isExternalCopy && JSON.stringify(draft) === externalSnapshotRef.current;
+
+  const persistDraft = useCallback((d: Draft) => {
+    const res = saveDraftToStorage(STORAGE_KEY, d);
+    if (res.ok) {
+      setSaveState("saved");
+      setSaveError(null);
+    } else {
+      setSaveState("error");
+      setSaveError(res.message);
     }
-    let flashTimer: ReturnType<typeof setTimeout> | null = null;
-    const saveTimer = setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
-        setSavedFlash(true);
-        flashTimer = setTimeout(() => setSavedFlash(false), 1600);
-      } catch {
-        /* fullt/localStorage avstängt */
-      }
-    }, 600);
+    return res.ok;
+  }, []);
+
+  useEffect(() => {
+    // En oredigerad extern kopia (delad länk/mall) får aldrig skriva över
+    // användarens egen autosparade bana.
+    if (isExternalUnedited) return;
+    setSaveState((s) => (s === "error" ? s : "saving"));
+    const saveTimer = setTimeout(() => persistDraft(draftRef.current), 600);
+    return () => clearTimeout(saveTimer);
+  }, [draft, isExternalUnedited, persistDraft, saveAttempt]);
+
+  // Skriv direkt när sidan göms/stängs, så att ändringar inom debouncefönstret
+  // inte tappas om användaren lämnar sidan.
+  useEffect(() => {
+    if (isExternalUnedited) return;
+    const flush = () => { persistDraft(draftRef.current); };
+    const onVisibility = () => { if (document.visibilityState === "hidden") flush(); };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
-      clearTimeout(saveTimer);
-      if (flashTimer) clearTimeout(flashTimer);
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [draft, isExternalCopy]);
+  }, [isExternalUnedited, persistDraft]);
+
+  const retrySave = useCallback(() => {
+    setSaveState("saving");
+    setSaveError(null);
+    setSaveAttempt((n) => n + 1);
+  }, []);
 
   // ── Koordinater ─────────────────────────────────────────────
   const vw = w / zoom;
@@ -603,16 +647,23 @@ export default function PlannerPage() {
   // ── Undo/redo ───────────────────────────────────────────────
   const undo = useCallback(() => {
     if (!past.length) return;
-    setFuture((f) => [obstacles, ...f]);
-    setObstacles(past[past.length - 1], false);
+    const snap = past[past.length - 1];
+    const current = snapshotDraft(draftRef.current);
+    setFuture((f) => [current, ...f]);
+    setDraft((d) => applySnapshot(d, snap));
     setPast((p) => p.slice(0, -1));
-  }, [past, obstacles, setObstacles]);
+    setSelectedId(null);
+  }, [past]);
   const redo = useCallback(() => {
     if (!future.length) return;
-    setPast((p) => [...p, obstacles]);
-    setObstacles(future[0], false);
+    const snap = future[0];
+    const current = snapshotDraft(draftRef.current);
+    setPast((p) => [...p, current]);
+    setDraft((d) => applySnapshot(d, snap));
     setFuture((f) => f.slice(1));
-  }, [future, obstacles, setObstacles]);
+    setSelectedId(null);
+  }, [future]);
+
 
   // ── Redigering ──────────────────────────────────────────────
   const selected = obstacles.find((ob) => ob.id === selectedId) ?? null;
@@ -702,7 +753,7 @@ export default function PlannerPage() {
     e.stopPropagation();
     (e.target as Element).setPointerCapture?.(e.pointerId);
     const pt = toField(e.clientX, e.clientY);
-    dragRef.current = { id: ob.id, dx: ob.x - pt.x, dy: ob.y - pt.y, moved: false, start: obstacles };
+    dragRef.current = { id: ob.id, dx: ob.x - pt.x, dy: ob.y - pt.y, moved: false, start: snapshotDraft(draftRef.current) };
     setSelectedId(ob.id);
     setPlacing(null);
   };
@@ -710,7 +761,7 @@ export default function PlannerPage() {
   const onRotatePointerDown = (e: React.PointerEvent, id: string) => {
     e.stopPropagation();
     (e.target as Element).setPointerCapture?.(e.pointerId);
-    rotateRef.current = { id, start: obstacles };
+    rotateRef.current = { id, start: snapshotDraft(draftRef.current) };
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -782,15 +833,18 @@ export default function PlannerPage() {
       panRef.current = null;
       if (wasClick && !placing) setSelectedId(null);
     }
+    // Ett sammanhängande ångra-steg per dragning/rotation.
     if (dragRef.current?.moved) {
       const start = dragRef.current.start;
-      setPast((p) => [...p.slice(-49), start]);
-      setFuture([]);
+      if (!snapshotsEqual(start, snapshotDraft(draftRef.current))) {
+        setPast((p) => pushHistory(p, start));
+        setFuture([]);
+      }
     }
     if (rotateRef.current) {
       const start = rotateRef.current.start;
-      if (JSON.stringify(start) !== JSON.stringify(draftRef.current.obstacles)) {
-        setPast((p) => [...p.slice(-49), start]);
+      if (!snapshotsEqual(start, snapshotDraft(draftRef.current))) {
+        setPast((p) => pushHistory(p, start));
         setFuture([]);
       }
     }
@@ -799,14 +853,11 @@ export default function PlannerPage() {
   };
 
 
-  // håll en färsk referens till draft för pointer-up-hantering
-  const draftRef = useRef(draft);
-  draftRef.current = draft;
 
   // ── Klassmall / sport / arena ───────────────────────────────
   const applyClassTemplate = (key: ClassTemplateKey | null) => {
     const tpl = key ? getClassTemplate(key) : null;
-    setDraft((d) => ({
+    commitDraft((d) => ({
       ...d,
       classTemplate: key,
       sizeClass: tpl?.defaultSize ?? d.sizeClass,
@@ -820,7 +871,7 @@ export default function PlannerPage() {
     const tpl = CLASS_TEMPLATES.find((t) => t.sport === s);
     const nw = tpl?.arenaWidthM ?? 30;
     const nh = tpl?.arenaHeightM ?? 40;
-    setDraft((d) => ({
+    commitDraft((d) => ({
       ...d,
       sport: s,
       classTemplate: null,
@@ -834,7 +885,7 @@ export default function PlannerPage() {
   };
 
   const setArena = (width: number, height: number) => {
-    setDraft((d) => ({
+    commitDraft((d) => ({
       ...d,
       arenaWidthM: width,
       arenaHeightM: height,
@@ -935,6 +986,7 @@ export default function PlannerPage() {
       exportStartlistPdf({
         courseName: name, sport, sizeClass: draft.sizeClass,
         classTemplate: draft.classTemplate, obstacles: numbered,
+        ruleSetId: draft.ruleSetId,
       });
       toast.success("Startlista nedladdad");
     });
@@ -1326,12 +1378,22 @@ export default function PlannerPage() {
               lastSavedAt={lastSavedAt}
             />
             <span
-              className={`hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors lg:inline-flex ${
-                savedFlash ? "bg-forest text-paper" : "bg-cream text-ink/50"
+              role="status"
+              aria-live="polite"
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors lg:px-3 ${
+                saveState === "error"
+                  ? "bg-red-600 text-white"
+                  : saveState === "saved"
+                    ? "bg-forest text-paper"
+                    : "bg-cream text-ink/50"
               }`}
             >
-              {savedFlash ? "Sparad ✓" : "Autosparas lokalt"}
+              {/* På små skärmar finns bara en prick — texten läses ändå upp
+                  av skärmläsare och syns i breda vyer. */}
+              <span aria-hidden className="h-2 w-2 rounded-full bg-current lg:hidden" />
+              <span className="sr-only lg:not-sr-only">{draftSaveStatusLabel(saveState)}</span>
             </span>
+
             <div className="hidden sm:block">
               <ToolButton onClick={() => setLibraryOpen(true)} label="Banbibliotek — officiella banor och mallar">
                 <BookOpen className="h-5 w-5" />
@@ -1436,6 +1498,31 @@ export default function PlannerPage() {
         </div>
       </header>
 
+      {saveState === "error" && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center gap-2 border-b-2 border-ink/10 bg-red-50 px-3 py-2 text-sm font-semibold text-red-900 sm:px-5"
+        >
+          <span>
+            {saveError ?? "Kunde inte spara banan i den här webbläsaren."} Banan finns kvar här tills du stänger fliken.
+          </span>
+          <button
+            type="button"
+            onClick={retrySave}
+            className="pressable rounded-full border-2 border-ink bg-white px-3 py-1 text-xs font-bold text-ink"
+          >
+            Försök spara igen
+          </button>
+          <button
+            type="button"
+            onClick={onJson}
+            className="pressable rounded-full border-2 border-ink bg-tang px-3 py-1 text-xs font-bold text-ink"
+          >
+            Ladda ner som JSON-fil
+          </button>
+        </div>
+      )}
+
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* ── Vänster sidopanel (desktop) ── */}
         <aside className="hidden w-80 shrink-0 flex-col gap-5 overflow-y-auto border-r-2 border-ink/10 bg-paper p-5 lg:flex">
@@ -1484,7 +1571,7 @@ export default function PlannerPage() {
               {SIZE_CLASSES.map((sc) => (
                 <button
                   key={sc.key}
-                  onClick={() => setDraft((d) => ({ ...d, sizeClass: sc.key }))}
+                  onClick={() => commitDraft((d) => ({ ...d, sizeClass: sc.key }))}
                   className={`h-9 flex-1 rounded-lg border-2 text-xs font-bold transition-all ${
                     draft.sizeClass === sc.key ? "border-ink bg-tang text-ink shadow-hard-sm" : "border-ink/15 bg-white text-ink/60 hover:border-ink"
                   }`}

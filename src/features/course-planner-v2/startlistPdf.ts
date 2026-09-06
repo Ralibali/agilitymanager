@@ -17,6 +17,8 @@ interface Args {
   sizeClass: SizeClassKey;
   classTemplate: ClassTemplateKey | null;
   obstacles: ObstacleLite[];
+  /** Aktivt regelverk — samma som editorn använder. */
+  ruleSetId?: string;
 }
 
 export function exportStartlistPdf(a: Args) {
@@ -26,7 +28,7 @@ export function exportStartlistPdf(a: Args) {
   const sizeDef = SIZE_CLASSES.find((s) => s.key === a.sizeClass);
   const times = computeCourseTimes({
     sport: a.sport, sizeClass: a.sizeClass, arenaWidthM: 30, arenaHeightM: 40,
-    classTemplate: a.classTemplate, obstacles: a.obstacles,
+    classTemplate: a.classTemplate, obstacles: a.obstacles, ruleSetId: a.ruleSetId,
   });
 
   // Header

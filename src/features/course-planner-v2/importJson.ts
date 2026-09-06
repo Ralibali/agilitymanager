@@ -21,6 +21,7 @@ import {
   OBSTACLES_V2, SIZE_CLASSES, CLASS_TEMPLATES,
   type Sport, type SizeClassKey, type ObstacleTypeV2, type ClassTemplateKey,
 } from "./config";
+import { getDefaultRuleSetIdForSport, getRuleSet } from "./rules";
 
 export interface ImportedObstacle {
   id: string;
@@ -43,6 +44,12 @@ export interface ImportedCourse {
   arenaHeightM: number;
   classTemplate: ClassTemplateKey | null;
   obstacles: ImportedObstacle[];
+  /**
+   * Valt regelverk. Alltid ett giltigt id som hör till `sport` — okända id
+   * eller id från fel sport faller tillbaka till sportens default (med
+   * varning) så att en bana aldrig kan blanda regelverk.
+   */
+  ruleSetId: string;
 }
 
 export type ImportResult =
@@ -153,6 +160,22 @@ export function parseCourseJson(text: string): ImportResult {
 
   const name = cleanText(r.name, MAX_IMPORT_NAME_CHARS) || "Importerad bana";
 
+  // Regelverk: behålls bara om det finns OCH gäller samma sport.
+  const defaultRuleSetId = getDefaultRuleSetIdForSport(sport);
+  let ruleSetId = defaultRuleSetId;
+  if (typeof r.ruleSetId === "string" && r.ruleSetId.length > 0) {
+    const rs = getRuleSet(r.ruleSetId);
+    if (!rs) {
+      warnings.push(`Okänt regelverk "${cleanText(r.ruleSetId, 60)}" — använder ${defaultRuleSetId}.`);
+    } else if (rs.sport !== sport) {
+      warnings.push(`Regelverket "${rs.id}" gäller inte ${sport} — använder ${defaultRuleSetId}.`);
+    } else {
+      ruleSetId = rs.id;
+    }
+  } else if (r.ruleSetId != null) {
+    warnings.push(`Ogiltigt regelverksfält — använder ${defaultRuleSetId}.`);
+  }
+
   // Sanera hinder. Hårddcap: aldrig iterera över mer än MAX_IMPORT_OBSTACLES.
   const rawObstacles = r.obstacles as unknown[];
   if (rawObstacles.length > MAX_IMPORT_OBSTACLES) {
@@ -179,7 +202,7 @@ export function parseCourseJson(text: string): ImportResult {
       imported.number = Math.round(ob.number);
     }
     if (typeof ob.curveDeg === "number" && Number.isFinite(ob.curveDeg)) {
-      imported.curveDeg = Math.max(0, Math.min(90, ob.curveDeg));
+      imported.curveDeg = Math.max(0, Math.min(180, ob.curveDeg));
     }
     if (ob.curveSide === "left" || ob.curveSide === "right") {
       imported.curveSide = ob.curveSide;
@@ -205,6 +228,6 @@ export function parseCourseJson(text: string): ImportResult {
   return {
     ok: true,
     warnings,
-    course: { name, sport, sizeClass, arenaWidthM, arenaHeightM, classTemplate, obstacles },
+    course: { name, sport, sizeClass, arenaWidthM, arenaHeightM, classTemplate, obstacles, ruleSetId },
   };
 }

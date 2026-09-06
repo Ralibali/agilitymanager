@@ -49,11 +49,13 @@ export async function exportJudgePdf(input: JudgePdfInput) {
     sport: input.sport, sizeClass: input.sizeClass,
     arenaWidthM: input.arenaWidthM, arenaHeightM: input.arenaHeightM,
     classTemplate: input.classTemplate, obstacles: input.obstacles,
+    ruleSetId: input.ruleSetId,
   });
   const issues = validateCourse({
     sport: input.sport, sizeClass: input.sizeClass,
     arenaWidthM: input.arenaWidthM, arenaHeightM: input.arenaHeightM,
     classTemplate: input.classTemplate, obstacles: input.obstacles,
+    ruleSetId: input.ruleSetId,
   });
 
   /* ─── SIDA 1 ─────────────────────────────── */

@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "content_id": "editorial-20260907-planera-tavlingssasong-agility",
+  "author": "ChatGPT",
+  "status": "draft",
+  "written_at": "2026-09-06T22:37:36.331Z",
+  "not_before": "2026-09-08",
+  "sources_checked_at": "2026-09-06T22:37:36.331Z",
+  "search_intent": "Planera en genomförbar agilitysäsong genom att skilja preliminära tävlingsval, anmälningsfrister, bekräftad anmälan och reseplanering i en enkel kalender.",
+  "source_urls": [
+    "https://agilityklubben.se/tavling/ansokan-om-tavling/"
+  ],
+  "slug": "planera-tavlingssasong-agility",
+  "title": "Planera agilitysäsongen: från tävlingsidé till kontrollerad kalender",
+  "description": "Samla tävlingsidéer, sista anmälningsdag och praktiska beslut i en tydlig kalender. En enkel arbetsmall för att planera din agilitysäsong.",
+  "category": "Verktyg",
+  "readingMinutes": 4,
+  "related": [
+    "fran-banide-till-traningspass",
+    "regelverk-agility-hoopers-sverige"
+  ],
+  "cta": {
+    "heading": "Börja med en översikt",
+    "text": "Se tävlingskalendern och kontrollera uppgifterna hos arrangören innan du anmäler.",
+    "label": "Öppna tävlingskalendern",
+    "to": "/tavlingar"
+  },
+  "blocks": [
+    {
+      "type": "p",
+      "text": "En tävling i kalendern kan betyda flera olika saker: något du funderar på, en helg du har reserverat eller en start du faktiskt har anmält dig till. När allt får samma markering blir det lätt att tappa bort vad som återstår. En enkel säsongsplan hjälper dig att skilja idéerna från de beslut du redan har tagit."
+    },
+    {
+      "type": "p",
+      "text": "Den här arbetsmallen handlar om planering och uppföljning. Kontrollera alltid aktuella uppgifter, deltagarkrav och anmälningsvillkor hos arrangören och i det officiella tävlingssystemet. Kalendern är ett stöd för dina beslut; en sparad tävling är inte i sig en anmälan."
+    },
+    {
+      "type": "h2",
+      "text": "Börja med de helger som fungerar i vardagen"
+    },
+    {
+      "type": "p",
+      "text": "Markera först sådant som redan är bestämt: arbete, semester, familjeaktiviteter och andra åtaganden. Skriv också vilka resor du faktiskt vill kunna genomföra. Två tävlingar kan se likvärdiga ut i en lista men kräva helt olika förberedelser när restid och eventuell övernattning räknas in."
+    },
+    {
+      "type": "p",
+      "text": "Välj sedan några möjliga tävlingar att undersöka. Du behöver inte fylla hela säsongen direkt. Om flera alternativ ligger samma helg kan de stå kvar som alternativ tills du har tillräcklig information för att välja."
+    },
+    {
+      "type": "h2",
+      "text": "Ge varje tävlingsidé en tydlig status"
+    },
+    {
+      "type": "ul",
+      "items": [
+        "Intressant: ett alternativ som ännu inte är kontrollerat.",
+        "Kontrollerad: datum, plats och relevanta klasser är genomgångna.",
+        "Planerad: du har valt att arbeta mot den här helgen.",
+        "Anmäld: du har genomfört anmälan och sparat bekräftelsen.",
+        "Avstådd eller ändrad: planen har uppdaterats, med en kort förklaring."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Du kan använda dessa benämningar i en egen anteckning eller kalender. De beskriver ditt arbetsflöde och behöver inte motsvara statusfält i någon viss app. Skriv datum för kontrollen bredvid statusen, så ser du vad som kan behöva läsas om."
+    },
+    {
+      "type": "h2",
+      "text": "Spara källan tillsammans med sista anmälningsdag"
+    },
+    {
+      "type": "p",
+      "text": "För varje vald tävling behöver du kunna hitta tillbaka till rätt information. Spara arrangörens länk, tävlingsdatum, plats och den sista anmälningsdag som faktiskt anges. Skilj tävlingshelgen från datumet då du måste agera."
+    },
+    {
+      "type": "p",
+      "text": "Svenska Agilityklubbens [information om tävlingsplanering](https://agilityklubben.se/tavling/ansokan-om-tavling/) beskriver Agilitydata och hur tävlingar läggs in. Använd den aktuella tävlingsinformationen när du kontrollerar ditt val; anta inte att detaljer från förra årets tävling fortfarande gäller."
+    },
+    {
+      "type": "p",
+      "text": "Om en uppgift saknas skriver du vad som behöver kontrolleras och hos vem. Gissa inte en anmälningsfrist utifrån en annan tävling. Lägg en egen påminnelse i den kalender du använder, med tid att läsa villkoren innan du fattar beslut."
+    },
+    {
+      "type": "h2",
+      "text": "Gör en liten kontrollista för praktiken"
+    },
+    {
+      "type": "ul",
+      "items": [
+        "Var finns aktuell information om plats och eventuella ändringar?",
+        "Hur ser resan ut, och behövs övernattning?",
+        "Vilka uppgifter eller handlingar behöver kontrolleras för just den här starten?",
+        "Var sparas bekräftelse och övriga besked?",
+        "Vilken annan person behöver känna till planen?"
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Kontrollistan ska vara kort nog att användas varje gång. Om något kräver en särskild regelkontroll länkar du till källan i stället för att föra vidare en lös anteckning utan datum. Vid oklarheter om deltagande behöver du få svar från rätt arrangör eller organisation."
+    },
+    {
+      "type": "h2",
+      "text": "Koppla planeringen till ett konkret träningsmål"
+    },
+    {
+      "type": "p",
+      "text": "När en helg är vald kan du skriva vad du vill förbereda i träningen. Håll målet tillräckligt konkret för att kunna diskutera med din instruktör. En kalender behöver inte innehålla ett komplett träningsprogram, men den kan visa varför ett visst pass är planerat."
+    },
+    {
+      "type": "p",
+      "text": "Läs gärna [från banidé till träningspass](/blogg/fran-banide-till-traningspass) när du översätter ett planeringsmål till något du vill arbeta med. Anpassa omfattningen till hunden och er situation tillsammans med instruktören, i stället för att lägga till fler starter bara för att kalendern har lediga rutor."
+    },
+    {
+      "type": "h2",
+      "text": "Uppdatera planen efter varje beslut"
+    },
+    {
+      "type": "p",
+      "text": "När du anmält, ändrat eller avstått från en tävling uppdaterar du samma rad. Spara en kort orsak om den hjälper nästa planering. Efter genomförd helg kan en enda anteckning om resan eller förberedelserna vara värdefull inför nästa säsong."
+    },
+    {
+      "type": "p",
+      "text": "Börja med [AgilityManagers tävlingskalender](/tavlingar) för en översikt och kontrollera sedan ditt val hos arrangören. Använd [översikten över regelverk](/blogg/regelverk-agility-hoopers-sverige) som väg vidare till rätt källor när ett planeringsbeslut kräver en regelkontroll."
+    }
+  ]
+}

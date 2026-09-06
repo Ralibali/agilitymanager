@@ -22,6 +22,7 @@ import {
   type RuleSet,
 } from "./rules";
 import { rotatedAabb, edgesOutsideArena, aabbsOverlap, type AABB } from "./geometry";
+import { normalizeCurveDeg, tunnelWorldAabb } from "./tunnelGeometry";
 
 export type IssueLevel = "error" | "warning" | "info";
 
@@ -111,6 +112,11 @@ function obstacleAabb(ob: ObstacleLite) {
   const def = getObstacleDefV2(ob.type);
   const w = def?.sizeM.w ?? 0.4;
   const d = def?.sizeM.d ?? 0.4;
+  // Böjd tunnel: bågen buktar utanför den raka rektangeln — använd
+  // tunnelns faktiska geometri så att bounds-kontrollen stämmer.
+  if (ob.type === "tunnel" && normalizeCurveDeg(ob.curveDeg) > 0) {
+    return tunnelWorldAabb({ x: ob.x, y: ob.y }, w, d, ob.rotation, ob.curveDeg ?? 0, ob.curveSide);
+  }
   return rotatedAabb({ x: ob.x, y: ob.y }, w, d, ob.rotation);
 }
 

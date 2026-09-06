@@ -233,9 +233,19 @@ function loadInitial(search: URLSearchParams): Draft {
       const d = JSON.parse(raw) as Draft;
       if (d && Array.isArray(d.obstacles)) {
         // Även ett tomt utkast ska behålla mått, klassmall och regelverk —
-        // ändringar gjorda före första hindret får inte försvinna.
-        const parsed = draftFromRawCourse(d);
-        if (parsed) return parsed;
+        // ändringar gjorda före första hindret får inte försvinna. JSON-
+        // importen kräver minst ett hinder (en tom FIL är ett fel), så vi
+        // saniterar via en tillfällig markör och tömmer listan igen.
+        if (d.obstacles.length === 0) {
+          const probe = draftFromRawCourse({
+            ...d,
+            obstacles: [{ id: "probe", type: "number", x: 0, y: 0, rotation: 0 }],
+          });
+          if (probe) return { ...probe, obstacles: [] };
+        } else {
+          const parsed = draftFromRawCourse(d);
+          if (parsed) return parsed;
+        }
       }
     }
   } catch {

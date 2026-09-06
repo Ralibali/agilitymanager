@@ -1,6 +1,7 @@
 import { useEffect } from "react";
+import { SITE_ORIGIN } from "@/lib/firstByteSeo";
 
-const SITE_URL = "https://agilitymanager.se";
+const SITE_URL = SITE_ORIGIN;
 const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`;
 
 function upsertMeta(selector: string, attr: "name" | "property", key: string, content: string) {

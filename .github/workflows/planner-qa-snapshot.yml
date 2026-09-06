@@ -21,6 +21,7 @@ jobs:
           git apply --check --unidiff-zero /tmp/planner.patch
           git apply --unidiff-zero /tmp/planner.patch
           python3 .planner-fix/reconcile.py
+          python3 .planner-fix/finalize.py
           tar --exclude=.git --exclude='.env*' --exclude=node_modules --exclude='.planner-fix' --exclude='*.log' -czf /tmp/planner-review.tar.gz .
       - uses: actions/setup-node@v4
         with:
@@ -44,6 +45,7 @@ jobs:
       - name: Original desktop and mobile browser suite
         run: npm run test:e2e
       - name: Extended desktop and mobile browser regressions
+        if: success() || failure()
         run: |
           npm run dev -- --host 127.0.0.1 > /tmp/planner-dev.log 2>&1 &
           for i in {1..30}; do curl -fsS http://127.0.0.1:3000/ > /dev/null && break; sleep 1; done

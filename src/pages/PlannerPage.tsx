@@ -380,6 +380,7 @@ export default function PlannerPage() {
         // Markera kopians ursprungsinnehåll så att autosparningen inte
         // skriver över användarens lokala bana förrän hen redigerar kopian.
         externalSnapshotRef.current = JSON.stringify(copy);
+        externalEditedRef.current = false;
         setDraft(copy);
         setPast([]);
         setFuture([]);

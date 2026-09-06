@@ -1,3 +1,4 @@
+import editorialArticles from "./editorial.generated.json";
 /**
  * Blogg-/kunskapsinnehåll för AgilityManager.
  *
@@ -40,6 +41,7 @@ export interface BlogArticle {
 }
 
 export const ARTICLES: BlogArticle[] = [
+  ...(editorialArticles as BlogArticle[]),
   {
     slug: "bygga-saker-traningsbana-agility",
     title: "Så bygger du en säker träningsbana i agility",

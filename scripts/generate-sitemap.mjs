@@ -26,7 +26,7 @@ for (const m of routesSrc.matchAll(
 }
 
 // Artiklar: slug + updatedAt (fältordningen är stabil i källfilen)
-const articles = [];
+const articles = JSON.parse(readFileSync(join(root, "src/content/editorial.generated.json"), "utf8")).map(({slug, updatedAt}) => ({slug, updatedAt}));
 for (const m of articlesSrc.matchAll(
   /slug:\s*"([^"]+)",[\s\S]*?updatedAt:\s*"([^"]+)"/g,
 )) {

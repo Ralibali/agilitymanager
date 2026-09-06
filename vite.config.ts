@@ -1,4 +1,5 @@
 import path from "path"
+import { execFileSync } from "node:child_process"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import { inspectAttr } from 'kimi-plugin-inspect-react'
@@ -6,7 +7,10 @@ import { inspectAttr } from 'kimi-plugin-inspect-react'
 // https://vite.dev/config/
 export default defineConfig({
   base: '/',
-  plugins: [inspectAttr(), react()],
+  plugins: [inspectAttr(), react(), { name: "owned-editorial", apply: "build", enforce: "post", buildStart() {
+    execFileSync(process.execPath, ["scripts/editorial-check.mjs"], { stdio: "inherit" });
+    execFileSync(process.execPath, ["scripts/generate-sitemap.mjs"], { stdio: "inherit" });
+  }, closeBundle() { execFileSync(process.execPath, ["scripts/prerender-editorial.mjs"], { stdio: "inherit" }); } }],
   server: {
     port: 3000,
   },

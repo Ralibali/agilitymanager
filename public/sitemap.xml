@@ -34,6 +34,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://agilitymanager.se/blogg/jamfora-banversioner-agility</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://agilitymanager.se/blogg/bygga-saker-traningsbana-agility</loc>
     <lastmod>2026-01-20</lastmod>
     <changefreq>monthly</changefreq>

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "origin": "https://agilitymanager.se",
+  "lovable_project_id": "8e4043da-e9a3-446e-aed4-b8fb4a29fa17",
+  "repository": "Ralibali/agilitymanager",
+  "writer": "ChatGPT",
+  "cadence_days": 2,
+  "publication_mode": "reviewed_git_content",
+  "adtraction_channel_id": "2103592373",
+  "active_affiliate_programs": []
+}

@@ -1,0 +1,112 @@
+[
+  {
+    "schema_version": 1,
+    "content_id": "editorial-20260906-jamfora-banversioner-agility",
+    "author": "ChatGPT",
+    "status": "ready",
+    "site": "agilitymanager",
+    "search_intent": "Hur dokumenterar och jämför jag två versioner av samma agilitybana utan att tappa grundritningen?",
+    "source_urls": [
+      "https://agilitymanager.se/funktioner"
+    ],
+    "sources_checked_at": "2026-09-06",
+    "slug": "jamfora-banversioner-agility",
+    "title": "Jämför två banversioner i agility med en enkel arbetsmall",
+    "description": "Håll isär grundbana och ändringar. Få en konkret mall för att namnge, jämföra och följa upp två versioner av din agilitybana inför nästa träning.",
+    "category": "Verktyg",
+    "publishedAt": "2026-09-06",
+    "updatedAt": "2026-09-06",
+    "readingMinutes": 4,
+    "blocks": [
+      {
+        "type": "p",
+        "text": "När två ritningar nästan ser likadana ut är det lätt att glömma varför du ändrade den ena. Ge varje banversion ett tydligt namn och en fråga att besvara. Då kan du ta med rätt ritning till träningen och efteråt avgöra vilken idé du vill behålla. Här får du en arbetsmall för att jämföra två versioner utan att blanda ihop vad som faktiskt ändrades."
+      },
+      {
+        "type": "h2",
+        "text": "Bestäm vad versionerna ska hjälpa dig att se"
+      },
+      {
+        "type": "p",
+        "text": "Skriv målet i en enda mening innan du flyttar något på ritningen. Ett användbart mål kan vara att se om en annan förarväg gör en viss sekvens lättare att planera. Det är mer konkret än att försöka göra hela banan bättre på en gång. Välj en sekvens som passar ekipagets nuvarande träning och låt övriga banan vara en tydlig referens."
+      },
+      {
+        "type": "p",
+        "text": "Den här metoden är en planeringsmall, inte ett test som bevisar en träningsmetod. Dagsform, förkunskaper och underlag kan påverka hur ett pass blir. Ritningen hjälper dig att hålla reda på avsikten; en observation från ett enda tillfälle räcker sällan för att dra stora slutsatser."
+      },
+      {
+        "type": "h2",
+        "text": "Ge grundritningen ett namn som går att förstå senare"
+      },
+      {
+        "type": "p",
+        "text": "Använd datum, tema och versionsbokstav, till exempel 2026-09-12-förarväg-A. Skriv samma namn i dina anteckningar och på den ritning du tar med. Behåll grundversionen separat när du arbetar vidare, så att en ändring inte suddar ut det du ville jämföra med. Kontrollera i ditt aktuella konto vilka alternativ för att spara och exportera som ingår."
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Version A: skriv vilket upplägg du utgår från.",
+          "Version B: beskriv den enda ändring du vill undersöka.",
+          "Oförändrat: notera sådant som hinderordning och planmått.",
+          "Fråga: skriv vad du vill kunna svara på efter genomgången."
+        ]
+      },
+      {
+        "type": "h2",
+        "text": "Ändra en sak och kontrollera hela sekvensen igen"
+      },
+      {
+        "type": "p",
+        "text": "Om du både flyttar flera hinder, byter ordning och väljer en ny förarväg blir det svårt att förstå vad skillnaden beror på. Börja med en avgränsad ändring. Jämför sedan hela linjen före och efter det berörda partiet. En liten förändring på papper kan påverka hur nästa del av banan behöver planeras."
+      },
+      {
+        "type": "p",
+        "text": "Gå igenom ritningen utan hund först och bedöm sedan den uppbyggda banan tillsammans med en kunnig instruktör när det behövs. En digital ritning kan inte avgöra att underlaget, avstånden eller belastningen passar ett visst ekipage. Använd därför jämförelsen som stöd i förberedelsen och anpassa genomförandet till hunden och platsen."
+      },
+      {
+        "type": "h2",
+        "text": "Använd en kort jämförelsemall"
+      },
+      {
+        "type": "p",
+        "text": "Kopiera följande frågor till din träningsanteckning. Fyll gärna i dem innan passet så att du slipper försöka minnas avsikten i efterhand. Beskriv det du ser med konkreta ord och håll isär observation och tolkning."
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Vad är samma i A och B?",
+          "Vad skiljer versionerna åt?",
+          "Vad vill jag observera i den valda sekvensen?",
+          "Vad hände faktiskt under genomgången eller passet?",
+          "Vad behöver jag fråga instruktören om innan nästa försök?"
+        ]
+      },
+      {
+        "type": "p",
+        "text": "Ett fiktivt exempel: observationen kan vara att föraren behövde ta en annan väg än den markerade. Tolkningen kan vara att startpositionen behöver ses över. Skriv båda separat. Då kan du ändra din tolkning senare utan att förlora själva anteckningen om vad som hände."
+      },
+      {
+        "type": "h2",
+        "text": "Välj nästa steg innan du ritar version C"
+      },
+      {
+        "type": "p",
+        "text": "Avsluta med ett litet beslut: behåll A, arbeta vidare med B eller undersök frågan med instruktören. Om båda versionerna var svåra att förstå, förenkla målet innan du lägger till fler ändringar. Det sparar planeringstid och gör det lättare att hitta tillbaka till fungerande upplägg längre fram."
+      },
+      {
+        "type": "p",
+        "text": "I [AgilityManagers banplanerare](/banplanerare) kan du börja med din ritning. Läs också [från banidé till träningspass](/blogg/fran-banide-till-traningspass) för en bredare planering och [avstånd och vinklar i bandesign](/blogg/avstand-och-vinklar-bandesign) när du granskar linjerna. Produktens aktuella verktyg beskrivs på [funktionssidan](/funktioner)."
+      }
+    ],
+    "related": [
+      "fran-banide-till-traningspass",
+      "avstand-och-vinklar-bandesign"
+    ],
+    "cta": {
+      "heading": "Börja med din grundritning",
+      "text": "Öppna banplaneraren och ge nästa träningsidé en tydlig utgångspunkt.",
+      "to": "/banplanerare",
+      "label": "Öppna banplaneraren"
+    }
+  }
+]

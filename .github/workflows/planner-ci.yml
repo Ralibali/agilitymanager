@@ -60,6 +60,14 @@ jobs:
       - name: Typecheck and production build
         run: npm run build
 
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser regression tests (planner)
+        run: npm run test:e2e
+
+
+
   verify-edge-function:
     runs-on: ubuntu-latest
     timeout-minutes: 7

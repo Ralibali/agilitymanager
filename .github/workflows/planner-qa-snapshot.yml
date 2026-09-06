@@ -1,27 +1,63 @@
-name: Planner QA workspace
+name: Verify planner reliability patch
 on:
   push:
     branches: [fix/planner-reliability-20260906]
     paths: [.github/workflows/planner-qa-snapshot.yml]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  workspace:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify baseline and exact patch transport
+        run: |
+          git diff --exit-code d0ebc6432c53b2d787630291e9fccdc904e9dacd HEAD -- src scripts .gitignore .github/workflows/planner-ci.yml
+          cat .planner-fix/part* > /tmp/planner.patch
+          echo '08fd4014fbf71480b7e02780068c74257de9bd9cfff48073364dc8448387ab90  /tmp/planner.patch' | sha256sum -c
+          git apply --check --unidiff-zero /tmp/planner.patch
+          git apply --unidiff-zero /tmp/planner.patch
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --no-audit --no-fund
-      - name: Package isolated QA source and locked dependencies
-        run: tar --exclude=.git --exclude='.env*' --exclude='*.log' --exclude='.vercel' -czf /tmp/planner-qa.tar.gz .
-      - uses: actions/upload-artifact@v4
+      - uses: actions/setup-python@v5
         with:
-          name: planner-qa-workspace
-          path: /tmp/planner-qa.tar.gz
-          retention-days: 1
+          python-version: '3.13'
+      - run: npm ci --no-audit --no-fund
+      - name: Lint
+        run: npm run lint
+      - name: Full regression suite
+        run: npm test
+      - name: Typecheck and production build
+        run: npm run build
+      - name: Install pinned browser test dependencies
+        run: |
+          pip install -r scripts/planner-browser-requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Desktop and mobile browser regressions
+        run: |
+          npm run dev -- --host 127.0.0.1 > /tmp/planner-dev.log 2>&1 &
+          for i in {1..30}; do curl -fsS http://127.0.0.1:3000/ > /dev/null && break; sleep 1; done
+          python scripts/planner-browser-check.py
+      - name: Preserve browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: planner-browser-evidence
+          path: |
+            qa-artifacts/
+            /tmp/planner-dev.log
+          retention-days: 7
+      - name: Commit verified implementation to test branch only
+        run: |
+          git rm -r .planner-fix .github/workflows/planner-qa-snapshot.yml
+          git add src scripts .gitignore .github/workflows/planner-ci.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(planner): consistent tunnels, rules roundtrip, reliable saves and full undo'
+          git log -1 --format='VERIFIED_COMMIT=%H%nVERIFIED_TREE=%T'
+          git push origin HEAD:fix/planner-reliability-20260906

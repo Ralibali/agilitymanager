@@ -1,0 +1,221 @@
+-      window.dispatchEvent(new CustomEvent("am:tunnel-curve-updated", { detail: { id: selectedTunnel.id, curve: next } }));
+-      return { ...prev, [selectedTunnel.id]: next };
++    onTunnelCurveChange?.(selectedTunnel.id, {
++      curveDeg: Math.max(0, Math.min(180, patch.curveDeg ?? selectedTunnel.curveDeg ?? 0)),
++      curveSide: patch.curveSide ?? selectedTunnel.curveSide ?? "right",
+@@ -184 +168 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
+-          <input type="range" min={0} max={90} step={5} value={selectedTunnelCurve.curveDeg} onChange={(e) => updateTunnelCurve({ curveDeg: Number(e.target.value) })} className="w-full accent-[#173d2c]" />
++          <input type="range" min={0} max={180} step={5} value={selectedTunnelCurve.curveDeg} onChange={(e) => updateTunnelCurve({ curveDeg: Number(e.target.value) })} className="w-full accent-[#173d2c]" />
+@@ -189 +173 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
+-          <p className="mt-2 text-xs text-v3-text-secondary">Klicka på en tunnel i 3D för att välja den. 0° är rak tunnel, 90° är maxböj.</p>
++          <p className="mt-2 text-xs text-v3-text-secondary">Klicka på en tunnel i 3D för att välja den. 0° är rak tunnel, 180° är maxböj.</p>
+@@ -200 +184 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
+-            const curve = curveOverrides[o.id] ?? { curveDeg: o.curveDeg ?? 0, curveSide: o.curveSide ?? "left" };
++            const curve = { curveDeg: o.curveDeg ?? 0, curveSide: o.curveSide ?? "right" };
+diff --git a/src/features/course-planner/3d/Obstacle3DPolished.tsx b/src/features/course-planner/3d/Obstacle3DPolished.tsx
+index de78937..dd5fe47 100644
+--- a/src/features/course-planner/3d/Obstacle3DPolished.tsx
++++ b/src/features/course-planner/3d/Obstacle3DPolished.tsx
+@@ -0,0 +1,2 @@
++import { tunnelGeometry } from "@/features/course-planner-v2/tunnelGeometry";
++import { getObstacleDefV2 } from "@/features/course-planner-v2/config";
+@@ -66,11 +68,2 @@ function makeTunnelPath(length: number, curveDeg = 0, curveSide: "left" | "right
+-  const deg = Math.max(0, Math.min(90, curveDeg));
+-  if (deg < 1) return new THREE.CatmullRomCurve3([new THREE.Vector3(-length / 2, 0, 0), new THREE.Vector3(length / 2, 0, 0)]);
+-  const theta = THREE.MathUtils.degToRad(deg);
+-  const arcRadius = length / theta;
+-  const side = curveSide === "left" ? 1 : -1;
+-  const points = Array.from({ length: 34 }, (_, i) => {
+-    const t = i / 33;
+-    const a = -theta / 2 + t * theta;
+-    return new THREE.Vector3(Math.sin(a) * arcRadius, 0, side * (Math.cos(a) - Math.cos(theta / 2)) * arcRadius);
+-  });
+-  return new THREE.CatmullRomCurve3(points);
++  const { points } = tunnelGeometry(length, curveDeg, curveSide);
++  return new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p.x, 0, p.y)));
+@@ -78 +71 @@ function makeTunnelPath(length: number, curveDeg = 0, curveSide: "left" | "right
+-function Tunnel({ color = BLUE, length = 3.05, radius = 0.42, curveDeg = 0, curveSide = "left" }: { color?: string; length?: number; radius?: number; curveDeg?: number; curveSide?: "left" | "right" }) {
++function Tunnel({ color = BLUE, length = getObstacleDefV2("tunnel")!.sizeM.w, radius = getObstacleDefV2("tunnel")!.sizeM.d / 2, curveDeg = 0, curveSide = "right" }: { color?: string; length?: number; radius?: number; curveDeg?: number; curveSide?: "left" | "right" }) {
+@@ -106,2 +99,2 @@ function FinishGate() { return <group><Gate color={NAVY} /><mesh position={[0, 1
+-export function Obstacle3D({ type, x, z, rotationDeg, number, color, onSelect, highlight = false, curveDeg = 0, curveSide = "left" }: Obstacle3DProps) {
+-  const rotY = useMemo(() => (rotationDeg * Math.PI) / 180, [rotationDeg]);
++export function Obstacle3D({ type, x, z, rotationDeg, number, color, onSelect, highlight = false, curveDeg = 0, curveSide = "right" }: Obstacle3DProps) {
++  const rotY = useMemo(() => (rotationDeg * Math.PI) / 180 * (type === "tunnel" || type === "hoopers_tunnel" ? -1 : 1), [rotationDeg, type]);
+diff --git a/src/integrations/supabase/previewAuthStorage.ts b/src/integrations/supabase/previewAuthStorage.ts
+index c335f2b..4ba338d 100644
+--- a/src/integrations/supabase/previewAuthStorage.ts
++++ b/src/integrations/supabase/previewAuthStorage.ts
+@@ -38 +37,0 @@ export function brokeredPreviewStorage() {
+-      let timer: ReturnType<typeof setTimeout>;
+@@ -56 +55 @@ export function brokeredPreviewStorage() {
+-      timer = setTimeout(() => finish(null), TIMEOUT);
++      const timer = setTimeout(() => finish(null), TIMEOUT);
+diff --git a/src/pages/PlannerPage.tsx b/src/pages/PlannerPage.tsx
+index 15b5c78..d6de2ba 100644
+--- a/src/pages/PlannerPage.tsx
++++ b/src/pages/PlannerPage.tsx
+@@ -0,0 +1 @@
++import { createDraftAutosaver, type DraftSaveResult } from "@/features/course-planner-v2/draftAutosave";
+@@ -25 +26 @@ import {
+-  getObstacleDefV2, getClassTemplate,
++  getObstacleDefV2,
+@@ -29 +30 @@ import {
+-  getRuleSet, getDefaultRuleSetIdForSport,
++  getRuleSet, getDefaultRuleSetIdForSport, getRuleSetsForSport, getCourseClassTemplate,
+@@ -135 +136 @@ function draftFromRawCourse(raw: unknown): Draft | null {
+-  const parsed = parseCourseJson(json);
++  const parsed = parseCourseJson(json, { allowEmpty: true });
+@@ -138,4 +139 @@ function draftFromRawCourse(raw: unknown): Draft | null {
+-  const rawRuleSetId = (raw as { ruleSetId?: unknown }).ruleSetId;
+-  const ruleSetId = typeof rawRuleSetId === "string" && getRuleSet(rawRuleSetId)
+-    ? rawRuleSetId
+-    : base.ruleSetId;
++  const ruleSetId = parsed.course.ruleSetId;
+@@ -160 +158 @@ function encodeCourse(d: Draft): string {
+-    v: 2,
++    version: 2,
+@@ -231 +228,0 @@ function loadInitial(search: URLSearchParams): Draft {
+-        if (d.obstacles.length === 0) return defaultDraft(d.sport === "hoopers" ? "hoopers" : "agility");
+@@ -263,3 +260,5 @@ export default function PlannerPage() {
+-  const [past, setPast] = useState<PlacedObstacle[][]>([]);
+-  const [future, setFuture] = useState<PlacedObstacle[][]>([]);
+-  const [savedFlash, setSavedFlash] = useState(false);
++  const [past, setPast] = useState<Draft[]>([]);
++  const [future, setFuture] = useState<Draft[]>([]);
++  const [saveResult, setSaveResult] = useState<DraftSaveResult | null>(null);
++  const [namedSaveError, setNamedSaveError] = useState(false);
++  const [autosaver] = useState(() => createDraftAutosaver(value => localStorage.setItem(STORAGE_KEY, value), setSaveResult));
+@@ -309,2 +308,2 @@ export default function PlannerPage() {
+-  const dragRef = useRef<{ id: string; dx: number; dy: number; moved: boolean; start: PlacedObstacle[] } | null>(null);
+-  const rotateRef = useRef<{ id: string; start: PlacedObstacle[] } | null>(null);
++  const dragRef = useRef<{ id: string; dx: number; dy: number; moved: boolean; start: Draft } | null>(null);
++  const rotateRef = useRef<{ id: string; start: Draft } | null>(null);
+@@ -313 +312 @@ export default function PlannerPage() {
+-  const pinchRef = useRef<{ dist: number } | null>(null);
++  const pinchRef = useRef<{ dist: number; midX: number; midY: number } | null>(null);
+@@ -449,10 +448,13 @@ export default function PlannerPage() {
+-  const setObstacles = useCallback(
+-    (next: PlacedObstacle[], commit = true) => {
+-      if (commit) {
+-        setPast((p) => [...p.slice(-49), obstacles]);
+-        setFuture([]);
+-      }
+-      setDraft((d) => ({ ...d, obstacles: next }));
+-    },
+-    [obstacles]
+-  );
++  const draftRef = useRef(draft);
++  draftRef.current = draft;
++  const commitDraft = useCallback((change: (current: Draft) => Draft, commit = true) => {
++    const current = draftRef.current;
++    const next = change(current);
++    if (JSON.stringify(current) === JSON.stringify(next)) return;
++    if (commit) { setPast(p => [...p.slice(-49), current]); setFuture([]); }
++    draftRef.current = next;
++    setDraft(next);
++  }, []);
++  const setObstacles = useCallback((next: PlacedObstacle[], commit = true) => {
++    commitDraft(d => ({ ...d, obstacles: next }), commit);
++  }, [commitDraft]);
+@@ -460 +461,0 @@ export default function PlannerPage() {
+-  // Autosparning (lokalt i webbläsaren)
+@@ -462,16 +463,7 @@ export default function PlannerPage() {
+-    // En oredigerad extern kopia (delad länk/mall) får inte skriva över
+-    // användarens egen autosparade bana. Först vid faktisk redigering
+-    // blir kopian det nya autosparade utkastet.
+-    if (isExternalCopy && JSON.stringify(draft) === externalSnapshotRef.current) {
+-      return;
+-    }
+-    let flashTimer: ReturnType<typeof setTimeout> | null = null;
+-    const saveTimer = setTimeout(() => {
+-      try {
+-        localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+-        setSavedFlash(true);
+-        flashTimer = setTimeout(() => setSavedFlash(false), 1600);
+-      } catch {
+-        /* fullt/localStorage avstängt */
+-      }
+-    }, 600);
++    autosaver.update(JSON.stringify(draft), isExternalCopy ? externalSnapshotRef.current : null, loadingShared);
++  }, [draft, isExternalCopy, loadingShared, autosaver]);
++  useEffect(() => {
++    const hide = () => { if (document.visibilityState === "hidden") autosaver.flush(); };
++    const flush = () => autosaver.flush();
++    document.addEventListener("visibilitychange", hide);
++    window.addEventListener("pagehide", flush);
+@@ -479,2 +471,3 @@ export default function PlannerPage() {
+-      clearTimeout(saveTimer);
+-      if (flashTimer) clearTimeout(flashTimer);
++      document.removeEventListener("visibilitychange", hide);
++      window.removeEventListener("pagehide", flush);
++      autosaver.dispose();
+@@ -482 +475 @@ export default function PlannerPage() {
+-  }, [draft, isExternalCopy]);
++  }, [autosaver]);
+@@ -528,2 +520,0 @@ export default function PlannerPage() {
+-        const fx = (clientX! - rect!.left) / rect!.width;
+-        const fy = (clientY! - rect!.top) / rect!.height;
+@@ -531,0 +523,3 @@ export default function PlannerPage() {
++        const scale = Math.min(rect!.width / vwOld, rect!.height / vhOld);
++        const fx = (clientX! - rect!.left - (rect!.width - vwOld * scale) / 2) / (vwOld * scale);
++        const fy = (clientY! - rect!.top - (rect!.height - vhOld * scale) / 2) / (vhOld * scale);
+@@ -555,8 +549,2 @@ export default function PlannerPage() {
+-  const fitToScreen = useCallback(() => {
+-    const rect = svgRef.current?.getBoundingClientRect();
+-    if (!rect || rect.width === 0 || rect.height === 0) { resetView(); return; }
+-    // Vid zoom=1 visas w × h i viewBox, utsträckt över hela ytan. Vi vill att
+-    // banans proportion får plats: minsta av bredd-/höjdförhållandet.
+-    const fit = Math.min(1, (rect.width / rect.height) / (w / h));
+-    setView({ zoom: clamp(fit, ZOOM_MIN, ZOOM_MAX), panX: 0, panY: 0 });
+-  }, [w, h, resetView]);
++  // SVG's default xMidYMid meet already fits the whole arena at zoom 1.
++  const fitToScreen = resetView;
+@@ -569,2 +557,3 @@ export default function PlannerPage() {
+-        const dxM = -dxPx * ((w / v.zoom) / rect.width);
+-        const dyM = -dyPx * ((h / v.zoom) / rect.height);
++        const scale = Math.min(rect.width / (w / v.zoom), rect.height / (h / v.zoom));
++        const dxM = -dxPx / scale;
++        const dyM = -dyPx / scale;
+@@ -606,4 +595,5 @@ export default function PlannerPage() {
+-    setFuture((f) => [obstacles, ...f]);
+-    setObstacles(past[past.length - 1], false);
+-    setPast((p) => p.slice(0, -1));
+-  }, [past, obstacles, setObstacles]);
++    setFuture(f => [draftRef.current, ...f]);
++    draftRef.current = past[past.length - 1];
++    setDraft(draftRef.current);
++    setPast(p => p.slice(0, -1));
++  }, [past]);
+@@ -612,4 +602,5 @@ export default function PlannerPage() {
+-    setPast((p) => [...p, obstacles]);
+-    setObstacles(future[0], false);
+-    setFuture((f) => f.slice(1));
+-  }, [future, obstacles, setObstacles]);
++    setPast(p => [...p.slice(-49), draftRef.current]);
++    draftRef.current = future[0];
++    setDraft(draftRef.current);
++    setFuture(f => f.slice(1));
++  }, [future]);
+@@ -658 +649 @@ export default function PlannerPage() {
+-    if (!selected || selected.type !== "tunnel") return;
++    if (!selected || selected.locked || selected.type !== "tunnel") return;
+@@ -664 +655 @@ export default function PlannerPage() {
+-              curveDeg: clamp(patch.curveDeg ?? ob.curveDeg ?? 0, 0, 90),
++              curveDeg: clamp(patch.curveDeg ?? ob.curveDeg ?? 0, 0, 180),
+@@ -673 +664 @@ export default function PlannerPage() {
+-  const onSvgPointerDown = (e: React.PointerEvent) => {
++  const registerPointer = (e: React.PointerEvent): boolean => {
+@@ -675,7 +666,4 @@ export default function PlannerPage() {
+-    // Två fingrar = nyp-zoom + panorering
+-    if (pointersRef.current.size === 2) {
+-      const [a, b] = [...pointersRef.current.values()];
+-      pinchRef.current = { dist: Math.hypot(b.x - a.x, b.y - a.y) };
+-      panRef.current = null;
+-      dragRef.current = null;
+-      return;
++    if (pointersRef.current.size < 2) return false;
++    const start = dragRef.current?.moved ? dragRef.current.start : rotateRef.current?.start;
++    if (start && JSON.stringify(start) !== JSON.stringify(draftRef.current)) {
++      setPast(p => [...p.slice(-49), start]); setFuture([]);
+@@ -682,0 +671,7 @@ export default function PlannerPage() {
++    const [a, b] = [...pointersRef.current.values()];

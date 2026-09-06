@@ -196,3 +196,33 @@ export function rotateDir(v: Vec2, rotationDeg: number): Vec2 {
   const s = Math.sin(rad);
   return { x: v.x * c - v.y * s, y: v.x * s + v.y * c };
 }
+
+/**
+ * Axelinriktad bounding box i VÄRLDSKOORDINATER för en (ev. böjd) tunnel.
+ *
+ * En böjd tunnel buktar utanför den raka rektangeln — utan det här skulle
+ * bågen kunna hamna utanför banytan utan att valideringen märker det.
+ */
+export function tunnelWorldAabb(
+  center: Vec2,
+  w: number,
+  d: number,
+  rotationDeg: number,
+  curveDeg: number,
+  curveSide: "left" | "right" | undefined,
+): { minX: number; minY: number; maxX: number; maxY: number } {
+  const { top, bottom } = tunnelEdgesLocal(w, d, curveDeg, curveSide);
+  const a = (rotationDeg * Math.PI) / 180;
+  const cos = Math.cos(a);
+  const sin = Math.sin(a);
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const p of [...top, ...bottom]) {
+    const x = center.x + p.x * cos - p.y * sin;
+    const y = center.y + p.x * sin + p.y * cos;
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+  return { minX, minY, maxX, maxY };
+}

@@ -232,9 +232,20 @@ function loadInitial(search: URLSearchParams): Draft {
     if (raw) {
       const d = JSON.parse(raw) as Draft;
       if (d && Array.isArray(d.obstacles)) {
-        if (d.obstacles.length === 0) return defaultDraft(d.sport === "hoopers" ? "hoopers" : "agility");
-        const parsed = draftFromRawCourse(d);
-        if (parsed) return parsed;
+        // Även ett tomt utkast ska behålla mått, klassmall och regelverk —
+        // ändringar gjorda före första hindret får inte försvinna. JSON-
+        // importen kräver minst ett hinder (en tom FIL är ett fel), så vi
+        // saniterar via en tillfällig markör och tömmer listan igen.
+        if (d.obstacles.length === 0) {
+          const probe = draftFromRawCourse({
+            ...d,
+            obstacles: [{ id: "probe", type: "number", x: 0, y: 0, rotation: 0 }],
+          });
+          if (probe) return { ...probe, obstacles: [] };
+        } else {
+          const parsed = draftFromRawCourse(d);
+          if (parsed) return parsed;
+        }
       }
     }
   } catch {
@@ -379,6 +390,7 @@ export default function PlannerPage() {
         // Markera kopians ursprungsinnehåll så att autosparningen inte
         // skriver över användarens lokala bana förrän hen redigerar kopian.
         externalSnapshotRef.current = JSON.stringify(copy);
+        externalEditedRef.current = false;
         setDraft(copy);
         setPast([]);
         setFuture([]);
@@ -481,8 +493,15 @@ export default function PlannerPage() {
   // Sparar bara det som verkligen gick att spara: misslyckas lagringen visar
   // vi "Kunde inte spara" med försök-igen och JSON-export. Banan ligger kvar
   // i minnet oavsett.
+  // Så snart användaren faktiskt redigerat en extern kopia är den "hens egen"
+  // och ska sparas — även om hen sedan ångrar tillbaka till originalinnehållet
+  // (annars låg en gammal redigerad version kvar i localStorage).
+  const externalEditedRef = useRef(false);
+  if (isExternalCopy && !externalEditedRef.current && JSON.stringify(draft) !== externalSnapshotRef.current) {
+    externalEditedRef.current = true;
+  }
   const isExternalUnedited =
-    isExternalCopy && JSON.stringify(draft) === externalSnapshotRef.current;
+    isExternalCopy && !externalEditedRef.current && JSON.stringify(draft) === externalSnapshotRef.current;
 
   const persistDraft = useCallback((d: Draft) => {
     const res = saveDraftToStorage(STORAGE_KEY, d);

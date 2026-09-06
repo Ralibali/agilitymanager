@@ -97,3 +97,24 @@ describe("regelverk genom JSON-roundtrip", () => {
       .toBe(DEFAULT_HOOPERS_RULESET_ID);
   });
 });
+
+describe("klassmall från valt regelverk", () => {
+  it("behåller FCI H2 — en mall som bara finns i regelverket, inte i CLASS_TEMPLATES", () => {
+    const res = parse({
+      ...hoopersCourse(FCI_HOOPERS_RULESET_ID),
+      classTemplate: "hoopers_fci_h2",
+    });
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.course.ruleSetId).toBe(FCI_HOOPERS_RULESET_ID);
+    expect(res.course.classTemplate).toBe("hoopers_fci_h2");
+  });
+
+  it("ignorerar en påhittad klassmall med varning", () => {
+    const res = parse({ ...hoopersCourse(FCI_HOOPERS_RULESET_ID), classTemplate: "hittepa" });
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.course.classTemplate).toBeNull();
+    expect(res.warnings.join(" ")).toContain("klassmall");
+  });
+});

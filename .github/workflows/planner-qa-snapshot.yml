@@ -26,6 +26,7 @@ jobs:
           python3 .planner-fix/pdf-finish.py
           python3 .planner-fix/pdf-labels.py
           python3 .planner-fix/latest-main.py
+          python3 .planner-fix/pdf-rules-consistency.py
           tar --exclude=.git --exclude='.env*' --exclude=node_modules --exclude='.planner-fix' --exclude='*.log' -czf /tmp/planner-review.tar.gz .
       - uses: actions/setup-node@v4
         with:

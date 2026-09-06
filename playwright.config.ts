@@ -21,7 +21,7 @@ export default defineConfig({
     { name: "mobil", use: { ...devices["Pixel 5"] } },
   ],
   webServer: {
-    command: "npx vite --port 8080 --strictPort",
+    command: "npx vite --host 127.0.0.1 --port 8080 --strictPort",
     url: "http://127.0.0.1:8080",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

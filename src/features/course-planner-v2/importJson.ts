@@ -151,13 +151,6 @@ export function parseCourseJson(text: string): ImportResult {
   const arenaWidthM = clampNum(r.arenaWidthM ?? legacyArenaSize(r.field, 0), 5, 200, 30);
   const arenaHeightM = clampNum(r.arenaHeightM ?? legacyArenaSize(r.field, 1), 5, 200, 40);
 
-  let classTemplate: ClassTemplateKey | null = null;
-  if (typeof r.classTemplate === "string" && VALID_TEMPLATES.has(r.classTemplate as ClassTemplateKey)) {
-    classTemplate = r.classTemplate as ClassTemplateKey;
-  } else if (r.classTemplate != null) {
-    warnings.push("Okänd klassmall — ignorerar.");
-  }
-
   const name = cleanText(r.name, MAX_IMPORT_NAME_CHARS) || "Importerad bana";
 
   // Regelverk: behålls bara om det finns OCH gäller samma sport.
@@ -174,6 +167,23 @@ export function parseCourseJson(text: string): ImportResult {
     }
   } else if (r.ruleSetId != null) {
     warnings.push(`Ogiltigt regelverksfält — använder ${defaultRuleSetId}.`);
+  }
+
+  // Klassmall: vissa regelverk (t.ex. FCI Hoopers) har EGNA klassmallar som
+  // inte finns i den globala listan. Godta därför både globala mallar och
+  // mallarna i det valda regelverket — annars tappas t.ex. hoopers_fci_h2.
+  const ruleSetTemplateKeys = new Set<string>(
+    (getRuleSet(ruleSetId)?.classTemplates ?? []).map((t) => t.key),
+  );
+  let classTemplate: ClassTemplateKey | null = null;
+  const rawTemplate = typeof r.classTemplate === "string" ? r.classTemplate : null;
+  if (
+    rawTemplate &&
+    (VALID_TEMPLATES.has(rawTemplate as ClassTemplateKey) || ruleSetTemplateKeys.has(rawTemplate))
+  ) {
+    classTemplate = rawTemplate as ClassTemplateKey;
+  } else if (r.classTemplate != null) {
+    warnings.push("Okänd klassmall — ignorerar.");
   }
 
   // Sanera hinder. Hårddcap: aldrig iterera över mer än MAX_IMPORT_OBSTACLES.

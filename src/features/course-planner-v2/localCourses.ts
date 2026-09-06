@@ -73,7 +73,7 @@ function readAll(): LocalCourse[] {
   }
 }
 
-function writeAll(list: LocalCourse[]) {
+function writeAll(list: LocalCourse[]): boolean {
   try {
     let trimmed = list.slice(0, MAX_LOCAL_COURSES);
     let text = JSON.stringify(trimmed);
@@ -84,11 +84,13 @@ function writeAll(list: LocalCourse[]) {
     }
     if (text.length <= MAX_STORAGE_CHARS) {
       localStorage.setItem(KEY, text);
+      return true;
     }
     // Annars: posten är ensam för stor — behåll tidigare lagring orörd.
   } catch {
     /* localStorage kan vara fullt/avstängt */
   }
+  return false;
 }
 
 /** Alla lokalt sparade banor, senast ändrad först. */
@@ -100,7 +102,7 @@ export function getLocalCourse(id: string): LocalCourse | null {
   return readAll().find((c) => c.id === id) ?? null;
 }
 
-/** Spara (skapa eller uppdatera) en lokal bana. Returnerar dess id. */
+/** Returnerar id endast när banan sparats; kastar annars så UI kan visa felet. */
 export function saveLocalCourse(input: {
   id?: string | null;
   name: string;
@@ -118,13 +120,12 @@ export function saveLocalCourse(input: {
     updatedAt: new Date().toISOString(),
     data: input.data,
   };
-  const idx = list.findIndex((c) => c.id === id);
-  if (idx >= 0) list[idx] = entry;
-  else list.unshift(entry);
-  writeAll(list);
+  // En uppdaterad bana är den nyaste och ska inte trimmas bort som en gammal post.
+  const next = [entry, ...list.filter((c) => c.id !== id)];
+  if (!writeAll(next)) throw new Error('Kunde inte spara banan i den här webbläsaren.');
   return id;
 }
 
 export function deleteLocalCourse(id: string) {
-  writeAll(readAll().filter((c) => c.id !== id));
+  return writeAll(readAll().filter((c) => c.id !== id));
 }

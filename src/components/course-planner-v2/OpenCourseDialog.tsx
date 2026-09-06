@@ -94,7 +94,10 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
   };
 
   const removeLocal = (id: string) => {
-    deleteLocalCourse(id);
+    if (!deleteLocalCourse(id)) {
+      toast.error('Banan kunde inte tas bort. Kontrollera webbläsarens lagringsinställningar.');
+      return;
+    }
     setLocal(listLocalCourses());
     setConfirmDeleteId(null);
   };

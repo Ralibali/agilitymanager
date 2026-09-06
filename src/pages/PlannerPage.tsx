@@ -1040,17 +1040,21 @@ export default function PlannerPage() {
     const targetName = (opts?.name ?? name).trim() || "Min bana";
     const nextDraft: Draft = { ...draftRef.current, name: targetName };
     if (targetName !== name) setDraft((d) => ({ ...d, name: targetName }));
-    const id = saveLocalCourse({
-      id: opts?.asNew ? null : localCourseId,
-      name: targetName,
-      sport: nextDraft.sport,
-      obstacleCount: nextDraft.obstacles.length,
-      data: nextDraft,
-    });
-    setLocalCourseId(id);
-    setSavedSnapshot(JSON.stringify(nextDraft));
-    setLastSavedAt(new Date().toISOString());
-    toast.success(`"${targetName}" sparad i den här webbläsaren`);
+    try {
+      const id = saveLocalCourse({
+        id: opts?.asNew ? null : localCourseId,
+        name: targetName,
+        sport: nextDraft.sport,
+        obstacleCount: nextDraft.obstacles.length,
+        data: nextDraft,
+      });
+      setLocalCourseId(id);
+      setSavedSnapshot(JSON.stringify(nextDraft));
+      setLastSavedAt(new Date().toISOString());
+      toast.success(`"${targetName}" sparad i den här webbläsaren`);
+    } catch {
+      toast.error('Banan kunde inte sparas. Exportera den som JSON för att behålla ditt arbete.');
+    }
   };
 
   const handleSaveAs = () => setSaveAsOpen(true);

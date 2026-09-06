@@ -95,4 +95,30 @@ describe("localCourses", () => {
     expect(c.name).toBe("Namnlös bana");
     expect(c.obstacleCount).toBe(0);
   });
+
+  it("rapporterar misslyckad lagring i stället för att returnera ett sparat id", () => {
+    vi.stubGlobal("localStorage", {
+      getItem: () => null,
+      setItem: () => { throw new Error("QuotaExceededError"); },
+    });
+    expect(() => saveLocalCourse({ name: "Ny", sport: "agility", obstacleCount: 1, data: {} })).toThrow();
+    expect(deleteLocalCourse("gammal")).toBe(false);
+  });
+
+  it("bevarar tidigare lagring när den nya banan är för stor", () => {
+    const store = stubStorage();
+    saveLocalCourse({ name: "Sparad", sport: "agility", obstacleCount: 1, data: {} });
+    const before = store.get(KEY);
+    expect(() => saveLocalCourse({ name: "För stor", sport: "agility", obstacleCount: 1, data: { text: "x".repeat(3_500_000) } })).toThrow();
+    expect(store.get(KEY)).toBe(before);
+  });
+
+  it("behåller en nyss uppdaterad bana när äldre banor måste trimmas", () => {
+    stubStorage();
+    const oldId = saveLocalCourse({ name: "Äldst", sport: "agility", obstacleCount: 1, data: {} });
+    saveLocalCourse({ name: "Stor", sport: "agility", obstacleCount: 1, data: { text: "a".repeat(2_000_000) } });
+    saveLocalCourse({ id: oldId, name: "Uppdaterad", sport: "agility", obstacleCount: 1, data: { text: "b".repeat(2_000_000) } });
+    expect(getLocalCourse(oldId)?.name).toBe("Uppdaterad");
+    expect(listLocalCourses()).toHaveLength(1);
+  });
 });

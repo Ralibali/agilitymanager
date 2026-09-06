@@ -1,0 +1,245 @@
++    expect(write).not.toHaveBeenCalled();
++  });
++  it('saves undo back to the original AFTER an external copy was adopted', () => {
++    const write = vi.fn(), saver = createDraftAutosaver(write, vi.fn());
++    saver.update('template', 'template');
++    saver.update('edited', 'template'); vi.runAllTimers();
++    saver.update('template', 'template'); saver.flush();
++    expect(write.mock.calls).toEqual([['edited'], ['template']]);
++  });
++  it('does not write a previous draft while a shared course is still loading', () => {
++    const write = vi.fn(), saver = createDraftAutosaver(write, vi.fn());
++    saver.update('old', 'old', true); saver.flush();
++    saver.update('shared', 'shared'); saver.flush();
++    expect(write).not.toHaveBeenCalled();
++  });
++  it('never returns a success id for a failed named-course save', () => {
++    vi.stubGlobal('localStorage', { getItem: () => null, setItem: () => { throw new Error('quota'); } });
++    expect(() => saveLocalCourse({ name: 'Never lose me', sport: 'agility', obstacleCount: 1, data: {} })).toThrow('Kunde inte spara');
++  });
++});
+diff --git a/src/features/course-planner-v2/draftAutosave.ts b/src/features/course-planner-v2/draftAutosave.ts
+new file mode 100644
+index 0000000..1c0f293
+--- /dev/null
++++ b/src/features/course-planner-v2/draftAutosave.ts
+@@ -0,0 +1,30 @@
++/** Pure save scheduler. Failed writes retain the current in-memory payload for
++ * retry. Opening an external copy does not adopt it until its first edit;
++ * after adoption an undo back to the original must still be persisted. */
++export type DraftSaveResult = { snapshot: string; ok: boolean };
++export function createDraftAutosaver(write: (value: string) => void, report: (result: DraftSaveResult) => void, delay = 600) {
++  let timer: ReturnType<typeof setTimeout> | undefined;
++  let pending: string | null = null;
++  let source: string | null = null;
++  let adopted = false;
++  const flush = () => {
++    clearTimeout(timer);
++    if (pending === null) return;
++    const value = pending;
++    try { write(value); pending = null; report({ snapshot: value, ok: true }); }
++    catch { report({ snapshot: value, ok: false }); }
++  };
++  return {
++    update(value: string, protectedSnapshot: string | null = null, blocked = false) {
++      clearTimeout(timer);
++      if (source !== protectedSnapshot) { source = protectedSnapshot; adopted = false; }
++      if (blocked || (!adopted && source !== null && value === source)) { pending = null; return; }
++      adopted = true;
++      pending = value;
++      timer = setTimeout(flush, delay);
++    },
++    flush,
++    retry: flush,
++    dispose: flush,
++  };
++}
+diff --git a/src/features/course-planner-v2/importJson.test.ts b/src/features/course-planner-v2/importJson.test.ts
+index 7ced99f..cc7fb43 100644
+--- a/src/features/course-planner-v2/importJson.test.ts
++++ b/src/features/course-planner-v2/importJson.test.ts
+@@ -143 +143 @@ describe("parseCourseJson — metadata och XSS-säkerhet", () => {
+-        "arenaHeightM", "arenaWidthM", "classTemplate", "name", "obstacles", "sizeClass", "sport",
++        "arenaHeightM", "arenaWidthM", "classTemplate", "name", "obstacles", "ruleSetId", "sizeClass", "sport",
+diff --git a/src/features/course-planner-v2/importJson.ts b/src/features/course-planner-v2/importJson.ts
+index 94c4e88..e3b3491 100644
+--- a/src/features/course-planner-v2/importJson.ts
++++ b/src/features/course-planner-v2/importJson.ts
+@@ -0,0 +1 @@
++import { getRuleSet, resolveCourseRuleSet } from "./rules";
+@@ -21 +22 @@ import {
+-  OBSTACLES_V2, SIZE_CLASSES, CLASS_TEMPLATES,
++  OBSTACLES_V2, SIZE_CLASSES,
+@@ -38,0 +40 @@ export interface ImportedCourse {
++  ruleSetId: string;
+@@ -66 +67,0 @@ const VALID_TYPES = new Set<ObstacleTypeV2>(OBSTACLES_V2.map((o) => o.type));
+-const VALID_TEMPLATES = new Set<ClassTemplateKey>(CLASS_TEMPLATES.map((t) => t.key));
+@@ -102 +103 @@ function legacyArenaSize(raw: unknown, axis: 0 | 1): number | undefined {
+-export function parseCourseJson(text: string): ImportResult {
++export function parseCourseJson(text: string, options: { allowEmpty?: boolean } = {}): ImportResult {
+@@ -124 +125 @@ export function parseCourseJson(text: string): ImportResult {
+-  const version = num(r.version, 1);
++  const version = num(r.version ?? r.v, 1);
+@@ -146,0 +148,4 @@ export function parseCourseJson(text: string): ImportResult {
++  const requestedRule = typeof r.ruleSetId === "string" ? getRuleSet(r.ruleSetId) : undefined;
++  const rules = resolveCourseRuleSet(sport, typeof r.ruleSetId === "string" ? r.ruleSetId : undefined);
++  if (r.ruleSetId != null && requestedRule?.sport !== sport) warnings.push("Okänt regelverk eller fel sport — använder sportens standardregelverk.");
++  const validTemplates = new Set(rules.classTemplates.map(t => t.key));
+@@ -148 +153 @@ export function parseCourseJson(text: string): ImportResult {
+-  if (typeof r.classTemplate === "string" && VALID_TEMPLATES.has(r.classTemplate as ClassTemplateKey)) {
++  if (typeof r.classTemplate === "string" && validTemplates.has(r.classTemplate as ClassTemplateKey)) {
+@@ -182 +187 @@ export function parseCourseJson(text: string): ImportResult {
+-      imported.curveDeg = Math.max(0, Math.min(90, ob.curveDeg));
++      imported.curveDeg = Math.max(0, Math.min(180, ob.curveDeg));
+@@ -194 +199 @@ export function parseCourseJson(text: string): ImportResult {
+-  if (obstacles.length === 0) {
++  if (obstacles.length === 0 && !(options.allowEmpty && rawObstacles.length === 0)) {
+@@ -208 +213 @@ export function parseCourseJson(text: string): ImportResult {
+-    course: { name, sport, sizeClass, arenaWidthM, arenaHeightM, classTemplate, obstacles },
++    course: { name, sport, sizeClass, arenaWidthM, arenaHeightM, classTemplate, obstacles, ruleSetId: rules.id },
+diff --git a/src/features/course-planner-v2/judgePdf.ts b/src/features/course-planner-v2/judgePdf.ts
+index 30a94f9..825edb0 100644
+--- a/src/features/course-planner-v2/judgePdf.ts
++++ b/src/features/course-planner-v2/judgePdf.ts
+@@ -0,0 +1 @@
++import { getCourseClassTemplate } from "./rules";
+@@ -10 +11 @@ import {
+-  CLASS_TEMPLATES, SIZE_CLASSES, getObstacleDefV2,
++  SIZE_CLASSES, getObstacleDefV2,
+@@ -44,3 +45 @@ export async function exportJudgePdf(input: JudgePdfInput) {
+-  const tpl = input.classTemplate
+-    ? CLASS_TEMPLATES.find((t) => t.key === input.classTemplate)
+-    : null;
++  const tpl = getCourseClassTemplate(input.sport, input.ruleSetId, input.classTemplate);
+@@ -51 +50 @@ export async function exportJudgePdf(input: JudgePdfInput) {
+-    classTemplate: input.classTemplate, obstacles: input.obstacles,
++    classTemplate: input.classTemplate, obstacles: input.obstacles, ruleSetId: input.ruleSetId,
+@@ -56 +55 @@ export async function exportJudgePdf(input: JudgePdfInput) {
+-    classTemplate: input.classTemplate, obstacles: input.obstacles,
++    classTemplate: input.classTemplate, obstacles: input.obstacles, ruleSetId: input.ruleSetId,
+@@ -359 +358 @@ export async function exportJudgePdf(input: JudgePdfInput) {
+-  doc.text("Banbyggar-koordinater (m från nedre-vänster hörn)", margin, py);
++  doc.text("Banbyggar-koordinater (m från övre-vänster hörn)", margin, py);
+diff --git a/src/features/course-planner-v2/localCourses.ts b/src/features/course-planner-v2/localCourses.ts
+index 3f9e711..05fa698 100644
+--- a/src/features/course-planner-v2/localCourses.ts
++++ b/src/features/course-planner-v2/localCourses.ts
+@@ -86,0 +87 @@ function writeAll(list: LocalCourse[]) {
++      return true;
+@@ -90 +91 @@ function writeAll(list: LocalCourse[]) {
+-    /* localStorage kan vara fullt/avstängt */
++    return false;
+@@ -124 +125 @@ export function saveLocalCourse(input: {
+-  writeAll(list);
++  if (!writeAll(list)) throw new Error("Kunde inte spara banan i den här webbläsaren. Exportera JSON som säkerhetskopia.");
+diff --git a/src/features/course-planner-v2/pdfHelpers.ts b/src/features/course-planner-v2/pdfHelpers.ts
+index d3028e8..26f3cc9 100644
+--- a/src/features/course-planner-v2/pdfHelpers.ts
++++ b/src/features/course-planner-v2/pdfHelpers.ts
+@@ -0,0 +1 @@
++import { tunnelGeometry } from "./tunnelGeometry";
+@@ -219,30 +220,12 @@ function drawObstacleVector(
+-      const curveDeg = Math.max(0, Math.min(90, ob.curveDeg ?? 0));
+-      doc.setFillColor(245, 235, 215);
+-      if (curveDeg < 1) {
+-        drawRotatedRoundedRect(doc, cx, cy, w, d, ob.rotation, Math.min(d, w) / 2.2, true);
+-      } else {
+-        // Böjd tunnel — bezier mellan ändarna, kontrollpunkt offset åt curveSide.
+-        const side = (ob.curveSide ?? "right") === "right" ? 1 : -1;
+-        const r = d / 2;
+-        const offset = Math.tan((curveDeg * Math.PI / 180) / 2) * (w / 2);
+-        const ang = (ob.rotation * Math.PI) / 180;
+-        const ux = Math.cos(ang), uy = Math.sin(ang);   // längs tunneln
+-        const nx = -Math.sin(ang), ny = Math.cos(ang);  // sidan
+-        const p = (lx: number, ly: number) => [cx + lx * ux + ly * nx, cy + lx * uy + ly * ny] as [number, number];
+-        const [x0t, y0t] = p(-w / 2, -r);
+-        const [x1t, y1t] = p(w / 2, -r);
+-        const [cxT, cyT] = p(0, side * offset - r);
+-        const [x0b, y0b] = p(-w / 2, r);
+-        const [x1b, y1b] = p(w / 2, r);
+-        const [cxB, cyB] = p(0, side * offset + r);
+-        // Fyllnad via lines() med bezier-kurvor
+-        doc.lines(
+-          [
+-            [(cxT - x0t), (cyT - y0t), (x1t - x0t), (y1t - y0t)], // bezier topp (kontroll relativ start, slut relativ start)
+-            [(x1b - x1t), (y1b - y1t)],                            // höger sida
+-            [(cxB - x1b), (cyB - y1b), (x0b - x1b), (y0b - y1b)], // bezier botten (omvänt)
+-            [(x0t - x0b), (y0t - y0b)],                            // vänster sida (sluter formen)
+-          ],
+-          x0t, y0t, [1, 1], "FD", true,
+-        );
+-      }
++      const g = tunnelGeometry(w, ob.curveDeg, ob.curveSide, ob.rotation, cx, cy);
++      const lines = g.points.slice(1).map((p, i) => [p.x - g.points[i].x, p.y - g.points[i].y]);
++      doc.setLineCap("round");
++      doc.setLineJoin("round");
++      doc.setDrawColor(...PDF_BRAND.ink);
++      doc.setLineWidth(d + 0.3);
++      doc.lines(lines, g.entry.x, g.entry.y, [1, 1], "S", false);
++      doc.setDrawColor(245, 235, 215);
++      doc.setLineWidth(Math.max(0.05, d - 0.3));
++      doc.lines(lines, g.entry.x, g.entry.y, [1, 1], "S", false);
++      doc.setLineWidth(0.25);
++      doc.setLineCap("butt");
+@@ -339,15 +321,0 @@ function drawRotatedRect(
+-function drawRotatedRoundedRect(
+-  doc: jsPDF, cx: number, cy: number, w: number, d: number, rotDeg: number, _radius: number, fill: boolean,
+-) {
+-  // För enkelhet: rita roterad rektangel + två cirklar i ändarna för rundning
+-  drawRotatedRect(doc, cx, cy, w, d, rotDeg, fill);
+-  const r = (rotDeg * Math.PI) / 180;
+-  const dirX = Math.cos(r), dirY = Math.sin(r);
+-  const halfW = w / 2;
+-  for (const sign of [-1, 1]) {
+-    const ex = cx + sign * halfW * dirX;
+-    const ey = cy + sign * halfW * dirY;
+-    if (fill) doc.circle(ex, ey, d / 2, "FD");
+-    else doc.circle(ex, ey, d / 2, "S");
+-  }
+-}
+diff --git a/src/features/course-planner-v2/plannerReliability.test.ts b/src/features/course-planner-v2/plannerReliability.test.ts
+new file mode 100644
+index 0000000..b25177e
+--- /dev/null
++++ b/src/features/course-planner-v2/plannerReliability.test.ts
+@@ -0,0 +1,108 @@
++import { describe, expect, it } from 'vitest';
++import { parseCourseJson } from './importJson';
++import { buildDogPath, sampleDogPathAt } from './dogPath';
++import { getObstacleDefV2 } from './config';
++
++const rawFciCourse = {
++  version: 2, name: 'Roundtrip FCI H2', sport: 'hoopers', sizeClass: 'L',
++  arenaWidthM: 20, arenaHeightM: 40, classTemplate: 'hoopers_fci_h2',
++  ruleSetId: 'hoopers-fci-2026',
++  obstacles: [{ id: 'hoop-1', type: 'hoop', x: 10, y: 10, rotation: 0, number: 1 }],
++};
++
++describe('independent planner reliability regressions', () => {
++  it('keeps BOTH the non-default rule set AND its own class through two imports', () => {
++    const first = parseCourseJson(JSON.stringify(rawFciCourse));
++    expect(first.ok).toBe(true);
++    if (!first.ok) return;
++    expect(first.course.ruleSetId).toBe('hoopers-fci-2026');
++    expect(first.course.classTemplate).toBe('hoopers_fci_h2');
++    const second = parseCourseJson(JSON.stringify({version: 2, ...first.course}));
++    expect(second.ok).toBe(true);
++    if (second.ok) expect(second.course).toEqual(first.course);
++  });
++
++  for (const curveDeg of [0, 15, 90, 180]) {
++    for (const curveSide of ['left', 'right'] as const) {
++      it(`samples the actual tunnel length, ${curveDeg} degrees ${curveSide}`, () => {
++        const obstacle = {id: 't', type: 'tunnel' as const, x: 10, y: 10,
++          rotation: 0, number: 1, curveDeg, curveSide};
++        const path = buildDogPath([obstacle]);
++        const geometricLength = path.points.slice(1).reduce((total, p, i) =>
++          total + Math.hypot(p.x-path.points[i].x, p.y-path.points[i].y), 0);
++        expect(path.total).toBeCloseTo(geometricLength, 8);
++        expect(path.cum[path.cum.length-1]).toBeCloseTo(path.total, 8);
++        const midpoint = sampleDogPathAt(path, 0.5)!;
++        const width = getObstacleDefV2('tunnel')!.sizeM.w;
++        const theta = curveDeg * Math.PI / 180;
++        const radius = theta > 0 ? width/(2*Math.sin(theta/2)) : 0;
++        const expectedOffset = theta > 0 ? radius*(1-Math.cos(theta/2)) : 0;
++        expect(Math.abs(midpoint.x-10)).toBeLessThan(0.02);

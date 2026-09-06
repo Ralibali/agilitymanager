@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router";
 import Home from "./pages/Home";
+import { Toaster } from "./components/ui/sonner";
 
 // Route-nivå code splitting: startsidan (Home) laddas direkt, övriga sidor —
 // särskilt banplaneraren med 3D/PDF — hämtas först när routen besöks.
@@ -42,6 +43,7 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
+      <Toaster position="top-center" richColors />
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Home />} />

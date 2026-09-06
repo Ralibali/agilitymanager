@@ -5,9 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { tunnelWorldAabb } from "./tunnelGeometry";
 import { validateCourse } from "./validation";
-import { DEFAULT_RULESET_ID, getRuleSet } from "./rules";
-
-const RS = getRuleSet(DEFAULT_RULESET_ID)!;
+import { DEFAULT_RULESET_ID } from "./rules";
 
 describe("tunnelns båge i bounds", () => {
   it("bågens AABB är högre än den raka tunnelns", () => {
@@ -32,20 +30,13 @@ describe("tunnelns båge i bounds", () => {
 
   it("flaggar en böjd tunnel vars båge går utanför banan", () => {
     const near = { id: "t", type: "tunnel" as const, x: 10, y: 1.2, rotation: 0, number: 1 };
-    const straight = validateCourse(
-      { sport: "agility", sizeClass: "L", arenaWidthM: 30, arenaHeightM: 40, classTemplate: null, obstacles: [near] },
-      RS,
-    );
-    const bent = validateCourse(
-      {
-        sport: "agility", sizeClass: "L", arenaWidthM: 30, arenaHeightM: 40, classTemplate: null,
-        obstacles: [{ ...near, curveDeg: 170, curveSide: "left" as const }],
-      },
-      RS,
-    );
-    const outside = (r: { issues: { code: string }[] }) =>
-      r.issues.some((i) => i.code === "obstacle_outside_arena");
-    expect(outside(straight)).toBe(false);
-    expect(outside(bent)).toBe(true);
+    const base = {
+      sport: "agility" as const, sizeClass: "L" as const, arenaWidthM: 30, arenaHeightM: 40,
+      classTemplate: null, ruleSetId: DEFAULT_RULESET_ID,
+    };
+    const outside = (obstacles: typeof base extends never ? never : unknown[]) =>
+      validateCourse({ ...base, obstacles } as never).some((i) => i.code === "obstacle_outside_arena");
+    expect(outside([near])).toBe(false);
+    expect(outside([{ ...near, curveDeg: 170, curveSide: "left" as const }])).toBe(true);
   });
 });

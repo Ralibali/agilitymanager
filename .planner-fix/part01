@@ -1,0 +1,295 @@
+--- /dev/null
++++ b/scripts/planner-browser-requirements.txt
+@@ -0,0 +1,4 @@
++playwright==1.57.0
++greenlet==3.5.1
++pyee==13.0.1
++typing_extensions==4.16.0
+diff --git a/src/components/ObstacleGlyph.tsx b/src/components/ObstacleGlyph.tsx
+index e6ccbff..2977b0a 100644
+--- a/src/components/ObstacleGlyph.tsx
++++ b/src/components/ObstacleGlyph.tsx
+@@ -0,0 +1 @@
++import { tunnelGeometry } from "@/features/course-planner-v2/tunnelGeometry";
+@@ -87,29 +88,7 @@ export function ObstacleGlyph({
+-      const bend = Math.max(0, Math.min(90, curveDeg));
+-      if (bend < 1) {
+-        return (
+-          <g {...s}>
+-            <rect x={-w / 2} y={-d / 2} width={w} height={d} rx={d / 2} ry={d / 2} strokeWidth={sw * 1.4} fill={`${stroke}14`} />
+-            <circle cx={-w / 2 + d / 2} cy="0" r={Math.max(0.02, d / 2 - sw * 1.6)} strokeWidth={sw * 0.8} strokeDasharray="0.16 0.16" />
+-            <circle cx={w / 2 - d / 2} cy="0" r={Math.max(0.02, d / 2 - sw * 1.6)} strokeWidth={sw * 0.8} strokeDasharray="0.16 0.16" />
+-
+-          </g>
+-        );
+-      }
+-      const side = curveSide === "left" ? -1 : 1;
+-      const r = d / 2;
+-      const offset = Math.tan(((bend * Math.PI) / 180) / 2) * (w / 2);
+-      const x0 = -w / 2;
+-      const x1 = w / 2;
+-      const cy = side * offset;
+-      const top = `M ${x0} ${-r} Q 0 ${cy - r} ${x1} ${-r}`;
+-      const bot = `M ${x0} ${r} Q 0 ${cy + r} ${x1} ${r}`;
+-      const fill = `M ${x0} ${-r} Q 0 ${cy - r} ${x1} ${-r} L ${x1} ${r} Q 0 ${cy + r} ${x0} ${r} Z`;
+-      return (
+-        <g {...s}>
+-          <path d={fill} fill={`${stroke}14`} stroke="none" />
+-          <path d={top} strokeWidth={sw * 1.4} />
+-          <path d={bot} strokeWidth={sw * 1.4} />
+-          <circle cx={x0} cy="0" r={r * 0.85} strokeWidth={sw * 0.7} strokeDasharray="0.16 0.16" opacity="0.6" />
+-          <circle cx={x1} cy="0" r={r * 0.85} strokeWidth={sw * 0.7} strokeDasharray="0.16 0.16" opacity="0.6" />
+-        </g>
+-      );
++      const geometry = tunnelGeometry(w, curveDeg, curveSide);
++      const path = geometry.points.map((p, i) => `${i ? "L" : "M"} ${p.x} ${p.y}`).join(" ");
++      return <g {...s}>
++        <path d={path} strokeWidth={d + sw * 1.4} />
++        <path d={path} stroke="#FCFAF4" strokeWidth={Math.max(0.02, d - sw * 1.4)} />
++        <path d={path} stroke={stroke} strokeOpacity="0.2" strokeWidth={d * 0.7} />
++      </g>;
+diff --git a/src/features/course-planner-v2/buildPdf.ts b/src/features/course-planner-v2/buildPdf.ts
+index ea02639..a8c0f12 100644
+--- a/src/features/course-planner-v2/buildPdf.ts
++++ b/src/features/course-planner-v2/buildPdf.ts
+@@ -0,0 +1 @@
++import { getCourseClassTemplate } from "./rules";
+@@ -7 +8 @@ import {
+-  CLASS_TEMPLATES, getObstacleDefV2,
++  getObstacleDefV2,
+@@ -19,0 +21 @@ export interface BuildPdfInput {
++  ruleSetId?: string;
+@@ -32 +34 @@ export async function exportBuildPdf(input: BuildPdfInput) {
+-  const tpl = input.classTemplate ? CLASS_TEMPLATES.find((t) => t.key === input.classTemplate) : null;
++  const tpl = getCourseClassTemplate(input.sport, input.ruleSetId, input.classTemplate);
+@@ -140 +142 @@ export async function exportBuildPdf(input: BuildPdfInput) {
+-    classTemplate: input.classTemplate, obstacles: input.obstacles,
++    classTemplate: input.classTemplate, obstacles: input.obstacles, ruleSetId: input.ruleSetId,
+diff --git a/src/features/course-planner-v2/dogPath.ts b/src/features/course-planner-v2/dogPath.ts
+index d72268a..5a2ea6d 100644
+--- a/src/features/course-planner-v2/dogPath.ts
++++ b/src/features/course-planner-v2/dogPath.ts
+@@ -9,0 +10 @@
++import { tunnelGeometry } from "./tunnelGeometry";
+@@ -33,0 +35 @@ export interface ObstacleAnchors {
++  internalPoints?: Vec2[];
+@@ -108,6 +109,0 @@ function distance(a: Vec2, b: Vec2): number {
+-/** Båglängd för en tunnel med chord = w och böjningsvinkel θ (rad). */
+-function tunnelArcLength(chordM: number, thetaRad: number): number {
+-  if (thetaRad <= 0.0001) return chordM;
+-  return (chordM * (thetaRad / 2)) / Math.sin(thetaRad / 2);
+-}
+-
+@@ -142,8 +138,3 @@ export function getObstacleAnchors(ob: DogPathObstacle): ObstacleAnchors {
+-    const halfW = def.sizeM.w / 2;
+-    const dir = rotateVec({ x: 1, y: 0 }, rotRad);
+-    const entry: Vec2 = { x: center.x - dir.x * halfW, y: center.y - dir.y * halfW };
+-    const exit: Vec2 = { x: center.x + dir.x * halfW, y: center.y + dir.y * halfW };
+-    const curveDeg = ob.curveDeg ?? 0;
+-    const thetaRad = (Math.max(0, Math.min(180, curveDeg)) * Math.PI) / 180;
+-    const internalLengthM = tunnelArcLength(def.sizeM.w, thetaRad);
+-    return { obstacle: ob, center, entry, exit, internalLengthM, entryDir: dir, exitDir: dir };
++    const g = tunnelGeometry(def.sizeM.w, ob.curveDeg, ob.curveSide, ob.rotation, ob.x, ob.y);
++    return { obstacle: ob, center, entry: g.entry, exit: g.exit,
++      internalLengthM: g.length, internalPoints: g.points, entryDir: g.entryDir, exitDir: g.exitDir };
+@@ -163,0 +155 @@ function flipAnchor(a: ObstacleAnchors): ObstacleAnchors {
++    internalPoints: a.internalPoints?.slice().reverse(),
+@@ -252,17 +243,0 @@ export function buildDogPath(
+-  if (anchors.length === 1) {
+-    return {
+-      anchors,
+-      points: [anchors[0].entry, anchors[0].exit],
+-      cum: [0, anchors[0].internalLengthM],
+-      total: anchors[0].internalLengthM,
+-      obstacleM: anchors[0].internalLengthM,
+-      airM: 0,
+-    };
+-  }
+-
+-  const knots: Vec2[] = [];
+-  for (const a of anchors) {
+-    knots.push(a.entry);
+-    knots.push(a.exit);
+-  }
+-
+@@ -270,18 +245,10 @@ export function buildDogPath(
+-  for (let i = 0; i < knots.length - 1; i++) {
+-    const isInside = i % 2 === 0;
+-    const startKnot = knots[i];
+-    const endKnot = knots[i + 1];
+-
+-    if (i === 0) points.push(startKnot);
+-
+-    if (isInside) {
+-      points.push(endKnot);
+-    } else {
+-      const p0 = i - 1 >= 0 ? knots[i - 1] : startKnot;
+-      const p1 = startKnot;
+-      const p2 = endKnot;
+-      const p3 = i + 2 < knots.length ? knots[i + 2] : endKnot;
+-      for (let s = 1; s <= SAMPLES_PER_AIR_SEGMENT; s++) {
+-        const t = s / SAMPLES_PER_AIR_SEGMENT;
+-        points.push(catmullRom(p0, p1, p2, p3, t));
+-      }
++  let obstacleM = 0, airM = 0;
++  for (let i = 0; i < anchors.length; i++) {
++    const a = anchors[i];
++    const inside = a.internalPoints ?? [a.entry, a.exit];
++    points.push(...(i === 0 ? inside : inside.slice(1)));
++    obstacleM += polylineLength(inside);
++    if (i < anchors.length - 1) {
++      const air = airSegment(a, anchors[i + 1]);
++      points.push(...air.slice(1));
++      airM += polylineLength(air);
+@@ -290,2 +257,3 @@ export function buildDogPath(
+-
+-  return finalize(points, anchors);
++  const cum = [0];
++  for (let i = 1; i < points.length; i++) cum.push(cum[i-1] + distance(points[i-1], points[i]));
++  return { anchors, points, cum, total: cum[cum.length-1], obstacleM, airM };
+@@ -294,50 +262,4 @@ export function buildDogPath(
+-/**
+- * Returnerar den verkliga, samplade hundvägen mellan varje två på varandra
+- * följande hinder. För auto-genererad väg används exakt samma kurva som syns
+- * i editorn. Med manuell override kan vi inte entydigt dela kontrollpunkterna
+- * per hinderpar och faller därför tillbaka till exit→entry som konservativ
+- * teknisk approximation.
+- */
+-export function computeDogPathPairDistances(
+-  obstacles: DogPathObstacle[],
+-  override?: CourseDogPathOverride,
+-): DogPathPairDistance[] {
+-  const path = buildDogPath(obstacles, override);
+-  if (path.anchors.length < 2) return [];
+-
+-  if (override?.controlPoints && override.controlPoints.length >= 2) {
+-    return path.anchors.slice(0, -1).map((a, i) => {
+-      const b = path.anchors[i + 1];
+-      return {
+-        fromId: a.obstacle.id,
+-        toId: b.obstacle.id,
+-        fromNumber: a.obstacle.number as number,
+-        toNumber: b.obstacle.number as number,
+-        distanceM: distance(a.exit, b.entry),
+-      };
+-    });
+-  }
+-
+-  const result: DogPathPairDistance[] = [];
+-  let idx = 1; // index 1 är exit för första hindret
+-  for (let i = 0; i < path.anchors.length - 1; i++) {
+-    let segmentM = 0;
+-    for (let s = 0; s < SAMPLES_PER_AIR_SEGMENT; s++) {
+-      const from = path.points[idx + s];
+-      const to = path.points[idx + s + 1];
+-      if (!from || !to) break;
+-      segmentM += distance(from, to);
+-    }
+-    const a = path.anchors[i];
+-    const b = path.anchors[i + 1];
+-    result.push({
+-      fromId: a.obstacle.id,
+-      toId: b.obstacle.id,
+-      fromNumber: a.obstacle.number as number,
+-      toNumber: b.obstacle.number as number,
+-      distanceM: segmentM,
+-    });
+-    // exit_i -> 18 luftsteg -> entry_{i+1}, därefter ett steg till exit_{i+1}
+-    idx += SAMPLES_PER_AIR_SEGMENT + 1;
+-  }
+-  return result;
++function polylineLength(points: Vec2[]): number {
++  let length = 0;
++  for (let i = 1; i < points.length; i++) length += distance(points[i-1], points[i]);
++  return length;
+@@ -346,36 +268,9 @@ export function computeDogPathPairDistances(
+-function finalize(points: Vec2[], anchors: ObstacleAnchors[]): DogPath {
+-  const cum: number[] = [0];
+-  let total = 0;
+-  for (let i = 1; i < points.length; i++) {
+-    total += distance(points[i], points[i - 1]);
+-    cum.push(total);
+-  }
+-
+-  let obstacleM = 0;
+-  let airM = 0;
+-  if (anchors.length >= 1) {
+-    let idx = 0;
+-    for (let i = 0; i < anchors.length; i++) {
+-      const exitIdx = idx + 1;
+-      obstacleM += anchors[i].internalLengthM;
+-      idx = exitIdx;
+-      if (i < anchors.length - 1) {
+-        let segLen = 0;
+-        for (let s = 0; s < SAMPLES_PER_AIR_SEGMENT; s++) {
+-          const from = points[idx + s];
+-          const to = points[idx + s + 1];
+-          if (!from || !to) break;
+-          segLen += distance(from, to);
+-        }
+-        airM += segLen;
+-        idx += SAMPLES_PER_AIR_SEGMENT;
+-      }
+-    }
+-  }
+-
+-  const correctedTotal = obstacleM + airM;
+-  if (Math.abs(correctedTotal - total) > 0.001 && total > 0) {
+-    const scale = correctedTotal / total;
+-    for (let i = 0; i < cum.length; i++) cum[i] *= scale;
+-    total = correctedTotal;
+-  }
++/** Sample once by the same definition for both playback and pair validation.
++ * Tunnel mouths use their actual tangent, not a chord through the tube. */
++function airSegment(a: ObstacleAnchors, b: ObstacleAnchors): Vec2[] {
++  const reach = Math.min(3, Math.max(0.5, distance(a.exit, b.entry) / 3));
++  const p0 = a.internalPoints ? { x: a.exit.x - a.exitDir.x * reach, y: a.exit.y - a.exitDir.y * reach } : a.entry;
++  const p3 = b.internalPoints ? { x: b.entry.x + b.entryDir.x * reach, y: b.entry.y + b.entryDir.y * reach } : b.exit;
++  return Array.from({ length: SAMPLES_PER_AIR_SEGMENT + 1 }, (_, i) =>
++    catmullRom(p0, a.exit, b.entry, p3, i / SAMPLES_PER_AIR_SEGMENT));
++}
+@@ -383 +278,9 @@ function finalize(points: Vec2[], anchors: ObstacleAnchors[]): DogPath {
+-  return { anchors, points, cum, total, obstacleM, airM };
++export function computeDogPathPairDistances(obstacles: DogPathObstacle[], override?: CourseDogPathOverride): DogPathPairDistance[] {
++  const { anchors } = buildDogPath(obstacles, override);
++  return anchors.slice(0, -1).map((a, i) => {
++    const b = anchors[i+1];
++    return { fromId: a.obstacle.id, toId: b.obstacle.id,
++      fromNumber: a.obstacle.number as number, toNumber: b.obstacle.number as number,
++      distanceM: override?.controlPoints && override.controlPoints.length >= 2
++        ? distance(a.exit, b.entry) : polylineLength(airSegment(a, b)) };
++  });
+diff --git a/src/features/course-planner-v2/draftAutosave.test.ts b/src/features/course-planner-v2/draftAutosave.test.ts
+new file mode 100644
+index 0000000..a1c1259
+--- /dev/null
++++ b/src/features/course-planner-v2/draftAutosave.test.ts
+@@ -0,0 +1,48 @@
++import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
++import { createDraftAutosaver } from './draftAutosave';
++import { saveLocalCourse } from './localCourses';
++
++describe('reliable local persistence', () => {
++  beforeEach(() => vi.useFakeTimers());
++  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
++  it('debounces edits and flushes the latest value before the timer', () => {
++    const write = vi.fn(), report = vi.fn();
++    const saver = createDraftAutosaver(write, report);
++    saver.update('first'); saver.update('latest');
++    expect(write).not.toHaveBeenCalled();
++    saver.flush(); vi.runAllTimers();
++    expect(write.mock.calls).toEqual([['latest']]);
++    expect(report).toHaveBeenLastCalledWith({ snapshot: 'latest', ok: true });
++  });
++  it.each(['QuotaExceededError', 'SecurityError'])('retains draft and reports %s until a successful retry', (name) => {
++    const write = vi.fn().mockImplementationOnce(() => { throw new DOMException('denied', name); });
++    const report = vi.fn(), saver = createDraftAutosaver(write, report);
++    saver.update('precious draft'); vi.runAllTimers();
++    expect(report).toHaveBeenLastCalledWith({ snapshot: 'precious draft', ok: false });
++    saver.retry();
++    expect(write.mock.calls).toEqual([['precious draft'], ['precious draft']]);
++    expect(report).toHaveBeenLastCalledWith({ snapshot: 'precious draft', ok: true });
++  });
++  it('does not overwrite local draft by opening an unedited template, even on exit', () => {
++    const write = vi.fn(), saver = createDraftAutosaver(write, vi.fn());
++    saver.update('template', 'template'); vi.runAllTimers(); saver.dispose();

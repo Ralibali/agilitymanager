@@ -22,6 +22,7 @@ jobs:
           git apply --unidiff-zero /tmp/planner.patch
           python3 .planner-fix/reconcile.py
           python3 .planner-fix/finalize.py
+          python3 .planner-fix/ci-finish.py
           tar --exclude=.git --exclude='.env*' --exclude=node_modules --exclude='.planner-fix' --exclude='*.log' -czf /tmp/planner-review.tar.gz .
       - uses: actions/setup-node@v4
         with:

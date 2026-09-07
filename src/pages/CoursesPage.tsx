@@ -111,6 +111,7 @@ export default function CoursesPage() {
                       <PenLine className="h-4 w-4" /> Redigera
                     </Link>
                   </div>
+                <Link to={`/traning?template=${encodeURIComponent(entry.key)}`} className="mx-6 mb-5 inline-flex font-bold underline">Planera träning med banan</Link>
                 </article>
               </Reveal>
             );

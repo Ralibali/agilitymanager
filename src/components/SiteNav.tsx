@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { to: "/tavlingar", label: "Tävlingar" },
   { to: "/banplanerare", label: "Banplanerare" },
   { to: "/banor", label: "Banbibliotek" },
+  { to: "/traning", label: "Träning" },
   { to: "/delade-banor", label: "Delade banor" },
   { to: "/tavlingar/favoriter", label: "Favoriter" },
   { to: "/blogg", label: "Blogg" },
@@ -103,7 +104,7 @@ export function SiteNav() {
           <div className="flex items-center gap-2.5">
             <Link
               to="/banplanerare"
-              className="pressable shadow-hard-sm hidden items-center gap-2 rounded-full bg-tang px-5 py-2.5 text-[0.92rem] font-bold text-ink sm:inline-flex"
+              className="pressable shadow-hard-sm hidden items-center gap-2 rounded-full bg-tang whitespace-nowrap px-4 py-2.5 text-[0.84rem] font-bold text-ink sm:inline-flex"
             >
               Rita gratis <ArrowRight className="h-4 w-4" />
             </Link>

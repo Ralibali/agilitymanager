@@ -12,6 +12,7 @@ import { Seo } from "@/components/Seo";
 import { uid, type PlacedObstacle, type Sport } from "@/lib/course";
 import { ObstacleGlyph } from "@/components/ObstacleGlyph";
 import { Logo } from "@/components/SiteNav";
+import { AffiliateBanner } from "@/components/AffiliateBanner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
@@ -1364,6 +1365,7 @@ export default function PlannerPage() {
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-paper text-ink">
+      <AffiliateBanner compact />
       <Seo
         title="Banplanerare — rita agility- och hoopersbanor gratis | AgilityManager"
         description="Rita banor i meterskala direkt i webbläsaren. Hindereditor, live banlinje, PNG-export och delningslänkar för agility och hoopers — gratis, utan konto."

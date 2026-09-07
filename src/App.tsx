@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router";
 import Home from "./pages/Home";
 import { Toaster } from "./components/ui/sonner";
+import { AffiliateBanner } from "./components/AffiliateBanner";
 
 // Route-nivå code splitting: startsidan (Home) laddas direkt, övriga sidor —
 // särskilt banplaneraren med 3D/PDF — hämtas först när routen besöks.
@@ -19,6 +20,7 @@ const CoursesPage = lazy(() => import("./pages/CoursesPage"));
 const SharedCoursesPage = lazy(() => import("./pages/SharedCoursesPage"));
 const BlogIndexPage = lazy(() => import("./pages/BlogIndexPage"));
 const BlogArticlePage = lazy(() => import("./pages/BlogArticlePage"));
+const DogInsurancePage = lazy(() => import("./pages/DogInsurancePage"));
 const NotFound = lazy(() => import("./pages/NotFound").then((m) => ({ default: m.NotFound })));
 
 function ScrollToTop() {
@@ -51,6 +53,9 @@ export default function App() {
           {/* Kunskapsbanken: blogg/guider */}
           <Route path="/blogg" element={<BlogIndexPage />} />
           <Route path="/blogg/:slug" element={<BlogArticlePage />} />
+          <Route path="/jamfor-hundforsakring" element={<DogInsurancePage />} />
+          <Route path="/jämför-försäkrings" element={<Navigate to="/jamfor-hundforsakring" replace />} />
+          <Route path="/jamfor-forsakrings" element={<Navigate to="/jamfor-hundforsakring" replace />} />
 
           {/* Motor 1: banplanerare, banbibliotek och delning */}
           <Route path="/banplanerare" element={<PlannerPage />} />
@@ -59,7 +64,7 @@ export default function App() {
           <Route path="/gratis" element={<Navigate to="/priser" replace />} />
           <Route path="/banor" element={<CoursesPage />} />
           <Route path="/delade-banor" element={<SharedCoursesPage />} />
-          <Route path="/bana/:id" element={<PublicCoursePage />} />
+          <Route path="/bana/:id" element={<><AffiliateBanner compact /><PublicCoursePage /></>} />
 
           {/* Motor 2: svensk tävlingskalender, matchning och favoriter.
               Behåll dessa routes som first-class även när planeraren utvecklas. */}

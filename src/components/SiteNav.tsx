@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router";
 import { Menu, X, ArrowRight } from "lucide-react";
 import { Paw } from "./Marquee";
+import { AffiliateBanner } from "./AffiliateBanner";
+import { AFFILIATE_PARTNERS } from "@/lib/affiliate";
 
 // AgilityManager har två first-class produktspår:
 // 1) tävlingskalender/matchning och 2) banplanerare/bibliotek — plus kunskapsbanken.
@@ -12,6 +14,7 @@ const NAV_LINKS = [
   { to: "/delade-banor", label: "Delade banor" },
   { to: "/tavlingar/favoriter", label: "Favoriter" },
   { to: "/blogg", label: "Blogg" },
+  { to: "/jamfor-hundforsakring", label: "Hundförsäkring" },
   { to: "/funktioner", label: "Funktioner" },
   { to: "/priser", label: "Gratis just nu" },
 ];
@@ -63,7 +66,7 @@ export function SiteNav() {
           scrolled ? "" : ""
         }`}
       >
-        {/* Gratis-bandet — planeraren är alltid stjärnan */}
+        {AFFILIATE_PARTNERS.length ? <AffiliateBanner compact /> : (
         <Link
           to="/banplanerare"
           className="group flex h-10 items-center justify-center gap-2 border-b-2 border-ink bg-tang px-3 text-center text-[0.8rem] font-extrabold uppercase tracking-[0.12em] text-ink transition-colors hover:bg-ember hover:text-paper sm:text-[0.85rem]"
@@ -72,6 +75,7 @@ export function SiteNav() {
           <span>Banbyggaren är gratis just nu — börja utan konto</span>
           <ArrowRight className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1.5" />
         </Link>
+        )}
         <div
           className={`border-b transition-all duration-300 ${
             scrolled
@@ -79,15 +83,15 @@ export function SiteNav() {
               : "border-transparent bg-paper/60 backdrop-blur-sm"
           }`}
         >
-          <div className="mx-auto flex h-[4.25rem] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+          <div className="mx-auto flex h-[4.25rem] max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6">
           <Logo />
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="Huvudmeny">
+          <nav className="hidden items-center gap-1 min-[1440px]:flex" aria-label="Huvudmeny">
             {NAV_LINKS.map((l) => (
               <NavLink
                 key={l.to}
                 to={l.to}
                 className={({ isActive }) =>
-                  `rounded-full px-3.5 py-2 text-[0.92rem] font-semibold transition-colors ${
+                  `rounded-full px-2.5 py-2 text-sm font-semibold transition-colors ${
                     isActive ? "bg-ink text-paper" : "text-ink/70 hover:bg-ink/5 hover:text-ink"
                   }`
                 }
@@ -105,7 +109,7 @@ export function SiteNav() {
             </Link>
             <button
               onClick={() => setOpen(true)}
-              className="grid h-11 w-11 place-items-center rounded-full border-2 border-ink bg-paper lg:hidden"
+              className="grid h-11 w-11 place-items-center rounded-full border-2 border-ink bg-paper min-[1440px]:hidden"
               aria-label="Öppna meny"
             >
               <Menu className="h-5 w-5" />
@@ -117,12 +121,14 @@ export function SiteNav() {
 
       {/* Mobil fullskärmsmeny */}
       <div
-        className={`fixed inset-0 z-[60] flex flex-col bg-ink text-paper transition-all duration-500 lg:hidden ${
+        className={`fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-ink text-paper transition-all duration-500 min-[1440px]:hidden ${
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
         role="dialog"
         aria-modal="true"
         aria-label="Meny"
+        inert={!open}
+        aria-hidden={!open}
       >
         <div className="flex h-[4.25rem] items-center justify-between px-4 sm:px-6">
           <Logo dark />
@@ -134,13 +140,14 @@ export function SiteNav() {
             <X className="h-5 w-5" />
           </button>
         </div>
-        <nav className="flex flex-1 flex-col justify-center gap-1 px-6" aria-label="Mobilmeny">
+        <nav className="flex flex-1 flex-col gap-1 px-6" aria-label="Mobilmeny">
           {[{ to: "/", label: "Hem" }, ...NAV_LINKS].map((l, i) => (
             <NavLink
               key={l.to}
               to={l.to}
+              onClick={() => setOpen(false)}
               className={({ isActive }) =>
-                `border-b border-paper/10 py-4 font-display text-5xl tracking-[0.04em] transition-all duration-500 ${
+                `border-b border-paper/10 py-2 font-display text-3xl tracking-[0.04em] transition-all duration-500 sm:py-3 sm:text-4xl ${
                   open ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
                 } ${isActive ? "text-tang" : "text-paper hover:text-tang"}`
               }

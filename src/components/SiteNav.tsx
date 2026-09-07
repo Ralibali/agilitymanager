@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { to: "/banplanerare", label: "Banplanerare" },
   { to: "/banor", label: "Banbibliotek" },
   { to: "/traning", label: "Träning" },
+  { to: "/instruktor", label: "Instruktör" },
   { to: "/delade-banor", label: "Delade banor" },
   { to: "/tavlingar/favoriter", label: "Favoriter" },
   { to: "/blogg", label: "Blogg" },

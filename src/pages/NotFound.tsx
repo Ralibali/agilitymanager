@@ -3,9 +3,11 @@ import { ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/SiteNav";
 import { Marquee } from "@/components/Marquee";
 import { Seo } from "@/components/Seo";
+import { AffiliateBanner } from "@/components/AffiliateBanner";
 
 export function NotFound() {  return (
     <div className="flex min-h-screen flex-col bg-paper text-ink">
+      <AffiliateBanner compact />
       <Seo title="Sidan hittades inte | AgilityManager" description="Sidan du letar efter finns inte." noIndex />
       <header className="flex h-[4.25rem] items-center px-4 sm:px-6">
         <Logo />
@@ -29,4 +31,3 @@ export function NotFound() {  return (
     </div>
   );
 }
-

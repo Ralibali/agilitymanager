@@ -10,7 +10,10 @@ export default defineConfig({
   plugins: [inspectAttr(), react(), { name: "owned-editorial", apply: "build", enforce: "post", buildStart() {
     execFileSync(process.execPath, ["scripts/editorial-check.mjs"], { stdio: "inherit" });
     execFileSync(process.execPath, ["scripts/generate-sitemap.mjs"], { stdio: "inherit" });
-  }, closeBundle() { execFileSync(process.execPath, ["scripts/prerender-editorial.mjs"], { stdio: "inherit" }); } }],
+  }, closeBundle() {
+    execFileSync(process.execPath, ["scripts/prerender-editorial.mjs"], { stdio: "inherit" });
+    execFileSync(process.execPath, ["scripts/prerender-insurance.mjs"], { stdio: "inherit" });
+  } }],
   server: {
     port: 3000,
   },

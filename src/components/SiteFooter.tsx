@@ -15,6 +15,7 @@ const COLS: { title: string; links: { to: string; label: string }[] }[] = [
     title: "Kunskap",
     links: [
       { to: "/blogg", label: "Blogg & guider" },
+      { to: "/jamfor-hundforsakring", label: "Jämför hundförsäkring" },
       { to: "/blogg/bygga-saker-traningsbana-agility", label: "Säkra träningsbanor" },
       { to: "/blogg/hoopers-for-nyborjare", label: "Hoopers för nybörjare" },
       { to: "/blogg/regelverk-agility-hoopers-sverige", label: "Regelverken i korthet" },

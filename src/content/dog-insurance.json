@@ -1,0 +1,53 @@
+{
+  "checkedAt": "2026-09-07",
+  "title": "Jämför hundförsäkring för ett aktivt hundliv",
+  "description": "Jämför veterinärvårdsbelopp, självriskperiod och rehabilitering hos Lassie, Petson och Svedea. Läs vad du bör kontrollera för agility och hoopers.",
+  "providers": [
+    {
+      "id": "lassie",
+      "name": "Lassie",
+      "product": "Brons, Silver och Guld",
+      "veterinary": "30 000–160 000 kr per år",
+      "levels": "Brons 30 000 kr, Silver 60 000–120 000 kr och Guld 160 000 kr.",
+      "deductible": "Fast och rörlig självrisk. Nivåerna väljs när du beräknar ditt pris.",
+      "period": "365 dagar, följer försäkringsåret",
+      "rehab": "Rehabilitering ingår i Silver och Guld. Guld har högre ersättningsgräns; kontrollera delbeloppet i villkoren.",
+      "check": "Kontrollera vilket paket och vilka delbelopp du får. Brons har en annan omfattning än Silver och Guld.",
+      "url": "https://www.lassie.co/hundforsakring",
+      "termsUrl": "https://www.lassie.co/hundforsakring"
+    },
+    {
+      "id": "petson",
+      "name": "Petson",
+      "product": "Veterinärvårdsförsäkring för hund",
+      "veterinary": "25 000–175 000 kr per år",
+      "levels": "Valbara belopp: 25 000, 60 000, 120 000 eller 175 000 kr.",
+      "deductible": "0, 900, 2 900 eller 4 900 kr fast + 15 eller 25 % rörlig. 0 kr kan väljas vid nyteckning före 6 års ålder.",
+      "period": "Fyra månader eller 365 dagar",
+      "rehab": "Upp till 6 000 kr per år vid de tre lägre veterinärvårdsbeloppen och 12 000 kr vid 175 000 kr.",
+      "check": "365 dagar följer försäkringsåret. Fyra månader räknas från den första ersättningsbara kostnaden. Villkor gäller för bland annat ledsjukdomar.",
+      "url": "https://www.petson.se/hundforsakring",
+      "termsUrl": "https://www.petson.se/villkor"
+    },
+    {
+      "id": "svedea",
+      "name": "Svedea",
+      "product": "Hundförsäkring",
+      "veterinary": "30 000–90 000 kr per år",
+      "levels": "Valbara belopp: 30 000, 60 000 eller 90 000 kr.",
+      "deductible": "2 200, 3 100 eller 4 500 kr fast + 15 eller 25 % rörlig.",
+      "period": "130 dagar",
+      "rehab": "Upp till 12 000 kr per år efter en skada eller sjukdom som omfattas av försäkringen.",
+      "check": "Samma försäkringsdelar ingår på de tre ersättningsnivåerna. Kontrollera villkoren för din ras, tandvård och ledsjukdomar.",
+      "url": "https://www.svedea.se/hundforsakring",
+      "termsUrl": "https://www.svedea.se/hundforsakring"
+    }
+  ],
+  "checklist": [
+    { "title": "Träning och tävling", "text": "Be bolaget bekräfta vad som gäller vid agility, hoopers och tävling utomlands. En hög ersättningsgräns säger inte vilka skador som omfattas." },
+    { "title": "Rehab och undersökningar", "text": "Kontrollera delbelopp, remisskrav och vilka behandlingar som ersätts. Läs även om medicin, MR och CT och om kostnaderna delar på veterinärvårdsbeloppet." },
+    { "title": "Självrisk och egen kostnad", "text": "Jämför både den fasta summan, den rörliga procenten och när självriskperioden börjar om. Be om pris med motsvarande omfattning hos varje bolag." },
+    { "title": "Om du redan har en försäkring", "text": "Kontrollera tidigare besvär, reservationer, karens och startdatum hos det nya bolaget innan du avslutar din nuvarande försäkring." }
+  ],
+  "guideSource": "https://www.konsumenternas.se/forsakringar/djurforsakringar/paverka-premien-pa-din-djurforsakring/"
+}

@@ -144,6 +144,7 @@ export function SiteNav() {
             <NavLink
               key={l.to}
               to={l.to}
+              onClick={() => setOpen(false)}
               className={({ isActive }) =>
                 `border-b border-paper/10 py-2 font-display text-3xl tracking-[0.04em] transition-all duration-500 sm:py-3 sm:text-4xl ${
                   open ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"

@@ -14,10 +14,20 @@ test("insurance comparison loads from its alias and filters without losing sourc
   await expect(page.getByRole("link", { name: "Källa: Petson", exact: true })).toHaveAttribute("href", "https://www.petson.se/hundforsakring");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await expect(page.locator("vite-error-overlay")).toHaveCount(0);
-  await page.screenshot({ path: testInfo.outputPath("insurance.png"), fullPage: true });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: testInfo.outputPath("insurance.png"), fullPage: true, animations: "disabled" });
   await page.getByRole("button", { name: "Öppna meny" }).click();
+  await expect(page.getByRole("dialog", { name: "Meny", exact: true })).toHaveCSS("opacity", "1");
   await expect(page.getByRole("navigation", { name: "Mobilmeny" }).getByRole("link", { name: "Hundförsäkring", exact: true })).toBeVisible();
-  await page.screenshot({ path: testInfo.outputPath("navigation.png") });
+  await page.screenshot({ path: testInfo.outputPath("navigation.png"), animations: "disabled" });
+  await page.getByRole("navigation", { name: "Mobilmeny" }).getByRole("link", { name: "Hundförsäkring", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Meny", exact: true })).toHaveCount(0);
+  if (testInfo.project.name === "desktop") {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await expect(page.getByRole("navigation", { name: "Huvudmeny" })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath("navigation-wide.png"), animations: "disabled" });
+  }
   expect(errors).toEqual([]);
 });
 

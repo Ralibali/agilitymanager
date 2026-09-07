@@ -128,6 +128,7 @@ export function SiteNav() {
         aria-modal="true"
         aria-label="Meny"
         inert={!open}
+        aria-hidden={!open}
       >
         <div className="flex h-[4.25rem] items-center justify-between px-4 sm:px-6">
           <Logo dark />

@@ -6,6 +6,8 @@ import { AffiliateBanner } from "./components/AffiliateBanner";
 
 // Route-nivå code splitting: startsidan (Home) laddas direkt, övriga sidor —
 // särskilt banplaneraren med 3D/PDF — hämtas först när routen besöks.
+const InstructorPage = lazy(() => import("./pages/InstructorPage"));
+const StudentTrainingPage = lazy(() => import("./pages/StudentTrainingPage"));
 const TrainingPage = lazy(() => import("./pages/TrainingPage"));
 const PlannerPage = lazy(() => import("./pages/PlannerPage"));
 const PublicCoursePage = lazy(() => import("./pages/PublicCoursePage"));
@@ -64,6 +66,8 @@ export default function App() {
           <Route path="/priser" element={<GratisPage />} />
           <Route path="/gratis" element={<Navigate to="/priser" replace />} />
           <Route path="/traning" element={<TrainingPage />} />
+          <Route path="/instruktor" element={<InstructorPage />} />
+          <Route path="/elev" element={<StudentTrainingPage />} />
           <Route path="/banor" element={<CoursesPage />} />
           <Route path="/delade-banor" element={<SharedCoursesPage />} />
           <Route path="/bana/:id" element={<><AffiliateBanner compact /><PublicCoursePage /></>} />

@@ -682,6 +682,222 @@ export type Database = {
           },
         ]
       }
+      coaching_assignments: {
+        Row: {
+          archived: boolean
+          course: Json | null
+          created_at: string
+          due_date: string
+          goal: string
+          group_id: string
+          id: string
+          request_data: Json
+          revision: number
+          student_id: string | null
+          title: string
+        }
+        Insert: {
+          archived?: boolean
+          course?: Json | null
+          created_at?: string
+          due_date: string
+          goal: string
+          group_id: string
+          id: string
+          request_data: Json
+          revision?: number
+          student_id?: string | null
+          title: string
+        }
+        Update: {
+          archived?: boolean
+          course?: Json | null
+          created_at?: string
+          due_date?: string
+          goal?: string
+          group_id?: string
+          id?: string
+          request_data?: Json
+          revision?: number
+          student_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_assignments_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_assignments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coaching_feedback: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          next_step: string
+          submission_id: string
+          video_seconds: number | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id: string
+          next_step?: string
+          submission_id: string
+          video_seconds?: number | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          next_step?: string
+          submission_id?: string
+          video_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_feedback_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coaching_groups: {
+        Row: {
+          archived: boolean
+          created_at: string
+          id: string
+          name: string
+          profile_id: string
+          revision: number
+        }
+        Insert: {
+          archived?: boolean
+          created_at?: string
+          id: string
+          name: string
+          profile_id: string
+          revision?: number
+        }
+        Update: {
+          archived?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          profile_id?: string
+          revision?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_groups_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "planner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coaching_students: {
+        Row: {
+          active: boolean
+          created_at: string
+          dog: string
+          expires_at: string | null
+          group_id: string
+          id: string
+          name: string
+          revision: number
+          token_hash: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          dog?: string
+          expires_at?: string | null
+          group_id: string
+          id: string
+          name: string
+          revision?: number
+          token_hash?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          dog?: string
+          expires_at?: string | null
+          group_id?: string
+          id?: string
+          name?: string
+          revision?: number
+          token_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_students_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coaching_submissions: {
+        Row: {
+          assignment_id: string
+          completed: boolean
+          created_at: string
+          id: string
+          reflection: string
+          student_id: string
+          video_url: string
+        }
+        Insert: {
+          assignment_id: string
+          completed: boolean
+          created_at?: string
+          id: string
+          reflection: string
+          student_id: string
+          video_url?: string
+        }
+        Update: {
+          assignment_id?: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          reflection?: string
+          student_id?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       competition_interests: {
         Row: {
           class: string | null
@@ -2415,6 +2631,29 @@ export type Database = {
       }
     }
     Functions: {
+      coaching_history: {
+        Args: { p_before?: Json; p_group: string; p_student: string }
+        Returns: Json
+      }
+      coaching_instructor: {
+        Args: {
+          p_action: string
+          p_data?: Json
+          p_id?: string
+          p_profile: string
+          p_token: string
+        }
+        Returns: Json
+      }
+      coaching_student: {
+        Args: {
+          p_action?: string
+          p_data?: Json
+          p_id?: string
+          p_token: string
+        }
+        Returns: Json
+      }
       get_club_by_invite_code: {
         Args: { p_code: string }
         Returns: {

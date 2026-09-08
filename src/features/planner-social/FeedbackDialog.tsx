@@ -99,7 +99,7 @@ export default function FeedbackDialog({ open, onOpenChange, courseData }: Props
             Hjälp oss göra banbyggaren bättre
           </DialogTitle>
           <DialogDescription className="text-ink/70">
-            Banbyggaren är gratis just nu. Skicka in idéer, buggar eller material — vi
+            Banplaneraren är gratis. Skicka in idéer, buggar eller material — vi
             läser allt och bygger vidare på det.
           </DialogDescription>
         </DialogHeader>

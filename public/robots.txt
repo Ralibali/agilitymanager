@@ -2,6 +2,8 @@ User-agent: *
 Allow: /
 Disallow: /elev
 Disallow: /instruktor
+Disallow: /mitt-agilitymanager
+Disallow: /konto
 
 # Träningssidorna har också noindex. Personliga länkar använder fragment.
 Sitemap: https://agilitymanager.se/sitemap.xml

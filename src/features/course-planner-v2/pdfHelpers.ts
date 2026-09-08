@@ -452,7 +452,7 @@ export function drawFooterAllPages(
       doc.setFontSize(7);
       doc.setTextColor(...PDF_BRAND.primary);
       doc.textWithLink(
-        "Rita egna agility- och hoopersbanor gratis just nu på agilitymanager.se",
+        "Rita egna agility- och hoopersbanor gratis på agilitymanager.se",
         PDF_PAGE.width / 2,
         y - 7,
         { url: linkUrl, align: "center" },

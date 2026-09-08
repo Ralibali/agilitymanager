@@ -57,6 +57,7 @@ import SaveShareDialog from "@/features/planner-social/SaveShareDialog";
 import FeedbackDialog from "@/features/planner-social/FeedbackDialog";
 import { CourseMenu } from "@/components/course-planner-v2/CourseMenu";
 import { OpenCourseDialog } from "@/components/course-planner-v2/OpenCourseDialog";
+import { track } from "@/lib/analytics";
 import { ConfirmDialog, NameCourseDialog } from "@/components/course-planner-v2/ConfirmDialog";
 import {
   saveLocalCourse, type LocalCourse,
@@ -348,6 +349,11 @@ export default function PlannerPage() {
     } catch {
       /* localStorage kan vara avstängt */
     }
+  }, []);
+
+  // Produktmätning: en händelse när planeraren öppnas (no-op utan mätsnutt).
+  useEffect(() => {
+    track("planner_open");
   }, []);
 
   // Delade länkar och mall-länkar är alltid nya kopior. De får aldrig ärva
@@ -1050,6 +1056,7 @@ export default function PlannerPage() {
   };
 
   const exportPNG = () => {
+    track("course_exported", { format: "png" });
     const svg = svgRef.current;
     if (!svg) return;
     const clone = svg.cloneNode(true) as SVGSVGElement;
@@ -1085,6 +1092,7 @@ export default function PlannerPage() {
 
   // ── Dela ────────────────────────────────────────────────────
   const openShare = () => {
+    track("course_shared");
     setShareUrl(shareUrlForQr());
     setCopied(false);
     setShareOpen(true);

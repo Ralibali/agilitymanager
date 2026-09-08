@@ -16,6 +16,10 @@ test("insurance comparison loads from its alias and filters without losing sourc
   await expect(page.locator("vite-error-overlay")).toHaveCount(0);
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
   await page.screenshot({ path: testInfo.outputPath("insurance.png"), fullPage: true, animations: "disabled" });
+  // Hamburgermenyn visas under lg-breakpointen (1024px). Desktop-projektet
+  // körs bredare än så, så vi krymper fönstret för att testa mobilmenyn och
+  // återställer bredden längre ner när huvudmenyn ska kontrolleras.
+  if (testInfo.project.name === "desktop") await page.setViewportSize({ width: 900, height: 1000 });
   await page.getByRole("button", { name: "Öppna meny" }).click();
   await expect(page.getByRole("dialog", { name: "Meny", exact: true })).toHaveCSS("opacity", "1");
   await expect(page.getByRole("navigation", { name: "Mobilmeny" }).getByRole("link", { name: "Hundförsäkring", exact: true })).toBeVisible();

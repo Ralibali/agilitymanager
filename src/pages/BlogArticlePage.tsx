@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, CalendarDays, Clock3, RefreshCw } from "lucide-r
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Seo, SITE_URL } from "@/components/Seo";
+import { PartnerAdCard } from "@/components/AffiliateBanner";
 import { NotFound } from "@/pages/NotFound";
 import { getArticle, type ArticleBlock } from "@/content/articles";
 import { blogArticlePath } from "@/lib/routes";

@@ -24,3 +24,42 @@ export function AffiliateBanner({ compact = false }: { compact?: boolean }) {
     </aside>
   );
 }
+
+/**
+ * Bildannons från godkänd partner (Adtraction-spårningslänk). Tydligt
+ * annonsmärkt, laddas lazy och används på innehållssidor — aldrig startsidan.
+ */
+export function PartnerAdCard({ className = "" }: { className?: string }) {
+  const partners = AFFILIATE_PARTNERS.filter((p) => p.bannerImageUrl);
+  if (!partners.length) return null;
+
+  return (
+    <aside aria-label="Annons från våra partners" className={`print:hidden ${className}`}>
+      <div className="flex flex-wrap items-start justify-center gap-6">
+        {partners.map((partner) => (
+          <div key={partner.id} className="flex flex-col items-center gap-1.5">
+            <a
+              href={partner.bannerUrl}
+              target="_blank"
+              rel="sponsored noopener noreferrer"
+              aria-label={`${partner.name} – ${partner.description} (annons, öppnas i ny flik)`}
+              className="block overflow-hidden rounded-2xl border-2 border-ink/10 shadow-hard-sm transition-transform duration-300 hover:-translate-y-1"
+            >
+              <img
+                src={partner.bannerImageUrl}
+                alt={`Annons: ${partner.name} – ${partner.description}`}
+                width={320}
+                height={320}
+                loading="lazy"
+                className="block h-auto w-56 sm:w-64"
+              />
+            </a>
+            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-ink/40">
+              Annons
+            </span>
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
+}

@@ -163,7 +163,7 @@ export function SiteNav() {
   return (
     <>
       <header className="fixed inset-x-0 top-0 z-50 transition-all duration-300">
-        {AFFILIATE_PARTNERS.length ? <AffiliateBanner compact /> : (
+        {AFFILIATE_PARTNERS.length && location.pathname !== "/" ? <AffiliateBanner compact /> : (
         <Link
           to="/banplanerare"
           className="group flex h-10 items-center justify-center gap-2 border-b-2 border-ink bg-tang px-3 text-center text-[0.8rem] font-extrabold uppercase tracking-[0.12em] text-ink transition-colors hover:bg-ember hover:text-paper sm:text-[0.85rem]"

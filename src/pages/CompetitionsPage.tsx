@@ -565,6 +565,8 @@ export default function CompetitionsPage() {
             </div>
           </div>
         </Reveal>
+
+        <PartnerAdCard className="mt-16" />
       </section>
 
       <SiteFooter />

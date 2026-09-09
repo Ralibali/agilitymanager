@@ -160,6 +160,8 @@ export default function BlogArticlePage() {
             </div>
           </nav>
         )}
+
+        <PartnerAdCard className="mt-14" />
       </article>
 
       <SiteFooter />

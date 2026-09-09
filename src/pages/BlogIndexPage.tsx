@@ -87,6 +87,8 @@ export default function BlogIndexPage() {
             </Reveal>
           ))}
         </div>
+
+        <PartnerAdCard className="mt-16" />
       </section>
 
       <SiteFooter />

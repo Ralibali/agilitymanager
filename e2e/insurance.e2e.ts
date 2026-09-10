@@ -54,6 +54,12 @@ test("ads use only approved site links and do not cover the planner", async ({ p
     await page.goto(path);
     await expect(page.locator('meta[name="robots"]')).toHaveCount(1);
     const ad = page.getByRole("complementary", { name: "Annons från våra partners" });
+    // The current homepage deliberately has no partner banner. Content and
+    // planner routes still filter ads by this site's approved channel.
+    if (path === "/") {
+      await expect(ad).toHaveCount(0);
+      continue;
+    }
     await expect(ad).toHaveCount(1);
       await expect(ad).toBeVisible();
       await expect(ad.getByRole("link")).toHaveCount(1);

@@ -15,7 +15,7 @@
     "description": "Håll isär grundbana och ändringar. Få en konkret mall för att namnge, jämföra och följa upp två versioner av din agilitybana inför nästa träning.",
     "category": "Verktyg",
     "publishedAt": "2026-09-06",
-    "updatedAt": "2026-09-06",
+    "updatedAt": "2026-09-10",
     "readingMinutes": 4,
     "blocks": [
       {
@@ -96,6 +96,10 @@
       {
         "type": "p",
         "text": "I [AgilityManagers banplanerare](/banplanerare) kan du börja med din ritning. Läs också [från banidé till träningspass](/blogg/fran-banide-till-traningspass) för en bredare planering och [avstånd och vinklar i bandesign](/blogg/avstand-och-vinklar-bandesign) när du granskar linjerna. Produktens aktuella verktyg beskrivs på [funktionssidan](/funktioner)."
+      },
+      {
+        "type": "p",
+        "text": "AI-assisterad originalguide, skriven med ChatGPT. Arbetsmallen är ett redaktionellt förslag."
       }
     ],
     "related": [

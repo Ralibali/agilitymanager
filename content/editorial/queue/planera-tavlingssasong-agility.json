@@ -6,7 +6,7 @@
   "status": "draft",
   "written_at": "2026-09-06T22:37:36.331Z",
   "not_before": "2026-09-08",
-  "sources_checked_at": "2026-09-06T22:37:36.331Z",
+  "sources_checked_at": "2026-09-08",
   "search_intent": "Planera en genomförbar agilitysäsong genom att skilja preliminära tävlingsval, anmälningsfrister, bekräftad anmälan och reseplanering i en enkel kalender.",
   "source_urls": [
     "https://agilityklubben.se/tavling/ansokan-om-tavling/"
@@ -122,6 +122,20 @@
     {
       "type": "p",
       "text": "Börja med [AgilityManagers tävlingskalender](/tavlingar) för en översikt och kontrollera sedan ditt val hos arrangören. Använd [översikten över regelverk](/blogg/regelverk-agility-hoopers-sverige) som väg vidare till rätt källor när ett planeringsbeslut kräver en regelkontroll."
+    },
+    {
+      "type": "p",
+      "text": "AI-assisterad originalguide. Externa källor kontrollerade den 8 september 2026. Arbetsmallen är ett redaktionellt förslag."
     }
-  ]
+  ],
+  "quality_checked_at": "2026-09-08T08:38:02.032772+00:00",
+  "editorial_review": {
+    "reviewed_at": "2026-09-08T08:38:02.032772+00:00",
+    "source_review": "Svenska Agilityklubben: Ansökan om tävling. Arrangörer lägger in tävlingar via Agilitydata. Inga specifika frister, avgifter eller deltagarkrav återges i arbetsmallen.",
+    "published_inventory_reviewed": 8,
+    "distinct_intent_confirmed": true,
+    "live_verification": "pending",
+    "publication_gate": "Previous article, product links, image and rendered blog must pass live checks before publishing.",
+    "run_note": "Live check could not be completed on 2026-09-08: local DNS failed, CUA timed out, and the approval policy rejected an escalated browser command. This is not evidence that the websites are down."
+  }
 }

@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Seo, SITE_URL } from "@/components/Seo";
 import { Reveal } from "@/components/Reveal";
+import { PartnerAdCard } from "@/components/AffiliateBanner";
 import { ARTICLES } from "@/content/articles";
 import { blogArticlePath } from "@/lib/routes";
 import { fmtDate } from "@/lib/format";
@@ -87,6 +88,8 @@ export default function BlogIndexPage() {
             </Reveal>
           ))}
         </div>
+
+        <PartnerAdCard className="mt-16" />
       </section>
 
       <SiteFooter />

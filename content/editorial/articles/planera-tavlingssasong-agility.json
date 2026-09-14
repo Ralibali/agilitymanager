@@ -3,10 +3,9 @@
   "site": "agilitymanager",
   "content_id": "editorial-20260907-planera-tavlingssasong-agility",
   "author": "ChatGPT",
-  "status": "draft",
+  "status": "ready",
   "written_at": "2026-09-06T22:37:36.331Z",
-  "not_before": "2026-09-08",
-  "sources_checked_at": "2026-09-08",
+  "sources_checked_at": "2026-09-14T15:55:30Z",
   "search_intent": "Planera en genomförbar agilitysäsong genom att skilja preliminära tävlingsval, anmälningsfrister, bekräftad anmälan och reseplanering i en enkel kalender.",
   "source_urls": [
     "https://agilityklubben.se/tavling/ansokan-om-tavling/"
@@ -125,17 +124,18 @@
     },
     {
       "type": "p",
-      "text": "AI-assisterad originalguide. Externa källor kontrollerade den 8 september 2026. Arbetsmallen är ett redaktionellt förslag."
+      "text": "AI-assisterad originalguide. Externa källor kontrollerade den 14 september 2026. Arbetsmallen är ett redaktionellt förslag."
     }
   ],
-  "quality_checked_at": "2026-09-08T08:38:02.032772+00:00",
+  "quality_checked_at": "2026-09-14T15:55:30Z",
   "editorial_review": {
-    "reviewed_at": "2026-09-08T08:38:02.032772+00:00",
-    "source_review": "Svenska Agilityklubben: Ansökan om tävling. Arrangörer lägger in tävlingar via Agilitydata. Inga specifika frister, avgifter eller deltagarkrav återges i arbetsmallen.",
+    "reviewed_at": "2026-09-14T15:55:30Z",
+    "source_review": "Svenska Agilityklubbens sida Ansökan om tävling läst 14 september: arrangörer lägger in tävlingar via Agilitydata. Inga specifika frister, avgifter eller deltagarkrav återges.",
     "published_inventory_reviewed": 8,
     "distinct_intent_confirmed": true,
-    "live_verification": "pending",
-    "publication_gate": "Previous article, product links, image and rendered blog must pass live checks before publishing.",
-    "run_note": "Live check could not be completed on 2026-09-08: local DNS failed, CUA timed out, and the approval policy rejected an escalated browser command. This is not evidence that the websites are down."
-  }
+    "live_verification": "Previous article: actual blog-index click, full rendered text, one H1, canonical, loaded banner and product planner verified. New draft CTA /tavlingar opened: calendar and filters loaded. No submission or personal-data change.",
+    "publication_gate": "Previous article and source/product checks passed. New publication still requires CI, matching deployment and real-domain reader-flow verification."
+  },
+  "publishedAt": "2026-09-14T15:55:30Z",
+  "updatedAt": "2026-09-14T15:55:30Z"
 }

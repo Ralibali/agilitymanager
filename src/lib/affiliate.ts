@@ -9,6 +9,7 @@ export interface AffiliatePartner {
   verifiedAt: string;
   destination: string;
   bannerUrl: string;
+  bannerImageUrl?: string;
   insuranceUrl?: string;
   description: string;
 }
@@ -19,8 +20,13 @@ export const AGILITY_CHANNEL_ID = "2103592373";
 export function approvedPartners(partners: readonly AffiliatePartner[]): AffiliatePartner[] {
   return partners.filter((partner) => {
     if (partner.status !== "approved" || partner.channelId !== AGILITY_CHANNEL_ID || !partner.verifiedAt) return false;
+    const links = [
+      partner.bannerUrl,
+      ...(partner.bannerImageUrl ? [partner.bannerImageUrl] : []),
+      ...(partner.insuranceUrl ? [partner.insuranceUrl] : []),
+    ];
     try {
-      return [partner.bannerUrl, ...(partner.insuranceUrl ? [partner.insuranceUrl] : [])].every((value) => {
+      return links.every((value) => {
         const url = new URL(value);
         return url.protocol === "https:" && url.searchParams.get("as") === AGILITY_CHANNEL_ID;
       });

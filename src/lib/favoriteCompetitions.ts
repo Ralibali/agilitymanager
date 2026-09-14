@@ -1,3 +1,4 @@
+import { track } from "@/lib/analytics";
 // ── Favoritmarkerade tävlingar (sparas lokalt i webbläsaren) ───────────────
 // Fungerar utan inloggning: nycklarna är UnifiedCompetition.key ("a-123"/"h-456").
 
@@ -28,7 +29,9 @@ function writeFavorites(keys: string[]) {
 
 export function toggleFavorite(key: string): string[] {
   const current = readFavorites();
-  const next = current.includes(key) ? current.filter((k) => k !== key) : [...current, key];
+  const adding = !current.includes(key);
+  const next = adding ? [...current, key] : current.filter((k) => k !== key);
+  if (adding) track("competition_favorited");
   writeFavorites(next);
   return next;
 }

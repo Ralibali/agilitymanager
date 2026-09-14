@@ -91,8 +91,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       <Seo
-        title="AgilityManager — Tävlingskalender + gratis banplanerare för agility och hoopers"
-        description="Hitta svenska agilitytävlingar, spara favoriter och bygg träningsbanor i meterskala för agility och hoopers. Regelkontroll, banbibliotek, export och delning — gratis att börja använda."
+        title="AgilityManager — planera, träna och tävla i agility och hoopers"
+        description="Rita banor gratis i meterskala, planera träningen, följ instruktörens uppgifter och hitta svenska agility- och hooperstävlingar. Banplaneraren är gratis, konto behövs bara för synk."
         canonicalPath="/"
         jsonLd={{
           "@context": "https://schema.org",
@@ -100,7 +100,7 @@ export default function Home() {
           name: "AgilityManager",
           url: SITE_URL,
           inLanguage: "sv-SE",
-          description: "Tävlingskalender, banplanerare och kunskapsbank för agility och hoopers.",
+          description: "Banplanerare, träningsplanering, tävlingskalender och kunskapsbank för agility och hoopers.",
         }}
       />
       <SiteNav />
@@ -116,7 +116,7 @@ export default function Home() {
             <Reveal>
               <span className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-paper px-4 py-1.5 text-[0.8rem] font-bold uppercase tracking-[0.14em] shadow-hard-sm">
                 <span className="h-2 w-2 rounded-full bg-forest" />
-                Tävlingskalender + banplanerare — gratis att börja
+                Planera · Träna · Tävla — banplaneraren är gratis
               </span>
             </Reveal>
             <h1 className="mt-6 font-display text-[4rem] leading-[1.02] tracking-[0.01em] sm:text-[5.8rem] lg:text-[6.6rem]">
@@ -131,9 +131,9 @@ export default function Home() {
             </h1>
             <Reveal delay={650}>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink/70 sm:text-xl">
-                AgilityManager knyter ihop tävling och träning. Hitta tävlingar,
-                spara det som är relevant och gå direkt vidare till banbiblioteket
-                eller bygg en egen agility- eller hoopersbana i meterskala.
+                Ett smartare sätt att planera, träna och tävla i agility och hoopers.
+                Rita banor i meterskala, planera träningen, hitta tävlingar som passar
+                din hund — och samla allt på ett AgilityManager-konto när du vill.
               </p>
             </Reveal>
             <Reveal delay={780}>
@@ -277,7 +277,7 @@ export default function Home() {
             </Reveal>
             <Reveal delay={150}>
               <p className="max-w-md text-lg leading-relaxed text-paper/70">
-                Full kraft från första klicket. Hela banplaneraren är gratis just nu —
+                Full kraft från första klicket. Hela banplaneraren är gratis —
                 du behöver varken konto eller kort för att rita, exportera och dela.
               </p>
             </Reveal>

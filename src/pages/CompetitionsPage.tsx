@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { Seo, SITE_URL } from "@/components/Seo";
+import { PartnerAdCard } from "@/components/AffiliateBanner";
 import { CompetitionCard } from "@/components/competitions/CompetitionCard";
 import {
   deadlineInfo,
@@ -565,6 +566,8 @@ export default function CompetitionsPage() {
             </div>
           </div>
         </Reveal>
+
+        <PartnerAdCard className="mt-16" />
       </section>
 
       <SiteFooter />

@@ -94,6 +94,7 @@ export function PlannerProfileDialog({
             />
             <p className="text-xs text-muted-foreground">
               E-posten visas aldrig för andra – bara ditt namn syns vid banor och kommentarer.
+              Den används för din profil, inte för utskick.
             </p>
           </div>
           <Button type="submit" className="w-full" disabled={saving}>

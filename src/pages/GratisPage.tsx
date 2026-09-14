@@ -26,11 +26,11 @@ const FAQ = [
   },
   {
     q: "Kommer allt vara gratis i framtiden?",
-    a: "Banplaneraren är gratis att använda och vi lovar inte mer än så. AgilityManager växer, och vi kan komma att ta betalt för nya extrafunktioner längre fram. Om något ändras säger vi till i förväg — och vi tar aldrig betalt i efterhand för något du redan använt gratis.",
+    a: "Banplaneraren är gratis — det är inget tillfälligt kampanjpris. AgilityManager växer, och nya Premium-funktioner för avancerad träning, synk och instruktörsverktyg kan komma att kosta längre fram. Vi tar aldrig betalt i efterhand för något du redan använt gratis.",
   },
   {
     q: "Varför frågar ni efter min e-post när jag delar en bana?",
-    a: "Det är det enda vi ber om när du delar. Din e-post går till vårt nyhetsbrev med nya banor, tävlingspåminnelser och träningstips. Du kan avsluta prenumerationen när du vill.",
+    a: "E-posten knyter banan till din banprofil så att du kan hitta, ändra och ta bort den senare, och så att kommentarer hamnar rätt. Den visas aldrig för andra och du hamnar inte automatiskt på något utskick — nyhetsbrev är ett eget, frivilligt val.",
   },
   {
     q: "Behöver jag e-post för att rita?",
@@ -42,7 +42,7 @@ const FAQ = [
   },
   {
     q: "Hur tjänar ni pengar?",
-    a: "Idag handlar allt om att bygga sportens bästa verktyg och ett community runt det. Nyhetsbrevet är vår kanal, och framöver kan det tillkomma betalda extrafunktioner ovanpå den gratis banplaneraren — alltid tydligt märkta innan du väljer dem.",
+    a: "Idag handlar allt om att bygga sportens bästa verktyg och ett community runt det. Framöver kan AgilityManager få Premium-funktioner för exempelvis avancerad träning, synk och instruktörsverktyg — alltid tydligt märkta innan du väljer dem. Banplaneraren är gratis.",
   },
 ];
 
@@ -50,17 +50,17 @@ export default function GratisPage() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       <SiteNav />
-      <PageHero kicker="Priser" title="Banbyggaren är gratis just nu.">
+      <PageHero kicker="Priser" title="Banplaneraren är gratis.">
         Ingen provperiod, inget konto och inget kort för att rita, exportera och dela.
-        Framöver kan vi lägga till betalda extrafunktioner ovanpå — men själva
-        banplaneraren använder du gratis.
+        Framöver kan AgilityManager få Premium-funktioner för exempelvis avancerad
+        träning, synk och instruktörsverktyg — banplaneraren förblir gratis.
       </PageHero>
 
       {/* Gratisnivån */}
       <section className="border-b-2 border-ink bg-forest text-paper">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:py-28">
           <Reveal>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-tang">Gratisnivån — det du får i dag</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-tang">Gratis — det du får i dag</p>
             <p className="mt-4 font-display text-[10rem] leading-none sm:text-[14rem]">
               0 <span className="text-6xl sm:text-8xl">kr</span>
             </p>
@@ -115,8 +115,8 @@ export default function GratisPage() {
               </span>
               <p className="leading-relaxed text-ink/75">
                 <b className="text-ink">Vill du dela din bana?</b> Då ber vi om namn och
-                e-post — det är vår enda "valuta". Du får en delningslänk, vi får skicka
-                nyhetsbrevet. Snygg deal.
+                e-post så att banan knyts till din banprofil och kommentarer hamnar rätt.
+                E-posten visas aldrig för andra, och utskick är ett eget frivilligt val.
               </p>
             </div>
             <div className="flex items-start gap-4 rounded-2xl border-2 border-ink bg-[#FCFAF4] p-5 shadow-hard-sm">
@@ -124,8 +124,8 @@ export default function GratisPage() {
                 <Sparkles className="h-5 w-5" />
               </span>
               <p className="leading-relaxed text-ink/75">
-                <b className="text-ink">Och framtiden?</b> Nya extrafunktioner kan komma att
-                kosta pengar. Då är det tydligt märkt innan du väljer dem — och
+                <b className="text-ink">Och framtiden?</b> Premium-funktioner för avancerad
+                träning, synk och instruktörsverktyg kan komma att kosta pengar. Då är det tydligt märkt innan du väljer dem — och
                 banplaneraren du använder i dag fortsätter vara gratis.
               </p>
             </div>

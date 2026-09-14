@@ -24,6 +24,7 @@ const SharedCoursesPage = lazy(() => import("./pages/SharedCoursesPage"));
 const BlogIndexPage = lazy(() => import("./pages/BlogIndexPage"));
 const BlogArticlePage = lazy(() => import("./pages/BlogArticlePage"));
 const DogInsurancePage = lazy(() => import("./pages/DogInsurancePage"));
+const AccountPage = lazy(() => import("./pages/AccountPage"));
 const NotFound = lazy(() => import("./pages/NotFound").then((m) => ({ default: m.NotFound })));
 
 function ScrollToTop() {
@@ -83,9 +84,11 @@ export default function App() {
           <Route path="/tavlingar/:id" element={<CompetitionDetailPage />} />
           <Route path="/tavlingar/:id/:slug" element={<CompetitionDetailPage />} />
 
-          {/* Inloggat läge är borttaget — allt leder till planeraren */}
-          <Route path="/auth" element={<Navigate to="/banplanerare" replace />} />
-          <Route path="/logga-in" element={<Navigate to="/banplanerare" replace />} />
+          {/* Kontoyta: en ingång till konto, banprofil och personliga ytor */}
+          <Route path="/mitt-agilitymanager" element={<AccountPage />} />
+          <Route path="/konto" element={<Navigate to="/mitt-agilitymanager" replace />} />
+          <Route path="/auth" element={<Navigate to="/mitt-agilitymanager" replace />} />
+          <Route path="/logga-in" element={<Navigate to="/mitt-agilitymanager" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

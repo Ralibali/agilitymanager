@@ -22,12 +22,21 @@ const COLS: { title: string; links: { to: string; label: string }[] }[] = [
     ],
   },
   {
-    title: "Sporter",
+    title: "Mitt AgilityManager",
     links: [
-      { to: "/banplanerare", label: "Agility" },
+      { to: "/mitt-agilitymanager", label: "Konto & banprofil" },
+      { to: "/banor", label: "Sparade banor" },
+      { to: "/tavlingar/favoriter", label: "Favorittävlingar" },
+      { to: "/traning", label: "Träningshistorik" },
+    ],
+  },
+  {
+    title: "Tävling & träning",
+    links: [
+      { to: "/tavlingar", label: "Tävlingskalender" },
+      { to: "/traning", label: "Träning" },
+      { to: "/instruktor", label: "Instruktör" },
       { to: "/banplanerare?sport=hoopers", label: "Hoopers" },
-      { to: "/banor", label: "Färdiga banor" },
-      { to: "/blogg", label: "Träningsguider" },
     ],
   },
 ];
@@ -47,9 +56,9 @@ export function SiteFooter() {
               </span>
             </div>
             <p className="mt-5 max-w-sm leading-relaxed text-paper/60">
-              Verktyget och kunskapsbanken för sporten — banplanerare,
-              banbibliotek och guider för agility och hoopers. Banbyggaren är
-              gratis just nu.
+              Ett smartare sätt att planera, träna och tävla i agility och hoopers —
+              banplanerare, tävlingskalender, träning och kunskapsbank.
+              Banplaneraren är gratis.
             </p>
             <Link
               to="/banplanerare"
@@ -58,7 +67,7 @@ export function SiteFooter() {
               Börja rita gratis
             </Link>
           </div>
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
             {COLS.map((col) => (
               <div key={col.title}>
                 <h3 className="text-xs font-bold uppercase tracking-[0.22em] text-paper/40">

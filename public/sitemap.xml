@@ -40,7 +40,13 @@
   </url>
   <url>
     <loc>https://agilitymanager.se/blogg/jamfora-banversioner-agility</loc>
-    <lastmod>2026-09-06</lastmod>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/planera-tavlingssasong-agility</loc>
+    <lastmod>2026-09-15T17:30:27Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

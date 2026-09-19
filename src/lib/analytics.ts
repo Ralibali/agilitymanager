@@ -28,10 +28,12 @@ export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];
 type Props = Record<string, string | number | boolean | undefined>;
 
 type PlausibleFn = (event: string, options?: { props?: Props }) => void;
+type UmamiFn = (event: string, data?: Props) => void;
 
 declare global {
   interface Window {
     plausible?: PlausibleFn;
+    umami?: { track: UmamiFn };
   }
 }
 
@@ -39,9 +41,15 @@ declare global {
 export function track(event: AnalyticsEvent, props?: Props): void {
   try {
     if (typeof window === "undefined") return;
-    const fn = window.plausible;
-    if (typeof fn !== "function") return;
-    fn(event, props && Object.keys(props).length ? { props } : undefined);
+    const cleanProps = props && Object.keys(props).length ? props : undefined;
+
+    if (typeof window.plausible === "function") {
+      window.plausible(event, cleanProps ? { props: cleanProps } : undefined);
+    }
+
+    if (typeof window.umami?.track === "function") {
+      window.umami.track(event, cleanProps);
+    }
   } catch {
     /* mätning får aldrig påverka appen */
   }

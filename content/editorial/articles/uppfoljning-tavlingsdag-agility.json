@@ -3,10 +3,9 @@
   "site": "agilitymanager",
   "content_id": "editorial-20260915-uppfoljning-tavlingsdag-agility",
   "author": "ChatGPT",
-  "status": "draft",
+  "status": "ready",
   "written_at": "2026-09-15T17:34:18Z",
-  "not_before": "2026-09-17",
-  "sources_checked_at": "2026-09-14",
+  "sources_checked_at": "2026-09-20T12:42:21.351536+00:00",
   "search_intent": "Agilityförare som vill följa upp tävlingsdagens praktiska förberedelser och spara kontrollerade hänvisningar inför nästa tillfälle, utan att tolka resultat, regelverk eller hundens hälsa.",
   "source_urls": [
     "https://agilitymanager.se/tavlingar"
@@ -115,10 +114,12 @@
     }
   ],
   "editorial_review": {
-    "reviewed_at": "2026-09-15T17:34:18Z",
-    "published_inventory_reviewed": 9,
+    "reviewed_at": "2026-09-20T12:42:21.351536+00:00",
+    "published_inventory_reviewed": 36,
     "distinct_intent_confirmed": true,
-    "source_review": "Tävlingskalendern med filtrering öppnades och lästes 14 september. Ingen resultatanalys, hälsobedömning, exakt kalenderuppgift eller regel återges. Föregående artikel och produktkälla ska kontrolleras igen före publicering.",
-    "publication_gate": "Draft only. Reuse this slug and queue file. Complete the previous article reader flow and source checks; preserve current main. Earliest September 17 if season guide is published September 15."
-  }
+    "source_review": "Current main, all 27 database articles and nine native articles reviewed. Live article index, complete previous article and calendar product link checked September 20. The guide does not repeat rule, health or result claims.",
+    "publication_gate": "Previous reader flow and current source checked. Original article prepared for September 20 publication."
+  },
+  "publishedAt": "2026-09-20T12:42:21.351536+00:00",
+  "updatedAt": "2026-09-20T12:42:21.351536+00:00"
 }

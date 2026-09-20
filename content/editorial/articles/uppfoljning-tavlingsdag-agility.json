@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "content_id": "editorial-20260915-uppfoljning-tavlingsdag-agility",
+  "author": "ChatGPT",
+  "status": "ready",
+  "written_at": "2026-09-15T17:34:18Z",
+  "sources_checked_at": "2026-09-20T12:42:21.351536+00:00",
+  "search_intent": "Agilityförare som vill följa upp tävlingsdagens praktiska förberedelser och spara kontrollerade hänvisningar inför nästa tillfälle, utan att tolka resultat, regelverk eller hundens hälsa.",
+  "source_urls": [
+    "https://agilitymanager.se/tavlingar"
+  ],
+  "slug": "uppfoljning-tavlingsdag-agility",
+  "title": "Efter agilitytävlingen: spara en kort praktisk uppföljning",
+  "description": "Samla vad som fungerade med resa, underlag och förberedelser efter agilitytävlingen. En enkel anteckningsmall inför nästa tävlingsdag.",
+  "category": "Verktyg",
+  "readingMinutes": 4,
+  "related": [
+    "planera-tavlingssasong-agility",
+    "fran-banide-till-traningspass"
+  ],
+  "cta": {
+    "heading": "Planera nästa tillfälle",
+    "text": "Börja med kalenderöversikten och kontrollera aktuella uppgifter hos arrangören.",
+    "label": "Se tävlingskalendern",
+    "to": "/tavlingar"
+  },
+  "blocks": [
+    {
+      "type": "p",
+      "text": "När tävlingsdagen är över finns många små detaljer kvar i minnet: vilken information som var svår att hitta, något som saknades i väskan eller ett sätt att ordna resan som fungerade. En kort praktisk uppföljning kan göra nästa planering mer träffsäker. Den behöver inte bli en fullständig berättelse om dagen."
+    },
+    {
+      "type": "p",
+      "text": "Den här mallen handlar om dina förberedelser och din dokumentation. Resultatanalys, träningsupplägg och bedömningar av hundens hälsa är andra frågor. Spara relevanta frågor till rätt person i stället för att försöka besvara allt i samma anteckning."
+    },
+    {
+      "type": "h2",
+      "text": "Börja med rätt tillfälle"
+    },
+    {
+      "type": "p",
+      "text": "Skriv tävlingens namn, datum och plats så att anteckningen går att skilja från andra helger. Länka till den arrangörsinformation du faktiskt använde. Om ett dokument senare ändras är det hjälpsamt att veta när du läste det och vilken uppgift du hämtade därifrån."
+    },
+    {
+      "type": "p",
+      "text": "Håll ett eventuellt resultat åtskilt från dina egna minnesanteckningar. Om du vill spara en resultathänvisning använder du arrangörens publicerade uppgift och markerar när den kontrollerades. Den här mallen beskriver ingen egen beräkning av placeringar eller kvalifikationer."
+    },
+    {
+      "type": "h2",
+      "text": "Välj några saker som påverkade förberedelserna"
+    },
+    {
+      "type": "ul",
+      "items": [
+        "Resan: vilken del av planeringen behöver kommas ihåg?",
+        "Informationen: hittade du rätt besked vid rätt tillfälle?",
+        "Utrustningen: vad saknades eller var svårt att hitta?",
+        "Ansvar: visste resesällskapet vem som höll ihop varje uppgift?",
+        "Nästa gång: vilken liten ändring vill du göra i din egen rutin?"
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Välj det som har betydelse för nästa planering. En praktisk notering kan vara att en viss länk låg i en gammal meddelandetråd eller att två personer trodde att den andra hade sparat vägbeskrivningen. Skriv vad som inträffade innan du väljer hur rutinen ska ändras."
+    },
+    {
+      "type": "h2",
+      "text": "Skilj observationen från ditt förslag"
+    },
+    {
+      "type": "p",
+      "text": "Använd två fält: ”Det här hände” och ”Det här vill jag prova nästa gång”. Då blir det tydligt vad du minns och vad som ännu bara är en idé. Ett förslag som låter bra efter en lång dag behöver inte behandlas som en färdig regel för alla framtida resor."
+    },
+    {
+      "type": "p",
+      "text": "Ett konstruerat exempel: ”Jag hittade inte den bekräftade adressen när vi skulle åka. Nästa gång sparar jag den med datum och arrangörens länk i reseanteckningen.” Exemplet beskriver en möjlig arbetsrutin, inte ett genomfört användarfall eller ett uppmätt resultat."
+    },
+    {
+      "type": "h2",
+      "text": "Lägg öppna frågor hos rätt mottagare"
+    },
+    {
+      "type": "p",
+      "text": "Skriv vem som kan hjälpa dig med en fråga och vilket underlag som behövs. Ett oklart arrangörsbesked behöver kontrolleras med arrangören. En fråga om vad du vill arbeta vidare med i träningen kan tas upp med instruktören. Det räcker att anteckningen hjälper dig att komma ihåg nästa kontakt."
+    },
+    {
+      "type": "p",
+      "text": "Spara bara personuppgifter som du behöver för din egen uppföljning och dela inte andras meddelanden i en öppen träningsgrupp utan att först reda ut vad som får delas. Praktiska lärdomar kan ofta beskrivas utan namn eller kopior av privata samtal."
+    },
+    {
+      "type": "h2",
+      "text": "För över en ändring till nästa plan"
+    },
+    {
+      "type": "p",
+      "text": "Välj en tydlig ändring som går att genomföra i din befintliga rutin. Lägg den där nästa förberedelse faktiskt börjar, exempelvis i din packanteckning eller privata resekalender. En idé som bara finns i den gamla helgens text är lätt att missa."
+    },
+    {
+      "type": "p",
+      "text": "Använd [mallen för att planera agilitysäsongen](/blogg/planera-tavlingssasong-agility) när du uppdaterar dina kommande val. Du kan börja med [tävlingskalendern](/tavlingar) för en översikt. Kontrollera varje nytt tillfälle hos arrangören; uppgifter från förra besöket är inte en bekräftelse på vad som gäller nästa gång."
+    },
+    {
+      "type": "h2",
+      "text": "Håll uppföljningen tillräckligt liten för att återanvända"
+    },
+    {
+      "type": "p",
+      "text": "Spara anteckningen tillsammans med datumet och låt den vara färdig när nästa steg är begripligt. Vid nästa tillfälle kan du se om din egen rutin blev lättare att följa. Bygg vidare på verkliga observationer och behåll skillnaden mellan fakta, frågor och idéer."
+    },
+    {
+      "type": "p",
+      "text": "AI-assisterad originalguide. Anteckningsmallen är ett redaktionellt förslag och beskriver inga uppmätta tävlingsresultat eller särskilda funktioner för uppföljning i appen."
+    }
+  ],
+  "editorial_review": {
+    "reviewed_at": "2026-09-20T12:42:21.351536+00:00",
+    "published_inventory_reviewed": 36,
+    "distinct_intent_confirmed": true,
+    "source_review": "Current main, all 27 database articles and nine native articles reviewed. Live article index, complete previous article and calendar product link checked September 20. The guide does not repeat rule, health or result claims.",
+    "publication_gate": "Previous reader flow and current source checked. Original article prepared for September 20 publication."
+  },
+  "publishedAt": "2026-09-20T12:42:21.351536+00:00",
+  "updatedAt": "2026-09-20T12:42:21.351536+00:00"
+}

@@ -1,3 +1,4 @@
+import AnalyticsConsent from './components/AnalyticsConsent';
 import { lazy, Suspense, useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router";
 import Home from "./pages/Home";
@@ -49,6 +50,7 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
+      <AnalyticsConsent />
       <Toaster position="top-center" richColors />
       <Suspense fallback={<RouteFallback />}>
         <Routes>

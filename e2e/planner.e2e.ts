@@ -29,6 +29,9 @@ async function openPlanner(page: Page) {
   await page.goto("/banplanerare", { waitUntil: "domcontentloaded" });
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: "domcontentloaded" });
+  // Exercise the visible consent choice before interacting with the canvas.
+  await page.getByRole("button", { name: "Endast nödvändiga", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Valfri statistik" })).toBeHidden();
   await page.getByRole("button", { name: "Ångra", exact: false }).first().waitFor();
   await expect.poll(() => draft(page)).not.toBeNull();
 }

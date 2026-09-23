@@ -1,12 +1,5 @@
-/**
- * Lättviktig händelselogg för produktflödena.
- *
- * Ingen ny beroende och inget eget insamlingssystem: om Plausible (eller en
- * annan `window.plausible`-kompatibel skriptsnutt) finns på sidan skickas
- * händelsen dit, annars är anropet en tyst no-op. Det gör att vi kan märka
- * upp flödena nu och koppla på mätning senare utan kodändring.
- */
-
+import { sendAnalyticsEvent } from './ga4Runtime';
+/** Consent-gated GA4 product events. */
 export const ANALYTICS_EVENTS = [
   "planner_open",
   "course_created",
@@ -27,30 +20,7 @@ export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];
 
 type Props = Record<string, string | number | boolean | undefined>;
 
-type PlausibleFn = (event: string, options?: { props?: Props }) => void;
-type UmamiFn = (event: string, data?: Props) => void;
-
-declare global {
-  interface Window {
-    plausible?: PlausibleFn;
-    umami?: { track: UmamiFn };
-  }
-}
-
-/** Skickar en produkthändelse om en mätsnutt finns. Kastar aldrig. */
+/** Skickar en produkthändelse efter statistikmedgivande. Kastar aldrig. */
 export function track(event: AnalyticsEvent, props?: Props): void {
-  try {
-    if (typeof window === "undefined") return;
-    const cleanProps = props && Object.keys(props).length ? props : undefined;
-
-    if (typeof window.plausible === "function") {
-      window.plausible(event, cleanProps ? { props: cleanProps } : undefined);
-    }
-
-    if (typeof window.umami?.track === "function") {
-      window.umami.track(event, cleanProps);
-    }
-  } catch {
-    /* mätning får aldrig påverka appen */
-  }
+  sendAnalyticsEvent(event, { props });
 }

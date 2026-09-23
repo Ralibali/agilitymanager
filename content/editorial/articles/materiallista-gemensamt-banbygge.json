@@ -3,10 +3,10 @@
   "site": "agilitymanager",
   "content_id": "editorial-20260920-materiallista-gemensamt-banbygge",
   "author": "ChatGPT",
-  "status": "draft",
+  "status": "ready",
   "written_at": "2026-09-20T13:27:25.389794+00:00",
   "not_before": "2026-09-22",
-  "sources_checked_at": "2026-09-20T13:27:25.389794+00:00",
+  "sources_checked_at": "2026-09-22T11:21:56.398545+00:00",
   "search_intent": "Träningsgrupper som behöver samordna bekräftad materialtillgång, hämtning och återställning inför gemensamt banbygge; skilt från bandesign och träningsteknik.",
   "source_urls": [
     "https://agilitymanager.se/banplanerare"
@@ -114,5 +114,7 @@
       "type": "p",
       "text": "Börja i [banplaneraren](/banplanerare) när ni ska arbeta med ritningen och använd materiallistan som ett separat underlag för gruppen. AI-assisterad originalguide. Mallen är ett redaktionellt förslag och beskriver ingen särskild lager- eller materialfunktion i AgilityManager."
     }
-  ]
+  ],
+  "publishedAt": "2026-09-23T00:27:49.933385+00:00",
+  "updatedAt": "2026-09-23T00:27:49.933385+00:00"
 }

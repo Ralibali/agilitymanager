@@ -116,6 +116,126 @@
   {
     "schema_version": 1,
     "site": "agilitymanager",
+    "content_id": "editorial-20260920-materiallista-gemensamt-banbygge",
+    "author": "ChatGPT",
+    "status": "ready",
+    "written_at": "2026-09-20T13:27:25.389794+00:00",
+    "not_before": "2026-09-22",
+    "sources_checked_at": "2026-09-22T11:21:56.398545+00:00",
+    "search_intent": "Träningsgrupper som behöver samordna bekräftad materialtillgång, hämtning och återställning inför gemensamt banbygge; skilt från bandesign och träningsteknik.",
+    "source_urls": [
+      "https://agilitymanager.se/banplanerare"
+    ],
+    "slug": "materiallista-gemensamt-banbygge",
+    "title": "Materiallista inför gemensamt banbygge i agility",
+    "description": "Samordna material, tillgång och återställning inför banbygget. En praktisk arbetsmall för träningsgruppen som kompletterar den valda banritningen.",
+    "category": "Verktyg",
+    "readingMinutes": 5,
+    "related": [
+      "jamfora-banversioner-agility",
+      "dela-banan-med-traningsgruppen"
+    ],
+    "cta": {
+      "heading": "Börja med gruppens ritning",
+      "text": "Öppna banplaneraren och håll materiallistan som ett separat förberedelseunderlag.",
+      "label": "Öppna banplaneraren",
+      "to": "/banplanerare"
+    },
+    "blocks": [
+      {
+        "type": "p",
+        "text": "När flera personer ska hjälpas åt med ett banbygge är det användbart att veta vilket material som faktiskt finns på plats. En enkel materiallista gör det lättare att förbereda rätt frågor före träningsdagen. Den kompletterar banritningen med praktiska uppgifter om tillgång, hämtning och återställning."
+      },
+      {
+        "type": "p",
+        "text": "Mallen handlar om samordningen runt materialet. Val av övning, placering och bedömning av hinder behöver göras av den som ansvarar för träningen. Ett antal i en lista säger inget om att utrustningen är lämplig eller redo att användas."
+      },
+      {
+        "type": "h2",
+        "text": "Börja med den ritning ni ska diskutera"
+      },
+      {
+        "type": "p",
+        "text": "Skriv banans namn, datum och vilken version gruppen utgår från. Länka till ritningen på den plats där ni redan samordnar arbetet. Om någon gör en ändring behöver det gå att se vilken ritning materiallistan hör till, så att olika personer inte räknar utifrån olika upplägg."
+      },
+      {
+        "type": "p",
+        "text": "Använd [mallen för att jämföra banversioner](/blogg/jamfora-banversioner-agility) när två alternativ behöver hållas isär. Välj först vilken version som ska granskas inför det aktuella tillfället. En äldre bild i en meddelandetråd behöver inte vara den version gruppen har bestämt sig för."
+      },
+      {
+        "type": "h2",
+        "text": "Skilj önskat material från bekräftad tillgång"
+      },
+      {
+        "type": "p",
+        "text": "Gör en kolumn för vad ritningen eller träningsansvarig efterfrågar och en annan för vad den som ansvarar för materialet har bekräftat. Skriv vem som lämnat beskedet och när. Markera osäkra uppgifter som frågor i stället för att räkna in dem som tillgängliga."
+      },
+      {
+        "type": "p",
+        "text": "Låt den ansvariga personen reda ut vad som går att använda och vad som behöver kontrolleras närmare. Byt inte ut en efterfrågad del mot något annat enbart för att listan ska bli komplett. Ta i stället tillbaka frågan till den som planerar träningen och uppdatera underlaget efter beskedet."
+      },
+      {
+        "type": "h2",
+        "text": "Gör en rad per materialslag"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Materialets benämning enligt gruppens underlag.",
+          "Antal som efterfrågas för den valda ritningen.",
+          "Antal som ansvarig har bekräftat finns tillgängligt.",
+          "Förvaringsplats och vem som ordnar tillgång.",
+          "Öppen fråga och vem som ska besvara den.",
+          "Vem som ansvarar för att materialet återställs efteråt."
+        ]
+      },
+      {
+        "type": "p",
+        "text": "Använd samma namn som de personer som sköter förrådet känner igen. Om en benämning kan syfta på olika saker, be om ett förtydligande. Listan behöver inte beskriva varje teknisk detalj, men den ska hjälpa rätt person att hitta och identifiera det material som ni pratar om."
+      },
+      {
+        "type": "h2",
+        "text": "Planera hämtning och återställning tillsammans"
+      },
+      {
+        "type": "p",
+        "text": "Bestäm vem som stämmer av praktisk tillgång till platsen och var materialet ska lämnas efteråt. Om gruppen delar förråd med andra behöver ni kontrollera vilka rutiner som gäller där. Skriv de bekräftade uppgifterna i samma underlag, så att de går att hitta även av den som inte var med i första samtalet."
+      },
+      {
+        "type": "p",
+        "text": "Ett konstruerat exempel är att en person samlar materialfrågorna före träningen och en annan prickar av återställningen tillsammans med gruppen. Det är en möjlig fördelning av arbetet, inte en beskrivning av hur en viss klubb organiserar sin verksamhet."
+      },
+      {
+        "type": "h2",
+        "text": "Låt ändringar synas i både listan och ritningen"
+      },
+      {
+        "type": "p",
+        "text": "När den träningsansvariga ändrar upplägget, gå igenom om materialbehovet också förändras. Anteckna vilket besked som ersätter det tidigare och kontrollera att de berörda personerna hittar den aktuella versionen. Då kan en gammal lista sparas som historik utan att misstas för dagens plan."
+      },
+      {
+        "type": "p",
+        "text": "Om en fråga fortfarande är öppen på plats ska den ansvariga personen avgöra nästa steg innan gruppen börjar använda utrustningen. Listan ersätter ingen genomgång av anläggningen, hindren eller det planerade träningspasset."
+      },
+      {
+        "type": "h2",
+        "text": "Spara det som hjälper nästa gemensamma förberedelse"
+      },
+      {
+        "type": "p",
+        "text": "Efteråt kan ni anteckna om en benämning var otydlig, en förvaringsplats hade ändrats eller någon kontaktväg saknades. Behåll de praktiska uppgifterna och kontrollera dem igen när nästa tillfälle planeras. Tillgång från en tidigare träning är inte en bekräftelse för ett nytt datum."
+      },
+      {
+        "type": "p",
+        "text": "Börja i [banplaneraren](/banplanerare) när ni ska arbeta med ritningen och använd materiallistan som ett separat underlag för gruppen. AI-assisterad originalguide. Mallen är ett redaktionellt förslag och beskriver ingen särskild lager- eller materialfunktion i AgilityManager."
+      }
+    ],
+    "publishedAt": "2026-09-23T00:27:49.933385+00:00",
+    "updatedAt": "2026-09-23T00:27:49.933385+00:00"
+  },
+  {
+    "schema_version": 1,
+    "site": "agilitymanager",
     "content_id": "editorial-20260907-planera-tavlingssasong-agility",
     "author": "ChatGPT",
     "status": "ready",

@@ -1,6 +1,127 @@
 [
   {
     "schema_version": 1,
+    "site": "agilitymanager",
+    "content_id": "editorial-20260923-aterkoppling-banritning-gemensam-lista",
+    "author": "ChatGPT",
+    "status": "ready",
+    "written_at": "2026-09-23T01:03:04.596606+00:00",
+    "not_before": "2026-09-25",
+    "sources_checked_at": "2026-09-25T08:27:21.467864+00:00",
+    "search_intent": "Träningsgrupper som ska samla och besluta om inkommande återkoppling före nästa ritningsversion. Skilt från att jämföra färdiga versioner, dela filer eller inventera material.",
+    "source_urls": [
+      "https://agilitymanager.se/banplanerare"
+    ],
+    "slug": "aterkoppling-banritning-gemensam-lista",
+    "title": "Samla återkoppling på banritningen inför nästa version",
+    "description": "Samla frågor och observationer om en banritning inför nästa version. En gemensam arbetsmall som skiljer synpunkter från ansvarigs faktiska besked.",
+    "category": "Verktyg",
+    "readingMinutes": 4,
+    "related": [
+      "jamfora-banversioner-agility",
+      "dela-banan-med-traningsgruppen"
+    ],
+    "cta": {
+      "heading": "Arbeta vidare med gruppens ritning",
+      "text": "Öppna banplaneraren och håll återkopplingen samlad i ert valda underlag.",
+      "label": "Öppna banplaneraren",
+      "to": "/banplanerare"
+    },
+    "blocks": [
+      {
+        "type": "p",
+        "text": "En träningsgrupp kan ha många synpunkter på samma banritning. Någon frågar om en markering, någon har tittat på en äldre fil och någon vill förstå vilket upplägg som är tänkt. En samlad återkopplingslista gör det lättare för den ansvariga att skilja frågor från beslut innan nästa version delas.\n"
+      },
+      {
+        "type": "h2",
+        "text": "Ange ritning och syfte för genomgången"
+      },
+      {
+        "type": "p",
+        "text": "Skriv vilken ritning återkopplingen gäller, med namn och versionsdatum eller en annan tydlig beteckning. Be deltagarna använda samma underlag. Om någon har en äldre kopia behöver den skillnaden redas ut innan ni jämför kommentarerna."
+      },
+      {
+        "type": "p",
+        "text": "Beskriv också varför ni går igenom ritningen. Ska gruppen förstå arbetsfördelningen inför bygget, kontrollera att beteckningarna går att läsa eller lämna frågor till instruktören? Återkopplingsmallen bedömer inte om en bana är lämplig för en viss hund eller förenlig med ett regelverk. Det behöver hanteras av den ansvariga i rätt sammanhang."
+      },
+      {
+        "type": "h2",
+        "text": "Skilj fråga, observation och önskemål"
+      },
+      {
+        "type": "p",
+        "text": "En fråga kan vara ”vilken ritning gäller på söndag?”. En observation kan vara ”två personer använder olika namn på samma markering”. Ett önskemål kan vara att få en tydligare bild av ett visst avsnitt. Märk vilken typ av kommentar du lämnar så att mottagaren förstår vad du behöver."
+      },
+      {
+        "type": "p",
+        "text": "Undvik att formulera ett personligt förslag som om det redan vore beslutat av gruppen. Hänvisa till det besked som finns när en fråga har fått ett svar. Då kan den ansvariga se vad som behöver utredas och vad som bara behöver förklaras tydligare för fler deltagare."
+      },
+      {
+        "type": "h2",
+        "text": "Skriv en kommentar per rad"
+      },
+      {
+        "type": "p",
+        "text": "Kopiera följande fält till gruppens befintliga arbetsyta:"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Ritning: namn och version.",
+          "Referens: vilken del av underlaget gäller kommentaren?",
+          "Typ: fråga, observation eller önskemål.",
+          "Beskrivning: vad behöver förstås eller tas ställning till?",
+          "Underlag: vilken bild eller tidigare uppgift hänvisar du till?",
+          "Besked: svar eller beslut från ansvarig person.",
+          "Nästa steg: vem uppdaterar eller förtydligar underlaget?"
+        ]
+      },
+      {
+        "type": "p",
+        "text": "En rad med flera olika frågor blir svår att avsluta. Dela upp den om vissa delar kan besvaras direkt medan andra behöver ett nytt underlag. Behåll en gemensam referens när frågorna ändå hör ihop."
+      },
+      {
+        "type": "h2",
+        "text": "Låt ansvarig sammanfatta besluten"
+      },
+      {
+        "type": "p",
+        "text": "Bestäm vem som sammanställer återkopplingen och vem som avgör frågor om upplägget. Det kan vara olika roller. Den som samlar kommentarer behöver framför allt kunna skilja fattade beslut från sådant som ännu väntar på svar."
+      },
+      {
+        "type": "p",
+        "text": "Lämna kvar obesvarade frågor som öppna. Skriv inte en egen gissning för att göra listan färdig. Om ett svar kräver att någon ser platsen eller diskuterar förutsättningarna behöver det nästa steget anges. Ritningen och kommentarerna ger ett underlag för samtalet, inte ett automatiskt avgörande."
+      },
+      {
+        "type": "h2",
+        "text": "Koppla nästa version till återkopplingen"
+      },
+      {
+        "type": "p",
+        "text": "När ritningen har uppdaterats, ange vilka rader som har hanterats och hur. Hänvisa till den nya versionen så att gruppen kan hitta samma underlag. Läs [arbetsmallen för att jämföra banversioner](/blogg/jamfora-banversioner-agility) när ni vill göra själva versionsjämförelsen tydlig."
+      },
+      {
+        "type": "p",
+        "text": "En kommentar kan vara hanterad genom ett förtydligande utan att ritningen ändras. Skriv även det beskedet. Det minskar risken att samma fråga återkommer enbart för att svaret fanns i ett muntligt samtal som inte alla deltog i."
+      },
+      {
+        "type": "h2",
+        "text": "Dela det aktuella underlaget på ett tydligt sätt"
+      },
+      {
+        "type": "p",
+        "text": "Samla länken eller filen till den aktuella versionen på den plats gruppen använder. Märk äldre kopior så att det går att förstå vilken som gäller för nästa tillfälle. [Guiden om att dela banan med träningsgruppen](/blogg/dela-banan-med-traningsgruppen) kan hjälpa till att hålla överlämningen samlad."
+      },
+      {
+        "type": "p",
+        "text": "Öppna [AgilityManagers banplanerare](/banplanerare) när ni vill arbeta vidare med ritningen. Återkopplingslistan är ett separat redaktionellt arbetsförslag. AI-assisterad originalguide med en egen arbetsmall."
+      }
+    ],
+    "publishedAt": "2026-09-25T08:27:21.467864+00:00",
+    "updatedAt": "2026-09-25T08:27:21.467864+00:00"
+  },
+  {
+    "schema_version": 1,
     "content_id": "editorial-20260906-jamfora-banversioner-agility",
     "author": "ChatGPT",
     "status": "ready",

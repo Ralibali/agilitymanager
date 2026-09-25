@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "content_id": "editorial-20260925-besoksunderlag-traning-annan-anlaggning",
+  "author": "ChatGPT",
+  "status": "draft",
+  "written_at": "2026-09-25T10:06:46.303229+00:00",
+  "not_before": "2026-09-27",
+  "sources_checked_at": "2026-09-25T10:06:46.303229+00:00",
+  "search_intent": "Gruppens praktiska informationsunderlag inför ett bekräftat besök på annan träningsanläggning; skilt från banritning, tävlingsplan och träningsregler.",
+  "source_urls": [
+    "https://agilitymanager.se/banplanerare"
+  ],
+  "slug": "besoksunderlag-traning-annan-anlaggning",
+  "title": "Samla praktiska frågor inför träning på en annan anläggning",
+  "description": "Samla ankomstfrågor, materialbesked och kontaktvägar inför träning på en annan anläggning. En praktisk mall för ett tydligt daterat besöksunderlag.",
+  "category": "Verktyg",
+  "readingMinutes": 4,
+  "related": [
+    "dela-banan-med-traningsgruppen",
+    "aterkoppling-banritning-gemensam-lista"
+  ],
+  "cta": {
+    "heading": "Samla planeringen inför träningstillfället",
+    "text": "Öppna banplaneraren och håll besökets praktiska underlag tillgängligt för gruppen.",
+    "label": "Öppna banplaneraren",
+    "to": "/banplanerare"
+  },
+  "blocks": [
+    {
+      "type": "p",
+      "text": "När en träningsgrupp ska använda en annan anläggning behöver någon samla de praktiska beskeden. En person har fått information om ankomsten, en annan har frågat om material och en tredje har en äldre vägbeskrivning. Ett kort besöksunderlag gör det tydligare vad gruppen faktiskt fått bekräftat inför tillfället.\n\nUtgå från den aktuella bokningen och anläggningens egna besked. Den här mallen beskriver hur ni samlar frågor och hänvisningar. Den anger inga träningsregler, säkerhetsavstånd eller krav på utrustning och ersätter inte ansvarig instruktörs eller anläggningsägares instruktioner.\n"
+    },
+    {
+      "type": "h2",
+      "text": "Knyt underlaget till ett bestämt tillfälle"
+    },
+    {
+      "type": "p",
+      "text": "Skriv anläggning, datum och den tid som har bekräftats. Ange vem i gruppen som har kontakten med anläggningen och var bokningsbeskedet finns. En önskad tid bör stå som ett önskemål tills rätt person faktiskt har lämnat ett besked."
+    },
+    {
+      "type": "p",
+      "text": "Om flera träningsgrupper använder samma lokal behöver underlaget också visa vilken grupp det gäller. Undvik att kopiera förra besökets sammanställning och bara ändra datum. Markera vilka uppgifter som har kontrollerats igen och vilka som fortfarande väntar på svar."
+    },
+    {
+      "type": "h2",
+      "text": "Samla frågor om ankomst och avslut"
+    },
+    {
+      "type": "p",
+      "text": "Fråga hur deltagarna ska hitta rätt ingång och vad som gäller när gruppen kommer fram. Ta också reda på vem som tar emot eventuella frågor på plats. Skriv in det svar ni får utan att lägga till egna antaganden om parkering, tillgång till andra utrymmen eller tider utanför bokningen."
+    },
+    {
+      "type": "p",
+      "text": "Avslutet behöver samma tydlighet. Be om besked om vilka praktiska moment som ska vara klara innan gruppen lämnar. Fördela sedan gruppens ansvar utifrån instruktionen. Om något är oklart ska frågan stå kvar, så att en tolkning inte råkar bli en gemensam rutin."
+    },
+    {
+      "type": "h2",
+      "text": "Håll materialfrågorna åtskilda från banritningen"
+    },
+    {
+      "type": "p",
+      "text": "En ritning visar inte automatiskt vilket material som finns tillgängligt vid ett visst tillfälle. Jämför därför gruppens underlag med anläggningens aktuella besked och använd en separat lista för det som behöver kontrolleras. Skriv inte in en tillgång som bekräftad bara för att den syntes på en äldre bild."
+    },
+    {
+      "type": "p",
+      "text": "Låt ansvarig person bedöma hur en eventuell skillnad ska hanteras i planeringen. Besöksunderlaget ska synliggöra frågan och vem som tar den vidare. Det ska inte ge egna tekniska anvisningar om hur material får ersättas, placeras eller användas."
+    },
+    {
+      "type": "h2",
+      "text": "Använd ett kort med källa och nästa steg"
+    },
+    {
+      "type": "p",
+      "text": "Samla följande punkter:"
+    },
+    {
+      "type": "ul",
+      "items": [
+        "Vilket träningstillfälle och vilken grupp underlaget gäller.",
+        "Bekräftad tid och hänvisning till bokningsbeskedet.",
+        "Ankomstinformation enligt anläggningens aktuella svar.",
+        "Frågor om utrymmen och material som återstår.",
+        "Kontaktperson för gruppens samlade frågor.",
+        "Vad gruppen har fått besked om inför avslutet.",
+        "Datum för senaste kontroll och ansvarig för nästa steg."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Förvara privata kontaktuppgifter i gruppens avsedda kanal. Det gemensamma planeringsunderlaget kan hänvisa dit utan att kopieras vidare med alla telefonnummer. Begränsa också sammanställningen till det deltagarna faktiskt behöver för det aktuella besöket."
+    },
+    {
+      "type": "h2",
+      "text": "Dela en tydligt daterad version"
+    },
+    {
+      "type": "p",
+      "text": "Skicka gruppen en samlad hänvisning när underlaget är klart och markera nya besked som kommer senare. Använd samma tänk när ni [delar banan med träningsgruppen](/blogg/dela-banan-med-traningsgruppen). Om ritningen behöver diskuteras kan [återkopplingen samlas inför nästa version](/blogg/aterkoppling-banritning-gemensam-lista)."
+    },
+    {
+      "type": "p",
+      "text": "Ni kan [öppna banplaneraren](/banplanerare) för arbetet med ritningen och behålla besöksunderlaget i gruppens vanliga dokument. AI-assisterad originalguide med en redaktionell arbetsmall. Texten utlovar ingen bokningsfunktion eller automatisk kontroll av anläggningens material och villkor."
+    }
+  ]
+}

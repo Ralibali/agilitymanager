@@ -3,10 +3,10 @@
   "site": "agilitymanager",
   "content_id": "editorial-20260923-aterkoppling-banritning-gemensam-lista",
   "author": "ChatGPT",
-  "status": "draft",
+  "status": "ready",
   "written_at": "2026-09-23T01:03:04.596606+00:00",
   "not_before": "2026-09-25",
-  "sources_checked_at": "2026-09-22T11:21:56.398545+00:00",
+  "sources_checked_at": "2026-09-25T08:27:21.467864+00:00",
   "search_intent": "Träningsgrupper som ska samla och besluta om inkommande återkoppling före nästa ritningsversion. Skilt från att jämföra färdiga versioner, dela filer eller inventera material.",
   "source_urls": [
     "https://agilitymanager.se/banplanerare"
@@ -115,5 +115,7 @@
       "type": "p",
       "text": "Öppna [AgilityManagers banplanerare](/banplanerare) när ni vill arbeta vidare med ritningen. Återkopplingslistan är ett separat redaktionellt arbetsförslag. AI-assisterad originalguide med en egen arbetsmall."
     }
-  ]
+  ],
+  "publishedAt": "2026-09-25T08:27:21.467864+00:00",
+  "updatedAt": "2026-09-25T08:27:21.467864+00:00"
 }

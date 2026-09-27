@@ -45,7 +45,7 @@ export function CourseMenu({ onSave, onSaveAs, onOpen, onNew, dirty, lastSavedAt
           className="relative inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border-2 border-ink/15 bg-paper px-2.5 text-sm font-bold text-ink/70 transition-all hover:border-ink hover:text-ink sm:h-11 sm:px-3.5"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          <span className="hidden sm:inline">Bana</span>
+          <span className="hidden lg:inline">Bana</span>
           {dirty && !saving && (
             <span aria-hidden="true" className="absolute right-1 top-1 h-2 w-2 rounded-full bg-tang" />
           )}

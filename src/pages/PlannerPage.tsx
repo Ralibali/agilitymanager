@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import {
-  ArrowLeft, BookOpen, Box, Check, ChevronDown, ChevronUp, CloudCheck,
-  Command, Copy, Download, Eraser, Footprints, Grid2x2, Keyboard, Link2, Loader2, Lock,
-  Lightbulb, Maximize, MoreHorizontal, MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler,
-  Share2, ShieldCheck, Spline, Trash2, Undo2, Unlock, X, ZoomIn, ZoomOut,
+  ArrowLeft, ArrowLeftRight, ArrowUpDown, BookOpen, Box, Check,
+  ChevronDown, ChevronUp, ClipboardPaste, CloudCheck, Command, Copy, Download, Eraser, Footprints,
+  Grid2x2, Keyboard, Link2, ListOrdered, Loader2, Lock, Lightbulb, Maximize, MoreHorizontal,
+  MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler, RulerDimensionLine, Scissors,
+  Share2, ShieldCheck, SlidersHorizontal, Spline, SquareDashedMousePointer, Trash2, Undo2, Unlock,
+  X, ZoomIn, ZoomOut,
 } from "lucide-react";
 
 import { toast } from "sonner";
 import { Seo } from "@/components/Seo";
 import { uid, type PlacedObstacle, type Sport } from "@/lib/course";
-import { ObstacleGlyph } from "@/components/ObstacleGlyph";
+import { ObstacleGlyph, ObstacleIcon } from "@/components/ObstacleGlyph";
 import { Logo } from "@/components/SiteNav";
 import { AffiliateBanner } from "@/components/AffiliateBanner";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,6 +70,15 @@ import {
 import {
   applySnapshot, pushHistory, snapshotDraft, snapshotsEqual, type DraftSnapshot,
 } from "@/features/course-planner-v2/plannerHistory";
+import {
+  NON_COMPETING, alignObstacles, applyNumberingSequence, clampGroupDelta, computeSegmentLabels,
+  copyObstacles, deleteObstacles, distributeObstacles, duplicateObstacles, formatMeters, idsInRect,
+  isCompeting, moveToNumber, nearestObstacle, obstacleLocalBounds, pasteObstacles, placeLabelsAwayFrom,
+  reverseNumbering,
+  rotateObstacles, setPosition, setRotation, snapM, toggleLock, translateObstacles, withNumbers,
+  type AlignMode, type ClipboardItem,
+} from "@/features/course-planner-v2/editorOps";
+import { ObstacleInspector } from "@/components/course-planner-v2/ObstacleInspector";
 
 // ── Banmodell (v2) ──────────────────────────────────────────────────────────
 
@@ -91,19 +102,12 @@ const ZOOM_MAX = 4;
 /** Zoom + panorering av banvyn (pan i meter). */
 interface ViewState { zoom: number; panX: number; panY: number }
 
-/** Hinder som inte numreras i banordningen. */
-const NON_COMPETING = new Set<ObstacleTypeV2>(["start", "finish", "number", "handler_zone"]);
-
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
-const snapM = (v: number) => Math.round(v * 4) / 4; // 0,25 m-snap
 
-/** Tilldela löpnummer 1..N till tävlande hinder i listordning. */
-function withNumbers(obstacles: PlacedObstacle[]): PlacedObstacle[] {
-  let n = 0;
-  return obstacles.map((ob) =>
-    NON_COMPETING.has(ob.type) ? { ...ob, number: undefined } : { ...ob, number: ++n }
-  );
-}
+/** Regelkontrollens avståndskoder — används för att färga avståndsetiketter. */
+const DISTANCE_ISSUE_CODES = new Set(["jump_too_close", "obstacles_close", "hoopers_too_close"]);
+
+const INSPECTOR_PREF_KEY = "am-planner-inspector-open";
 
 /** Normalisera en inläst bana: sortera tävlande hinder efter ev. sparat nummer. */
 function normalizeObstacles(obstacles: PlacedObstacle[]): PlacedObstacle[] {
@@ -268,8 +272,40 @@ export default function PlannerPage() {
   if (isExternalCopy && externalSnapshotRef.current === null) {
     externalSnapshotRef.current = JSON.stringify(draft);
   }
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Markering: ett eller flera hinder. `selectedId` är satt när EXAKT ett
+  // hinder är markerat (rotationshandtag, egenskaper, tunnelböjning).
+  const [selection, setSelection] = useState<string[]>([]);
+  const setSelectedId = useCallback((id: string | null) => setSelection(id ? [id] : []), []);
+  /** Pekskärm: tryck lägger till/tar bort i markeringen, drag på ytan ritar en markeringsruta. */
+  const [multiMode, setMultiMode] = useState(false);
   const [placing, setPlacing] = useState<ObstacleTypeV2 | null>(null);
+  // Numreringsläge: klicka hindren i den ordning de ska tas.
+  const [numbering, setNumbering] = useState<{
+    baseIds: string[];
+    seq: string[];
+    keepFirst: number;
+    committed: boolean;
+  } | null>(null);
+  // Måttband: dra mellan två punkter (snäpper mot hindrens mittpunkter).
+  const [measureMode, setMeasureMode] = useState(false);
+  const [measure, setMeasure] = useState<{ a: { x: number; y: number }; b: { x: number; y: number } } | null>(null);
+  const [marquee, setMarquee] = useState<{ a: { x: number; y: number }; b: { x: number; y: number } } | null>(null);
+  const [showDistances, setShowDistances] = useState(false);
+  const [inspectorOpen, setInspectorOpenState] = useState<boolean>(() => {
+    try {
+      const v = localStorage.getItem(INSPECTOR_PREF_KEY);
+      if (v === "0") return false;
+      if (v === "1") return true;
+    } catch {
+      /* ignorera */
+    }
+    // Standard: utfälld på dator, hopfälld i mobilen (där ytan är liten).
+    return typeof window === "undefined" || window.innerWidth >= 640;
+  });
+  const setInspectorOpen = useCallback((open: boolean) => {
+    setInspectorOpenState(open);
+    try { localStorage.setItem(INSPECTOR_PREF_KEY, open ? "1" : "0"); } catch { /* ignorera */ }
+  }, []);
   const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null);
   const [showLine, setShowLine] = useState(true);
   const [showNumbers, setShowNumbers] = useState(true);
@@ -328,7 +364,22 @@ export default function PlannerPage() {
   const svgRef = useRef<SVGSVGElement>(null);
   const canvasWrapRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const dragRef = useRef<{ id: string; dx: number; dy: number; moved: boolean; start: DraftSnapshot } | null>(null);
+  const dragRef = useRef<{
+    anchorId: string;
+    /** Olåsta hinder som följer med i dragningen, med startposition. */
+    items: Map<string, { x: number; y: number }>;
+    grabDx: number;
+    grabDy: number;
+    moved: boolean;
+    start: DraftSnapshot;
+    /** "Välj flera": ett tryck utan dragning avmarkerar hindret. */
+    toggleOffOnTap?: string;
+  } | null>(null);
+  const measureRef = useRef<{ id: number } | null>(null);
+  const marqueeRef = useRef<{ id: number; base: string[]; a: { x: number; y: number }; b: { x: number; y: number } } | null>(null);
+  const clipboardRef = useRef<ClipboardItem[]>([]);
+  const [clipboardCount, setClipboardCount] = useState(0);
+  const nudgeRef = useRef(0);
   const rotateRef = useRef<{ id: string; start: DraftSnapshot } | null>(null);
   const panRef = useRef<{ id: number; lastX: number; lastY: number; moved: boolean } | null>(null);
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
@@ -414,7 +465,7 @@ export default function PlannerPage() {
       }
     })();
     return () => { cancelled = true; };
-  }, [sharedParam, resetCourseIdentity]);
+  }, [sharedParam, resetCourseIdentity, setSelectedId]);
 
   // Numrerade hinder = det som validering, PDF, uppspelning och 3D använder
   const numbered = useMemo(() => withNumbers(obstacles), [obstacles]);
@@ -565,6 +616,8 @@ export default function PlannerPage() {
     return Math.min(availW / vw, availH / vh) || 20;
   }, [canvasPx.w, canvasPx.h, vw, vh]);
   const detail = clamp(22 / pxPerMeter, 1, 2.6);
+  const pxPerMeterRef = useRef(pxPerMeter);
+  pxPerMeterRef.current = pxPerMeter;
 
 
   const toField = useCallback(
@@ -679,7 +732,8 @@ export default function PlannerPage() {
     setDraft((d) => applySnapshot(d, snap));
     setPast((p) => p.slice(0, -1));
     setSelectedId(null);
-  }, [past]);
+    setNumbering(null);
+  }, [past, setSelectedId]);
   const redo = useCallback(() => {
     if (!future.length) return;
     const snap = future[0];
@@ -688,51 +742,113 @@ export default function PlannerPage() {
     setDraft((d) => applySnapshot(d, snap));
     setFuture((f) => f.slice(1));
     setSelectedId(null);
-  }, [future]);
+    setNumbering(null);
+  }, [future, setSelectedId]);
 
 
   // ── Redigering ──────────────────────────────────────────────
-  const selected = obstacles.find((ob) => ob.id === selectedId) ?? null;
+  const arena = useMemo(() => ({ width: w, height: h }), [w, h]);
+  // Markeringen rensas från hinder som inte längre finns (ångra, rensa, öppna).
+  const obstacleIds = useMemo(() => new Set(obstacles.map((ob) => ob.id)), [obstacles]);
+  const selectionIds = useMemo(() => selection.filter((id) => obstacleIds.has(id)), [selection, obstacleIds]);
+  const selectionSet = useMemo(() => new Set(selectionIds), [selectionIds]);
+  const selectedId = selectionIds.length === 1 ? selectionIds[0] : null;
+  const selected = selectedId ? obstacles.find((ob) => ob.id === selectedId) ?? null : null;
+  const selectedObstacles = useMemo(() => obstacles.filter((ob) => selectionSet.has(ob.id)), [obstacles, selectionSet]);
+  const hasSelection = selectionIds.length > 0;
+  const selectionLockedCount = selectedObstacles.filter((ob) => ob.locked).length;
+  const selectionMovable = selectedObstacles.length - selectionLockedCount;
+
+  /** Byt hinderlistan om den faktiskt ändrats (ett ångra-steg, aldrig tomma steg). */
+  const applyObstacles = (next: PlacedObstacle[]) => {
+    if (next !== obstacles && JSON.stringify(next) !== JSON.stringify(obstacles)) setObstacles(next);
+  };
 
   const rotateBy = (delta: number) => {
-    if (!selected || selected.locked) return;
-    setObstacles(
-      obstacles.map((ob) =>
-        ob.id === selected.id ? { ...ob, rotation: (((ob.rotation + delta) % 360) + 360) % 360 } : ob
-      )
-    );
+    if (!hasSelection) return;
+    applyObstacles(rotateObstacles(obstacles, selectionIds, delta, arena));
   };
   const duplicateSelected = () => {
-    if (!selected || selected.locked) return;
-    const copy = { ...selected, id: uid(), x: clamp(selected.x + 2, 1, w - 1), y: clamp(selected.y + 2, 1, h - 1), locked: false };
-    setObstacles([...obstacles, copy]);
-    setSelectedId(copy.id);
+    if (!hasSelection) return;
+    const res = duplicateObstacles(obstacles, selectionIds, arena);
+    setObstacles(res.obstacles);
+    setSelection(res.newIds);
   };
   const deleteSelected = useCallback(() => {
-    if (!selectedId) return;
-    const target = obstacles.find((ob) => ob.id === selectedId);
-    if (target?.locked) return;
-    setObstacles(obstacles.filter((ob) => ob.id !== selectedId));
-    setSelectedId(null);
-  }, [selectedId, obstacles, setObstacles]);
+    if (!selectionIds.length) return;
+    const next = deleteObstacles(obstacles, selectionIds);
+    if (next.length === obstacles.length) {
+      toast("Låsta hinder tas inte bort", { description: "Lås upp dem först (L)." });
+      return;
+    }
+    setObstacles(next);
+    setSelection(selectionIds.filter((id) => next.some((ob) => ob.id === id)));
+  }, [selectionIds, obstacles, setObstacles]);
   const toggleLockSelected = () => {
-    if (!selected) return;
-    setObstacles(obstacles.map((ob) => (ob.id === selected.id ? { ...ob, locked: !ob.locked } : ob)));
+    if (!hasSelection) return;
+    applyObstacles(toggleLock(obstacles, selectionIds));
   };
+  const selectAll = () => {
+    setPlacing(null);
+    setSelection(obstacles.map((ob) => ob.id));
+  };
+  const copySelection = (cut = false) => {
+    if (!hasSelection) return;
+    clipboardRef.current = copyObstacles(obstacles, selectionIds);
+    setClipboardCount(clipboardRef.current.length);
+    if (cut) {
+      const next = deleteObstacles(obstacles, selectionIds);
+      if (next.length !== obstacles.length) setObstacles(next);
+      setSelection([]);
+      toast.success(`Klippte ut ${selectionIds.length} hinder`, { description: "Klistra in med Ctrl+V." });
+    } else {
+      toast.success(`Kopierade ${selectionIds.length} hinder`, { description: "Klistra in med Ctrl+V — även i en annan bana." });
+    }
+  };
+  const pasteClipboard = () => {
+    const items = clipboardRef.current.filter((it) => palette.some((def) => def.type === it.type));
+    if (!items.length) {
+      if (clipboardRef.current.length) toast.error("Urklippet innehåller hinder som inte finns i den här sporten");
+      return;
+    }
+    const res = pasteObstacles(obstacles, items, arena);
+    setObstacles(res.obstacles);
+    setSelection(res.newIds);
+  };
+  /** Piltangenter: täta tryck slås ihop till ett ångra-steg. */
+  const nudgeSelection = (dx: number, dy: number) => {
+    if (!hasSelection) return;
+    const next = translateObstacles(obstacles, selectionIds, dx, dy, arena);
+    if (next === obstacles) return;
+    const now = Date.now();
+    const merge = now - nudgeRef.current < 700;
+    nudgeRef.current = now;
+    setObstacles(next, !merge);
+  };
+  const alignSelection = (mode: AlignMode) => applyObstacles(alignObstacles(obstacles, selectionIds, mode));
+  const distributeSelection = (axis: "x" | "y") => applyObstacles(distributeObstacles(obstacles, selectionIds, axis));
+
   /** Flytta valt hinder ett steg i nummerordningen (delta ±1). */
   const moveSelectedInOrder = (delta: number) => {
     if (!selected || NON_COMPETING.has(selected.type)) return;
-    const idx = obstacles.findIndex((ob) => ob.id === selected.id);
-    // Hitta nästa tävlande hinder i riktningen
-    let j = idx + delta;
-    while (j >= 0 && j < obstacles.length && NON_COMPETING.has(obstacles[j].type)) j += delta;
-    if (j < 0 || j >= obstacles.length) return;
-    const next = [...obstacles];
-    [next[idx], next[j]] = [next[j], next[idx]];
-    setObstacles(next);
+    const current = numbered.find((ob) => ob.id === selected.id)?.number;
+    if (current == null) return;
+    applyObstacles(moveToNumber(obstacles, selected.id, current + delta));
+  };
+  const setSelectedNumber = (n: number) => {
+    if (!selected) return;
+    applyObstacles(moveToNumber(obstacles, selected.id, n));
+  };
+  const setSelectedPosition = (pos: { x?: number; y?: number }) => {
+    if (!selected) return;
+    applyObstacles(setPosition(obstacles, selected.id, pos, arena));
+  };
+  const setSelectedRotation = (deg: number) => {
+    if (!selected) return;
+    applyObstacles(setRotation(obstacles, selected.id, deg));
   };
   const setTunnelCurve = (patch: Partial<{ curveDeg: number; curveSide: "left" | "right" }>) => {
-    if (!selected || selected.type !== "tunnel") return;
+    if (!selected || selected.type !== "tunnel" || selected.locked) return;
     setObstacles(
       obstacles.map((ob) =>
         ob.id === selected.id
@@ -745,18 +861,159 @@ export default function PlannerPage() {
       )
     );
   };
+  const reverseOrder = () => {
+    if (obstacles.filter(isCompeting).length < 2) return;
+    setObstacles(reverseNumbering(obstacles));
+    toast.success("Banordningen vänd", { description: "Sista hindret är nu nummer 1. Ångra med Ctrl+Z." });
+  };
+
+  // ── Lägen: numrering och måttband ───────────────────────────
+  const competingCount = useMemo(() => obstacles.filter(isCompeting).length, [obstacles]);
+
+  const stopNumbering = useCallback(() => setNumbering(null), []);
+  /** Avsluta alla verktygslägen — används när en annan bana laddas. */
+  const resetModes = useCallback(() => {
+    setNumbering(null);
+    setMeasureMode(false);
+    setMeasure(null);
+    setMarquee(null);
+    setMultiMode(false);
+    marqueeRef.current = null;
+    measureRef.current = null;
+  }, []);
+  const startNumbering = () => {
+    if (competingCount < 2) {
+      toast("Placera minst två tävlingshinder först");
+      return;
+    }
+    setPlacing(null);
+    setMeasureMode(false);
+    setMeasure(null);
+    setMultiMode(false);
+    setPlaybackActive(false);
+    // Med ett markerat tävlingshinder numreras banan om FRÅN det hindret.
+    const from = selected && isCompeting(selected) ? numbered.find((ob) => ob.id === selected.id)?.number ?? null : null;
+    setNumbering({
+      baseIds: obstacles.map((ob) => ob.id),
+      seq: from != null && selected ? [selected.id] : [],
+      keepFirst: from != null ? from - 1 : 0,
+      committed: false,
+    });
+    setSelection([]);
+  };
+  const toggleNumbering = () => (numbering ? stopNumbering() : startNumbering());
+
+  const numberingClick = (id: string) => {
+    if (!numbering) return;
+    const ob = obstacles.find((o) => o.id === id);
+    if (!ob || !isCompeting(ob)) {
+      toast("Start, mål och områden numreras inte");
+      return;
+    }
+    let seq = numbering.seq;
+    if (seq.includes(id)) {
+      // Klick på senast numrerade hindret backar ett steg — övriga ignoreras.
+      if (seq[seq.length - 1] !== id) return;
+      seq = seq.slice(0, -1);
+    } else {
+      seq = [...seq, id];
+    }
+    applyNumbering({ ...numbering, seq });
+  };
+
+  const applyNumbering = (state: NonNullable<typeof numbering>) => {
+    const current = draftRef.current.obstacles;
+    const byId = new Map(current.map((o) => [o.id, o]));
+    const base = state.baseIds.flatMap((bid) => (byId.has(bid) ? [byId.get(bid)!] : []));
+    const extra = current.filter((o) => !state.baseIds.includes(o.id));
+    const next = applyNumberingSequence([...base, ...extra], state.seq, state.keepFirst);
+    if (!state.committed) commitDraft((d) => ({ ...d, obstacles: next }));
+    else setDraft((d) => ({ ...d, obstacles: next }));
+    const done = state.keepFirst + state.seq.length >= next.filter(isCompeting).length;
+    if (done) {
+      setNumbering(null);
+      toast.success("Numreringen är klar", { description: "Ångra hela numreringen med Ctrl+Z." });
+    } else {
+      setNumbering({ ...state, committed: true });
+    }
+  };
+  const numberingBack = () => {
+    if (!numbering || numbering.seq.length === 0) return;
+    applyNumbering({ ...numbering, seq: numbering.seq.slice(0, -1) });
+  };
+  const nextNumber = numbering ? Math.min(numbering.keepFirst + numbering.seq.length + 1, competingCount) : null;
+  const numberedDone = useMemo(() => {
+    if (!numbering) return null;
+    const done = new Set(numbering.seq);
+    numbered
+      .filter((o) => o.number != null && (o.number as number) <= numbering.keepFirst)
+      .forEach((o) => done.add(o.id));
+    return done;
+  }, [numbering, numbered]);
+
+  const toggleMeasure = () => {
+    setMeasureMode((on) => {
+      if (on) setMeasure(null);
+      return !on;
+    });
+    setPlacing(null);
+    setNumbering(null);
+    setMultiMode(false);
+  };
+  const toggleMultiMode = () => {
+    setMultiMode((on) => !on);
+    setPlacing(null);
+    setNumbering(null);
+    setMeasureMode(false);
+    setMeasure(null);
+  };
+  const startPlacing = (type: ObstacleTypeV2 | null) => {
+    setPlacing(type);
+    if (type) {
+      setNumbering(null);
+      setMeasureMode(false);
+      setMeasure(null);
+      setMultiMode(false);
+    }
+  };
 
   // ── Pointer-hantering ───────────────────────────────────────
+  /** Snäppradie mot hindrens mittpunkter för måttbandet (m). */
+  const measureSnapM = () => clamp(14 / (pxPerMeterRef.current || 20), 0.35, 1.2);
+
+  const startPinchIfTwo = () => {
+    if (pointersRef.current.size !== 2) return false;
+    const [a, b] = [...pointersRef.current.values()];
+    pinchRef.current = { dist: Math.hypot(b.x - a.x, b.y - a.y) };
+    panRef.current = null;
+    dragRef.current = null;
+    measureRef.current = null;
+    if (marqueeRef.current) {
+      marqueeRef.current = null;
+      setMarquee(null);
+    }
+    return true;
+  };
+
+  // En pekare som släpps utanför planen (t.ex. över en panel som dök upp
+  // under fingret) måste ändå glömmas — annars tolkas nästa tryck som nyp.
+  useEffect(() => {
+    const forget = (e: PointerEvent) => {
+      pointersRef.current.delete(e.pointerId);
+      if (pointersRef.current.size < 2) pinchRef.current = null;
+    };
+    window.addEventListener("pointerup", forget);
+    window.addEventListener("pointercancel", forget);
+    return () => {
+      window.removeEventListener("pointerup", forget);
+      window.removeEventListener("pointercancel", forget);
+    };
+  }, []);
+
   const onSvgPointerDown = (e: React.PointerEvent) => {
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     // Två fingrar = nyp-zoom + panorering
-    if (pointersRef.current.size === 2) {
-      const [a, b] = [...pointersRef.current.values()];
-      pinchRef.current = { dist: Math.hypot(b.x - a.x, b.y - a.y) };
-      panRef.current = null;
-      dragRef.current = null;
-      return;
-    }
+    if (startPinchIfTwo()) return;
     // Mellanknapp eller mellanslag = panorera
     if (e.button === 1 || spaceRef.current) {
       (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
@@ -770,6 +1027,21 @@ export default function PlannerPage() {
       setSelectedId(ob.id);
       return;
     }
+    if (measureMode) {
+      (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+      const snap = nearestObstacle(obstacles, pt, measureSnapM());
+      const a = snap ? { x: snap.x, y: snap.y } : pt;
+      measureRef.current = { id: e.pointerId };
+      setMeasure({ a, b: a });
+      return;
+    }
+    // Shift-dra (eller "välj flera" på pekskärm) = markeringsruta.
+    if ((e.shiftKey || multiMode) && !numbering) {
+      (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+      marqueeRef.current = { id: e.pointerId, base: selectionIds, a: pt, b: pt };
+      setMarquee({ a: pt, b: pt });
+      return;
+    }
     // Ett finger/mus på tom yta: panorera vid drag, avmarkera vid klick.
     (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
     panRef.current = { id: e.pointerId, lastX: e.clientX, lastY: e.clientY, moved: false };
@@ -777,11 +1049,53 @@ export default function PlannerPage() {
 
   const onObstaclePointerDown = (e: React.PointerEvent, ob: PlacedObstacle) => {
     e.stopPropagation();
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (startPinchIfTwo()) return;
+    if (e.button === 1 || spaceRef.current) {
+      (e.target as Element).setPointerCapture?.(e.pointerId);
+      panRef.current = { id: e.pointerId, lastX: e.clientX, lastY: e.clientY, moved: false };
+      return;
+    }
+    if (measureMode) {
+      (e.target as Element).setPointerCapture?.(e.pointerId);
+      measureRef.current = { id: e.pointerId };
+      setMeasure({ a: { x: ob.x, y: ob.y }, b: { x: ob.x, y: ob.y } });
+      return;
+    }
+    if (numbering) {
+      numberingClick(ob.id);
+      return;
+    }
+    setPlacing(null);
+    const modifier = e.shiftKey || e.ctrlKey || e.metaKey;
+    // Shift/Ctrl-klick växlar alltid. I "välj flera" läggs omarkerade hinder
+    // till direkt, medan ett markerat hinder kan dras (gruppen följer med)
+    // eller tryckas bort ur markeringen.
+    if (modifier || (multiMode && !selectionSet.has(ob.id))) {
+      setSelection((sel) => {
+        const live = sel.filter((id) => obstacleIds.has(id));
+        return live.includes(ob.id) ? live.filter((id) => id !== ob.id) : [...live, ob.id];
+      });
+      return;
+    }
     (e.target as Element).setPointerCapture?.(e.pointerId);
     const pt = toField(e.clientX, e.clientY);
-    dragRef.current = { id: ob.id, dx: ob.x - pt.x, dy: ob.y - pt.y, moved: false, start: snapshotDraft(draftRef.current) };
-    setSelectedId(ob.id);
-    setPlacing(null);
+    // Drag på ett hinder i en flermarkering flyttar hela gruppen.
+    const groupIds = selectionSet.has(ob.id) && (selectionIds.length > 1 || multiMode) ? selectionIds : [ob.id];
+    if (!multiMode && groupIds.length === 1) setSelectedId(ob.id);
+    const items = new Map<string, { x: number; y: number }>();
+    for (const o of obstacles) {
+      if (groupIds.includes(o.id) && !o.locked) items.set(o.id, { x: o.x, y: o.y });
+    }
+    dragRef.current = {
+      anchorId: ob.id,
+      items,
+      grabDx: ob.x - pt.x,
+      grabDy: ob.y - pt.y,
+      moved: false,
+      start: snapshotDraft(draftRef.current),
+      toggleOffOnTap: multiMode ? ob.id : undefined,
+    };
   };
 
   const onRotatePointerDown = (e: React.PointerEvent, id: string) => {
@@ -812,9 +1126,7 @@ export default function PlannerPage() {
       const dx = e.clientX - panRef.current.lastX;
       const dy = e.clientY - panRef.current.lastY;
       if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
-        if (Math.hypot(e.clientX - panRef.current.lastX, e.clientY - panRef.current.lastY) > 0.5) {
-          panRef.current.moved = panRef.current.moved || Math.hypot(dx, dy) > 2;
-        }
+        panRef.current.moved = panRef.current.moved || Math.hypot(dx, dy) > 2;
         if (panRef.current.moved) panByPx(dx, dy);
         panRef.current.lastX = e.clientX;
         panRef.current.lastY = e.clientY;
@@ -823,28 +1135,48 @@ export default function PlannerPage() {
     }
     const pt = toField(e.clientX, e.clientY);
     if (placing) setGhost(pt);
+    if (measureRef.current && measureRef.current.id === e.pointerId) {
+      const snap = nearestObstacle(obstacles, pt, measureSnapM());
+      const b = snap ? { x: snap.x, y: snap.y } : pt;
+      setMeasure((m) => (m ? { ...m, b } : m));
+      return;
+    }
+    if (marqueeRef.current && marqueeRef.current.id === e.pointerId) {
+      marqueeRef.current.b = pt;
+      setMarquee({ a: marqueeRef.current.a, b: pt });
+      return;
+    }
     if (dragRef.current) {
-      const { id, dx, dy } = dragRef.current;
-      const target = obstacles.find((ob) => ob.id === id);
-      if (target?.locked) return;
-      dragRef.current.moved = true;
-      const nx = snapM(clamp(pt.x + dx, 0.5, w - 0.5));
-      const ny = snapM(clamp(pt.y + dy, 0.5, h - 0.5));
+      const drag = dragRef.current;
+      const anchorStart = drag.items.get(drag.anchorId);
+      if (!anchorStart) return; // ankaret är låst — inget flyttas
+      const tx = snapM(clamp(pt.x + drag.grabDx, 0.5, w - 0.5));
+      const ty = snapM(clamp(pt.y + drag.grabDy, 0.5, h - 0.5));
+      const delta = clampGroupDelta([...drag.items.values()], tx - anchorStart.x, ty - anchorStart.y, arena);
+      if (!drag.moved && Math.abs(delta.dx) < 1e-9 && Math.abs(delta.dy) < 1e-9) return;
+      drag.moved = true;
       setDraft((d) => ({
         ...d,
-        obstacles: d.obstacles.map((ob) => (ob.id === id ? { ...ob, x: nx, y: ny } : ob)),
+        obstacles: d.obstacles.map((ob) => {
+          const start = drag.items.get(ob.id);
+          return start
+            ? { ...ob, x: Math.round((start.x + delta.dx) * 100) / 100, y: Math.round((start.y + delta.dy) * 100) / 100 }
+            : ob;
+        }),
       }));
     }
     if (rotateRef.current) {
       const { id } = rotateRef.current;
       const target = obstacles.find((ob) => ob.id === id);
       if (target?.locked) return;
+      // Shift = fri rotation i hela grader, annars 15°-steg.
+      const step = e.shiftKey ? 1 : 15;
       setDraft((d) => ({
         ...d,
         obstacles: d.obstacles.map((ob) => {
           if (ob.id !== id) return ob;
           const ang = (Math.atan2(pt.y - ob.y, pt.x - ob.x) * 180) / Math.PI + 90;
-          const snapped = Math.round(ang / 15) * 15;
+          const snapped = Math.round(ang / step) * step;
           return { ...ob, rotation: ((snapped % 360) + 360) % 360 };
         }),
       }));
@@ -857,8 +1189,21 @@ export default function PlannerPage() {
     if (panRef.current && (!e || panRef.current.id === e.pointerId)) {
       const wasClick = !panRef.current.moved;
       panRef.current = null;
-      if (wasClick && !placing) setSelectedId(null);
+      if (wasClick && !placing && !numbering) setSelection([]);
     }
+    if (measureRef.current && (!e || measureRef.current.id === e.pointerId)) {
+      measureRef.current = null;
+      setMeasure((m) => (m && Math.hypot(m.b.x - m.a.x, m.b.y - m.a.y) < 0.05 ? null : m));
+    }
+    if (marqueeRef.current && (!e || marqueeRef.current.id === e.pointerId)) {
+      const { base, a, b } = marqueeRef.current;
+      marqueeRef.current = null;
+      setMarquee(null);
+      const hits = idsInRect(draftRef.current.obstacles, a, b);
+      setSelection([...new Set([...base, ...hits])]);
+    }
+    const tapped = dragRef.current && !dragRef.current.moved ? dragRef.current.toggleOffOnTap : undefined;
+    if (tapped) setSelection((sel) => sel.filter((id) => id !== tapped));
     // Ett sammanhängande ångra-steg per dragning/rotation.
     if (dragRef.current?.moved) {
       const start = dragRef.current.start;
@@ -877,8 +1222,6 @@ export default function PlannerPage() {
     dragRef.current = null;
     rotateRef.current = null;
   };
-
-
 
   // ── Klassmall / sport / arena ───────────────────────────────
   const applyClassTemplate = (key: ClassTemplateKey | null) => {
@@ -908,6 +1251,7 @@ export default function PlannerPage() {
     }));
     setSelectedId(null);
     setPlacing(null);
+    resetModes();
   };
 
   const setArena = (width: number, height: number) => {
@@ -934,6 +1278,7 @@ export default function PlannerPage() {
   const applyLibraryPick = (kind: "prebuilt" | "saved", payload: PrebuiltCourse | LibraryCourse, next: Draft) => {
     setDraft(next);
     setPast([]);
+    resetModes();
     setFuture([]);
     setSelectedId(null);
     resetCourseIdentity(kind === "saved" ? (payload as LibraryCourse).id : null);
@@ -1050,6 +1395,7 @@ export default function PlannerPage() {
     });
     resetCourseIdentity(null);
     setPast([]);
+    resetModes();
     setFuture([]);
     setSelectedId(null);
     toast.success(`Importerade "${c.name || "bana"}"`);
@@ -1143,6 +1489,7 @@ export default function PlannerPage() {
   const doNewCourse = () => {
     setDraft(defaultDraft(sport));
     setPast([]);
+    resetModes();
     setFuture([]);
     setSelectedId(null);
     setPlacing(null);
@@ -1164,6 +1511,7 @@ export default function PlannerPage() {
   const doApplyOpenedDraft = (next: Draft, ids: { local?: string | null; social?: string | null }) => {
     setDraft(next);
     setPast([]);
+    resetModes();
     setFuture([]);
     setSelectedId(null);
     setPlacing(null);
@@ -1227,20 +1575,29 @@ export default function PlannerPage() {
   };
 
   // ── Kommandopalett ──────────────────────────────────────────
-  const hasSelection = !!selected;
   const canPlay = numbered.filter((o) => o.number != null).length >= 2;
   const hasObstacles = obstacles.length > 0;
   const commands: PaletteCommand[] = useMemo(() => [
     { id: "undo", label: "Ångra", group: "Redigera", shortcut: ["Ctrl", "Z"], icon: <Undo2 className="h-4 w-4" />, run: undo, disabled: past.length === 0, hint: past.length === 0 ? "Inget att ångra ännu" : undefined },
     { id: "redo", label: "Gör om", group: "Redigera", shortcut: ["Ctrl", "Shift", "Z"], icon: <Redo2 className="h-4 w-4" />, run: redo, disabled: future.length === 0, hint: future.length === 0 ? "Inget att göra om" : undefined },
-    { id: "duplicate", label: "Duplicera valt hinder", group: "Redigera", shortcut: ["Ctrl", "D"], run: duplicateSelected, disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
-    { id: "delete", label: "Ta bort valt hinder", group: "Redigera", shortcut: ["Delete"], icon: <Trash2 className="h-4 w-4" />, run: deleteSelected, disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
+    { id: "duplicate", label: "Duplicera markerade hinder", group: "Redigera", shortcut: ["Ctrl", "D"], icon: <Copy className="h-4 w-4" />, run: duplicateSelected, disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
+    { id: "delete", label: "Ta bort markerade hinder", group: "Redigera", shortcut: ["Delete"], icon: <Trash2 className="h-4 w-4" />, run: deleteSelected, disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
+    { id: "select-all", label: "Markera alla hinder", group: "Redigera", shortcut: ["Ctrl", "A"], icon: <SquareDashedMousePointer className="h-4 w-4" />, run: selectAll, disabled: !hasObstacles, hint: hasObstacles ? undefined : "Banan är tom" },
+    { id: "multi", label: multiMode ? "Avsluta välj flera" : "Välj flera hinder (tryck eller dra ruta)", group: "Redigera", icon: <SquareDashedMousePointer className="h-4 w-4" />, run: toggleMultiMode, disabled: !hasObstacles },
+    { id: "copy", label: "Kopiera markerade hinder", group: "Redigera", shortcut: ["Ctrl", "C"], icon: <Copy className="h-4 w-4" />, run: () => copySelection(false), disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
+    { id: "cut", label: "Klipp ut markerade hinder", group: "Redigera", shortcut: ["Ctrl", "X"], icon: <Scissors className="h-4 w-4" />, run: () => copySelection(true), disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
+    { id: "paste", label: "Klistra in hinder", group: "Redigera", shortcut: ["Ctrl", "V"], icon: <ClipboardPaste className="h-4 w-4" />, run: pasteClipboard, disabled: clipboardCount === 0, hint: clipboardCount === 0 ? "Kopiera hinder först" : undefined },
     { id: "rotate-cw", label: "Rotera 45° medurs", group: "Redigera", shortcut: ["R"], icon: <RotateCw className="h-4 w-4" />, run: () => rotateBy(45), disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
     { id: "rotate-ccw", label: "Rotera 45° moturs", group: "Redigera", shortcut: ["Shift", "R"], icon: <RotateCcw className="h-4 w-4" />, run: () => rotateBy(-45), disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
-    { id: "lock", label: "Lås/lås upp valt hinder", group: "Redigera", shortcut: ["L"], icon: <Lock className="h-4 w-4" />, run: toggleLockSelected, disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
+    { id: "lock", label: "Lås/lås upp markerade hinder", group: "Redigera", shortcut: ["L"], icon: <Lock className="h-4 w-4" />, run: toggleLockSelected, disabled: !hasSelection, hint: hasSelection ? undefined : "Markera ett hinder först" },
+    { id: "numbering", label: numbering ? "Avsluta numrering" : "Numrera banan — klicka hindren i ordning", group: "Redigera", shortcut: ["N"], icon: <ListOrdered className="h-4 w-4" />, run: toggleNumbering, disabled: competingCount < 2, hint: competingCount < 2 ? "Placera minst två tävlingshinder" : "Markera ett hinder först för att numrera om från det" },
+    { id: "reverse", label: "Vänd banordningen", group: "Redigera", icon: <ArrowUpDown className="h-4 w-4" />, run: reverseOrder, disabled: competingCount < 2, hint: competingCount < 2 ? "Placera minst två tävlingshinder" : undefined },
+    { id: "inspector", label: inspectorOpen ? "Dölj egenskapspanelen" : "Visa egenskapspanelen", group: "Redigera", icon: <SlidersHorizontal className="h-4 w-4" />, run: () => setInspectorOpen(!inspectorOpen) },
     { id: "clear", label: "Rensa banan", group: "Redigera", icon: <Eraser className="h-4 w-4" />, run: clearAll, disabled: !hasObstacles, hint: hasObstacles ? undefined : "Banan är redan tom" },
     { id: "line", label: showLine ? "Dölj springlinje" : "Visa springlinje", group: "Visa", icon: <Spline className="h-4 w-4" />, run: () => setShowLine((v) => !v) },
     { id: "numbers", label: showNumbers ? "Dölj nummer" : "Visa nummer", group: "Visa", run: () => setShowNumbers((v) => !v) },
+    { id: "distances", label: showDistances ? "Dölj avstånd mellan hinder" : "Visa avstånd mellan hinder", group: "Visa", shortcut: ["D"], icon: <ArrowLeftRight className="h-4 w-4" />, run: () => setShowDistances((v) => !v) },
+    { id: "measure", label: measureMode ? "Avsluta måttband" : "Måttband — mät mellan två punkter", group: "Visa", shortcut: ["M"], icon: <RulerDimensionLine className="h-4 w-4" />, run: toggleMeasure },
     { id: "grid", label: showGrid ? "Dölj rutnät" : "Visa rutnät", group: "Visa", icon: <Grid2x2 className="h-4 w-4" />, run: () => setShowGrid((v) => !v) },
     { id: "rulers", label: showRulers ? "Dölj linjaler" : "Visa linjaler", group: "Visa", icon: <Ruler className="h-4 w-4" />, run: () => setShowRulers((v) => !v) },
     { id: "zoom-in", label: "Zooma in", group: "Visa", shortcut: ["+"], icon: <ZoomIn className="h-4 w-4" />, run: () => zoomStep(1) },
@@ -1267,7 +1624,7 @@ export default function PlannerPage() {
     { id: "json", label: "Exportera JSON", group: "Exportera", run: onJson, disabled: !hasObstacles },
     { id: "help", label: "Tangentbordsgenvägar", group: "Hjälp", shortcut: ["?"], run: () => setHelpOpen(true) },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ], [undo, redo, showLine, showNumbers, showGrid, showRulers, selected, obstacles, draft, numbered, exporting, past.length, future.length, hasSelection, canPlay, hasObstacles, plannerProfile]);
+  ], [undo, redo, showLine, showNumbers, showGrid, showRulers, showDistances, selected, selectionIds, obstacles, draft, numbered, exporting, past.length, future.length, hasSelection, canPlay, hasObstacles, plannerProfile, numbering, measureMode, multiMode, competingCount, inspectorOpen, clipboardCount]);
 
   // ── Tangentbord ─────────────────────────────────────────────
   useEffect(() => {
@@ -1280,8 +1637,8 @@ export default function PlannerPage() {
         tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t.isContentEditable;
       // Interaktiva ytor (knappar, länkar, dialoger): Space/Enter ska
       // aktivera det fokuserade elementet — aldrig planerarens genvägar.
-      const interactive =
-        !!t.closest?.("button, a, [role='dialog'], [role='listbox'], [role='menu'], [role='combobox'], [role='option']");
+      const overlay = !!t.closest?.("[role='dialog'], [role='listbox'], [role='menu'], [role='combobox'], [role='option']");
+      const interactive = overlay || !!t.closest?.("button, a");
       const key = e.key.toLowerCase();
       if ((e.metaKey || e.ctrlKey) && key === "k") {
         e.preventDefault();
@@ -1291,8 +1648,11 @@ export default function PlannerPage() {
       if (typing) return;
       if (e.key === "Escape") {
         if (playbackActive) { setPlaybackActive(false); return; }
+        if (numbering) { setNumbering(null); return; }
+        if (measureMode) { setMeasureMode(false); setMeasure(null); return; }
+        if (multiMode) { setMultiMode(false); return; }
         setPlacing(null);
-        setSelectedId(null);
+        setSelection([]);
       }
       if ((e.metaKey || e.ctrlKey) && key === "z") {
         e.preventDefault();
@@ -1314,10 +1674,35 @@ export default function PlannerPage() {
         e.preventDefault();
         setOpenCourseOpen(true);
       }
+      // Markera/kopiera/klistra in — bara när fokus inte ligger i en dialog
+      // eller meny, så att webbläsarens vanliga textkopiering fungerar där.
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && !overlay) {
+        if (key === "a") { e.preventDefault(); selectAll(); }
+        if (key === "c" && hasSelection) { e.preventDefault(); copySelection(false); }
+        if (key === "x" && hasSelection) { e.preventDefault(); copySelection(true); }
+        if (key === "v" && clipboardRef.current.length) { e.preventDefault(); pasteClipboard(); }
+      }
       // Alla enkeltangents-genvägar kräver att fokus inte ligger på en
       // interaktiv kontroll — annars kapar vi t.ex. Space på en knapp.
-      if (e.metaKey || e.ctrlKey || interactive) return;
-      if ((e.key === "Delete" || e.key === "Backspace") && selectedId) deleteSelected();
+      if (e.metaKey || e.ctrlKey || e.altKey || overlay) return;
+      // Ta bort och piltangenter fungerar även när fokus ligger kvar på en
+      // verktygsknapp (de aktiverar aldrig knappar).
+      if ((e.key === "Delete" || e.key === "Backspace") && hasSelection) {
+        deleteSelected();
+        return;
+      }
+      if (e.key.startsWith("Arrow") && hasSelection) {
+        e.preventDefault();
+        const step = e.shiftKey ? 1 : 0.25;
+        const dx = e.key === "ArrowLeft" ? -step : e.key === "ArrowRight" ? step : 0;
+        const dy = e.key === "ArrowUp" ? -step : e.key === "ArrowDown" ? step : 0;
+        nudgeSelection(dx, dy);
+        return;
+      }
+      if (interactive) return;
+      if (key === "n") toggleNumbering();
+      if (key === "m") toggleMeasure();
+      if (key === "d") setShowDistances((v) => !v);
       if (key === "r") {
         if (e.shiftKey) rotateBy(-45); else rotateBy(45);
       }
@@ -1339,6 +1724,31 @@ export default function PlannerPage() {
   });
 
   // ── Render ──────────────────────────────────────────────────
+  const issueObstacleIds = useMemo(
+    () => new Set(issues.filter((i) => i.obstacleId && i.level !== "info").map((i) => i.obstacleId as string)),
+    [issues]
+  );
+  const segmentLabels = useMemo(() => {
+    if (!showDistances) return [];
+    const labels = computeSegmentLabels(numbered);
+    // Nummerbrickorna ritas överst — flytta etiketter som annars skyms.
+    const badges = showNumbers
+      ? numbered.filter((o) => o.number != null).map((o) => ({ x: o.x + 1.0 * detail, y: o.y - 1.0 * detail }))
+      : [];
+    return placeLabelsAwayFrom(labels, badges, 1.45 * detail, 1.1 * detail);
+  }, [showDistances, showNumbers, numbered, detail]);
+  /** Avståndsvarningar från regelkontrollen, per "till"-hinder. */
+  const distanceIssueLevel = useMemo(() => {
+    const m = new Map<string, "error" | "warning">();
+    for (const i of issues) {
+      if (!i.obstacleId || !DISTANCE_ISSUE_CODES.has(i.code)) continue;
+      if (i.level === "error") m.set(i.obstacleId, "error");
+      else if (i.level === "warning" && !m.has(i.obstacleId)) m.set(i.obstacleId, "warning");
+    }
+    return m;
+  }, [issues]);
+  /** Minsta träffyta i meter (~40 CSS-pixlar). */
+  const hitMinM = 40 / (pxPerMeter || 20);
 
   const ToolButton = ({
     onClick, active, label, children, disabled, toggle,
@@ -1391,14 +1801,14 @@ export default function PlannerPage() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
 
-          <div className="hidden md:block">
+          <div className="hidden 2xl:block">
             <Logo />
           </div>
-          <div className="mx-1 hidden h-8 w-px bg-ink/15 md:block" />
+          <div className="mx-1 hidden h-8 w-px bg-ink/15 2xl:block" />
           <input
             value={name}
             onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-            className="w-0 min-w-0 flex-1 rounded-xl border-2 border-transparent bg-transparent px-1.5 py-2 font-display text-base tracking-wide outline-none transition-colors focus:border-ink sm:px-2 sm:text-2xl md:max-w-xs"
+            className="w-0 min-w-0 flex-1 truncate rounded-xl border-2 border-transparent bg-transparent px-1.5 py-2 font-display text-base tracking-wide outline-none transition-colors hover:border-ink/15 focus:border-ink sm:px-2 sm:text-2xl md:max-w-md"
             aria-label="Banans namn"
           />
 
@@ -1414,7 +1824,7 @@ export default function PlannerPage() {
             <span
               role="status"
               aria-live="polite"
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors lg:px-3 ${
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors 2xl:px-3 ${
                 saveState === "error"
                   ? "bg-red-600 text-white"
                   : saveState === "saved"
@@ -1424,8 +1834,8 @@ export default function PlannerPage() {
             >
               {/* På små skärmar finns bara en prick — texten läses ändå upp
                   av skärmläsare och syns i breda vyer. */}
-              <span aria-hidden className="h-2 w-2 rounded-full bg-current lg:hidden" />
-              <span className="sr-only lg:not-sr-only">{draftSaveStatusLabel(saveState)}</span>
+              <span aria-hidden className="h-2 w-2 rounded-full bg-current 2xl:hidden" />
+              <span className="sr-only 2xl:not-sr-only">{draftSaveStatusLabel(saveState)}</span>
             </span>
 
             <div className="hidden sm:block">
@@ -1498,21 +1908,21 @@ export default function PlannerPage() {
             <button
               onClick={openSaveShare}
               disabled={!obstacles.length}
-              className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-forest px-3 text-sm font-bold text-paper disabled:opacity-40 sm:h-11 sm:px-5"
+              className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-forest px-3 text-sm font-bold text-paper disabled:opacity-40 sm:h-11 sm:px-3.5 xl:px-5"
               title={obstacles.length ? "Spara banan på din profil och välj publik eller privat" : "Placera minst ett hinder först"}
               aria-label="Spara och dela banan på din profil"
             >
               <CloudCheck className="h-4 w-4" />{" "}
-              <span className="hidden sm:inline">Spara & dela</span>
+              <span className="hidden xl:inline">Spara & dela</span>
             </button>
             <button
               onClick={openShare}
               disabled={!obstacles.length}
-              className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-tang px-3 text-sm font-bold text-ink disabled:opacity-40 sm:h-11 sm:px-5"
+              className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-tang px-3 text-sm font-bold text-ink disabled:opacity-40 sm:h-11 sm:px-3.5 xl:px-5"
               title={obstacles.length ? "Skapa en länk med hela banan — mottagaren behöver inget konto" : "Placera minst ett hinder först"}
               aria-label="Dela banan via länk"
             >
-              <Share2 className="h-4 w-4" /> <span className="hidden sm:inline">Dela bana</span>
+              <Share2 className="h-4 w-4" /> <span className="hidden xl:inline">Dela bana</span>
             </button>
             <button
               onClick={() => setProfileOpen(true)}
@@ -1523,7 +1933,7 @@ export default function PlannerPage() {
               <span className="grid h-6 w-6 place-items-center rounded-full bg-forest text-xs text-paper">
                 {plannerProfile ? plannerProfile.name.trim().charAt(0).toUpperCase() : "?"}
               </span>
-              <span className="hidden max-w-[8rem] truncate lg:inline">
+              <span className="hidden max-w-[8rem] truncate 2xl:inline">
                 {plannerProfile ? plannerProfile.name : "Din profil"}
               </span>
             </button>
@@ -1647,7 +2057,7 @@ export default function PlannerPage() {
                     {defs.map((def) => (
                       <button
                         key={def.type}
-                        onClick={() => setPlacing(placing === def.type ? null : def.type)}
+                        onClick={() => startPlacing(placing === def.type ? null : def.type)}
                         title={def.description}
                         aria-pressed={placing === def.type}
                         aria-label={`Placera ${def.label.toLowerCase()} — ${def.description}`}
@@ -1655,11 +2065,7 @@ export default function PlannerPage() {
                           placing === def.type ? "border-ink bg-tang shadow-hard-sm" : "border-ink/10 bg-white hover:border-ink"
                         }`}
                       >
-                        <svg viewBox={`-3.6 -3.6 7.2 7.2`} className="h-11 w-11">
-                          <g transform="scale(0.85)">
-                            <ObstacleGlyph type={def.type} sw={0.16} />
-                          </g>
-                        </svg>
+                        <ObstacleIcon type={def.type} className="h-11 w-11" />
                         <span className="text-[11px] font-bold leading-tight">{def.label}</span>
                       </button>
                     ))}
@@ -1722,73 +2128,192 @@ export default function PlannerPage() {
                   <path d={runLineD} fill="none" stroke="#FF6900" strokeWidth={(0.24 * detail) / Math.sqrt(zoom)} strokeDasharray={`${(0.65 * detail) / Math.sqrt(zoom)} ${(0.45 * detail) / Math.sqrt(zoom)}`} strokeLinecap="round" opacity="0.85" />
                 )}
 
-                {/* hinder */}
+                {/* hinder — fotavtryck, markering och symbol */}
                 {numbered.map((ob) => {
-                  const isSelected = ob.id === selectedId;
-                  const hasIssue = issues.some((i) => i.obstacleId === ob.id && i.level !== "info");
+                  const isSelected = selectionSet.has(ob.id);
+                  const hasIssue = issueObstacleIds.has(ob.id);
+                  const b = obstacleLocalBounds(ob);
+                  const bw = b.maxX - b.minX;
+                  const bh = b.maxY - b.minY;
+                  const cx = (b.minX + b.maxX) / 2;
+                  const cy = (b.minY + b.maxY) / 2;
+                  const hitW = Math.max(bw + 0.8, hitMinM);
+                  const hitH = Math.max(bh + 0.8, hitMinM);
+                  const pad = 0.3 * detail;
+                  const pending = numberedDone && ob.number != null && !numberedDone.has(ob.id);
                   return (
                     <g
                       key={ob.id}
+                      data-obstacle-id={ob.id}
                       transform={`translate(${ob.x} ${ob.y}) rotate(${ob.rotation})`}
                       onPointerDown={(e) => onObstaclePointerDown(e, ob)}
-                      className="cursor-grab active:cursor-grabbing"
+                      className={numbering ? "cursor-pointer" : measureMode ? "cursor-crosshair" : "cursor-grab active:cursor-grabbing"}
                       opacity={ob.locked ? 0.75 : 1}
                     >
-                      {/* träffyta — extra stor så att hindret är lätt att peka på i mobilen */}
-                      <circle r={2.1 * detail} fill="transparent" />
-                      {isSelected && <circle r={1.95 * detail} fill="#E24C00" opacity="0.07" />}
-                      {/* Markörplatta — gör hindret lätt att se även på stora skärmar */}
-                      <circle
-                        r={1.25 * detail}
-                        fill="#FFFFFF"
-                        fillOpacity="0.72"
-                        stroke={isSelected || hasIssue ? "#E24C00" : "#161812"}
-                        strokeOpacity={isSelected ? 0.9 : 0.28}
-                        strokeWidth={0.07 * detail}
+                      {/* träffyta — minst ~40 skärmpixlar så att hindret är lätt att träffa i mobilen */}
+                      <rect x={cx - hitW / 2} y={cy - hitH / 2} width={hitW} height={hitH} fill="transparent" />
+                      {/* fotavtryck i verklig storlek */}
+                      <rect
+                        x={b.minX - 0.12} y={b.minY - 0.12} width={bw + 0.24} height={bh + 0.24}
+                        rx={Math.min(0.3, (bh + 0.24) / 2)}
+                        fill={isSelected ? "#E24C00" : "#FFFFFF"}
+                        fillOpacity={isSelected ? 0.08 : 0.6}
                         data-ui
                       />
-                      <ObstacleGlyph
-                        type={ob.type}
-                        stroke={isSelected ? "#E24C00" : hasIssue ? "#E24C00" : "#161812"}
-                        sw={0.1 * detail}
-                        curveDeg={ob.curveDeg}
-                        curveSide={ob.curveSide}
-                      />
-                      {hasIssue && !isSelected && (
-                        <circle r={1.15 * detail} fill="none" stroke="#E24C00" strokeWidth={0.09 * detail} strokeDasharray={`${0.2 * detail} ${0.14 * detail}`} data-ui />
+                      {(isSelected || hasIssue) && (
+                        <rect
+                          x={b.minX - pad} y={b.minY - pad} width={bw + 2 * pad} height={bh + 2 * pad}
+                          rx={Math.min(0.5 * detail, (bh + 2 * pad) / 2)}
+                          fill="none"
+                          stroke="#E24C00"
+                          strokeOpacity={isSelected ? 0.95 : 0.7}
+                          strokeWidth={(isSelected ? 0.09 : 0.07) * detail}
+                          strokeDasharray={isSelected ? undefined : `${0.22 * detail} ${0.16 * detail}`}
+                          data-ui
+                        />
                       )}
+                      <g opacity={pending ? 0.45 : 1}>
+                        <ObstacleGlyph
+                          type={ob.type}
+                          stroke={isSelected || hasIssue ? "#E24C00" : "#161812"}
+                          sw={0.1 * detail}
+                          curveDeg={ob.curveDeg}
+                          curveSide={ob.curveSide}
+                        />
+                      </g>
                       {ob.locked && (
-                        <g transform={`rotate(${-ob.rotation})`} data-ui>
-                          <circle cx="0.95" cy="0.95" r="0.34" fill="#161812" />
-                          <text x="0.95" y="1.08" textAnchor="middle" fontSize="0.4" fill="#F6F1E7">🔒</text>
-                        </g>
-                      )}
-                      {showNumbers && ob.number != null && (
-                        <g transform={`rotate(${-ob.rotation})`}>
-                          <circle cx={1.05 * detail} cy={-1.05 * detail} r={0.62 * detail} fill={isSelected ? "#E24C00" : "#161812"} stroke="#F6F1E7" strokeWidth={0.08 * detail} />
-                          <text x={1.05 * detail} y={-0.78 * detail} textAnchor="middle" fontSize={0.78 * detail} fontWeight="800" fill="#F6F1E7" fontFamily="Archivo, sans-serif">
-                            {ob.number}
-                          </text>
-                        </g>
-                      )}
-                      {isSelected && (
-                        <g data-ui>
-                          <circle r={1.7 * detail} fill="none" stroke="#E24C00" strokeWidth={0.08 * detail} strokeDasharray={`${0.25 * detail} ${0.18 * detail}`} />
-                          {/* rotationshandtag */}
-                          <line x1="0" y1={-1.7 * detail} x2="0" y2={-2.9 * detail} stroke="#E24C00" strokeWidth={0.07 * detail} strokeDasharray={`${0.14 * detail} ${0.12 * detail}`} />
-                          <g
-                            transform={`translate(0 ${-2.9 * detail}) rotate(${-ob.rotation})`}
-                            onPointerDown={(e) => onRotatePointerDown(e, ob.id)}
-                            className="cursor-crosshair"
-                          >
-                            <circle r={0.5 * detail} fill="#E24C00" stroke="#F6F1E7" strokeWidth={0.1 * detail} />
-                            <RotateCw width={0.5 * detail} height={0.5 * detail} x={-0.25 * detail} y={-0.25 * detail} color="#F6F1E7" />
-                          </g>
+                        <g transform={`translate(${b.maxX} ${b.maxY}) rotate(${-ob.rotation})`} data-ui>
+                          <circle r={0.32 * detail} fill="#161812" />
+                          <text y={0.13 * detail} textAnchor="middle" fontSize={0.36 * detail} fill="#F6F1E7">🔒</text>
                         </g>
                       )}
                     </g>
                   );
                 })}
+
+                {/* avstånd mellan hinder i banordning */}
+                {segmentLabels.map((lab) => {
+                  const level = distanceIssueLevel.get(lab.toId);
+                  const text = formatMeters(lab.centerDistanceM);
+                  const fs = 0.5 * detail;
+                  const pillW = text.length * fs * 0.56 + fs * 0.9;
+                  const pillH = fs * 1.55;
+                  return (
+                    <g key={`d-${lab.fromId}-${lab.toId}`} transform={`translate(${lab.lx} ${lab.ly})`} pointerEvents="none" data-distance-label>
+                      <title>{`Hinder ${lab.fromNumber}→${lab.toNumber}: ${formatMeters(lab.centerDistanceM, 2)} mitt–mitt · ${formatMeters(lab.pathDistanceM)} längs hundlinjen`}</title>
+                      <rect
+                        x={-pillW / 2} y={-pillH / 2} width={pillW} height={pillH} rx={pillH / 2}
+                        fill={level === "error" ? "#E24C00" : level === "warning" ? "#FFB020" : "#FFFFFF"}
+                        stroke="#161812" strokeOpacity="0.35" strokeWidth={0.04 * detail}
+                      />
+                      <text
+                        y={fs * 0.36} textAnchor="middle" fontSize={fs} fontWeight="800"
+                        fill={level === "error" ? "#FFFFFF" : "#161812"} fontFamily="Archivo, sans-serif"
+                      >
+                        {text}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* nummer — ritas överst så att de aldrig döljs av andra hinder */}
+                {showNumbers && numbered.map((ob) => {
+                  if (ob.number == null) return null;
+                  const isSelected = selectionSet.has(ob.id);
+                  const done = numberedDone ? numberedDone.has(ob.id) : null;
+                  const off = 1.0 * detail;
+                  const r = 0.56 * detail;
+                  return (
+                    <g
+                      key={`n-${ob.id}`}
+                      transform={`translate(${ob.x + off} ${ob.y - off})`}
+                      onPointerDown={(e) => onObstaclePointerDown(e, ob)}
+                      className={numbering ? "cursor-pointer" : "cursor-grab"}
+                      data-number-badge={ob.number}
+                      data-obstacle-ref={ob.id}
+                    >
+                      <circle
+                        r={r}
+                        fill={done === false ? "#FFFFFF" : done ? "#006937" : isSelected ? "#E24C00" : "#161812"}
+                        stroke={done === false ? "#161812" : "#F6F1E7"}
+                        strokeWidth={0.08 * detail}
+                        strokeDasharray={done === false ? `${0.16 * detail} ${0.12 * detail}` : undefined}
+                      />
+                      <text
+                        y={0.25 * detail} textAnchor="middle" fontSize={0.7 * detail} fontWeight="800"
+                        fill={done === false ? "#161812" : "#F6F1E7"} fillOpacity={done === false ? 0.55 : 1}
+                        fontFamily="Archivo, sans-serif"
+                      >
+                        {ob.number}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* rotationshandtag för ett markerat, olåst hinder */}
+                {selected && !selected.locked && !numbering && !measureMode && (() => {
+                  const b = obstacleLocalBounds(selected);
+                  const top = b.minY - 0.3 * detail;
+                  const handleY = top - 1.2 * detail;
+                  return (
+                    <g transform={`translate(${selected.x} ${selected.y}) rotate(${selected.rotation})`} data-ui>
+                      <line x1="0" y1={top} x2="0" y2={handleY} stroke="#E24C00" strokeWidth={0.07 * detail} strokeDasharray={`${0.14 * detail} ${0.12 * detail}`} />
+                      <g
+                        transform={`translate(0 ${handleY}) rotate(${-selected.rotation})`}
+                        onPointerDown={(e) => onRotatePointerDown(e, selected.id)}
+                        className="cursor-crosshair"
+                        aria-label="Rotera hindret (Shift = fri vinkel)"
+                      >
+                        <circle r={0.9 * detail} fill="transparent" />
+                        <circle r={0.5 * detail} fill="#E24C00" stroke="#F6F1E7" strokeWidth={0.1 * detail} />
+                        <RotateCw width={0.5 * detail} height={0.5 * detail} x={-0.25 * detail} y={-0.25 * detail} color="#F6F1E7" />
+                      </g>
+                    </g>
+                  );
+                })()}
+
+                {/* markeringsruta */}
+                {marquee && (
+                  <rect
+                    x={Math.min(marquee.a.x, marquee.b.x)}
+                    y={Math.min(marquee.a.y, marquee.b.y)}
+                    width={Math.abs(marquee.b.x - marquee.a.x)}
+                    height={Math.abs(marquee.b.y - marquee.a.y)}
+                    fill="#E24C00"
+                    fillOpacity="0.08"
+                    stroke="#E24C00"
+                    strokeWidth={0.06 * detail}
+                    strokeDasharray={`${0.25 * detail} ${0.15 * detail}`}
+                    pointerEvents="none"
+                    data-ui
+                  />
+                )}
+
+                {/* måttband */}
+                {measure && (() => {
+                  const dist = Math.hypot(measure.b.x - measure.a.x, measure.b.y - measure.a.y);
+                  const mx = (measure.a.x + measure.b.x) / 2;
+                  const my = (measure.a.y + measure.b.y) / 2;
+                  const text = formatMeters(dist, 2);
+                  const fs = 0.62 * detail;
+                  const pillW = text.length * fs * 0.56 + fs * 1.0;
+                  const pillH = fs * 1.6;
+                  return (
+                    <g pointerEvents="none" data-ui data-measure={dist.toFixed(2)}>
+                      <line x1={measure.a.x} y1={measure.a.y} x2={measure.b.x} y2={measure.b.y} stroke="#161812" strokeWidth={0.16 * detail} strokeOpacity="0.25" strokeLinecap="round" />
+                      <line x1={measure.a.x} y1={measure.a.y} x2={measure.b.x} y2={measure.b.y} stroke="#006937" strokeWidth={0.08 * detail} strokeDasharray={`${0.3 * detail} ${0.15 * detail}`} strokeLinecap="round" />
+                      {[measure.a, measure.b].map((p, i) => (
+                        <circle key={i} cx={p.x} cy={p.y} r={0.2 * detail} fill="#006937" stroke="#F6F1E7" strokeWidth={0.06 * detail} />
+                      ))}
+                      <g transform={`translate(${mx} ${my})`}>
+                        <rect x={-pillW / 2} y={-pillH / 2} width={pillW} height={pillH} rx={pillH / 2} fill="#006937" />
+                        <text y={fs * 0.36} textAnchor="middle" fontSize={fs} fontWeight="800" fill="#F6F1E7" fontFamily="Archivo, sans-serif">
+                          {text}
+                        </text>
+                      </g>
+                    </g>
+                  );
+                })()}
 
                 {/* spökhinder vid placering */}
                 {placing && ghost && (
@@ -1813,7 +2338,7 @@ export default function PlannerPage() {
                     ? `Regelkontroll — ${issueCounts.warning} varningar, visa lista`
                     : "Regelkontroll — inga anmärkningar"
               }
-              className={`absolute right-3 ${placing ? "top-[4.6rem] sm:top-[2.2rem]" : showRulers ? "top-[2.2rem]" : "top-3"} z-30 inline-flex items-center gap-2 rounded-full border-2 px-3.5 py-2 text-xs font-bold shadow-hard-sm transition-all ${
+              className={`absolute right-3 ${placing || numbering || measureMode || multiMode ? "top-[4.6rem] sm:top-[2.2rem]" : showRulers ? "top-[2.2rem]" : "top-3"} z-30 inline-flex items-center gap-2 rounded-full border-2 px-3.5 py-2 text-xs font-bold shadow-hard-sm transition-all ${
                 issueCounts.error > 0
                   ? "border-ink bg-ember text-paper"
                   : issueCounts.warning > 0
@@ -1890,70 +2415,158 @@ export default function PlannerPage() {
               </div>
             )}
 
-            {/* Valt hinder — åtgärdsrad */}
-            {selected && !playbackActive && (
-              <div className="absolute bottom-24 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1.5 rounded-2xl border-2 border-ink bg-paper p-1.5 shadow-hard sm:bottom-28">
+            {/* Markerade hinder — åtgärdsrad */}
+            {hasSelection && !playbackActive && !numbering && (
+              <div
+                role="toolbar"
+                aria-label="Åtgärder för markerade hinder"
+                className="absolute bottom-24 left-1/2 z-30 flex max-w-[calc(100%-1.5rem)] -translate-x-1/2 items-center gap-1.5 rounded-2xl border-2 border-ink bg-paper p-1.5 shadow-hard sm:bottom-28"
+              >
                 <span className="hidden px-2 text-xs font-bold leading-tight text-ink/70 sm:block">
-                  {selectedNumbered?.number != null && `#${selectedNumbered.number} `}{selectedDef?.label}
-                  <span className="block font-semibold text-ink/45">
-                    {selected.x.toFixed(2).replace(".", ",")} × {selected.y.toFixed(2).replace(".", ",")} m · {Math.round(selected.rotation)}°
-                  </span>
+                  {selected ? (
+                    <>
+                      {selectedNumbered?.number != null && `#${selectedNumbered.number} `}{selectedDef?.label}
+                      <span className="block font-semibold text-ink/45">
+                        {selected.x.toFixed(2).replace(".", ",")} × {selected.y.toFixed(2).replace(".", ",")} m · {Math.round(((selected.rotation % 360) + 360) % 360)}°
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      {selectionIds.length} hinder
+                      <span className="block font-semibold text-ink/45">
+                        {selectionLockedCount > 0 ? `${selectionLockedCount} låsta` : "Dra för att flytta gruppen"}
+                      </span>
+                    </>
+                  )}
                 </span>
-                <ToolButton onClick={() => rotateBy(-45)} label="Rotera 45° moturs (Shift+R)" disabled={selected.locked}>
+                <span className="px-1 text-xs font-black text-ink/70 sm:hidden" aria-hidden>
+                  {selectionIds.length > 1 ? selectionIds.length : selectedNumbered?.number != null ? `#${selectedNumbered.number}` : ""}
+                </span>
+                <ToolButton onClick={() => rotateBy(-45)} label="Rotera 45° moturs (Shift+R)" disabled={selectionMovable === 0}>
                   <RotateCcw className="h-4 w-4" />
                 </ToolButton>
-                <ToolButton onClick={() => rotateBy(45)} label="Rotera 45° medurs (R)" disabled={selected.locked}>
+                <ToolButton onClick={() => rotateBy(45)} label="Rotera 45° medurs (R)" disabled={selectionMovable === 0}>
                   <RotateCw className="h-4 w-4" />
                 </ToolButton>
-                {!NON_COMPETING.has(selected.type) && (
-                  <>
-                    <ToolButton onClick={() => moveSelectedInOrder(-1)} label="Flytta tidigare i banordningen">
+                {selected && !NON_COMPETING.has(selected.type) && (
+                  <span className="hidden gap-1.5 sm:flex">
+                    <ToolButton onClick={() => moveSelectedInOrder(-1)} label="Flytta tidigare i banordningen" disabled={selectedNumbered?.number === 1}>
                       <ChevronDown className="h-4 w-4" />
                     </ToolButton>
-                    <ToolButton onClick={() => moveSelectedInOrder(1)} label="Flytta senare i banordningen">
+                    <ToolButton onClick={() => moveSelectedInOrder(1)} label="Flytta senare i banordningen" disabled={selectedNumbered?.number === competingCount}>
                       <ChevronUp className="h-4 w-4" />
                     </ToolButton>
-                  </>
+                  </span>
                 )}
-                <ToolButton onClick={duplicateSelected} label="Duplicera (Ctrl+D)" disabled={selected.locked}>
+                <ToolButton onClick={duplicateSelected} label="Duplicera (Ctrl+D)">
                   <Copy className="h-4 w-4" />
                 </ToolButton>
-                <ToolButton onClick={toggleLockSelected} label={selected.locked ? "Lås upp (L)" : "Lås (L)"} active={selected.locked}>
-                  {selected.locked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                <ToolButton
+                  onClick={toggleLockSelected}
+                  label={selectionLockedCount === selectedObstacles.length ? "Lås upp (L)" : "Lås (L)"}
+                  active={selectionLockedCount === selectedObstacles.length}
+                >
+                  {selectionLockedCount === selectedObstacles.length ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
                 </ToolButton>
-                <ToolButton onClick={deleteSelected} label="Ta bort (Delete)" disabled={selected.locked}>
+                <ToolButton onClick={deleteSelected} label="Ta bort (Delete)" disabled={selectionMovable === 0}>
                   <Trash2 className="h-4 w-4" />
                 </ToolButton>
               </div>
             )}
 
-            {/* Tunnelböjning för vald tunnel */}
-            {selected?.type === "tunnel" && !playbackActive && (
-              <div className="absolute left-3 top-[2.2rem] z-30 w-64 rounded-2xl border-2 border-ink bg-paper p-3.5 shadow-hard" data-ui>
-                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink/60">
-                  Tunnelböjning · {selected.curveDeg ?? 0}°
-                </p>
-                <input
-                  type="range"
-                  min={0}
-                  max={90}
-                  step={5}
-                  value={selected.curveDeg ?? 0}
-                  onChange={(e) => setTunnelCurve({ curveDeg: Number(e.target.value) })}
-                  className="w-full accent-forest"
-                />
-                <div className="mt-2 grid grid-cols-2 gap-1.5">
+            {/* Egenskaper: exakta mått, banordning, tunnelböjning, justering */}
+            {hasSelection && !playbackActive && !numbering && (
+              <ObstacleInspector
+                className={`absolute inset-x-3 z-30 max-h-[45%] overflow-y-auto sm:inset-x-auto sm:left-3 sm:w-72 ${
+                  // Mobil: under regelkontrollknappen (och ev. statusbanner),
+                  // så att mitten av planen och åtgärdsraden syns.
+                  placing || multiMode ? "top-[7.4rem]" : "top-[4.6rem]"
+                } ${showRulers ? "sm:top-[2.2rem]" : "sm:top-3"}`}
+                open={inspectorOpen}
+                onOpenChange={setInspectorOpen}
+                obstacle={selected}
+                obstacleLabel={selectedDef?.label}
+                number={selectedNumbered?.number ?? null}
+                competingCount={competingCount}
+                arena={arena}
+                onPosition={setSelectedPosition}
+                onRotation={setSelectedRotation}
+                onNumber={setSelectedNumber}
+                onTunnelCurve={setTunnelCurve}
+                multiCount={selectionIds.length}
+                multiLockedCount={selectionLockedCount}
+                onAlign={alignSelection}
+                onDistribute={distributeSelection}
+              />
+            )}
+
+            {/* Numreringsläge */}
+            {numbering && (
+              <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3" role="status" aria-live="polite">
+                <div className="pointer-events-auto flex max-w-full items-center gap-2 rounded-full border-2 border-ink bg-forest py-1.5 pl-3 pr-1.5 text-paper shadow-hard">
+                  <ListOrdered className="h-4 w-4 shrink-0" />
+                  <span className="text-xs font-bold leading-tight">
+                    Klicka hinder <span className="rounded bg-paper px-1.5 py-0.5 text-forest">#{nextNumber}</span>
+                    <span className="hidden font-semibold text-paper/70 sm:inline"> · i den ordning hunden tar dem</span>
+                  </span>
                   <button
-                    onClick={() => setTunnelCurve({ curveSide: "left" })}
-                    className={`h-9 rounded-lg border-2 text-xs font-bold ${(selected.curveSide ?? "right") === "left" ? "border-ink bg-forest text-paper" : "border-ink/15 bg-white text-ink/60"}`}
+                    type="button"
+                    onClick={numberingBack}
+                    disabled={numbering.seq.length === 0}
+                    className="h-8 shrink-0 rounded-full bg-paper/20 px-3 text-xs font-bold transition-colors hover:bg-paper/35 disabled:opacity-40"
                   >
-                    Böj vänster
+                    Backa
                   </button>
                   <button
-                    onClick={() => setTunnelCurve({ curveSide: "right" })}
-                    className={`h-9 rounded-lg border-2 text-xs font-bold ${(selected.curveSide ?? "right") === "right" ? "border-ink bg-forest text-paper" : "border-ink/15 bg-white text-ink/60"}`}
+                    type="button"
+                    onClick={stopNumbering}
+                    className="h-8 shrink-0 rounded-full bg-paper px-3 text-xs font-bold text-forest"
                   >
-                    Böj höger
+                    Klar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Måttband */}
+            {measureMode && (
+              <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3" role="status" aria-live="polite">
+                <div className="pointer-events-auto flex max-w-full items-center gap-2 rounded-full border-2 border-ink bg-paper py-1.5 pl-3 pr-1.5 shadow-hard">
+                  <RulerDimensionLine className="h-4 w-4 shrink-0 text-forest" />
+                  <span className="text-xs font-bold leading-tight">
+                    {measure
+                      ? <>Avstånd <span className="tabular-nums">{formatMeters(Math.hypot(measure.b.x - measure.a.x, measure.b.y - measure.a.y), 2)}</span></>
+                      : "Dra mellan två punkter för att mäta"}
+                    <span className="hidden font-semibold text-ink/50 sm:inline"> · snäpper mot hindrens mitt</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={toggleMeasure}
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ink/10 transition-colors hover:bg-ink/20"
+                    aria-label="Avsluta måttband (Esc)"
+                    title="Avsluta måttband (Esc)"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Välj flera (pekskärm) */}
+            {multiMode && !numbering && !measureMode && (
+              <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3" role="status" aria-live="polite">
+                <div className="pointer-events-auto flex max-w-full items-center gap-2 rounded-full border-2 border-ink bg-paper py-1.5 pl-3 pr-1.5 shadow-hard">
+                  <SquareDashedMousePointer className="h-4 w-4 shrink-0 text-ember" />
+                  <span className="text-xs font-bold leading-tight">
+                    Tryck på hinder eller dra en ruta
+                    <span className="font-semibold text-ink/50"> · {selectionIds.length} markerade</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={toggleMultiMode}
+                    className="h-8 shrink-0 rounded-full bg-ink px-3 text-xs font-bold text-paper"
+                  >
+                    Klar
                   </button>
                 </div>
               </div>
@@ -1994,7 +2607,7 @@ export default function PlannerPage() {
                   <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                     {palette[0] && (
                       <button
-                        onClick={() => setPlacing(palette[0].type)}
+                        onClick={() => startPlacing(palette[0].type)}
                         className="pressable shadow-hard-sm pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full border-2 border-ink bg-forest px-5 text-sm font-bold text-paper"
                       >
                         <MousePointerClick className="h-4 w-4" /> Placera {palette[0].label.toLowerCase()}
@@ -2064,6 +2677,19 @@ export default function PlannerPage() {
             </ToolButton>
             <ToolButton onClick={() => setShowRulers((v) => !v)} active={showRulers} toggle label={showRulers ? "Dölj linjaler" : "Visa linjaler"}>
               <Ruler className="h-5 w-5" />
+            </ToolButton>
+            <ToolButton onClick={() => setShowDistances((v) => !v)} active={showDistances} toggle label={showDistances ? "Dölj avstånd mellan hinder (D)" : "Visa avstånd mellan hinder (D)"}>
+              <ArrowLeftRight className="h-5 w-5" />
+            </ToolButton>
+            <div className="mx-1.5 h-8 w-px bg-ink/15" />
+            <ToolButton onClick={toggleNumbering} active={!!numbering} toggle label="Numrera — klicka hindren i ordning (N)" disabled={competingCount < 2 && !numbering}>
+              <ListOrdered className="h-5 w-5" />
+            </ToolButton>
+            <ToolButton onClick={toggleMeasure} active={measureMode} toggle label="Måttband — mät avstånd (M)">
+              <RulerDimensionLine className="h-5 w-5" />
+            </ToolButton>
+            <ToolButton onClick={toggleMultiMode} active={multiMode} toggle label="Välj flera hinder (eller Shift-klicka / Shift-dra)" disabled={!obstacles.length && !multiMode}>
+              <SquareDashedMousePointer className="h-5 w-5" />
             </ToolButton>
             <div className="mx-1.5 h-8 w-px bg-ink/15" />
             <ToolButton onClick={() => zoomStep(-1)} label="Zooma ut (−)" disabled={zoom <= ZOOM_MIN + 0.001}>
@@ -2153,31 +2779,43 @@ export default function PlannerPage() {
               >
                 <Redo2 className="h-5 w-5" />
               </button>
+              {[
+                { key: "number", label: "Numrera", Icon: ListOrdered, on: !!numbering, run: toggleNumbering, disabled: competingCount < 2 && !numbering },
+                { key: "measure", label: "Mät", Icon: RulerDimensionLine, on: measureMode, run: toggleMeasure, disabled: false },
+                { key: "dist", label: "Avstånd", Icon: ArrowLeftRight, on: showDistances, run: () => setShowDistances((v) => !v), disabled: false },
+                { key: "multi", label: "Välj flera", Icon: SquareDashedMousePointer, on: multiMode, run: toggleMultiMode, disabled: !obstacles.length && !multiMode },
+              ].map(({ key, label, Icon, on, run, disabled }) => (
+                <button
+                  key={key}
+                  onClick={run}
+                  disabled={disabled}
+                  aria-pressed={on}
+                  className={`flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 disabled:opacity-30 ${
+                    on ? "border-ink bg-tang" : "border-ink/15 bg-white"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="text-[9px] font-bold leading-tight">{label}</span>
+                </button>
+              ))}
+              <div className="mx-0.5 w-px shrink-0 self-stretch bg-ink/15" aria-hidden />
               {palette.map((def) => (
                 <button
                   key={def.type}
-                  onClick={() => setPlacing(placing === def.type ? null : def.type)}
+                  onClick={() => startPlacing(placing === def.type ? null : def.type)}
                   aria-pressed={placing === def.type}
                   aria-label={`Placera ${def.label.toLowerCase()}`}
                   className={`flex w-16 shrink-0 flex-col items-center gap-1 rounded-xl border-2 p-1.5 ${
                     placing === def.type ? "border-ink bg-tang" : "border-ink/10 bg-white"
                   }`}
                 >
-                  <svg viewBox="-3.6 -3.6 7.2 7.2" className="h-8 w-8">
-                    <ObstacleGlyph type={def.type} sw={0.2} />
-                  </svg>
+                  <ObstacleIcon type={def.type} className="h-8 w-8" />
                   <span className="text-[9px] font-bold leading-tight">{def.label}</span>
                 </button>
               ))}
             </div>
-            {placing && (
-              <button
-                onClick={() => setPlacing(null)}
-                className="mt-1.5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-ink/15 text-xs font-bold text-forest"
-              >
-                <X className="h-4 w-4" /> Avbryt placering av {getObstacleDefV2(placing)?.label.toLowerCase()}
-              </button>
-            )}
+            {/* Avbryt placering sker i bannern överst — ingen extra knapp här,
+                annars hoppar planen när dockan växer. */}
           </div>
         </main>
       </div>

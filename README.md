@@ -5,6 +5,9 @@ Ett smartare sätt att planera, träna och tävla i agility och hoopers — på 
 AgilityManager samlar:
 
 - **Banplaneraren** — rita banor i meterskala med regelkontroll, hundlinje, PDF/PNG-export och delningslänkar. Gratis och utan konto.
+  Banbyggarverktyg: numreringsläge (klicka hindren i ordning), flerval med markeringsruta, gruppflytt/-rotation,
+  justera och fördela, kopiera/klistra in, piltangenter, egenskapspanel med exakta mått, måttband och avstånd
+  mellan hinder längs banan.
 - **Banbibliotek & delade banor** — färdiga agility- och hoopersbanor att utgå från.
 - **Tävlingskalender** — svenska agility- och hooperstävlingar med filter, favoriter och hundmatchning.
 - **Träning** — träningsplaner, historik samt instruktörs- och elevflöden med uppgifter och feedback.
@@ -71,6 +74,9 @@ e2e/                      Playwright-tester
 
 Banplanerarens geometri, PDF-export och validering är känslig kod med egna
 regressionstester (`src/features/course-planner-v2/*.test.ts`) — ändra försiktigt.
+Redigeringslogiken (numrering, flerval, justering, urklipp, avståndsetiketter) ligger
+som rena funktioner i `src/features/course-planner-v2/editorOps.ts` och testas både
+med Vitest och i webbläsaren (`e2e/planner-tools.e2e.ts`).
 
 ## Viktiga routes
 

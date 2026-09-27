@@ -3,10 +3,10 @@
   "site": "agilitymanager",
   "content_id": "editorial-20260925-besoksunderlag-traning-annan-anlaggning",
   "author": "ChatGPT",
-  "status": "draft",
+  "status": "ready",
   "written_at": "2026-09-25T10:06:46.303229+00:00",
   "not_before": "2026-09-27",
-  "sources_checked_at": "2026-09-25T10:06:46.303229+00:00",
+  "sources_checked_at": "2026-09-27T07:45:44.373661+00:00",
   "search_intent": "Gruppens praktiska informationsunderlag inför ett bekräftat besök på annan träningsanläggning; skilt från banritning, tävlingsplan och träningsregler.",
   "source_urls": [
     "https://agilitymanager.se/banplanerare"
@@ -103,5 +103,7 @@
       "type": "p",
       "text": "Ni kan [öppna banplaneraren](/banplanerare) för arbetet med ritningen och behålla besöksunderlaget i gruppens vanliga dokument. AI-assisterad originalguide med en redaktionell arbetsmall. Texten utlovar ingen bokningsfunktion eller automatisk kontroll av anläggningens material och villkor."
     }
-  ]
+  ],
+  "publishedAt": "2026-09-27T07:45:44.373661+00:00",
+  "updatedAt": "2026-09-27T07:45:44.373661+00:00"
 }

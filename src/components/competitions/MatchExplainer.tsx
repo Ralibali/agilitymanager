@@ -39,7 +39,7 @@ export function MatchExplainer({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between gap-3 text-left"
+        className="-my-3 flex w-full items-center justify-between gap-3 py-3 text-left"
       >
         <span className="flex items-center gap-2 text-sm font-bold text-ink">
           <HelpCircle className="h-4 w-4 shrink-0 text-forest" />

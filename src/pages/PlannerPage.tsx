@@ -1789,6 +1789,7 @@ export default function PlannerPage() {
         description="Rita banor i meterskala direkt i webbläsaren. Hindereditor, live banlinje, PNG-export och delningslänkar för agility och hoopers — gratis, utan konto."
         canonicalPath="/banplanerare"
       />
+      <h1 className="sr-only">Banplanerare för agility och hoopers</h1>
       {/* ── Topprad ── */}
       <header className="z-40 shrink-0 border-b-2 border-ink bg-paper/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-[110rem] items-center gap-1.5 px-2 sm:gap-3 sm:px-5">

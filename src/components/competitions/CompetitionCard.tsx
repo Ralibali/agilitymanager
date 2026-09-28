@@ -21,14 +21,14 @@ export function CompetitionCard({ comp }: { comp: UnifiedCompetition }) {
       <Link to={comp.path} className="absolute inset-0 z-10 rounded-3xl" aria-label={comp.name} />
 
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <span
             className={`rounded-full px-3 py-1 text-[0.7rem] font-extrabold uppercase tracking-wider ${TONE_STYLE[deadline.tone]}`}
           >
             {deadline.label}
           </span>
           <MatchScoreBadge comp={comp} className="ml-2 align-middle" />
-          <h3 className="mt-3 text-2xl font-extrabold leading-tight tracking-tight">{comp.name}</h3>
+          <h3 className="mt-3 text-2xl font-extrabold leading-tight tracking-tight [overflow-wrap:anywhere]">{comp.name}</h3>
         </div>
         <span className="grid h-16 w-14 shrink-0 place-items-center rounded-2xl border-2 border-ink bg-cream text-center font-display leading-none">
           <span>
@@ -38,7 +38,7 @@ export function CompetitionCard({ comp }: { comp: UnifiedCompetition }) {
         </span>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1.5 text-sm font-semibold text-ink/55">
+      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1.5 text-sm font-semibold text-ink/55 [overflow-wrap:anywhere]">
         {comp.location && (
           <span className="flex items-center gap-1.5">
             <MapPin className="h-4 w-4 text-forest" /> {comp.location}

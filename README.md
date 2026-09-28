@@ -26,7 +26,7 @@ AgilityManager samlar:
 
 ```bash
 npm install
-npm run dev        # http://localhost:8080
+npm run dev        # http://localhost:3000
 ```
 
 ### Miljövariabler

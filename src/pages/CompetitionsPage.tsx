@@ -494,7 +494,7 @@ export default function CompetitionsPage() {
               </p>
               <div className="mt-3 h-0.5 w-full bg-ink/10" />
             </Reveal>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
               {ranked.map((c, i) => (
                 <Reveal key={c.key} delay={Math.min(i, 6) * 70}>
                   <CompetitionCard comp={c} />
@@ -559,7 +559,7 @@ export default function CompetitionsPage() {
               <p className="mt-2 text-sm leading-relaxed text-paper/70">
                 Fördjupa dig i bandesign, regler och träningsupplägg inför tävlingssäsongen.
               </p>
-              <Link to="/blogg" className="group mt-4 inline-flex items-center gap-2 text-sm font-bold text-paper hover:text-tang">
+              <Link to="/blogg" className="group -mb-3 mt-1 inline-flex items-center gap-2 py-3 text-sm font-bold text-paper hover:text-tang">
                 Läs guiderna
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>

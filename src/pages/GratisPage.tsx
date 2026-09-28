@@ -4,6 +4,7 @@ import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
+import { Seo } from "@/components/Seo";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
@@ -49,6 +50,20 @@ const FAQ = [
 export default function GratisPage() {
   return (
     <div className="min-h-screen bg-paper text-ink">
+      <Seo
+        title="Priser — banplaneraren är gratis | AgilityManager"
+        description="Banplaneraren för agility och hoopers är gratis: alla hinder, mallar, export, delningslänkar, banbibliotek och tävlingskalender. Inget konto eller kort behövs."
+        canonicalPath="/priser"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: FAQ.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }}
+      />
       <SiteNav />
       <PageHero kicker="Priser" title="Banplaneraren är gratis.">
         Ingen provperiod, inget konto och inget kort för att rita, exportera och dela.

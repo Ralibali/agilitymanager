@@ -137,8 +137,9 @@ test("tunnel: placera, böj, dra, ångra och ladda om", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect.poll(async () => (await draft(page))?.obstacles?.length).toBe(1);
 
-  // Markera tunneln och böj den.
-  await page.mouse.click(box.x + box.width * 0.45, box.y + box.height * 0.5);
+  // Markera tunneln (där den faktiskt ritas) och böj den.
+  const tunnel = page.locator("[data-obstacle-id]").first();
+  await tunnel.click();
   const slider = page.locator("input[type=range]").last();
   await slider.waitFor();
   await slider.fill("75");
@@ -147,9 +148,10 @@ test("tunnel: placera, böj, dra, ångra och ladda om", async ({ page }) => {
 
   // Dragning ska ge exakt ett ångra-steg och flytta hindret.
   const before = (await draft(page)).obstacles[0];
-  await page.mouse.move(box.x + box.width * 0.45, box.y + box.height * 0.5);
+  const tb = (await tunnel.boundingBox())!;
+  await page.mouse.move(tb.x + tb.width / 2, tb.y + tb.height / 2);
   await page.mouse.down();
-  await page.mouse.move(box.x + box.width * 0.62, box.y + box.height * 0.38, { steps: 12 });
+  await page.mouse.move(box.x + box.width * 0.62, box.y + box.height * 0.3, { steps: 12 });
   await page.mouse.up();
   await expect
     .poll(async () => {

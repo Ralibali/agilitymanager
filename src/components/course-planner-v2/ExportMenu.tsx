@@ -38,8 +38,8 @@ export function ExportMenu({
           aria-label="Ladda ner eller exportera bana"
         >
           <FileDown size={18} />
-          <span className="hidden sm:inline">Ladda ner</span>
-          <ChevronDown size={13} className="hidden opacity-70 sm:block" />
+          <span className="hidden lg:inline">Ladda ner</span>
+          <ChevronDown size={13} className="hidden opacity-70 lg:block" />
 
         </button>
       </DropdownMenuTrigger>

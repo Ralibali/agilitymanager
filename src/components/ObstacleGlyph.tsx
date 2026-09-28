@@ -213,3 +213,19 @@ export function ObstacleGlyph({
       return <rect x={-w / 2} y={-d / 2} width={w} height={d} {...s} />;
   }
 }
+
+/**
+ * Hindersymbol för paletter och knappar. viewBox anpassas efter hindrets
+ * verkliga storlek så att även små hinder (hopp, däck) fyller ikonen.
+ */
+export function ObstacleIcon({ type, className }: { type: ObstacleTypeV2; className?: string }) {
+  const def = getObstacleDefV2(type);
+  const w = def?.sizeM.w ?? 1;
+  const d = def?.sizeM.d ?? 1;
+  const e = Math.max(w, d, 0.9) / 2 + 0.5;
+  return (
+    <svg viewBox={`${-e} ${-e} ${2 * e} ${2 * e}`} className={className} aria-hidden="true">
+      <ObstacleGlyph type={type} sw={Math.max(0.07, e * 0.07)} />
+    </svg>
+  );
+}

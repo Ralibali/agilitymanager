@@ -78,7 +78,7 @@ export function SiteFooter() {
                     <li key={l.label}>
                       <Link
                         to={l.to}
-                        className="text-[0.95rem] font-medium text-paper/75 transition-colors hover:text-tang"
+                        className="-my-1.5 inline-block py-1.5 text-[0.95rem] font-medium text-paper/75 transition-colors hover:text-tang"
                       >
                         {l.label}
                       </Link>

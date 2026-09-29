@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "content_id": "restore-20260929-slalom-komplett-guide",
+  "author": "Claude",
+  "status": "ready",
+  "written_at": "2026-09-29T20:30:00Z",
+  "sources_checked_at": "2026-09-29T20:30:00Z",
+  "search_intent": "Lära sig vad regelverket kräver av slalom i agility och hur man tränar ingångar, rytm och självständighet steg för steg.",
+  "source_urls": [
+    "https://agilityklubben.se/wp-content/uploads/2022/02/REGLER_AGILITY-_TAVLINGAR_2022_2026.pdf",
+    "https://agilityklubben.se/regler/"
+  ],
+  "slug": "slalom-komplett-guide",
+  "title": "Slalom i agility: regler, ingångar och en träningsplan som håller",
+  "description": "Vad regelverket kräver av slalom, varför ingången avgör allt och hur du bygger rytm och självständighet steg för steg – från första pinnarna till tävling.",
+  "category": "Träning",
+  "readingMinutes": 8,
+  "related": [
+    "kontaktfalt-komplett-guide",
+    "distanshantering-agility",
+    "fran-banide-till-traningspass"
+  ],
+  "cta": {
+    "heading": "Rita slalomövningen",
+    "text": "Planera ingångarna från olika vinklar och hindren runt slalom i meterskala – gratis och utan konto.",
+    "label": "Öppna banplaneraren",
+    "to": "/banplanerare"
+  },
+  "blocks": [
+    {
+      "type": "p",
+      "text": "Slalom är det hinder som ofta tar längst tid att lära in. Hunden ska röra sig i ett mönster som inte är naturligt för den, i hög fart och oavsett var föraren befinner sig. Samtidigt är det ett hinder där tydlig och systematisk träning märks direkt. Här går vi igenom vad regelverket kräver och hur du kan lägga upp träningen."
+    },
+    {
+      "type": "callout",
+      "text": "Regeluppgifterna i guiden kommer från SAgiK:s [Regler för agilitytävlingar](https://agilityklubben.se/wp-content/uploads/2022/02/REGLER_AGILITY-_TAVLINGAR_2022_2026.pdf) som gäller 2022-01-01 till och med 2026-12-31. Kontrollera alltid aktuell version på [agilityklubben.se/regler](https://agilityklubben.se/regler/) – ett nytt regelverk kan gälla från 2027."
+    },
+    {
+      "type": "h2",
+      "text": "Det här kräver regelverket"
+    },
+    {
+      "type": "ul",
+      "items": [
+        "Slalom har 12 pinnar med 60 cm mellan pinnarna. Pinnarna är 100–120 cm höga och står på en rak linje i en skena.",
+        "Hunden ska ta varannan pinne från höger och varannan från vänster, och måste börja gå in i hindret på höger sida om den första pinnen.",
+        "Fel ingång, till exempel från fel håll, för långt fram eller i fel ände, ger vägran – och det delas ut vid varje felaktig ingång.",
+        "Går hunden fel väg inne i slalom blir det 5 fel, men den felbelastningen delas bara ut en gång. Hunden kan då börja om eller visas in senast i den port där den först gick fel.",
+        "Går hunden tillbaka mer än två portar baklänges blir det diskvalificering.",
+        "Slalom kan ingå i alla klasser, även hoppklass, men en bana får innehålla högst ett slalom som bara får utföras en gång."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Ingången avgör"
+    },
+    {
+      "type": "p",
+      "text": "De flesta fel i slalom uppstår i ingången. Hunden kommer ofta i fart från föregående hinder och ska hitta rätt port i en vinkel som domaren har valt. Därför lönar det sig att träna ingångar som en egen övning: ställ upp bara de första pinnarna och låt hunden hitta in från olika vinklar – rakt framifrån, från vänster, från höger och till sist i skarpa vinklar. Belöna varje korrekt ingång och håll passen korta."
+    },
+    {
+      "type": "p",
+      "text": "Tänk också på din egen position. Om du alltid står på samma sida när hunden går in, lär sig hunden att det är en del av uppgiften. Variera sida och avstånd så snart hunden förstår själva ingången."
+    },
+    {
+      "type": "h2",
+      "text": "Tre vanliga sätt att lära in slalom"
+    },
+    {
+      "type": "ul",
+      "items": [
+        "Öppna pinnar: pinnarna står först i två rader så att hunden springer genom en kanal. Kanalen smalnas av gradvis tills pinnarna står i linje. Metoden ger ofta fart framåt men kräver att du inte stannar för länge i det öppna läget.",
+        "Två pinnar i taget: hunden lär sig först att passera ett par pinnar rätt från olika vinklar, och sedan byggs fler par på. Metoden ger mycket träning på ingångar och passar den som gillar att dela upp inlärningen i små steg.",
+        "Alla pinnar med stöd: hunden går genom hela slalom från början med hjälp av föraren, belöning eller guider som tas bort gradvis. Det går ofta snabbt att få ett fungerande beteende, men självständigheten behöver byggas medvetet efteråt."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Ingen metod är rätt för alla hundar. Välj den som passar din hund och din vardag, och byt inte metod varje vecka – det är konsekvensen som ger resultat."
+    },
+    {
+      "type": "h2",
+      "text": "Rytm och självständighet"
+    },
+    {
+      "type": "p",
+      "text": "En slalom är tävlingsklar när hunden håller sin rytm oavsett vad föraren gör. Ett enkelt test är att börja slalom i normal fart och sedan sakta ner eller stanna halvvägs. Saktar hunden också ner, eller hoppar den ur, behöver självständigheten tränas mer."
+    },
+    {
+      "type": "ul",
+      "items": [
+        "Spring in i full fart och sakta ner tydligt mitt i slalom.",
+        "Följ med de första pinnarna och stanna sedan helt – kan hunden avsluta själv?",
+        "Byt sida, spring före eller hamna bakom hunden.",
+        "Lägg in hinder direkt före och efter slalom, så att hunden lär sig att slalom är samma uppgift även i en sekvens."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "En ungefärlig progressionsplan"
+    },
+    {
+      "type": "p",
+      "text": "Tiden varierar mycket mellan hundar, så se planen som en ordning snarare än ett schema. Gå vidare när det föregående steget fungerar stabilt."
+    },
+    {
+      "type": "ul",
+      "items": [
+        "Grunden: välj metod och lär in rörelsen utan krav på fart.",
+        "Fullt mönster: alla 12 pinnar i linje, med fart som ökar gradvis.",
+        "Ingångar: rakt, från båda sidor och i skarpa vinklar – först separat, sedan i sekvens.",
+        "Självständighet: variera din position, fart och sida.",
+        "Tävlingslikt: hinder före och efter, nya miljöer och underlag och belöning som inte finns synlig i närheten, eftersom godis inte får användas eller synas på banområdet vid tävling."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Följ upp träningen"
+    },
+    {
+      "type": "p",
+      "text": "Filma gärna några repetitioner då och då och titta på ingången, rytmen och din egen position. Rita upp övningen i [banplaneraren](/banplanerare) så att du kan upprepa samma vinklar nästa pass, och läs [guiden om kontaktfält](/blogg/kontaktfalt-komplett-guide) om du vill bygga en lika systematisk plan för A-hinder, balansbom och gungbräda."
+    }
+  ],
+  "editorial_review": {
+    "reviewed_at": "2026-09-29T20:30:00Z",
+    "restored_from": "Borttagen i redesignen 2026-08-15 (commit 08aa47dc). Ursprungligen publicerad 2026-04-10. Omskriven, inte kopierad.",
+    "source_review": "SAgiK:s Regler för agilitytävlingar 2022–2026 lästa 2026-09-29: §3.1 (högst ett slalom per bana, utförs en gång), §3.7 (godis på banområdet), §4.10 slalom (12 pinnar, 60 cm, 100–120 cm, ingång höger om första pinnen, hinderfel och diskvalificering). Den gamla textens beskrivning av metoder och vanliga misstag är omskriven utan namngivna personer eller påståenden om egna tester; tidsangivelser är ersatta med en ordningsföljd.",
+    "search_console": "Adressen hade fortfarande visningar och klick i Search Console (senaste 3 månaderna före 2026-09-29) men visade en tom sida.",
+    "distinct_intent_confirmed": true
+  },
+  "publishedAt": "2026-04-10T00:00:00Z",
+  "updatedAt": "2026-09-29T20:30:00Z"
+}

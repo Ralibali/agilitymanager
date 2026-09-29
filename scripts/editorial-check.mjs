@@ -6,7 +6,7 @@ const keys = new Set();
 const legacy = readFileSync('src/content/articles.ts', 'utf8');
 const fail = message => { throw new Error(message); };
 for (const a of entries) {
-  if (a.schema_version !== 1 || a.site !== 'agilitymanager' || a.author !== 'ChatGPT' || a.status !== 'ready') fail('Unreviewed article or wrong site');
+  if (a.schema_version !== 1 || a.site !== 'agilitymanager' || !['ChatGPT','Claude'].includes(a.author) || a.status !== 'ready') fail('Unreviewed article or wrong site');
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(a.slug) || legacy.includes(`slug: "${a.slug}"`)) fail('Invalid or duplicate slug');
   if (a.title.length < 15 || a.title.length > 140 || a.description.length < 60 || a.description.length > 180) fail('Invalid metadata');
   if (!['Banbyggande','Hoopers','Regler','Träning','Verktyg'].includes(a.category)) fail('Invalid category');

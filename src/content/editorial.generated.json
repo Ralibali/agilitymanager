@@ -231,6 +231,113 @@
   },
   {
     "schema_version": 1,
+    "site": "agilitymanager",
+    "content_id": "restore-20260929-distanshantering-agility",
+    "author": "Claude",
+    "status": "ready",
+    "written_at": "2026-09-29T20:30:00Z",
+    "sources_checked_at": "2026-09-29T20:30:00Z",
+    "search_intent": "Förstå varför distanshantering behövs i agility och hur man tränar skick framåt, lateralt avstånd och vinklar steg för steg.",
+    "source_urls": [
+      "https://agilityklubben.se/wp-content/uploads/2022/02/REGLER_AGILITY-_TAVLINGAR_2022_2026.pdf",
+      "https://agilityklubben.se/regler/"
+    ],
+    "slug": "distanshantering-agility",
+    "title": "Distanshantering i agility: så tränar du avstånd till hunden",
+    "description": "Varför distans spelar roll på en agilitybana och hur du bygger skick framåt, lateralt avstånd och vinklar steg för steg – utan att tappa hundens säkerhet.",
+    "category": "Träning",
+    "readingMinutes": 7,
+    "related": [
+      "slalom-komplett-guide",
+      "kontaktfalt-komplett-guide",
+      "avstand-och-vinklar-bandesign"
+    ],
+    "cta": {
+      "heading": "Rita en distansövning",
+      "text": "Lägg ut hindren i meterskala och markera var du ska stå – så ser du direkt hur långt hunden behöver jobba själv.",
+      "label": "Öppna banplaneraren",
+      "to": "/banplanerare"
+    },
+    "blocks": [
+      {
+        "type": "p",
+        "text": "Distanshantering betyder att du kan styra hunden utan att springa bredvid den vid varje hinder. Det handlar inte om att stå still och peka, utan om att hunden förstår sin uppgift så väl att den kan fortsätta framåt, ta hinder på avstånd och läsa din kropp även när du är några meter bort. Det gör dig friare att välja din egen väg på banan."
+      },
+      {
+        "type": "callout",
+        "text": "Regeluppgifterna i guiden kommer från SAgiK:s [Regler för agilitytävlingar](https://agilityklubben.se/wp-content/uploads/2022/02/REGLER_AGILITY-_TAVLINGAR_2022_2026.pdf) som gäller 2022-01-01 till och med 2026-12-31. Kontrollera alltid aktuell version på [agilityklubben.se/regler](https://agilityklubben.se/regler/) – ett nytt regelverk kan gälla från 2027."
+      },
+      {
+        "type": "h2",
+        "text": "Varför distans spelar roll"
+      },
+      {
+        "type": "p",
+        "text": "Enligt regelverket ska avståndet mellan hindren vara 6–8 meter mätt som hundens väg, och en bana består av 15–22 hinderpassager. Med en snabb hund blir det många meter på kort tid, och föraren hinner sällan vara först vid varje hinder. Kan hunden jobba på avstånd kan du ta en kortare väg, förbereda nästa sväng i tid eller hålla dig undan från en plats där du annars skulle stå i vägen."
+      },
+      {
+        "type": "p",
+        "text": "Distans är också ett sätt att undvika fel. Kontakt mellan förare och hund eller mellan förare och hinder som ger ekipaget en fördel ger 5 fel, och om hunden är ur förarens kontroll blir det diskvalificering. Ett lugnt och tydligt avstånd ger hunden utrymme att arbeta utan att du behöver vara i vägen."
+      },
+      {
+        "type": "h2",
+        "text": "Grundövningar"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Skick framåt till ett hinder: börja nära ett enkelt hinder och skicka hunden framåt med en tydlig gest. Belöna vid eller efter hindret, inte hos dig, så att hunden lär sig att uppgiften ligger framåt. Öka avståndet en liten bit i taget.",
+          "Lateralt avstånd: låt hunden ta ett hinder medan du rör dig på en parallell linje en bit ut från hindret. Börja med en meter och öka gradvis. Träna åt båda hållen.",
+          "Flera hinder i rad: ställ två eller tre hopphinder i en rak linje och skicka hunden genom raden medan du stannar kvar eller rör dig långsammare.",
+          "Tunnel på avstånd: en tunnel är ofta ett bra hinder att börja distansträna mot eftersom de flesta hundar gärna söker sig dit. Byt sedan till hopphinder och andra hinder."
+        ]
+      },
+      {
+        "type": "h2",
+        "text": "Vinklar och byten"
+      },
+      {
+        "type": "p",
+        "text": "När hunden kan jobba framåt och lateralt är nästa steg att hinder ligger i vinkel. Börja med svaga vinklar och gör dem skarpare gradvis. Träna också övningar där du byter riktning eller hamnar bakom hunden medan den fortsätter framåt. Regelverket kräver att föraren ska kunna passera varje hinder på båda sidor, så du kan alltid välja sida – men hunden behöver känna igen dina signaler från båda håll."
+      },
+      {
+        "type": "p",
+        "text": "Använd samma kroppsspråk varje gång. Hunden läser framför allt riktningen på dina axlar, fötter och armar. Om orden säger en sak och kroppen en annan följer hunden oftast kroppen."
+      },
+      {
+        "type": "h2",
+        "text": "Vanliga misstag"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Avståndet ökas för fort. Hunden blir osäker och börjar söka sig tillbaka till föraren. Gå tillbaka till ett avstånd där det fungerar och öka långsammare.",
+          "Belöningen kommer alltid från föraren. Då lönar det sig för hunden att vända tillbaka. Lägg belöningen framåt eller kasta den bortom hindret.",
+          "Övningarna är alltid raka. Hunden behöver träna på vinklar, byten och båda sidorna för att distansen ska fungera på en riktig bana.",
+          "Distans tränas bara när hunden är trött. Lägg distansövningarna tidigt i passet när hunden är pigg och fokuserad."
+        ]
+      },
+      {
+        "type": "h2",
+        "text": "Planera distansen i förväg"
+      },
+      {
+        "type": "p",
+        "text": "Det blir lättare att träna distans när du vet exakt hur övningen ser ut. Rita hindren i [banplaneraren](/banplanerare), markera var du ska stå och mät hur långt hunden behöver jobba själv. Guiden om [avstånd och vinklar i bandesign](/blogg/avstand-och-vinklar-bandesign) hjälper dig att välja rimliga avstånd, och [slalomguiden](/blogg/slalom-komplett-guide) visar hur samma tänkande om självständighet gäller ett av de svåraste hindren."
+      }
+    ],
+    "editorial_review": {
+      "reviewed_at": "2026-09-29T20:30:00Z",
+      "restored_from": "Borttagen i redesignen 2026-08-15 (commit 08aa47dc). Ursprungligen publicerad 2026-02-25. Omskriven, inte kopierad.",
+      "source_review": "SAgiK:s Regler för agilitytävlingar 2022–2026 lästa 2026-09-29: §3.1 (15–22 hinderpassager, 6–8 m mellan hindren som hundens väg, föraren passerar på båda sidor), §3.6 (kontakt förare–hund och förare–hinder som ger fördel, 5 fel), §3.7 (hunden ur förarens kontroll, diskvalificering). Övningarna är allmänna träningsråd omskrivna från den gamla texten; inga påståenden om egna tester, avstånd i meter per vecka eller länkar till borttagna artiklar.",
+      "search_console": "Adressen hade fortfarande visningar och klick i Search Console (senaste 3 månaderna före 2026-09-29) men visade en tom sida.",
+      "distinct_intent_confirmed": true
+    },
+    "publishedAt": "2026-02-25T00:00:00Z",
+    "updatedAt": "2026-09-29T20:30:00Z"
+  },
+  {
+    "schema_version": 1,
     "content_id": "editorial-20260906-jamfora-banversioner-agility",
     "author": "ChatGPT",
     "status": "ready",
@@ -342,6 +449,141 @@
       "to": "/banplanerare",
       "label": "Öppna banplaneraren"
     }
+  },
+  {
+    "schema_version": 1,
+    "site": "agilitymanager",
+    "content_id": "restore-20260929-kontaktfalt-komplett-guide",
+    "author": "Claude",
+    "status": "ready",
+    "written_at": "2026-09-29T20:30:00Z",
+    "sources_checked_at": "2026-09-29T20:30:00Z",
+    "search_intent": "Förstå vad som gäller för kontaktfält på A-hinder, balansbom och gungbräda och hur man tränar en stabil kontakt som håller på tävling.",
+    "source_urls": [
+      "https://agilityklubben.se/wp-content/uploads/2022/02/REGLER_AGILITY-_TAVLINGAR_2022_2026.pdf",
+      "https://agilityklubben.se/regler/"
+    ],
+    "slug": "kontaktfalt-komplett-guide",
+    "title": "Kontaktfält i agility: A-hinder, balansbom och gungbräda – regler och träning",
+    "description": "Så fungerar kontaktfälten på A-hinder, balansbom och gungbräda enligt SAgiK:s regler, och så bygger du en stabil kontakt steg för steg.",
+    "category": "Träning",
+    "readingMinutes": 8,
+    "related": [
+      "slalom-komplett-guide",
+      "distanshantering-agility",
+      "bygga-saker-traningsbana-agility"
+    ],
+    "cta": {
+      "heading": "Planera kontaktträningen",
+      "text": "Rita en övning med kontaktfältshindret, hindren före och efter och var du själv ska stå – gratis och utan konto.",
+      "label": "Öppna banplaneraren",
+      "to": "/banplanerare"
+    },
+    "blocks": [
+      {
+        "type": "p",
+        "text": "Kontaktfälten är en av de vanligaste anledningarna till fel på en agilitybana. Hunden kan springa en i övrigt perfekt bana och ändå få 5 fel för en tass som landade några centimeter för högt på nedfarten. Den här guiden går igenom vad regelverket faktiskt kräver av de tre kontaktfältshindren och hur du kan bygga en kontakt som håller även när farten och nerverna är på topp."
+      },
+      {
+        "type": "callout",
+        "text": "Regeluppgifterna i guiden kommer från SAgiK:s [Regler för agilitytävlingar](https://agilityklubben.se/wp-content/uploads/2022/02/REGLER_AGILITY-_TAVLINGAR_2022_2026.pdf) som gäller 2022-01-01 till och med 2026-12-31. Kontrollera alltid aktuell version på [agilityklubben.se/regler](https://agilityklubben.se/regler/) – ett nytt regelverk kan gälla från 2027."
+      },
+      {
+        "type": "h2",
+        "text": "Vad är ett kontaktfält?"
+      },
+      {
+        "type": "p",
+        "text": "Kontaktfälten är de markerade zonerna längst ned i båda ändarna av A-hindret, balansbommen och gungbrädan. Enligt regelverket ska de ha en klart avvikande färg som även är markerad på hindrets sidor. Grundregeln är densamma för alla tre hindren: hunden ska vidröra kontaktfältet på nedfarten med minst en del av en tass. Missar hunden det blir det 5 fel. Regelverket tillåter också elektroniska kontaktfält som är godkända av SAgiK."
+      },
+      {
+        "type": "p",
+        "text": "Kontaktfältshindren finns bara i agilityklasserna. I agilityklass 1 innehåller banan 2–3 passager av kontaktfältshinder och i klass 2 och 3 är det 2–4 passager. Minst två olika kontaktfältshinder ska ingå i alla agilityklasser. I hoppklass ingår varken A-hinder, balansbom eller gungbräda."
+      },
+      {
+        "type": "h2",
+        "text": "De tre hindren enligt regelverket"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "A-hinder: höjd 160 cm och kontaktfält på 106 cm. Hunden ska vidröra uppfartssidan (annars vägran) och kontaktfältet på nedfartssidan (annars 5 fel). Hoppar hunden av på uppfartssidan blir det vägran, och passerar den nocken och nedfarten utan att beröra nedfarten blir det diskvalificering.",
+          "Balansbom: bredd 30 cm, höjd 120–130 cm, delar på 360–380 cm och kontaktfält på 90 cm. Hunden ska vidröra uppfarten (annars vägran) och kontaktfältet på nedfarten (annars 5 fel). Hoppar hunden av innan den nått nedfarten, alltså sista tredjedelen av hindret, blir det vägran.",
+          "Gungbräda: bredd 30 cm, längd 360–380 cm och kontaktfält på 90 cm. Hunden ska ha alla fyra tassar på brädan före mittlinjen (annars vägran) och vidröra kontaktfältet på nedfarten (annars 5 fel). Hoppar hunden av innan brädan har slagit i marken blir det 5 fel. Med 1 kg placerat på nedfartens kontaktfält ska brädan nå marken på 2–3 sekunder."
+        ]
+      },
+      {
+        "type": "p",
+        "text": "Regelverket säger också att A-hinder, balansbom och gungbräda ska placeras så att banans naturliga linje ger hunden en rak ansats mot hindret. Det är värt att tänka på när du bygger egna övningar: en rak, lugn ingång i början och svårare vinklar först när kontakten sitter."
+      },
+      {
+        "type": "h2",
+        "text": "Stoppad eller rinnande kontakt"
+      },
+      {
+        "type": "p",
+        "text": "Regelverket bryr sig bara om att tassen vidrör kontaktfältet – inte om hur hunden gör det. I praktiken finns två huvudvägar, och det viktigaste är att du väljer en och är konsekvent. Blandade kriterier är en vanlig orsak till att kontakter börjar slira."
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Stoppad kontakt: hunden stannar i en bestämd position i kontaktfältet, till exempel med framtassarna på marken och baktassarna kvar på hindret. Kriteriet är lätt för både hund och förare att se, och det håller ofta bra under tävlingsstress. Nackdelen är att stoppet kostar tid och att du behöver ett tydligt frisläpp.",
+          "Rinnande kontakt: hunden springer igenom kontaktfältet i full fart med ett inlärt steg som landar i zonen. Det sparar tid men är krävande att lära in och svårare att bedöma med blotta ögat. Många som tränar rinnande kontakt filmar sina pass för att se var tassarna faktiskt landar."
+        ]
+      },
+      {
+        "type": "h2",
+        "text": "Träna kontakten steg för steg"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Lär in slutpositionen utan hinder. Använd en låg bräda eller platta på marken och belöna hunden för att hitta rätt position. Belöningen placeras så att hunden tittar framåt, inte upp mot dig.",
+          "Flytta positionen till hindret i låg höjd. Börja på nedfarten nära marken och bygg bakåt tills hunden tar hela hindret.",
+          "Öka farten i små steg: gång, trav, lugn löpning och till sist full fart. Gå vidare först när det föregående steget är stabilt.",
+          "Variera din egen position. Spring före, bakom och på båda sidor om hindret, eftersom regelverket kräver att föraren ska kunna passera varje hinder på båda sidor.",
+          "Lägg till hinder före och efter, och till sist nya miljöer och underlag."
+        ]
+      },
+      {
+        "type": "p",
+        "text": "Gungbrädan är speciell eftersom den rör sig och låter. Låt hunden vänja sig vid rörelsen i små doser, till exempel med en bräda som bara tippar några centimeter, och pressa aldrig en tveksam hund upp på brädan. En hund som blivit rädd för gungan kan behöva lång tid för att bli trygg igen."
+      },
+      {
+        "type": "h2",
+        "text": "Vanliga problem och vad du kan göra"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Hunden hoppar av före kontaktfältet: sänk farten i träningen, gå tillbaka ett steg i inlärningen och belöna rätt tassplacering oftare.",
+          "Hunden tvekar eller stannar mitt på hindret: sänk höjden eller svårigheten och bygg tillbaka tryggheten innan du ökar farten igen.",
+          "Kontakten håller hemma men inte på tävling: godis får inte användas eller synas på banområdet vid tävling. Träna därför upprepningar där belöningen kommer senare eller från en annan plats, så att hunden inte väntar på godis i kontaktfältet.",
+          "Kontakten slirar efter en tid: det är vanligt när kriteriet inte underhålls. Gör några korta repetitioner med höga krav på positionen i varje pass."
+        ]
+      },
+      {
+        "type": "h2",
+        "text": "Underhåll och säkerhet"
+      },
+      {
+        "type": "p",
+        "text": "En kontakt är färskvara. Lägg in några repetitioner i varje pass, även när fokus ligger på annat, och gå tillbaka till lugn grundträning då och då. Tänk också på utrustningen: regelverket kräver att kontaktfältshindren är stabila, inte sviktar och har halkfri yta. Samma krav är rimliga på träningshinder, och [guiden om säkra träningsbanor](/blogg/bygga-saker-traningsbana-agility) tar upp fler saker att kontrollera."
+      },
+      {
+        "type": "p",
+        "text": "När du planerar ett pass hjälper det att rita upp övningen i förväg: var ligger kontaktfältshindret, vilka hinder kommer före och efter, och var ska du stå? I [banplaneraren](/banplanerare) kan du rita övningen i meterskala och dela den med träningsgruppen."
+      }
+    ],
+    "editorial_review": {
+      "reviewed_at": "2026-09-29T20:30:00Z",
+      "restored_from": "Borttagen i redesignen 2026-08-15 (commit 08aa47dc). Ursprungligen publicerad 2026-04-04. Omskriven, inte kopierad.",
+      "source_review": "SAgiK:s Regler för agilitytävlingar 2022–2026 lästa 2026-09-29: §2.3 Klasser (kontaktfältshinder per klass), §3.1 (rak ansats, förare passerar på båda sidor), §3.7 (godis på banområdet), §4.2 A-hinder (160 cm, kontaktfält 106 cm, hinderfel), §4.3 balansbom (30 cm, 120–130 cm, kontaktfält 90 cm, hinderfel), §4.4 gungbräda (30 cm, 360–380 cm, kontaktfält 90 cm, 2–3 s, hinderfel). Den gamla texten angav felaktigt A-hindrets höjd till cirka 170 cm och balansbommens bredd till cirka 12 cm; båda är rättade. Träningsråden är allmänna och påstår inga egna tester.",
+      "search_console": "Adressen hade fortfarande visningar och klick i Search Console (senaste 3 månaderna före 2026-09-29) men visade en tom sida.",
+      "distinct_intent_confirmed": true
+    },
+    "publishedAt": "2026-04-04T00:00:00Z",
+    "updatedAt": "2026-09-29T20:30:00Z"
   },
   {
     "schema_version": 1,
@@ -603,6 +845,141 @@
     },
     "publishedAt": "2026-09-15T17:30:27Z",
     "updatedAt": "2026-09-15T17:30:27Z"
+  },
+  {
+    "schema_version": 1,
+    "site": "agilitymanager",
+    "content_id": "restore-20260929-slalom-komplett-guide",
+    "author": "Claude",
+    "status": "ready",
+    "written_at": "2026-09-29T20:30:00Z",
+    "sources_checked_at": "2026-09-29T20:30:00Z",
+    "search_intent": "Lära sig vad regelverket kräver av slalom i agility och hur man tränar ingångar, rytm och självständighet steg för steg.",
+    "source_urls": [
+      "https://agilityklubben.se/wp-content/uploads/2022/02/REGLER_AGILITY-_TAVLINGAR_2022_2026.pdf",
+      "https://agilityklubben.se/regler/"
+    ],
+    "slug": "slalom-komplett-guide",
+    "title": "Slalom i agility: regler, ingångar och en träningsplan som håller",
+    "description": "Vad regelverket kräver av slalom, varför ingången avgör allt och hur du bygger rytm och självständighet steg för steg – från första pinnarna till tävling.",
+    "category": "Träning",
+    "readingMinutes": 8,
+    "related": [
+      "kontaktfalt-komplett-guide",
+      "distanshantering-agility",
+      "fran-banide-till-traningspass"
+    ],
+    "cta": {
+      "heading": "Rita slalomövningen",
+      "text": "Planera ingångarna från olika vinklar och hindren runt slalom i meterskala – gratis och utan konto.",
+      "label": "Öppna banplaneraren",
+      "to": "/banplanerare"
+    },
+    "blocks": [
+      {
+        "type": "p",
+        "text": "Slalom är det hinder som ofta tar längst tid att lära in. Hunden ska röra sig i ett mönster som inte är naturligt för den, i hög fart och oavsett var föraren befinner sig. Samtidigt är det ett hinder där tydlig och systematisk träning märks direkt. Här går vi igenom vad regelverket kräver och hur du kan lägga upp träningen."
+      },
+      {
+        "type": "callout",
+        "text": "Regeluppgifterna i guiden kommer från SAgiK:s [Regler för agilitytävlingar](https://agilityklubben.se/wp-content/uploads/2022/02/REGLER_AGILITY-_TAVLINGAR_2022_2026.pdf) som gäller 2022-01-01 till och med 2026-12-31. Kontrollera alltid aktuell version på [agilityklubben.se/regler](https://agilityklubben.se/regler/) – ett nytt regelverk kan gälla från 2027."
+      },
+      {
+        "type": "h2",
+        "text": "Det här kräver regelverket"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Slalom har 12 pinnar med 60 cm mellan pinnarna. Pinnarna är 100–120 cm höga och står på en rak linje i en skena.",
+          "Hunden ska ta varannan pinne från höger och varannan från vänster, och måste börja gå in i hindret på höger sida om den första pinnen.",
+          "Fel ingång, till exempel från fel håll, för långt fram eller i fel ände, ger vägran – och det delas ut vid varje felaktig ingång.",
+          "Går hunden fel väg inne i slalom blir det 5 fel, men den felbelastningen delas bara ut en gång. Hunden kan då börja om eller visas in senast i den port där den först gick fel.",
+          "Går hunden tillbaka mer än två portar baklänges blir det diskvalificering.",
+          "Slalom kan ingå i alla klasser, även hoppklass, men en bana får innehålla högst ett slalom som bara får utföras en gång."
+        ]
+      },
+      {
+        "type": "h2",
+        "text": "Ingången avgör"
+      },
+      {
+        "type": "p",
+        "text": "De flesta fel i slalom uppstår i ingången. Hunden kommer ofta i fart från föregående hinder och ska hitta rätt port i en vinkel som domaren har valt. Därför lönar det sig att träna ingångar som en egen övning: ställ upp bara de första pinnarna och låt hunden hitta in från olika vinklar – rakt framifrån, från vänster, från höger och till sist i skarpa vinklar. Belöna varje korrekt ingång och håll passen korta."
+      },
+      {
+        "type": "p",
+        "text": "Tänk också på din egen position. Om du alltid står på samma sida när hunden går in, lär sig hunden att det är en del av uppgiften. Variera sida och avstånd så snart hunden förstår själva ingången."
+      },
+      {
+        "type": "h2",
+        "text": "Tre vanliga sätt att lära in slalom"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Öppna pinnar: pinnarna står först i två rader så att hunden springer genom en kanal. Kanalen smalnas av gradvis tills pinnarna står i linje. Metoden ger ofta fart framåt men kräver att du inte stannar för länge i det öppna läget.",
+          "Två pinnar i taget: hunden lär sig först att passera ett par pinnar rätt från olika vinklar, och sedan byggs fler par på. Metoden ger mycket träning på ingångar och passar den som gillar att dela upp inlärningen i små steg.",
+          "Alla pinnar med stöd: hunden går genom hela slalom från början med hjälp av föraren, belöning eller guider som tas bort gradvis. Det går ofta snabbt att få ett fungerande beteende, men självständigheten behöver byggas medvetet efteråt."
+        ]
+      },
+      {
+        "type": "p",
+        "text": "Ingen metod är rätt för alla hundar. Välj den som passar din hund och din vardag, och byt inte metod varje vecka – det är konsekvensen som ger resultat."
+      },
+      {
+        "type": "h2",
+        "text": "Rytm och självständighet"
+      },
+      {
+        "type": "p",
+        "text": "En slalom är tävlingsklar när hunden håller sin rytm oavsett vad föraren gör. Ett enkelt test är att börja slalom i normal fart och sedan sakta ner eller stanna halvvägs. Saktar hunden också ner, eller hoppar den ur, behöver självständigheten tränas mer."
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Spring in i full fart och sakta ner tydligt mitt i slalom.",
+          "Följ med de första pinnarna och stanna sedan helt – kan hunden avsluta själv?",
+          "Byt sida, spring före eller hamna bakom hunden.",
+          "Lägg in hinder direkt före och efter slalom, så att hunden lär sig att slalom är samma uppgift även i en sekvens."
+        ]
+      },
+      {
+        "type": "h2",
+        "text": "En ungefärlig progressionsplan"
+      },
+      {
+        "type": "p",
+        "text": "Tiden varierar mycket mellan hundar, så se planen som en ordning snarare än ett schema. Gå vidare när det föregående steget fungerar stabilt."
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Grunden: välj metod och lär in rörelsen utan krav på fart.",
+          "Fullt mönster: alla 12 pinnar i linje, med fart som ökar gradvis.",
+          "Ingångar: rakt, från båda sidor och i skarpa vinklar – först separat, sedan i sekvens.",
+          "Självständighet: variera din position, fart och sida.",
+          "Tävlingslikt: hinder före och efter, nya miljöer och underlag och belöning som inte finns synlig i närheten, eftersom godis inte får användas eller synas på banområdet vid tävling."
+        ]
+      },
+      {
+        "type": "h2",
+        "text": "Följ upp träningen"
+      },
+      {
+        "type": "p",
+        "text": "Filma gärna några repetitioner då och då och titta på ingången, rytmen och din egen position. Rita upp övningen i [banplaneraren](/banplanerare) så att du kan upprepa samma vinklar nästa pass, och läs [guiden om kontaktfält](/blogg/kontaktfalt-komplett-guide) om du vill bygga en lika systematisk plan för A-hinder, balansbom och gungbräda."
+      }
+    ],
+    "editorial_review": {
+      "reviewed_at": "2026-09-29T20:30:00Z",
+      "restored_from": "Borttagen i redesignen 2026-08-15 (commit 08aa47dc). Ursprungligen publicerad 2026-04-10. Omskriven, inte kopierad.",
+      "source_review": "SAgiK:s Regler för agilitytävlingar 2022–2026 lästa 2026-09-29: §3.1 (högst ett slalom per bana, utförs en gång), §3.7 (godis på banområdet), §4.10 slalom (12 pinnar, 60 cm, 100–120 cm, ingång höger om första pinnen, hinderfel och diskvalificering). Den gamla textens beskrivning av metoder och vanliga misstag är omskriven utan namngivna personer eller påståenden om egna tester; tidsangivelser är ersatta med en ordningsföljd.",
+      "search_console": "Adressen hade fortfarande visningar och klick i Search Console (senaste 3 månaderna före 2026-09-29) men visade en tom sida.",
+      "distinct_intent_confirmed": true
+    },
+    "publishedAt": "2026-04-10T00:00:00Z",
+    "updatedAt": "2026-09-29T20:30:00Z"
   },
   {
     "schema_version": 1,

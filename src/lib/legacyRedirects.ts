@@ -10,6 +10,9 @@ export const LEGACY_REDIRECTS: Record<string, string> = {
   "/blogg/agility-regler-sverige": "/blogg/regelverk-agility-hoopers-sverige",
   "/hoopers-regler": "/blogg/regelverk-agility-hoopers-sverige",
   "/hoopers": "/blogg/hoopers-for-nyborjare",
+  // Tunna äldre hoopersartiklar med samma sökavsikt som den befintliga guiden.
+  "/blogg/hoopers-hund": "/blogg/hoopers-for-nyborjare",
+  "/blogg/borja-med-hoopers": "/blogg/hoopers-for-nyborjare",
   "/klubb": "/klubbar",
   "/coach": "/instruktor",
   "/hjalp/resultathamtning": "/resultat",

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import {
   ArrowRight, CalendarDays, CloudUpload, LayoutGrid, LogIn, LogOut, NotebookPen,
-  ShieldCheck, UserRound, Users,
+  ShieldCheck, Trophy, UserRound, Users,
 } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -24,6 +24,7 @@ const SHORTCUTS = [
   { to: "/banor", icon: NotebookPen, title: "Banbibliotek", text: "Färdiga agility- och hoopersbanor att utgå från." },
   { to: "/delade-banor", icon: Users, title: "Delade banor", text: "Banor du och andra har delat med länk." },
   { to: "/tavlingar/favoriter", icon: CalendarDays, title: "Favorittävlingar", text: "Tävlingarna du sparat i kalendern." },
+  { to: "/resultat", icon: Trophy, title: "Resultat & meriter", text: "Dina lopp, felfria, placeringar och meriter." },
   { to: "/traning", icon: NotebookPen, title: "Träning", text: "Träningsplaner, pass och historik." },
   { to: "/instruktor", icon: Users, title: "Instruktör", text: "Grupper, elever, uppgifter och feedback." },
 ];

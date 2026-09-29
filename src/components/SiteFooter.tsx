@@ -27,6 +27,7 @@ const COLS: { title: string; links: { to: string; label: string }[] }[] = [
       { to: "/mitt-agilitymanager", label: "Konto & banprofil" },
       { to: "/banor", label: "Sparade banor" },
       { to: "/tavlingar/favoriter", label: "Favorittävlingar" },
+      { to: "/resultat", label: "Resultat & meriter" },
       { to: "/traning", label: "Träningshistorik" },
     ],
   },
@@ -34,6 +35,7 @@ const COLS: { title: string; links: { to: string; label: string }[] }[] = [
     title: "Tävling & träning",
     links: [
       { to: "/tavlingar", label: "Tävlingskalender" },
+      { to: "/klubbar", label: "Klubbar" },
       { to: "/traning", label: "Träning" },
       { to: "/instruktor", label: "Instruktör" },
       { to: "/banplanerare?sport=hoopers", label: "Hoopers" },

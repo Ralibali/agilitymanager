@@ -35,10 +35,26 @@ export const COUNTIES: CountyInfo[] = [
   { name: "Östergötlands", slug: "ostergotlands", lat: 58.4, lng: 15.6 },
 ];
 
+/** Hittar länet oavsett stavning: "Stockholm", "Stockholms", "Stockholms län". */
+function findCounty(name: string): CountyInfo | undefined {
+  const s = slugify(name.replace(/\s+län\s*$/i, ""));
+  if (!s) return undefined;
+  return COUNTIES.find((c) => c.slug === s || c.slug === `${s}s`);
+}
+
+/**
+ * Ger länets namn i samma form som COUNTIES ("Stockholms"), så att samma län
+ * inte delas upp i flera när källorna stavar olika. Okända namn behålls.
+ */
+export function normalizeCounty(name: string | null | undefined): string | null {
+  const trimmed = name?.trim();
+  if (!trimmed) return null;
+  return findCounty(trimmed)?.name ?? trimmed;
+}
+
 export function countySlug(name: string | null | undefined): string {
   if (!name) return "";
-  const known = COUNTIES.find((c) => c.name.toLowerCase() === name.trim().toLowerCase());
-  return known ? known.slug : slugify(name);
+  return findCounty(name)?.slug ?? slugify(name);
 }
 
 export function countyFromSlug(slug: string | undefined): CountyInfo | null {

@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { Link, useParams } from "react-router";
 import { CompetitionLanding } from "@/components/competitions/CompetitionLanding";
 import { NotFound } from "./NotFound";
+import { countySeo } from "@/lib/competitionSeo";
 import { COUNTIES, countyFromSlug, countySlug } from "@/lib/swedishCounties";
 import type { UnifiedCompetition } from "@/lib/competitionData";
 
@@ -17,15 +18,16 @@ export default function CountyCompetitionsPage() {
   if (!county) return <NotFound />;
 
   const label = `${county.name} län`;
+  const seo = countySeo(county);
 
   return (
     <CompetitionLanding
       kicker="Tävlingar i länet"
       title={`Agility & hoopers i ${county.name}.`}
       intro={`Alla kommande agility- och hooperstävlingar i ${label} — med datum, klasser, domare och sista anmälningsdag. Listan uppdateras automatiskt från arrangörernas källor.`}
-      seoTitle={`Agilitytävlingar i ${label} 2026 | AgilityManager`}
-      seoDescription={`Kommande agility- och hooperstävlingar i ${label}: datum, arrangör, klasser, domare och sista anmälningsdag. Uppdateras automatiskt.`}
-      canonicalPath={`/tavlingar/lan/${county.slug}`}
+      seoTitle={seo.title}
+      seoDescription={seo.description}
+      canonicalPath={seo.canonicalPath}
       match={match}
       emptyText={`Inga kommande tävlingar i ${label} just nu — kolla hela kalendern eller ett grannlän.`}
     >

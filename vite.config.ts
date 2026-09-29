@@ -71,6 +71,7 @@ export default defineConfig({
   }, closeBundle() {
     execFileSync(process.execPath, ["scripts/prerender-editorial.mjs"], { stdio: "inherit" });
     execFileSync(process.execPath, ["scripts/prerender-insurance.mjs"], { stdio: "inherit" });
+    execFileSync(process.execPath, ["scripts/prerender-competitions.mjs"], { stdio: "inherit" });
   } }],
   server: {
     port: 3000,

@@ -90,6 +90,11 @@ export function Seo({
   }, [title, description, canonicalPath, noIndex, ogType, publishedAt, updatedAt]);
 
   useEffect(() => {
+    // Förrenderad HTML har egen JSON-LD. När appen tar över ersätts den av
+    // sidans egen, annars dubbleras datan — eller hänger kvar på nästa sida.
+    document.head
+      .querySelectorAll('script[type="application/ld+json"]:not([data-seo])')
+      .forEach((el) => el.remove());
     if (!jsonLd) return;
     const script = document.createElement("script");
     script.type = "application/ld+json";

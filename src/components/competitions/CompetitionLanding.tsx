@@ -8,11 +8,14 @@ import { Reveal } from "@/components/Reveal";
 import { Seo, SITE_URL } from "@/components/Seo";
 import { CompetitionCard } from "./CompetitionCard";
 import {
-  deadlineInfo,
   fetchUpcomingCompetitions,
   monthLabel,
+  registrationOpen,
   type UnifiedCompetition,
 } from "@/lib/competitionData";
+
+/** Text som kan bero på vilka tävlingar som hittades, t.ex. klubbens riktiga namn. */
+type LandingText = string | ((comps: UnifiedCompetition[]) => string);
 
 /**
  * Generisk landningssida för en delmängd tävlingar (län eller klubb).
@@ -30,13 +33,13 @@ export function CompetitionLanding({
   children,
 }: {
   kicker: string;
-  title: string;
-  intro: string;
-  seoTitle: string;
-  seoDescription: string;
+  title: LandingText;
+  intro: LandingText;
+  seoTitle: LandingText;
+  seoDescription: LandingText;
   canonicalPath: string;
   match: (c: UnifiedCompetition) => boolean;
-  emptyText: string;
+  emptyText: LandingText;
   children?: (comps: UnifiedCompetition[]) => React.ReactNode;
 }) {
   const [all, setAll] = useState<UnifiedCompetition[]>([]);
@@ -57,7 +60,9 @@ export function CompetitionLanding({
   }, []);
 
   const comps = useMemo(() => all.filter(match), [all, match]);
-  const openCount = comps.filter((c) => deadlineInfo(c.registrationCloses).tone !== "closed").length;
+  const text = (value: LandingText) => (typeof value === "function" ? value(comps) : value);
+  const seoTitleText = text(seoTitle);
+  const openCount = comps.filter((c) => registrationOpen(c.registrationCloses)).length;
 
   const groups = useMemo(() => {
     const byMonth = new Map<string, UnifiedCompetition[]>();
@@ -72,7 +77,7 @@ export function CompetitionLanding({
     () => ({
       "@context": "https://schema.org",
       "@type": "ItemList",
-      name: seoTitle,
+      name: seoTitleText,
       itemListElement: comps.slice(0, 25).map((c, i) => ({
         "@type": "ListItem",
         position: i + 1,
@@ -80,20 +85,20 @@ export function CompetitionLanding({
         url: `${SITE_URL}${c.path}`,
       })),
     }),
-    [comps, seoTitle],
+    [comps, seoTitleText],
   );
 
   return (
     <div className="min-h-screen bg-paper text-ink">
       <Seo
-        title={seoTitle}
-        description={seoDescription}
+        title={seoTitleText}
+        description={text(seoDescription)}
         canonicalPath={canonicalPath}
         jsonLd={comps.length > 0 ? jsonLd : undefined}
       />
       <SiteNav />
-      <PageHero kicker={kicker} title={title}>
-        {intro}
+      <PageHero kicker={kicker} title={text(title)}>
+        {text(intro)}
       </PageHero>
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
@@ -112,7 +117,7 @@ export function CompetitionLanding({
         </Reveal>
 
         {!loading && comps.length === 0 && (
-          <p className="mt-12 text-lg font-semibold text-ink/50">{emptyText}</p>
+          <p className="mt-12 text-lg font-semibold text-ink/50">{text(emptyText)}</p>
         )}
 
         {groups.map(([month, list]) => (
@@ -121,7 +126,7 @@ export function CompetitionLanding({
               <h2 className="font-display text-5xl capitalize tracking-wide">{month}</h2>
               <div className="mt-3 h-0.5 w-full bg-ink/10" />
             </Reveal>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
               {list.map((c, i) => (
                 <Reveal key={c.key} delay={Math.min(i, 6) * 70}>
                   <CompetitionCard comp={c} />

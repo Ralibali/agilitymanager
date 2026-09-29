@@ -12,7 +12,6 @@ import { AuthDialog } from "@/components/AuthDialog";
 import { PlannerProfileDialog } from "@/features/planner-social/PlannerProfileDialog";
 import { usePlannerProfile } from "@/lib/plannerProfile";
 import { useAuth } from "@/hooks/useAuth";
-import { track } from "@/lib/analytics";
 
 /**
  * "Mitt AgilityManager" — en enda ingång till konto, banprofil och de
@@ -139,7 +138,6 @@ export default function AccountPage() {
       <AuthDialog
         open={authOpen}
         onOpenChange={setAuthOpen}
-        onDone={() => track("account_created")}
       />
       <PlannerProfileDialog
         open={profileOpen}

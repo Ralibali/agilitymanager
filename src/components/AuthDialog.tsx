@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { LogIn, Mail, Lock, UserPlus, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { track } from "@/lib/analytics";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -37,8 +38,10 @@ export function AuthDialog({
         onOpenChange(false);
         onDone?.();
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
+        // Supabase can return an empty identities array for an existing account.
+        if (data.user && data.user.identities?.length !== 0) track("account_created");
         setNotice("Kolla din e-post — bekräfta kontot och logga sedan in.");
         setMode("login");
       }

@@ -1402,7 +1402,6 @@ export default function PlannerPage() {
   };
 
   const exportPNG = () => {
-    track("course_exported", { format: "png" });
     const svg = svgRef.current;
     if (!svg) return;
     const clone = svg.cloneNode(true) as SVGSVGElement;
@@ -1430,6 +1429,7 @@ export default function PlannerPage() {
         a.href = URL.createObjectURL(png);
         a.download = `${name || "bana"}.png`;
         a.click();
+        track("course_exported", { format: "png" });
         setTimeout(() => URL.revokeObjectURL(a.href), 4000);
       }, "image/png");
     };

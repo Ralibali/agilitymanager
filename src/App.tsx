@@ -16,6 +16,8 @@ const FeaturesPage = lazy(() => import("./pages/FeaturesPage"));
 const GratisPage = lazy(() => import("./pages/GratisPage"));
 const CompetitionsPage = lazy(() => import("./pages/CompetitionsPage"));
 const FavoriteCompetitionsPage = lazy(() => import("./pages/FavoriteCompetitionsPage"));
+const ResultsPage = lazy(() => import("./pages/ResultsPage"));
+const ClubsPage = lazy(() => import("./pages/ClubsPage"));
 const CompetitionDetailPage = lazy(() => import("./pages/CompetitionDetailPage"));
 const CountyCompetitionsPage = lazy(() => import("./pages/CountyCompetitionsPage"));
 const ClubCompetitionsPage = lazy(() => import("./pages/ClubCompetitionsPage"));
@@ -58,6 +60,7 @@ export default function App() {
 
           {/* Kunskapsbanken: blogg/guider */}
           <Route path="/blogg" element={<BlogIndexPage />} />
+          <Route path="/blogg/agility-regler-sverige" element={<Navigate to="/blogg/regelverk-agility-hoopers-sverige" replace />} />
           <Route path="/blogg/:slug" element={<BlogArticlePage />} />
           <Route path="/jamfor-hundforsakring" element={<DogInsurancePage />} />
           <Route path="/jämför-försäkrings" element={<Navigate to="/jamfor-hundforsakring" replace />} />
@@ -79,6 +82,8 @@ export default function App() {
               Behåll dessa routes som first-class även när planeraren utvecklas. */}
           <Route path="/tavlingar" element={<CompetitionsPage />} />
           <Route path="/tavlingar/favoriter" element={<FavoriteCompetitionsPage />} />
+          <Route path="/resultat" element={<ResultsPage />} />
+          <Route path="/klubbar" element={<ClubsPage />} />
           <Route path="/tavlingar/lan/:countySlug" element={<CountyCompetitionsPage />} />
           <Route path="/tavlingar/klubb/:clubSlug" element={<ClubCompetitionsPage />} />
           <Route path="/tavlingar/hoopers/:id" element={<HoopersCompetitionDetailPage />} />

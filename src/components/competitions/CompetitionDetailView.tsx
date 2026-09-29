@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { ArrowLeft, ArrowRight, CalendarPlus, ExternalLink, MapPin, RefreshCw } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarPlus, ExternalLink, MapPin, RefreshCw, Trophy } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Reveal } from "@/components/Reveal";
@@ -46,6 +46,14 @@ export function CompetitionDetailView({
 }) {
   const deadline = deadlineInfo(comp.registrationCloses);
   const provisional = (comp.status ?? "").toLowerCase().includes("ansökt");
+  const todayIso = new Date().toLocaleDateString("sv-SE");
+  const started = !!comp.dateStart && comp.dateStart.slice(0, 10) <= todayIso;
+  const resultParams = new URLSearchParams({
+    tavling: comp.name,
+    key: comp.key,
+    sport: comp.sport,
+    ...(comp.dateStart ? { datum: comp.dateStart.slice(0, 10) } : {}),
+  });
 
   const handleIcs = () => {
     downloadIcs(
@@ -131,6 +139,14 @@ export function CompetitionDetailView({
               <CalendarPlus className="h-4 w-4" /> Lägg i kalendern
             </button>
             <FavoriteButton compKey={comp.key} variant="pill" />
+            {started && (
+              <Link
+                to={`/resultat?${resultParams}`}
+                className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-forest px-6 py-3 text-sm font-bold text-paper shadow-hard-sm transition-transform hover:-translate-y-0.5"
+              >
+                <Trophy className="h-4 w-4" /> Logga resultat
+              </Link>
+            )}
             <Link
               to="/banplanerare"
               className="group inline-flex items-center gap-2 rounded-full border-2 border-ink bg-tang px-6 py-3 text-sm font-bold text-ink shadow-hard-sm transition-transform hover:-translate-y-0.5"
@@ -216,7 +232,7 @@ export function CompetitionDetailView({
               <h2 className="font-display text-5xl tracking-wide">Fler tävlingar i närheten</h2>
               <div className="mt-3 h-0.5 w-full bg-ink/10" />
             </Reveal>
-            <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {related.map((r, i) => (
                 <Reveal key={r.key} delay={i * 70}>
                   <CompetitionCard comp={r} />

@@ -5,6 +5,7 @@ import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
+import { calendarSeo } from "@/lib/competitionSeo";
 import { Seo, SITE_URL } from "@/components/Seo";
 import { PartnerAdCard } from "@/components/AffiliateBanner";
 import { CompetitionCard } from "@/components/competitions/CompetitionCard";
@@ -225,9 +226,7 @@ export default function CompetitionsPage() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       <Seo
-        title="Tävlingskalender agility & hoopers 2026 | AgilityManager"
-        description="Alla kommande agility- och hooperstävlingar i Sverige: datum, klasser, domare, sista anmälningsdag och plats. Filtrera på sport och län."
-        canonicalPath="/tavlingar"
+        {...calendarSeo()}
       />
       <SiteNav />
       <PageHero kicker="Tävlingskalender" title="Hitta er nästa start.">
@@ -510,7 +509,7 @@ export default function CompetitionsPage() {
               <h2 className="font-display text-5xl capitalize tracking-wide">{month}</h2>
               <div className="mt-3 h-0.5 w-full bg-ink/10" />
             </Reveal>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
               {comps.map((c, i) => (
                 <Reveal key={c.key} delay={Math.min(i, 6) * 70}>
                   <CompetitionCard comp={c} />

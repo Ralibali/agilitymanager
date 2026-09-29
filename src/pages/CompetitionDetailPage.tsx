@@ -3,7 +3,8 @@ import { Link, useParams } from "react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
-import { Seo, SITE_URL } from "@/components/Seo";
+import { Seo } from "@/components/Seo";
+import { competitionSeo } from "@/lib/competitionSeo";
 import { CompetitionDetailView, type DetailFact } from "@/components/competitions/CompetitionDetailView";
 import {
   AGILITY_SELECT,
@@ -101,38 +102,15 @@ export default function CompetitionDetailPage() {
     { label: "Sport", value: "Agility" },
   ];
 
-  const title = `${unified.name} – ${unified.club || "agilitytävling"}, ${unified.location} ${
-    unified.dateStart ? unified.dateStart.slice(0, 10) : ""
-  }`.trim();
-  const description = `Agilitytävling i ${unified.location || "Sverige"}${
-    unified.club ? ` arrangerad av ${unified.club}` : ""
-  }${unified.dateStart ? ` den ${longDate(unified.dateStart)}` : ""}. Klasser, domare, sista anmälningsdag och plats.`;
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    name: unified.name,
-    startDate: unified.dateStart ?? undefined,
-    endDate: unified.dateEnd ?? unified.dateStart ?? undefined,
-    eventStatus: "https://schema.org/EventScheduled",
-    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    sport: "Dog agility",
-    location: {
-      "@type": "Place",
-      name: unified.location || "Sverige",
-      address: { "@type": "PostalAddress", addressLocality: unified.location || "", addressCountry: "SE" },
-    },
-    organizer: unified.club ? { "@type": "Organization", name: unified.club } : undefined,
-    url: `${SITE_URL}${unified.path}`,
-  };
+  const seo = competitionSeo(unified);
 
   return (
     <>
       <Seo
-        title={title.slice(0, 70)}
-        description={description.slice(0, 158)}
-        canonicalPath={unified.path}
-        jsonLd={jsonLd}
+        title={seo.title}
+        description={seo.description}
+        canonicalPath={seo.canonicalPath}
+        jsonLd={seo.jsonLd}
       />
       <CompetitionDetailView
         comp={unified}

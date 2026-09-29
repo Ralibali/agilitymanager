@@ -24,6 +24,9 @@ export const PUBLIC_ROUTES: PublicRoute[] = [
   { path: "/banor", priority: 0.8, changefreq: "weekly" },
   { path: "/delade-banor", priority: 0.7, changefreq: "weekly" },
   { path: "/funktioner", priority: 0.6, changefreq: "monthly" },
+  { path: "/tavlingar", priority: 0.9, changefreq: "weekly" },
+  { path: "/priser", priority: 0.6, changefreq: "monthly" },
+  { path: "/resultat", priority: 0.6, changefreq: "monthly" },
 ];
 
 export const blogArticlePath = (slug: string) => `/blogg/${slug}`;

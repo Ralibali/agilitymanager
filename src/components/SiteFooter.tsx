@@ -27,6 +27,7 @@ const COLS: { title: string; links: { to: string; label: string }[] }[] = [
       { to: "/mitt-agilitymanager", label: "Konto & banprofil" },
       { to: "/banor", label: "Sparade banor" },
       { to: "/tavlingar/favoriter", label: "Favorittävlingar" },
+      { to: "/resultat", label: "Resultat & meriter" },
       { to: "/traning", label: "Träningshistorik" },
     ],
   },

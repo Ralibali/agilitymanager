@@ -46,6 +46,8 @@ function defaultLevel(dog: SavedDogProfile | undefined, discipline: Discipline):
 /** Formulärets fält som text, så att tomma fält kan skiljas från 0. */
 interface Draft {
   id: string | null;
+  /** Behåll ägaren när ett befintligt lopp redigeras. */
+  dogId: string | null;
   date: string;
   competitionName: string;
   competitionKey: string;
@@ -65,6 +67,7 @@ function emptyDraft(dog: SavedDogProfile | undefined, patch: Partial<Draft> = {}
   const discipline: Discipline = patch.discipline ?? (dog?.sport === "hoopers" ? "hoopers" : "agility");
   return {
     id: null,
+    dogId: null,
     date: today(),
     competitionName: "",
     competitionKey: "",
@@ -86,6 +89,7 @@ function draftFromRun(run: RunResult): Draft {
   const str = (n: number | null) => (n === null ? "" : String(n).replace(".", ","));
   return {
     id: run.id,
+    dogId: run.dogId,
     date: run.date,
     competitionName: run.competitionName,
     competitionKey: run.competitionKey ?? "",
@@ -164,7 +168,7 @@ export default function ResultsPage() {
     const faults = parseNum(draft.faults);
     save({
       id: draft.id ?? newResultId(),
-      dogId: activeId,
+      dogId: draft.dogId ?? activeId,
       date: draft.date,
       competitionName: draft.competitionName.trim() || "Tävling",
       ...(draft.competitionKey ? { competitionKey: draft.competitionKey } : {}),
@@ -204,7 +208,10 @@ export default function ResultsPage() {
               <button
                 key={p.id}
                 type="button"
-                onClick={() => select(p.id)}
+                onClick={() => {
+                  if (p.id !== activeId) setDraft(null);
+                  select(p.id);
+                }}
                 aria-pressed={p.id === activeId}
                 className={`min-h-11 rounded-full border-2 px-5 py-2 text-sm font-bold transition-colors ${
                   p.id === activeId
@@ -555,7 +562,10 @@ export default function ResultsPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      if (window.confirm(`Ta bort loppet ${r.competitionName} (${fmtDate(r.date)})?`)) remove(r.id);
+                      if (window.confirm(`Ta bort loppet ${r.competitionName} (${fmtDate(r.date)})?`)) {
+                        remove(r.id);
+                        if (draft?.id === r.id) setDraft(null);
+                      }
                     }}
                     aria-label={`Ta bort loppet ${r.competitionName} ${r.date}`}
                     className="grid h-11 w-11 place-items-center rounded-full text-ink/55 hover:bg-ember/10 hover:text-ember"

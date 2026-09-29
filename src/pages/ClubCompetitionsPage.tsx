@@ -4,6 +4,7 @@ import { ArrowRight, Check, Share2 } from "lucide-react";
 import { CompetitionLanding } from "@/components/competitions/CompetitionLanding";
 import { SITE_URL } from "@/components/Seo";
 import { buildClubDirectory } from "@/lib/clubs";
+import { clubSeo } from "@/lib/competitionSeo";
 import { slugify } from "@/lib/competitionSlug";
 import { countySlug } from "@/lib/swedishCounties";
 import type { UnifiedCompetition } from "@/lib/competitionData";
@@ -63,10 +64,8 @@ export default function ClubCompetitionsPage() {
       intro={(comps) =>
         `Kommande agility- och hooperstävlingar arrangerade av ${nameFor(comps) || "klubben"} — datum, klasser, domare och sista anmälningsdag.`
       }
-      seoTitle={(comps) => `${nameFor(comps)} — kommande tävlingar | AgilityManager`}
-      seoDescription={(comps) =>
-        `Alla kommande agility- och hooperstävlingar arrangerade av ${nameFor(comps)}: datum, plats, klasser, domare och anmälningsstatus.`
-      }
+      seoTitle={(comps) => clubSeo(nameFor(comps), slug).title}
+      seoDescription={(comps) => clubSeo(nameFor(comps), slug).description}
       canonicalPath={path}
       match={match}
       emptyText={(comps) => `Inga kommande tävlingar från ${nameFor(comps) || "klubben"} just nu.`}

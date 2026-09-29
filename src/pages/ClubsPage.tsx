@@ -9,6 +9,7 @@ import { Seo, SITE_URL } from "@/components/Seo";
 import { fetchUpcomingCompetitions, shortDate, type UnifiedCompetition } from "@/lib/competitionData";
 import { buildClubDirectory, filterClubs, groupClubsByCounty, type ClubSummary } from "@/lib/clubs";
 import { countySlug } from "@/lib/swedishCounties";
+import { clubsSeo } from "@/lib/competitionSeo";
 
 function ClubCard({ club }: { club: ClubSummary }) {
   const next = club.nextDate ? shortDate(club.nextDate) : null;
@@ -101,9 +102,7 @@ export default function ClubsPage() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       <Seo
-        title="Agilityklubbar i Sverige — klubbar som arrangerar tävlingar | AgilityManager"
-        description="Alla svenska agility- och hoopersklubbar med kommande tävlingar, sorterade per län. Se var klubben tävlar, nästa datum och hur många tävlingar som har öppen anmälan."
-        canonicalPath="/klubbar"
+        {...clubsSeo()}
         jsonLd={clubs.length > 0 ? jsonLd : undefined}
       />
       <SiteNav />

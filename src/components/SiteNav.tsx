@@ -23,6 +23,7 @@ const NAV_GROUPS: NavGroup[] = [
     links: [
       { to: "/tavlingar", label: "Tävlingskalender", text: "Svenska agility- och hooperstävlingar" },
       { to: "/tavlingar/favoriter", label: "Favoriter", text: "Tävlingarna du sparat" },
+      { to: "/klubbar", label: "Klubbar", text: "Alla klubbar som arrangerar tävlingar, län för län" },
       { to: "/resultat", label: "Resultat & meriter", text: "Logga lopp och följ vägen till nästa klass" },
     ],
   },

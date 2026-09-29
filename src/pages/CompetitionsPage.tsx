@@ -510,7 +510,7 @@ export default function CompetitionsPage() {
               <h2 className="font-display text-5xl capitalize tracking-wide">{month}</h2>
               <div className="mt-3 h-0.5 w-full bg-ink/10" />
             </Reveal>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
               {comps.map((c, i) => (
                 <Reveal key={c.key} delay={Math.min(i, 6) * 70}>
                   <CompetitionCard comp={c} />

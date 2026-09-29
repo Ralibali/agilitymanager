@@ -1,6 +1,7 @@
 // ── Tävlingsdata: typer, hämtning och presentationshjälp ───────────────────
 import { supabase } from "@/integrations/supabase/client";
 import { getCountyForLocation } from "./swedishCityCounty";
+import { normalizeCounty } from "./swedishCounties";
 import { buildCompetitionSlug } from "./competitionSlug";
 
 export interface AgilityCompetition {
@@ -99,7 +100,7 @@ export function agilityToUnified(c: AgilityCompetition): UnifiedCompetition {
     name,
     club,
     location,
-    county: c.region || getCountyForLocation(location),
+    county: normalizeCounty(c.region || getCountyForLocation(location)),
     dateStart: c.date_start,
     dateEnd: c.date_end,
     registrationCloses: c.last_registration_date,
@@ -127,7 +128,7 @@ export function hoopersToUnified(c: HoopersCompetition): UnifiedCompetition {
     name,
     club,
     location,
-    county: c.county || getCountyForLocation(location),
+    county: normalizeCounty(c.county || getCountyForLocation(location)),
     dateStart: c.date,
     dateEnd: c.date,
     registrationCloses: c.registration_closes,
@@ -231,6 +232,12 @@ export function deadlineInfo(registrationCloses: string | null, now: Date = new 
   if (days === 0) return { tone: "urgent", label: "Sista anmälningsdag i dag" };
   if (days <= 7) return { tone: "urgent", label: `Anmälan stänger om ${days} ${days === 1 ? "dag" : "dagar"}` };
   return { tone: "open", label: `Anmälan öppen — ${days} dagar kvar` };
+}
+
+/** Sant när anmälan bevisligen är öppen. Saknat datum räknas inte som öppet. */
+export function registrationOpen(registrationCloses: string | null, now: Date = new Date()): boolean {
+  const tone = deadlineInfo(registrationCloses, now).tone;
+  return tone === "open" || tone === "urgent";
 }
 
 export function relativeUpdated(iso: string | null): string {

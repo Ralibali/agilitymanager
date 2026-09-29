@@ -232,7 +232,7 @@ export function CompetitionDetailView({
               <h2 className="font-display text-5xl tracking-wide">Fler tävlingar i närheten</h2>
               <div className="mt-3 h-0.5 w-full bg-ink/10" />
             </Reveal>
-            <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {related.map((r, i) => (
                 <Reveal key={r.key} delay={i * 70}>
                   <CompetitionCard comp={r} />

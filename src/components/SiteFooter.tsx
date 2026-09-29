@@ -35,6 +35,7 @@ const COLS: { title: string; links: { to: string; label: string }[] }[] = [
     title: "Tävling & träning",
     links: [
       { to: "/tavlingar", label: "Tävlingskalender" },
+      { to: "/klubbar", label: "Klubbar" },
       { to: "/traning", label: "Träning" },
       { to: "/instruktor", label: "Instruktör" },
       { to: "/banplanerare?sport=hoopers", label: "Hoopers" },

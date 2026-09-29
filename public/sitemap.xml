@@ -54,6 +54,11 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://agilitymanager.se/klubbar</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://agilitymanager.se/blogg/aterkoppling-banritning-gemensam-lista</loc>
     <lastmod>2026-09-25T08:27:21.467864+00:00</lastmod>
     <changefreq>monthly</changefreq>

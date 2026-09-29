@@ -280,7 +280,7 @@ export default function ResultsPage() {
               hoopers).
             </p>
           ) : (
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               {progress.map((p) => {
                 const pct = Math.min(1, p.merits / p.target);
                 const next = nextLevel(p.discipline, p.level);

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link, Navigate, useLocation } from "react-router";
+import { legacyCalendarPath } from "@/lib/legacyRedirects";
 import { ArrowRight, CalendarPlus, Heart, LocateFixed, MapPin, RefreshCw, Search } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -37,7 +38,14 @@ const CompetitionMap = lazy(() =>
 
 type SportFilter = "alla" | "agility" | "hoopers";
 
+/** Gamla kalenderlänkar (?region=gotland) leder till länssidan. */
 export default function CompetitionsPage() {
+  const { search } = useLocation();
+  const legacy = legacyCalendarPath(new URLSearchParams(search));
+  return legacy ? <Navigate to={legacy} replace /> : <CompetitionsCalendar />;
+}
+
+function CompetitionsCalendar() {
   const initialPrefs = useMemo(() => readFilterPrefs(), []);
   const [all, setAll] = useState<UnifiedCompetition[]>([]);
   const [loading, setLoading] = useState(true);

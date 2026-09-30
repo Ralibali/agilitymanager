@@ -30,8 +30,8 @@ async function main() {
   });
 
   const mod = await import(pathToFileURL(join(outDir, "entry.mjs")).href);
-  const comps = await Promise.race([
-    mod.fetchUpcomingCompetitions(),
+  const [comps, past] = await Promise.race([
+    Promise.all([mod.fetchUpcomingCompetitions(), mod.fetchPastCompetitions()]),
     new Promise((_, reject) => setTimeout(() => reject(new Error("tidsgräns för tävlingsdata")), TIMEOUT_MS)),
   ]);
   if (!Array.isArray(comps) || comps.length === 0) {
@@ -39,7 +39,7 @@ async function main() {
   }
 
   const template = await readFile(join(root, "dist/index.html"), "utf8");
-  const pages = mod.buildCompetitionPages(comps);
+  const pages = mod.buildCompetitionPages(comps, new Date(), past);
   for (const page of pages) {
     const dir = join(root, "dist", page.canonicalPath);
     await mkdir(dir, { recursive: true });
@@ -51,7 +51,9 @@ async function main() {
   const extra = mod.sitemapUrls(pages, sitemap);
   if (extra) await writeFile(sitemapPath, sitemap.replace("</urlset>", `${extra}\n</urlset>`));
 
-  console.log(`Prerendered ${pages.length} competition pages from ${comps.length} competitions.`);
+  console.log(
+    `Prerendered ${pages.length} competition pages from ${comps.length} upcoming and ${past.length} past competitions.`,
+  );
 }
 
 try {

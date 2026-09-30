@@ -15,6 +15,7 @@ import {
 import { buildClubDirectory, filterClubs, groupClubsByCounty, type ClubSummary } from "@/lib/clubs";
 import { countySlug } from "@/lib/swedishCounties";
 import { clubsSeo } from "@/lib/competitionSeo";
+import { CompetitionSourceNote } from "@/components/competitions/CompetitionSourceNote";
 
 function ClubCard({ club }: { club: ClubSummary }) {
   const next = club.nextDate ? shortDate(club.nextDate) : null;
@@ -142,6 +143,7 @@ export default function ClubsPage() {
                 ? `${visible.length} av ${clubs.length} klubbar matchar`
                 : `${clubs.length} klubbar som arrangerar tävlingar – ${clubs.filter((c) => c.upcoming > 0).length} med kommande tävlingar`}
           </p>
+          <CompetitionSourceNote className="mt-4 max-w-3xl" />
         </Reveal>
 
         {!loading && visible.length === 0 && (

@@ -128,3 +128,21 @@ describe("esc", () => {
     expect(esc(`<a href="x">'&'</a>`)).toBe("&lt;a href=&quot;x&quot;&gt;&#39;&amp;&#39;&lt;/a&gt;");
   });
 });
+
+describe("källhänvisning", () => {
+  const pages = buildCompetitionPages([
+    {
+      key: "a-1", id: "1", sport: "agility", name: "Höstagility", club: "Kungälvs BK", location: "Kungälv",
+      county: "Västra Götalands", dateStart: "2026-10-10", dateEnd: null, registrationCloses: null,
+      classes: [], judges: [], status: null, sourceUrl: "https://agilitydata.se/taevlingar/1",
+      path: "/tavlingar/1/kungalvs-bk-kungalv-2026-10-10",
+    },
+  ], new Date("2026-09-29T12:00:00Z"));
+
+  it("anger källan på varje förrenderad sida", () => {
+    for (const page of pages) expect(page.body, page.canonicalPath).toContain("agilitydata.se");
+    const detail = pages.find((p) => p.canonicalPath.startsWith("/tavlingar/1/"))!;
+    expect(detail.body).toContain('href="https://agilitydata.se/taevlingar/1"');
+    expect(detail.body).toContain("Svenska Agilityklubben");
+  });
+});

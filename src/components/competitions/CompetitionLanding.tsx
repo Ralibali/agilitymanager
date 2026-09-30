@@ -7,6 +7,7 @@ import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { Seo, SITE_URL } from "@/components/Seo";
 import { CompetitionCard } from "./CompetitionCard";
+import { CompetitionSourceNote } from "./CompetitionSourceNote";
 import {
   fetchPastCompetitions,
   fetchUpcomingCompetitions,
@@ -129,6 +130,7 @@ export function CompetitionLanding({
               ? "Hämtar tävlingar…"
               : `${comps.length} kommande ${comps.length === 1 ? "tävling" : "tävlingar"} · ${openCount} med öppen anmälan`}
           </p>
+          <CompetitionSourceNote className="mt-4 max-w-3xl" />
         </Reveal>
 
         {!loading && comps.length === 0 && (

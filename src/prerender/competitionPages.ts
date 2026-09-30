@@ -14,6 +14,7 @@ import {
 } from "@/lib/competitionSeo";
 import { slugify } from "@/lib/competitionSlug";
 import { SITE_ORIGIN } from "@/lib/firstByteSeo";
+import { LISTING_SOURCE_TEXT, SOURCE_DISCLAIMER, competitionSource } from "@/lib/competitionSource";
 import { COUNTIES, countySlug } from "@/lib/swedishCounties";
 
 export interface PrerenderedPage extends PageSeo {
@@ -30,6 +31,7 @@ export function esc(value: unknown): string {
 
 const MAIN = '<main class="mx-auto max-w-5xl space-y-6 px-6 py-16">';
 const HOME = '<a href="/">AgilityManager</a>';
+const LISTING_SOURCE = `<p>${esc(LISTING_SOURCE_TEXT)} ${esc(SOURCE_DISCLAIMER)}</p>`;
 
 function compItem(c: UnifiedCompetition): string {
   const meta = [c.dateStart ? longDate(c.dateStart) : null, c.location, c.club].filter(Boolean).map(esc).join(" · ");
@@ -70,7 +72,7 @@ const countyLinks = (exceptSlug?: string) =>
 function calendarPage(comps: UnifiedCompetition[], now: Date): PrerenderedPage {
   return {
     ...calendarSeo(now),
-    body: `${MAIN}${HOME}<h1>Hitta er nästa start.</h1><p>Agility och hoopers över hela landet — med anmälningsstatus, klasser, domare och plats. Uppdateras automatiskt från arrangörernas källor.</p><p><a href="/klubbar">Alla klubbar som arrangerar tävlingar</a></p>${listByMonth(comps)}<h2>Tävlingar per län</h2>${countyLinks()}</main>`,
+    body: `${MAIN}${HOME}<h1>Hitta er nästa start.</h1><p>Agility och hoopers över hela landet — med anmälningsstatus, klasser, domare och plats. Uppdateras automatiskt från agilitydata.se och Svenska Hoopersklubben.</p><p><a href="/klubbar">Alla klubbar som arrangerar tävlingar</a></p>${listByMonth(comps)}<h2>Tävlingar per län</h2>${countyLinks()}${LISTING_SOURCE}</main>`,
   };
 }
 
@@ -84,7 +86,7 @@ function countyPages(comps: UnifiedCompetition[], now: Date): PrerenderedPage[] 
       jsonLd: itemList(seo.title, list),
       body: `${MAIN}${HOME}<h1>Agility &amp; hoopers i ${esc(county.name)}.</h1><p>Alla kommande agility- och hooperstävlingar i ${esc(label)} — med datum, klasser, domare och sista anmälningsdag.</p>${
         list.length ? listByMonth(list) : `<p>Inga kommande tävlingar i ${esc(label)} just nu.</p>`
-      }<p><a href="/tavlingar">Alla tävlingar i Sverige</a></p><h2>Tävlingar i andra län</h2>${countyLinks(county.slug)}</main>`,
+      }<p><a href="/tavlingar">Alla tävlingar i Sverige</a></p><h2>Tävlingar i andra län</h2>${countyLinks(county.slug)}${LISTING_SOURCE}</main>`,
     };
   });
 }
@@ -107,7 +109,7 @@ function clubPages(comps: UnifiedCompetition[], past: UnifiedCompetition[]): Pre
       jsonLd: itemList(seo.title, [...list, ...previous]),
       body: `${MAIN}${HOME}<h1>${esc(club.name)} tävlingar.</h1><p>Kommande agility- och hooperstävlingar arrangerade av ${esc(club.name)} — datum, klasser, domare och sista anmälningsdag.</p><p>Tävlar i: ${esc(club.locations.join(", ") || "okänd ort")}.</p>${
         list.length ? listByMonth(list) : `<p>Inga kommande tävlingar från ${esc(club.name)} just nu.</p>`
-      }${pastList(previous)}${county}<p><a href="/klubbar">Alla klubbar</a></p></main>`,
+      }${pastList(previous)}${county}<p><a href="/klubbar">Alla klubbar</a></p>${LISTING_SOURCE}</main>`,
     };
   });
 }
@@ -130,7 +132,7 @@ function clubsDirectoryPage(comps: UnifiedCompetition[], past: UnifiedCompetitio
             )
             .join("")}</ul>`,
       )
-      .join("")}</main>`,
+      .join("")}${LISTING_SOURCE}</main>`,
   };
 }
 
@@ -152,11 +154,12 @@ function competitionPage(c: UnifiedCompetition, now: Date): PrerenderedPage {
     c.county ? `<a href="/tavlingar/lan/${countySlug(c.county)}">Tävlingar i ${esc(c.county)} län</a>` : "",
     '<a href="/tavlingar">Tävlingskalendern</a>',
   ].filter(Boolean);
+  const source = competitionSource(c.sport, c.sourceUrl);
   return {
     ...seo,
     body: `${MAIN}${HOME}<h1>${esc(c.name)}</h1><p>${esc(seo.description)}</p><dl>${facts
       .map(([k, v]) => `<dt><strong>${k}</strong></dt><dd>${esc(v)}</dd>`)
-      .join("")}</dl><ul>${links.map((l) => `<li>${l}</li>`).join("")}</ul></main>`,
+      .join("")}</dl><p>Källa: <a href="${esc(source.url)}" rel="noopener">${esc(source.name)}</a> (${esc(source.organization)}). ${esc(SOURCE_DISCLAIMER)}</p><ul>${links.map((l) => `<li>${l}</li>`).join("")}</ul></main>`,
   };
 }
 

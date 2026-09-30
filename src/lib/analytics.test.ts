@@ -54,6 +54,16 @@ describe("analytics.track", () => {
     expect(gtag).toHaveBeenCalledWith("event", "planner_open", expect.objectContaining({ send_to: "G-TEST123" }));
   });
 
+  it("mäter CTA-klick med placering och mål", async () => {
+    const { track, gtag, setAnalyticsConsent } = await setup();
+    setAnalyticsConsent(true);
+    gtag.mockClear();
+    track("cta_click", { placement: "home_hero_primary", target: "/banplanerare" });
+    expect(gtag).toHaveBeenCalledWith("event", "cta_click", expect.objectContaining({
+      placement: "home_hero_primary", target: "/banplanerare",
+    }));
+  });
+
   it("slutar skicka när medgivandet återkallas", async () => {
     const { track, gtag, setAnalyticsConsent } = await setup();
     setAnalyticsConsent(true);

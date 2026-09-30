@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Logo } from "@/components/SiteNav";
 import { Marquee } from "@/components/Marquee";
 import { Seo } from "@/components/Seo";
@@ -19,12 +19,20 @@ export function NotFound() {  return (
           <p className="mx-auto mt-4 max-w-md text-ink/60">
             Sidan du letar efter finns inte — men banplaneraren gör alltid.
           </p>
-          <Link
-            to="/"
-            className="pressable shadow-hard mt-8 inline-flex h-13 items-center gap-2 rounded-full bg-tang px-7 py-3.5 font-bold text-ink"
-          >
-            <ArrowLeft className="h-4 w-4" /> Till startsidan
-          </Link>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link
+              to="/banplanerare"
+              className="pressable shadow-hard inline-flex items-center gap-2 rounded-full bg-tang px-7 py-3.5 font-bold text-ink"
+            >
+              Öppna banplaneraren <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              to="/"
+              className="pressable shadow-hard inline-flex items-center gap-2 rounded-full border-2 border-ink bg-paper px-7 py-3.5 font-bold text-ink"
+            >
+              <ArrowLeft className="h-4 w-4" /> Till startsidan
+            </Link>
+          </div>
         </div>
       </main>
       <Marquee items={["Fel hinder", "Omplacering", "Fem felpoäng", "Börja om"]} className="border-t-2 border-ink bg-tang text-ink" />

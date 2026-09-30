@@ -1,5 +1,7 @@
 import { Link } from "react-router";
 import { Paw } from "./Marquee";
+import { CtaLink } from "./CtaLink";
+import { openCookieSettings } from "@/lib/cookieSettings";
 
 const COLS: { title: string; links: { to: string; label: string }[] }[] = [
   {
@@ -62,12 +64,14 @@ export function SiteFooter() {
               banplanerare, tävlingskalender, träning och kunskapsbank.
               Banplaneraren är gratis.
             </p>
-            <Link
+            <CtaLink
               to="/banplanerare"
+              placement="footer"
               className="pressable pressable-light shadow-hard-paper mt-7 inline-flex items-center gap-2 rounded-full bg-tang px-6 py-3.5 font-bold text-ink"
             >
               Börja rita gratis
-            </Link>
+            </CtaLink>
+            <p className="mt-3 text-sm text-paper/45">Inget konto. Inget kort.</p>
           </div>
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
             {COLS.map((col) => (
@@ -99,8 +103,17 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-paper/10 pt-6 text-sm text-paper/45 sm:flex-row sm:items-center">
-          <p>© 2026 AgilityManager</p>
-          <p className="text-paper/35">Byggt för svensk agility och hoopers</p>
+          <p>© {new Date().getFullYear()} AgilityManager</p>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <button
+              type="button"
+              onClick={openCookieSettings}
+              className="-my-1.5 py-1.5 text-paper/60 underline-offset-4 transition-colors hover:text-tang hover:underline"
+            >
+              Cookieinställningar
+            </button>
+            <p className="text-paper/35">Byggt för svensk agility och hoopers</p>
+          </div>
         </div>
       </div>
     </footer>

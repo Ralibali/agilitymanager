@@ -14,6 +14,7 @@ export const ANALYTICS_EVENTS = [
   "instructor_group_created",
   "student_invited",
   "account_created",
+  "cta_click",
 ] as const;
 
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];

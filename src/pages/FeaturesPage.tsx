@@ -9,6 +9,7 @@ import { PageHero } from "@/components/PageHero";
 import { Marquee } from "@/components/Marquee";
 import { Reveal } from "@/components/Reveal";
 import { Seo } from "@/components/Seo";
+import { CtaLink } from "@/components/CtaLink";
 
 const GROUPS = [
   {
@@ -55,7 +56,22 @@ export default function FeaturesPage() {
         canonicalPath="/funktioner"
       />
       <SiteNav />
-      <PageHero kicker="Funktioner" title="Allt banplaneraren kan.">
+      <PageHero
+        kicker="Funktioner"
+        title="Allt banplaneraren kan."
+        actions={
+          <>
+            <CtaLink
+              to="/banplanerare"
+              placement="features_hero"
+              className="pressable shadow-hard inline-flex h-14 items-center justify-center gap-2 rounded-full bg-tang px-8 text-lg font-bold text-ink"
+            >
+              Öppna banplaneraren <ArrowRight className="h-5 w-5" />
+            </CtaLink>
+            <span className="text-sm font-semibold text-ink/60">Gratis · Inget konto · Mobil och dator</span>
+          </>
+        }
+      >
         Från första hindret till färdig delningslänk — här är hela verktygslådan.
         Gratis att använda, för både agility och hoopers.
       </PageHero>
@@ -75,7 +91,14 @@ export default function FeaturesPage() {
                 <p className={`mt-5 text-lg leading-relaxed ${gi === 0 ? "text-ink/65" : "text-paper/65"}`}>
                   {g.text}
                 </p>
-                <ShieldCheck className={`mt-8 h-9 w-9 ${gi === 0 ? "text-forest" : "text-tang"}`} strokeWidth={2} />
+                <CtaLink
+                  to="/banplanerare"
+                  placement={`features_group_${gi + 1}`}
+                  className={`group mt-8 inline-flex items-center gap-2 font-bold transition-colors ${gi === 0 ? "text-forest hover:text-tang" : "text-tang hover:text-paper"}`}
+                >
+                  Prova själv — gratis
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </CtaLink>
               </Reveal>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -115,13 +138,14 @@ export default function FeaturesPage() {
             Testa själv — direkt i webbläsaren.
           </h2>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link to="/banplanerare" className="pressable shadow-hard inline-flex h-14 items-center gap-2 rounded-full bg-tang px-8 text-lg font-bold text-ink">
+            <CtaLink to="/banplanerare" placement="features_final" className="pressable shadow-hard inline-flex h-14 items-center gap-2 rounded-full bg-tang px-8 text-lg font-bold text-ink">
               Öppna banplaneraren <ArrowRight className="h-5 w-5" />
-            </Link>
+            </CtaLink>
             <Link to="/blogg" className="pressable shadow-hard inline-flex h-14 items-center gap-2 rounded-full border-2 border-ink bg-paper px-8 text-lg font-bold">
               Läs guiderna först
             </Link>
           </div>
+          <p className="mt-4 text-sm font-semibold text-ink/60">Inget konto, inget kort — banan sparas automatiskt.</p>
         </Reveal>
       </section>
 

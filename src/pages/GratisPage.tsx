@@ -1,10 +1,11 @@
 import { Link } from "react-router";
-import { ArrowRight, Check, Gift, Heart, Infinity as InfinityIcon, PenLine, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Gift, Heart, Infinity as InfinityIcon, Pencil, Sparkles } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { Seo } from "@/components/Seo";
+import { CtaLink } from "@/components/CtaLink";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
@@ -65,7 +66,22 @@ export default function GratisPage() {
         }}
       />
       <SiteNav />
-      <PageHero kicker="Priser" title="Banplaneraren är gratis.">
+      <PageHero
+        kicker="Priser"
+        title="Banplaneraren är gratis."
+        actions={
+          <>
+            <CtaLink
+              to="/banplanerare"
+              placement="pricing_hero"
+              className="pressable shadow-hard inline-flex h-14 items-center justify-center gap-2 rounded-full bg-tang px-8 text-lg font-bold text-ink"
+            >
+              <Pencil className="h-5 w-5" /> Börja rita gratis <ArrowRight className="h-5 w-5" />
+            </CtaLink>
+            <span className="text-sm font-semibold text-ink/60">Inget konto · Inget kort · Ingen provperiod</span>
+          </>
+        }
+      >
         Ingen provperiod, inget konto och inget kort för att rita, exportera och dela.
         Framöver kan AgilityManager få Premium-funktioner för exempelvis avancerad
         träning, synk och instruktörsverktyg — banplaneraren förblir gratis.
@@ -83,12 +99,13 @@ export default function GratisPage() {
               <InfinityIcon className="h-7 w-7 text-tang" />
               Hela banplaneraren, alla sporter, alla hundar
             </div>
-            <Link
+            <CtaLink
               to="/banplanerare"
+              placement="pricing_free_tier"
               className="pressable pressable-light shadow-hard-paper mt-9 inline-flex h-14 items-center gap-2 rounded-full bg-tang px-8 text-lg font-bold text-ink"
             >
               Öppna banplaneraren <ArrowRight className="h-5 w-5" />
-            </Link>
+            </CtaLink>
           </Reveal>
           <Reveal delay={150}>
             <ul className="grid gap-px overflow-hidden rounded-3xl border-2 border-paper/20 bg-paper/20 sm:grid-cols-2">
@@ -149,15 +166,26 @@ export default function GratisPage() {
         <Reveal delay={150}>
           <div className="rounded-3xl border-2 border-ink bg-ink p-8 text-paper shadow-hard lg:sticky lg:top-40">
             <span className="inline-flex items-center gap-2 rounded-full bg-tang px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-ink">
-              <PenLine className="h-3.5 w-3.5" /> Kunskapsbanken
+              <Pencil className="h-3.5 w-3.5" /> Kom igång på en minut
             </span>
-            <h3 className="mt-5 font-display text-3xl leading-tight">Lär dig bandesign på riktigt</h3>
-            <p className="mt-4 text-sm leading-relaxed text-paper/70">
-              Fördjupande guider om bandesign, regler och träningsupplägg —
-              gratis att läsa, utan konto.
-            </p>
-            <Link to="/blogg" className="group mt-6 inline-flex items-center gap-2 rounded-xl bg-tang px-5 py-3 text-sm font-extrabold text-ink transition-transform hover:-translate-y-0.5">
-              Utforska kunskapsbanken
+            <h3 className="mt-5 font-display text-4xl leading-tight">Rita din första bana nu</h3>
+            <ol className="mt-5 space-y-3 text-paper/80">
+              {["Öppna banplaneraren — ingen registrering", "Välj en mall eller placera hinder på planen", "Exportera som PNG/PDF eller dela en länk"].map((step, i) => (
+                <li key={step} className="flex items-start gap-3">
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-tang text-xs font-extrabold text-ink">{i + 1}</span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+            <CtaLink
+              to="/banplanerare"
+              placement="pricing_sidebar"
+              className="pressable pressable-light shadow-hard-paper mt-7 inline-flex h-12 items-center gap-2 rounded-full bg-tang px-6 font-bold text-ink"
+            >
+              Börja rita gratis <ArrowRight className="h-4 w-4" />
+            </CtaLink>
+            <Link to="/blogg" className="group mt-5 flex items-center gap-2 text-sm font-bold text-paper/70 transition-colors hover:text-tang">
+              Eller läs guiderna i kunskapsbanken
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
@@ -187,6 +215,16 @@ export default function GratisPage() {
                 </AccordionItem>
               ))}
             </Accordion>
+          </Reveal>
+          <Reveal delay={200} className="mt-12 text-center">
+            <p className="font-display text-4xl sm:text-5xl">Redo att testa?</p>
+            <CtaLink
+              to="/banplanerare"
+              placement="pricing_faq"
+              className="pressable pressable-light shadow-hard-paper mt-6 inline-flex h-14 items-center gap-2 rounded-full bg-tang px-8 text-lg font-bold text-ink"
+            >
+              Börja rita gratis <ArrowRight className="h-5 w-5" />
+            </CtaLink>
           </Reveal>
         </div>
       </section>

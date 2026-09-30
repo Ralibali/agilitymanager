@@ -5,10 +5,13 @@ export function PageHero({
   kicker,
   title,
   children,
+  actions,
 }: {
   kicker: string;
   title: string;
   children?: ReactNode;
+  /** Valfria knappar under ingressen — håll primär-CTA:n ovanför vecket. */
+  actions?: ReactNode;
 }) {
   return (
     <section className="relative overflow-hidden border-b-2 border-ink pt-[6.5rem]">
@@ -26,6 +29,11 @@ export function PageHero({
         {children && (
           <Reveal delay={400}>
             <div className="mt-6 max-w-2xl text-lg leading-relaxed text-ink/70">{children}</div>
+          </Reveal>
+        )}
+        {actions && (
+          <Reveal delay={520}>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">{actions}</div>
           </Reveal>
         )}
       </div>

@@ -4,6 +4,7 @@ import { Menu, X, ArrowRight, ChevronDown, UserRound } from "lucide-react";
 import { Paw } from "./Marquee";
 import { AffiliateBanner } from "./AffiliateBanner";
 import { AFFILIATE_PARTNERS } from "@/lib/affiliate";
+import { CtaLink } from "./CtaLink";
 
 /**
  * Huvudnavigationen är grupperad i fyra produktområden plus kontoytan, så att
@@ -61,11 +62,11 @@ const ACCOUNT_LINK = { to: "/mitt-agilitymanager", label: "Mitt AgilityManager" 
 
 export function Logo({ dark = false }: { dark?: boolean }) {
   return (
-    <Link to="/" className="group flex items-center gap-2.5" aria-label="AgilityManager – startsida">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-tang text-ink shadow-hard-sm transition-transform duration-300 group-hover:rotate-[-8deg]">
+    <Link to="/" className="group flex min-w-0 items-center gap-2.5" aria-label="AgilityManager – startsida">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-tang text-ink shadow-hard-sm transition-transform duration-300 group-hover:rotate-[-8deg]">
         <Paw className="h-5 w-5" />
       </span>
-      <span className={`font-display text-[1.45rem] leading-none tracking-[0.05em] ${dark ? "text-paper" : "text-ink"}`}>
+      <span className={`truncate py-1 font-display text-[1.45rem] leading-none tracking-[0.05em] ${dark ? "text-paper" : "text-ink"}`}>
         Agility<span className="text-forest">Manager</span>
       </span>
     </Link>
@@ -166,14 +167,15 @@ export function SiteNav() {
     <>
       <header className="fixed inset-x-0 top-0 z-50 transition-all duration-300">
         {AFFILIATE_PARTNERS.length && location.pathname !== "/" ? <AffiliateBanner compact /> : (
-        <Link
+        <CtaLink
           to="/banplanerare"
+          placement="topbar"
           className="group flex h-10 items-center justify-center gap-2 border-b-2 border-ink bg-tang px-3 text-center text-[0.8rem] font-extrabold uppercase tracking-[0.12em] text-ink transition-colors hover:bg-ember hover:text-paper sm:text-[0.85rem]"
         >
           <Paw className="h-4 w-4 shrink-0" />
           <span>Banplaneraren är gratis — börja rita utan konto</span>
           <ArrowRight className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1.5" />
-        </Link>
+        </CtaLink>
         )}
         <div
           className={`border-b transition-all duration-300 ${
@@ -199,13 +201,14 @@ export function SiteNav() {
               <UserRound className="h-4 w-4" aria-hidden /> {ACCOUNT_LINK.label}
             </NavLink>
           </nav>
-          <div className="flex items-center gap-2.5">
-            <Link
+          <div className="flex shrink-0 items-center gap-2.5">
+            <CtaLink
               to="/banplanerare"
-              className="pressable shadow-hard-sm hidden items-center gap-2 rounded-full bg-tang whitespace-nowrap px-4 py-2.5 text-[0.84rem] font-bold text-ink sm:inline-flex"
+              placement="nav"
+              className="pressable shadow-hard-sm inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-tang px-3.5 py-2.5 text-[0.84rem] font-bold text-ink sm:gap-2 sm:px-4"
             >
-              Rita gratis <ArrowRight className="h-4 w-4" />
-            </Link>
+              Rita gratis <ArrowRight className="hidden h-4 w-4 min-[400px]:block" />
+            </CtaLink>
             <button
               onClick={() => setOpen(true)}
               className="grid h-11 w-11 place-items-center rounded-full border-2 border-ink bg-paper lg:hidden"
@@ -278,12 +281,14 @@ export function SiteNav() {
           </NavLink>
         </nav>
         <div className="px-6 pb-10">
-          <Link
+          <CtaLink
             to="/banplanerare"
+            placement="mobile_menu"
             className="pressable pressable-light shadow-hard-paper flex items-center justify-center gap-2 rounded-full bg-tang px-6 py-4 text-lg font-bold text-ink"
           >
             Öppna banplaneraren — gratis <ArrowRight className="h-5 w-5" />
-          </Link>
+          </CtaLink>
+          <p className="mt-3 text-center text-sm text-paper/55">Inget konto, inget kort. Banan sparas automatiskt.</p>
         </div>
       </div>
     </>

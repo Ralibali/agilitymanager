@@ -1,4 +1,3 @@
-import { Capacitor } from "@capacitor/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { Link } from "react-router";
@@ -543,7 +542,7 @@ function GroupWorkspace({
 function LinkCopy({ token }: { token: string }) {
   const [copied, setCopied] = useState(false),
     [error, setError] = useState("");
-  const url = `${Capacitor.isNativePlatform() ? "https://agilitymanager.se" : window.location.origin}/elev#token=${token}`;
+  const url = `${window.location.origin}/elev#token=${token}`;
   return (
     <div className="rounded-xl bg-sage/20 p-3">
       <label className="block text-xs font-bold">

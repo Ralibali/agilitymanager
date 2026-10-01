@@ -7,6 +7,7 @@ import { Network } from '@capacitor/network';
 import { Share } from '@capacitor/share';
 import { toast } from 'sonner';
 import { nativeRouteFromInternalAnchor, nativeRouteFromUrl } from './nativeRoutes';
+import { dismissNativeOverlay } from './nativeBackButton';
 
 export function NativeRuntime() {
   const navigate = useNavigate();
@@ -33,12 +34,7 @@ export function NativeRuntime() {
 
     void Promise.all([
       keep(App.addListener('backButton', () => {
-        const overlay = [...document.querySelectorAll<HTMLElement>('[role="dialog"], [role="alertdialog"], [role="menu"]')]
-          .find(element => element.getClientRects().length > 0 && getComputedStyle(element).visibility !== 'hidden' && element.getAttribute('aria-hidden') !== 'true');
-        if (overlay) {
-          overlay.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
-          return;
-        }
+        if (dismissNativeOverlay()) return;
         // React Router stores idx on history entries. WebView canGoBack alone
         // can include initial native navigation and is not a router stack.
         if ((window.history.state?.idx ?? 0) > 0) navigate(-1);

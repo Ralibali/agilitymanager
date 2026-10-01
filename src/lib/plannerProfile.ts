@@ -6,7 +6,8 @@
  * autentisering för en redan existerande profil.
  */
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+
+const IS_NATIVE_APP = import.meta.env.VITE_NATIVE_APP === "true";
 
 export type PlannerProfile = {
   id: string;
@@ -31,6 +32,7 @@ export function validateProfileInput(name: string, email: string): string | null
 }
 
 export function readProfile(): PlannerProfile | null {
+  if (IS_NATIVE_APP) return null;
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
@@ -48,6 +50,7 @@ export function readProfile(): PlannerProfile | null {
 }
 
 export function writeProfile(profile: PlannerProfile | null) {
+  if (IS_NATIVE_APP) return;
   try {
     if (profile) localStorage.setItem(KEY, JSON.stringify(profile));
     else localStorage.removeItem(KEY);
@@ -59,6 +62,7 @@ export function writeProfile(profile: PlannerProfile | null) {
 
 /** Skapar en ny profil eller återanvänder en profil som denna webbläsare redan äger. */
 export async function signInWithNameEmail(name: string, email: string): Promise<PlannerProfile> {
+  if (IS_NATIVE_APP) throw new Error("Banprofiler används inte i mobilappen.");
   const invalid = validateProfileInput(name, email);
   if (invalid) throw new Error(invalid);
 
@@ -67,6 +71,7 @@ export async function signInWithNameEmail(name: string, email: string): Promise<
   const proofToken =
     localProfile?.email.trim().toLowerCase() === normalizedEmail ? localProfile.token : undefined;
 
+  const { supabase } = await import("@/integrations/supabase/client");
   const { data, error } = await supabase.functions.invoke("planner-social", {
     body: {
       action: "profile",
@@ -84,8 +89,10 @@ export async function signInWithNameEmail(name: string, email: string): Promise<
 
 /** Anropar planner-social med profilens id + token. */
 export async function plannerApi<T>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
+  if (IS_NATIVE_APP) throw new Error("Molndelning används inte i mobilappen.");
   const profile = readProfile();
   if (!profile) throw new Error("Du behöver skapa en profil först");
+  const { supabase } = await import("@/integrations/supabase/client");
   const { data, error } = await supabase.functions.invoke("planner-social", {
     body: { action, profileId: profile.id, token: profile.token, ...payload },
   });
@@ -99,6 +106,7 @@ export function usePlannerProfile() {
   const [profile, setProfile] = useState<PlannerProfile | null>(() => readProfile());
 
   useEffect(() => {
+    if (IS_NATIVE_APP) return;
     const sync = () => setProfile(readProfile());
     window.addEventListener(EVENT, sync);
     window.addEventListener("storage", sync);

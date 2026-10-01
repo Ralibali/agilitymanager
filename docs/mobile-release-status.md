@@ -1,76 +1,71 @@
 # Mobilrelease – verifieringsstatus
 
-Uppdaterad 1 oktober 2026. Det aktuella utkastet är **1.0.0 (2): banplanerare med planerad betald nedladdning för 39 SEK i Sverige**. Priset är inte inställt i någon butik. Menyer och routes är begränsade till banplaneraren, banbibliotek/delade banor samt konto och integritet. Webbens sida med 0 kr, tävlingskalender, separata träningsplaner och övriga webbområden ingår inte i mobilens routes.
+Uppdaterad 1 oktober 2026. Aktuell produkt är **AgilityManager 1.0.0 (3)**: en fristående lokal banplanerare för agility och hoopers. Utgivare **Aurora Media AB**, support **info@auroramedia.se**, enligt användarens uppgifter. Önskat svenskt engångspris är **39 SEK vid nedladdning**; inget butikspris är ännu verifierat.
 
-Fem routingtester, riktad lint för ändrade filer samt TypeScript och native web bundle har passerat för utkast 2. Mobilens omarbetade flödestester och de nya plattformspaketen verifieras i pull requestens byggflöde, som producerar osignerade/testpaket. Ingen fysisk enhet, signerad butiksversion, backenddeployment, butikskonfigurerat pris eller butikspublicering är verifierad.
+Version 3 innehåller lokal banredigering, medföljande banbibliotek, egna banor samt JSON-import/-export och PNG/PDF-export via Spara/Dela. Appkonton, banprofiler, moln, serverlagrad konsumentdata, community/kommentarer, analytics, reklam, native push och position är exkluderade. Konto-/UGC-/backendarbetet från tidigare mobilutkast blockerar därför inte denna produkt. Slutpaketets faktiska beteende och trafik måste ändå verifieras.
 
-**Kontrollerna nedan avser föregående breda utkast 1.0.0 (1), källkodscommit `0c3af90ce9309141e102b116e32de827394ec13b`. APK/AAB från det utkastet är historiska testpaket och motsvarar inte utkast 2.** På detta commit passerade GitHub även 333 enhetstester och 21 webbflöden. Tomt fält eller ”ej verifierat” betyder att kontrollen återstår.
+**Inte färdig för butikspublicering:** nya CI-/smoketester, verkliga enheter, signering, offentlig integritetssida, betalda avtal/exaktpris och butiksformulär återstår.
 
-## Identifiera den historiskt verifierade versionen
+## Aktuell version och evidens
 
-- Verifiering: lokala automatiska bygg- och testkörningar i arbetsgrenen; ansvarig utgivare och godkännande återstår.
-- Datum och tidszon: 30 september–1 oktober 2026, Europe/Stockholm; detaljerade körningstider finns i loggarna.
-- Git-commit / snapshot: branch `codex/agilitymanager-mobile`; exakt commit i PR.
-- Mobilversion och byggnummer: `1.0.0 (1)`, kontrollerat i `mobile.version.json` samt Android- och iOS-konfiguration.
-- App-ID: `se.agilitymanager.app`, preliminärt; inte registrerat/reserverat av dessa kontroller.
-- Backendmiljö/projekt: produktionsschema och deployment ej verifierade. Mobilflödestesterna blockerade externa anrop och berörde inte produktionsdata. Se `mobile-account-data.md` för konto-/schemabegränsningar.
-- Verktygsversioner: Node.js `24.19.0`; Xcode `26.6` (`17F113`); simulator-SDK `26.5`; Gradle wrapper `8.14.3`; Android Gradle Plugin `8.13.0`; Android compile/target API `36`, minimum API `24`; iOS minimum `15.0`; Capacitor `8.5.2`. npm `10.9.4`; Temurin JDK `21.0.12.1+1`; Android SDK build tools `36.0.0`.
+- Version/bygg: `1.0.0 (3)`, angivet i `mobile.version.json`.
+- App-ID: `se.agilitymanager.app`, preliminärt. Registrering/ägarskap i butikskontona är inte verifierat.
+- Arbetsgren: `codex/agilitymanager-mobile`; exakt bygg-3-commit och CI-resultat ska föras in efter körningen.
+- Underlag: [mobile-release.md](mobile-release.md), [mobile.store.json](../mobile.store.json), [store-listings-sv.txt](store-listings-sv.txt), [mobile-privacy-sv.txt](mobile-privacy-sv.txt).
+- Lokal loggevidens finns i arbetsytans `work/` bredvid repositoryt; dessa loggar följer inte automatiskt med en klon.
 
-Loggarna nedan finns i arbetsytans `work/` bredvid repositoryt och är lokal evidens, inte filer som följer med en klon av repositoryt.
-
-## Bygg och automatiska kontroller
-
-| Kontroll | Faktiskt kommando / verktyg | Resultat | Artefakt / logg / begränsning |
-| --- | --- | --- | --- |
-| TypeScript | `tsc -b` med diagnostik | Passerade | `work/typecheck-final.log`; app- och verktygskonfiguration kontrollerade. |
-| Enhets-/integrationstester | `npm run test` / Vitest 4.1.11 | 37 testfiler, 330 tester passerade | `work/tests.log`; även export och raderingsskydd med lokala fixturer. Detta bevisar inte produktionsradering. |
-| Mobilflöden i webbläsare | `npm run test:mobile` / `playwright.mobile.config.ts` | 6 tester passerade, 26,4 s | `work/mobile-tests-final.log`; Chromium med Android/Pixel 5- och iPhone 13-skärmprofiler. Navigation, integritets-/raderingsvyer, safe areas, lokal sparning/träning utan internet och JSON-export. Ingen fysisk enhet eller iOS WebKit/native plugin. |
-| Lint | Projektets ESLint-kontroll | Passerade | `work/lint-final.log` och `work/lint-mobile-final.log`; lyckad körning utan felutskrift. |
-| Ordinarie webbbygge | `npm run build` | Passerade | `work/web-build.log`; ordinarie webbbygge kontrollerat separat från mobilpaketet. |
-| Native web bundle | `npm run build:native`, också via `native:prepare` | Passerade | `work/native-bundle-final.log`, `work/native-prepare-final.log`; `dist-native` byggt och paketkontroll passerad: lokal HTML/typsnitt, safe areas, ingen webb-GA4-laddare. |
-| Capacitor sync / resurser | `native:prepare` / plattformssynk och konfigurations-/resursskript | Passerade för iOS och Android | `work/native-sync-final.log`; fem plugins: App 8.1.1, Browser 8.0.4, Filesystem 8.1.3, Network 8.0.1, Share 8.0.2. Version 1.0.0 (1), API 36/iOS 15 och ikoner applicerade. |
-| iOS kompilering utan signering | `xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath ../ios-build -skipPackageUpdates -disableAutomaticPackageResolution -jobs 2 CODE_SIGNING_ALLOWED=NO` | `BUILD SUCCEEDED` | `work/ios-build-final.log`; app i `work/ios-build/Build/Products/Debug-iphonesimulator/App.app`. Kompilering för simulator, inte fysisk installation, Archive eller IPA. |
-| iOS appstart i simulator | iPhone 17 Pro / iOS 26.5 | Ej funktionsverifierat | Installation och processstart lyckades 30 september, men UI visades inte under hög hostbelastning. Ett nytt startförsök avbröts 1 oktober. Simulatorn stoppad; första start behöver verifieras. |
-| iOS Archive och export | Ej körd signerad Archive/export | Ej verifierat | Development Team, certifikat, provisionering och signerad IPA återstår. |
-| Android debug-APK | Gradle `assembleDebug` tillsammans med `bundleRelease` | `BUILD SUCCESSFUL`, 18 s vid ombyggnad med slutliga startresurser | `work/android-build-assets.log`; `outputs/AgilityManager-1.0.0-test.apk` i arbetsytan. Testpaket, ingen bekräftad installation på fysisk telefon. |
-| Android release-AAB utan release-signering | Gradle `bundleRelease` tillsammans med `assembleDebug` | `BUILD SUCCESSFUL` | `work/android-build-final.log`; `outputs/AgilityManager-1.0.0-unsigned.aab` i arbetsytan. Inte färdig för butikens signerade releaseflöde. |
-| Android signerad release-AAB | Ingen release-signering verifierad | Ej verifierat | Upload key, Play App Signing och signerad AAB återstår. |
-| Privacy manifest / 16 KB / paketinspektion | Paket- och pluginförberedelse i kod | Slutlig releasekontroll återstår | Kontrollera slutligt signerat paket, manifestdeklarationer, nativebibliotek och relevanta enhetstester innan inskickning. |
-
-## Externa blockerare och publicering
-
-| Kontroll | Status | Ansvarig / evidens / nästa steg |
+| Kontroll för bygg 3 | Faktastatus | Evidens / praktisk gräns |
 | --- | --- | --- |
-| Utgivare, utvecklarkonton och registrerat app-ID | Ej verifierat | Bekräfta rätt utgivare, kontotyp och app-ID; signeringsbehörigheter återstår. |
-| Faktiskt schema, RLS, Storage och raderingsberoenden | Ej verifierat | Inventera rätt backendprojekt och hela datagrafen. |
-| Raderingsbackend driftsatt och testad i rätt miljö | Ej driftsatt/verifierat | Lokal kod och tester finns; staging-, schema-/Storage- och verkliga raderingstester återstår. |
-| Banprofilradering och övriga begäranden | Ej färdig/verifierad | Permanent verifierat raderingsflöde krävs för de konto-/banprofilytor utkast 2 behåller. Instruktörsdata är inte en mobilfunktion i utkast 2. |
-| Personuppgiftsansvarig, rättslig grund och retention | Beslut återstår | Utgivaren behöver fastställa controller, kontaktuppgifter, retention samt logg-/backup-/leverantörsrutiner. |
-| Integritetstext godkänd för verklig drift | Ej godkänd | Tekniskt underlag finns; verksamhetsbeslut och godkännande återstår. |
-| /integritet offentlig på agilitymanager.se | Ny route ej publicerad/verifierad | Lokal vy passerade browsertest; offentlig publicering och åtkomstkontroll återstår. |
-| /radera-konto offentlig och fungerande utan app | Ny route ej publicerad/verifierad | Lokal vy passerade browsertest; publicering och faktiskt backend-/raderingsflöde återstår. |
-| UGC-inventering, villkor, moderering, rapport/block | Ej färdig/verifierad | Inventera delade banor och kommentarer som ingår i mobilappen; implementera och testa relevanta skydd. |
-| App Privacy / Data safety / målgrupp / åldersklassning | Ej inskickat/verifierat | Fyll i mot verklig databehandling och slutligt appinnehåll. |
-| Supportuppgifter, butikstexter och riktiga skärmbilder | Svenska textutkast finns; slutmaterial återstår | `store-listings-sv.txt`; godkänn supportuppgifter och ta/verifiera native skärmbilder för butikerna. |
-| TestFlight / Play-testspår och testarkrav | Ej verifierat | Bekräfta kontotyp, testarkrav och verkliga testare innan produktionsåtkomst. |
-| Submission / butiksgranskning | Ej inskickat | Ingen uppladdning, publicering eller granskning utförd. |
+| Full ESLint-kontroll | Passerade lokalt | `work/standalone-full-lint.log` och rapporterad lyckad körning. |
+| Native web bundle | Passerade lokalt | `work/standalone-native-build-final.log`; bygg klart och paketkontroll: lokal HTML/typsnitt, ingen analytics/backend/community-loader. Det är ingen runtime-/enhetskontroll. |
+| Mobilflöden i lokal webbläsare | Kunde inte starta | `work/standalone-mobile-tests.log`: previewservern fick `listen EPERM 127.0.0.1:3001`. Tester kördes inte; inget passerat browserresultat för bygg 3. |
+| Full CI: TypeScript/lint/enhetstester/webb-/mobilflöden | Väntar | Nya resultat för bygg-3-commit behövs. Tidigare godkända körningar är historik. |
+| iOS/Android-plattformsbyggen för bygg 3 | Väntar | Nya CI-paket och versionskontroll behövs. Historiska paket är inte bygg 3. |
+| Native appstart/smoke för bygg 3 | Väntar | iOS-smoke och Android-smoke ska ge aktuella loggar/skärmbilder. Processstart bevisar inte komplett UI-flöde. |
+| Fysisk iPhone/Android | Ej verifierat | Första start, banredigering/sparning, import/export, offline, layout och mottagarappar återstår. |
+| Ingen datainsamling/servertrafik | Slutverifiering återstår | Avgränsat paket och automatisk bundlekontroll finns. Verifiera verklig trafik och samtliga SDK på båda plattformarna före App Privacy/Data safety. |
+| Privacy manifest / 16 KB / paketinspektion | Slutverifiering återstår | Kontrollera slutpaketets API-deklarationer, SDK och eventuella nativebibliotek. |
 
-## Verkliga enhetstester
+## Konton, signering och butik
 
-Alla fysiska enhetstester nedan återstår. Mobilens webbläsartester och lyckad simulator-kompilering ersätter inte dem. iOS appstart i simulator kunde inte verifieras vid de lokala försöken; se ovan.
+| Område | Verifierat eller rapporterat | Återstår |
+| --- | --- | --- |
+| Utgivare/support | Användaren har angett Aurora Media AB och info@auroramedia.se | Behörig utgivare godkänner slutmaterial; fungerande support-/kontakt-URL verifieras. |
+| Apple Developer/Play Console | Befintliga konton bekräftade av användaren | Kontospecifika roller, medlemskap/avtal och rätt app-ID kontrolleras. |
+| Google Play Console | Faktisk inloggning, organisation `aurora media AB` och Create app-formulär observerade | Paketnamnet se.agilitymanager.app är tillgängligt och Paid är valt i formuläret. De två juridiska intygandena inväntar användarens bekräftelse; appregistrering, betalprofil, pris och signering återstår. |
+| App Store Connect | Inloggning i Codex-fliken verifierad; nytt appformulär förberett | Apples Business visar ett personnamn som juridisk säljare och Paid Apps Agreement som New. Rätt team för Aurora Media AB behöver fastställas innan appregistrering; betalt avtal återstår. |
+| Lokal iOS-signering | Kontrollen hittade 0 giltiga lokala code-signingidentiteter | Development Team, certifikat/provisionering, signerad Archive och validering/export återstår. Kontot kan ha resurser som inte finns lokalt. |
+| Android release-signering | Ej verifierad | Upload key, signerad AAB och Play App Signing återstår; debugnyckel är inte release-signering. |
+| Betald nedladdning | Önskat 39 SEK/SE finns i prisutkastet | Apple exakt prispunkt/Paid Apps Agreement och Google Paid/payments profile/banking-tax verifieras; sparat svenskt kundpris dokumenteras. |
+| Offentlig integritetssida | Apptext och `public/mobil-integritet.html` finns lokalt | Inte publicerad här. Verifiera offentlig URL, innehåll och åtkomst utan app/inloggning innan URL anges i app/butik. |
+| App Privacy / Data safety | Preliminärt underlag för lokal app finns | Ingen inskickad/verifierad deklaration. Slutpaket/SDK, användarvald delning och eventuell supportmejlshantering behöver stämma med text/formulär. |
+| Butiksmaterial | Svenska textutkast finns | Riktiga skärmbilder, åldersklassning/målgrupp, kategori, rättigheter, support-URL och övriga formulär återstår. |
+| TestFlight / Play-testspår | Ej verifierat | Ladda upp signerade aktuella paket och kontrollera konto-/testarkrav. |
+| Submission / granskning / publicering | Ej verifierat | Ingen verifierad inskickning eller butikspublicering. |
 
-| Enhet / OS / version-build / backend | Flöde | Faktiskt resultat | Bevis / kvarvarande fel |
-| --- | --- | --- | --- |
-| [fyll i] | Första start, layout, tangentbord, safe areas | Ej testat | [fyll i] |
-| [fyll i] | Banredigering och sparning efter omstart | Ej testat | [fyll i] |
-| [fyll i] | PDF/PNG/JSON export och öppning | Ej testat | [fyll i] |
-| [fyll i] | Delningslänk, QR, routing och Android back | Ej testat | [fyll i] |
-| [fyll i] | Offline/återanslutning och backendfel | Ej testat | [fyll i] |
-| [fyll i] | Konto, banprofil, radering och serverkontroll | Ej testat | [fyll i] |
-| [fyll i] | UGC-rapportering, blockering och moderering | Ej testat | [fyll i] |
+Vald lokal produkt behöver inget konto-/banprofilraderingsflöde eller communitymoderering eftersom dessa funktioner är exkluderade. Webbplatsens motsvarande arbete är separat och markeras inte som genomfört.
 
-## Releasebeslut
+## Kort historik – andra byggnummer
 
-- Kan skickas in: **Nej, ännu inte.** Lokala bygg- och kodtester har passerat, men releasen är inte signerad och externa blockerare är öppna.
-- Kvarvarande blockerare för utkast 2: utvecklarkonton/utgivare/signering, betalda butiksavtal och konfigurerat svenskt pris, fysiska tester, faktiskt schema/Storage samt permanent konto-/banprofilradering, integritetsbeslut och offentliga webbsidor, UGC-moderering/rapport/block för delade banor/kommentarer, butikernas datadeklarationer och testspår.
-- Godkänd av ansvarig utgivare: ej inhämtat; fyll i namn, datum och godkänd version först efter faktiskt beslut.
+| Version / källkod | Verifierat | Begränsning |
+| --- | --- | --- |
+| 1.0.0 (2), `98ee34d8b08484d3859b84886f1fd2be40e63eac` | Remote CI passerade 335 enhetstester, 6 mobilflöden, iOS-kompilering och Androidpaket | Utkastet behöll konto/delade banor. CI-webbläsare och osignerade/testpaket; ingen fysisk enhet eller signerad butiksversion. Resultaten gäller inte bygg 3. |
+| 1.0.0 (1), `0c3af90ce9309141e102b116e32de827394ec13b` | Tidigare lokala nativebyggen och automatiska tester; remote 333 enhetstester och 21 webbflöden | Brett tidigare apputkast. Lokalt simulatorförsök gav inget verifierat UI-flöde. Historiska APK/AAB motsvarar inte version 3. |
+
+Historiska verktyg: Node.js 24.19.0, npm 10.9.4, Xcode 26.6/SDK 26.5, JDK 21, Gradle 8.14.3, AGP 8.13.0, Capacitor 8.5.2, iOS minimum 15 och Android minimum 24/target 36. Ange faktiskt använda versioner på nästa releasekörning.
+
+## Bevis som ska fyllas efter nästa körning
+
+| Fält | Status |
+| --- | --- |
+| Bygg-3-commit och CI-körning | Väntar |
+| iOS/Android-artefakt, version/bygg, signering | Väntar |
+| Native smoke, loggar och visuellt verifierad skärmbild | Väntar |
+| Fysisk enhet/OS och resultat för lokala banor/import/export | Ej verifierat |
+| Slutpaketets nätverk/SDK/manifest | Ej verifierat |
+| Offentlig integritets-URL och verifieringsdatum | Ej verifierat |
+| Registrerade app-ID, aktiva avtal och svenskt pris per butik | Ej verifierat |
+| Slutliga datadeklarationer, material och submission | Ej verifierat |
+| Ansvarig utgivares releasegodkännande | Ej inhämtat |
+
+Releasebeslut: **kan ännu inte publiceras**. Lägg endast till passerade resultat när bevis finns; ett tomt eller väntande fält betyder att kontrollen återstår.

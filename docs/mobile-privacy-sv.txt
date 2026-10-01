@@ -1,0 +1,56 @@
+AGILITYMANAGER – INTEGRITETSTEXT FÖR DEN FRISTÅENDE MOBILAPPEN
+Utkast 1 oktober 2026 för 1.0.0 (3). Ej publicerat eller slutverifierat.
+Publicera endast apptexten efter slutkontrollerna. Offentlig URL ska föras in i mobile.store.json, appen och butikernas formulär.
+
+APPTEXT – BÖRJAN
+
+Integritet i AgilityManager
+Uppdaterad 1 oktober 2026.
+
+Aurora Media AB är utgivare av AgilityManagers mobilapp. Du når oss på info@auroramedia.se.
+
+Mobilappen är en fristående banplanerare för agility och hoopers. Du behöver inget konto. Appen har ingen molnsparning, publik banpublicering, kommentarer, reklam, användningsanalys, pushnotiser eller platsfunktion.
+
+Dina banor lagras på din enhet
+Banor, banutkast och inställningar sparas lokalt så att du kan fortsätta planera och öppna dina banor igen. Appen skickar inte dessa uppgifter till Aurora Media AB eller en appserver. De medföljande banmallarna finns i appen.
+
+Du väljer vilka filer som importeras
+När du importerar en JSON-banfil läser appen filen du väljer och använder innehållet i banplaneraren. Filen laddas inte upp till någon appserver.
+
+Du väljer när en bana delas
+PDF, PNG och JSON skapas på enheten. När du väljer Spara eller Dela öppnas telefonens delningsfunktion, där du väljer mottagare eller plats. En tillfällig exportkopia sparas i appens cache så att mottagaren kan läsa filen. Telefonens system kan rensa cachefiler. Appen publicerar inte dina banor åt dig.
+
+Om du väljer en annan app, molnlagring eller mejl som mottagare gäller även den tjänstens hantering av uppgifter. Exportera inte personuppgifter i bannamn eller anteckningar som du inte vill dela med mottagaren.
+
+Lokala uppgifter och säkerhetskopior
+Lokalt sparade banor följer inte automatiskt med till en annan enhet. Exportera JSON-banfilen om du vill behålla en egen kopia eller flytta en bana. En bana som raderas från listan över egna banor kan fortfarande finnas som ett separat banutkast eller i filer och kopior som du har sparat.
+
+Appens lagring kan rensas med telefonens funktioner. Rensning och avinstallation kan ta bort lokala uppgifter. Exporterade kopior behöver tas bort där du sparade dem. Telefonens inställningar för säkerhetskopiering och återställning kan påverka vilka kopior som finns; se telefonens information och inställningar.
+
+Köp och support
+Du köper appen i App Store eller Google Play. Butiken hanterar betalning och butiksuppgifter enligt sina villkor. Appen har inget extra köp- eller abonnemangsflöde.
+
+Om du kontaktar info@auroramedia.se hanterar Aurora Media AB mejlet och uppgifterna du väljer att skicka för att kunna hjälpa dig. Supportmejl är ett separat flöde från den lokala banplaneraren. Skicka bara banfiler eller andra uppgifter som behövs för ditt ärende.
+
+Kontakta oss
+Kontakta Aurora Media AB på info@auroramedia.se om du har frågor om appens lagring, exporter eller hantering av uppgifter.
+
+APPTEXT – SLUT
+
+INTERN PUBLICERINGSKONTROLL – FÅR INTE INGÅ I OFFENTLIG TEXT
+- Utgivare/support är uttryckligen angivet av användaren: Aurora Media AB, info@auroramedia.se.
+- Verifiera bygg 3 på iPhone/Android: inga konton, Supabase/användarbackend, community, feedbackuppladdningar, analytics, reklam, push eller position. Kontrollera riktiga nätverksanrop och SDK.
+- Verifiera lokalt bibliotek, bansparning/import/export och cache. Anpassa texten om slutpaketets beteende skiljer sig.
+- Verifiera radering av sparad bana kontra separat utkast/exporterade filer samt OS-backup. Texten lovar inte att inga OS-kopior kan finnas.
+- Ansvarig Aurora Media AB behöver godkänna texten och fastställa separat supportmejlshantering: ansvar, rättslig grund, lagring/radering och relevant information. Inga verksamhetsbeslut är uppfunna här.
+- Publicera apptexten på offentligt åtkomlig webbsida (inte PDF), kontrollera åtkomst utan app/inloggning och registrera exakt URL/verifieringsdatum. Detta utkast publicerar inte sidan.
+- Apple "Data Not Collected" förutsätter verifierat slutpaket inklusive SDK. Lokal behandling räknas inte som insamling, men data som lämnar enheten ska bedömas separat.
+- Google: ingen insamling/delning/inga appkonton är preliminärt underlag. Systemdelning ska uppfylla undantaget för förväntad användarinitierad delning. Behörig utgivare behöver verifiera/fylla i formuläret även utan insamling.
+- Privacy manifest för Filesystem/övriga SDK kräver granskning. Required-reason API betyder inte i sig användardatainsamling.
+- Inga butiksformulär, prispunkter eller juridiska avtal har aktiverats av textutkastet.
+
+OFFICIELLA UNDERLAG
+Apple App Privacy: https://developer.apple.com/app-store/app-privacy-details/
+Apple integritet/konto: https://developer.apple.com/app-store/review/guidelines/#privacy
+Google Data safety/delning: https://support.google.com/googleplay/android-developer/answer/10787469?hl=en
+Google User Data/policy: https://support.google.com/googleplay/android-developer/answer/10144311?hl=en

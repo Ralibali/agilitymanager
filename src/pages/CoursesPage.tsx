@@ -137,12 +137,12 @@ export default function CoursesPage() {
             >
               Öppna tom plan <ArrowRight className="h-5 w-5" />
             </Link>
-            <Link
+            {!IS_NATIVE_APP && <Link
               to="/delade-banor"
               className="pressable shadow-hard inline-flex h-14 items-center gap-2 rounded-full border-2 border-ink bg-paper px-8 text-lg font-bold text-ink"
             >
               Se banor från communityn
-            </Link>
+            </Link>}
           </div>
         </Reveal>
 

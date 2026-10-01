@@ -1,4 +1,3 @@
-import { Capacitor } from "@capacitor/core";
 import { useState } from "react";
 import { Check, Copy, Globe, Loader2, Lock, Share2 } from "lucide-react";
 import { toast } from "sonner";
@@ -9,8 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { plannerApi, usePlannerProfile } from "@/lib/plannerProfile";
-
-const IS_NATIVE_APP = import.meta.env.VITE_NATIVE_APP === "true";
 
 export interface SavedCourseRef {
   id: string;
@@ -58,7 +55,7 @@ export function SaveShareDialog({
     }
   }
 
-  const shareUrl = savedId ? `${Capacitor.isNativePlatform() ? "https://agilitymanager.se" : window.location.origin}/bana/${savedId}` : "";
+  const shareUrl = savedId ? `${window.location.origin}/bana/${savedId}` : "";
 
   const save = async () => {
     setSaving(true);
@@ -148,7 +145,8 @@ export function SaveShareDialog({
           </Button>
 
           <p className="text-xs leading-relaxed text-muted-foreground">
-            {IS_NATIVE_APP ? "Att rita, spara och dela banor ingår i appen." : "Att rita, spara och dela banor ingår i gratisnivån. Nya extrafunktioner kan bli betalda framöver — då märker vi dem tydligt innan du väljer dem."}
+            Att rita, spara och dela banor ingår i gratisnivån. Nya extrafunktioner kan
+            bli betalda framöver — då märker vi dem tydligt innan du väljer dem.
           </p>
 
           {savedId && isPublic && (

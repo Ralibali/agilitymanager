@@ -6,9 +6,10 @@ import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 
-const IS_NATIVE_APP = import.meta.env.VITE_NATIVE_APP === "true";
-
-/** Inloggning för kontot med e-post och lösenord, separat från banprofilen. */
+/**
+ * Inloggning/konto — behövs bara för molnlagring, kommentarer och
+ * klubbdelning. Att rita och dela banor via länk är alltid fritt.
+ */
 export function AuthDialog({
   open,
   onOpenChange,
@@ -59,7 +60,8 @@ export function AuthDialog({
             {mode === "login" ? "Logga in" : "Skapa konto"}
           </DialogTitle>
           <DialogDescription className="text-ink/60">
-            {IS_NATIVE_APP ? "Du behöver inget konto för att rita eller exportera banor. Banprofilen för att spara och dela banor skapas separat med namn och e-post." : "Kontot är gratis och behövs bara för att spara banor i molnet, kommentera och dela med din klubb."}
+            Kontot är gratis och behövs bara för att spara banor i molnet,
+            kommentera och dela med din klubb.
           </DialogDescription>
         </DialogHeader>
 
@@ -115,7 +117,7 @@ export function AuthDialog({
             ) : (
               <UserPlus className="h-4 w-4" />
             )}
-            {mode === "login" ? "Logga in" : IS_NATIVE_APP ? "Skapa konto" : "Skapa gratis konto"}
+            {mode === "login" ? "Logga in" : "Skapa gratis konto"}
           </button>
 
           <button

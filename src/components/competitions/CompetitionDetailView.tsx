@@ -1,7 +1,5 @@
 import { Link } from "react-router";
 import { ArrowLeft, ArrowRight, CalendarPlus, ExternalLink, MapPin, RefreshCw, Trophy } from "lucide-react";
-import { toast } from "sonner";
-import { isExportCancelled } from "@/lib/exportFile";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Reveal } from "@/components/Reveal";
@@ -57,24 +55,20 @@ export function CompetitionDetailView({
     ...(comp.dateStart ? { datum: comp.dateStart.slice(0, 10) } : {}),
   });
 
-  const handleIcs = async () => {
-    try {
-      await downloadIcs(
-        `${comp.sport}-${comp.id}`,
-        buildIcs({
-          id: `${comp.sport}-${comp.id}`,
-          name: comp.name,
-          club: comp.club,
-          location: comp.location,
-          dateStart: comp.dateStart,
-          dateEnd: comp.dateEnd,
-          url: `${SITE_URL}${comp.path}`,
-          description: `${comp.name} — ${comp.club || "arrangör okänd"}, ${comp.location}. Se detaljer på AgilityManager: ${SITE_URL}${comp.path}`,
-        }),
-      );
-    } catch (error) {
-      if (!isExportCancelled(error)) toast.error("Kunde inte exportera kalenderfilen. Försök igen.");
-    }
+  const handleIcs = () => {
+    downloadIcs(
+      `${comp.sport}-${comp.id}`,
+      buildIcs({
+        id: `${comp.sport}-${comp.id}`,
+        name: comp.name,
+        club: comp.club,
+        location: comp.location,
+        dateStart: comp.dateStart,
+        dateEnd: comp.dateEnd,
+        url: `${SITE_URL}${comp.path}`,
+        description: `${comp.name} — ${comp.club || "arrangör okänd"}, ${comp.location}. Se detaljer på AgilityManager: ${SITE_URL}${comp.path}`,
+      }),
+    );
   };
 
   return (

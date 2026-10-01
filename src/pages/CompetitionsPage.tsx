@@ -1,8 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { ArrowRight, CalendarPlus, Heart, LocateFixed, MapPin, RefreshCw, Search } from "lucide-react";
-import { toast } from "sonner";
-import { isExportCancelled } from "@/lib/exportFile";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
@@ -181,19 +179,15 @@ export default function CompetitionsPage() {
   const icsCount = useMemo(() => icsFeedCount(icsList), [icsList]);
 
   /** Laddar ner de filtrerade tävlingarna som en iCal-fil till mobilkalendern. */
-  const exportIcsFeed = async () => {
+  const exportIcsFeed = () => {
     if (icsList.length === 0) return;
-    try {
-      await downloadIcs(
-        icsFeedFilename(dogProfile.name),
-        buildIcsFeed(icsList, {
-          calendarName: `AgilityManager – tävlingar för ${dogProfile.name.trim() || "din hund"}`,
-          siteUrl: SITE_URL,
-        }),
-      );
-    } catch (error) {
-      if (!isExportCancelled(error)) toast.error("Kunde inte exportera kalenderfilen. Försök igen.");
-    }
+    downloadIcs(
+      icsFeedFilename(dogProfile.name),
+      buildIcsFeed(icsList, {
+        calendarName: `AgilityManager – tävlingar för ${dogProfile.name.trim() || "din hund"}`,
+        siteUrl: SITE_URL,
+      }),
+    );
   };
 
   /** Aktiverar matchning för en profil och sätter sportfiltret därefter. */

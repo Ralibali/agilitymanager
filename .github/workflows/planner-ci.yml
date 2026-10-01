@@ -101,5 +101,3 @@ jobs:
 
       - name: Typecheck planner-social Edge Function
         run: deno check supabase/functions/planner-social/index.ts
-      - name: Typecheck account deletion Edge Function
-        run: deno check supabase/functions/delete-account/index.ts

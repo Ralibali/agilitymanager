@@ -11,7 +11,11 @@ export default defineConfig({
   define: { 'import.meta.env.VITE_NATIVE_APP': JSON.stringify('true') },
   resolve: {
     alias: [
+      { find: /^troika-three-text$/, replacement: path.resolve('node_modules/troika-three-text/src/index.js') },
+      { find: '../libs/unicode-font-resolver-client.factory.js', replacement: path.resolve('src/features/course-planner/3d/localUnicodeFontResolver.ts') },
       { find: '@/lib/analytics', replacement: path.resolve('src/lib/nativeAnalytics.ts') },
+      { find: '@/components/SiteNav', replacement: path.resolve('src/mobile/nativeChrome.tsx') },
+      { find: '@/components/SiteFooter', replacement: path.resolve('src/mobile/nativeChrome.tsx') },
       { find: '@', replacement: path.resolve('src') },
     ],
   },

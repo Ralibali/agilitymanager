@@ -11,8 +11,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const IS_NATIVE_APP = import.meta.env.VITE_NATIVE_APP === "true";
-
 const CATEGORIES = [
   { id: "ide", label: "Idé / önskemål" },
   { id: "bugg", label: "Bugg" },
@@ -101,7 +99,8 @@ export default function FeedbackDialog({ open, onOpenChange, courseData }: Props
             Hjälp oss göra banbyggaren bättre
           </DialogTitle>
           <DialogDescription className="text-ink/70">
-            {IS_NATIVE_APP ? "Skicka idéer, buggar eller förslag på material för banplaneraren." : "Banplaneraren är gratis. Skicka in idéer, buggar eller material — vi läser allt och bygger vidare på det."}
+            Banplaneraren är gratis. Skicka in idéer, buggar eller material — vi
+            läser allt och bygger vidare på det.
           </DialogDescription>
         </DialogHeader>
 

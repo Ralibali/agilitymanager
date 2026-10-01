@@ -8,12 +8,12 @@ import { mobileSection } from "./navigation";
 const SECTION_TITLES = {
   planner: "Banplanerare",
   library: "Banor",
-  account: "Mitt AgilityManager",
+  own: "Mina banor",
 };
 
 function backTarget(pathname: string) {
   if (pathname === "/banplanerare" || pathname.startsWith("/bana/")) return "/banor";
-  if (pathname === "/integritet" || pathname === "/radera-konto") return "/mitt-agilitymanager";
+  if (pathname === "/integritet") return "/mina-banor";
   return "/";
 }
 
@@ -46,9 +46,7 @@ export default function MobileShell({ children }: { children: ReactNode }) {
   const home = pathname === "/";
   const title = pathname === "/integritet"
     ? "Integritet"
-    : pathname === "/radera-konto"
-      ? "Radera konto"
-      : section ? SECTION_TITLES[section] : "AgilityManager";
+    : section ? SECTION_TITLES[section] : "AgilityManager";
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
@@ -84,7 +82,7 @@ export default function MobileShell({ children }: { children: ReactNode }) {
       {!online ? (
         <div className="mobile-offline" role="status" aria-live="polite">
           <WifiOff size={18} aria-hidden="true" />
-          <p>Du är offline. Lokala banor går att använda. Delning och sparande på profil behöver internet.</p>
+          <p>Du är offline. Banplaneraren, banbiblioteket och dina sparade banor fungerar ändå.</p>
         </div>
       ) : null}
       <MobileSectionNavigation />
@@ -92,10 +90,10 @@ export default function MobileShell({ children }: { children: ReactNode }) {
         {children}
       </div>
       {!planner ? (
-        <footer className="mobile-legal-links" aria-label="Integritet och konto">
+        <footer className="mobile-legal-links" aria-label="Integritet och support">
           <Link to="/integritet">Integritet</Link>
           <span aria-hidden="true">·</span>
-          <Link to="/radera-konto">Radera konto</Link>
+          <a href="mailto:info@auroramedia.se">Support</a>
         </footer>
       ) : null}
       <MobileNavigation />

@@ -36,10 +36,20 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: node --check scripts/native-smoke-ios.mjs
+      - run: node --check scripts/native-smoke-android.mjs
       - run: npm run typecheck && npm run lint && npm test
       - run: npm run build:native
       - run: npx playwright install --with-deps chromium
       - run: npm run test:mobile
+      - name: Save mobile browser traces and 3D screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-browser-evidence
+          retention-days: 14
+          if-no-files-found: ignore
+          path: test-results/
 
   android:
     needs: verify
@@ -69,6 +79,54 @@ jobs:
             android/app/build/outputs/bundle/release/*.aab
             android/app/build/outputs/apk/debug/*.apk
 
+  android-smoke:
+    needs: android
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      AGILITY_CI_AVD: agilitymanager-ci-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # Download from this workflow run; do not rebuild or use an older APK.
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-unsigned-release-and-debug
+          path: android-smoke-package
+      - name: Enable KVM on the disposable runner
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Isolated Android first-launch smoke
+        uses: reactivecircus/android-emulator-runner@v2
+        timeout-minutes: 7
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7_pro
+          cores: 2
+          ram-size: 2048M
+          avd-name: ${{ env.AGILITY_CI_AVD }}
+          force-avd-creation: true
+          emulator-port: 5554
+          emulator-boot-timeout: 120
+          disable-linux-hw-accel: false
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim
+          script: node scripts/native-smoke-android.mjs android-smoke-package
+      - name: Save Android first-launch evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-first-launch
+          retention-days: 14
+          if-no-files-found: warn
+          path: test-results/native-android-smoke/
+
   ios:
     needs: verify
     runs-on: macos-latest
@@ -82,3 +140,20 @@ jobs:
       - run: xcodebuild -version
       - run: npm ci && npm run build:native && node scripts/native-prepare.mjs ios
       - run: xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build-ios CODE_SIGNING_ALLOWED=NO
+      # Archive the .app so executable permissions and framework symlinks
+      # survive artifact download. This is a simulator app, not a signed IPA.
+      - name: Archive simulator app
+        run: ditto -c -k --sequesterRsrc --keepParent build-ios/Build/Products/Debug-iphonesimulator/App.app build-ios/AgilityManager-ios-simulator.zip
+      - name: Isolated simulator first-launch smoke
+        timeout-minutes: 4
+        run: node scripts/native-smoke-ios.mjs
+      - name: Save simulator app and first-launch evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-app-and-first-launch
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            build-ios/AgilityManager-ios-simulator.zip
+            test-results/native-ios-smoke/

@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { useMemo } from "react";
 import { Text } from "@react-three/drei";
+import { nativeTextFont } from "./nativeTextFont";
 
 type Props = { widthMeters: number; heightMeters: number; wallHeight?: number; showGrid?: boolean };
 
@@ -88,6 +89,7 @@ function WallBanner({ text, sub, position, rotation, width, accent = "green" }: 
         <meshBasicMaterial color={accentColor} />
       </mesh>
       <Text
+        font={nativeTextFont}
         position={[0.14, 0.16, 0.07]}
         fontSize={Math.min(0.34, width / 10.5)}
         color="#102d22"
@@ -103,6 +105,7 @@ function WallBanner({ text, sub, position, rotation, width, accent = "green" }: 
       </Text>
       {sub && (
         <Text
+          font={nativeTextFont}
           position={[0.14, -0.23, 0.07]}
           fontSize={Math.min(0.15, width / 20)}
           color="#526059"
@@ -121,7 +124,7 @@ function WallBanner({ text, sub, position, rotation, width, accent = "green" }: 
 
 function DimensionLabel({ text, position, rotation }: { text: string; position: [number, number, number]; rotation: [number, number, number] }) {
   return (
-    <Text position={position} rotation={rotation} fontSize={0.32} color="#ffffff" anchorX="center" anchorY="middle" outlineWidth={0.028} outlineColor="#31542b">
+    <Text font={nativeTextFont} position={position} rotation={rotation} fontSize={0.32} color="#ffffff" anchorX="center" anchorY="middle" outlineWidth={0.028} outlineColor="#31542b">
       {text}
     </Text>
   );

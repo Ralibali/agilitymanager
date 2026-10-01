@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { getCountyForLocation } from "./swedishCityCounty";
 import { normalizeCounty } from "./swedishCounties";
 import { buildCompetitionSlug } from "./competitionSlug";
-import { exportFile } from "./exportFile";
 
 export interface AgilityCompetition {
   id: string;
@@ -295,7 +294,14 @@ export function buildIcs(comp: {
   ].join("\r\n");
 }
 
-export async function downloadIcs(filename: string, ics: string): Promise<void> {
+export function downloadIcs(filename: string, ics: string): void {
   const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-  await exportFile(blob, filename.endsWith(".ics") ? filename : `${filename}.ics`);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename.endsWith(".ics") ? filename : `${filename}.ics`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }

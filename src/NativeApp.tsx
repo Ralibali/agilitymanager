@@ -8,11 +8,8 @@ import MobileShell from "./mobile/MobileShell";
 
 const PlannerPage = lazy(() => import("./pages/PlannerPage"));
 const CoursesPage = lazy(() => import("./pages/CoursesPage"));
-const SharedCoursesPage = lazy(() => import("./pages/SharedCoursesPage"));
-const PublicCoursePage = lazy(() => import("./pages/PublicCoursePage"));
-const AccountPage = lazy(() => import("./pages/AccountPage"));
-const MobilePrivacyPage = lazy(() => import("./mobile/MobilePrivacyPage"));
-const MobileDeleteAccountPage = lazy(() => import("./mobile/MobileDeleteAccountPage"));
+const MobileOwnCoursesPage = lazy(() => import("./mobile/MobileOwnCoursesPage"));
+const NativePrivacyPage = lazy(() => import("./mobile/NativePrivacyPage"));
 
 function LoadingPage() {
   return <div className="mobile-route-status" role="status" aria-live="polite">Laddar sidan…</div>;
@@ -43,20 +40,15 @@ export default function NativeApp() {
       <NativeRuntime />
       <Toaster position="top-center" richColors />
       <MobileShell>
-        <RouteErrorBoundary key={location.pathname}>
+        <RouteErrorBoundary key={location.pathname + location.search}>
           <Suspense fallback={<LoadingPage />}>
             <Routes>
               <Route path="/" element={<MobileHome />} />
               <Route path="/banplanerare" element={<PlannerPage />} />
               <Route path="/banor" element={<CoursesPage />} />
-              <Route path="/delade-banor" element={<SharedCoursesPage />} />
-              <Route path="/bana/:id" element={<PublicCoursePage />} />
-              <Route path="/mitt-agilitymanager" element={<AccountPage />} />
-              <Route path="/konto" element={<Navigate to="/mitt-agilitymanager" replace />} />
-              <Route path="/auth" element={<Navigate to="/mitt-agilitymanager" replace />} />
-              <Route path="/logga-in" element={<Navigate to="/mitt-agilitymanager" replace />} />
-              <Route path="/integritet" element={<MobilePrivacyPage />} />
-              <Route path="/radera-konto" element={<MobileDeleteAccountPage />} />
+              <Route path="/mina-banor" element={<MobileOwnCoursesPage />} />
+              <Route path="/mitt-agilitymanager" element={<Navigate to="/mina-banor" replace />} />
+              <Route path="/integritet" element={<NativePrivacyPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

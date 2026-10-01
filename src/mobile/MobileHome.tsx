@@ -1,9 +1,9 @@
-import { ArrowRight, LayoutGrid, Users } from "lucide-react";
+import { ArrowRight, FolderOpen, LayoutGrid } from "lucide-react";
 import { Link } from "react-router";
 
 const SHORTCUTS = [
   { to: "/banor", icon: LayoutGrid, title: "Banbibliotek", text: "Färdiga banor för agility och hoopers att öppna och anpassa." },
-  { to: "/delade-banor", icon: Users, title: "Delade banor", text: "Upptäck banor från andra och bygg vidare i planeraren." },
+  { to: "/mina-banor", icon: FolderOpen, title: "Mina banor", text: "Dina lokalt sparade banor, redo att öppna och fortsätta med." },
 ] as const;
 
 export default function MobileHome() {

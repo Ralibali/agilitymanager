@@ -1,4 +1,4 @@
-import { LayoutGrid, PenLine, UserRound } from "lucide-react";
+import { FolderOpen, LayoutGrid, PenLine } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { mobileSection } from "./navigation";
 import type { MobileSection } from "./navigation";
@@ -6,19 +6,15 @@ import type { MobileSection } from "./navigation";
 const TABS = [
   { section: "planner", to: "/banplanerare", label: "Rita", icon: PenLine },
   { section: "library", to: "/banor", label: "Banor", icon: LayoutGrid },
-  { section: "account", to: "/mitt-agilitymanager", label: "Mitt", icon: UserRound },
+  { section: "own", to: "/mina-banor", label: "Mitt", icon: FolderOpen },
 ] as const;
 
 const SECTION_LINKS: Record<MobileSection, { to: string; label: string }[]> = {
   planner: [],
-  library: [
-    { to: "/banor", label: "Banbibliotek" },
-    { to: "/delade-banor", label: "Delade banor" },
-  ],
-  account: [
-    { to: "/mitt-agilitymanager", label: "Konto" },
+  library: [],
+  own: [
+    { to: "/mina-banor", label: "Mina banor" },
     { to: "/integritet", label: "Integritet" },
-    { to: "/radera-konto", label: "Radera konto" },
   ],
 };
 

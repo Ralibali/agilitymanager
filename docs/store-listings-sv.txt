@@ -1,5 +1,5 @@
 AGILITYMANAGER – SVENSKA BUTIKSTEXTER
-Utkast uppdaterat 1 oktober 2026. Inte publicerat. Mobilprodukt: banplanerare, banbibliotek och egna banor. Kontrollera texterna mot den slutliga verifierade appen före inskickning.
+Utkast 1 oktober 2026 för lokal banplanerare 1.0.0 (3). Utgivare Aurora Media AB. Support info@auroramedia.se. Inte publicerat.
 
 BUTIKSNAMN (APPLE OCH GOOGLE PLAY)
 AgilityManager
@@ -22,31 +22,33 @@ Börja från en tom plan eller utforska färdiga banmallar. Anpassa hindrens pla
 SPARA OCH DELA BANKARTOR
 Exportera bankartan som PNG eller PDF och spara eller dela den med telefonens verktyg. Välj underlag för domare, bygganvisningar, träning eller en numrerad hinderlista. Exportera och importera även banfiler som JSON för att säkerhetskopiera banan eller flytta den till en annan enhet.
 
-Du kan rita och spara egna banor lokalt utan konto. Lokalt sparade banor följer inte automatiskt med till en annan enhet. Använd banfiler för att behålla en egen kopia.
+FRISTÅENDE PÅ DIN ENHET
+Rita och spara banor utan konto. Banplaneraren och de medföljande mallarna är tillgängliga utan internet. Egna banor lagras på enheten och synkas inte automatiskt mellan telefoner. Spara banfiler om du vill behålla en egen kopia eller flytta en bana till en annan enhet.
 
 Appen köps en gång i butiken. Inget abonnemang behövs för banplaneraren.
 
-INTERN PRISFÖRBEREDELSE – SKA INTE KLISTRAS IN I BUTIKSBESKRIVNINGEN
-- Modell: betald nedladdning (paid-download), ett engångsköp före installation från App Store eller Google Play.
-- Önskat svenskt kundpris: 39 SEK. Land: Sverige (SE). Inte konfigurerat eller verifierat i någon butik.
-- Apple: bekräfta exakt SEK-prispunkt i App Store Connect; välj inte ett annat belopp utan utgivarens beslut. Aktivt Paid Apps Agreement samt begärda skatte-/bankuppgifter återstår att verifiera.
-- Google: välj Paid innan appen erbjuds gratis. En app som redan har erbjudits gratis kan inte senare bli betald med samma paketnamn. Payments profile och skatte-/bankuppgifter återstår att verifiera.
-- Ingen Stripe, IAP, prenumeration eller extra betalningsskärm planeras. Butikens prisfält visar det aktuella priset; klistra inte in ett ännu obekräftat 39-kronorspris i den publika beskrivningen.
-- Prisutkast: mobile.store.json. Försäljning och butiksregistrering är inte aktiverade av filen.
+INTERN REGISTRERING OCH PRIS – INTE FÖR PUBLIK BESKRIVNING
+- Aurora Media AB. Support info@auroramedia.se. Konton finns enligt utgivaren; faktisk behörighet, avtal, signering och registrering är inte verifierade.
+- App-ID se.agilitymanager.app (preliminärt). Version 1.0.0, bygg 3. Huvudspråk svenska.
+- Betald nedladdning, ett engångsköp i respektive butik. Önskat svenskt kundpris 39 SEK (SE), ej konfigurerat/verifierat.
+- Apple: bekräfta exakt prispunkt i kontot, aktivt Paid Apps Agreement och begärda skatte-/bankuppgifter. Välj inte ett ersättningsbelopp utan utgivarens beslut.
+- Google: välj Paid innan appen erbjuds gratis. Gratiserbjuden app kan inte bli betald med samma paketnamn. Verifiera payments profile, skatte-/bankuppgifter och slutligt svenskt kundpris.
+- Ingen Stripe, IAP, prenumeration eller extra betalningsskärm. Lägg inte obekräftat 39-kronorspris i text/skärmbilder.
+- mobile.store.json är ett utkast; filen aktiverar ingen registrering, försäljning eller runtime-paywall.
 
-INTERN CHECKLISTA – SKA INTE KLISTRAS IN I BUTIKSBESKRIVNINGEN
-- Verifiera de nämnda funktionerna på fysisk iPhone och Android med det paket som ska skickas in.
-- Bekräfta utgivare, supportuppgifter, integritets-URL och eventuell raderings-URL om konto-/profilflöden ingår. Nya integritets-/raderingssidor är inte publicerade i denna förberedelse.
-- Beskriv endast banplaneraren, banbiblioteket och egna banor. Webbplatsens tävlingar, separata träningsplanering, instruktör/elev, resultat och guider ingår inte i denna butikstext.
-- Verifiera att återanvända mobilkomponenter inte visar webbplatsens gratiserbjudande eller andra funktioner som ligger utanför appens omfattning.
-- Lägg inte till påståenden om fungerande kontoradering, färdig moderering, fullständigt offlinestöd, native push, molnsynk eller analyser som inte har verifierats.
-- Beskrivningen marknadsför inte kommentars-/socialfunktioner; de behöver ändå inventeras och uppfylla UGC-kraven om de ingår i appen.
-- App-ID se.agilitymanager.app är ett lokalt utkast och måste bekräftas/registreras av utgivaren.
+INTERN SLUTKONTROLL – INTE FÖR PUBLIK BESKRIVNING
+- Verifiera funktionerna på fysisk iPhone och Android för bygg 3.
+- Offlinepåståendet kräver medföljande bibliotek och fungerande nyinstallation/redigering/sparning/export utan nätverk.
+- Inga konton, banprofiler, community, kommentarer, molnsynk, feedbackserver eller appserver för konsumentdata. Verifiera dialoger, deeplinks, SDK och nätverkstrafik.
+- Webbens tävlingar, träningsplanering, instruktör/elev, resultat och guider ingår inte.
+- Bekräfta rättigheter till mallar/bilder/typsnitt, målgrupp/åldersklassning och kategori (sport är ett förslag).
+- Godkänn docs/mobile-privacy-sv.txt och publicera appens policy. Offentlig policy-URL och support-URL är inte verifierade.
+- App Privacy/Data safety, pris, avtal, skärmbilder och signering ska motsvara färdigt paket.
 
 OFFICIELLA PRISKÄLLOR
-Apple apppris: https://developer.apple.com/help/app-store-connect/manage-app-pricing/set-a-price/
-Apple betalda avtal: https://developer.apple.com/help/app-store-connect/manage-agreements/sign-and-update-agreements/
-Apple utbetalningar: https://developer.apple.com/help/app-store-connect/getting-paid/overview-of-receiving-payments/
-Google apppris och gratis/betald: https://support.google.com/googleplay/android-developer/answer/6334373?hl=en
+Apple pris: https://developer.apple.com/help/app-store-connect/manage-app-pricing/set-a-price/
+Apple avtal: https://developer.apple.com/help/app-store-connect/manage-agreements/sign-and-update-agreements/
+Apple utbetalning: https://developer.apple.com/help/app-store-connect/getting-paid/overview-of-receiving-payments/
+Google pris: https://support.google.com/googleplay/android-developer/answer/6334373?hl=en
 Google betalningsprofil: https://support.google.com/googleplay/android-developer/answer/3092739?hl=en
-Google bankuppgifter: https://support.google.com/googleplay/android-developer/answer/7161440?hl=en
+Google bank: https://support.google.com/googleplay/android-developer/answer/7161440?hl=en

@@ -1,9 +1,28 @@
 {
   "status": "draft",
   "appName": "AgilityManager",
+  "publisher": "Aurora Media AB",
+  "supportEmail": "info@auroramedia.se",
+  "version": "1.0.0",
+  "build": 3,
   "appId": "se.agilitymanager.app",
   "appIdConfirmed": false,
-  "productScope": ["course-planner", "course-library", "saved-courses"],
+  "primaryLanguage": "sv",
+  "productScope": [
+    "local-course-planner",
+    "bundled-course-library",
+    "local-saved-courses",
+    "local-json-import-export",
+    "local-png-pdf-export"
+  ],
+  "appAccounts": false,
+  "cloudSync": false,
+  "hostedUserContent": false,
+  "analytics": false,
+  "advertising": false,
+  "nativePush": false,
+  "location": false,
+  "serverConsumerDataCollection": false,
   "model": "paid-download",
   "desiredPrice": 39,
   "currency": "SEK",
@@ -14,26 +33,52 @@
   "inAppPurchases": false,
   "subscriptions": false,
   "externalPaymentProvider": null,
+  "privacyPolicy": {
+    "sourceFile": "docs/mobile-privacy-sv.txt",
+    "publicUrl": null,
+    "published": false,
+    "verified": false
+  },
+  "supportUrl": null,
+  "privacyDeclarations": {
+    "status": "draft-pending-final-package-verification",
+    "appleDataCollected": false,
+    "googleDataCollected": false,
+    "googleDataShared": false,
+    "submitted": false,
+    "verified": false
+  },
   "stores": {
     "appleAppStore": {
+      "accountExistsReportedByPublisher": true,
+      "accountAccessVerified": true,
       "storePriceConfigured": false,
       "exactPricePointVerified": false,
       "paidAgreementVerified": false,
       "taxAndBankingVerified": false,
-      "published": false
+      "signingVerified": false,
+      "published": false,
+      "legalEntityMatchesPublisher": false
     },
     "googlePlay": {
+      "accountExistsReportedByPublisher": true,
+      "accountAccessVerified": true,
       "storePriceConfigured": false,
       "paidFromStartVerified": false,
       "paymentsProfileVerified": false,
       "taxAndBankingVerified": false,
-      "published": false
+      "signingVerified": false,
+      "published": false,
+      "organizationNameVerified": true
     }
   },
   "notes": [
     "Preparation only: this file does not configure stores or control access at runtime.",
-    "Verify the exact 39 SEK Apple price point in App Store Connect before configuring a price.",
-    "Choose Google Play Paid before offering the app for free; a free app cannot later become paid under the same package name.",
-    "Verify the Swedish customer price and distribution country in each store before submission."
+    "Publisher and support are supplied by the user; store roles and agreements are not verified.",
+    "Local scope is approved; final build 3 behavior and privacy declarations need verification.",
+    "Publish and verify the mobile-specific privacy policy URL before submission.",
+    "Verify the exact 39 SEK Apple price point in App Store Connect.",
+    "Choose Google Play Paid before offering the app for free; free cannot later become paid under the same package name.",
+    "Verify Swedish customer price and distribution country in each store before submission."
   ]
 }

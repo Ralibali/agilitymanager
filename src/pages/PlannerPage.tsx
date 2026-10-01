@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import {
   ArrowLeft, ArrowLeftRight, ArrowUpDown, BookOpen, Box, Check,
@@ -17,7 +17,6 @@ import { uid, type PlacedObstacle, type Sport } from "@/lib/course";
 import { ObstacleGlyph, ObstacleIcon } from "@/components/ObstacleGlyph";
 import { Logo } from "@/components/SiteNav";
 import { AffiliateBanner } from "@/components/AffiliateBanner";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -56,15 +55,12 @@ import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
 import { makeQrDataUrl } from "@/lib/qrDataUrl";
 import { usePlannerProfile } from "@/lib/plannerProfile";
-import PlannerProfileDialog from "@/features/planner-social/PlannerProfileDialog";
-import SaveShareDialog from "@/features/planner-social/SaveShareDialog";
-import FeedbackDialog from "@/features/planner-social/FeedbackDialog";
 import { CourseMenu } from "@/components/course-planner-v2/CourseMenu";
 import { OpenCourseDialog } from "@/components/course-planner-v2/OpenCourseDialog";
 import { track } from "@/lib/analytics";
 import { ConfirmDialog, NameCourseDialog } from "@/components/course-planner-v2/ConfirmDialog";
 import {
-  saveLocalCourse, type LocalCourse,
+  getLocalCourse, saveLocalCourse, type LocalCourse,
 } from "@/features/course-planner-v2/localCourses";
 import {
   draftSaveStatusLabel, saveDraftToStorage, type DraftSaveState,
@@ -224,6 +220,30 @@ function draftFromLibraryCourse(c: LibraryCourse): Draft | null {
   }
 }
 
+function draftFromStoredCourse(data: unknown): Draft | null {
+  if (!data || typeof data !== "object") return null;
+  const draft = data as Partial<Draft>;
+  if (!Array.isArray(draft.obstacles)) return null;
+  // Named local courses and autosaved drafts may be empty. The file parser
+  // otherwise requires obstacles, so validate settings through a marker.
+  if (draft.obstacles.length === 0) {
+    const probe = draftFromRawCourse({
+      ...draft,
+      obstacles: [{ id: "probe", type: "number", x: 0, y: 0, rotation: 0 }],
+    });
+    return probe ? { ...probe, obstacles: [] } : null;
+  }
+  return draftFromRawCourse(draft);
+}
+
+function initialLocalCourse(search: URLSearchParams): { course: LocalCourse; draft: Draft } | null {
+  const id = search.get("local");
+  if (!id || search.has("bana") || search.has("template") || search.has("delad")) return null;
+  const course = getLocalCourse(id);
+  const draft = course ? draftFromStoredCourse(course.data) : null;
+  return course && draft ? { course, draft: { ...draft, name: course.name } } : null;
+}
+
 function loadInitial(search: URLSearchParams): Draft {
   const shared = search.get("bana");
   if (shared) {
@@ -238,23 +258,8 @@ function loadInitial(search: URLSearchParams): Draft {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      const d = JSON.parse(raw) as Draft;
-      if (d && Array.isArray(d.obstacles)) {
-        // Även ett tomt utkast ska behålla mått, klassmall och regelverk —
-        // ändringar gjorda före första hindret får inte försvinna. JSON-
-        // importen kräver minst ett hinder (en tom FIL är ett fel), så vi
-        // saniterar via en tillfällig markör och tömmer listan igen.
-        if (d.obstacles.length === 0) {
-          const probe = draftFromRawCourse({
-            ...d,
-            obstacles: [{ id: "probe", type: "number", x: 0, y: 0, rotation: 0 }],
-          });
-          if (probe) return { ...probe, obstacles: [] };
-        } else {
-          const parsed = draftFromRawCourse(d);
-          if (parsed) return parsed;
-        }
-      }
+      const parsed = draftFromStoredCourse(JSON.parse(raw));
+      if (parsed) return parsed;
     }
   } catch {
     /* ignorera */
@@ -263,12 +268,16 @@ function loadInitial(search: URLSearchParams): Draft {
 }
 
 const IS_NATIVE_APP = import.meta.env.VITE_NATIVE_APP === "true";
+const PlannerProfileDialog = IS_NATIVE_APP ? null : lazy(() => import("@/features/planner-social/PlannerProfileDialog"));
+const SaveShareDialog = IS_NATIVE_APP ? null : lazy(() => import("@/features/planner-social/SaveShareDialog"));
+const FeedbackDialog = IS_NATIVE_APP ? null : lazy(() => import("@/features/planner-social/FeedbackDialog"));
 
 export default function PlannerPage() {
   const [search] = useSearchParams();
   const { profile: plannerProfile } = usePlannerProfile();
-  const isExternalCopy = search.has("bana") || search.has("template") || search.has("delad");
-  const [draft, setDraft] = useState<Draft>(() => loadInitial(search));
+  const isExternalCopy = search.has("bana") || search.has("template") || (!IS_NATIVE_APP && search.has("delad"));
+  const [initialLocal] = useState(() => initialLocalCourse(search));
+  const [draft, setDraft] = useState<Draft>(() => initialLocal?.draft ?? loadInitial(search));
   // Externa kopior (?bana=/?template=/?delad=) får aldrig skriva över
   // användarens egen autosparade bana förrän hen faktiskt redigerar kopian.
   // Referensen håller exakt det innehåll som kom utifrån.
@@ -343,14 +352,14 @@ export default function PlannerPage() {
   const [saveShareOpen, setSaveShareOpen] = useState(false);
   const [pendingSaveShare, setPendingSaveShare] = useState(false);
   const [socialCourseId, setSocialCourseId] = useState<string | null>(() => {
-    if (isExternalCopy) return null;
+    if (IS_NATIVE_APP || isExternalCopy) return null;
     try { return localStorage.getItem(SOCIAL_ID_KEY); } catch { return null; }
   });
   const [canvasPx, setCanvasPx] = useState({ w: 800, h: 600 });
   const [openCourseOpen, setOpenCourseOpen] = useState(false);
-  const [localCourseId, setLocalCourseId] = useState<string | null>(null);
-  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
-  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
+  const [localCourseId, setLocalCourseId] = useState<string | null>(initialLocal?.course.id ?? null);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(initialLocal?.course.updatedAt ?? null);
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(() => initialLocal ? JSON.stringify(initialLocal.draft) : null);
   // Bekräftelsedialoger (ersätter window.confirm/prompt för a11y + tydlighet)
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [confirmNewOpen, setConfirmNewOpen] = useState(false);
@@ -397,6 +406,7 @@ export default function PlannerPage() {
   // Banidentitet = vilken community-bana (planner-social) som en ev.
   // "Spara & dela" ska uppdatera. Delade länkar/mallar är alltid nya kopior.
   const resetCourseIdentity = useCallback((nextSocialId: string | null = null) => {
+    if (IS_NATIVE_APP) return;
     setSocialCourseId(nextSocialId);
     try {
       if (nextSocialId) localStorage.setItem(SOCIAL_ID_KEY, nextSocialId);
@@ -421,12 +431,13 @@ export default function PlannerPage() {
   const sharedParam = search.get("delad");
   const [sharedDone, setSharedDone] = useState(false);
   const [sharedFailed, setSharedFailed] = useState(false);
-  const loadingShared = !!sharedParam && !sharedDone && !sharedFailed;
+  const loadingShared = !IS_NATIVE_APP && !!sharedParam && !sharedDone && !sharedFailed;
   useEffect(() => {
-    if (!sharedParam) return;
+    if (IS_NATIVE_APP || !sharedParam) return;
     let cancelled = false;
     void (async () => {
       try {
+        const { supabase } = await import("@/integrations/supabase/client");
         const { data, error } = await supabase
           .from("planner_courses")
           .select("id, name, sport, course_data")
@@ -1333,7 +1344,7 @@ export default function PlannerPage() {
     runExport("Domar-PDF", async () => {
       const [{ exportJudgePdf }, qrDataUrl] = await Promise.all([
         import("@/features/course-planner-v2/judgePdf"),
-        makeQrDataUrl(shareUrlForQr()).catch(() => ""),
+        IS_NATIVE_APP ? "" : makeQrDataUrl(shareUrlForQr()).catch(() => ""),
       ]);
       await exportJudgePdf({ ...pdfBase(), qrDataUrl });
       toast.success("Domar-PDF exporterad");
@@ -1342,7 +1353,7 @@ export default function PlannerPage() {
     runExport("Tränings-PDF", async () => {
       const [{ exportTrainingPdf }, qrDataUrl] = await Promise.all([
         import("@/features/course-planner-v2/trainingPdf"),
-        makeQrDataUrl(shareUrlForQr()).catch(() => ""),
+        IS_NATIVE_APP ? "" : makeQrDataUrl(shareUrlForQr()).catch(() => ""),
       ]);
       await exportTrainingPdf({ ...pdfBase(), qrDataUrl });
       toast.success("Tränings-PDF exporterad");
@@ -1351,7 +1362,7 @@ export default function PlannerPage() {
     runExport("Bygg-PDF", async () => {
       const [{ exportBuildPdf }, qrDataUrl] = await Promise.all([
         import("@/features/course-planner-v2/buildPdf"),
-        makeQrDataUrl(shareUrlForQr()).catch(() => ""),
+        IS_NATIVE_APP ? "" : makeQrDataUrl(shareUrlForQr()).catch(() => ""),
       ]);
       await exportBuildPdf({ ...pdfBase(), qrDataUrl });
       toast.success("Bygg-PDF exporterad");
@@ -1447,6 +1458,7 @@ export default function PlannerPage() {
 
   // ── Dela ────────────────────────────────────────────────────
   const openShare = () => {
+    if (IS_NATIVE_APP) return;
     track("course_shared");
     setShareUrl(shareUrlForQr());
     setCopied(false);
@@ -1575,6 +1587,7 @@ export default function PlannerPage() {
   });
 
   const openSaveShare = () => {
+    if (IS_NATIVE_APP) return;
     if (!plannerProfile) {
       setPendingSaveShare(true);
       setProfileOpen(true);
@@ -1619,9 +1632,11 @@ export default function PlannerPage() {
     { id: "new-course", label: "Ny bana", group: "Bana", run: handleNewCourse },
     { id: "issues", label: "Visa regelkontroll", group: "Granska", icon: <ShieldCheck className="h-4 w-4" />, run: () => setIssuesOpen(true) },
     { id: "library", label: "Öppna banbibliotek", group: "Bana", icon: <BookOpen className="h-4 w-4" />, run: () => setLibraryOpen(true) },
-    { id: "share", label: "Dela bana via länk", group: "Bana", icon: <Share2 className="h-4 w-4" />, run: openShare, disabled: !hasObstacles, hint: hasObstacles ? undefined : "Lägg till hinder först" },
-    { id: "save-share", label: "Spara & dela publikt", group: "Bana", icon: <Share2 className="h-4 w-4" />, run: openSaveShare, disabled: !hasObstacles, hint: hasObstacles ? "Betyg & kommentarer via communityn" : "Lägg till hinder först" },
-    { id: "feedback", label: "Skicka förslag till banbyggaren", group: "Bana", icon: <Lightbulb className="h-4 w-4" />, run: () => setFeedbackOpen(true) },
+    ...(!IS_NATIVE_APP ? [
+      { id: "share", label: "Dela bana via länk", group: "Bana", icon: <Share2 className="h-4 w-4" />, run: openShare, disabled: !hasObstacles, hint: hasObstacles ? undefined : "Lägg till hinder först" },
+      { id: "save-share", label: "Spara & dela publikt", group: "Bana", icon: <Share2 className="h-4 w-4" />, run: openSaveShare, disabled: !hasObstacles, hint: hasObstacles ? "Betyg & kommentarer via communityn" : "Lägg till hinder först" },
+      { id: "feedback", label: "Skicka förslag till banbyggaren", group: "Bana", icon: <Lightbulb className="h-4 w-4" />, run: () => setFeedbackOpen(true) },
+    ] : []),
     { id: "playback", label: "Spela upp hundens väg", group: "Visa", shortcut: ["Space"], icon: <Play className="h-4 w-4" />, run: () => setPlaybackActive((v) => !v), disabled: !canPlay, hint: canPlay ? undefined : "Numrera minst två hinder först" },
     { id: "3d", label: "Öppna 3D-vy", group: "Visa", shortcut: ["3"], icon: <Box className="h-4 w-4" />, run: () => setView3D("view"), disabled: !hasObstacles, hint: hasObstacles ? undefined : "Lägg till hinder först" },
     { id: "3d-walk", label: "Gå banan i 3D", group: "Visa", icon: <Footprints className="h-4 w-4" />, run: () => setView3D("walk"), disabled: !hasObstacles, hint: hasObstacles ? undefined : "Lägg till hinder först" },
@@ -1895,10 +1910,12 @@ export default function PlannerPage() {
                   <Keyboard className="mr-2 h-4 w-4" /> Tangentbordsgenvägar
                   <span className="ml-auto text-xs text-ink/40">?</span>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => setFeedbackOpen(true)} className="min-h-11 font-semibold">
-                  <Lightbulb className="mr-2 h-4 w-4" /> Skicka förslag & material
-                </DropdownMenuItem>
+                {!IS_NATIVE_APP && <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => setFeedbackOpen(true)} className="min-h-11 font-semibold">
+                    <Lightbulb className="mr-2 h-4 w-4" /> Skicka förslag & material
+                  </DropdownMenuItem>
+                </>}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -1915,7 +1932,7 @@ export default function PlannerPage() {
                 on3DWalk={() => setView3D("walk")}
               />
             </div>
-            <button
+            {!IS_NATIVE_APP && <><button
               onClick={openSaveShare}
               disabled={!obstacles.length}
               className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-forest px-3 text-sm font-bold text-paper disabled:opacity-40 sm:h-11 sm:px-3.5 xl:px-5"
@@ -1946,8 +1963,7 @@ export default function PlannerPage() {
               <span className="hidden max-w-[8rem] truncate 2xl:inline">
                 {plannerProfile ? plannerProfile.name : "Din profil"}
               </span>
-            </button>
-
+            </button></>}
           </div>
         </div>
       </header>
@@ -2831,7 +2847,7 @@ export default function PlannerPage() {
       </div>
 
       {/* ── Dela-dialog (direktlänk — ingen e-postgrind) ── */}
-      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+      {!IS_NATIVE_APP && <Dialog open={shareOpen} onOpenChange={setShareOpen}>
         <DialogContent className="border-2 border-ink bg-paper sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-display text-3xl uppercase tracking-wide">Dela din bana</DialogTitle>
@@ -2868,7 +2884,7 @@ export default function PlannerPage() {
             </p>
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog>}
 
       {/* ── Bibliotek och sparade banor ── */}
       <CourseLibraryDialog open={libraryOpen} onOpenChange={setLibraryOpen} onPick={pickFromLibrary} />
@@ -2930,14 +2946,15 @@ export default function PlannerPage() {
         onSubmit={(newName) => void persistCourse({ asNew: true, name: newName })}
       />
 
-      <PlannerProfileDialog
+      {!IS_NATIVE_APP && <Suspense fallback={null}>
+      {PlannerProfileDialog && <PlannerProfileDialog
         open={profileOpen}
         onOpenChange={(o) => { setProfileOpen(o); if (!o) setPendingSaveShare(false); }}
         reason={pendingSaveShare ? "Ange namn och e-post för att spara och dela banan." : undefined}
         onReady={() => { if (pendingSaveShare) { setPendingSaveShare(false); setSaveShareOpen(true); } }}
-      />
+      />}
 
-      <SaveShareDialog
+      {SaveShareDialog && <SaveShareDialog
         open={saveShareOpen}
         onOpenChange={setSaveShareOpen}
         courseName={name}
@@ -2948,13 +2965,14 @@ export default function PlannerPage() {
           setSocialCourseId(id);
           try { localStorage.setItem(SOCIAL_ID_KEY, id); } catch { /* ignorera */ }
         }}
-      />
+      />}
 
-      <FeedbackDialog
+      {FeedbackDialog && <FeedbackDialog
         open={feedbackOpen}
         onOpenChange={setFeedbackOpen}
         courseData={obstacles.length ? socialCourseData() : undefined}
-      />
+      />}
+      </Suspense>}
 
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} commands={commands} />
       <KeyboardShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} />

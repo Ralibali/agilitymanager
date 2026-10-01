@@ -9,8 +9,8 @@ if (!html.includes('viewport-fit=cover') || /fonts\.googleapis|googletagmanager/
 for (const file of readdirSync('dist-native/assets')) {
   if (!file.endsWith('.js')) continue;
   const text = readFileSync(join('dist-native/assets', file), 'utf8');
-  if (/googletagmanager\.com|google-analytics\.com/.test(text)) {
-    throw new Error(`Website analytics leaked into native bundle: ${file}`);
+  if (/googletagmanager\.com|google-analytics\.com|supabase\.co|\/auth\/v1|\/functions\/v1\/planner-social|Spara & dela publikt/.test(text)) {
+    throw new Error(`Website analytics, backend or community code leaked into standalone native bundle: ${file}`);
   }
 }
-console.log('Native bundle verified: packaged HTML, local fonts, no website analytics loader.');
+console.log('Native bundle verified: packaged HTML, local fonts, no analytics/backend/community loader.');

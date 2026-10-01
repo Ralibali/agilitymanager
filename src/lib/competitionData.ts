@@ -89,8 +89,21 @@ export function stripHtml(input: string | null | undefined): string {
     .trim();
 }
 
+/**
+ * Tar bort dekorativa tecken som vissa arrangörer lägger i tävlingsnamnet,
+ * t.ex. "勇冀 Siljan Open 冀勇". De ser trasiga ut i sökresultat och flikar.
+ * Latinska bokstäver (inklusive åäö), siffror och vanlig interpunktion behålls.
+ */
+export function cleanCompetitionName(input: string): string {
+  return input
+    .replace(/[^\p{Script=Latin}\p{N}\s\-–—.,:;!?&'’´"()/+#%]/gu, " ")
+    .replace(/\s+/g, " ")
+    .replace(/^[\s\-–—.,:;]+|[\s\-–—,:;]+$/g, "")
+    .trim();
+}
+
 export function agilityToUnified(c: AgilityCompetition): UnifiedCompetition {
-  const name = stripHtml(c.competition_name) || "Agilitytävling";
+  const name = cleanCompetitionName(stripHtml(c.competition_name)) || "Agilitytävling";
   const club = stripHtml(c.club_name);
   const location = stripHtml(c.location);
   return {
@@ -118,7 +131,7 @@ export function agilityToUnified(c: AgilityCompetition): UnifiedCompetition {
 }
 
 export function hoopersToUnified(c: HoopersCompetition): UnifiedCompetition {
-  const name = stripHtml(c.competition_name) || "Hooperstävling";
+  const name = cleanCompetitionName(stripHtml(c.competition_name)) || "Hooperstävling";
   const club = stripHtml(c.club_name || c.organizer);
   const location = stripHtml(c.location);
   return {
@@ -143,6 +156,37 @@ export function hoopersToUnified(c: HoopersCompetition): UnifiedCompetition {
       date: c.date,
     })}`,
   };
+}
+
+/**
+ * Hämtar genomförda tävlingar för båda sporterna, nyast först. Används för
+ * klubbsidor som ska finnas kvar även när klubben saknar kommande tävlingar.
+ */
+export async function fetchPastCompetitions(days = 365): Promise<UnifiedCompetition[]> {
+  const today = new Date().toISOString().slice(0, 10);
+  const from = new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
+  const [agility, hoopers] = await Promise.all([
+    supabase
+      .from("competitions")
+      .select(AGILITY_SELECT)
+      .gte("date_start", from)
+      .lt("date_start", today)
+      .order("date_start", { ascending: false })
+      .limit(1000),
+    supabase
+      .from("hoopers_competitions")
+      .select(HOOPERS_SELECT)
+      .gte("date", from)
+      .lt("date", today)
+      .order("date", { ascending: false })
+      .limit(500),
+  ]);
+
+  const list = [
+    ...((agility.data ?? []) as unknown as AgilityCompetition[]).map(agilityToUnified),
+    ...((hoopers.data ?? []) as unknown as HoopersCompetition[]).map(hoopersToUnified),
+  ];
+  return list.sort((a, b) => (b.dateStart ?? "").localeCompare(a.dateStart ?? ""));
 }
 
 /** Hämtar kommande tävlingar för båda sporterna. */

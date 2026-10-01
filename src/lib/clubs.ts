@@ -12,6 +12,10 @@ export interface ClubSummary {
   openRegistration: number;
   /** Datum (YYYY-MM-DD) för klubbens nästa tävling. */
   nextDate: string | null;
+  /** Genomförda tävlingar under den hämtade perioden (normalt senaste året). */
+  past: number;
+  /** Datum (YYYY-MM-DD) för klubbens senaste genomförda tävling. */
+  lastDate: string | null;
   locations: string[];
 }
 
@@ -29,26 +33,41 @@ function mostCommon(values: string[]): string | null {
   return best;
 }
 
-/** Samlar tävlingarna per arrangerande klubb. Tävlingar utan klubb hoppas över. */
-export function buildClubDirectory(comps: UnifiedCompetition[]): ClubSummary[] {
-  const byClub = new Map<string, UnifiedCompetition[]>();
-  for (const c of comps) {
+/**
+ * Samlar tävlingarna per arrangerande klubb. Tävlingar utan klubb hoppas över.
+ * Med genomförda tävlingar (`past`) finns klubben kvar i katalogen även när
+ * den saknar kommande tävlingar – folk söker på klubbnamn året runt.
+ */
+export function buildClubDirectory(
+  comps: UnifiedCompetition[],
+  pastComps: UnifiedCompetition[] = [],
+): ClubSummary[] {
+  const byClub = new Map<string, { upcoming: UnifiedCompetition[]; past: UnifiedCompetition[] }>();
+  const add = (c: UnifiedCompetition, kind: "upcoming" | "past") => {
     const slug = slugify(c.club);
-    if (!slug) continue;
-    byClub.set(slug, [...(byClub.get(slug) ?? []), c]);
-  }
+    if (!slug) return;
+    const entry = byClub.get(slug) ?? { upcoming: [], past: [] };
+    entry[kind].push(c);
+    byClub.set(slug, entry);
+  };
+  comps.forEach((c) => add(c, "upcoming"));
+  pastComps.forEach((c) => add(c, "past"));
   return [...byClub.entries()]
-    .map(([slug, list]) => {
+    .map(([slug, { upcoming: list, past }]) => {
+      const all = [...list, ...past];
       const dates = list.map((c) => c.dateStart?.slice(0, 10)).filter((d): d is string => !!d).sort();
+      const pastDates = past.map((c) => c.dateStart?.slice(0, 10)).filter((d): d is string => !!d).sort();
       return {
         slug,
-        name: mostCommon(list.map((c) => c.club.trim())) ?? slug,
-        county: mostCommon(list.map((c) => c.county).filter((c): c is string => !!c)),
-        sports: (["agility", "hoopers"] as const).filter((s) => list.some((c) => c.sport === s)),
+        name: mostCommon(all.map((c) => c.club.trim())) ?? slug,
+        county: mostCommon(all.map((c) => c.county).filter((c): c is string => !!c)),
+        sports: (["agility", "hoopers"] as const).filter((s) => all.some((c) => c.sport === s)),
         upcoming: list.length,
         openRegistration: list.filter((c) => registrationOpen(c.registrationCloses)).length,
         nextDate: dates[0] ?? null,
-        locations: [...new Set(list.map((c) => c.location.trim()).filter(Boolean))].sort((a, b) =>
+        past: past.length,
+        lastDate: pastDates[pastDates.length - 1] ?? null,
+        locations: [...new Set(all.map((c) => c.location.trim()).filter(Boolean))].sort((a, b) =>
           a.localeCompare(b, "sv"),
         ),
       };

@@ -89,33 +89,43 @@ function countyPages(comps: UnifiedCompetition[], now: Date): PrerenderedPage[] 
   });
 }
 
-function clubPages(comps: UnifiedCompetition[]): PrerenderedPage[] {
-  return buildClubDirectory(comps).map((club) => {
+function pastList(list: UnifiedCompetition[]): string {
+  if (list.length === 0) return "";
+  return `<h2>Genomförda tävlingar</h2><ul>${list.slice(0, 30).map(compItem).join("")}</ul>`;
+}
+
+function clubPages(comps: UnifiedCompetition[], past: UnifiedCompetition[]): PrerenderedPage[] {
+  return buildClubDirectory(comps, past).map((club) => {
     const list = comps.filter((c) => slugify(c.club) === club.slug);
+    const previous = past.filter((c) => slugify(c.club) === club.slug);
     const seo = clubSeo(club.name, club.slug);
     const county = club.county
       ? `<p><a href="/tavlingar/lan/${countySlug(club.county)}">Alla tävlingar i ${esc(club.county)} län</a></p>`
       : "";
     return {
       ...seo,
-      jsonLd: itemList(seo.title, list),
-      body: `${MAIN}${HOME}<h1>${esc(club.name)} tävlingar.</h1><p>Kommande agility- och hooperstävlingar arrangerade av ${esc(club.name)} — datum, klasser, domare och sista anmälningsdag.</p><p>Tävlar i: ${esc(club.locations.join(", ") || "okänd ort")}.</p>${listByMonth(list)}${county}<p><a href="/klubbar">Alla klubbar</a></p></main>`,
+      jsonLd: itemList(seo.title, [...list, ...previous]),
+      body: `${MAIN}${HOME}<h1>${esc(club.name)} tävlingar.</h1><p>Kommande agility- och hooperstävlingar arrangerade av ${esc(club.name)} — datum, klasser, domare och sista anmälningsdag.</p><p>Tävlar i: ${esc(club.locations.join(", ") || "okänd ort")}.</p>${
+        list.length ? listByMonth(list) : `<p>Inga kommande tävlingar från ${esc(club.name)} just nu.</p>`
+      }${pastList(previous)}${county}<p><a href="/klubbar">Alla klubbar</a></p></main>`,
     };
   });
 }
 
-function clubsDirectoryPage(comps: UnifiedCompetition[]): PrerenderedPage {
-  const groups = groupClubsByCounty(buildClubDirectory(comps));
+function clubsDirectoryPage(comps: UnifiedCompetition[], past: UnifiedCompetition[]): PrerenderedPage {
+  const groups = groupClubsByCounty(buildClubDirectory(comps, past));
   return {
     ...clubsSeo(),
-    body: `${MAIN}${HOME}<h1>Hitta klubbarna.</h1><p>Alla klubbar som arrangerar agility- och hooperstävlingar just nu, län för län.</p>${groups
+    body: `${MAIN}${HOME}<h1>Hitta klubbarna.</h1><p>Alla klubbar som arrangerar agility- och hooperstävlingar, län för län – även de som just nu saknar kommande tävlingar.</p>${groups
       .map(
         ([county, clubs]) =>
           `<h2>${esc(county ? `${county} län` : "Okänt län")}</h2><ul>${clubs
             .map(
               (c) =>
-                `<li><a href="/tavlingar/klubb/${c.slug}">${esc(c.name)}</a> — ${c.upcoming} ${
-                  c.upcoming === 1 ? "tävling" : "tävlingar"
+                `<li><a href="/tavlingar/klubb/${c.slug}">${esc(c.name)}</a> — ${
+                  c.upcoming > 0
+                    ? `${c.upcoming} ${c.upcoming === 1 ? "kommande tävling" : "kommande tävlingar"}`
+                    : `${c.past} genomförda senaste året`
                 }${c.locations.length ? `, ${esc(c.locations.slice(0, 3).join(", "))}` : ""}</li>`,
             )
             .join("")}</ul>`,
@@ -124,8 +134,8 @@ function clubsDirectoryPage(comps: UnifiedCompetition[]): PrerenderedPage {
   };
 }
 
-function competitionPage(c: UnifiedCompetition): PrerenderedPage {
-  const seo = competitionSeo(c);
+function competitionPage(c: UnifiedCompetition, now: Date): PrerenderedPage {
+  const seo = competitionSeo(c, now);
   const facts: [string, string][] = [
     ["Arrangör", c.club || "Ej angiven"],
     ["Plats", [c.location, c.county].filter(Boolean).join(" · ") || "Ej angiven"],
@@ -150,15 +160,28 @@ function competitionPage(c: UnifiedCompetition): PrerenderedPage {
   };
 }
 
-/** Alla förrenderade tävlingssidor. Tävlingar med ovanliga tecken i adressen hoppas över. */
-export function buildCompetitionPages(comps: UnifiedCompetition[], now = new Date()): PrerenderedPage[] {
-  const safe = comps.filter((c) => /^\/[a-z0-9/_-]+$/i.test(c.path));
+/**
+ * Alla förrenderade tävlingssidor. Genomförda tävlingar (`past`) får egna
+ * sidor och håller kvar klubbsidorna, men visas inte i kalendern eller på
+ * länssidorna. Tävlingar med ovanliga tecken i adressen hoppas över.
+ */
+export function buildCompetitionPages(
+  comps: UnifiedCompetition[],
+  now = new Date(),
+  past: UnifiedCompetition[] = [],
+): PrerenderedPage[] {
+  const seen = new Set<string>();
+  const detail = [...comps, ...past].filter((c) => {
+    if (!/^\/[a-z0-9/_-]+$/i.test(c.path) || seen.has(c.path)) return false;
+    seen.add(c.path);
+    return true;
+  });
   return [
     calendarPage(comps, now),
-    clubsDirectoryPage(comps),
+    clubsDirectoryPage(comps, past),
     ...countyPages(comps, now),
-    ...clubPages(comps),
-    ...safe.map(competitionPage),
+    ...clubPages(comps, past),
+    ...detail.map((c) => competitionPage(c, now)),
   ];
 }
 

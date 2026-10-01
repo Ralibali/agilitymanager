@@ -95,7 +95,10 @@ function screenshot() {
 
 function deviceLogs(optional = false) {
   const predicate = summary.processId ? `processID == ${summary.processId}` : `process == ${JSON.stringify(executable ?? 'App')}`;
-  const logs = simctl(['spawn', deviceId, 'log', 'show', '--last', '2m', '--style', 'compact', '--predicate', predicate], 20_000, optional);
+  // CI reached the app's PID, survival checks and screenshot, but its first
+  // required log query exceeded 20 seconds. Give only that check 45 seconds;
+  // a timeout still fails the smoke, and optional diagnostics keep 20 seconds.
+  const logs = simctl(['spawn', deviceId, 'log', 'show', '--last', '2m', '--style', 'compact', '--predicate', predicate], optional ? 20_000 : 45_000, optional);
   if (logs !== null) writeFileSync(join(output, 'native-app.log'), logs);
 }
 

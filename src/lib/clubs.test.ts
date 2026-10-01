@@ -57,6 +57,22 @@ describe("buildClubDirectory", () => {
   });
 });
 
+describe("buildClubDirectory med genomförda tävlingar", () => {
+  it("behåller klubbar som bara har genomförda tävlingar", () => {
+    const clubs = buildClubDirectory(
+      [comp({ key: "a", club: "Kungälvs BK", dateStart: "2026-11-01" })],
+      [
+        comp({ key: "p1", club: "Hallabergs Brukshundklubb", location: "Laholm", county: "Hallands", dateStart: "2026-05-01" }),
+        comp({ key: "p2", club: "Hallabergs Brukshundklubb", location: "Laholm", county: "Hallands", dateStart: "2026-08-29" }),
+        comp({ key: "p3", club: "Kungälvs BK", dateStart: "2026-06-01" }),
+      ],
+    );
+    const halla = clubs.find((c) => c.slug === "hallabergs-brukshundklubb");
+    expect(halla).toMatchObject({ upcoming: 0, past: 2, lastDate: "2026-08-29", nextDate: null, county: "Hallands" });
+    expect(clubs.find((c) => c.slug === "kungalvs-bk")).toMatchObject({ upcoming: 1, past: 1, nextDate: "2026-11-01" });
+  });
+});
+
 describe("groupClubsByCounty", () => {
   it("sorterar län i bokstavsordning med okänt län sist", () => {
     const clubs = buildClubDirectory([

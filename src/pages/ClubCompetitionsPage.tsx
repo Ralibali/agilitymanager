@@ -68,11 +68,12 @@ export default function ClubCompetitionsPage() {
       seoDescription={(comps) => clubSeo(nameFor(comps), slug).description}
       canonicalPath={path}
       match={match}
+      includePast
       emptyText={(comps) => `Inga kommande tävlingar från ${nameFor(comps) || "klubben"} just nu.`}
     >
-      {(comps) => {
-        const club = buildClubDirectory(comps)[0];
-        const judges = [...new Set(comps.flatMap((c) => c.judges).map((j) => j.trim()).filter(Boolean))].sort(
+      {(comps, pastComps) => {
+        const club = buildClubDirectory(comps, pastComps)[0];
+        const judges = [...new Set([...comps, ...pastComps].flatMap((c) => c.judges).map((j) => j.trim()).filter(Boolean))].sort(
           (a, b) => a.localeCompare(b, "sv"),
         );
         return (

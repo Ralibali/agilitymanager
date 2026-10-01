@@ -7,8 +7,11 @@ import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { Seo, SITE_URL } from "@/components/Seo";
 import { CompetitionCard } from "./CompetitionCard";
+import { CompetitionSourceNote } from "./CompetitionSourceNote";
 import {
+  fetchPastCompetitions,
   fetchUpcomingCompetitions,
+  longDate,
   monthLabel,
   registrationOpen,
   type UnifiedCompetition,
@@ -30,6 +33,7 @@ export function CompetitionLanding({
   canonicalPath,
   match,
   emptyText,
+  includePast = false,
   children,
 }: {
   kicker: string;
@@ -40,16 +44,24 @@ export function CompetitionLanding({
   canonicalPath: string;
   match: (c: UnifiedCompetition) => boolean;
   emptyText: LandingText;
-  children?: (comps: UnifiedCompetition[]) => React.ReactNode;
+  /** Visa även genomförda tävlingar från senaste året (för klubbsidor). */
+  includePast?: boolean;
+  children?: (comps: UnifiedCompetition[], pastComps: UnifiedCompetition[]) => React.ReactNode;
 }) {
   const [all, setAll] = useState<UnifiedCompetition[]>([]);
+  const [allPast, setAllPast] = useState<UnifiedCompetition[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    fetchUpcomingCompetitions()
-      .then((list) => {
-        if (!cancelled) setAll(list);
+    Promise.all([
+      fetchUpcomingCompetitions(),
+      includePast ? fetchPastCompetitions() : Promise.resolve<UnifiedCompetition[]>([]),
+    ])
+      .then(([upcoming, past]) => {
+        if (cancelled) return;
+        setAll(upcoming);
+        setAllPast(past);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -57,10 +69,14 @@ export function CompetitionLanding({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [includePast]);
 
   const comps = useMemo(() => all.filter(match), [all, match]);
-  const text = (value: LandingText) => (typeof value === "function" ? value(comps) : value);
+  const pastComps = useMemo(() => allPast.filter(match), [allPast, match]);
+  // Texterna får både kommande och genomförda tävlingar, t.ex. för att hitta
+  // klubbens riktiga namn även när den saknar kommande tävlingar.
+  const text = (value: LandingText) =>
+    typeof value === "function" ? value([...comps, ...pastComps]) : value;
   const seoTitleText = text(seoTitle);
   const openCount = comps.filter((c) => registrationOpen(c.registrationCloses)).length;
 
@@ -114,6 +130,7 @@ export function CompetitionLanding({
               ? "Hämtar tävlingar…"
               : `${comps.length} kommande ${comps.length === 1 ? "tävling" : "tävlingar"} · ${openCount} med öppen anmälan`}
           </p>
+          <CompetitionSourceNote className="mt-4 max-w-3xl" />
         </Reveal>
 
         {!loading && comps.length === 0 && (
@@ -136,7 +153,32 @@ export function CompetitionLanding({
           </div>
         ))}
 
-        {children?.(comps)}
+        {pastComps.length > 0 && (
+          <div className="mt-14">
+            <Reveal>
+              <h2 className="font-display text-4xl tracking-wide">Genomförda tävlingar</h2>
+              <p className="mt-2 text-sm font-semibold text-ink/50">Senaste året, nyast först.</p>
+            </Reveal>
+            <ul className="mt-5 divide-y-2 divide-ink/10 rounded-3xl border-2 border-ink/15 bg-cream/40">
+              {pastComps.slice(0, 30).map((c) => (
+                <li key={c.key}>
+                  <Link
+                    to={c.path}
+                    className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-5 py-3.5 transition-colors hover:bg-ink/5"
+                  >
+                    <span className="min-w-0 font-bold [overflow-wrap:anywhere]">{c.name}</span>
+                    <span className="text-sm font-semibold text-ink/55">
+                      {c.dateStart ? longDate(c.dateStart) : "Datum saknas"}
+                      {c.location ? ` · ${c.location}` : ""}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {children?.(comps, pastComps)}
 
         <Reveal className="mt-16">
           <div className="mx-auto grid max-w-4xl items-center gap-8 rounded-3xl border-2 border-ink bg-ink p-8 text-paper shadow-hard sm:p-10 lg:grid-cols-[1fr_1.1fr]">

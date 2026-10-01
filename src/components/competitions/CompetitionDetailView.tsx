@@ -6,6 +6,8 @@ import { Reveal } from "@/components/Reveal";
 import { CompetitionCard } from "./CompetitionCard";
 import { FavoriteButton } from "./FavoriteButton";
 import { MatchExplainer } from "./MatchExplainer";
+import { CompetitionSourceNote } from "./CompetitionSourceNote";
+import { competitionSource } from "@/lib/competitionSource";
 import {
   buildIcs,
   dateRange,
@@ -167,8 +169,9 @@ export function CompetitionDetailView({
           </div>
 
           <p className="mt-5 flex items-center gap-2 text-sm font-semibold text-ink/45">
-            <RefreshCw className="h-4 w-4" /> {relativeUpdated(updatedAt)} · data hämtas automatiskt från arrangörens källa
+            <RefreshCw className="h-4 w-4" /> {relativeUpdated(updatedAt)}
           </p>
+          <CompetitionSourceNote source={competitionSource(comp.sport, comp.sourceUrl)} className="mt-3 max-w-3xl" />
         </div>
       </section>
 

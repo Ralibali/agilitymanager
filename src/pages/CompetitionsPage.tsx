@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { calendarSeo } from "@/lib/competitionSeo";
+import { CompetitionSourceNote } from "@/components/competitions/CompetitionSourceNote";
 import { Seo, SITE_URL } from "@/components/Seo";
 import { PartnerAdCard } from "@/components/AffiliateBanner";
 import { CompetitionCard } from "@/components/competitions/CompetitionCard";
@@ -231,10 +232,11 @@ export default function CompetitionsPage() {
       <SiteNav />
       <PageHero kicker="Tävlingskalender" title="Hitta er nästa start.">
         Agility och hoopers över hela landet — med anmälningsstatus, klasser,
-        domare och plats. Uppdateras automatiskt från arrangörernas källor.
+        domare och plats. Uppdateras automatiskt från agilitydata.se och Svenska Hoopersklubben.
       </PageHero>
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
+        <CompetitionSourceNote className="mb-8 max-w-3xl" />
         <Reveal className="mb-8">
           <DogMatchPanel
             profile={dogProfile}

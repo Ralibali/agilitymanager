@@ -127,6 +127,27 @@ test("offline users can save a local course and reopen the planner", async ({ pa
   await expect(page.getByRole("status").filter({ hasText: "Du är offline" })).toBeVisible();
 });
 
+test("leaving the planner preserves edits before the autosave delay", async ({ page }) => {
+  // Install before loading the page, then pause after the initial import has
+  // autosaved. No debounce timer can run while the draft is edited or reopened.
+  await page.clock.install({ time: new Date("2026-10-01T12:00:00Z") });
+  await importCourse(page);
+  await page.clock.pauseAt(new Date("2026-10-01T12:01:00Z"));
+  const pausedAt = await page.evaluate(() => Date.now());
+  const updatedName = "Utkast sparat vid sidbyte";
+  await page.getByRole("textbox", { name: "Banans namn" }).fill(updatedName);
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key) || "null")?.name, PLANNER_KEY)).toBe(course.name);
+
+  // Hash navigation avoids actionability checks that need animation frames
+  // while Playwright's clock is paused. No explicit Save action is used.
+  await page.evaluate(() => { window.location.hash = "/mina-banor"; });
+  await expect(page.getByRole("heading", { name: "Mina banor", exact: true })).toBeVisible();
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key) || "null")?.name, PLANNER_KEY)).toBe(updatedName);
+  await page.evaluate(() => { window.location.hash = "/banplanerare"; });
+  await expect(page.getByRole("textbox", { name: "Banans namn" })).toHaveValue(updatedName);
+  expect(await page.evaluate(() => Date.now())).toBe(pausedAt);
+});
+
 test("a new local-course link opens the right course in an already-open planner", async ({ page }) => {
   await page.addInitScript(courseData => {
     localStorage.setItem("am_planner_local_courses", JSON.stringify([

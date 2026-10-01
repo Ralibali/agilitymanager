@@ -126,12 +126,17 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { if (mode === "walk") setMode("view"); else onClose(); }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        if (mode === "walk") setMode("view"); else onClose();
+      }
       if (mode === "walk" && e.key.toLowerCase() === "n") { setCurrentIdx((i) => Math.min(numbered.length - 1, i + 1)); setTeleportV((v) => v + 1); }
       if (mode === "walk" && e.key.toLowerCase() === "p") { setCurrentIdx((i) => Math.max(0, i - 1)); setTeleportV((v) => v + 1); }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // Capture Back/Escape before a menu's restored focus can consume it.
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
   }, [mode, numbered.length, onClose]);
 
   useEffect(() => {

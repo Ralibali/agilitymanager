@@ -575,6 +575,8 @@ export default function PlannerPage() {
   }
   const isExternalUnedited =
     isExternalCopy && !externalEditedRef.current && JSON.stringify(draft) === externalSnapshotRef.current;
+  const canAutosaveRef = useRef(!isExternalUnedited);
+  canAutosaveRef.current = !isExternalUnedited;
 
   const persistDraft = useCallback((d: Draft) => {
     const res = saveDraftToStorage(STORAGE_KEY, d);
@@ -597,19 +599,22 @@ export default function PlannerPage() {
     return () => clearTimeout(saveTimer);
   }, [draft, isExternalUnedited, persistDraft, saveAttempt]);
 
-  // Skriv direkt när sidan göms/stängs, så att ändringar inom debouncefönstret
-  // inte tappas om användaren lämnar sidan.
+  // Skriv direkt även vid routerbyte, innan debouncefönstret har löpt ut.
+  // Senaste behörigheten läses via ref: en oredigerad extern kopia ska aldrig
+  // flushas och ett ändrat mall-/delningsläge ska inte köra effektens cleanup.
   useEffect(() => {
-    if (isExternalUnedited) return;
-    const flush = () => { persistDraft(draftRef.current); };
+    const flush = () => {
+      if (canAutosaveRef.current) persistDraft(draftRef.current);
+    };
     const onVisibility = () => { if (document.visibilityState === "hidden") flush(); };
     window.addEventListener("pagehide", flush);
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
+      flush();
       window.removeEventListener("pagehide", flush);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [isExternalUnedited, persistDraft]);
+  }, [persistDraft]);
 
   const retrySave = useCallback(() => {
     setSaveState("saving");

@@ -35,11 +35,14 @@
   "externalPaymentProvider": null,
   "privacyPolicy": {
     "sourceFile": "docs/mobile-privacy-sv.txt",
-    "publicUrl": null,
-    "published": false,
-    "verified": false
+    "publicUrl": "https://agilitymanager.se/mobil-integritet.html",
+    "published": true,
+    "verified": true,
+    "verifiedAt": "2026-10-01",
+    "verificationMethod": "anonymous-browser-page-content",
+    "publishedSourceCommit": "5b14ddd900de9466fe66225ac6d3bd6783446998"
   },
-  "supportUrl": null,
+  "supportUrl": "https://agilitymanager.se/mobil-support.html",
   "privacyDeclarations": {
     "status": "draft-pending-final-package-verification",
     "appleDataCollected": false,
@@ -64,21 +67,30 @@
       "accountExistsReportedByPublisher": true,
       "accountAccessVerified": true,
       "storePriceConfigured": false,
-      "paidFromStartVerified": false,
+      "paidFromStartVerified": true,
       "paymentsProfileVerified": false,
       "taxAndBankingVerified": false,
       "signingVerified": false,
       "published": false,
-      "organizationNameVerified": true
+      "organizationNameVerified": true,
+      "appRegistrationVerified": true,
+      "packageName": "se.agilitymanager.app",
+      "appIdConfirmed": true,
+      "consoleAppId": "4975139875139560691",
+      "consoleUrl": "https://play.google.com/console/u/0/developers/7066209034858113773/app/4975139875139560691/app-dashboard",
+      "legalDeclarationsConfirmed": true,
+      "primaryLanguageVerified": "sv-SE",
+      "merchantAccountSetupCompleteObserved": true
     }
   },
   "notes": [
     "Preparation only: this file does not configure stores or control access at runtime.",
-    "Publisher and support are supplied by the user; store roles and agreements are not verified.",
     "Local scope is approved; final build 3 behavior and privacy declarations need verification.",
-    "Publish and verify the mobile-specific privacy policy URL before submission.",
     "Verify the exact 39 SEK Apple price point in App Store Connect.",
     "Choose Google Play Paid before offering the app for free; free cannot later become paid under the same package name.",
-    "Verify Swedish customer price and distribution country in each store before submission."
-  ]
+    "Verify Swedish customer price and distribution country in each store before submission.",
+    "Mobile privacy and support URLs were publicly read without login on 2026-10-01; this is not app-store publication.",
+    "Google Play app record was created as Paid after explicit publisher approval of policy/export declarations; exact price is still unconfigured."
+  ],
+  "supportUrlVerified": true
 }

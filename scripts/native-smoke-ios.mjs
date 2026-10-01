@@ -16,9 +16,13 @@ const output = resolve(process.argv[3] ?? 'test-results/native-ios-smoke');
 mkdirSync(output, { recursive: true });
 const deviceSet = mkdtempSync(join(tmpdir(), 'agilitymanager-ios-smoke-'));
 const commandsLog = join(output, 'commands.log');
+const requestedRuntimeVersion = process.env.AGILITY_IOS_SIMULATOR_VERSION;
+const requestedDeviceName = process.env.AGILITY_IOS_SIMULATOR_DEVICE;
 const summary = {
   status: 'failed', commit: process.env.GITHUB_SHA ?? null, appPath,
   deviceSet, deviceId: null, runtime: null, deviceType: null,
+  requestedSimulator: { version: requestedRuntimeVersion ?? null, device: requestedDeviceName ?? null },
+  iosRuntimes: [],
   bundleId: null, version: null, build: null, processId: null,
   processAliveAfterLaunch: false, nativeCrashReports: [], screenshot: null, failedCommand: null,
   uiVerified: false,
@@ -144,15 +148,28 @@ try {
   if (summary.version !== expected.version || summary.build !== String(expected.build)) throw new Error('The simulator app does not match mobile.version.json.');
 
   const { runtimes } = JSON.parse(simctl(['list', 'runtimes', '--json']));
-  const runtime = runtimes.filter(item => item.isAvailable && item.identifier.startsWith('com.apple.CoreSimulator.SimRuntime.iOS-'))
-    .sort((a, b) => compareVersions(b.version, a.version))[0];
-  if (!runtime) throw new Error('No available iOS simulator runtime on this runner.');
+  const iosRuntimes = runtimes.filter(item => item.identifier.startsWith('com.apple.CoreSimulator.SimRuntime.iOS-'));
+  summary.iosRuntimes = iosRuntimes.map(item => ({
+    name: item.name, version: item.version, identifier: item.identifier,
+    isAvailable: item.isAvailable, availabilityError: item.availabilityError ?? null,
+  }));
+  console.log(`[iOS smoke] iOS runtime inventory: ${JSON.stringify(summary.iosRuntimes)}`);
+  if (!requestedRuntimeVersion || !requestedDeviceName) {
+    throw new Error('AGILITY_IOS_SIMULATOR_VERSION and AGILITY_IOS_SIMULATOR_DEVICE must explicitly select an installed simulator.');
+  }
+  const runtime = iosRuntimes.find(item => item.isAvailable && item.version === requestedRuntimeVersion);
+  if (!runtime) throw new Error(`Requested iOS ${requestedRuntimeVersion} is not available on this runner.`);
   const { devicetypes } = JSON.parse(simctl(['list', 'devicetypes', '--json']));
-  const compatible = devicetypes.filter(item => (item.productFamily === 'iPhone' || item.name.startsWith('iPhone'))
-    && (!item.minRuntimeVersionString || compareVersions(runtime.version, item.minRuntimeVersionString) >= 0)
-    && (!item.maxRuntimeVersionString || compareVersions(runtime.version, item.maxRuntimeVersionString) <= 0));
-  const deviceType = compatible.at(-1);
-  if (!deviceType) throw new Error('No compatible iPhone device type on this runner.');
+  const deviceType = devicetypes.find(item => item.name === requestedDeviceName
+    && (item.productFamily === 'iPhone' || item.name.startsWith('iPhone')));
+  if (!deviceType) throw new Error(`Requested iPhone device type ${requestedDeviceName} is not installed on this runner.`);
+  const inVersionRange = (!deviceType.minRuntimeVersionString || compareVersions(runtime.version, deviceType.minRuntimeVersionString) >= 0)
+    && (!deviceType.maxRuntimeVersionString || compareVersions(runtime.version, deviceType.maxRuntimeVersionString) <= 0);
+  const runtimeSupportsDevice = Array.isArray(runtime.supportedDeviceTypes)
+    && runtime.supportedDeviceTypes.some(item => item.identifier === deviceType.identifier);
+  if (!inVersionRange || !runtimeSupportsDevice) {
+    throw new Error(`Requested ${requestedDeviceName} is not supported by installed iOS ${runtime.version}.`);
+  }
   summary.runtime = { name: runtime.name, version: runtime.version, identifier: runtime.identifier };
   summary.deviceType = { name: deviceType.name, identifier: deviceType.identifier };
   console.log(`[iOS smoke] Selected ${runtime.name} (${runtime.version}), ${deviceType.name}; private device set ${deviceSet}`);

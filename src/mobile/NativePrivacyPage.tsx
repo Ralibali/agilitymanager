@@ -13,6 +13,6 @@ export default function NativePrivacyPage() {
       <Link to="/mina-banor" className="mobile-primary-action mt-4">Öppna Mina banor</Link>
     </section>
     <section><h2 className="text-2xl font-bold">Köpet i appbutiken</h2><p className="mt-3">Apple App Store eller Google Play hanterar köpet och butikskontot. Banplaneraren har ingen egen kassa och tar inte emot dina kortuppgifter. Butikens egen integritetspolicy gäller för köpet.</p></section>
-    <section><h2 className="text-2xl font-bold">Support och kontakt</h2><p className="mt-3">Aurora Media AB är utgivare. Om du kontaktar oss via e-post använder vi de uppgifter du lämnar för att besvara din fråga. Skicka bara uppgifter som behövs för ärendet. Supportmejl går via din e-posttjänst och vår e-posthantering.</p><p className="mt-3">Kontakt: <a href="mailto:info@auroramedia.se" className="font-bold underline">info@auroramedia.se</a>.</p></section>
+    <section><h2 className="text-2xl font-bold">Support och kontakt</h2><p className="mt-3">Aurora Media AB sköter supporten. Om du kontaktar oss via e-post använder vi de uppgifter du lämnar för att besvara din fråga. Skicka bara uppgifter som behövs för ärendet. Supportmejl går via din e-posttjänst och vår e-posthantering.</p><p className="mt-3">Kontakt: <a href="mailto:info@auroramedia.se" className="font-bold underline">info@auroramedia.se</a>.</p></section>
   </main>;
 }

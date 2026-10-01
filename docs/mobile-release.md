@@ -1,6 +1,6 @@
 # AgilityManager – fristående banplanerare för App Store och Google Play
 
-Underlag 1 oktober 2026 för **1.0.0 (3)**. Användaren har valt en lokal banplanerare som första app, med önskat engångspris **39 SEK vid nedladdning i Sverige**. Utgivare: **Aurora Media AB**. Support: **info@auroramedia.se**. Apple Developer-/Play Console-konton finns enligt utgivaren; faktisk tillgång, roller, avtal och signering återstår att verifiera.
+Underlag 1 oktober 2026 för **1.0.0 (3)**. Användaren har valt en lokal banplanerare som första app, med önskat engångspris **39 SEK vid nedladdning i Sverige**. Varumärke/support: **Aurora Media AB**, **info@auroramedia.se**. Användaren har valt sitt personliga Apple-team 9G8SUZKS7Y; Google använder befintliga organisationen aurora media AB. Båda appposterna är skapade och exakt 39 SEK/Sverige är sparat och verifierat. Avtal, bank/skatt och signering återstår.
 
 [mobile-release-status.md](mobile-release-status.md) innehåller faktiska kontroller. Tidigare byggnummer är inte testbevis för bygg 3. [mobile.store.json](../mobile.store.json) är ett pris-/butiksutkast och aktiverar ingen försäljning.
 
@@ -13,11 +13,11 @@ Underlag 1 oktober 2026 för **1.0.0 (3)**. Användaren har valt en lokal banpla
 | Filer | Lokal JSON-import/-export, PNG/PDF-export via telefonens Spara/Dela |
 | Konto/tjänster | Inga appkonton, banprofiler, molnsparning, publika banor, kommentarer, betyg eller feedback-backend |
 | Data/behörigheter | Ingen appinsamling av konsumentdata till server, analytics, reklam, native push eller position |
-| App-ID | `se.agilitymanager.app`, preliminärt; registrering/ägarskap ska verifieras |
+| App-ID | `se.agilitymanager.app`, registrerat Apple bundle-ID; bindning till uppladdat signerat Googlepaket återstår |
 | Version/bygg | `1.0.0` / `3`; slutpaket och versionsfil ska överensstämma |
-| Pris | `paid-download`, önskat svenskt kundpris 39 SEK; ej konfigurerat/verifierat |
+| Pris | `paid-download`, svenskt kundpris 39 SEK sparat och verifierat i båda butikerna; Sverige enda försäljningsland |
 | Teknik | Capacitor 8; iOS minimum 15, Xcode 26+/iOS 26 SDK; Android minimum API 24, compile/target API 36 |
-| Integritet | [Apptextutkast](mobile-privacy-sv.txt); offentlig URL ej fastställd/publicerad/verifierad |
+| Integritet | [Apptextutkast](mobile-privacy-sv.txt); [offentlig policy-URL](https://agilitymanager.se/mobil-integritet.html) verifierad utan inloggning 1 oktober 2026 |
 
 Webbens tävlingar, träningsplanering, instruktör/elev, resultat, guider, konton och community ingår inte. Banplanerarens PDF för träning är ett banunderlag.
 
@@ -55,14 +55,14 @@ Godkänn [mobile-privacy-sv.txt](mobile-privacy-sv.txt), publicera apptexten på
 
 | Område | Underlag | Återstående kontroll |
 | --- | --- | --- |
-| Utgivare/support | Aurora Media AB/info@auroramedia.se, angivet av användaren | Behörig utgivare godkänner text och support fungerar |
+| Varumärke/support | Aurora Media AB/info@auroramedia.se, angivet av användaren | Behörig utgivare godkänner text och support fungerar |
 | Banor/import | Lokal bansparning och användarvald JSON-fil | Ingen uppladdning; verifierad lagring efter omstart |
 | Export | Lokalt skapad fil; användaren väljer mottagare | Ingen automatisk uppladdning; cache/delning verifierad |
 | Konto/UGC | Saknas i vald produkt | Saknas även i dialoger, deeplinks och nätverk |
 | Analytics/reklam/push/plats | Ingår inte | SDK, paket, behörigheter och trafik kontrollerade |
 | Supportmejl | Separat hantering av Aurora Media AB | Fastställ ansvar, rättslig grund, lagring/radering och relevant information |
 | Privacy manifest | Filesystem required-reason API kan kvarstå utan insamling | Slutligt manifest och medföljande SDK kontrollerade |
-| Offentlig policy-URL | Saknas i prisutkastet | Publicering, åtkomst utan app och butik/app-länk verifierade |
+| Offentlig policy-URL | https://agilitymanager.se/mobil-integritet.html, verifierad utan inloggning 1 oktober 2026 | Slutlig text och länkar i signerat paket |
 
 **Apple:** ”Data Not Collected” är ett preliminärt underlag, inte en inskickad deklaration. Data som enbart behandlas på enheten räknas inte som insamlad; data som lämnar enheten och SDK-hantering måste bedömas separat. [Apple App Privacy](https://developer.apple.com/app-store/app-privacy-details/).
 
@@ -70,15 +70,15 @@ Godkänn [mobile-privacy-sv.txt](mobile-privacy-sv.txt), publicera apptexten på
 
 ## Registrering, pris och signering i befintliga konton
 
-**Apple:** verifiera Aurora Media AB:s team och behörigheter. Registrera explicit bundle-ID och skapa iOS-app-post med namn, svenska, bundle-ID och vald unik SKU före uppladdning. Välj team/certifikat/provisionering, skapa signerad Archive, validera och ladda upp till TestFlight. [Apple app-post](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/), [Apple distribution](https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases).
+**Apple:** använd det personliga teamet 9G8SUZKS7Y enligt användarens uttryckliga val. Bundle-ID se.agilitymanager.app och apppost 6818139174 är registrerade med svenska och SKU agilitymanager-ios-001. Certifikat/provisionering, signerad Archive, validering och TestFlight-uppladdning återstår. [Apple app-post](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/), [Apple distribution](https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases).
 
-Account Holder behöver aktivt **Paid Apps Agreement**, begärda skatteuppgifter och bankuppgifter för utbetalning. I **Monetization → Pricing and Availability → Add Pricing**, välj Sverige och granska även **See Additional Prices**. Bekräfta exakt 39 SEK-prispunkt och kundpris i kontot. Offentliga instruktioner bekräftar inte att just 39 SEK kan väljas; saknas priset krävs utgivarens beslut, inte ett automatiskt ersättningsbelopp. [Apple avtal](https://developer.apple.com/help/app-store-connect/manage-agreements/sign-and-update-agreements/), [skatt](https://developer.apple.com/help/app-store-connect/manage-tax-information/provide-tax-information/), [utbetalning](https://developer.apple.com/help/app-store-connect/getting-paid/overview-of-receiving-payments/), [pris](https://developer.apple.com/help/app-store-connect/manage-app-pricing/set-a-price/).
+Account Holder behöver aktivt **Paid Apps Agreement**, begärda skatteuppgifter och bankuppgifter för utbetalning. I **Monetization → Pricing and Availability → Add Pricing**, välj Sverige och granska även **See Additional Prices**. Exakt 39,00 SEK valdes och lästes i Current Price efter sparning och omladdning 1 oktober 2026. Sverige är enda tillgängliga försäljningsland. Prissättning är inte butikspublicering. [Apple avtal](https://developer.apple.com/help/app-store-connect/manage-agreements/sign-and-update-agreements/), [skatt](https://developer.apple.com/help/app-store-connect/manage-tax-information/provide-tax-information/), [utbetalning](https://developer.apple.com/help/app-store-connect/getting-paid/overview-of-receiving-payments/), [pris](https://developer.apple.com/help/app-store-connect/manage-app-pricing/set-a-price/).
 
 **Google:** skapa app-post som app, svenska, **Paid**, support info@auroramedia.se och avsedda marknader. Bekräfta permanent paketnamn före uppladdning. Koppla rätt payments profile och verifiera begärda utgivar-/skatte-/bankuppgifter. Konfigurera Play App Signing, skydda upload key och ladda upp signerad AAB till testspår. [Google skapa app](https://support.google.com/googleplay/android-developer/answer/9859152?hl=en), [betalningsprofil](https://support.google.com/googleplay/android-developer/answer/3092739?hl=en), [bank](https://support.google.com/googleplay/android-developer/answer/7161440?hl=en), [signering](https://developer.android.com/studio/publish/app-signing).
 
 Välj Paid innan appen erbjuds gratis. Google tillåter betald → gratis, men gratiserbjuden app kan inte bli betald med samma paketnamn. Granska Sverige som distributionsland och det slutliga kundpriset 39 SEK efter butikens pris-/skatteberäkning. [Google apppris](https://support.google.com/googleplay/android-developer/answer/6334373?hl=en).
 
-39 SEK avser kundpris, inte nettoutbetalning. Köpet sker i respektive butik. Inga Stripe-köp, IAP-produkter, abonnemang eller extra upplåsningsskärmar behövs för vald modell. Appregistrering, avtal, exaktpris, signering och publicering är ännu inte verifierade.
+39 SEK avser kundpris, inte nettoutbetalning. Köpet sker i respektive butik. Inga Stripe-köp, IAP-produkter, abonnemang eller extra upplåsningsskärmar behövs för vald modell. Appposterna och exakt svenskt pris är verifierade; avtal, signering, Googlepaketets bindning och publicering återstår.
 
 ## Slutmaterial och inskickning
 

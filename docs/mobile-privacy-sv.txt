@@ -7,7 +7,7 @@ APPTEXT – BÖRJAN
 Integritet i AgilityManager
 Uppdaterad 1 oktober 2026.
 
-Aurora Media AB är utgivare av AgilityManagers mobilapp. Du når oss på info@auroramedia.se.
+Aurora Media AB sköter supporten för AgilityManagers mobilapp. Du når oss på info@auroramedia.se.
 
 Mobilappen är en fristående banplanerare för agility och hoopers. Du behöver inget konto. Appen har ingen molnsparning, publik banpublicering, kommentarer, reklam, användningsanalys, pushnotiser eller platsfunktion.
 
@@ -38,7 +38,7 @@ Kontakta Aurora Media AB på info@auroramedia.se om du har frågor om appens lag
 APPTEXT – SLUT
 
 INTERN PUBLICERINGSKONTROLL – FÅR INTE INGÅ I OFFENTLIG TEXT
-- Utgivare/support är uttryckligen angivet av användaren: Aurora Media AB, info@auroramedia.se.
+- Support/varumärke är Aurora Media AB, info@auroramedia.se. Användaren valde senare personligt Apple-team; juridisk säljare anges separat per butik, utan skatteklassificering.
 - Verifiera bygg 3 på iPhone/Android: inga konton, Supabase/användarbackend, community, feedbackuppladdningar, analytics, reklam, push eller position. Kontrollera riktiga nätverksanrop och SDK.
 - Verifiera lokalt bibliotek, bansparning/import/export och cache. Anpassa texten om slutpaketets beteende skiljer sig.
 - Verifiera radering av sparad bana kontra separat utkast/exporterade filer samt OS-backup. Texten lovar inte att inga OS-kopior kan finnas.

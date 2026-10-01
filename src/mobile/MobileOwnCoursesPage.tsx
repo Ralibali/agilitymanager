@@ -50,7 +50,7 @@ export default function MobileOwnCoursesPage() {
     </section>
     <section className="text-sm leading-relaxed text-ink/70">
       <h2 className="text-lg font-bold text-ink">Hjälp och kontakt</h2>
-      <p className="mt-2">AgilityManager ges ut av Aurora Media AB. Kontakta <a href="mailto:info@auroramedia.se" className="underline">info@auroramedia.se</a> om du behöver hjälp.</p>
+      <p className="mt-2">Supporten sköts av Aurora Media AB. Kontakta <a href="mailto:info@auroramedia.se" className="underline">info@auroramedia.se</a> om du behöver hjälp.</p>
       <Link to="/integritet" className="mt-3 inline-flex min-h-12 items-center font-bold underline">Så hanterar appen dina uppgifter</Link>
     </section>
     <AlertDialog open={!!remove} onOpenChange={open => { if (!open) setRemove(null); }}>

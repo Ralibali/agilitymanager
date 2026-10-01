@@ -25,6 +25,7 @@ const COLS: { title: string; links: { to: string; label: string }[] }[] = [
     title: "Mitt AgilityManager",
     links: [
       { to: "/mitt-agilitymanager", label: "Konto & banprofil" },
+      { to: "/cookies", label: "Cookies & lokal lagring" },
       { to: "/banor", label: "Sparade banor" },
       { to: "/tavlingar/favoriter", label: "Favorittävlingar" },
       { to: "/resultat", label: "Resultat & meriter" },
@@ -100,6 +101,7 @@ export function SiteFooter() {
 
         <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-paper/10 pt-6 text-sm text-paper/45 sm:flex-row sm:items-center">
           <p>© 2026 AgilityManager</p>
+          <a href="mailto:info@auroramedia.se" className="underline hover:text-tang">info@auroramedia.se</a>
           <p className="text-paper/35">Byggt för svensk agility och hoopers</p>
         </div>
       </div>

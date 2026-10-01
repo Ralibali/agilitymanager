@@ -123,6 +123,8 @@ async function authProfile(profileId: unknown, token: unknown) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+
   // Pre-parse guard: avvisa överdimensionerade requests innan de laddas i minnet.
   const contentLength = Number(req.headers.get("content-length") ?? 0);
   if (Number.isFinite(contentLength) && contentLength > MAX_BODY_CHARS) {
@@ -193,6 +195,31 @@ Deno.serve(async (req) => {
 
     const profile = await authProfile(body.profileId, body.token);
     if (!profile) return json({ error: "Din profil kunde inte verifieras" }, 401);
+
+    // Access and erasure are authenticated with the same ownership token as editing.
+    if (action === "export-profile") {
+      const { data: personal, error: personalError } = await supabase.from("planner_profiles")
+        .select("id, name, email, created_at").eq("id", profile.id).single();
+      if (personalError) throw personalError;
+      const sections: Record<string, unknown[]> = {};
+      for (const table of ["planner_courses", "planner_course_comments", "planner_course_ratings"]) {
+        const rows: unknown[] = [];
+        for (let offset = 0; ; offset += 500) {
+          const { data, error } = await supabase.from(table).select("*").eq("profile_id", profile.id)
+            .order("id").range(offset, offset + 499);
+          if (error) throw error;
+          rows.push(...(data ?? []));
+          if (!data || data.length < 500) break;
+        }
+        sections[table] = rows;
+      }
+      return json({ exported_at: new Date().toISOString(), profile: personal, sections });
+    }
+    if (action === "delete-profile") {
+      const { error } = await supabase.from("planner_profiles").delete().eq("id", profile.id);
+      if (error) throw error;
+      return json({ ok: true });
+    }
 
     // ── Spara/uppdatera bana ──────────────────────────────────────────
     if (action === "save-course") {

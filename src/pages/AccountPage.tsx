@@ -1,3 +1,4 @@
+import { downloadAccountData } from '@/lib/accountExport';
 import { useState } from "react";
 import { Link } from "react-router";
 import {
@@ -10,7 +11,7 @@ import { PageHero } from "@/components/PageHero";
 import { Seo } from "@/components/Seo";
 import { AuthDialog } from "@/components/AuthDialog";
 import { PlannerProfileDialog } from "@/features/planner-social/PlannerProfileDialog";
-import { usePlannerProfile } from "@/lib/plannerProfile";
+import { plannerApi, usePlannerProfile } from "@/lib/plannerProfile";
 import { useAuth } from "@/hooks/useAuth";
 
 /**
@@ -32,6 +33,29 @@ const SHORTCUTS = [
 export default function AccountPage() {
   const { user, loading, signOut } = useAuth();
   const { profile, signOut: forgetProfile } = usePlannerProfile();
+  const [exporting, setExporting] = useState(false);
+  const [exportMessage, setExportMessage] = useState('');
+  const exportData = async () => {
+    setExporting(true);
+    try { const result = await downloadAccountData(); setExportMessage(result.unavailable.length ? 'Exporten är hämtad. Vissa uppgifter behöver begäras via verksamheten.' : 'Exporten är hämtad.'); }
+    catch (error) { setExportMessage(error instanceof Error ? error.message : 'Exporten misslyckades.'); }
+    finally { setExporting(false); }
+  };
+  const [profileBusy, setProfileBusy] = useState(false);
+  const profileData = async (remove: boolean) => {
+    if (remove && !window.confirm('Radera banprofilen och dess banor, kommentarer och betyg? Detta kan inte ångras.')) return;
+    setProfileBusy(true);
+    try {
+      if (remove) { await plannerApi('delete-profile'); forgetProfile(); setExportMessage('Banprofilen har raderats.'); }
+      else {
+        const data = await plannerApi('export-profile');
+        const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+        const link = document.createElement('a'); link.href = url; link.download = 'min-banprofil.json'; link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+    } catch (error) { setExportMessage(error instanceof Error ? error.message : 'Åtgärden misslyckades.'); }
+    finally { setProfileBusy(false); }
+  };
   const [authOpen, setAuthOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -79,6 +103,10 @@ export default function AccountPage() {
                 <LogOut className="h-4 w-4" /> Glöm profilen här
               </button>
             ) : null}
+            {profile ? <button type="button" disabled={profileBusy} onClick={() => profileData(false)} className="rounded-full border-2 border-ink px-5 py-3 text-sm font-bold">Hämta banprofil (JSON)</button> : null}
+            {profile ? <button type="button" disabled={profileBusy} onClick={() => profileData(true)} className="rounded-full border-2 border-ink px-5 py-3 text-sm font-bold">Radera banprofil</button> : null}
+            {profile ? (<span role="status" className="text-sm">{exportMessage}</span>
+            ) : null}
           </div>
         </div>
 
@@ -103,6 +131,9 @@ export default function AccountPage() {
               >
                 <LogOut className="h-4 w-4" /> Logga ut
               </button>
+            ) : null}
+            {user ? <button type="button" disabled={exporting} onClick={exportData} className="rounded-full border-2 border-ink px-5 py-3 text-sm font-bold">{exporting ? 'Hämtar…' : 'Hämta mina personuppgifter (JSON)'}</button> : null}
+            {user ? ( <span role="status" className="text-sm">{exportMessage}</span>
             ) : (
               <button
                 onClick={() => setAuthOpen(true)}
@@ -119,6 +150,7 @@ export default function AccountPage() {
         </div>
       </section>
 
+      <p role="status" className="mx-auto max-w-5xl px-4 text-sm">{exportMessage}</p>
       <section className="mx-auto max-w-5xl px-4 pb-20 sm:px-6">
         <h2 className="font-display text-4xl">Dina ytor</h2>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -8,7 +8,12 @@ initGa4({
   "excluded": [
     "/admin",
     "/konto",
+    "/mitt-agilitymanager",
+    "/instruktor",
+    "/traning",
+    "/resultat",
+    "/tavlingar/favoriter",
     "/elev"
   ],
-  "consentKey": "agilitymanager_ga4_consent_v1"
+  "consentKey": "agilitymanager_ga4_consent_v2"
 });

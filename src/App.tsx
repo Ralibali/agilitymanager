@@ -27,6 +27,7 @@ const SharedCoursesPage = lazy(() => import("./pages/SharedCoursesPage"));
 const BlogIndexPage = lazy(() => import("./pages/BlogIndexPage"));
 const BlogArticlePage = lazy(() => import("./pages/BlogArticlePage"));
 const DogInsurancePage = lazy(() => import("./pages/DogInsurancePage"));
+const CookieInformationPage = lazy(() => import("./pages/CookieInformationPage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
 const NotFound = lazy(() => import("./pages/NotFound").then((m) => ({ default: m.NotFound })));
 
@@ -57,6 +58,7 @@ export default function App() {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/cookies" element={<CookieInformationPage />} />
 
           {/* Kunskapsbanken: blogg/guider */}
           <Route path="/blogg" element={<BlogIndexPage />} />

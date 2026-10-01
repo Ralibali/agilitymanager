@@ -10,7 +10,9 @@ import {
 } from "lucide-react";
 
 import { toast } from "sonner";
-import { Seo } from "@/components/Seo";
+import { Capacitor } from "@capacitor/core";
+import { exportFile, isExportCancelled } from "@/lib/exportFile";
+import { Seo, SITE_URL } from "@/components/Seo";
 import { uid, type PlacedObstacle, type Sport } from "@/lib/course";
 import { ObstacleGlyph, ObstacleIcon } from "@/components/ObstacleGlyph";
 import { Logo } from "@/components/SiteNav";
@@ -1314,6 +1316,7 @@ export default function PlannerPage() {
     try {
       await fn();
     } catch (err) {
+      if (isExportCancelled(err)) return;
       console.error(err);
       toast.error("Exporten misslyckades — försök igen");
     } finally {
@@ -1322,7 +1325,7 @@ export default function PlannerPage() {
   };
 
   const shareUrlForQr = () =>
-    `${window.location.origin}${window.location.pathname}?bana=${encodeCourse(draft)}`;
+    `${Capacitor.isNativePlatform() ? SITE_URL + "/banplanerare" : window.location.origin + window.location.pathname}?bana=${encodeCourse(draft)}`;
 
   const onJudgePdf = () =>
     runExport("Domar-PDF", async () => {
@@ -1331,7 +1334,7 @@ export default function PlannerPage() {
         makeQrDataUrl(shareUrlForQr()).catch(() => ""),
       ]);
       await exportJudgePdf({ ...pdfBase(), qrDataUrl });
-      toast.success("Domar-PDF nedladdad");
+      toast.success("Domar-PDF exporterad");
     });
   const onTrainingPdf = () =>
     runExport("Tränings-PDF", async () => {
@@ -1340,7 +1343,7 @@ export default function PlannerPage() {
         makeQrDataUrl(shareUrlForQr()).catch(() => ""),
       ]);
       await exportTrainingPdf({ ...pdfBase(), qrDataUrl });
-      toast.success("Tränings-PDF nedladdad");
+      toast.success("Tränings-PDF exporterad");
     });
   const onBuildPdf = () =>
     runExport("Bygg-PDF", async () => {
@@ -1349,26 +1352,22 @@ export default function PlannerPage() {
         makeQrDataUrl(shareUrlForQr()).catch(() => ""),
       ]);
       await exportBuildPdf({ ...pdfBase(), qrDataUrl });
-      toast.success("Bygg-PDF nedladdad");
+      toast.success("Bygg-PDF exporterad");
     });
   const onStartlistPdf = () =>
     runExport("Startlista", async () => {
       const { exportStartlistPdf } = await import("@/features/course-planner-v2/startlistPdf");
-      exportStartlistPdf({
+      await exportStartlistPdf({
         courseName: name, sport, sizeClass: draft.sizeClass,
         classTemplate: draft.classTemplate, obstacles: numbered,
         ruleSetId: draft.ruleSetId,
       });
-      toast.success("Startlista nedladdad");
+      toast.success("Startlista exporterad");
     });
   const onJson = () =>
-    runExport("JSON", () => {
+    runExport("JSON", async () => {
       const blob = new Blob([JSON.stringify({ ...pdfBase(), version: 2 }, null, 2)], { type: "application/json" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `${name || "bana"}.json`;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      await exportFile(blob, `${name || "bana"}.json`);
     });
   const onImportJson = () => fileInputRef.current?.click();
   const handleJsonFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1401,7 +1400,7 @@ export default function PlannerPage() {
     toast.success(`Importerade "${c.name || "bana"}"`);
   };
 
-  const exportPNG = () => {
+  const exportPNG = () => runExport("PNG", async () => {
     const svg = svgRef.current;
     if (!svg) return;
     const clone = svg.cloneNode(true) as SVGSVGElement;
@@ -1413,28 +1412,36 @@ export default function PlannerPage() {
     const data = new XMLSerializer().serializeToString(clone);
     const blob = new Blob([data], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = w * 60;
-      canvas.height = h * 60;
-      const ctx = canvas.getContext("2d")!;
-      ctx.fillStyle = "#FCFAF4";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    try {
+      const png = await new Promise<Blob>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = w * 60;
+            canvas.height = h * 60;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Kunde inte skapa bilden");
+            ctx.fillStyle = "#FCFAF4";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob((result) => {
+              if (result) resolve(result);
+              else reject(new Error("Kunde inte skapa PNG-filen"));
+            }, "image/png");
+          } catch (error) {
+            reject(error);
+          }
+        };
+        img.onerror = () => reject(new Error("Kunde inte läsa banbilden"));
+        img.src = url;
+      });
+      await exportFile(png, `${name || "bana"}.png`);
+      track("course_exported", { format: "png" });
+    } finally {
       URL.revokeObjectURL(url);
-      canvas.toBlob((png) => {
-        if (!png) return;
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(png);
-        a.download = `${name || "bana"}.png`;
-        a.click();
-        track("course_exported", { format: "png" });
-        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-      }, "image/png");
-    };
-    img.src = url;
-  };
+    }
+  });
 
   // ── Dela ────────────────────────────────────────────────────
   const openShare = () => {

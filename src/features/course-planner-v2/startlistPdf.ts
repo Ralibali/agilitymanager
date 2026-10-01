@@ -3,6 +3,7 @@
  * Komprimerad numrerad lista över hinder för domare/bandomare.
  */
 import jsPDF from "jspdf";
+import { exportFile } from "@/lib/exportFile";
 import { CLASS_TEMPLATES, SIZE_CLASSES, getObstacleDefV2,
   type ClassTemplateKey, type ObstacleTypeV2, type Sport, type SizeClassKey } from "./config";
 import { computeCourseTimes } from "./validation";
@@ -21,7 +22,7 @@ interface Args {
   ruleSetId?: string;
 }
 
-export function exportStartlistPdf(a: Args) {
+export async function exportStartlistPdf(a: Args) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const W = 210; const M = 12;
   const tpl = a.classTemplate ? CLASS_TEMPLATES.find((t) => t.key === a.classTemplate) : null;
@@ -88,5 +89,5 @@ export function exportStartlistPdf(a: Args) {
   doc.setFont("helvetica", "italic"); doc.setFontSize(8); doc.setTextColor(120);
   doc.text(`Genererad ${new Date().toLocaleString("sv-SE")} · Banplaneraren`, M, 290);
 
-  doc.save(`startlista_${a.courseName.replace(/\s+/g, "_")}.pdf`);
+  await exportFile(doc.output("blob"), `startlista_${a.courseName.replace(/\s+/g, "_")}.pdf`);
 }

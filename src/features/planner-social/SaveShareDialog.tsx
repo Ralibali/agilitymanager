@@ -1,3 +1,4 @@
+import { Capacitor } from "@capacitor/core";
 import { useState } from "react";
 import { Check, Copy, Globe, Loader2, Lock, Share2 } from "lucide-react";
 import { toast } from "sonner";
@@ -55,7 +56,7 @@ export function SaveShareDialog({
     }
   }
 
-  const shareUrl = savedId ? `${window.location.origin}/bana/${savedId}` : "";
+  const shareUrl = savedId ? `${Capacitor.isNativePlatform() ? "https://agilitymanager.se" : window.location.origin}/bana/${savedId}` : "";
 
   const save = async () => {
     setSaving(true);

@@ -9,6 +9,7 @@ import {
   Upload,
 } from "lucide-react";
 import { toast } from "sonner";
+import { exportFile, isExportCancelled } from "@/lib/exportFile";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Seo } from "@/components/Seo";
@@ -52,13 +53,12 @@ function blankSession(
     videoUrl: "",
   };
 }
-function download(text: string, name: string, type = "application/json") {
-  const url = URL.createObjectURL(new Blob([text], { type }));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  a.click();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+async function download(text: string, name: string, type = "application/json") {
+  try {
+    await exportFile(new Blob([text], { type }), name);
+  } catch (error) {
+    if (!isExportCancelled(error)) toast.error("Kunde inte exportera filen. Försök igen.");
+  }
 }
 export default function TrainingPage() {
   const [params] = useSearchParams();
@@ -557,7 +557,7 @@ export default function TrainingPage() {
                         "Passet är kopierat. Klistra in hos din tränare."
                       );
                     } catch {
-                      download(
+                      await download(
                         sessionText(valid),
                         "traningspass.txt",
                         "text/plain"

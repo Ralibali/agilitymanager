@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import { Bell, BellOff, Loader2, Smartphone } from "lucide-react";
 import {
   disablePushReminders,
@@ -55,8 +56,9 @@ export function PushReminderCard({ competitionKeys }: Props) {
     return (
       <div className="rounded-3xl border-2 border-ink/15 bg-cream/60 p-6">
         <p className="text-sm font-semibold text-ink/60">
-          Din webbläsare stödjer tyvärr inte push-notiser. Öppna sidan i Chrome, Edge, Firefox eller
-          Safari så kan du få påminnelser när anmälan öppnar och stänger.
+          {Capacitor.isNativePlatform()
+            ? "Push-notiser finns ännu inte i appen. Du kan spara favoriter och exportera dem till din kalender."
+            : "Din webbläsare stödjer tyvärr inte push-notiser. Öppna sidan i Chrome, Edge, Firefox eller Safari så kan du få påminnelser när anmälan öppnar och stänger."}
         </p>
       </div>
     );

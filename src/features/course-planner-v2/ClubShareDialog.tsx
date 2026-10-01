@@ -1,3 +1,4 @@
+import { Capacitor } from "@capacitor/core";
 /**
  * Sprint 5 — Klubbdelning + publik länk-dialog för Banplaneraren v2.
  */
@@ -72,7 +73,7 @@ export default function ClubShareDialog({ open, onOpenChange, courseId, courseNa
 
   function publicUrl() {
     if (!publicSlug) return "";
-    return `${window.location.origin}/v3/course-planner-v2/judge/${publicSlug}`;
+    return `${Capacitor.isNativePlatform() ? "https://agilitymanager.se" : window.location.origin}/v3/course-planner-v2/judge/${publicSlug}`;
   }
 
   async function copy() {

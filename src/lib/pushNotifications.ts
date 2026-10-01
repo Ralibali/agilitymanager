@@ -3,6 +3,7 @@
 // synkas mot dina favoritmarkerade tävlingar.
 
 import { supabase } from "@/integrations/supabase/client";
+import { Capacitor } from "@capacitor/core";
 
 const VAPID_PUBLIC_KEY =
   "BLIE_2sCDfHKyKjCqhLvQGMJmTl4tLDn-yE1uhkioRmYJMiBi67DPdnc2bvJKzg33GVBY3D3uBYSFSZwuhJ8XLI";
@@ -10,6 +11,7 @@ const VAPID_PUBLIC_KEY =
 const SW_URL = "/push-sw.js";
 
 export function pushSupported(): boolean {
+  if (Capacitor.isNativePlatform()) return false;
   return (
     typeof window !== "undefined" &&
     "serviceWorker" in navigator &&
@@ -20,6 +22,7 @@ export function pushSupported(): boolean {
 
 /** iOS kräver att sajten är tillagd på hemskärmen för att tillåta notiser. */
 export function needsHomeScreenInstall(): boolean {
+  if (Capacitor.isNativePlatform()) return false;
   if (typeof window === "undefined") return false;
   const ua = navigator.userAgent;
   const isIos = /iPad|iPhone|iPod/.test(ua);

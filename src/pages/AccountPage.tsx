@@ -136,6 +136,11 @@ export default function AccountPage() {
         </div>
       </section>
 
+      <section className="mx-auto flex max-w-5xl flex-wrap gap-5 px-4 pb-10 text-sm font-semibold sm:px-6">
+        <Link to="/integritet" className="inline-flex min-h-11 items-center underline underline-offset-4">Integritet och personuppgifter</Link>
+        <Link to="/radera-konto" className="inline-flex min-h-11 items-center underline underline-offset-4">Radera konto eller banprofil</Link>
+      </section>
+
       <AuthDialog
         open={authOpen}
         onOpenChange={setAuthOpen}

@@ -3,6 +3,7 @@ import { AFFILIATE_PARTNERS } from "@/lib/affiliate";
 
 /** Text creatives: no third-party scripts, pixels, cookies or layout-shifting images. */
 export function AffiliateBanner({ compact = false }: { compact?: boolean }) {
+  if (import.meta.env.VITE_NATIVE_APP === 'true') return null;
   if (!AFFILIATE_PARTNERS.length) return null;
 
   return (
@@ -30,6 +31,7 @@ export function AffiliateBanner({ compact = false }: { compact?: boolean }) {
  * annonsmärkt, laddas lazy och används på innehållssidor — aldrig startsidan.
  */
 export function PartnerAdCard({ className = "" }: { className?: string }) {
+  if (import.meta.env.VITE_NATIVE_APP === 'true') return null;
   const partners = AFFILIATE_PARTNERS.filter((p) => p.bannerImageUrl);
   if (!partners.length) return null;
 

@@ -9,7 +9,7 @@ export default defineConfig([
   // dist = byggartefakter. previewAuthStorage.ts genereras om automatiskt av
   // plattformen, så manuella stilrättningar där skrivs över vid nästa
   // generering — filen granskas därför inte av lint.
-  globalIgnores(['dist', 'src/integrations/supabase/previewAuthStorage.ts']),
+  globalIgnores(['dist', 'dist-native', 'android', 'ios', 'src/integrations/supabase/previewAuthStorage.ts']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

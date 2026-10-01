@@ -123,6 +123,115 @@
   {
     "schema_version": 1,
     "site": "agilitymanager",
+    "content_id": "editorial-20260927-banfiler-innehallslista-traningsgrupp",
+    "author": "ChatGPT",
+    "status": "ready",
+    "written_at": "2026-09-27T09:59:39.112836+00:00",
+    "sources_checked_at": "2026-10-01T08:30:37.897Z",
+    "search_intent": "Gruppens sökbara innehållslista över banfiler med syfte och källa, skilt från versionsjämförelse och återkoppling på en banritning.",
+    "source_urls": [
+      "https://agilitymanager.se/banplanerare"
+    ],
+    "slug": "banfiler-innehallslista-traningsgrupp",
+    "title": "Ordna gruppens banfiler med en enkel innehållslista",
+    "description": "Ordna träningsgruppens banfiler med en enkel innehållslista. Samla syfte, källa och status så att rätt underlag blir lättare att hitta inför träningen.",
+    "category": "Verktyg",
+    "readingMinutes": 4,
+    "related": [
+      "jamfora-banversioner-agility",
+      "dela-banan-med-traningsgruppen"
+    ],
+    "cta": {
+      "heading": "Hitta rätt underlag för gruppens banplanering",
+      "text": "Öppna banplaneraren och använd innehållslistan som stöd för att hitta gruppens banfiler.",
+      "label": "Öppna banplaneraren",
+      "to": "/banplanerare"
+    },
+    "blocks": [
+      {
+        "type": "p",
+        "text": "En träningsgrupp kan snabbt samla många banfiler som är svåra att hitta bland. Ett filnamn som var tydligt på träningskvällen säger kanske inte mycket ett halvår senare. Med en liten innehållslista kan gruppen beskriva vad varje sparad ritning avser och vilken fil som hör till ett visst tillfälle.\n\nBörja med de filer som ni faktiskt använder. Den här mallen handlar om att ordna gruppens egna dokument. Den bedömer inte om en bana följer regler eller passar ett ekipage, och den innebär inte att AgilityManager har en särskild funktion för klubbens banbibliotek.\n"
+      },
+      {
+        "type": "h2",
+        "text": "Bestäm vad som ska finnas i samlingen"
+      },
+      {
+        "type": "p",
+        "text": "Skilj mellan arbetsfiler, delade underlag och sådant gruppen vill behålla som historik. Alla behöver inte synas i samma lista. Skriv vilket syfte samlingen har så att den inte blir en plats där varje tillfällig kopia sparas utan sammanhang."
+      },
+      {
+        "type": "p",
+        "text": "Ta bara med material som gruppen har rätt att använda och dela. Om en ritning kommer från någon annan behöver ursprung och eventuell tillåtelse vara klarlagda. En nedladdad fil är inte i sig ett besked om hur den får återanvändas."
+      },
+      {
+        "type": "h2",
+        "text": "Ge varje post en tydlig hänvisning"
+      },
+      {
+        "type": "p",
+        "text": "Låt innehållslistan peka på den faktiska filen och ange dess namn. Skriv vilket tillfälle eller vilken planeringsfråga ritningen hör till. Behåll också vem som gjorde eller lämnade underlaget när den uppgiften är känd."
+      },
+      {
+        "type": "p",
+        "text": "Om två filer är olika versioner av samma arbete ska relationen framgå. Använd guiden om att [jämföra banversioner](/blogg/jamfora-banversioner-agility) när ni behöver reda ut skillnaderna. Innehållslistan ska hjälpa er att hitta rätt filer innan jämförelsen börjar."
+      },
+      {
+        "type": "h2",
+        "text": "Samla några få sökbara uppgifter"
+      },
+      {
+        "type": "p",
+        "text": "En post kan innehålla följande:"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Eget namn på ritningen eller planeringstillfället.",
+          "Filnamn och plats där filen finns.",
+          "Datum eller versionsbeteckning som faktiskt är känd.",
+          "Kort beskrivning av underlagets avsedda användning.",
+          "Ansvarig kontakt i gruppen.",
+          "Ursprung och känd information om delning.",
+          "Status: arbetsunderlag, delat underlag eller historik."
+        ]
+      },
+      {
+        "type": "p",
+        "text": "Använd gruppens egna begripliga ord i beskrivningen. Undvik beteckningar som kan uppfattas som en regelkontroll eller ett godkännande om ingen sådan bedömning har gjorts. En praktisk sorteringsetikett ska inte bli ett påstående om ritningens lämplighet."
+      },
+      {
+        "type": "h2",
+        "text": "Prova att hitta en fil genom listan"
+      },
+      {
+        "type": "p",
+        "text": "Be någon som inte skapade samlingen att öppna ett angivet underlag. Går det att hitta filen, förstå dess datum och se vem som kan svara på frågor? Förtydliga poster där personen behöver fråga efter något som borde stå i listan."
+      },
+      {
+        "type": "p",
+        "text": "Kontrollera också att en länk verkligen går till rätt fil. Ett generellt mappnamn kan vara otillräckligt om många nästan likadana kopior ligger där. Om lagringsplatsen ändras behöver hänvisningen uppdateras så att listan fortsätter vara användbar."
+      },
+      {
+        "type": "h2",
+        "text": "Håll historik och aktuellt underlag åtskilda"
+      },
+      {
+        "type": "p",
+        "text": "Markera när en fil ersätts av en senare version och behåll hänvisningen mellan dem där historiken behövs. Låt gruppen veta vilket underlag som ska användas vid nästa tillfälle. Se även guiden om att [dela banan med träningsgruppen](/blogg/dela-banan-med-traningsgruppen)."
+      },
+      {
+        "type": "p",
+        "text": "Ni kan [öppna banplaneraren](/banplanerare) för arbetet med ritningen och förvara innehållslistan i gruppens valda dokument. AI-assisterad originalguide med en arbetsmall. Texten utlovar ingen automatisk filförvaltning, gemensam lagring eller kontroll av användningsrättigheter."
+      }
+    ],
+    "quality_checked_at": "2026-10-01T08:30:37.897Z",
+    "publishedAt": "2026-10-01T08:30:37.897Z",
+    "updatedAt": "2026-10-01T08:30:37.897Z"
+  },
+  {
+    "schema_version": 1,
+    "site": "agilitymanager",
     "content_id": "editorial-20260925-besoksunderlag-traning-annan-anlaggning",
     "author": "ChatGPT",
     "status": "ready",

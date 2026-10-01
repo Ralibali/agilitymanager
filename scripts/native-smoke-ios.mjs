@@ -128,7 +128,7 @@ function cleanup() {
   // Only the UUID returned by this run's create command is ever terminated,
   // shut down or deleted. No "booted", "all" or pre-existing device is used.
   if (bundleId && summary.processId) simctl(['terminate', deviceId, bundleId], 10_000, true);
-  simctl(['shutdown', deviceId], 15_000, true);
+  simctl(['shutdown', deviceId], 30_000, true);
   simctl(['delete', deviceId], 15_000, true);
 }
 process.once('SIGINT', () => { cleanup(); process.exit(130); });
@@ -179,7 +179,7 @@ try {
   summary.deviceId = deviceId;
   simctl(['boot', deviceId]);
   // The first boot of a fresh private device set can include runtime setup.
-  simctl(['bootstatus', deviceId, '-b'], 180_000);
+  simctl(['bootstatus', deviceId, '-b'], 300_000);
   booted = true;
   simctl(['install', deviceId, appPath], 30_000);
   launchTime = Date.now();

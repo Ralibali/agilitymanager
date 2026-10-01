@@ -66,7 +66,7 @@
     "googlePlay": {
       "accountExistsReportedByPublisher": true,
       "accountAccessVerified": true,
-      "storePriceConfigured": false,
+      "storePriceConfigured": true,
       "paidFromStartVerified": true,
       "paymentsProfileVerified": false,
       "taxAndBankingVerified": false,
@@ -80,7 +80,18 @@
       "consoleUrl": "https://play.google.com/console/u/0/developers/7066209034858113773/app/4975139875139560691/app-dashboard",
       "legalDeclarationsConfirmed": true,
       "primaryLanguageVerified": "sv-SE",
-      "merchantAccountSetupCompleteObserved": true
+      "merchantAccountSetupCompleteObserved": true,
+      "exactPricePointVerified": true,
+      "configuredPrice": 39,
+      "currency": "SEK",
+      "priceCountry": "SE",
+      "customerPriceIncludesTax": true,
+      "priceVerifiedAt": "2026-10-01",
+      "priceVerificationMethod": "console-price-row-after-save-and-reload",
+      "productionTargetCountries": [
+        "SE"
+      ],
+      "distributionCountriesVerified": true
     }
   },
   "notes": [
@@ -90,7 +101,8 @@
     "Choose Google Play Paid before offering the app for free; free cannot later become paid under the same package name.",
     "Verify Swedish customer price and distribution country in each store before submission.",
     "Mobile privacy and support URLs were publicly read without login on 2026-10-01; this is not app-store publication.",
-    "Google Play app record was created as Paid after explicit publisher approval of policy/export declarations; exact price is still unconfigured."
+    "Google Play app record was created as Paid after explicit publisher approval of policy/export declarations; Swedish customer price 39.00 SEK including VAT was saved and verified after reload on 2026-10-01.",
+    "Google requires all pricing fields; local currency prices were automatically generated from 31.20 SEK before tax. Production distribution remains targeted only to Sweden. Apple price remains unconfigured, so overall storePriceConfigured is false."
   ],
   "supportUrlVerified": true
 }

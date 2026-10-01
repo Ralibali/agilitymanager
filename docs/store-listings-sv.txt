@@ -28,11 +28,11 @@ Rita och spara banor utan konto. Banplaneraren och de medföljande mallarna är 
 Appen köps en gång i butiken. Inget abonnemang behövs för banplaneraren.
 
 INTERN REGISTRERING OCH PRIS – INTE FÖR PUBLIK BESKRIVNING
-- Aurora Media AB. Support info@auroramedia.se. Konton finns enligt utgivaren; faktisk behörighet, avtal, signering och registrering är inte verifierade.
-- App-ID se.agilitymanager.app (preliminärt). Version 1.0.0, bygg 3. Huvudspråk svenska.
-- Betald nedladdning, ett engångsköp i respektive butik. Önskat svenskt kundpris 39 SEK (SE), ej konfigurerat/verifierat.
+- Aurora Media AB. Support info@auroramedia.se. Kontotillgång är verifierad. Google Play-apposten är skapad som Betald; Apples rätta juridiska utgivarteam, avtal och signering återstår.
+- App-ID se.agilitymanager.app (angivet i Google Play-apposten; Apple-registrering och bindning till uppladdat paket återstår). Version 1.0.0, bygg 3. Huvudspråk svenska.
+- Betald nedladdning, ett engångsköp i respektive butik. Svenskt kundpris 39,00 SEK inklusive moms är sparat och verifierat i Google Play efter omladdning 1 oktober 2026. Apple-priset är ännu inte konfigurerat.
 - Apple: bekräfta exakt prispunkt i kontot, aktivt Paid Apps Agreement och begärda skatte-/bankuppgifter. Välj inte ett ersättningsbelopp utan utgivarens beslut.
-- Google: välj Paid innan appen erbjuds gratis. Gratiserbjuden app kan inte bli betald med samma paketnamn. Verifiera payments profile, skatte-/bankuppgifter och slutligt svenskt kundpris.
+- Google: appposten är Betald från början. Sverige är enda inriktade försäljningsland och 39,00 SEK är verifierat. Google krävde alla prisfält; övriga lokala priser autoomräknades från 31,20 SEK före moms. Payments profile och skatte-/bankuppgifter återstår att verifiera.
 - Ingen Stripe, IAP, prenumeration eller extra betalningsskärm. Lägg inte obekräftat 39-kronorspris i text/skärmbilder.
 - mobile.store.json är ett utkast; filen aktiverar ingen registrering, försäljning eller runtime-paywall.
 
@@ -42,7 +42,7 @@ INTERN SLUTKONTROLL – INTE FÖR PUBLIK BESKRIVNING
 - Inga konton, banprofiler, community, kommentarer, molnsynk, feedbackserver eller appserver för konsumentdata. Verifiera dialoger, deeplinks, SDK och nätverkstrafik.
 - Webbens tävlingar, träningsplanering, instruktör/elev, resultat och guider ingår inte.
 - Bekräfta rättigheter till mallar/bilder/typsnitt, målgrupp/åldersklassning och kategori (sport är ett förslag).
-- Godkänn docs/mobile-privacy-sv.txt och publicera appens policy. Offentlig policy-URL och support-URL är inte verifierade.
+- Appens integritets- och supportsidor är offentligt verifierade utan inloggning 1 oktober 2026: https://agilitymanager.se/mobil-integritet.html och https://agilitymanager.se/mobil-support.html. Slutliga deklarationer ska motsvara signerat paket.
 - App Privacy/Data safety, pris, avtal, skärmbilder och signering ska motsvara färdigt paket.
 
 OFFICIELLA PRISKÄLLOR

@@ -1,6 +1,7 @@
 import AnalyticsConsent from './components/AnalyticsConsent';
 import { lazy, Suspense, useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router";
+import { LEGACY_REDIRECTS } from "./lib/legacyRedirects";
 import Home from "./pages/Home";
 import { Toaster } from "./components/ui/sonner";
 import { AffiliateBanner } from "./components/AffiliateBanner";
@@ -18,6 +19,7 @@ const CompetitionsPage = lazy(() => import("./pages/CompetitionsPage"));
 const FavoriteCompetitionsPage = lazy(() => import("./pages/FavoriteCompetitionsPage"));
 const ResultsPage = lazy(() => import("./pages/ResultsPage"));
 const ClubsPage = lazy(() => import("./pages/ClubsPage"));
+const LegacyRedirectPage = lazy(() => import("./pages/LegacyRedirectPage"));
 const CompetitionDetailPage = lazy(() => import("./pages/CompetitionDetailPage"));
 const CountyCompetitionsPage = lazy(() => import("./pages/CountyCompetitionsPage"));
 const ClubCompetitionsPage = lazy(() => import("./pages/ClubCompetitionsPage"));
@@ -60,7 +62,6 @@ export default function App() {
 
           {/* Kunskapsbanken: blogg/guider */}
           <Route path="/blogg" element={<BlogIndexPage />} />
-          <Route path="/blogg/agility-regler-sverige" element={<Navigate to="/blogg/regelverk-agility-hoopers-sverige" replace />} />
           <Route path="/blogg/:slug" element={<BlogArticlePage />} />
           <Route path="/jamfor-hundforsakring" element={<DogInsurancePage />} />
           <Route path="/jämför-försäkrings" element={<Navigate to="/jamfor-hundforsakring" replace />} />
@@ -96,6 +97,11 @@ export default function App() {
           <Route path="/konto" element={<Navigate to="/mitt-agilitymanager" replace />} />
           <Route path="/auth" element={<Navigate to="/mitt-agilitymanager" replace />} />
           <Route path="/logga-in" element={<Navigate to="/mitt-agilitymanager" replace />} />
+          {/* Gamla adresser från före redesignen som Google fortfarande rankar */}
+          {Object.keys(LEGACY_REDIRECTS).map((path) => (
+            <Route key={path} path={path} element={<LegacyRedirectPage />} />
+          ))}
+          <Route path="/banor/:courseKey" element={<LegacyRedirectPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

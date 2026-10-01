@@ -72,6 +72,7 @@ export default defineConfig({
     execFileSync(process.execPath, ["scripts/prerender-editorial.mjs"], { stdio: "inherit" });
     execFileSync(process.execPath, ["scripts/prerender-insurance.mjs"], { stdio: "inherit" });
     execFileSync(process.execPath, ["scripts/prerender-competitions.mjs"], { stdio: "inherit" });
+    execFileSync(process.execPath, ["scripts/prerender-legacy-redirects.mjs"], { stdio: "inherit" });
   } }],
   server: {
     port: 3000,

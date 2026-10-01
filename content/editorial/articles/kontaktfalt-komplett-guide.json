@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "content_id": "restore-20260929-kontaktfalt-komplett-guide",
+  "author": "Claude",
+  "status": "ready",
+  "written_at": "2026-09-29T20:30:00Z",
+  "sources_checked_at": "2026-09-29T20:30:00Z",
+  "search_intent": "Förstå vad som gäller för kontaktfält på A-hinder, balansbom och gungbräda och hur man tränar en stabil kontakt som håller på tävling.",
+  "source_urls": [
+    "https://agilityklubben.se/wp-content/uploads/2022/02/REGLER_AGILITY-_TAVLINGAR_2022_2026.pdf",
+    "https://agilityklubben.se/regler/"
+  ],
+  "slug": "kontaktfalt-komplett-guide",
+  "title": "Kontaktfält i agility: A-hinder, balansbom och gungbräda – regler och träning",
+  "description": "Så fungerar kontaktfälten på A-hinder, balansbom och gungbräda enligt SAgiK:s regler, och så bygger du en stabil kontakt steg för steg.",
+  "category": "Träning",
+  "readingMinutes": 8,
+  "related": [
+    "slalom-komplett-guide",
+    "distanshantering-agility",
+    "bygga-saker-traningsbana-agility"
+  ],
+  "cta": {
+    "heading": "Planera kontaktträningen",
+    "text": "Rita en övning med kontaktfältshindret, hindren före och efter och var du själv ska stå – gratis och utan konto.",
+    "label": "Öppna banplaneraren",
+    "to": "/banplanerare"
+  },
+  "blocks": [
+    {
+      "type": "p",
+      "text": "Kontaktfälten är en av de vanligaste anledningarna till fel på en agilitybana. Hunden kan springa en i övrigt perfekt bana och ändå få 5 fel för en tass som landade några centimeter för högt på nedfarten. Den här guiden går igenom vad regelverket faktiskt kräver av de tre kontaktfältshindren och hur du kan bygga en kontakt som håller även när farten och nerverna är på topp."
+    },
+    {
+      "type": "callout",
+      "text": "Regeluppgifterna i guiden kommer från SAgiK:s [Regler för agilitytävlingar](https://agilityklubben.se/wp-content/uploads/2022/02/REGLER_AGILITY-_TAVLINGAR_2022_2026.pdf) som gäller 2022-01-01 till och med 2026-12-31. Kontrollera alltid aktuell version på [agilityklubben.se/regler](https://agilityklubben.se/regler/) – ett nytt regelverk kan gälla från 2027."
+    },
+    {
+      "type": "h2",
+      "text": "Vad är ett kontaktfält?"
+    },
+    {
+      "type": "p",
+      "text": "Kontaktfälten är de markerade zonerna längst ned i båda ändarna av A-hindret, balansbommen och gungbrädan. Enligt regelverket ska de ha en klart avvikande färg som även är markerad på hindrets sidor. Grundregeln är densamma för alla tre hindren: hunden ska vidröra kontaktfältet på nedfarten med minst en del av en tass. Missar hunden det blir det 5 fel. Regelverket tillåter också elektroniska kontaktfält som är godkända av SAgiK."
+    },
+    {
+      "type": "p",
+      "text": "Kontaktfältshindren finns bara i agilityklasserna. I agilityklass 1 innehåller banan 2–3 passager av kontaktfältshinder och i klass 2 och 3 är det 2–4 passager. Minst två olika kontaktfältshinder ska ingå i alla agilityklasser. I hoppklass ingår varken A-hinder, balansbom eller gungbräda."
+    },
+    {
+      "type": "h2",
+      "text": "De tre hindren enligt regelverket"
+    },
+    {
+      "type": "ul",
+      "items": [
+        "A-hinder: höjd 160 cm och kontaktfält på 106 cm. Hunden ska vidröra uppfartssidan (annars vägran) och kontaktfältet på nedfartssidan (annars 5 fel). Hoppar hunden av på uppfartssidan blir det vägran, och passerar den nocken och nedfarten utan att beröra nedfarten blir det diskvalificering.",
+        "Balansbom: bredd 30 cm, höjd 120–130 cm, delar på 360–380 cm och kontaktfält på 90 cm. Hunden ska vidröra uppfarten (annars vägran) och kontaktfältet på nedfarten (annars 5 fel). Hoppar hunden av innan den nått nedfarten, alltså sista tredjedelen av hindret, blir det vägran.",
+        "Gungbräda: bredd 30 cm, längd 360–380 cm och kontaktfält på 90 cm. Hunden ska ha alla fyra tassar på brädan före mittlinjen (annars vägran) och vidröra kontaktfältet på nedfarten (annars 5 fel). Hoppar hunden av innan brädan har slagit i marken blir det 5 fel. Med 1 kg placerat på nedfartens kontaktfält ska brädan nå marken på 2–3 sekunder."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Regelverket säger också att A-hinder, balansbom och gungbräda ska placeras så att banans naturliga linje ger hunden en rak ansats mot hindret. Det är värt att tänka på när du bygger egna övningar: en rak, lugn ingång i början och svårare vinklar först när kontakten sitter."
+    },
+    {
+      "type": "h2",
+      "text": "Stoppad eller rinnande kontakt"
+    },
+    {
+      "type": "p",
+      "text": "Regelverket bryr sig bara om att tassen vidrör kontaktfältet – inte om hur hunden gör det. I praktiken finns två huvudvägar, och det viktigaste är att du väljer en och är konsekvent. Blandade kriterier är en vanlig orsak till att kontakter börjar slira."
+    },
+    {
+      "type": "ul",
+      "items": [
+        "Stoppad kontakt: hunden stannar i en bestämd position i kontaktfältet, till exempel med framtassarna på marken och baktassarna kvar på hindret. Kriteriet är lätt för både hund och förare att se, och det håller ofta bra under tävlingsstress. Nackdelen är att stoppet kostar tid och att du behöver ett tydligt frisläpp.",
+        "Rinnande kontakt: hunden springer igenom kontaktfältet i full fart med ett inlärt steg som landar i zonen. Det sparar tid men är krävande att lära in och svårare att bedöma med blotta ögat. Många som tränar rinnande kontakt filmar sina pass för att se var tassarna faktiskt landar."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Träna kontakten steg för steg"
+    },
+    {
+      "type": "ul",
+      "items": [
+        "Lär in slutpositionen utan hinder. Använd en låg bräda eller platta på marken och belöna hunden för att hitta rätt position. Belöningen placeras så att hunden tittar framåt, inte upp mot dig.",
+        "Flytta positionen till hindret i låg höjd. Börja på nedfarten nära marken och bygg bakåt tills hunden tar hela hindret.",
+        "Öka farten i små steg: gång, trav, lugn löpning och till sist full fart. Gå vidare först när det föregående steget är stabilt.",
+        "Variera din egen position. Spring före, bakom och på båda sidor om hindret, eftersom regelverket kräver att föraren ska kunna passera varje hinder på båda sidor.",
+        "Lägg till hinder före och efter, och till sist nya miljöer och underlag."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Gungbrädan är speciell eftersom den rör sig och låter. Låt hunden vänja sig vid rörelsen i små doser, till exempel med en bräda som bara tippar några centimeter, och pressa aldrig en tveksam hund upp på brädan. En hund som blivit rädd för gungan kan behöva lång tid för att bli trygg igen."
+    },
+    {
+      "type": "h2",
+      "text": "Vanliga problem och vad du kan göra"
+    },
+    {
+      "type": "ul",
+      "items": [
+        "Hunden hoppar av före kontaktfältet: sänk farten i träningen, gå tillbaka ett steg i inlärningen och belöna rätt tassplacering oftare.",
+        "Hunden tvekar eller stannar mitt på hindret: sänk höjden eller svårigheten och bygg tillbaka tryggheten innan du ökar farten igen.",
+        "Kontakten håller hemma men inte på tävling: godis får inte användas eller synas på banområdet vid tävling. Träna därför upprepningar där belöningen kommer senare eller från en annan plats, så att hunden inte väntar på godis i kontaktfältet.",
+        "Kontakten slirar efter en tid: det är vanligt när kriteriet inte underhålls. Gör några korta repetitioner med höga krav på positionen i varje pass."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Underhåll och säkerhet"
+    },
+    {
+      "type": "p",
+      "text": "En kontakt är färskvara. Lägg in några repetitioner i varje pass, även när fokus ligger på annat, och gå tillbaka till lugn grundträning då och då. Tänk också på utrustningen: regelverket kräver att kontaktfältshindren är stabila, inte sviktar och har halkfri yta. Samma krav är rimliga på träningshinder, och [guiden om säkra träningsbanor](/blogg/bygga-saker-traningsbana-agility) tar upp fler saker att kontrollera."
+    },
+    {
+      "type": "p",
+      "text": "När du planerar ett pass hjälper det att rita upp övningen i förväg: var ligger kontaktfältshindret, vilka hinder kommer före och efter, och var ska du stå? I [banplaneraren](/banplanerare) kan du rita övningen i meterskala och dela den med träningsgruppen."
+    }
+  ],
+  "editorial_review": {
+    "reviewed_at": "2026-09-29T20:30:00Z",
+    "restored_from": "Borttagen i redesignen 2026-08-15 (commit 08aa47dc). Ursprungligen publicerad 2026-04-04. Omskriven, inte kopierad.",
+    "source_review": "SAgiK:s Regler för agilitytävlingar 2022–2026 lästa 2026-09-29: §2.3 Klasser (kontaktfältshinder per klass), §3.1 (rak ansats, förare passerar på båda sidor), §3.7 (godis på banområdet), §4.2 A-hinder (160 cm, kontaktfält 106 cm, hinderfel), §4.3 balansbom (30 cm, 120–130 cm, kontaktfält 90 cm, hinderfel), §4.4 gungbräda (30 cm, 360–380 cm, kontaktfält 90 cm, 2–3 s, hinderfel). Den gamla texten angav felaktigt A-hindrets höjd till cirka 170 cm och balansbommens bredd till cirka 12 cm; båda är rättade. Träningsråden är allmänna och påstår inga egna tester.",
+    "search_console": "Adressen hade fortfarande visningar och klick i Search Console (senaste 3 månaderna före 2026-09-29) men visade en tom sida.",
+    "distinct_intent_confirmed": true
+  },
+  "publishedAt": "2026-04-04T00:00:00Z",
+  "updatedAt": "2026-09-29T20:30:00Z"
+}

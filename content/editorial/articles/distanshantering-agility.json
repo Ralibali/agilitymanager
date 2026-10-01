@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "content_id": "restore-20260929-distanshantering-agility",
+  "author": "Claude",
+  "status": "ready",
+  "written_at": "2026-09-29T20:30:00Z",
+  "sources_checked_at": "2026-09-29T20:30:00Z",
+  "search_intent": "Förstå varför distanshantering behövs i agility och hur man tränar skick framåt, lateralt avstånd och vinklar steg för steg.",
+  "source_urls": [
+    "https://agilityklubben.se/wp-content/uploads/2022/02/REGLER_AGILITY-_TAVLINGAR_2022_2026.pdf",
+    "https://agilityklubben.se/regler/"
+  ],
+  "slug": "distanshantering-agility",
+  "title": "Distanshantering i agility: så tränar du avstånd till hunden",
+  "description": "Varför distans spelar roll på en agilitybana och hur du bygger skick framåt, lateralt avstånd och vinklar steg för steg – utan att tappa hundens säkerhet.",
+  "category": "Träning",
+  "readingMinutes": 7,
+  "related": [
+    "slalom-komplett-guide",
+    "kontaktfalt-komplett-guide",
+    "avstand-och-vinklar-bandesign"
+  ],
+  "cta": {
+    "heading": "Rita en distansövning",
+    "text": "Lägg ut hindren i meterskala och markera var du ska stå – så ser du direkt hur långt hunden behöver jobba själv.",
+    "label": "Öppna banplaneraren",
+    "to": "/banplanerare"
+  },
+  "blocks": [
+    {
+      "type": "p",
+      "text": "Distanshantering betyder att du kan styra hunden utan att springa bredvid den vid varje hinder. Det handlar inte om att stå still och peka, utan om att hunden förstår sin uppgift så väl att den kan fortsätta framåt, ta hinder på avstånd och läsa din kropp även när du är några meter bort. Det gör dig friare att välja din egen väg på banan."
+    },
+    {
+      "type": "callout",
+      "text": "Regeluppgifterna i guiden kommer från SAgiK:s [Regler för agilitytävlingar](https://agilityklubben.se/wp-content/uploads/2022/02/REGLER_AGILITY-_TAVLINGAR_2022_2026.pdf) som gäller 2022-01-01 till och med 2026-12-31. Kontrollera alltid aktuell version på [agilityklubben.se/regler](https://agilityklubben.se/regler/) – ett nytt regelverk kan gälla från 2027."
+    },
+    {
+      "type": "h2",
+      "text": "Varför distans spelar roll"
+    },
+    {
+      "type": "p",
+      "text": "Enligt regelverket ska avståndet mellan hindren vara 6–8 meter mätt som hundens väg, och en bana består av 15–22 hinderpassager. Med en snabb hund blir det många meter på kort tid, och föraren hinner sällan vara först vid varje hinder. Kan hunden jobba på avstånd kan du ta en kortare väg, förbereda nästa sväng i tid eller hålla dig undan från en plats där du annars skulle stå i vägen."
+    },
+    {
+      "type": "p",
+      "text": "Distans är också ett sätt att undvika fel. Kontakt mellan förare och hund eller mellan förare och hinder som ger ekipaget en fördel ger 5 fel, och om hunden är ur förarens kontroll blir det diskvalificering. Ett lugnt och tydligt avstånd ger hunden utrymme att arbeta utan att du behöver vara i vägen."
+    },
+    {
+      "type": "h2",
+      "text": "Grundövningar"
+    },
+    {
+      "type": "ul",
+      "items": [
+        "Skick framåt till ett hinder: börja nära ett enkelt hinder och skicka hunden framåt med en tydlig gest. Belöna vid eller efter hindret, inte hos dig, så att hunden lär sig att uppgiften ligger framåt. Öka avståndet en liten bit i taget.",
+        "Lateralt avstånd: låt hunden ta ett hinder medan du rör dig på en parallell linje en bit ut från hindret. Börja med en meter och öka gradvis. Träna åt båda hållen.",
+        "Flera hinder i rad: ställ två eller tre hopphinder i en rak linje och skicka hunden genom raden medan du stannar kvar eller rör dig långsammare.",
+        "Tunnel på avstånd: en tunnel är ofta ett bra hinder att börja distansträna mot eftersom de flesta hundar gärna söker sig dit. Byt sedan till hopphinder och andra hinder."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Vinklar och byten"
+    },
+    {
+      "type": "p",
+      "text": "När hunden kan jobba framåt och lateralt är nästa steg att hinder ligger i vinkel. Börja med svaga vinklar och gör dem skarpare gradvis. Träna också övningar där du byter riktning eller hamnar bakom hunden medan den fortsätter framåt. Regelverket kräver att föraren ska kunna passera varje hinder på båda sidor, så du kan alltid välja sida – men hunden behöver känna igen dina signaler från båda håll."
+    },
+    {
+      "type": "p",
+      "text": "Använd samma kroppsspråk varje gång. Hunden läser framför allt riktningen på dina axlar, fötter och armar. Om orden säger en sak och kroppen en annan följer hunden oftast kroppen."
+    },
+    {
+      "type": "h2",
+      "text": "Vanliga misstag"
+    },
+    {
+      "type": "ul",
+      "items": [
+        "Avståndet ökas för fort. Hunden blir osäker och börjar söka sig tillbaka till föraren. Gå tillbaka till ett avstånd där det fungerar och öka långsammare.",
+        "Belöningen kommer alltid från föraren. Då lönar det sig för hunden att vända tillbaka. Lägg belöningen framåt eller kasta den bortom hindret.",
+        "Övningarna är alltid raka. Hunden behöver träna på vinklar, byten och båda sidorna för att distansen ska fungera på en riktig bana.",
+        "Distans tränas bara när hunden är trött. Lägg distansövningarna tidigt i passet när hunden är pigg och fokuserad."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Planera distansen i förväg"
+    },
+    {
+      "type": "p",
+      "text": "Det blir lättare att träna distans när du vet exakt hur övningen ser ut. Rita hindren i [banplaneraren](/banplanerare), markera var du ska stå och mät hur långt hunden behöver jobba själv. Guiden om [avstånd och vinklar i bandesign](/blogg/avstand-och-vinklar-bandesign) hjälper dig att välja rimliga avstånd, och [slalomguiden](/blogg/slalom-komplett-guide) visar hur samma tänkande om självständighet gäller ett av de svåraste hindren."
+    }
+  ],
+  "editorial_review": {
+    "reviewed_at": "2026-09-29T20:30:00Z",
+    "restored_from": "Borttagen i redesignen 2026-08-15 (commit 08aa47dc). Ursprungligen publicerad 2026-02-25. Omskriven, inte kopierad.",
+    "source_review": "SAgiK:s Regler för agilitytävlingar 2022–2026 lästa 2026-09-29: §3.1 (15–22 hinderpassager, 6–8 m mellan hindren som hundens väg, föraren passerar på båda sidor), §3.6 (kontakt förare–hund och förare–hinder som ger fördel, 5 fel), §3.7 (hunden ur förarens kontroll, diskvalificering). Övningarna är allmänna träningsråd omskrivna från den gamla texten; inga påståenden om egna tester, avstånd i meter per vecka eller länkar till borttagna artiklar.",
+    "search_console": "Adressen hade fortfarande visningar och klick i Search Console (senaste 3 månaderna före 2026-09-29) men visade en tom sida.",
+    "distinct_intent_confirmed": true
+  },
+  "publishedAt": "2026-02-25T00:00:00Z",
+  "updatedAt": "2026-09-29T20:30:00Z"
+}

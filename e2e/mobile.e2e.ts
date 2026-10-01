@@ -128,24 +128,34 @@ test("offline users can save a local course and reopen the planner", async ({ pa
 });
 
 test("leaving the planner preserves edits before the autosave delay", async ({ page }) => {
-  // Install before loading the page, then pause after the initial import has
-  // autosaved. No debounce timer can run while the draft is edited or reopened.
+  // Load both routes while timers run normally so lazy route imports have
+  // completed before the clock is paused.
   await page.clock.install({ time: new Date("2026-10-01T12:00:00Z") });
   await importCourse(page);
+  const navigation = page.getByRole("navigation", { name: "Appens huvudmeny" });
+  await navigation.getByRole("link", { name: "Mitt", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Mina banor", exact: true })).toBeVisible();
+  await navigation.getByRole("link", { name: "Rita", exact: true }).click();
+  await expect(page.getByRole("textbox", { name: "Banans namn" })).toHaveValue(course.name);
   await page.clock.pauseAt(new Date("2026-10-01T12:01:00Z"));
   const pausedAt = await page.evaluate(() => Date.now());
   const updatedName = "Utkast sparat vid sidbyte";
   await page.getByRole("textbox", { name: "Banans namn" }).fill(updatedName);
   expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key) || "null")?.name, PLANNER_KEY)).toBe(course.name);
 
-  // Hash navigation avoids actionability checks that need animation frames
-  // while Playwright's clock is paused. No explicit Save action is used.
+  // Allow router/render callbacks to run, while staying below the 600 ms
+  // autosave delay. No explicit Save action is used.
   await page.evaluate(() => { window.location.hash = "/mina-banor"; });
+  await page.clock.runFor(40);
   await expect(page.getByRole("heading", { name: "Mina banor", exact: true })).toBeVisible();
   expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key) || "null")?.name, PLANNER_KEY)).toBe(updatedName);
+  expect(await page.evaluate(() => Date.now()) - pausedAt).toBeLessThan(600);
   await page.evaluate(() => { window.location.hash = "/banplanerare"; });
+  await page.clock.runFor(40);
   await expect(page.getByRole("textbox", { name: "Banans namn" })).toHaveValue(updatedName);
-  expect(await page.evaluate(() => Date.now())).toBe(pausedAt);
+  const elapsed = await page.evaluate(() => Date.now()) - pausedAt;
+  expect(elapsed).toBe(80);
+  expect(elapsed).toBeLessThan(600);
 });
 
 test("a new local-course link opens the right course in an already-open planner", async ({ page }) => {

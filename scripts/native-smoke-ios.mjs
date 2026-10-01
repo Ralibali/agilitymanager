@@ -20,7 +20,7 @@ const summary = {
   status: 'failed', commit: process.env.GITHUB_SHA ?? null, appPath,
   deviceSet, deviceId: null, runtime: null, deviceType: null,
   bundleId: null, version: null, build: null, processId: null,
-  processAliveAfterLaunch: false, nativeCrashReports: [], screenshot: null,
+  processAliveAfterLaunch: false, nativeCrashReports: [], screenshot: null, failedCommand: null,
   uiVerified: false,
   scope: 'First launch and survival of the native app process; screenshot needs visual inspection. No UI flow or physical-device verification.',
   warnings: [],
@@ -34,16 +34,30 @@ let cleaned = false;
 let failure;
 
 function run(command, args, timeout = 15_000, optional = false) {
-  appendFileSync(commandsLog, `\n${new Date().toISOString()} ${JSON.stringify([command, ...args])}\n`);
+  const invocation = JSON.stringify([command, ...args]);
+  const startedAt = Date.now();
+  const start = `${new Date(startedAt).toISOString()} ${invocation} (timeout ${timeout} ms)`;
+  console.log(`[iOS smoke] ${start}`);
+  appendFileSync(commandsLog, `\n${start}\n`);
   const result = spawnSync(command, args, { encoding: 'utf8', timeout, killSignal: 'SIGKILL', maxBuffer: 8 * 1024 * 1024 });
+  const elapsedMs = Date.now() - startedAt;
+  const finished = `Finished after ${elapsedMs} ms; status=${result.status}, signal=${result.signal ?? 'none'}`;
   appendFileSync(commandsLog, `${result.stdout ?? ''}\n${result.stderr ?? ''}`);
+  appendFileSync(commandsLog, `\n${finished}\n`);
+  console.log(`[iOS smoke] ${finished}`);
+  // Keep complete output in commands.log and bounded excerpts in the job log,
+  // including partial boot progress when a command reaches its timeout.
+  if (result.stdout) console.log(result.stdout.slice(-4_000));
+  if (result.stderr) console.error(result.stderr.slice(-4_000));
   if (result.error || result.status !== 0) {
-    const error = result.error ?? new Error(`${command} exited with ${result.status ?? result.signal}`);
+    const reason = result.error?.message ?? `exit ${result.status ?? result.signal}`;
+    const error = new Error(`${invocation} failed after ${elapsedMs} ms (timeout ${timeout} ms): ${reason}`, { cause: result.error });
     appendFileSync(commandsLog, `\n${error.message}\n`);
     if (optional) {
       summary.warnings.push(error.message);
       return null;
     }
+    summary.failedCommand = { command, args, timeoutMs: timeout, elapsedMs, status: result.status, signal: result.signal, errorCode: result.error?.code ?? null };
     throw error;
   }
   return result.stdout;
@@ -141,12 +155,14 @@ try {
   if (!deviceType) throw new Error('No compatible iPhone device type on this runner.');
   summary.runtime = { name: runtime.name, version: runtime.version, identifier: runtime.identifier };
   summary.deviceType = { name: deviceType.name, identifier: deviceType.identifier };
+  console.log(`[iOS smoke] Selected ${runtime.name} (${runtime.version}), ${deviceType.name}; private device set ${deviceSet}`);
   const name = `AgilityManager-CI-${process.env.GITHUB_RUN_ID}-${randomUUID().slice(0, 8)}`;
   deviceId = simctl(['create', name, deviceType.identifier, runtime.identifier]).trim();
   if (!/^[0-9a-f-]{36}$/i.test(deviceId)) { deviceId = undefined; throw new Error('Create returned an invalid simulator UUID.'); }
   summary.deviceId = deviceId;
   simctl(['boot', deviceId]);
-  simctl(['bootstatus', deviceId, '-b'], 90_000);
+  // The first boot of a fresh private device set can include runtime setup.
+  simctl(['bootstatus', deviceId, '-b'], 180_000);
   booted = true;
   simctl(['install', deviceId, appPath], 30_000);
   launchTime = Date.now();

@@ -145,7 +145,7 @@ jobs:
       - name: Archive simulator app
         run: ditto -c -k --sequesterRsrc --keepParent build-ios/Build/Products/Debug-iphonesimulator/App.app build-ios/AgilityManager-ios-simulator.zip
       - name: Isolated simulator first-launch smoke
-        timeout-minutes: 4
+        timeout-minutes: 6
         run: node scripts/native-smoke-ios.mjs
       - name: Save simulator app and first-launch evidence
         if: always()

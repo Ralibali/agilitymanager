@@ -33,7 +33,8 @@ update('ios/App/App/Info.plist', text => {
 update('ios/App/App.xcodeproj/project.pbxproj', text => {
   text = text.replace(/CURRENT_PROJECT_VERSION = [^;]+;/g, `CURRENT_PROJECT_VERSION = ${build};`)
     .replace(/MARKETING_VERSION = [^;]+;/g, `MARKETING_VERSION = ${version};`)
-    .replace(/IPHONEOS_DEPLOYMENT_TARGET = [^;]+;/g, 'IPHONEOS_DEPLOYMENT_TARGET = 15.0;');
+    .replace(/IPHONEOS_DEPLOYMENT_TARGET = [^;]+;/g, 'IPHONEOS_DEPLOYMENT_TARGET = 15.0;')
+    .replace(/CODE_SIGN_STYLE = Automatic;(?:\s*DEVELOPMENT_TEAM = [^;]*;)?/g, 'CODE_SIGN_STYLE = Automatic;\n\t\t\t\tDEVELOPMENT_TEAM = 9G8SUZKS7Y;');
   if (!text.includes('PrivacyInfo.xcprivacy')) {
     text = text.replace('/* Begin PBXBuildFile section */', '/* Begin PBXBuildFile section */\n\t\tA681D1143D1A405DA3429001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A681D1143D1A405DA3429002 /* PrivacyInfo.xcprivacy */; };');
     text = text.replace('/* Begin PBXFileReference section */', '/* Begin PBXFileReference section */\n\t\tA681D1143D1A405DA3429002 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };');

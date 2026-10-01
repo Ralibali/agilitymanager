@@ -129,8 +129,10 @@ jobs:
 
   ios:
     needs: verify
-    runs-on: macos-latest
-    timeout-minutes: 20
+    runs-on: macos-15
+    timeout-minutes: 25
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -139,7 +141,8 @@ jobs:
           cache: npm
       - run: xcodebuild -version
       - run: npm ci && npm run build:native && node scripts/native-prepare.mjs ios
-      - run: xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build-ios CODE_SIGNING_ALLOWED=NO
+      - id: ios-simulator-build
+        run: xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build-ios CODE_SIGNING_ALLOWED=NO
       # Archive the .app so executable permissions and framework symlinks
       # survive artifact download. This is a simulator app, not a signed IPA.
       - name: Archive simulator app
@@ -147,7 +150,7 @@ jobs:
       - name: Isolated simulator first-launch smoke
         timeout-minutes: 8
         env:
-          AGILITY_IOS_SIMULATOR_VERSION: '26.4.1'
+          AGILITY_IOS_SIMULATOR_VERSION: '26.2'
           AGILITY_IOS_SIMULATOR_DEVICE: 'iPhone 17'
         run: node scripts/native-smoke-ios.mjs
       - name: Save simulator app and first-launch evidence
@@ -160,3 +163,20 @@ jobs:
           path: |
             build-ios/AgilityManager-ios-simulator.zip
             test-results/native-ios-smoke/
+      # Compile for physical iOS devices without accessing signing credentials.
+      # Run independently of smoke failure after a successful simulator build.
+      # This archive must be signed and validated before any store upload.
+      - name: Build unsigned device Release archive
+        if: ${{ !cancelled() && steps.ios-simulator-build.outcome == 'success' }}
+        timeout-minutes: 7
+        run: |
+          xcodebuild archive -project ios/App/App.xcodeproj -scheme App -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build-ios-device -archivePath build-ios/AgilityManager-unsigned.xcarchive CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+          ditto -c -k --sequesterRsrc --keepParent build-ios/AgilityManager-unsigned.xcarchive build-ios/AgilityManager-ios-unsigned-device.zip
+      - name: Save unsigned device Release archive
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-unsigned-device-release-archive
+          retention-days: 14
+          if-no-files-found: warn
+          path: build-ios/AgilityManager-ios-unsigned-device.zip

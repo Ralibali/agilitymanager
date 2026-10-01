@@ -4,6 +4,9 @@ import sharp from 'sharp';
 const icon = readFileSync('assets/app-icon.svg');
 const render = (size, target) => sharp(icon).resize(size, size).png().toFile(target);
 
+// Google Play requires a 512px, 32-bit PNG. Preserve the unchanged source mark.
+await sharp(icon).resize(512, 512).ensureAlpha().png().toFile('assets/google-play-icon.png');
+
 // Reuse the circle and paw from the source icon, without the orange icon tile
 // or the obstacle below it. Crop to the circle's bounds so it sits centrally.
 const splashMark = Buffer.from(icon.toString('utf8')
@@ -21,7 +24,7 @@ async function renderSplash(width, height, target) {
 if (existsSync('ios/App/App/Assets.xcassets')) {
   const dir = 'ios/App/App/Assets.xcassets/AppIcon.appiconset';
   mkdirSync(dir, { recursive: true });
-  await render(1024, `${dir}/AppIcon-512@2x.png`);
+  await sharp(icon).resize(1024, 1024).removeAlpha().png().toFile(`${dir}/AppIcon-512@2x.png`);
   const splashDir = 'ios/App/App/Assets.xcassets/Splash.imageset';
   if (existsSync(splashDir)) {
     for (const file of readdirSync(splashDir).filter(file => /^splash.*\.png$/.test(file)).sort()) {
@@ -54,4 +57,4 @@ if (existsSync('android/app/src/main/res')) {
     await renderSplash(width, height, target);
   }
 }
-console.log(`Generated iOS and Android icons and ${splashCount} branded splash resources from assets/app-icon.svg.`);
+console.log(`Generated iOS, Android and Google Play icons and ${splashCount} branded splash resources from assets/app-icon.svg.`);

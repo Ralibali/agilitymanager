@@ -28,7 +28,7 @@
   "currency": "SEK",
   "country": "SE",
   "priceMeaning": "customer-storefront-price",
-  "storePriceConfigured": false,
+  "storePriceConfigured": true,
   "runtimePaywall": false,
   "inAppPurchases": false,
   "subscriptions": false,
@@ -55,13 +55,38 @@
     "appleAppStore": {
       "accountExistsReportedByPublisher": true,
       "accountAccessVerified": true,
-      "storePriceConfigured": false,
-      "exactPricePointVerified": false,
+      "storePriceConfigured": true,
+      "exactPricePointVerified": true,
       "paidAgreementVerified": false,
       "taxAndBankingVerified": false,
       "signingVerified": false,
       "published": false,
-      "legalEntityMatchesPublisher": false
+      "legalEntityMatchesPublisher": false,
+      "appRegistrationVerified": true,
+      "consoleAppId": "6818139174",
+      "consoleUrl": "https://appstoreconnect.apple.com/apps/6818139174/distribution",
+      "bundleId": "se.agilitymanager.app",
+      "bundleIdRegistrationVerified": true,
+      "developerTeamId": "9G8SUZKS7Y",
+      "accountType": "individual",
+      "personalSellerChoiceConfirmed": true,
+      "legalSellerDisplayName": "christoffer Holstenson",
+      "configuredPrice": 39,
+      "currency": "SEK",
+      "priceCountry": "SE",
+      "priceVerifiedAt": "2026-10-01",
+      "priceVerificationMethod": "current-price-country-row-after-save-and-reload",
+      "productionTargetCountries": [
+        "SE"
+      ],
+      "distributionCountriesVerified": true,
+      "versionMetadataSaved": true,
+      "supportUrlSaved": true,
+      "signInRequired": false,
+      "releaseMethod": "manual",
+      "macDistributionEnabled": false,
+      "visionProDistributionEnabled": false,
+      "volumeDiscountEnabled": false
     },
     "googlePlay": {
       "accountExistsReportedByPublisher": true,
@@ -75,7 +100,7 @@
       "organizationNameVerified": true,
       "appRegistrationVerified": true,
       "packageName": "se.agilitymanager.app",
-      "appIdConfirmed": true,
+      "appIdConfirmed": false,
       "consoleAppId": "4975139875139560691",
       "consoleUrl": "https://play.google.com/console/u/0/developers/7066209034858113773/app/4975139875139560691/app-dashboard",
       "legalDeclarationsConfirmed": true,
@@ -91,18 +116,28 @@
       "productionTargetCountries": [
         "SE"
       ],
-      "distributionCountriesVerified": true
+      "distributionCountriesVerified": true,
+      "packageNameDeclared": true,
+      "uploadedPackageBindingVerified": false,
+      "privacyPolicyUrlSaved": true,
+      "unrestrictedAppAccessSaved": true,
+      "supportEmailSaved": true,
+      "supportUrlSaved": true,
+      "category": "Sports",
+      "categorySaved": true
     }
   },
   "notes": [
-    "Preparation only: this file does not configure stores or control access at runtime.",
-    "Local scope is approved; final build 3 behavior and privacy declarations need verification.",
-    "Verify the exact 39 SEK Apple price point in App Store Connect.",
-    "Choose Google Play Paid before offering the app for free; free cannot later become paid under the same package name.",
-    "Verify Swedish customer price and distribution country in each store before submission.",
-    "Mobile privacy and support URLs were publicly read without login on 2026-10-01; this is not app-store publication.",
-    "Google Play app record was created as Paid after explicit publisher approval of policy/export declarations; Swedish customer price 39.00 SEK including VAT was saved and verified after reload on 2026-10-01.",
-    "Google requires all pricing fields; local currency prices were automatically generated from 31.20 SEK before tax. Production distribution remains targeted only to Sweden. Apple price remains unconfigured, so overall storePriceConfigured is false."
+    "This file records preparation and observed console state; it does not control access at runtime or publish an app.",
+    "Standalone local scope is approved. Current signed-package behavior, SDK/permissions and privacy declarations still need verification.",
+    "Apple individual seller/team was explicitly chosen by the user. The legal seller shown by Apple differs from the Aurora Media AB marketing/support brand; no tax classification or ownership transfer is inferred.",
+    "Apple bundle se.agilitymanager.app and App Store app 6818139174 are registered. Swedish current customer price 39.00 SEK and Sweden-only availability were saved and verified after reload on 2026-10-01.",
+    "Apple version description, keywords, support URL, no sign-in and manual release are saved. Paid Apps Agreement, banking/tax, EU trader status, signing and submission are still pending.",
+    "Google Play app 4975139875139560691 was created as Paid under the existing aurora media AB organization after explicit approval of policy/export declarations. No personal Google account was created or substituted.",
+    "Google Swedish customer price 39.00 SEK including VAT was saved and verified after reload on 2026-10-01. All pricing fields were required, so other currencies were generated from 31.20 SEK before tax; production distribution is only Sweden.",
+    "Google privacy URL, unrestricted app access and support email/URL are saved. Package-name binding to an uploaded signed AAB is not yet verified.",
+    "Mobile privacy and support URLs were publicly read without login on 2026-10-01; this is not app-store publication."
   ],
-  "supportUrlVerified": true
+  "supportUrlVerified": true,
+  "publisherMeaning": "marketing-and-support-brand; legal sellers are recorded per store"
 }

@@ -1,5 +1,5 @@
 AGILITYMANAGER – SVENSKA BUTIKSTEXTER
-Utkast 1 oktober 2026 för lokal banplanerare 1.0.0 (3). Utgivare Aurora Media AB. Support info@auroramedia.se. Inte publicerat.
+Utkast 1 oktober 2026 för lokal banplanerare 1.0.0 (3). Varumärke/support Aurora Media AB; Apple använder personligt säljarteam enligt användarens val. Support info@auroramedia.se. Inte publicerat.
 
 BUTIKSNAMN (APPLE OCH GOOGLE PLAY)
 AgilityManager
@@ -28,13 +28,13 @@ Rita och spara banor utan konto. Banplaneraren och de medföljande mallarna är 
 Appen köps en gång i butiken. Inget abonnemang behövs för banplaneraren.
 
 INTERN REGISTRERING OCH PRIS – INTE FÖR PUBLIK BESKRIVNING
-- Aurora Media AB. Support info@auroramedia.se. Kontotillgång är verifierad. Google Play-apposten är skapad som Betald; Apples rätta juridiska utgivarteam, avtal och signering återstår.
-- App-ID se.agilitymanager.app (angivet i Google Play-apposten; Apple-registrering och bindning till uppladdat paket återstår). Version 1.0.0, bygg 3. Huvudspråk svenska.
-- Betald nedladdning, ett engångsköp i respektive butik. Svenskt kundpris 39,00 SEK inklusive moms är sparat och verifierat i Google Play efter omladdning 1 oktober 2026. Apple-priset är ännu inte konfigurerat.
-- Apple: bekräfta exakt prispunkt i kontot, aktivt Paid Apps Agreement och begärda skatte-/bankuppgifter. Välj inte ett ersättningsbelopp utan utgivarens beslut.
-- Google: appposten är Betald från början. Sverige är enda inriktade försäljningsland och 39,00 SEK är verifierat. Google krävde alla prisfält; övriga lokala priser autoomräknades från 31,20 SEK före moms. Payments profile och skatte-/bankuppgifter återstår att verifiera.
-- Ingen Stripe, IAP, prenumeration eller extra betalningsskärm. Lägg inte obekräftat 39-kronorspris i text/skärmbilder.
-- mobile.store.json är ett utkast; filen aktiverar ingen registrering, försäljning eller runtime-paywall.
+- Varumärke/support Aurora Media AB och info@auroramedia.se. Apple använder personligt team 9G8SUZKS7Y enligt uttryckligt användarval; Apples juridiska säljarnamn är separat från varumärket. Google ligger kvar i befintliga organisationen aurora media AB. Ingen skatteklassificering har gjorts.
+- App-ID se.agilitymanager.app. Apple bundle-ID är registrerat och App Store-app 6818139174 skapad. Google Console-app 4975139875139560691 är skapad; bindning till uppladdat signerat Androidpaket återstår. Version 1.0.0, bygg 3. Huvudspråk svenska.
+- Betald nedladdning, ett engångsköp i respektive butik. Exakt svenskt kundpris 39,00 SEK är sparat och verifierat efter omladdning i båda butikerna 1 oktober 2026. Sverige är enda inriktade försäljningsland. Detta innebär inte att apparna är publicerade.
+- Apple: beskrivning, sökord, support-URL, inget inloggningskrav och manuell release är sparade. Paid Apps Agreement, EU-handlarstatus, begärda skatte-/bankuppgifter och distributionssignering återstår. Inga Mac-/Vision Pro-versioner eller volymrabatt har aktiverats.
+- Google: appposten är Betald från början. Priset 39,00 SEK inkluderar moms. Google krävde alla prisfält; övriga lokala priser autoomräknades från 31,20 SEK före moms. Integritets-URL, full åtkomst utan inloggning och supportmejl/-URL är sparade. Payments profile och skatte-/bankuppgifter återstår att verifiera.
+- Ingen Stripe, IAP, prenumeration eller extra betalningsskärm. Butikens prissättning anger kundpriset.
+- mobile.store.json dokumenterar observerade inställningar; filen aktiverar ingen försäljning eller runtime-paywall.
 
 INTERN SLUTKONTROLL – INTE FÖR PUBLIK BESKRIVNING
 - Verifiera funktionerna på fysisk iPhone och Android för bygg 3.

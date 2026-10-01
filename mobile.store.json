@@ -86,7 +86,15 @@
       "releaseMethod": "manual",
       "macDistributionEnabled": false,
       "visionProDistributionEnabled": false,
-      "volumeDiscountEnabled": false
+      "volumeDiscountEnabled": false,
+      "privacyPolicyUrlSaved": true,
+      "category": "Sports",
+      "categorySaved": true,
+      "subtitle": "Banplanerare för agility",
+      "subtitleSaved": true,
+      "ageRatingSaved": true,
+      "ageRating": "4+ with regional exceptions",
+      "madeForKids": false
     },
     "googlePlay": {
       "accountExistsReportedByPublisher": true,
@@ -124,7 +132,11 @@
       "supportEmailSaved": true,
       "supportUrlSaved": true,
       "category": "Sports",
-      "categorySaved": true
+      "categorySaved": true,
+      "adsDeclarationSaved": true,
+      "storeListingDraftSaved": true,
+      "storeIconDraftSaved": true,
+      "storeFeatureGraphicDraftSaved": true
     }
   },
   "notes": [

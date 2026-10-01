@@ -148,7 +148,7 @@ jobs:
       - name: Archive simulator app
         run: ditto -c -k --sequesterRsrc --keepParent build-ios/Build/Products/Debug-iphonesimulator/App.app build-ios/AgilityManager-ios-simulator.zip
       - name: Isolated simulator first-launch smoke
-        timeout-minutes: 8
+        timeout-minutes: 10
         env:
           AGILITY_IOS_SIMULATOR_VERSION: '26.2'
           AGILITY_IOS_SIMULATOR_DEVICE: 'iPhone 17'

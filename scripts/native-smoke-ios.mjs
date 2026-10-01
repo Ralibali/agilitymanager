@@ -61,7 +61,7 @@ function run(command, args, timeout = 15_000, optional = false) {
       summary.warnings.push(error.message);
       return null;
     }
-    summary.failedCommand = { command, args, timeoutMs: timeout, elapsedMs, status: result.status, signal: result.signal, errorCode: result.error?.code ?? null };
+    summary.failedCommand ??= { command, args, timeoutMs: timeout, elapsedMs, status: result.status, signal: result.signal, errorCode: result.error?.code ?? null };
     throw error;
   }
   return result.stdout;
@@ -97,6 +97,13 @@ function deviceLogs(optional = false) {
   const predicate = summary.processId ? `processID == ${summary.processId}` : `process == ${JSON.stringify(executable ?? 'App')}`;
   const logs = simctl(['spawn', deviceId, 'log', 'show', '--last', '2m', '--style', 'compact', '--predicate', predicate], 20_000, optional);
   if (logs !== null) writeFileSync(join(output, 'native-app.log'), logs);
+}
+
+function installerLogs() {
+  // Read only the installer processes inside this run's private simulator.
+  const predicate = 'process == "installd" OR process == "installcoordinationd"';
+  const logs = simctl(['spawn', deviceId, 'log', 'show', '--last', '2m', '--style', 'compact', '--predicate', predicate], 20_000, true);
+  if (logs !== null) writeFileSync(join(output, 'native-installer.log'), logs);
 }
 
 function collectCrashes() {
@@ -181,7 +188,7 @@ try {
   // The first boot of a fresh private device set can include runtime setup.
   simctl(['bootstatus', deviceId, '-b'], 300_000);
   booted = true;
-  simctl(['install', deviceId, appPath], 30_000);
+  simctl(['install', deviceId, appPath], 90_000);
   launchTime = Date.now();
   const launch = simctl(['launch', deviceId, bundleId], 20_000);
   const pid = launch.match(/:\s*(\d+)\s*$/)?.[1];
@@ -203,6 +210,7 @@ try {
 } finally {
   try {
     if (deviceId && booted) {
+      if (failure && summary.failedCommand?.args[3] === 'install') installerLogs();
       if (!summary.screenshot) { try { screenshot(); } catch (error) { summary.warnings.push(error.message); } }
       if (!existsSync(join(output, 'native-app.log'))) deviceLogs(true);
       try { collectCrashes(); } catch (error) { summary.warnings.push(error.message); }

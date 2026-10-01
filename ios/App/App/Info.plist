@@ -67,6 +67,5 @@
 	<true/>
 <key>ITSAppUsesNonExemptEncryption</key><false/>
 <key>CFBundleURLTypes</key><array><dict><key>CFBundleURLSchemes</key><array><string>agilitymanager</string></array></dict></array>
-<key>NSLocationWhenInUseUsageDescription</key><string>Din position används när du väljer Hitta nära mig för att hitta tävlingar nära dig.</string>
 </dict>
 </plist>

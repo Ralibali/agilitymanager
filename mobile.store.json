@@ -1,0 +1,39 @@
+{
+  "status": "draft",
+  "appName": "AgilityManager",
+  "appId": "se.agilitymanager.app",
+  "appIdConfirmed": false,
+  "productScope": ["course-planner", "course-library", "saved-courses"],
+  "model": "paid-download",
+  "desiredPrice": 39,
+  "currency": "SEK",
+  "country": "SE",
+  "priceMeaning": "customer-storefront-price",
+  "storePriceConfigured": false,
+  "runtimePaywall": false,
+  "inAppPurchases": false,
+  "subscriptions": false,
+  "externalPaymentProvider": null,
+  "stores": {
+    "appleAppStore": {
+      "storePriceConfigured": false,
+      "exactPricePointVerified": false,
+      "paidAgreementVerified": false,
+      "taxAndBankingVerified": false,
+      "published": false
+    },
+    "googlePlay": {
+      "storePriceConfigured": false,
+      "paidFromStartVerified": false,
+      "paymentsProfileVerified": false,
+      "taxAndBankingVerified": false,
+      "published": false
+    }
+  },
+  "notes": [
+    "Preparation only: this file does not configure stores or control access at runtime.",
+    "Verify the exact 39 SEK Apple price point in App Store Connect before configuring a price.",
+    "Choose Google Play Paid before offering the app for free; a free app cannot later become paid under the same package name.",
+    "Verify the Swedish customer price and distribution country in each store before submission."
+  ]
+}

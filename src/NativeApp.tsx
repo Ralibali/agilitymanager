@@ -10,26 +10,9 @@ const PlannerPage = lazy(() => import("./pages/PlannerPage"));
 const CoursesPage = lazy(() => import("./pages/CoursesPage"));
 const SharedCoursesPage = lazy(() => import("./pages/SharedCoursesPage"));
 const PublicCoursePage = lazy(() => import("./pages/PublicCoursePage"));
-const CompetitionsPage = lazy(() => import("./pages/CompetitionsPage"));
-const FavoriteCompetitionsPage = lazy(() => import("./pages/FavoriteCompetitionsPage"));
-const ResultsPage = lazy(() => import("./pages/ResultsPage"));
-const ClubsPage = lazy(() => import("./pages/ClubsPage"));
-const CompetitionDetailPage = lazy(() => import("./pages/CompetitionDetailPage"));
-const CountyCompetitionsPage = lazy(() => import("./pages/CountyCompetitionsPage"));
-const ClubCompetitionsPage = lazy(() => import("./pages/ClubCompetitionsPage"));
-const HoopersCompetitionDetailPage = lazy(() => import("./pages/HoopersCompetitionDetailPage"));
-const TrainingPage = lazy(() => import("./pages/TrainingPage"));
-const InstructorPage = lazy(() => import("./pages/InstructorPage"));
-const StudentTrainingPage = lazy(() => import("./pages/StudentTrainingPage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
-const BlogIndexPage = lazy(() => import("./pages/BlogIndexPage"));
-const BlogArticlePage = lazy(() => import("./pages/BlogArticlePage"));
-const FeaturesPage = lazy(() => import("./pages/FeaturesPage"));
-const GratisPage = lazy(() => import("./pages/GratisPage"));
-const DogInsurancePage = lazy(() => import("./pages/DogInsurancePage"));
 const MobilePrivacyPage = lazy(() => import("./mobile/MobilePrivacyPage"));
 const MobileDeleteAccountPage = lazy(() => import("./mobile/MobileDeleteAccountPage"));
-const NotFound = lazy(() => import("./pages/NotFound").then((module) => ({ default: module.NotFound })));
 
 function LoadingPage() {
   return <div className="mobile-route-status" role="status" aria-live="polite">Laddar sidan…</div>;
@@ -68,35 +51,13 @@ export default function NativeApp() {
               <Route path="/banor" element={<CoursesPage />} />
               <Route path="/delade-banor" element={<SharedCoursesPage />} />
               <Route path="/bana/:id" element={<PublicCoursePage />} />
-              <Route path="/tavlingar" element={<CompetitionsPage />} />
-              <Route path="/tavlingar/favoriter" element={<FavoriteCompetitionsPage />} />
-              <Route path="/resultat" element={<ResultsPage />} />
-              <Route path="/klubbar" element={<ClubsPage />} />
-              <Route path="/tavlingar/lan/:countySlug" element={<CountyCompetitionsPage />} />
-              <Route path="/tavlingar/klubb/:clubSlug" element={<ClubCompetitionsPage />} />
-              <Route path="/tavlingar/hoopers/:id" element={<HoopersCompetitionDetailPage />} />
-              <Route path="/tavlingar/hoopers/:id/:slug" element={<HoopersCompetitionDetailPage />} />
-              <Route path="/tavlingar/:id" element={<CompetitionDetailPage />} />
-              <Route path="/tavlingar/:id/:slug" element={<CompetitionDetailPage />} />
-              <Route path="/traning" element={<TrainingPage />} />
-              <Route path="/instruktor" element={<InstructorPage />} />
-              <Route path="/elev" element={<StudentTrainingPage />} />
               <Route path="/mitt-agilitymanager" element={<AccountPage />} />
               <Route path="/konto" element={<Navigate to="/mitt-agilitymanager" replace />} />
               <Route path="/auth" element={<Navigate to="/mitt-agilitymanager" replace />} />
               <Route path="/logga-in" element={<Navigate to="/mitt-agilitymanager" replace />} />
               <Route path="/integritet" element={<MobilePrivacyPage />} />
               <Route path="/radera-konto" element={<MobileDeleteAccountPage />} />
-              <Route path="/blogg" element={<BlogIndexPage />} />
-              <Route path="/blogg/agility-regler-sverige" element={<Navigate to="/blogg/regelverk-agility-hoopers-sverige" replace />} />
-              <Route path="/blogg/:slug" element={<BlogArticlePage />} />
-              <Route path="/funktioner" element={<FeaturesPage />} />
-              <Route path="/priser" element={<GratisPage />} />
-              <Route path="/gratis" element={<Navigate to="/priser" replace />} />
-              <Route path="/jamfor-hundforsakring" element={<DogInsurancePage />} />
-              <Route path="/jämför-försäkrings" element={<Navigate to="/jamfor-hundforsakring" replace />} />
-              <Route path="/jamfor-forsakrings" element={<Navigate to="/jamfor-hundforsakring" replace />} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
         </RouteErrorBoundary>

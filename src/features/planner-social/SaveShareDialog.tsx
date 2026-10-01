@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { plannerApi, usePlannerProfile } from "@/lib/plannerProfile";
 
+const IS_NATIVE_APP = import.meta.env.VITE_NATIVE_APP === "true";
+
 export interface SavedCourseRef {
   id: string;
   isPublic: boolean;
@@ -146,8 +148,7 @@ export function SaveShareDialog({
           </Button>
 
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Att rita, spara och dela banor ingår i gratisnivån. Nya extrafunktioner kan
-            bli betalda framöver — då märker vi dem tydligt innan du väljer dem.
+            {IS_NATIVE_APP ? "Att rita, spara och dela banor ingår i appen." : "Att rita, spara och dela banor ingår i gratisnivån. Nya extrafunktioner kan bli betalda framöver — då märker vi dem tydligt innan du väljer dem."}
           </p>
 
           {savedId && isPublic && (

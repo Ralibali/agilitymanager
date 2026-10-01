@@ -1,38 +1,52 @@
 AGILITYMANAGER – SVENSKA BUTIKSTEXTER
-Utkast daterat 30 september 2026. Inte publicerat. Kontrollera texterna mot den slutliga verifierade appen före inskickning.
+Utkast uppdaterat 1 oktober 2026. Inte publicerat. Mobilprodukt: banplanerare, banbibliotek och egna banor. Kontrollera texterna mot den slutliga verifierade appen före inskickning.
 
 BUTIKSNAMN (APPLE OCH GOOGLE PLAY)
 AgilityManager
 
 APPLE SUBTITLE (MAX 30 TECKEN)
-Banor, träning och tävlingar
+Banplanerare för agility
 
 GOOGLE PLAY KORT BESKRIVNING (MAX 80 TECKEN)
-Planera banor, följ träningen och hitta agility- och hooperstävlingar.
+Rita, spara och dela banor för agility och hoopers direkt i mobilen.
 
 LÅNG BESKRIVNING (APPLE OCH GOOGLE PLAY)
-Ta med banplaneringen till träningsplanen. AgilityManager samlar verktyg för agility och hoopers på svenska: rita banor, planera träningspass och hitta tävlingar som passar dig och din hund.
+Ta med banplaneringen till träningsplanen. AgilityManager är en svensk banplanerare för agility och hoopers. Bygg en egen bana, anpassa en mall från banbiblioteket och ta med en tydlig bankarta till nästa träning.
 
 RITA OCH ANPASSA BANOR
 Placera, flytta, rotera och numrera hinder i en planerare med meterskala och rutnät. Se banlinjen medan du bygger. Börja med en bana ur biblioteket eller skapa ett eget upplägg för agility eller hoopers.
 
-SPARA OCH DELA
-Spara banor på din enhet och öppna dem igen när det är dags att träna. Exportera bankartor som PNG eller PDF och spara eller dela dem med telefonens verktyg. Det finns PDF-varianter för domarunderlag, bygganvisningar, träning och numrerad hinderlista. Exportera och importera även banfiler som JSON. Dela en bana med en länk så att mottagaren kan öppna den i banplaneraren.
+EGNA BANOR OCH BANBIBLIOTEK
+Börja från en tom plan eller utforska färdiga banmallar. Anpassa hindrens placering och ordning efter ditt upplägg. Spara dina egna banor på enheten och öppna dem igen när det är dags att träna.
 
-PLANERA TRÄNINGEN
-Samla träningspass med datum, hund, mål och vald bana. Markera genomförda pass, skriv reflektioner och välj nästa steg. Lägg till en videolänk, kopiera passet till tränaren eller exportera en säkerhetskopia för en annan enhet.
+SPARA OCH DELA BANKARTOR
+Exportera bankartan som PNG eller PDF och spara eller dela den med telefonens verktyg. Välj underlag för domare, bygganvisningar, träning eller en numrerad hinderlista. Exportera och importera även banfiler som JSON för att säkerhetskopiera banan eller flytta den till en annan enhet.
 
-HITTA TÄVLINGAR
-Bläddra bland agility- och hooperstävlingar i Sverige. Filtrera efter bland annat sport och län, spara favoriter och matcha tävlingar mot hundens profil. Se datum, plats och anmälningsinformation. Exportera tävlingar som kalenderfil. Med ”Hitta nära mig” kan du använda din position för att se närliggande tävlingar; du kan också söka utan platsbehörighet.
+Du kan rita och spara egna banor lokalt utan konto. Lokalt sparade banor följer inte automatiskt med till en annan enhet. Använd banfiler för att behålla en egen kopia.
 
-BYGG VIDARE PÅ DIN KUNSKAP
-Läs svenska guider om banplanering, regler och träning och utforska nivåmärkta banor för olika träningsupplägg.
+Appen köps en gång i butiken. Inget abonnemang behövs för banplaneraren.
 
-Du kan börja rita banor, planera lokala träningspass och läsa innehåll utan konto. Vissa funktioner för molnsparning och profiler kräver att du skapar ett konto eller en separat banprofil. Lokalt sparade uppgifter följer inte automatiskt med till en annan enhet. Internet behövs för aktuella tävlingsuppgifter och molnfunktioner.
+INTERN PRISFÖRBEREDELSE – SKA INTE KLISTRAS IN I BUTIKSBESKRIVNINGEN
+- Modell: betald nedladdning (paid-download), ett engångsköp före installation från App Store eller Google Play.
+- Önskat svenskt kundpris: 39 SEK. Land: Sverige (SE). Inte konfigurerat eller verifierat i någon butik.
+- Apple: bekräfta exakt SEK-prispunkt i App Store Connect; välj inte ett annat belopp utan utgivarens beslut. Aktivt Paid Apps Agreement samt begärda skatte-/bankuppgifter återstår att verifiera.
+- Google: välj Paid innan appen erbjuds gratis. En app som redan har erbjudits gratis kan inte senare bli betald med samma paketnamn. Payments profile och skatte-/bankuppgifter återstår att verifiera.
+- Ingen Stripe, IAP, prenumeration eller extra betalningsskärm planeras. Butikens prisfält visar det aktuella priset; klistra inte in ett ännu obekräftat 39-kronorspris i den publika beskrivningen.
+- Prisutkast: mobile.store.json. Försäljning och butiksregistrering är inte aktiverade av filen.
 
 INTERN CHECKLISTA – SKA INTE KLISTRAS IN I BUTIKSBESKRIVNINGEN
 - Verifiera de nämnda funktionerna på fysisk iPhone och Android med det paket som ska skickas in.
-- Bekräfta utgivare, supportuppgifter, integritets-URL och raderings-URL. Nya integritets-/raderingssidor är inte publicerade i denna förberedelse.
-- Lägg inte till påståenden om fungerande kontoradering, färdig moderering, fullständigt offlinestöd, native push, synk av lokala träningspass eller analyser som inte har verifierats.
+- Bekräfta utgivare, supportuppgifter, integritets-URL och eventuell raderings-URL om konto-/profilflöden ingår. Nya integritets-/raderingssidor är inte publicerade i denna förberedelse.
+- Beskriv endast banplaneraren, banbiblioteket och egna banor. Webbplatsens tävlingar, separata träningsplanering, instruktör/elev, resultat och guider ingår inte i denna butikstext.
+- Verifiera att återanvända mobilkomponenter inte visar webbplatsens gratiserbjudande eller andra funktioner som ligger utanför appens omfattning.
+- Lägg inte till påståenden om fungerande kontoradering, färdig moderering, fullständigt offlinestöd, native push, molnsynk eller analyser som inte har verifierats.
 - Beskrivningen marknadsför inte kommentars-/socialfunktioner; de behöver ändå inventeras och uppfylla UGC-kraven om de ingår i appen.
 - App-ID se.agilitymanager.app är ett lokalt utkast och måste bekräftas/registreras av utgivaren.
+
+OFFICIELLA PRISKÄLLOR
+Apple apppris: https://developer.apple.com/help/app-store-connect/manage-app-pricing/set-a-price/
+Apple betalda avtal: https://developer.apple.com/help/app-store-connect/manage-agreements/sign-and-update-agreements/
+Apple utbetalningar: https://developer.apple.com/help/app-store-connect/getting-paid/overview-of-receiving-payments/
+Google apppris och gratis/betald: https://support.google.com/googleplay/android-developer/answer/6334373?hl=en
+Google betalningsprofil: https://support.google.com/googleplay/android-developer/answer/3092739?hl=en
+Google bankuppgifter: https://support.google.com/googleplay/android-developer/answer/7161440?hl=en

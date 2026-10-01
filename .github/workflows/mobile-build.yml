@@ -2,6 +2,25 @@ name: Mobile preparation
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/**"
+      - "e2e/mobile.e2e.ts"
+      - "mobile*"
+      - "mobile-public/**"
+      - "capacitor.config.ts"
+      - "vite.native.config.ts"
+      - "playwright.mobile.config.ts"
+      - "scripts/native-*.mjs"
+      - "android/**"
+      - "ios/**"
+      - "assets/**"
+      - "package*.json"
+      - ".github/workflows/mobile-build.yml"
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

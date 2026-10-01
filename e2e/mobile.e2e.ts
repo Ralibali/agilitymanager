@@ -1,7 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const PLANNER_KEY = "am-redesign-planner-v2";
-const TRAINING_KEY = "am_training_sessions_v1";
 const entry = process.env.AGILITY_MOBILE_ENTRY || "";
 const course = {
   version: 2,
@@ -48,9 +47,12 @@ test("mobile navigation, legal routes and Capacitor safe-area values work", asyn
   });
   await openMobile(page);
   await expect(page.getByRole("heading", { name: "Ut på planen." })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Öppna banplaneraren", exact: true })).toBeVisible();
   await expect(page.getByRole("dialog", { name: "Valfri statistik" })).toHaveCount(0);
   const navigation = page.getByRole("navigation", { name: "Appens huvudmeny" });
-  await expect(navigation.getByRole("link")).toHaveCount(4);
+  await expect(navigation.getByRole("link")).toHaveCount(3);
+  await expect(navigation.getByRole("link", { name: "Rita", exact: true })).toBeVisible();
+  await expect(navigation).not.toContainText(/Tävlingar|Träning/);
   for (const link of await navigation.getByRole("link").all()) {
     const bounds = await link.boundingBox();
     expect(bounds?.height).toBeGreaterThanOrEqual(44);
@@ -66,6 +68,7 @@ test("mobile navigation, legal routes and Capacitor safe-area values work", asyn
   await navigation.getByRole("link", { name: "Banor", exact: true }).click();
   await expect(page).toHaveURL(/#\/banor$/);
   await expect(navigation.getByRole("link", { name: "Banor", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.locator("body")).not.toContainText(/Allt är gratis|Planera träning med banan/);
   await page.getByRole("link", { name: "Integritet", exact: true }).last().click();
   await expect(page).toHaveURL(/#\/integritet$/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText(/integritet/i);
@@ -78,9 +81,14 @@ test("mobile navigation, legal routes and Capacitor safe-area values work", asyn
   await expect(page).toHaveURL(/#\/radera-konto$/);
   await expect(page.locator("#mobile-content")).toBeFocused();
   expect(analyticsRequests).toEqual([]);
+  // Removed website-only screens must not expose the 0 kr pricing page in a
+  // purchased planner app, including when opened through an old bookmark.
+  await openMobile(page, "/priser");
+  await expect(page).toHaveURL(/#\/$/);
+  await expect(page.getByRole("heading", { name: "Ut på planen." })).toBeVisible();
 });
 
-test("offline users can save a local course, plan training and reload it", async ({ page }) => {
+test("offline users can save a local course and reopen the planner", async ({ page }) => {
   await page.addInitScript(() => {
     Object.defineProperty(Navigator.prototype, "onLine", { configurable: true, get: () => false });
   });
@@ -90,20 +98,13 @@ test("offline users can save a local course, plan training and reload it", async
   await page.getByRole("menuitem", { name: /^Spara bana/ }).click();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("am_planner_local_courses") || "[]")[0]?.name)).toBe(course.name);
 
-  await page.getByRole("navigation", { name: "Appens huvudmeny" }).getByRole("link", { name: "Träning", exact: true }).click();
-  await page.getByRole("button", { name: "Nytt träningspass" }).click();
-  await page.getByLabel("Passets namn", { exact: true }).fill("Mobiltest – lugn start");
-  await page.getByLabel("Hund / ekipage", { exact: true }).fill("Testekipage");
-  await page.getByLabel("Mål för passet", { exact: true }).fill("Öva en lugn start före tunneln.");
-  await page.getByRole("combobox", { name: "Bana", exact: true }).selectOption({ label: course.name });
-  await page.getByRole("button", { name: "Spara pass", exact: true }).click();
-  await expect.poll(() => page.evaluate((key) => JSON.parse(localStorage.getItem(key) || "null")?.sessions.length, TRAINING_KEY)).toBe(1);
+  const navigation = page.getByRole("navigation", { name: "Appens huvudmeny" });
+  await navigation.getByRole("link", { name: "Banor", exact: true }).click();
+  await navigation.getByRole("link", { name: "Rita", exact: true }).click();
   await page.reload({ waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("region", { name: "Sparade träningspass" })).toContainText("Mobiltest – lugn start");
-  await expect(page.getByRole("region", { name: "Sparade träningspass" })).toContainText("Öva en lugn start före tunneln.");
+  await expect(page.getByRole("textbox", { name: "Banans namn" })).toHaveValue(course.name);
+  await expect.poll(() => page.evaluate((key) => JSON.parse(localStorage.getItem(key) || "null")?.obstacles[0].rotation, PLANNER_KEY)).toBe(30);
   await expect(page.getByRole("status").filter({ hasText: "Du är offline" })).toBeVisible();
-  await page.getByRole("link", { name: "AgilityManager, startsida", exact: true }).click();
-  await expect(page.locator(".mobile-training-card")).toContainText("Mobiltest – lugn start");
 });
 
 test("mobile JSON export preserves the imported local course", async ({ page }) => {

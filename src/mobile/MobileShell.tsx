@@ -6,17 +6,13 @@ import MobileNavigation, { MobileSectionNavigation } from "./MobileNavigation";
 import { mobileSection } from "./navigation";
 
 const SECTION_TITLES = {
-  courses: "Banor",
-  competitions: "Tävlingar",
-  training: "Träning",
+  planner: "Banplanerare",
+  library: "Banor",
   account: "Mitt AgilityManager",
-  knowledge: "Kunskap",
 };
 
 function backTarget(pathname: string) {
   if (pathname === "/banplanerare" || pathname.startsWith("/bana/")) return "/banor";
-  if (pathname.startsWith("/tavlingar/")) return "/tavlingar";
-  if (pathname.startsWith("/blogg/")) return "/blogg";
   if (pathname === "/integritet" || pathname === "/radera-konto") return "/mitt-agilitymanager";
   return "/";
 }
@@ -88,7 +84,7 @@ export default function MobileShell({ children }: { children: ReactNode }) {
       {!online ? (
         <div className="mobile-offline" role="status" aria-live="polite">
           <WifiOff size={18} aria-hidden="true" />
-          <p>Du är offline. Lokala banor och träningspass går att använda. Tävlingar och synkning behöver internet.</p>
+          <p>Du är offline. Lokala banor går att använda. Delning och sparande på profil behöver internet.</p>
         </div>
       ) : null}
       <MobileSectionNavigation />

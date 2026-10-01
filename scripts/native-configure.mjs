@@ -10,7 +10,7 @@ update('android/app/build.gradle', text => text.replace(/versionCode \d+/, `vers
 update('android/app/src/main/AndroidManifest.xml', text => {
   text = text.replace('android:allowBackup="true"', 'android:allowBackup="false"');
   if (!text.includes('android:usesCleartextTraffic')) text = text.replace('<application', '<application android:usesCleartextTraffic="false"');
-  if (!text.includes('android.permission.ACCESS_COARSE_LOCATION')) text = text.replace('</manifest>', '<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n</manifest>');
+  text = text.replace(/\s*<uses-permission android:name="android\.permission\.ACCESS_(?:COARSE|FINE)_LOCATION"\s*\/>/g, '');
   if (!text.includes('android:scheme="agilitymanager"')) text = text.replace('</activity>', `    <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -22,9 +22,9 @@ update('android/app/src/main/AndroidManifest.xml', text => {
 });
 update('ios/App/App/Info.plist', text => {
   text = text.replace(/<key>CFBundleDevelopmentRegion<\/key>\s*<string>[^<]+<\/string>/, '<key>CFBundleDevelopmentRegion</key><string>sv</string>');
+  text = text.replace(/\s*<key>NSLocationWhenInUseUsageDescription<\/key>\s*<string>[^<]*<\/string>/g, '');
   const keys = [
     ['ITSAppUsesNonExemptEncryption', '<false/>'],
-    ['NSLocationWhenInUseUsageDescription', '<string>Din position används när du väljer Hitta nära mig för att hitta tävlingar nära dig.</string>'],
     ['CFBundleURLTypes', '<array><dict><key>CFBundleURLSchemes</key><array><string>agilitymanager</string></array></dict></array>'],
   ];
   for (const [key, value] of keys) if (!text.includes(`<key>${key}</key>`)) text = text.replace(/<\/dict>\s*<\/plist>/, `<key>${key}</key>${value}\n</dict>\n</plist>`);

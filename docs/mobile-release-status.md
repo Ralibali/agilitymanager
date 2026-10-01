@@ -1,8 +1,12 @@
 # Mobilrelease – verifieringsstatus
 
-Uppdaterad 1 oktober 2026 efter lokala bygg- och testkörningar. Androids debug-APK och osignerade release-AAB har byggts; iOS Debug för generell simulator har kompilerats utan signering. Ingen fysisk enhet, signerad butiksversion, backenddeployment eller butikspublicering är verifierad. Tomt fält eller ”ej verifierat” betyder att kontrollen återstår.
+Uppdaterad 1 oktober 2026. Det aktuella utkastet är **1.0.0 (2): banplanerare med planerad betald nedladdning för 39 SEK i Sverige**. Priset är inte inställt i någon butik. Menyer och routes är begränsade till banplaneraren, banbibliotek/delade banor samt konto och integritet. Webbens sida med 0 kr, tävlingskalender, separata träningsplaner och övriga webbområden ingår inte i mobilens routes.
 
-## Identifiera den verifierade versionen
+Fem routingtester, riktad lint för ändrade filer samt TypeScript och native web bundle har passerat för utkast 2. Mobilens omarbetade flödestester och de nya plattformspaketen verifieras i pull requestens byggflöde, som producerar osignerade/testpaket. Ingen fysisk enhet, signerad butiksversion, backenddeployment, butikskonfigurerat pris eller butikspublicering är verifierad.
+
+**Kontrollerna nedan avser föregående breda utkast 1.0.0 (1), källkodscommit `0c3af90ce9309141e102b116e32de827394ec13b`. APK/AAB från det utkastet är historiska testpaket och motsvarar inte utkast 2.** På detta commit passerade GitHub även 333 enhetstester och 21 webbflöden. Tomt fält eller ”ej verifierat” betyder att kontrollen återstår.
+
+## Identifiera den historiskt verifierade versionen
 
 - Verifiering: lokala automatiska bygg- och testkörningar i arbetsgrenen; ansvarig utgivare och godkännande återstår.
 - Datum och tidszon: 30 september–1 oktober 2026, Europe/Stockholm; detaljerade körningstider finns i loggarna.
@@ -40,12 +44,12 @@ Loggarna nedan finns i arbetsytans `work/` bredvid repositoryt och är lokal evi
 | Utgivare, utvecklarkonton och registrerat app-ID | Ej verifierat | Bekräfta rätt utgivare, kontotyp och app-ID; signeringsbehörigheter återstår. |
 | Faktiskt schema, RLS, Storage och raderingsberoenden | Ej verifierat | Inventera rätt backendprojekt och hela datagrafen. |
 | Raderingsbackend driftsatt och testad i rätt miljö | Ej driftsatt/verifierat | Lokal kod och tester finns; staging-, schema-/Storage- och verkliga raderingstester återstår. |
-| Banprofil-/instruktörsradering och övriga begäranden | Ej färdig/verifierad | Beslut och permanent verifierat raderingsflöde krävs även för den separata banprofilen och instruktörsdata. |
+| Banprofilradering och övriga begäranden | Ej färdig/verifierad | Permanent verifierat raderingsflöde krävs för de konto-/banprofilytor utkast 2 behåller. Instruktörsdata är inte en mobilfunktion i utkast 2. |
 | Personuppgiftsansvarig, rättslig grund och retention | Beslut återstår | Utgivaren behöver fastställa controller, kontaktuppgifter, retention samt logg-/backup-/leverantörsrutiner. |
 | Integritetstext godkänd för verklig drift | Ej godkänd | Tekniskt underlag finns; verksamhetsbeslut och godkännande återstår. |
 | /integritet offentlig på agilitymanager.se | Ny route ej publicerad/verifierad | Lokal vy passerade browsertest; offentlig publicering och åtkomstkontroll återstår. |
 | /radera-konto offentlig och fungerande utan app | Ny route ej publicerad/verifierad | Lokal vy passerade browsertest; publicering och faktiskt backend-/raderingsflöde återstår. |
-| UGC-inventering, villkor, moderering, rapport/block | Ej färdig/verifierad | Inventera kommentarer, publika banor och elev-/instruktörsinteraktioner; implementera och testa relevanta skydd. |
+| UGC-inventering, villkor, moderering, rapport/block | Ej färdig/verifierad | Inventera delade banor och kommentarer som ingår i mobilappen; implementera och testa relevanta skydd. |
 | App Privacy / Data safety / målgrupp / åldersklassning | Ej inskickat/verifierat | Fyll i mot verklig databehandling och slutligt appinnehåll. |
 | Supportuppgifter, butikstexter och riktiga skärmbilder | Svenska textutkast finns; slutmaterial återstår | `store-listings-sv.txt`; godkänn supportuppgifter och ta/verifiera native skärmbilder för butikerna. |
 | TestFlight / Play-testspår och testarkrav | Ej verifierat | Bekräfta kontotyp, testarkrav och verkliga testare innan produktionsåtkomst. |
@@ -59,9 +63,8 @@ Alla fysiska enhetstester nedan återstår. Mobilens webbläsartester och lyckad
 | --- | --- | --- | --- |
 | [fyll i] | Första start, layout, tangentbord, safe areas | Ej testat | [fyll i] |
 | [fyll i] | Banredigering och sparning efter omstart | Ej testat | [fyll i] |
-| [fyll i] | PDF/PNG/JSON/träning/ICS export och öppning | Ej testat | [fyll i] |
+| [fyll i] | PDF/PNG/JSON export och öppning | Ej testat | [fyll i] |
 | [fyll i] | Delningslänk, QR, routing och Android back | Ej testat | [fyll i] |
-| [fyll i] | Hitta nära mig: tillåten/nekad/återkallad plats | Ej testat | [fyll i] |
 | [fyll i] | Offline/återanslutning och backendfel | Ej testat | [fyll i] |
 | [fyll i] | Konto, banprofil, radering och serverkontroll | Ej testat | [fyll i] |
 | [fyll i] | UGC-rapportering, blockering och moderering | Ej testat | [fyll i] |
@@ -69,5 +72,5 @@ Alla fysiska enhetstester nedan återstår. Mobilens webbläsartester och lyckad
 ## Releasebeslut
 
 - Kan skickas in: **Nej, ännu inte.** Lokala bygg- och kodtester har passerat, men releasen är inte signerad och externa blockerare är öppna.
-- Kvarvarande blockerare: utvecklarkonton/utgivare/signering, fysiska tester, faktiskt schema/Storage samt permanent konto-/banprofil-/instruktörsradering, integritetsbeslut och offentliga webbsidor, UGC-moderering/rapport/block, butikernas datadeklarationer och testspår.
+- Kvarvarande blockerare för utkast 2: utvecklarkonton/utgivare/signering, betalda butiksavtal och konfigurerat svenskt pris, fysiska tester, faktiskt schema/Storage samt permanent konto-/banprofilradering, integritetsbeslut och offentliga webbsidor, UGC-moderering/rapport/block för delade banor/kommentarer, butikernas datadeklarationer och testspår.
 - Godkänd av ansvarig utgivare: ej inhämtat; fyll i namn, datum och godkänd version först efter faktiskt beslut.

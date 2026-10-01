@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePlannerProfile } from "@/lib/plannerProfile";
 import { deleteSignedInAccount } from "@/lib/accountDeletion";
 
+const IS_NATIVE_APP = import.meta.env.VITE_NATIVE_APP === "true";
 const SUPPORT_DELETE = "mailto:info@auroramedia.se?subject=Radera%20konto%20eller%20banprofil%20i%20AgilityManager";
 
 export default function MobileDeleteAccountPage() {
@@ -43,12 +44,12 @@ export default function MobileDeleteAccountPage() {
     <Seo title="Radera konto — AgilityManager" description="Radera ditt konto eller få hjälp med din banprofil och sparade uppgifter i AgilityManager." canonicalPath="/radera-konto" />
     <SiteNav />
     <PageHero kicker="Dina uppgifter" title="Radera konto.">
-      Här kan du radera ditt konto för inloggning och synk, eller be om hjälp med din banprofil.
+      {IS_NATIVE_APP ? "Här kan du radera ditt konto för inloggning, eller be om hjälp med din separata banprofil." : "Här kan du radera ditt konto för inloggning och synk, eller be om hjälp med din banprofil."}
     </PageHero>
     <main className="mx-auto max-w-3xl space-y-6 px-4 py-10 sm:px-6">
       <section className="rounded-3xl border-2 border-ink bg-white p-6 sm:p-8" aria-labelledby="delete-auth-title">
-        <h2 id="delete-auth-title" className="font-display text-3xl">Konto & synk</h2>
-        <p className="mt-3 leading-relaxed text-ink/75">Raderingen är permanent. Den tar bort kontot för e-post och lösenord och de molnuppgifter som hör till det, inklusive sparade banor, kommentarer och synkade hundprofiler.</p>
+        <h2 id="delete-auth-title" className="font-display text-3xl">{IS_NATIVE_APP ? "Konto för inloggning" : "Konto & synk"}</h2>
+        <p className="mt-3 leading-relaxed text-ink/75">{IS_NATIVE_APP ? "Raderingen är permanent. Den tar bort kontot för e-post och lösenord och uppgifter som är kopplade till det. Din separata banprofil hanteras i avsnittet nedan." : "Raderingen är permanent. Den tar bort kontot för e-post och lösenord och de molnuppgifter som hör till det, inklusive sparade banor, kommentarer och synkade hundprofiler."}</p>
         <p className="mt-3 leading-relaxed text-ink/75">Din separata banprofil och sådant som du sparat lokalt på enheten hanteras separat. En raderad delad bana kan inte längre öppnas med sin gamla länk.</p>
         {deleted ? <div role="status" className="mt-5 rounded-2xl border border-forest bg-forest/10 p-4">
           <p className="font-bold">Ditt konto har raderats.</p>
@@ -71,13 +72,14 @@ export default function MobileDeleteAccountPage() {
         </div>}
       </section>
       <section className="rounded-3xl border-2 border-ink bg-white p-6 sm:p-8" aria-labelledby="delete-planner-title">
-        <h2 id="delete-planner-title" className="font-display text-3xl">Banprofil, träning och lokal data</h2>
-        <p className="mt-3 leading-relaxed text-ink/75">Banprofilen skapas med namn och e-post och använder en separat profilnyckel. Att logga ut eller välja ”Glöm profilen här” raderar bara åtkomsten på den här enheten. Profilen, delade banor och instruktörens grupper tas inte bort från molnet av det.</p>
+        <h2 id="delete-planner-title" className="font-display text-3xl">{IS_NATIVE_APP ? "Banprofil och lokala banor" : "Banprofil, träning och lokal data"}</h2>
+        <p className="mt-3 leading-relaxed text-ink/75">{IS_NATIVE_APP ? "Banprofilen skapas med namn och e-post och använder en separat profilnyckel. Att logga ut eller välja ”Glöm profilen här” raderar bara åtkomsten på den här enheten. Profilen och delade banor tas inte bort från molnet av det." : "Banprofilen skapas med namn och e-post och använder en separat profilnyckel. Att logga ut eller välja ”Glöm profilen här” raderar bara åtkomsten på den här enheten. Profilen, delade banor och instruktörens grupper tas inte bort från molnet av det."}</p>
         {profile && <p className="mt-3 break-words text-sm font-semibold">Banprofil på den här enheten: {profile.name}</p>}
-        <p className="mt-3 leading-relaxed text-ink/75">För permanent radering av banprofil, instruktörsuppgifter eller uppgifter som du lämnat i ett feedbackmeddelande: skicka en begäran till info@auroramedia.se. Ange vilken profil eller uppgift det gäller. Skicka inte lösenord, elevlänkar eller profilnycklar.</p>
-        <p className="mt-3 leading-relaxed text-ink/75">Lokala banor, träningspass, resultat och favoriter lagras på enheten. De kan tas bort genom att rensa webbplatsens eller appens lagrade uppgifter. Då kan osynkade uppgifter försvinna permanent.</p>
+        <p className="mt-3 leading-relaxed text-ink/75">{IS_NATIVE_APP ? "För permanent radering av banprofil, sparade banor, kommentarer eller feedbackuppgifter: skicka en begäran till info@auroramedia.se. Ange vilken profil eller uppgift det gäller. Skicka inte lösenord eller profilnycklar." : "För permanent radering av banprofil, instruktörsuppgifter eller uppgifter som du lämnat i ett feedbackmeddelande: skicka en begäran till info@auroramedia.se. Ange vilken profil eller uppgift det gäller. Skicka inte lösenord, elevlänkar eller profilnycklar."}</p>
+        <p className="mt-3 leading-relaxed text-ink/75">{IS_NATIVE_APP ? "Lokala banor och exporter lagras på enheten. Lokala banor kan tas bort genom att rensa appens lagrade uppgifter. Exporterade filer som du sparat eller delat hanteras där du sparat dem. Osynkade uppgifter kan försvinna permanent." : "Lokala banor, träningspass, resultat och favoriter lagras på enheten. De kan tas bort genom att rensa webbplatsens eller appens lagrade uppgifter. Då kan osynkade uppgifter försvinna permanent."}</p>
         <a href={SUPPORT_DELETE} className="mt-5 inline-flex min-h-12 items-center rounded-full border-2 border-ink px-5 py-3 font-bold">Begär hjälp med radering</a>
       </section>
+      {IS_NATIVE_APP && <p className="leading-relaxed text-ink/75">Appbutikens konto och köp hanteras separat. Köpet av mobilappen hanteras av Apple App Store eller Google Play.</p>}
       <Link to="/integritet" className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4">Läs hur AgilityManager hanterar uppgifter</Link>
     </main>
     <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />

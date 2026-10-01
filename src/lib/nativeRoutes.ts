@@ -1,4 +1,4 @@
-const NATIVE_ROUTE = /^\/(?:$|banplanerare|banor|delade-banor|bana\/[^/]+|tavlingar(?:\/.*)?|resultat|klubbar|traning|instruktor|elev|mitt-agilitymanager|konto|auth|logga-in|integritet|radera-konto|blogg(?:\/.*)?|funktioner|priser)$/;
+const NATIVE_ROUTE = /^\/(?:$|banplanerare|banor|delade-banor|bana\/[^/]+|mitt-agilitymanager|konto|auth|logga-in|integritet|radera-konto)$/;
 
 /** Only owned routes may be opened through the custom URL scheme. */
 export function nativeRouteFromUrl(raw: string): string | null {

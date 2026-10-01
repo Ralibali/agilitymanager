@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signInWithNameEmail, usePlannerProfile, validateProfileInput } from "@/lib/plannerProfile";
 
+const IS_NATIVE_APP = import.meta.env.VITE_NATIVE_APP === "true";
+
 /**
  * Liten popup som skapar en lättviktsprofil (namn + e-post).
  * Inget lösenord och ingen bekräftelse behövs.
@@ -65,7 +67,7 @@ export function PlannerProfileDialog({
           </DialogTitle>
           <DialogDescription>
             {reason ?? "Ange namn och e-post så kan du spara, dela och få kommentarer på dina banor."}
-            {" "}Inget lösenord behövs och profilen är gratis.
+            {" "}{IS_NATIVE_APP ? "Inget lösenord behövs. Banprofilen ingår i appen." : "Inget lösenord behövs och profilen är gratis."}
           </DialogDescription>
         </DialogHeader>
 
@@ -93,8 +95,7 @@ export function PlannerProfileDialog({
               onChange={(e) => setEmail(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              E-posten visas aldrig för andra – bara ditt namn syns vid banor och kommentarer.
-              Den används för din profil, inte för utskick.
+              {IS_NATIVE_APP ? "Ditt namn visas vid publika banor och kommentarer. E-post används för profilen och ingår inte i de publika banvyerna." : "E-posten visas aldrig för andra – bara ditt namn syns vid banor och kommentarer. Den används för din profil, inte för utskick."}
             </p>
           </div>
           <Button type="submit" className="w-full" disabled={saving}>

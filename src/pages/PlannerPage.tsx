@@ -262,6 +262,8 @@ function loadInitial(search: URLSearchParams): Draft {
   return defaultDraft(search.get("sport") === "hoopers" ? "hoopers" : "agility");
 }
 
+const IS_NATIVE_APP = import.meta.env.VITE_NATIVE_APP === "true";
+
 export default function PlannerPage() {
   const [search] = useSearchParams();
   const { profile: plannerProfile } = usePlannerProfile();
@@ -335,7 +337,7 @@ export default function PlannerPage() {
   const [view3D, setView3D] = useState<"view" | "walk" | null>(null);
   const [exporting, setExporting] = useState<string | null>(null);
   // PDF-exporterna märks alltid med en liten agilitymanager.se-byline.
-  // Det finns ingen betald nivå — bylinen är bara attribution, inte en upsell.
+  // Exporternas byline anger var banan skapades.
   const showWatermark = true;
   const [profileOpen, setProfileOpen] = useState(false);
   const [saveShareOpen, setSaveShareOpen] = useState(false);
@@ -1485,7 +1487,7 @@ export default function PlannerPage() {
       setLocalCourseId(id);
       setSavedSnapshot(JSON.stringify(nextDraft));
       setLastSavedAt(new Date().toISOString());
-      toast.success(`"${targetName}" sparad i den här webbläsaren`);
+      toast.success(IS_NATIVE_APP ? `"${targetName}" sparad på den här enheten` : `"${targetName}" sparad i den här webbläsaren`);
     } catch {
       toast.error('Banan kunde inte sparas. Exportera den som JSON för att behålla ditt arbete.');
     }
@@ -1792,8 +1794,8 @@ export default function PlannerPage() {
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-paper text-ink">
       <AffiliateBanner compact />
       <Seo
-        title="Banplanerare — rita agility- och hoopersbanor gratis | AgilityManager"
-        description="Rita banor i meterskala direkt i webbläsaren. Hindereditor, live banlinje, PNG-export och delningslänkar för agility och hoopers — gratis, utan konto."
+        title={IS_NATIVE_APP ? "Banplanerare för agility och hoopers | AgilityManager" : "Banplanerare — rita agility- och hoopersbanor gratis | AgilityManager"}
+        description={IS_NATIVE_APP ? "Rita agility- och hoopersbanor i meterskala i mobilappen. Hindereditor, banlinje, import, export och delningslänkar. Rita utan konto." : "Rita banor i meterskala direkt i webbläsaren. Hindereditor, live banlinje, PNG-export och delningslänkar för agility och hoopers — gratis, utan konto."}
         canonicalPath="/banplanerare"
       />
       <h1 className="sr-only">Banplanerare för agility och hoopers</h1>
@@ -1956,7 +1958,7 @@ export default function PlannerPage() {
           className="flex flex-wrap items-center gap-2 border-b-2 border-ink/10 bg-red-50 px-3 py-2 text-sm font-semibold text-red-900 sm:px-5"
         >
           <span>
-            {saveError ?? "Kunde inte spara banan i den här webbläsaren."} Banan finns kvar här tills du stänger fliken.
+            {saveError ?? (IS_NATIVE_APP ? "Kunde inte spara banan på den här enheten." : "Kunde inte spara banan i den här webbläsaren.")} {IS_NATIVE_APP ? "Banan finns kvar här tills du stänger appen." : "Banan finns kvar här tills du stänger fliken."}
           </span>
           <button
             type="button"
@@ -2911,7 +2913,7 @@ export default function PlannerPage() {
         open={pendingLibraryPick !== null}
         onOpenChange={(v) => { if (!v) setPendingLibraryPick(null); }}
         title={`Ladda "${pendingLibraryPick?.next.name ?? ""}"?`}
-        description="Nuvarande bana ersätts (den är autosparad lokalt i webbläsaren)."
+        description={IS_NATIVE_APP ? "Nuvarande bana ersätts. Exportera den först om du vill behålla en kopia." : "Nuvarande bana ersätts (den är autosparad lokalt i webbläsaren)."}
         confirmLabel="Ladda banan"
         onConfirm={() => {
           if (pendingLibraryPick) applyLibraryPick(pendingLibraryPick.kind, pendingLibraryPick.payload, pendingLibraryPick.next);

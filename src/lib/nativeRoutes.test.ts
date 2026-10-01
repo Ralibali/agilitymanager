@@ -11,22 +11,25 @@ describe('native link routes', () => {
     expect(nativeRouteFromUrl('https://agilitymanager.se.evil.example/bana/123')).toBeNull();
     expect(nativeRouteFromUrl('javascript:alert(1)')).toBeNull();
     expect(nativeRouteFromUrl('agilitymanager://admin')).toBeNull();
+    for (const path of ['priser', 'gratis', 'tavlingar', 'traning', 'instruktor', 'elev', 'jamfor-hundforsakring']) {
+      expect(nativeRouteFromUrl(`agilitymanager://${path}`)).toBeNull();
+    }
   });
 });
 
 
 describe('native internal anchors', () => {
   it('routes course paths and preserves their query from an iOS WebView', () => {
-    expect(nativeRouteFromInternalAnchor('/banplanerare?template=starter', 'capacitor://localhost/#/instruktor'))
+    expect(nativeRouteFromInternalAnchor('/banplanerare?template=starter', 'capacitor://localhost/#/banor'))
       .toBe('/banplanerare?template=starter');
-    expect(nativeRouteFromInternalAnchor('/banplanerare?bana=encoded-course', 'capacitor://localhost/#/elev#token=proof'))
+    expect(nativeRouteFromInternalAnchor('/banplanerare?bana=encoded-course', 'capacitor://localhost/#/bana/course-id'))
       .toBe('/banplanerare?bana=encoded-course');
   });
-  it('preserves HashRouter links and learner fragments on Android', () => {
-    expect(nativeRouteFromInternalAnchor('#/banplanerare?bana=encoded-course', 'https://localhost/#/traning'))
+  it('preserves HashRouter links and course fragments on Android', () => {
+    expect(nativeRouteFromInternalAnchor('#/banplanerare?bana=encoded-course', 'https://localhost/#/banor'))
       .toBe('/banplanerare?bana=encoded-course');
-    expect(nativeRouteFromInternalAnchor('/elev#token=proof', 'https://localhost/#/'))
-      .toBe('/elev#token=proof');
+    expect(nativeRouteFromInternalAnchor('/bana/course-id#obstacle-3', 'https://localhost/#/'))
+      .toBe('/bana/course-id#obstacle-3');
   });
   it('leaves external anchors and unsupported internal destinations to the existing handler', () => {
     for (const href of ['https://outside.example/banplanerare?bana=secret', 'mailto:info@auroramedia.se', '/admin']) {

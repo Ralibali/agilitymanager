@@ -28,6 +28,8 @@ type SortKey = "senaste" | "betyg" | "populara";
 const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString("sv-SE", { day: "numeric", month: "short", year: "numeric" });
 
+const IS_NATIVE_APP = import.meta.env.VITE_NATIVE_APP === "true";
+
 export default function SharedCoursesPage() {
   const [courses, setCourses] = useState<SharedCourse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,7 +119,7 @@ export default function SharedCoursesPage() {
     <div className="min-h-screen bg-paper text-ink">
       <Seo
         title="Delade banor — banor från communityn | AgilityManager"
-        description="Bläddra bland banor som andra förare delat: agility och hoopers, med betyg och kommentarer. Öppna direkt i banplaneraren och bygg vidare — gratis."
+        description={IS_NATIVE_APP ? "Bläddra bland banor som andra förare delat: agility och hoopers, med betyg och kommentarer. Öppna i banplaneraren och bygg vidare i appen." : "Bläddra bland banor som andra förare delat: agility och hoopers, med betyg och kommentarer. Öppna direkt i banplaneraren och bygg vidare — gratis."}
         canonicalPath="/delade-banor"
       />
       <SiteNav />

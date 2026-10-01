@@ -215,7 +215,7 @@ export const ARTICLES: BlogArticle[] = [
   },
   {
     slug: "regelverk-agility-hoopers-sverige",
-    title: "Regelverken i korthet: agility och hoopers i Sverige",
+    title: "Agilityregler och hoopers i Sverige – översikt",
     description:
       "Översikt över vilka organisationer som sätter reglerna för agility och hoopers i Sverige, hur klassystemen är uppbyggda — och var du hittar de officiella regelverken.",
     category: "Regler",

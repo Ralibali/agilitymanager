@@ -17,3 +17,21 @@ for(const a of ARTICLES){
  await mkdir(`dist/blogg/${a.slug}`,{recursive:true}); await writeFile(`dist/blogg/${a.slug}/index.html`,html);
 }
 console.log(`Prerendered ${ARTICLES.length} complete blog articles.`);
+
+// Static hosts may ignore redirect configuration. Preserve the complete article
+// and its canonical in the first response, with an immediate redirect fallback.
+const legacyRedirects = JSON.parse(await readFile('src/content/legacyArticleRedirects.json', 'utf8'));
+for (const [from, to] of Object.entries(legacyRedirects)) {
+  if (!/^[a-z0-9-]+$/.test(from) || !/^[a-z0-9-]+$/.test(to) || from === to) {
+    throw new Error(`Invalid legacy article redirect: ${from}`);
+  }
+  const articleHtml = await readFile(`dist/blogg/${to}/index.html`, 'utf8');
+  if (!articleHtml.includes(`href="https://agilitymanager.se/blogg/${to}"`) || !articleHtml.includes('<h1>')) {
+    throw new Error(`Missing complete canonical article for ${from}`);
+  }
+  const redirectHtml = articleHtml.replace('</head>', `<meta http-equiv="refresh" content="0; url=/blogg/${to}"></head>`);
+  await mkdir(`dist/blogg/${from}`, { recursive: true });
+  await writeFile(`dist/blogg/${from}/index.html`, redirectHtml);
+  await writeFile(`dist/blogg/${from}.html`, redirectHtml);
+}
+console.log(`Preserved ${Object.keys(legacyRedirects).length} legacy article URLs.`);

@@ -6,10 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL") ?? "",
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-);
+const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -111,11 +108,7 @@ async function authProfile(profileId: unknown, token: unknown) {
   const id = str(profileId, 60);
   const tok = str(token, 60);
   if (!id || !tok) return null;
-  const { data } = await supabase
-    .from("planner_profiles")
-    .select("id, name, edit_token")
-    .eq("id", id)
-    .maybeSingle();
+  const { data } = await supabase.from("planner_profiles").select("id, name, edit_token").eq("id", id).maybeSingle();
   if (!data || data.edit_token !== tok) return null;
   return data as { id: string; name: string; edit_token: string };
 }
@@ -198,15 +191,22 @@ Deno.serve(async (req) => {
 
     // Access and erasure are authenticated with the same ownership token as editing.
     if (action === "export-profile") {
-      const { data: personal, error: personalError } = await supabase.from("planner_profiles")
-        .select("id, name, email, created_at").eq("id", profile.id).single();
+      const { data: personal, error: personalError } = await supabase
+        .from("planner_profiles")
+        .select("id, name, email, created_at")
+        .eq("id", profile.id)
+        .single();
       if (personalError) throw personalError;
       const sections: Record<string, unknown[]> = {};
       for (const table of ["planner_courses", "planner_course_comments", "planner_course_ratings"]) {
         const rows: unknown[] = [];
         for (let offset = 0; ; offset += 500) {
-          const { data, error } = await supabase.from(table).select("*").eq("profile_id", profile.id)
-            .order("id").range(offset, offset + 499);
+          const { data, error } = await supabase
+            .from(table)
+            .select("*")
+            .eq("profile_id", profile.id)
+            .order("id")
+            .range(offset, offset + 499);
           if (error) throw error;
           rows.push(...(data ?? []));
           if (!data || data.length < 500) break;
@@ -272,11 +272,7 @@ Deno.serve(async (req) => {
         if (data) return json({ course: data });
       }
 
-      const { data, error } = await supabase
-        .from("planner_courses")
-        .insert(payload)
-        .select("id, is_public")
-        .single();
+      const { data, error } = await supabase.from("planner_courses").insert(payload).select("id, is_public").single();
       if (error) throw error;
       return json({ course: data });
     }
@@ -297,11 +293,7 @@ Deno.serve(async (req) => {
     if (action === "delete-course") {
       const courseId = str(body.courseId, 60);
       if (!courseId) return json({ error: "Bana saknas" }, 400);
-      const { error } = await supabase
-        .from("planner_courses")
-        .delete()
-        .eq("id", courseId)
-        .eq("profile_id", profile.id);
+      const { error } = await supabase.from("planner_courses").delete().eq("id", courseId).eq("profile_id", profile.id);
       if (error) throw error;
       return json({ ok: true });
     }
@@ -343,10 +335,7 @@ Deno.serve(async (req) => {
       if (!course?.is_public) return json({ error: "Banan går inte att betygsätta" }, 403);
       const { error } = await supabase
         .from("planner_course_ratings")
-        .upsert(
-          { course_id: courseId, profile_id: profile.id, rating },
-          { onConflict: "course_id,profile_id" },
-        );
+        .upsert({ course_id: courseId, profile_id: profile.id, rating }, { onConflict: "course_id,profile_id" });
       if (error) throw error;
       return json({ ok: true });
     }

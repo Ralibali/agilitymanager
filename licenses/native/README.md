@@ -26,6 +26,15 @@ the upstream 8.0.0 distribution. Capacitor's Cordova source retains the ASF
 Apache-2.0 headers. The generated notices include the complete upstream text,
 including its additional third-party notices.
 
+`android-runtime.json` records the 56 resolved Android release dependencies and
+their POM license declarations. `android-runtime-LICENSES.txt` preserves all ten
+license payloads found in those runtime AARs (deduplicated by exact text), plus
+Ionic Filesystem's MIT text from its exact 1.1.0 upstream tag. Guava's license is
+inherited from its declared `guava-parent:26.0-android` POM. The native dependency
+input hashes make the build fail for review when Gradle dependency definitions
+change. Build numbers do not affect these inputs. Empty archive license entries
+are not treated as proof that no license applies.
+
 The font license files also remain in `fonts/` as originally packaged. The course
 templates are described in their source as AgilityManager originals, not copied
 judge maps. This packaging check is not proof of ownership of arbitrary future

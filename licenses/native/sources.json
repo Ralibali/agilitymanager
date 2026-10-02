@@ -33,5 +33,10 @@
     "file": "ion-ios-filesystem-LICENSE.txt",
     "source": "https://raw.githubusercontent.com/ionic-team/ion-ios-filesystem/56bd6f9e77cb4f2269c03f2d92a9fe58fe168a1c/LICENSE",
     "sha256": "de884404585ed20280150b0768082b6004d3548aaa0d6e596d6bfa0538ab331d"
+  },
+  {
+    "file": "ion-android-filesystem-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/ionic-team/ion-android-filesystem/11ef15db0c355faa917750a31758b3edd33a9cf7/LICENSE",
+    "sha256": "de884404585ed20280150b0768082b6004d3548aaa0d6e596d6bfa0538ab331d"
   }
 ]

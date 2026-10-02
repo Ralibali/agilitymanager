@@ -1,4 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import type { Plugin } from 'vite';
 
@@ -97,6 +98,14 @@ export function nativeNotices(): Plugin {
         sections.push(`${item.name} (${item.revision})\n\n${read(path.join(root, 'licenses/native', `${item.name}-LICENSE.txt`))}`);
       }
       sections.push(`Apache Cordova compatibility runtime\n\n${read(path.join(root, 'licenses/native/cordova-NOTICE.txt'))}\n\n${read(path.join(root, 'licenses/native/cordova-LICENSE.txt'))}`);
+      const android = JSON.parse(readFileSync(path.join(root, 'licenses/native/android-runtime.json'), 'utf8')) as { dependencyInputs: Record<string, string> };
+      for (const [file, expectedHash] of Object.entries(android.dependencyInputs)) {
+        let input = readFileSync(path.join(root, file), 'utf8');
+        if (file === 'android/app/build.gradle') input = input.replace(/versionCode \d+/, 'versionCode BUILD').replace(/versionName "[^"]+"/, 'versionName "VERSION"');
+        const actualHash = createHash('sha256').update(input).digest('hex');
+        if (actualHash !== expectedHash) throw new Error(`Review Android runtime notices after changing ${file}`);
+      }
+      sections.push(read(path.join(root, 'licenses/native/android-runtime-LICENSES.txt')));
       for (const name of ['Archivo', 'BebasNeue']) {
         sections.push(`${name} font\n\n${read(path.join(root, 'mobile-public/fonts', `${name}-LICENSE.txt`))}`);
       }

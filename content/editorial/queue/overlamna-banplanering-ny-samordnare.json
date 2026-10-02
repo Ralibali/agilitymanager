@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "content_id": "editorial-20261001-overlamna-banplanering-ny-samordnare",
+  "author": "ChatGPT",
+  "status": "draft",
+  "written_at": "2026-10-01T08:46:15.434899+00:00",
+  "not_before": "2026-10-03",
+  "sources_checked_at": "2026-10-01T08:46:15.434899+00:00",
+  "search_intent": "Byte av samordnare för gruppens banplanering: ansvar, åtkomsthänvisningar och första genomgång; skilt från att dela en enskild bana eller kommentera ritningen.",
+  "source_urls": [
+    "https://agilitymanager.se/banplanerare"
+  ],
+  "slug": "overlamna-banplanering-ny-samordnare",
+  "title": "Lämna över gruppens banplanering till en ny samordnare",
+  "description": "Lämna över banfiler, kontaktvägar och öppna frågor när träningsgruppen byter samordnare. En praktisk mall för att komma vidare med rätt underlag.",
+  "category": "Verktyg",
+  "readingMinutes": 4,
+  "related": [
+    "banfiler-innehallslista-traningsgrupp",
+    "materiallista-gemensamt-banbygge"
+  ],
+  "cta": {
+    "heading": "Fortsätt gruppens banplanering",
+    "text": "Öppna banplaneraren och behåll gruppens praktiska överlämning i ert gemensamma underlag.",
+    "label": "Öppna banplaneraren",
+    "to": "/banplanerare"
+  },
+  "blocks": [
+    {
+      "type": "p",
+      "text": "När en ny person tar över gruppens banplanering räcker det sällan att skicka en mapp. Filerna kan vara begripliga för den som skapade dem men svåra att placera i sammanhang för efterträdaren. Gör därför en kort överlämning som visar vad som är aktuellt, vad som är historik och vilka frågor som väntar på besked.\n\nBörja med det närmast planerade tillfället. Guiden handlar om gruppens dokument och arbetsfördelning. Den ersätter inte en instruktörs bedömning av träningen eller anläggningens besked om användning av utrustningen."
+    },
+    {
+      "type": "h2",
+      "text": "Avgränsa ansvaret tillsammans"
+    },
+    {
+      "type": "p",
+      "text": "Skriv vilka uppgifter den nya samordnaren faktiskt ska ta över. Det kan vara att hålla ordning på underlagen, samla gruppens frågor och se till att rätt version finns tillgänglig. Bestäm också vilka beslut som fortfarande ligger hos instruktören, klubben eller anläggningens ansvariga."
+    },
+    {
+      "type": "p",
+      "text": "Markera när ansvaret byts. Om den tidigare samordnaren fortsätter hjälpa till behöver båda veta vem som lämnar nästa samlade besked till gruppen. Två parallella kontaktvägar kan annars skapa olika versioner av samma planering."
+    },
+    {
+      "type": "h2",
+      "text": "Peka ut det aktuella underlaget"
+    },
+    {
+      "type": "p",
+      "text": "Använd gruppens [innehållslista över banfiler](/blogg/banfiler-innehallslista-traningsgrupp) för att hitta det senaste arbetsunderlaget. Skriv vilket tillfälle filen hör till och varför den är aktuell. Spara hänvisningar till äldre versioner där de behövs för sammanhanget."
+    },
+    {
+      "type": "p",
+      "text": "Skilj mellan en ritning som gruppen diskuterar och ett underlag som ansvarig person har bestämt ska användas. En fil som råkar ligga överst i en mapp är inte automatiskt det aktuella valet. Om statusen är oklar behöver den frågan få ett namn och en ansvarig."
+    },
+    {
+      "type": "h2",
+      "text": "Samla åtkomstfrågor utan att dela lösenord"
+    },
+    {
+      "type": "p",
+      "text": "Kontrollera att efterträdaren kan öppna de dokument och lagringsplatser som uppgiften kräver. Använd de vanliga inbjudnings- och behörighetsvägar som respektive verktyg erbjuder. Lägg inte lösenord eller privata inloggningsuppgifter i överlämningsdokumentet."
+    },
+    {
+      "type": "p",
+      "text": "Skriv vem som kan hjälpa till när en fil inte går att nå. Om någon ska få ny åtkomst behöver behörig ägare ordna det. Överlämningen ska beskriva behovet och kontaktvägen, inte fungera som ett gemensamt konto för hela gruppen."
+    },
+    {
+      "type": "h2",
+      "text": "Gör nästa tillfälle till ett konkret exempel"
+    },
+    {
+      "type": "p",
+      "text": "Gå igenom ett planerat tillfälle tillsammans: vilken fil behövs, vilken materiallista hör till och vilka besked saknas? Låt den nya samordnaren själv hitta underlagen medan den tidigare personen finns till hands för frågor."
+    },
+    {
+      "type": "p",
+      "text": "Anteckna bara sådant som behövs för att arbetet ska kunna fortsätta. Ett enkelt kort kan innehålla nästa datum, aktuell fil, kontaktpersoner, öppna frågor, ansvarig för varje fråga och var ett nytt besked ska skrivas in. Hänvisa till [materiallistan för gemensamt banbygge](/blogg/materiallista-gemensamt-banbygge) när det behövs mer detaljer om underlaget."
+    },
+    {
+      "type": "h2",
+      "text": "Bekräfta vad som återstår"
+    },
+    {
+      "type": "p",
+      "text": "Avsluta genomgången med en lista över sådant som ännu inte kunde lämnas över. Skriv ett nästa steg och en ansvarig för varje punkt. Blanda inte dessa luckor med uppgifter som efterträdaren redan har kunnat hitta och förstå."
+    },
+    {
+      "type": "p",
+      "text": "Gruppen kan [öppna banplaneraren](/banplanerare) för arbetet med själva ritningen och behålla överlämningen i sitt vanliga dokument. AI-assisterad originalguide med en arbetsmall. Den beskriver ingen automatisk överföring av ägarskap, behörigheter eller gruppfiler i AgilityManager."
+    }
+  ]
+}

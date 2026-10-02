@@ -1,4 +1,9 @@
 {
+  "redirects": [
+    { "source": "/blogg/agility-regler-sverige", "destination": "/blogg/regelverk-agility-hoopers-sverige", "permanent": true },
+    { "source": "/blogg/hoopers-hund", "destination": "/blogg/hoopers-for-nyborjare", "permanent": true },
+    { "source": "/blogg/borja-med-hoopers", "destination": "/blogg/hoopers-for-nyborjare", "permanent": true }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

@@ -4,7 +4,7 @@
   "publisher": "Aurora Media AB",
   "supportEmail": "info@auroramedia.se",
   "version": "1.0.0",
-  "build": 3,
+  "build": 4,
   "appId": "se.agilitymanager.app",
   "appIdConfirmed": false,
   "primaryLanguage": "sv",

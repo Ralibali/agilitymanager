@@ -12,6 +12,8 @@ on:
       - "vite.native.config.ts"
       - "playwright.mobile.config.ts"
       - "scripts/native-*.mjs"
+      - "scripts/native-*.ts"
+      - "licenses/native/**"
       - "android/**"
       - "ios/**"
       - "assets/**"
@@ -129,17 +131,24 @@ jobs:
 
   ios:
     needs: verify
-    runs-on: macos-15
+    # Match the iOS 26.5 runtime used for the verified local release flows.
+    # This standard arm64 image lists Xcode 26.5 and iOS 26.5/iPhone 17:
+    # https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md
+    runs-on: macos-26
     timeout-minutes: 25
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.5.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-      - run: xcodebuild -version
+      - name: Record the iOS runner environment
+        run: |
+          sw_vers
+          uname -m
+          xcodebuild -version
       - run: npm ci && npm run build:native && node scripts/native-prepare.mjs ios
       - id: ios-simulator-build
         run: xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build-ios CODE_SIGNING_ALLOWED=NO
@@ -150,7 +159,7 @@ jobs:
       - name: Isolated simulator first-launch smoke
         timeout-minutes: 10
         env:
-          AGILITY_IOS_SIMULATOR_VERSION: '26.2'
+          AGILITY_IOS_SIMULATOR_VERSION: '26.5'
           AGILITY_IOS_SIMULATOR_DEVICE: 'iPhone 17'
         run: node scripts/native-smoke-ios.mjs
       - name: Save simulator app and first-launch evidence

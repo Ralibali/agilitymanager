@@ -109,6 +109,15 @@ function installerLogs() {
   if (logs !== null) writeFileSync(join(output, 'native-installer.log'), logs);
 }
 
+function systemLaunchLogs() {
+  // A launch timeout before simctl returns a PID leaves the app-only query
+  // empty. Preserve the launch services' evidence without assuming whether
+  // the simulator or app caused the failure. Diagnostics never turn it green.
+  const predicate = 'process == "SpringBoard" OR process == "runningboardd" OR process == "launchd" OR process == "installd" OR process == "backboardd"';
+  const logs = simctl(['spawn', deviceId, 'log', 'show', '--last', '2m', '--style', 'compact', '--predicate', predicate], 20_000, true);
+  if (logs !== null) writeFileSync(join(output, 'native-system-launch.log'), logs);
+}
+
 function collectCrashes() {
   if (!launchTime || !summary.processId) return;
   const roots = [
@@ -214,6 +223,7 @@ try {
   try {
     if (deviceId && booted) {
       if (failure && summary.failedCommand?.args[3] === 'install') installerLogs();
+      if (failure && summary.failedCommand?.args[3] === 'launch') systemLaunchLogs();
       if (!summary.screenshot) { try { screenshot(); } catch (error) { summary.warnings.push(error.message); } }
       if (!existsSync(join(output, 'native-app.log'))) deviceLogs(true);
       try { collectCrashes(); } catch (error) { summary.warnings.push(error.message); }

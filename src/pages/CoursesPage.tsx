@@ -11,6 +11,8 @@ import { courseFromBankEntry, type Sport } from "@/lib/course";
 import { COURSE_BANK } from "@/features/course-planner-v2/courseBank";
 import { getClassTemplate } from "@/features/course-planner-v2/config";
 
+const IS_NATIVE_APP = import.meta.env.VITE_NATIVE_APP === "true";
+
 type SportFilter = "alla" | Sport;
 type ClassFilter = "alla" | "1" | "2" | "3" | "noll";
 
@@ -40,14 +42,14 @@ export default function CoursesPage() {
     <div className="min-h-screen bg-paper text-ink">
       <Seo
         title="Banbibliotek — färdiga banor för agility och hoopers | AgilityManager"
-        description="Nivåmärkta banor för agility och hoopers, inspirerade av svenska klassnivåer. Öppna direkt i banplaneraren, justera och exportera — gratis utan konto."
+        description={IS_NATIVE_APP ? "Nivåmärkta banor för agility och hoopers, inspirerade av svenska klassnivåer. Banbiblioteket ingår i appen. Öppna i banplaneraren, justera och exportera utan konto." : "Nivåmärkta banor för agility och hoopers, inspirerade av svenska klassnivåer. Öppna direkt i banplaneraren, justera och exportera — gratis utan konto."}
         canonicalPath="/banor"
       />
       <SiteNav />
       <PageHero kicker="Banbibliotek" title="Officiellt inspirerade banor — granskade mot regelverket.">
         Tävlingsinspirerade banor och nollklasskurser byggda efter SAgiK/SKK och
         Svenska Hooperssällskapets regler. Öppna direkt i planeraren, justera och
-        exportera. Allt är gratis — även utan konto.
+        exportera. {IS_NATIVE_APP ? "Banbiblioteket ingår i appen och kan användas utan konto." : "Allt är gratis — även utan konto."}
       </PageHero>
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
@@ -111,7 +113,7 @@ export default function CoursesPage() {
                       <PenLine className="h-4 w-4" /> Redigera
                     </Link>
                   </div>
-                <Link to={`/traning?template=${encodeURIComponent(entry.key)}`} className="mx-6 mb-5 inline-flex font-bold underline">Planera träning med banan</Link>
+                  {!IS_NATIVE_APP && <Link to={`/traning?template=${encodeURIComponent(entry.key)}`} className="mx-6 mb-5 inline-flex font-bold underline">Planera träning med banan</Link>}
                 </article>
               </Reveal>
             );
@@ -135,12 +137,12 @@ export default function CoursesPage() {
             >
               Öppna tom plan <ArrowRight className="h-5 w-5" />
             </Link>
-            <Link
+            {!IS_NATIVE_APP && <Link
               to="/delade-banor"
               className="pressable shadow-hard inline-flex h-14 items-center gap-2 rounded-full border-2 border-ink bg-paper px-8 text-lg font-bold text-ink"
             >
               Se banor från communityn
-            </Link>
+            </Link>}
           </div>
         </Reveal>
 

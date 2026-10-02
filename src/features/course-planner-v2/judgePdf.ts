@@ -6,6 +6,7 @@
  * Sida 2: statistik (banlängd, SCT per storleksklass, hinderfördelning)
  */
 import jsPDF from "jspdf";
+import { exportFile } from "@/lib/exportFile";
 import {
   CLASS_TEMPLATES, SIZE_CLASSES, getObstacleDefV2,
   type ClassTemplateKey, type ObstacleTypeV2, type SizeClassKey, type Sport,
@@ -408,7 +409,7 @@ export async function exportJudgePdf(input: JudgePdfInput) {
   /* Footer på alla sidor */
   drawFooterAllPages(doc, { authorName: input.authorName ?? "", qrDataUrl: input.qrDataUrl, showWatermark: input.showWatermark });
 
-  doc.save(`${safeFileName(input.name)}_domarbana.pdf`);
+  await exportFile(doc.output("blob"), `${safeFileName(input.name)}_domarbana.pdf`);
 }
 
 function computeDistribution(obstacles: ObstacleLite[]): Record<string, number> {

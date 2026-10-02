@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Billboard, Text } from "@react-three/drei";
+import { nativeTextFont } from "./nativeTextFont";
 import * as THREE from "three";
 import { normalizeCurveDeg, tunnelGeometryLocal } from "@/features/course-planner-v2/tunnelGeometry";
 
@@ -39,7 +40,7 @@ function NumberPlate({ number, height = 1.2, highlight = false }: { number?: num
       {highlight && <mesh renderOrder={998}><ringGeometry args={[0.45, 0.55, 40]} /><meshBasicMaterial color="#fde68a" transparent opacity={0.62} depthTest={false} /></mesh>}
       <mesh renderOrder={999}><circleGeometry args={[radius, 32]} /><meshBasicMaterial color={highlight ? "#f59e0b" : "#1d6f3c"} depthTest={false} /></mesh>
       <mesh position={[0, 0, 0.003]} renderOrder={1000}><ringGeometry args={[radius, radius + 0.055, 32]} /><meshBasicMaterial color="#ffffff" depthTest={false} /></mesh>
-      <Text position={[0, 0, 0.012]} fontSize={highlight ? 0.4 : 0.32} color="white" anchorX="center" anchorY="middle" outlineWidth={0.025} outlineColor="#0b3a1f" renderOrder={1001}>{String(number)}</Text>
+      <Text font={nativeTextFont} position={[0, 0, 0.012]} fontSize={highlight ? 0.4 : 0.32} color="white" anchorX="center" anchorY="middle" outlineWidth={0.025} outlineColor="#0b3a1f" renderOrder={1001}>{String(number)}</Text>
     </Billboard>
   );
 }
@@ -94,8 +95,8 @@ function Hoop() { return <group rotation={[0, Math.PI / 2, 0]}><Shadow w={1.45} 
 function Barrel() { return <group><Shadow w={0.9} d={0.9} /><mesh position={[0, 0.46 + EPS, 0]} castShadow receiveShadow><cylinderGeometry args={[0.34, 0.34, 0.92, 32]} /><meshStandardMaterial color={BLUE} roughness={0.5} /></mesh>{[0.18, 0.72].map((y) => <mesh key={y} position={[0, y, 0]}><torusGeometry args={[0.345, 0.018, 8, 32]} /><meshStandardMaterial color={ORANGE} /></mesh>)}</group>; }
 function Gate({ color = WHITE }: { color?: string }) { const c = color || WHITE; return <group><Shadow w={1.55} d={0.75} />{[-0.62, 0.62].map((x) => <mesh key={x} position={[x, 0.44 + EPS, 0]} castShadow><boxGeometry args={[0.07, 0.88, 0.07]} /><meshStandardMaterial color={c} roughness={0.42} /></mesh>)}{[0.42, 0.7].map((y) => <mesh key={y} position={[0, y + EPS, 0]} castShadow><boxGeometry args={[1.22, 0.08, 0.055]} /><meshStandardMaterial color={y > 0.5 ? ORANGE : c} roughness={0.42} /></mesh>)}<Foot x={-0.62} color={YELLOW} /><Foot x={0.62} color={YELLOW} /></group>; }
 function HandlerZone() { return <group><mesh position={[0, EPS, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[2, 2]} /><meshStandardMaterial color="#ffffff" transparent opacity={0.18} /></mesh><mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[0.95, 1, 4]} /><meshBasicMaterial color={ORANGE} transparent opacity={0.82} /></mesh></group>; }
-function StartGate() { return <group><Gate color="#22c55e" /><mesh position={[0, 1.04 + EPS, 0.03]} castShadow><boxGeometry args={[0.88, 0.26, 0.055]} /><meshStandardMaterial color="#22c55e" /></mesh><Text position={[0, 1.04, 0.065]} fontSize={0.18} color="white" anchorX="center" outlineWidth={0.01} outlineColor="#0b3a1f">START</Text></group>; }
-function FinishGate() { return <group><Gate color={NAVY} /><mesh position={[0, 1.04 + EPS, 0.03]} castShadow><boxGeometry args={[0.88, 0.26, 0.055]} /><meshStandardMaterial color={NAVY} /></mesh><Text position={[0, 1.04, 0.065]} fontSize={0.18} color="white" anchorX="center" outlineWidth={0.01} outlineColor="#0b1939">MÅL</Text></group>; }
+function StartGate() { return <group><Gate color="#22c55e" /><mesh position={[0, 1.04 + EPS, 0.03]} castShadow><boxGeometry args={[0.88, 0.26, 0.055]} /><meshStandardMaterial color="#22c55e" /></mesh><Text font={nativeTextFont} position={[0, 1.04, 0.065]} fontSize={0.18} color="white" anchorX="center" outlineWidth={0.01} outlineColor="#0b3a1f">START</Text></group>; }
+function FinishGate() { return <group><Gate color={NAVY} /><mesh position={[0, 1.04 + EPS, 0.03]} castShadow><boxGeometry args={[0.88, 0.26, 0.055]} /><meshStandardMaterial color={NAVY} /></mesh><Text font={nativeTextFont} position={[0, 1.04, 0.065]} fontSize={0.18} color="white" anchorX="center" outlineWidth={0.01} outlineColor="#0b1939">MÅL</Text></group>; }
 
 export function Obstacle3D({ type, x, z, rotationDeg, number, color, onSelect, highlight = false, curveDeg = 0, curveSide = "left" }: Obstacle3DProps) {
   const rotY = useMemo(() => (rotationDeg * Math.PI) / 180, [rotationDeg]);

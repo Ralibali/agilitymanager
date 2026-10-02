@@ -3,6 +3,7 @@
  * Bygg-PDF — banbild med tydligt rutnät, hindertabell, valideringssammanfattning.
  */
 import jsPDF from "jspdf";
+import { exportFile } from "@/lib/exportFile";
 import {
   CLASS_TEMPLATES, getObstacleDefV2,
   type ClassTemplateKey, type ObstacleTypeV2, type SizeClassKey, type Sport,
@@ -202,5 +203,5 @@ export async function exportBuildPdf(input: BuildPdfInput) {
   }
 
   drawFooterAllPages(doc, { authorName: input.authorName ?? "", qrDataUrl: input.qrDataUrl, showWatermark: input.showWatermark });
-  doc.save(`${safeFileName(input.name)}_bygg.pdf`);
+  await exportFile(doc.output("blob"), `${safeFileName(input.name)}_bygg.pdf`);
 }

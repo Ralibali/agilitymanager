@@ -1,0 +1,42 @@
+[
+  {
+    "file": "radix-primitives-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/radix-ui/primitives/fcef0668a5c827e5a4baac405474d75680f9a4eb/LICENSE",
+    "sha256": "0e80a2d229d2fd4fc7e8636142ec5d0ff0bc031f14c15b682e2ac01dfd5b5138"
+  },
+  {
+    "file": "react-three-fiber-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/pmndrs/react-three-fiber/0a107412ac64667b1908422e859447952f57feef/LICENSE",
+    "sha256": "9c35b5de7b7493a707fffe4eb23bd2f7f449153c1911f7c6eefb4e591fd5349a"
+  },
+  {
+    "file": "react-remove-scroll-bar-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/theKashey/react-remove-scroll-bar/8ca9ba5ea52de03308fe8ced94f7b159a44d28ff/LICENSE",
+    "sha256": "a79aae0c0f21990d9d963bb3c5a79cdcea9a46f8523ba55c58d7fe776b6ebc84"
+  },
+  {
+    "file": "cordova-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/apache/cordova-ios/8.0.0/LICENSE",
+    "sha256": "13f233916083b30b6b0683bfa6e4c10c3687574ad84e94e668c0833c888324e7"
+  },
+  {
+    "file": "cordova-NOTICE.txt",
+    "source": "https://raw.githubusercontent.com/apache/cordova-ios/8.0.0/NOTICE",
+    "sha256": "26a222224bcd2277143ea1317b55c3258b5748d3eee7e768ee89c0eff544cf6a"
+  },
+  {
+    "file": "capacitor-swift-pm-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/ionic-team/capacitor-swift-pm/0b6882e9a3288342aacf36348e5a94e4f1dd7b13/LICENSE.md",
+    "sha256": "48f126b6311bd8e86b56bb3d2c5105a7999e9c348c2ceca7e60e397e7b5f41de"
+  },
+  {
+    "file": "ion-ios-filesystem-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/ionic-team/ion-ios-filesystem/56bd6f9e77cb4f2269c03f2d92a9fe58fe168a1c/LICENSE",
+    "sha256": "de884404585ed20280150b0768082b6004d3548aaa0d6e596d6bfa0538ab331d"
+  },
+  {
+    "file": "ion-android-filesystem-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/ionic-team/ion-android-filesystem/11ef15db0c355faa917750a31758b3edd33a9cf7/LICENSE",
+    "sha256": "de884404585ed20280150b0768082b6004d3548aaa0d6e596d6bfa0538ab331d"
+  }
+]

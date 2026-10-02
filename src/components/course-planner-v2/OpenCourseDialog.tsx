@@ -15,6 +15,8 @@ import { plannerApi, usePlannerProfile } from "@/lib/plannerProfile";
 import type { LibraryCourse } from "@/features/course-planner-v2/library";
 import { listLocalCourses, deleteLocalCourse, type LocalCourse } from "@/features/course-planner-v2/localCourses";
 
+const IS_NATIVE_APP = import.meta.env.VITE_NATIVE_APP === "true";
+
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -69,7 +71,7 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
   const loading = open && !!profile && loadedFor !== profile.id && !sharedError;
 
   useEffect(() => {
-    if (!open || !profile) return;
+    if (IS_NATIVE_APP || !open || !profile) return;
     let cancelled = false;
     plannerApi<{ courses: MyCourseRow[] }>("my-courses")
       .then((res) => {
@@ -103,6 +105,7 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
   };
 
   const removeShared = async (id: string) => {
+    if (IS_NATIVE_APP) return;
     try {
       await plannerApi("delete-course", { courseId: id });
       setShared((rows) => rows.filter((r) => r.id !== id));
@@ -218,7 +221,7 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
           </section>
         )}
 
-        {shared.length > 0 && (
+        {!IS_NATIVE_APP && shared.length > 0 && (
           <section>
             <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/50">
               <CloudCheck className="h-3.5 w-3.5" aria-hidden="true" /> På din profil
@@ -274,7 +277,7 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
           </section>
         )}
 
-        {!profile && !loading && (
+        {!IS_NATIVE_APP && !profile && !loading && (
           <p className="rounded-xl border-2 border-ink/10 bg-cream/40 p-3 text-xs font-semibold leading-5 text-ink/60">
             Med en profil kan du även spara banor här och dela dem publikt — välj <strong>Spara &amp; dela</strong> i verktygsraden.
           </p>

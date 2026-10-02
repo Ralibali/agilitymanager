@@ -3,6 +3,7 @@
  * Tränings-PDF — banbild + skrivutrymmen för anteckningar.
  */
 import jsPDF from "jspdf";
+import { exportFile } from "@/lib/exportFile";
 import { CLASS_TEMPLATES, SIZE_CLASSES, type ClassTemplateKey, type SizeClassKey, type Sport } from "./config";
 import type { ObstacleLite } from "./validation";
 import { PDF_BRAND, PDF_PAGE, drawArenaVector, drawHeaderBand, drawFooterAllPages, safeFileName } from "./pdfHelpers";
@@ -139,5 +140,5 @@ export async function exportTrainingPdf(input: TrainingPdfInput) {
   }
 
   drawFooterAllPages(doc, { authorName: input.authorName ?? "", qrDataUrl: input.qrDataUrl, showWatermark: input.showWatermark });
-  doc.save(`${safeFileName(input.name)}_traning.pdf`);
+  await exportFile(doc.output("blob"), `${safeFileName(input.name)}_traning.pdf`);
 }

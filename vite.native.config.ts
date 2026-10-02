@@ -1,13 +1,14 @@
 import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { nativeNotices } from './scripts/native-notices';
 
 // No SEO prerender, editor integration, external fonts or website analytics
 // in the binary. All screens and fonts are packaged in dist-native.
 export default defineConfig({
   base: './',
   publicDir: 'mobile-public',
-  plugins: [react()],
+  plugins: [react(), nativeNotices()],
   define: { 'import.meta.env.VITE_NATIVE_APP': JSON.stringify('true') },
   resolve: {
     alias: [

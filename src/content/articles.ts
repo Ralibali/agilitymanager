@@ -6,7 +6,7 @@ import editorialArticles from "./editorial.generated.json";
  * - Allt innehåll är skrivet för sajten (ingen generisk fylltext).
  * - Regelpåståenden hålls på översiktsnivå och märks tydligt som
  *   produktanalys/egen tolkning, med hänvisning till officiella källor
- *   (SKK, Svenska Hooperssällskapet m.fl.) för detaljer.
+ *   (SAgiK/SKK, Svenska Hoopersklubben, FCI) för detaljer.
  * - Inline-länkar skrivs som [text](/sökväg) i textblock.
  * - Varje artikel har en kontextuell CTA in till /banplanerare.
  *
@@ -49,7 +49,7 @@ export const ARTICLES: BlogArticle[] = [
       "Praktisk guide till säkra träningsbanor i agility: planmått, hinderavstånd, underlag och hur du testar flödet innan hunden springer.",
     category: "Banbyggande",
     publishedAt: "2025-11-04",
-    updatedAt: "2026-01-20",
+    updatedAt: "2026-10-05",
     readingMinutes: 6,
     blocks: [
       {
@@ -72,7 +72,7 @@ export const ARTICLES: BlogArticle[] = [
       { type: "h2", text: "Avstånd som hunden hinner läsa" },
       {
         type: "p",
-        text: "Mellan två hinder ska hunden hinna landa, samla sig och läsa nästa hinder. Exakta avstånd beror på hinderkombination, hundens storlek och fart — därför anger vi inga fasta tumregelssiffror här. Testa i stället flödet på ritningen först: i banplaneraren ritas hundens linje automatiskt genom hindren, och du ser direkt om ett skarpt upplägg blir onödigt tvärt.",
+        text: "Mellan två hinder ska hunden hinna landa, samla sig och läsa nästa hinder. Exakta avstånd beror på hinderkombination, hundens storlek och fart. En bra referens är tävlingsreglerna: i svenska agilitytävlingar ska avståndet mellan hindren vara 6–8 meter mätt som hundens väg, med minst 1 meter till bankanten. Testa flödet på ritningen först: i banplaneraren ritas hundens linje automatiskt genom hindren, avstånden visas längs linjen och du ser direkt om ett upplägg blir onödigt tvärt.",
       },
       {
         type: "callout",
@@ -108,7 +108,7 @@ export const ARTICLES: BlogArticle[] = [
       "Introduktion till hoopers: sportens grundhinder, hur en hoopersbana skiljer sig från agility och hur du ritar din första bana — steg för steg.",
     category: "Hoopers",
     publishedAt: "2025-11-18",
-    updatedAt: "2026-01-20",
+    updatedAt: "2026-10-05",
     readingMinutes: 6,
     blocks: [
       {
@@ -119,9 +119,11 @@ export const ARTICLES: BlogArticle[] = [
       {
         type: "ul",
         items: [
-          "Hoops — bågar som hunden passerar under. Själva signaturhindret och stommen i varje bana.",
-          "Tunnlar — som i agility, men utan hopphinder runt omkring.",
-          "Tunnlar, barrels och andra passagehinder förekommer beroende på regelverk och klass.",
+          "Hoops — bågar som hunden passerar under. Signaturhindret: banan börjar och slutar alltid med en hoop.",
+          "Tunnlar — korta, låga tunnlar som hunden springer igenom.",
+          "Tunnor (barrels) — hunden rundar tunnan i anvisad riktning.",
+          "Staket/grindar — hunden passerar bakom eller runt staketet.",
+          "Dirigeringsområdet — rutan som föraren styr från, ofta på avstånd från hindren.",
         ],
       },
       {
@@ -135,7 +137,7 @@ export const ARTICLES: BlogArticle[] = [
       },
       {
         type: "callout",
-        text: "Reglerna för hoopers i Sverige sätts av Svenska Hooperssällskapet och kan skilja sig från internationella varianter. Den här artikeln är en översiktlig introduktion, inte en regelsammanfattning — läs alltid det aktuella regelverket hos arrangören innan tävling.",
+        text: "Sedan 1 november 2025 är hoopers en officiell hundsport inom SKK, och reglerna i Sverige sätts av Svenska Hoopersklubben (SHoK). Internationellt finns FCI:s hoopersregler, som skiljer sig på flera punkter. Den här artikeln är en översiktlig introduktion, inte en regelsammanfattning — läs alltid det aktuella regelverket innan tävling.",
       },
       { type: "h2", text: "Rita din första hoopersbana" },
       {
@@ -220,7 +222,7 @@ export const ARTICLES: BlogArticle[] = [
       "Översikt över vilka organisationer som sätter reglerna för agility och hoopers i Sverige, hur klassystemen är uppbyggda — och var du hittar de officiella regelverken.",
     category: "Regler",
     publishedAt: "2025-12-16",
-    updatedAt: "2026-01-20",
+    updatedAt: "2026-10-05",
     readingMinutes: 6,
     blocks: [
       {
@@ -230,16 +232,16 @@ export const ARTICLES: BlogArticle[] = [
       { type: "h2", text: "Vem sätter reglerna?" },
       {
         type: "p",
-        text: "I Sverige administreras agility inom Svenska Kennelklubbens (SKK) paraply, med Svenska Agilityklubben (SAgiK) som specialklubb. Tävlings- och bruksreglerna publiceras av SKK och finns på skk.se. För hoopers är Svenska Hooperssällskapet den svenska specialorganisationen, med egna tävlingsregler som publiceras på deras webbplats.",
+        text: "I Sverige administreras agility inom Svenska Kennelklubbens (SKK) paraply, med Svenska Agilityklubben (SAgiK) som specialklubb. De gällande tävlingsreglerna (2022-01-01–2026-12-31) finns på agilityklubben.se, och en regelrevidering pågår inför 2027 — kontrollera alltid vilken utgåva som gäller på tävlingsdagen. Sedan 1 november 2025 är hoopers en officiell hundsport inom SKK med Svenska Hoopersklubben (SHoK) som ansvarig klubb; reglerna (2025-11-01–2028-10-31) publiceras på svenskahoopersklubben.se.",
       },
       {
         type: "p",
-        text: "Utöver det nationella finns internationella regelverk — till exempel FCI:s agilityregler som gäller på internationella tävlingar. Vilket regelverk som gäller avgörs av arrangören och tävlingsformen, så läs alltid inbjudan.",
+        text: "Utöver det nationella finns internationella regelverk — FCI:s agility- och hoopersregler som gäller på internationella tävlingar. Vilket regelverk som gäller avgörs av arrangören och tävlingsformen, så läs alltid inbjudan.",
       },
       { type: "h2", text: "Så är klassystemen uppbyggda — i stora drag" },
       {
         type: "p",
-        text: "Båda sporterna använder progressionssystem där ekipage kvalificerar sig uppåt. I svensk agility tävlar man i klasser från nybörjarnivå upp till högsta klassen, med uppflyttning baserat på meriter. Hoopers har ett eget, liknande upplägg med klasser och meritesystem enligt sitt regelverk. Detaljerna — antal meriter, domarkrav, dispensregler — skiljer sig åt och uppdateras över tid.",
+        text: "Båda sporterna använder progressionssystem där ekipage kvalificerar sig uppåt med meriter. I svensk agility finns klass 1–3 i både agility och hopp, lagklasser samt Nollklass som inofficiell startklass. Hoopers (SHoK) har startklass och klass 1–3. Detaljerna — antal meriter, domarkrav, dispensregler — skiljer sig åt och uppdateras över tid.",
       },
       {
         type: "p",
@@ -248,21 +250,21 @@ export const ARTICLES: BlogArticle[] = [
       { type: "h2", text: "Vad betyder det här när du ritar banor?" },
       {
         type: "p",
-        text: "Banplaneraren är ett ritverktyg, inte ett regelverk. Mallar och planstorlekar är inspirerade av de svenska regelverken och granskade på översiktsnivå, men det är alltid du som banbyggare som ansvarar för att ett upplägg följer de regler som gäller för ditt syfte — träning, officiell träningstävling eller tävling.",
+        text: "Banplaneraren har en förhandskontroll mot SAgiK:s agilityregler, Nollklassen, SHoK och FCI hoopers: avstånd längs hundens väg, antal hinder, start och mål, tillåtna hinder per klass och avstånd till bankanten. Den hjälper dig hitta vanliga fel, men den ersätter inte regelverket — det är alltid du som banbyggare som ansvarar för att ett upplägg följer de regler som gäller för ditt syfte.",
       },
       {
         type: "ul",
         items: [
           "Träningsbanor: anpassa fritt efter hund, nivå och yta — se vår guide om [säkra träningsbanor](/blogg/bygga-saker-traningsbana-agility).",
-          "Tävlingsliknande upplägg: dubbelkolla mått, hinderkrav och säkerhetsavstånd mot aktuellt regelverk hos SKK respektive Svenska Hooperssällskapet.",
+          "Tävlingsliknande upplägg: välj klassmall i planeraren och dubbelkolla mått, hinderkrav och säkerhetsavstånd mot aktuellt regelverk hos SAgiK respektive SHoK.",
           "Osäker? Fråga en domare i klubben. Det är billigare än att bygga om en plan.",
         ],
       },
     ],
     related: ["bygga-saker-traningsbana-agility", "hoopers-for-nyborjare", "fran-banide-till-traningspass"],
     cta: {
-      heading: "Rita med regelinspirerade mallar",
-      text: "Banbibliotekets banor är byggda efter svenska klassnivåer och granskade på översiktsnivå — en trygg startpunkt att bygga vidare på.",
+      heading: "Börja från en regelkontrollerad bana",
+      text: "Banbibliotekets banor klarar planerarens regelkontroll för sin klass — en trygg startpunkt att bygga vidare på.",
       to: "/banor",
       label: "Utforska banbiblioteket",
     },

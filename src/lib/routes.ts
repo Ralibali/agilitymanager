@@ -1,14 +1,14 @@
 /**
- * Manifest över sajten publika, indexerbara routes.
- * Används av nav/SEO-arbete och av scripts/generate-sitemap.mjs
- * för att hålla public/sitemap.xml i sync med verkliga routes.
+ * Manifest över sajtens publika, indexerbara routes.
+ * Används av scripts/generate-sitemap.mjs för att hålla public/sitemap.xml i
+ * sync med verkliga routes. Titlar och beskrivningar finns i src/lib/pageSeo.ts
+ * och förrenderas av scripts/prerender-competitions.mjs.
  *
- * Routeschema (scope: blogg/kunskap + banplanerare):
- *  - KEEP:     /, /funktioner, /blogg, /blogg/:slug, /banplanerare, /banor, /delade-banor
- *  - NOINDEX:  /bana/:id (dynamiskt/tunt innehåll, undvik massindexering)
- *  - REDIRECT: /priser, /gratis -> /banplanerare (pricing out of scope)
- *              /tavlingar/* -> / (tävling out of scope)
- *              /auth, /logga-in -> /banplanerare (auth-ytor out of scope)
+ *  - Indexeras:  routes nedan, bloggartiklar (/blogg/:slug) samt tävlingar,
+ *                län och klubbar (förrenderas när tävlingsdatan kan hämtas).
+ *  - NOINDEX:    /bana/:id, /mitt-agilitymanager, /traning, /instruktor, /elev,
+ *                /tavlingar/favoriter (personliga eller tunna sidor).
+ *  - REDIRECT:   /gratis → /priser, /konto, /auth, /logga-in → /mitt-agilitymanager.
  */
 export interface PublicRoute {
   path: string;

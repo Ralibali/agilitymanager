@@ -11,6 +11,7 @@ import {
 
 import { toast } from "sonner";
 import { Seo } from "@/components/Seo";
+import { PAGE_SEO, seoProps } from "@/lib/pageSeo";
 import { uid, type PlacedObstacle, type Sport } from "@/lib/course";
 import { ObstacleGlyph, ObstacleIcon } from "@/components/ObstacleGlyph";
 import { Logo } from "@/components/SiteNav";
@@ -96,6 +97,27 @@ interface Draft {
   obstacles: PlacedObstacle[];
   ruleSetId?: string;
 }
+
+/** Strukturerad data för banplaneraren — konstant så att <Seo> inte byter skript vid varje omrendering. */
+const PLANNER_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "AgilityManager Banplanerare",
+  url: "https://agilitymanager.se/banplanerare",
+  applicationCategory: "SportsApplication",
+  operatingSystem: "Webbläsare",
+  inLanguage: "sv-SE",
+  description: PAGE_SEO.planner.description,
+  offers: { "@type": "Offer", price: "0", priceCurrency: "SEK" },
+  featureList: [
+    "Banor i meterskala för agility och hoopers",
+    "Regelkontroll enligt SAgiK, SHoK och FCI",
+    "Hundens väg, avstånd och banlängd",
+    "3D-vy och banvandring",
+    "PDF-export för domare och banbyggare",
+    "Delningslänkar utan konto",
+  ],
+};
 
 const STORAGE_KEY = "am-redesign-planner-v2";
 const SOCIAL_ID_KEY = "am-planner-shared-course";
@@ -1907,9 +1929,8 @@ export default function PlannerPage() {
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-paper text-ink">
       <AffiliateBanner compact />
       <Seo
-        title="Banplanerare — rita agility- och hoopersbanor gratis | AgilityManager"
-        description="Rita banor i meterskala direkt i webbläsaren. Hindereditor, live banlinje, PNG-export och delningslänkar för agility och hoopers — gratis, utan konto."
-        canonicalPath="/banplanerare"
+        {...seoProps(PAGE_SEO.planner)}
+        jsonLd={PLANNER_JSON_LD}
       />
       <h1 className="sr-only">Banplanerare för agility och hoopers</h1>
       {/* ── Topprad ── */}

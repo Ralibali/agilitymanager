@@ -5,6 +5,7 @@ import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Seo } from "@/components/Seo";
+import { PAGE_SEO, seoProps } from "@/lib/pageSeo";
 import { Reveal } from "@/components/Reveal";
 import { supabase } from "@/integrations/supabase/client";
 import CoursePreviewSvg, { type PreviewCourseData } from "@/features/planner-social/CoursePreviewSvg";
@@ -116,9 +117,7 @@ export default function SharedCoursesPage() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       <Seo
-        title="Delade banor — banor från communityn | AgilityManager"
-        description="Bläddra bland banor som andra förare delat: agility och hoopers, med betyg och kommentarer. Öppna direkt i banplaneraren och bygg vidare — gratis."
-        canonicalPath="/delade-banor"
+        {...seoProps(PAGE_SEO.sharedCourses)}
       />
       <SiteNav />
       <PageHero kicker="Delade banor" title="Banor från communityn — öppna, testa, bygg vidare.">

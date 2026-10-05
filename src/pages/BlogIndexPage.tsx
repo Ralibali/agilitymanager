@@ -4,6 +4,7 @@ import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Seo, SITE_URL } from "@/components/Seo";
+import { PAGE_SEO, seoProps } from "@/lib/pageSeo";
 import { Reveal } from "@/components/Reveal";
 import { PartnerAdCard } from "@/components/AffiliateBanner";
 import { ARTICLES } from "@/content/articles";
@@ -24,9 +25,7 @@ export default function BlogIndexPage() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       <Seo
-        title="Blogg & kunskapsbank — agility, hoopers och banbyggande | AgilityManager"
-        description="Guider om agility, hoopers, regler och bandesign på svenska. Lär dig rita säkra träningsbanor, förstå regelverken och planera träningen smartare."
-        canonicalPath="/blogg"
+        {...seoProps(PAGE_SEO.blog)}
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "Blog",

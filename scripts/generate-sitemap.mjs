@@ -56,8 +56,9 @@ const entries = [
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <!-- Genererad av scripts/generate-sitemap.mjs — redigera inte för hand.
-     Endast riktiga publika, indexerbara routes. /bana/:id (noindex) och
-     redirectade legacy-routes (/tavlingar, /priser, /auth m.fl.) är utelämnade. -->
+     Endast riktiga publika, indexerbara routes. Personliga sidor och /bana/:id
+     (noindex) samt redirectade routes (/gratis, /auth m.fl.) är utelämnade.
+     Tävlingar, län och klubbar läggs till av bygget när datan kan hämtas. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${entries.join("\n")}
 </urlset>

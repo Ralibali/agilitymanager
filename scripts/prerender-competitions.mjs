@@ -30,6 +30,22 @@ async function main() {
   });
 
   const mod = await import(pathToFileURL(join(outDir, "entry.mjs")).href);
+  const template = await readFile(join(root, "dist/index.html"), "utf8");
+
+  // Statiska sidor skrivs alltid — de behöver ingen nätverksdata. Tävlings-
+  // kalendern och klubbsidan nedan ersätts av fullständiga versioner när
+  // tävlingsdatan går att hämta.
+  const staticPages = mod.buildStaticPages();
+  for (const page of staticPages) {
+    const html = mod.renderPage(template, page);
+    const dir = join(root, "dist", page.canonicalPath);
+    await mkdir(dir, { recursive: true });
+    await writeFile(join(dir, "index.html"), html);
+    // Värdar som mappar /sida → sida.html (utan avslutande snedstreck).
+    await writeFile(join(root, "dist", `${page.canonicalPath}.html`), html);
+  }
+  console.log(`Prerendered ${staticPages.length} static pages.`);
+
   const comps = await Promise.race([
     mod.fetchUpcomingCompetitions(),
     new Promise((_, reject) => setTimeout(() => reject(new Error("tidsgräns för tävlingsdata")), TIMEOUT_MS)),
@@ -38,12 +54,15 @@ async function main() {
     throw new Error("ingen tävlingsdata hämtades");
   }
 
-  const template = await readFile(join(root, "dist/index.html"), "utf8");
   const pages = mod.buildCompetitionPages(comps);
+  const staticPaths = new Set(staticPages.map((p) => p.canonicalPath));
   for (const page of pages) {
+    const html = mod.renderPage(template, page);
     const dir = join(root, "dist", page.canonicalPath);
     await mkdir(dir, { recursive: true });
-    await writeFile(join(dir, "index.html"), mod.renderPage(template, page));
+    await writeFile(join(dir, "index.html"), html);
+    // Ersätt även reservsidans sida.html (t.ex. /tavlingar, /klubbar).
+    if (staticPaths.has(page.canonicalPath)) await writeFile(join(root, "dist", `${page.canonicalPath}.html`), html);
   }
 
   const sitemapPath = join(root, "dist/sitemap.xml");

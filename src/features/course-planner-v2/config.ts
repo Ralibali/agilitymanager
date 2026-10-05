@@ -17,7 +17,7 @@
  *  - Agilityregler 2022-01-01–2026-12-31 (SAgiK/SKK) — agilityklubben.se/regler
  *  - "Säkra hinder" – anvisningar (SAgiK)
  *  - Referenstider – Information (reviderad 2023) (SAgiK)
- *  - Svenska Hooperssällskapets regelverk 2022→
+ *  - Svenska Hoopersklubbens (SHoK) regelverk 2025-11-01–2028-10-31
  */
 
 export type Sport = "agility" | "hoopers";

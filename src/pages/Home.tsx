@@ -10,6 +10,7 @@ import { Reveal, RisingWords } from "@/components/Reveal";
 import { CourseMap } from "@/components/CourseMap";
 import { RotatingBadge } from "@/components/RotatingBadge";
 import { Seo, SITE_URL } from "@/components/Seo";
+import { PAGE_SEO, seoProps } from "@/lib/pageSeo";
 import { courseFromBankEntry, type Course } from "@/lib/course";
 import { COURSE_BANK } from "@/features/course-planner-v2/courseBank";
 import { ARTICLES } from "@/content/articles";
@@ -91,9 +92,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       <Seo
-        title="AgilityManager — planera, träna och tävla i agility och hoopers"
-        description="Rita banor gratis i meterskala, planera träningen, följ instruktörens uppgifter och hitta svenska agility- och hooperstävlingar. Banplaneraren är gratis, konto behövs bara för synk."
-        canonicalPath="/"
+        {...seoProps(PAGE_SEO.home)}
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "WebSite",

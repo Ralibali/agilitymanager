@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { Seo } from "@/components/Seo";
+import { PAGE_SEO, seoProps } from "@/lib/pageSeo";
 import { profileLabel, useDogProfile, type SavedDogProfile } from "@/lib/dogMatch";
 import {
   DISCIPLINES,
@@ -190,9 +191,7 @@ export default function ResultsPage() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       <Seo
-        title="Resultatlogg för agility och hoopers — meriter och uppflyttning | AgilityManager"
-        description="Logga dina tävlingslopp i agility, hopp och hoopers. Se felfria lopp, placeringar, bästa tider och hur många meriter som återstår till nästa klass. Gratis, utan konto."
-        canonicalPath="/resultat"
+        {...seoProps(PAGE_SEO.results)}
       />
       <SiteNav />
       <PageHero kicker="Resultat & meriter" title="Varje lopp räknas.">

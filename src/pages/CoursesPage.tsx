@@ -7,6 +7,7 @@ import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { CourseMap } from "@/components/CourseMap";
 import { Seo } from "@/components/Seo";
+import { PAGE_SEO, seoProps } from "@/lib/pageSeo";
 import { courseFromBankEntry, type Sport } from "@/lib/course";
 import { COURSE_BANK } from "@/features/course-planner-v2/courseBank";
 import { getClassTemplate } from "@/features/course-planner-v2/config";
@@ -39,14 +40,12 @@ export default function CoursesPage() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       <Seo
-        title="Banbibliotek — färdiga banor för agility och hoopers | AgilityManager"
-        description="Nivåmärkta banor för agility och hoopers, inspirerade av svenska klassnivåer. Öppna direkt i banplaneraren, justera och exportera — gratis utan konto."
-        canonicalPath="/banor"
+        {...seoProps(PAGE_SEO.courses)}
       />
       <SiteNav />
-      <PageHero kicker="Banbibliotek" title="Officiellt inspirerade banor — granskade mot regelverket.">
-        Tävlingsinspirerade banor och nollklasskurser byggda efter SAgiK/SKK och
-        Svenska Hooperssällskapets regler. Öppna direkt i planeraren, justera och
+      <PageHero kicker="Banbibliotek" title="Färdiga banor som klarar regelkontrollen.">
+        Banor för svenska klass 1–3, Nollklass och hoopers — egna original som klarar
+        planerarens kontroll mot SAgiK och SHoK. Öppna direkt i planeraren, justera och
         exportera. Allt är gratis — även utan konto.
       </PageHero>
 

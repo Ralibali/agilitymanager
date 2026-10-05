@@ -2,16 +2,13 @@ import { Link } from 'react-router';
 import { SiteNav } from '@/components/SiteNav';
 import { SiteFooter } from '@/components/SiteFooter';
 import { Seo } from '@/components/Seo';
+import { PAGE_SEO, seoProps } from '@/lib/pageSeo';
 import { openCookieSettings } from '@/lib/privacyConsent';
 
 export default function CookieInformationPage() {
   return (
     <>
-      <Seo
-        title="Cookies och lokal lagring | AgilityManager"
-        description="Så använder AgilityManager nödvändig lokal lagring och valfri statistik (Google Analytics 4) — och hur du ändrar ditt val."
-        canonicalPath="/cookies"
-      />
+      <Seo {...seoProps(PAGE_SEO.cookies)} />
       <SiteNav />
       <main id="main" className="mx-auto max-w-3xl space-y-5 px-4 py-14 leading-relaxed text-ink/80 sm:px-6 sm:py-20">
         <p className="text-xs font-bold uppercase tracking-[0.22em] text-forest">Integritet</p>

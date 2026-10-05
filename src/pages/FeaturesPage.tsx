@@ -9,6 +9,7 @@ import { PageHero } from "@/components/PageHero";
 import { Marquee } from "@/components/Marquee";
 import { Reveal } from "@/components/Reveal";
 import { Seo } from "@/components/Seo";
+import { PAGE_SEO, seoProps } from "@/lib/pageSeo";
 
 const GROUPS = [
   {
@@ -16,10 +17,10 @@ const GROUPS = [
     title: "Rita som en domare.",
     text: "Hela editorn är gratis — inget konto behövs för att börja. Meterskala, snap, banlinje och export som ser ut som en riktig domarritning.",
     items: [
-      { icon: MousePointer2, t: "Full hindereditor", d: "Placera, flytta, rotera, duplicera och numrera. Dra rotationshandtaget eller snabbrotera i 45°-steg." },
-      { icon: Ruler, t: "Meterskala & rutnät", d: "Plan upp till 40×25 m med meterrutnät, 0,25 m-snap, zoom och live-uppmätt banlängd." },
-      { icon: Spline, t: "Banlinje live", d: "Hundens linje ritas automatiskt genom hindren i nummerordning — se flödet innan ni springer." },
-      { icon: ShieldCheck, t: "Agility + Hoopers", d: "Byt sport med ett klick och få rätt hinderpalett och planstorlek för din gren." },
+      { icon: MousePointer2, t: "Full hindereditor", d: "Placera, flytta, rotera, duplicera, låsa och numrera — även flera hinder samtidigt. Tunnlar i valfri längd och böj." },
+      { icon: Ruler, t: "Meterskala & verkliga mått", d: "Valfria banmått med meterrutnät, 0,25 m-snäpp och hinder i verklig storlek — balansbom, A-hinder och slalom tar den plats de tar på planen." },
+      { icon: Spline, t: "Hundens väg live", d: "Hundens linje ritas genom hindren i nummerordning med avstånd och banlängd — samma linje i 2D, 3D och PDF." },
+      { icon: ShieldCheck, t: "Regelkontroll", d: "Kontrollera banan mot SAgiK:s agilityregler, Nollklass, SHoK och FCI hoopers: avstånd, hinderantal, start och mål, bankant och klassens tillåtna hinder." },
     ],
   },
   {
@@ -27,8 +28,8 @@ const GROUPS = [
     title: "Från din skärm till träningsplanen.",
     text: "Banan ska inte leva kvar i verktyget — den ska ut till gruppen, klubben och planen.",
     items: [
-      { icon: FileDown, t: "PNG-export", d: "Ladda ner en crisp bankarta att slänga in i träningsgruppen eller skriva ut till planen." },
-      { icon: Users, t: "Delningslänkar", d: "Dela banan med en länk — mottagaren öppnar den direkt i sin egen planerare, gratis. Mot din e-post, det är allt vi ber om." },
+      { icon: FileDown, t: "PDF och PNG", d: "Domar-PDF, bygg-PDF med koordinater, tränings-PDF och startlista — eller en skarp PNG till träningsgruppen." },
+      { icon: Users, t: "Delningslänkar", d: "Dela banan med en länk — mottagaren öppnar den direkt i sin egen planerare, utan konto. Vill du publicera i communityn räcker namn och e-post." },
       { icon: NotebookPen, t: "Autosparat lokalt", d: "Banan sparas i din webbläsare medan du ritar. Tappar du fliken finns den kvar när du kommer tillbaka." },
       { icon: LayoutGrid, t: "Mallar & bibliotek", d: "Börja aldrig från noll om du inte vill — ladda en färdig bana och bygg vidare." },
     ],
@@ -41,7 +42,7 @@ const GROUPS = [
       { icon: BookOpen, t: "Blogg & guider", d: "Fördjupningar om bandesign, säkerhet, regler och träningsupplägg — på svenska." },
       { icon: Medal, t: "Nivåmärkta banor", d: "Träna på banlayouter inspirerade av riktiga klasser och nivåer, från nollklass uppåt." },
       { icon: NotebookPen, t: "Regelöversikter", d: "Vi håller reda på var de officiella regelverken finns — och märker tydligt vad som är vår egen analys." },
-      { icon: Smartphone, t: "Mobil först", d: "Hela upplevelsen är byggd touch-first. Planen är där du är." },
+      { icon: Smartphone, t: "Mobil, surfplatta och dator", d: "Byggd för touch: nyp för att zooma, dra för att flytta — och alla inställningar finns även i mobilen." },
     ],
   },
 ];
@@ -50,9 +51,7 @@ export default function FeaturesPage() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       <Seo
-        title="Funktioner — allt banplaneraren kan | AgilityManager"
-        description="Hindereditor i meterskala, live banlinje, PNG-export, delningslänkar, nivåmärkt banbibliotek och kunskapsbank för agility och hoopers. Gratis, utan konto."
-        canonicalPath="/funktioner"
+        {...seoProps(PAGE_SEO.features)}
       />
       <SiteNav />
       <PageHero kicker="Funktioner" title="Allt banplaneraren kan.">

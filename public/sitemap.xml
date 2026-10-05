@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Genererad av scripts/generate-sitemap.mjs — redigera inte för hand.
-     Endast riktiga publika, indexerbara routes. /bana/:id (noindex) och
-     redirectade legacy-routes (/tavlingar, /priser, /auth m.fl.) är utelämnade. -->
+     Endast riktiga publika, indexerbara routes. Personliga sidor och /bana/:id
+     (noindex) samt redirectade routes (/gratis, /auth m.fl.) är utelämnade.
+     Tävlingar, län och klubbar läggs till av bygget när datan kan hämtas. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://agilitymanager.se/</loc>
@@ -102,13 +103,13 @@
   </url>
   <url>
     <loc>https://agilitymanager.se/blogg/bygga-saker-traningsbana-agility</loc>
-    <lastmod>2026-01-20</lastmod>
+    <lastmod>2026-10-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://agilitymanager.se/blogg/hoopers-for-nyborjare</loc>
-    <lastmod>2026-01-20</lastmod>
+    <lastmod>2026-10-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -120,7 +121,7 @@
   </url>
   <url>
     <loc>https://agilitymanager.se/blogg/regelverk-agility-hoopers-sverige</loc>
-    <lastmod>2026-01-20</lastmod>
+    <lastmod>2026-10-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

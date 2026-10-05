@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { Seo } from "@/components/Seo";
+import { PAGE_SEO, seoProps } from "@/lib/pageSeo";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
@@ -51,9 +52,7 @@ export default function GratisPage() {
   return (
     <div className="min-h-screen bg-paper text-ink">
       <Seo
-        title="Priser — banplaneraren är gratis | AgilityManager"
-        description="Banplaneraren för agility och hoopers är gratis: alla hinder, mallar, export, delningslänkar, banbibliotek och tävlingskalender. Inget konto eller kort behövs."
-        canonicalPath="/priser"
+        {...seoProps(PAGE_SEO.pricing)}
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "FAQPage",

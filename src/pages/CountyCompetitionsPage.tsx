@@ -24,7 +24,7 @@ export default function CountyCompetitionsPage() {
     <CompetitionLanding
       kicker="Tävlingar i länet"
       title={`Agility & hoopers i ${county.name}.`}
-      intro={`Alla kommande agility- och hooperstävlingar i ${label} — med datum, klasser, domare och sista anmälningsdag. Listan uppdateras automatiskt från arrangörernas källor.`}
+      intro={`Alla kommande agility- och hooperstävlingar i ${label} — med datum, klasser, domare och sista anmälningsdag. Listan uppdateras automatiskt från agilitydata.se och Svenska Hoopersklubben.`}
       seoTitle={seo.title}
       seoDescription={seo.description}
       canonicalPath={seo.canonicalPath}

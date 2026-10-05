@@ -14,6 +14,7 @@ import {
 } from "@/lib/competitionSeo";
 import { slugify } from "@/lib/competitionSlug";
 import { SITE_ORIGIN } from "@/lib/firstByteSeo";
+import { LISTING_SOURCE_TEXT, SOURCE_DISCLAIMER, competitionSource } from "@/lib/competitionSource";
 import { COUNTIES, countySlug } from "@/lib/swedishCounties";
 
 export interface PrerenderedPage extends PageSeo {
@@ -30,6 +31,7 @@ export function esc(value: unknown): string {
 
 const MAIN = '<main class="mx-auto max-w-5xl space-y-6 px-6 py-16">';
 const HOME = '<a href="/">AgilityManager</a>';
+const LISTING_SOURCE = `<p>${esc(LISTING_SOURCE_TEXT)} ${esc(SOURCE_DISCLAIMER)}</p>`;
 
 function compItem(c: UnifiedCompetition): string {
   const meta = [c.dateStart ? longDate(c.dateStart) : null, c.location, c.club].filter(Boolean).map(esc).join(" · ");
@@ -70,7 +72,7 @@ const countyLinks = (exceptSlug?: string) =>
 function calendarPage(comps: UnifiedCompetition[], now: Date): PrerenderedPage {
   return {
     ...calendarSeo(now),
-    body: `${MAIN}${HOME}<h1>Hitta er nästa start.</h1><p>Agility och hoopers över hela landet — med anmälningsstatus, klasser, domare och plats. Uppdateras automatiskt från arrangörernas källor.</p><p><a href="/klubbar">Alla klubbar som arrangerar tävlingar</a></p>${listByMonth(comps)}<h2>Tävlingar per län</h2>${countyLinks()}</main>`,
+    body: `${MAIN}${HOME}<h1>Hitta er nästa start.</h1><p>Agility och hoopers över hela landet — med anmälningsstatus, klasser, domare och plats. Uppdateras automatiskt från agilitydata.se och Svenska Hoopersklubben.</p><p><a href="/klubbar">Alla klubbar som arrangerar tävlingar</a></p>${listByMonth(comps)}<h2>Tävlingar per län</h2>${countyLinks()}${LISTING_SOURCE}</main>`,
   };
 }
 
@@ -84,48 +86,58 @@ function countyPages(comps: UnifiedCompetition[], now: Date): PrerenderedPage[] 
       jsonLd: itemList(seo.title, list),
       body: `${MAIN}${HOME}<h1>Agility &amp; hoopers i ${esc(county.name)}.</h1><p>Alla kommande agility- och hooperstävlingar i ${esc(label)} — med datum, klasser, domare och sista anmälningsdag.</p>${
         list.length ? listByMonth(list) : `<p>Inga kommande tävlingar i ${esc(label)} just nu.</p>`
-      }<p><a href="/tavlingar">Alla tävlingar i Sverige</a></p><h2>Tävlingar i andra län</h2>${countyLinks(county.slug)}</main>`,
+      }<p><a href="/tavlingar">Alla tävlingar i Sverige</a></p><h2>Tävlingar i andra län</h2>${countyLinks(county.slug)}${LISTING_SOURCE}</main>`,
     };
   });
 }
 
-function clubPages(comps: UnifiedCompetition[]): PrerenderedPage[] {
-  return buildClubDirectory(comps).map((club) => {
+function pastList(list: UnifiedCompetition[]): string {
+  if (list.length === 0) return "";
+  return `<h2>Genomförda tävlingar</h2><ul>${list.slice(0, 30).map(compItem).join("")}</ul>`;
+}
+
+function clubPages(comps: UnifiedCompetition[], past: UnifiedCompetition[]): PrerenderedPage[] {
+  return buildClubDirectory(comps, past).map((club) => {
     const list = comps.filter((c) => slugify(c.club) === club.slug);
+    const previous = past.filter((c) => slugify(c.club) === club.slug);
     const seo = clubSeo(club.name, club.slug);
     const county = club.county
       ? `<p><a href="/tavlingar/lan/${countySlug(club.county)}">Alla tävlingar i ${esc(club.county)} län</a></p>`
       : "";
     return {
       ...seo,
-      jsonLd: itemList(seo.title, list),
-      body: `${MAIN}${HOME}<h1>${esc(club.name)} tävlingar.</h1><p>Kommande agility- och hooperstävlingar arrangerade av ${esc(club.name)} — datum, klasser, domare och sista anmälningsdag.</p><p>Tävlar i: ${esc(club.locations.join(", ") || "okänd ort")}.</p>${listByMonth(list)}${county}<p><a href="/klubbar">Alla klubbar</a></p></main>`,
+      jsonLd: itemList(seo.title, [...list, ...previous]),
+      body: `${MAIN}${HOME}<h1>${esc(club.name)} tävlingar.</h1><p>Kommande agility- och hooperstävlingar arrangerade av ${esc(club.name)} — datum, klasser, domare och sista anmälningsdag.</p><p>Tävlar i: ${esc(club.locations.join(", ") || "okänd ort")}.</p>${
+        list.length ? listByMonth(list) : `<p>Inga kommande tävlingar från ${esc(club.name)} just nu.</p>`
+      }${pastList(previous)}${county}<p><a href="/klubbar">Alla klubbar</a></p>${LISTING_SOURCE}</main>`,
     };
   });
 }
 
-function clubsDirectoryPage(comps: UnifiedCompetition[]): PrerenderedPage {
-  const groups = groupClubsByCounty(buildClubDirectory(comps));
+function clubsDirectoryPage(comps: UnifiedCompetition[], past: UnifiedCompetition[]): PrerenderedPage {
+  const groups = groupClubsByCounty(buildClubDirectory(comps, past));
   return {
     ...clubsSeo(),
-    body: `${MAIN}${HOME}<h1>Hitta klubbarna.</h1><p>Alla klubbar som arrangerar agility- och hooperstävlingar just nu, län för län.</p>${groups
+    body: `${MAIN}${HOME}<h1>Hitta klubbarna.</h1><p>Alla klubbar som arrangerar agility- och hooperstävlingar, län för län – även de som just nu saknar kommande tävlingar.</p>${groups
       .map(
         ([county, clubs]) =>
           `<h2>${esc(county ? `${county} län` : "Okänt län")}</h2><ul>${clubs
             .map(
               (c) =>
-                `<li><a href="/tavlingar/klubb/${c.slug}">${esc(c.name)}</a> — ${c.upcoming} ${
-                  c.upcoming === 1 ? "tävling" : "tävlingar"
+                `<li><a href="/tavlingar/klubb/${c.slug}">${esc(c.name)}</a> — ${
+                  c.upcoming > 0
+                    ? `${c.upcoming} ${c.upcoming === 1 ? "kommande tävling" : "kommande tävlingar"}`
+                    : `${c.past} genomförda senaste året`
                 }${c.locations.length ? `, ${esc(c.locations.slice(0, 3).join(", "))}` : ""}</li>`,
             )
             .join("")}</ul>`,
       )
-      .join("")}</main>`,
+      .join("")}${LISTING_SOURCE}</main>`,
   };
 }
 
-function competitionPage(c: UnifiedCompetition): PrerenderedPage {
-  const seo = competitionSeo(c);
+function competitionPage(c: UnifiedCompetition, now: Date): PrerenderedPage {
+  const seo = competitionSeo(c, now);
   const facts: [string, string][] = [
     ["Arrangör", c.club || "Ej angiven"],
     ["Plats", [c.location, c.county].filter(Boolean).join(" · ") || "Ej angiven"],
@@ -142,23 +154,37 @@ function competitionPage(c: UnifiedCompetition): PrerenderedPage {
     c.county ? `<a href="/tavlingar/lan/${countySlug(c.county)}">Tävlingar i ${esc(c.county)} län</a>` : "",
     '<a href="/tavlingar">Tävlingskalendern</a>',
   ].filter(Boolean);
+  const source = competitionSource(c.sport, c.sourceUrl);
   return {
     ...seo,
     body: `${MAIN}${HOME}<h1>${esc(c.name)}</h1><p>${esc(seo.description)}</p><dl>${facts
       .map(([k, v]) => `<dt><strong>${k}</strong></dt><dd>${esc(v)}</dd>`)
-      .join("")}</dl><ul>${links.map((l) => `<li>${l}</li>`).join("")}</ul></main>`,
+      .join("")}</dl><p>Källa: <a href="${esc(source.url)}" rel="noopener">${esc(source.name)}</a> (${esc(source.organization)}). ${esc(SOURCE_DISCLAIMER)}</p><ul>${links.map((l) => `<li>${l}</li>`).join("")}</ul></main>`,
   };
 }
 
-/** Alla förrenderade tävlingssidor. Tävlingar med ovanliga tecken i adressen hoppas över. */
-export function buildCompetitionPages(comps: UnifiedCompetition[], now = new Date()): PrerenderedPage[] {
-  const safe = comps.filter((c) => /^\/[a-z0-9/_-]+$/i.test(c.path));
+/**
+ * Alla förrenderade tävlingssidor. Genomförda tävlingar (`past`) får egna
+ * sidor och håller kvar klubbsidorna, men visas inte i kalendern eller på
+ * länssidorna. Tävlingar med ovanliga tecken i adressen hoppas över.
+ */
+export function buildCompetitionPages(
+  comps: UnifiedCompetition[],
+  now = new Date(),
+  past: UnifiedCompetition[] = [],
+): PrerenderedPage[] {
+  const seen = new Set<string>();
+  const detail = [...comps, ...past].filter((c) => {
+    if (!/^\/[a-z0-9/_-]+$/i.test(c.path) || seen.has(c.path)) return false;
+    seen.add(c.path);
+    return true;
+  });
   return [
     calendarPage(comps, now),
-    clubsDirectoryPage(comps),
+    clubsDirectoryPage(comps, past),
     ...countyPages(comps, now),
-    ...clubPages(comps),
-    ...safe.map(competitionPage),
+    ...clubPages(comps, past),
+    ...detail.map((c) => competitionPage(c, now)),
   ];
 }
 

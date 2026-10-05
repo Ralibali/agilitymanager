@@ -68,6 +68,27 @@ describe("buildCompetitionPages", () => {
   });
 });
 
+describe("buildCompetitionPages med genomförda tävlingar", () => {
+  const upcoming = [comp({})];
+  const past = [
+    comp({ key: "a-7", id: "7", club: "Hallabergs Brukshundklubb", location: "Laholm", county: "Hallands", dateStart: "2026-08-29", path: "/tavlingar/7/hallabergs-brukshundklubb-laholm-2026-08-29" }),
+  ];
+  const pages = buildCompetitionPages(upcoming, NOW, past);
+  const byPath = new Map(pages.map((p) => [p.canonicalPath, p]));
+
+  it("ger genomförda tävlingar och klubbar utan kommande tävlingar egna sidor", () => {
+    expect(byPath.get("/tavlingar/7/hallabergs-brukshundklubb-laholm-2026-08-29")?.description).toContain("Tävlingen är genomförd.");
+    const club = byPath.get("/tavlingar/klubb/hallabergs-brukshundklubb")!;
+    expect(club.body).toContain("Inga kommande tävlingar");
+    expect(club.body).toContain("Genomförda tävlingar");
+  });
+
+  it("visar inte genomförda tävlingar i kalendern eller på länssidan", () => {
+    expect(byPath.get("/tavlingar")!.body).not.toContain("hallabergs-brukshundklubb-laholm");
+    expect(byPath.get("/tavlingar/lan/hallands")!.body).toContain("Inga kommande tävlingar");
+  });
+});
+
 describe("renderPage", () => {
   const html = renderPage(TEMPLATE, {
     title: 'Tävling "A" & B',
@@ -105,5 +126,23 @@ describe("sitemapUrls", () => {
 describe("esc", () => {
   it("escapar HTML-tecken", () => {
     expect(esc(`<a href="x">'&'</a>`)).toBe("&lt;a href=&quot;x&quot;&gt;&#39;&amp;&#39;&lt;/a&gt;");
+  });
+});
+
+describe("källhänvisning", () => {
+  const pages = buildCompetitionPages([
+    {
+      key: "a-1", id: "1", sport: "agility", name: "Höstagility", club: "Kungälvs BK", location: "Kungälv",
+      county: "Västra Götalands", dateStart: "2026-10-10", dateEnd: null, registrationCloses: null,
+      classes: [], judges: [], status: null, sourceUrl: "https://agilitydata.se/taevlingar/1",
+      path: "/tavlingar/1/kungalvs-bk-kungalv-2026-10-10",
+    },
+  ], new Date("2026-09-29T12:00:00Z"));
+
+  it("anger källan på varje förrenderad sida", () => {
+    for (const page of pages) expect(page.body, page.canonicalPath).toContain("agilitydata.se");
+    const detail = pages.find((p) => p.canonicalPath.startsWith("/tavlingar/1/"))!;
+    expect(detail.body).toContain('href="https://agilitydata.se/taevlingar/1"');
+    expect(detail.body).toContain("Svenska Agilityklubben");
   });
 });

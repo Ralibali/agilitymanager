@@ -2,7 +2,7 @@
 // Delas av React-sidorna och byggets förrendering, så att HTML:en Google
 // läser utan JavaScript alltid stämmer med sidan besökaren ser.
 import { SITE_ORIGIN } from "./firstByteSeo";
-import { longDate, type UnifiedCompetition } from "./competitionData";
+import { deadlineInfo, longDate, registrationOpen, type UnifiedCompetition } from "./competitionData";
 import type { CountyInfo } from "./swedishCounties";
 
 export interface PageSeo {
@@ -48,22 +48,55 @@ export function clubSeo(name: string, slug: string): PageSeo {
   };
 }
 
-export function competitionSeo(comp: UnifiedCompetition): PageSeo & { jsonLd: Record<string, unknown> } {
+function shortDateLabel(iso: string): string {
+  return new Date(iso).toLocaleDateString("sv-SE", { day: "numeric", month: "short", year: "numeric" });
+}
+
+/** Kortar av vid ett ordslut så att beskrivningen inte slutar mitt i ett ord. */
+function clip(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max - 1);
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), max / 2)).replace(/[,.;:–-]+$/, "")}…`;
+}
+
+export function competitionSeo(
+  comp: UnifiedCompetition,
+  now = new Date(),
+): PageSeo & { jsonLd: Record<string, unknown> } {
   const agility = comp.sport === "agility";
-  const date = comp.dateStart ? comp.dateStart.slice(0, 10) : "";
-  const title = (
-    agility
-      ? `${comp.name} – ${comp.club || "agilitytävling"}, ${comp.location} ${date}`
-      : `${comp.name} – hoopers i ${comp.location} ${date}`
-  ).trim();
-  const description = `${agility ? "Agilitytävling" : "Hooperstävling"} i ${comp.location || "Sverige"}${
-    comp.club ? ` arrangerad av ${comp.club}` : ""
-  }${comp.dateStart ? ` den ${longDate(comp.dateStart)}` : ""}. ${
-    agility ? "Klasser, domare, sista anmälningsdag och plats." : "Klasser, anmälningstider, pris och kontakt."
-  }`;
+  const kind = agility ? "agilitytävling" : "hooperstävling";
+  const where = comp.location || "Sverige";
+  const when = comp.dateStart ? shortDateLabel(comp.dateStart) : "";
+  // Namnet först – det är vad folk söker på. Sport, ort och datum gör
+  // träffen begriplig i sökresultatet även när namnet är kort.
+  const full = `${comp.name} – ${kind} i ${where}${when ? `, ${when}` : ""}`;
+  const title = full.length <= 70 ? full : `${comp.name}, ${where}${when ? ` ${when}` : ""}`;
+
+  const today = now.toISOString().slice(0, 10);
+  const past = !!comp.dateStart && comp.dateStart.slice(0, 10) < today;
+  const status = past
+    ? "Tävlingen är genomförd."
+    : registrationOpen(comp.registrationCloses, now) && comp.registrationCloses
+      ? `Sista anmälningsdag ${shortDateLabel(comp.registrationCloses)}.`
+      : deadlineInfo(comp.registrationCloses, now).tone === "closed"
+        ? "Anmälan är stängd."
+        : "";
+  const description = [
+    `${agility ? "Agilitytävling" : "Hooperstävling"} i ${where}${comp.dateStart ? ` ${longDate(comp.dateStart)}` : ""}${
+      comp.club ? `, arrangerad av ${comp.club}` : ""
+    }.`,
+    status,
+    past
+      ? "Klasser, domare och arrangörens information."
+      : agility
+        ? "Klasser, domare och länk till anmälan."
+        : "Klasser, pris och länk till anmälan.",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return {
-    title: title.slice(0, 70),
-    description: description.slice(0, 158),
+    title: clip(title, 70),
+    description: clip(description, 158),
     canonicalPath: comp.path,
     jsonLd: {
       "@context": "https://schema.org",

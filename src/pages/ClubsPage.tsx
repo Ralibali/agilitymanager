@@ -6,7 +6,12 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { Seo, SITE_URL } from "@/components/Seo";
-import { fetchUpcomingCompetitions, shortDate, type UnifiedCompetition } from "@/lib/competitionData";
+import {
+  fetchPastCompetitions,
+  fetchUpcomingCompetitions,
+  shortDate,
+  type UnifiedCompetition,
+} from "@/lib/competitionData";
 import { buildClubDirectory, filterClubs, groupClubsByCounty, type ClubSummary } from "@/lib/clubs";
 import { countySlug } from "@/lib/swedishCounties";
 import { clubsSeo } from "@/lib/competitionSeo";
@@ -49,8 +54,11 @@ function ClubCard({ club }: { club: ClubSummary }) {
           </span>
         ))}
         <span className="text-ink/50">
-          {club.upcoming} {club.upcoming === 1 ? "tävling" : "tävlingar"}
-          {club.openRegistration > 0 ? ` · ${club.openRegistration} öppna` : ""}
+          {club.upcoming > 0
+            ? `${club.upcoming} ${club.upcoming === 1 ? "tävling" : "tävlingar"}${
+                club.openRegistration > 0 ? ` · ${club.openRegistration} öppna` : ""
+              }`
+            : `${club.past} genomförda senaste året`}
         </span>
         <ArrowRight
           className="ml-auto h-4 w-4 text-ink/40 transition-transform group-hover:translate-x-1 group-hover:text-ink"
@@ -63,14 +71,17 @@ function ClubCard({ club }: { club: ClubSummary }) {
 
 export default function ClubsPage() {
   const [all, setAll] = useState<UnifiedCompetition[]>([]);
+  const [past, setPast] = useState<UnifiedCompetition[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-    fetchUpcomingCompetitions()
-      .then((list) => {
-        if (!cancelled) setAll(list);
+    Promise.all([fetchUpcomingCompetitions(), fetchPastCompetitions()])
+      .then(([upcoming, previous]) => {
+        if (cancelled) return;
+        setAll(upcoming);
+        setPast(previous);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -80,7 +91,7 @@ export default function ClubsPage() {
     };
   }, []);
 
-  const clubs = useMemo(() => buildClubDirectory(all), [all]);
+  const clubs = useMemo(() => buildClubDirectory(all, past), [all, past]);
   const visible = useMemo(() => filterClubs(clubs, query), [clubs, query]);
   const groups = useMemo(() => groupClubsByCounty(visible), [visible]);
 
@@ -107,7 +118,7 @@ export default function ClubsPage() {
       />
       <SiteNav />
       <PageHero kicker="Klubbar" title="Hitta klubbarna.">
-        Alla klubbar som arrangerar agility- och hooperstävlingar just nu, län för län. Klicka på en klubb för
+        Alla klubbar som arrangerar agility- och hooperstävlingar, län för län – även de som just nu saknar kommande tävlingar. Klicka på en klubb för
         att se datum, klasser, domare och anmälan.
       </PageHero>
 
@@ -129,7 +140,7 @@ export default function ClubsPage() {
               ? "Hämtar klubbar…"
               : query.trim()
                 ? `${visible.length} av ${clubs.length} klubbar matchar`
-                : `${clubs.length} klubbar med kommande tävlingar`}
+                : `${clubs.length} klubbar som arrangerar tävlingar – ${clubs.filter((c) => c.upcoming > 0).length} med kommande tävlingar`}
           </p>
         </Reveal>
 

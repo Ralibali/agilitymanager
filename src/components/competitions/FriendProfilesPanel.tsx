@@ -3,7 +3,9 @@ import { Check, Dog, Pencil, RefreshCw, Users, Zap } from "lucide-react";
 import {
   AGILITY_LEVELS,
   HOOPERS_LEVELS,
-  JUMP_HEIGHT_CM,
+  jumpHeightLabel,
+  SIZE_CLASS_KEYS,
+  SIZE_WITHERS,
   hoopersSizeFor,
   profileLabel,
   type DogProfile,
@@ -12,7 +14,7 @@ import {
 } from "@/lib/dogMatch";
 import type { FriendProfileOwner, FriendsState } from "@/lib/dogMatchFriends";
 
-const SIZES: SizeClass[] = ["XS", "S", "M", "L"];
+const SIZES = SIZE_CLASS_KEYS;
 
 const fieldClass =
   "min-h-11 w-full rounded-2xl border-2 border-ink/15 bg-paper px-3 py-2 text-sm font-bold text-ink transition-colors hover:border-ink focus:border-ink focus:outline-none";
@@ -31,7 +33,7 @@ interface Props {
 
 function summary(p: DogProfile): string {
   const level = p.sport === "agility" ? p.agilityLevel : p.hoopersLevel;
-  const size = p.sport === "agility" ? `${JUMP_HEIGHT_CM[p.size]} cm` : hoopersSizeFor(p.size);
+  const size = p.sport === "agility" ? jumpHeightLabel(p.size, p.agilityLevel) : hoopersSizeFor(p.size);
   return `${level} · ${size}`;
 }
 
@@ -156,7 +158,7 @@ export function FriendProfilesPanel({ state, owners, countFor, onUse, onEdit, on
                         >
                           {SIZES.map((s) => (
                             <option key={s} value={s}>
-                              {s} · {JUMP_HEIGHT_CM[s]} cm
+                              {s} · {SIZE_WITHERS[s]}
                             </option>
                           ))}
                         </select>

@@ -3,7 +3,8 @@ import { CheckCircle2, Copy, Dog, Plus, Ruler, Sparkles, Trash2, X } from "lucid
 import {
   AGILITY_LEVELS,
   HOOPERS_LEVELS,
-  JUMP_HEIGHT_CM,
+  jumpHeightLabel,
+  SIZE_CLASS_KEYS,
   SIZE_WITHERS,
   hoopersSizeFor,
   profileLabel,
@@ -22,7 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const SIZES: SizeClass[] = ["XS", "S", "M", "L"];
+const SIZES = SIZE_CLASS_KEYS;
 
 interface Props {
   profile: DogProfile;
@@ -115,7 +116,7 @@ export function DogMatchPanel({
                   aria-current={isActive ? "true" : undefined}
                   aria-label={`${isActive ? "Aktiv profil" : "Välj profil"}: ${label}, ${
                     p.sport === "agility" ? p.agilityLevel : p.hoopersLevel
-                  }, ${p.sport === "agility" ? `${JUMP_HEIGHT_CM[p.size]} cm` : hoopersSizeFor(p.size)}`}
+                  }, ${p.sport === "agility" ? jumpHeightLabel(p.size, p.agilityLevel) : hoopersSizeFor(p.size)}`}
                   className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold transition-colors"
                 >
                   {isActive ? (
@@ -227,7 +228,7 @@ export function DogMatchPanel({
           <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 py-1.5">
             <Ruler className="h-3.5 w-3.5" />
             {profile.sport === "agility"
-              ? `Hopphöjd ${JUMP_HEIGHT_CM[profile.size]} cm (${profile.size})`
+              ? `Hopphöjd ${jumpHeightLabel(profile.size, profile.agilityLevel)} (${profile.size}, ${profile.agilityLevel.toLowerCase()})`
               : `Hoopers storlek ${hoopersSizeFor(profile.size)} (${profile.size})`}
           </span>
           <span className="rounded-full border-2 border-ink/15 px-3 py-1.5">

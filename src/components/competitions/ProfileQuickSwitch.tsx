@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { CheckCircle2, Copy, Dog, MoreVertical, Plus, Trash2, Zap } from "lucide-react";
 import {
-  JUMP_HEIGHT_CM,
+  jumpHeightLabel,
   hoopersSizeFor,
   profileLabel,
   type SavedDogProfile,
@@ -47,7 +47,7 @@ interface Props {
 
 function summary(p: SavedDogProfile): string {
   const level = p.sport === "agility" ? p.agilityLevel : p.hoopersLevel;
-  const size = p.sport === "agility" ? `${JUMP_HEIGHT_CM[p.size]} cm` : hoopersSizeFor(p.size);
+  const size = p.sport === "agility" ? jumpHeightLabel(p.size, p.agilityLevel) : hoopersSizeFor(p.size);
   return `${level} · ${size}`;
 }
 

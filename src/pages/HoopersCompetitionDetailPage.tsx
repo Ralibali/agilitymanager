@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Seo } from "@/components/Seo";
+import { localIsoDate } from "@/lib/format";
 import { competitionSeo } from "@/lib/competitionSeo";
 import { CompetitionDetailView, type DetailFact } from "@/components/competitions/CompetitionDetailView";
 import {
@@ -42,7 +43,7 @@ export default function HoopersCompetitionDetailPage() {
       setRow(comp);
       setState("ready");
 
-      const today = new Date().toISOString().slice(0, 10);
+      const today = localIsoDate();
       const rel = await supabase
         .from("hoopers_competitions")
         .select(HOOPERS_SELECT)

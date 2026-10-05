@@ -3,7 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import type { UnifiedCompetition } from "./competitionData";
 
 export type MatchSport = "agility" | "hoopers";
-export type SizeClass = "XS" | "S" | "M" | "L";
+export type SizeClass = "XS" | "S" | "M" | "L" | "XL";
+/** Svensk agilitys fem storleksklasser (SAgiK 2022–2026 §2.1). */
+export const SIZE_CLASS_KEYS: readonly SizeClass[] = ["XS", "S", "M", "L", "XL"];
 export type HoopersSize = "Small" | "Large";
 
 /** Klassnivåer som förekommer i den hämtade tävlingsdatan. */
@@ -29,20 +31,44 @@ export const DEFAULT_DOG_PROFILE: DogProfile = {
   size: "M",
 };
 
-/** Hopphöjd enligt SBK:s agilityregler. */
-export const JUMP_HEIGHT_CM: Record<SizeClass, number> = { XS: 25, S: 35, M: 45, L: 55 };
+/**
+ * Hopphöjder enligt SAgiK/SKK 2022–2026 §4.5 (cm). Klass 2–3 använder hela
+ * intervallet, klass 1 den undre halvan. I Nollklass är storleksklassens
+ * lägsta officiella höjd maxhöjden.
+ */
+const JUMP_HEIGHT_RANGE_CM: Record<SizeClass, [number, number]> = {
+  XS: [10, 20],
+  S: [20, 30],
+  M: [30, 40],
+  L: [40, 50],
+  XL: [50, 60],
+};
 
-/** Mankhöjdsintervall per storleksklass (cm). */
+/** Hopphöjden för storleksklass och klassnivå, t.ex. "30–35 cm". */
+export function jumpHeightLabel(size: SizeClass, level: AgilityLevel = "Klass 2"): string {
+  const [min, max] = JUMP_HEIGHT_RANGE_CM[size] ?? JUMP_HEIGHT_RANGE_CM.M;
+  if (level === "Nollklass") return `högst ${min} cm`;
+  if (level === "Klass 1") return `${min}–${min + 5} cm`;
+  return `${min}–${max} cm`;
+}
+
+/** Mankhöjdsintervall per storleksklass (SAgiK 2022–2026 §2.1). */
 export const SIZE_WITHERS: Record<SizeClass, string> = {
   XS: "under 28 cm",
   S: "28–34,9 cm",
   M: "35–42,9 cm",
-  L: "43 cm och över",
+  L: "43–49,9 cm",
+  XL: "43 cm och över",
 };
 
-/** Hoopers delas endast in i Small och Large. */
-export function hoopersSizeFor(size: SizeClass): HoopersSize {
-  return size === "XS" || size === "S" ? "Small" : "Large";
+/**
+ * Hoopers har bara Small (under 40 cm) och Large (SHoK §2.1). Medium-hundar
+ * (35–42,9 cm) kan hamna i båda — mankhöjden avgör.
+ */
+export function hoopersSizeFor(size: SizeClass): HoopersSize | "Small eller Large" {
+  if (size === "XS" || size === "S") return "Small";
+  if (size === "M") return "Small eller Large";
+  return "Large";
 }
 
 const AGILITY_TOKENS: Record<AgilityLevel, string[]> = {
@@ -130,6 +156,19 @@ export function profileLabel(profile: DogProfile, index: number): string {
   return profile.name.trim() || `Profil ${index + 1}`;
 }
 
+/** En profil från lagring eller konto: okända värden ersätts med standard. */
+function sanitizeProfile(raw: Partial<SavedDogProfile> | null | undefined): SavedDogProfile {
+  const p = { ...DEFAULT_DOG_PROFILE, ...(raw ?? {}) };
+  return {
+    name: typeof p.name === "string" ? p.name.slice(0, 60) : "",
+    sport: p.sport === "hoopers" ? "hoopers" : "agility",
+    agilityLevel: AGILITY_LEVELS.includes(p.agilityLevel) ? p.agilityLevel : DEFAULT_DOG_PROFILE.agilityLevel,
+    hoopersLevel: HOOPERS_LEVELS.includes(p.hoopersLevel) ? p.hoopersLevel : DEFAULT_DOG_PROFILE.hoopersLevel,
+    size: SIZE_CLASS_KEYS.includes(p.size) ? p.size : DEFAULT_DOG_PROFILE.size,
+    id: typeof raw?.id === "string" && raw.id ? raw.id : newId(),
+  };
+}
+
 /** Läser in och rensar upp en lagrad profillista (lokal eller från kontot). */
 export function sanitizeStore(raw: unknown): DogProfileStore | null {
   if (!raw || typeof raw !== "object") return null;
@@ -137,7 +176,7 @@ export function sanitizeStore(raw: unknown): DogProfileStore | null {
   if (!Array.isArray(value.profiles) || value.profiles.length === 0) return null;
   const profiles = value.profiles
     .slice(0, MAX_DOG_PROFILES)
-    .map((p) => ({ ...DEFAULT_DOG_PROFILE, ...p, id: p?.id || newId() }));
+    .map((p) => sanitizeProfile(p));
   const activeId = profiles.some((p) => p.id === value.activeId)
     ? (value.activeId as string)
     : profiles[0].id;
@@ -335,7 +374,7 @@ export function explainMatch(comp: UnifiedCompetition, dog: DogProfile): MatchEx
       label: "Storlek",
       detail:
         dog.sport === "agility"
-          ? `Storleksklass ${dog.size} (${SIZE_WITHERS[dog.size]}) ger hopphöjd ${JUMP_HEIGHT_CM[dog.size]} cm. Svenska tävlingar tar emot alla storlekar.`
+          ? `Storleksklass ${dog.size} (${SIZE_WITHERS[dog.size]}) hoppar ${jumpHeightLabel(dog.size, dog.agilityLevel)} i ${dog.agilityLevel.toLowerCase()}. Svenska tävlingar tar emot alla storlekar.`
           : `Storleksklass ${dog.size} motsvarar hoopersstorlek ${hoopersSizeFor(dog.size)}. Svenska tävlingar tar emot alla storlekar.`,
     },
   ];

@@ -4,10 +4,14 @@ Ett smartare sätt att planera, träna och tävla i agility och hoopers — på 
 
 AgilityManager samlar:
 
-- **Banplaneraren** — rita banor i meterskala med regelkontroll, hundlinje, PDF/PNG-export och delningslänkar. Gratis och utan konto.
-  Banbyggarverktyg: numreringsläge (klicka hindren i ordning), flerval med markeringsruta, gruppflytt/-rotation,
-  justera och fördela, kopiera/klistra in, piltangenter, egenskapspanel med exakta mått, måttband och avstånd
-  mellan hinder längs banan.
+- **Banplaneraren** — rita banor i meterskala med regelkontroll, hundlinje, 3D-vy, PDF/PNG-export och delningslänkar.
+  Gratis och utan konto. Fungerar på dator, surfplatta och mobil.
+  - Regelkontroll mot SAgiK/SKK 2022–2026 (klass 1–3, hopp, lag och Nollklass), SHoK hoopers och FCI hoopers:
+    6–8 m längs hundens väg, hinderantal, start och mål med hopp/hoop, slalom med 12 pinnar, bankant och ansats.
+  - Hinder i verklig storlek (balansbom ≈ 10,7 m, A-hinder ≈ 4,2 m) och tunnlar 2–6 m som kan böjas till U.
+  - Banbyggarverktyg: numreringsläge (klicka hindren i ordning), flerval med markeringsruta, gruppflytt/-rotation,
+    justera och fördela, kopiera/klistra in, piltangenter, egenskapspanel med exakta mått, måttband och avstånd
+    mellan hinder längs banan.
 - **Banbibliotek & delade banor** — färdiga agility- och hoopersbanor att utgå från.
 - **Tävlingskalender** — svenska agility- och hooperstävlingar med filter, favoriter och hundmatchning.
 - **Träning** — träningsplaner, historik samt instruktörs- och elevflöden med uppgifter och feedback.
@@ -16,9 +20,10 @@ AgilityManager samlar:
 
 ## Teknik
 
-- React 18 + TypeScript + Vite 5
-- Tailwind CSS + shadcn/ui (Radix)
-- React Router
+- React 19 + TypeScript + Vite 7
+- Tailwind CSS 3 + shadcn/ui (Radix)
+- React Router 7
+- three.js / react-three-fiber (3D-vy), jsPDF (PDF-export)
 - Supabase (databas, auth, edge functions) via Lovable Cloud
 - Vitest (enhetstester) + Playwright (browserregression)
 
@@ -74,6 +79,12 @@ e2e/                      Playwright-tester
 
 Banplanerarens geometri, PDF-export och validering är känslig kod med egna
 regressionstester (`src/features/course-planner-v2/*.test.ts`) — ändra försiktigt.
+
+Regelverken ligger versionerade i `src/features/course-planner-v2/rules/` med
+källhänvisning per värde (`verifiedFields`). Regelkontrollen finns i
+`validation.ts`; `courseBank.test.ts` kör varje färdig bana i biblioteket genom
+den och kräver noll fel och varningar. Hindrens mått hämtas alltid via
+`obstacleSize.ts` så att 2D, hundväg, PDF och 3D stämmer överens.
 Redigeringslogiken (numrering, flerval, justering, urklipp, avståndsetiketter) ligger
 som rena funktioner i `src/features/course-planner-v2/editorOps.ts` och testas både
 med Vitest och i webbläsaren (`e2e/planner-tools.e2e.ts`).
@@ -94,7 +105,11 @@ med Vitest och i webbläsaren (`e2e/planner-tools.e2e.ts`).
 ## SEO
 
 `src/components/Seo.tsx` sätter titel, beskrivning, canonical, OG och JSON-LD per sida.
+Titlar och beskrivningar för de statiska sidorna finns i `src/lib/pageSeo.ts`.
 Publika routes listas i `src/lib/routes.ts` och genererar `public/sitemap.xml` vid build.
+Bygget förrenderar alla publika sidor (egen head, H1 och interna länkar), bloggartiklar
+och — när datan kan hämtas — tävlingar, län och klubbar, så att sökmotorer och
+länkförhandsvisningar ser rätt innehåll utan JavaScript.
 Personliga ytor (konto, instruktör, elev, träning, favoriter) är `noindex` och blockeras
 i `public/robots.txt`.
 

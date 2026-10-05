@@ -65,7 +65,9 @@ function firstByteSeoPlugin(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   base: '/',
-  plugins: [inspectAttr(), firstByteSeoPlugin(), react(), { name: "owned-editorial", apply: "build", enforce: "post", buildStart() {
+  // inspectAttr lägger code-path-attribut på varje element — bara för editorns
+  // dev-server, aldrig i produktionsbygget.
+  plugins: [{ ...inspectAttr(), apply: "serve" }, firstByteSeoPlugin(), react(), { name: "owned-editorial", apply: "build", enforce: "post", buildStart() {
     execFileSync(process.execPath, ["scripts/editorial-check.mjs"], { stdio: "inherit" });
     execFileSync(process.execPath, ["scripts/generate-sitemap.mjs"], { stdio: "inherit" });
   }, closeBundle() {

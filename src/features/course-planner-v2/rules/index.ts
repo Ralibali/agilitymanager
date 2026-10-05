@@ -55,7 +55,10 @@ export function getActiveRuleSets(date: Date = new Date()): RuleSet[] {
  */
 export function isRuleSetExpired(rs: RuleSet, date: Date = new Date()): boolean {
   if (!rs.validTo) return false;
-  return rs.validTo < date.toISOString().slice(0, 10);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return rs.validTo < `${y}-${m}-${d}`;
 }
 
 /** Default-regelverk per sport — används som fallback för gamla banor. */

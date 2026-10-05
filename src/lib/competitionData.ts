@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getCountyForLocation } from "./swedishCityCounty";
 import { normalizeCounty } from "./swedishCounties";
 import { buildCompetitionSlug } from "./competitionSlug";
+import { localIsoDate } from "./format";
 
 export interface AgilityCompetition {
   id: string;
@@ -147,7 +148,7 @@ export function hoopersToUnified(c: HoopersCompetition): UnifiedCompetition {
 
 /** Hämtar kommande tävlingar för båda sporterna. */
 export async function fetchUpcomingCompetitions(): Promise<UnifiedCompetition[]> {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localIsoDate();
   const [agility, hoopers] = await Promise.all([
     supabase
       .from("competitions")
@@ -213,7 +214,8 @@ export function dateRange(start: string | null, end: string | null): string {
 export function daysUntil(iso: string | null, now: Date = new Date()): number | null {
   if (!iso) return null;
   const target = new Date(`${iso.slice(0, 10)}T00:00:00`);
-  const today = new Date(now.toISOString().slice(0, 10) + "T00:00:00");
+  // Lokal midnatt i dag — inte UTC-datumet, som släpar efter strax efter midnatt.
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   return Math.round((target.getTime() - today.getTime()) / 86_400_000);
 }
 
@@ -273,7 +275,7 @@ export function buildIcs(comp: {
   url: string;
   description?: string;
 }): string {
-  const start = comp.dateStart ?? new Date().toISOString().slice(0, 10);
+  const start = comp.dateStart ?? localIsoDate();
   const end = comp.dateEnd ?? start;
   return [
     "BEGIN:VCALENDAR",

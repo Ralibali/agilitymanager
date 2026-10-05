@@ -4,6 +4,7 @@ import {
   DEFAULT_DOG_PROFILE,
   filterMatching,
   hoopersSizeFor,
+  jumpHeightLabel,
   matchCompetition,
   explainMatch,
   matchScore,
@@ -85,11 +86,21 @@ describe("filterMatching", () => {
 });
 
 describe("hoopersSizeFor", () => {
-  it("mappar storleksklass till Small/Large", () => {
+  it("mappar storleksklass till Small/Large — Medium beror på mankhöjden", () => {
     expect(hoopersSizeFor("XS")).toBe("Small");
     expect(hoopersSizeFor("S")).toBe("Small");
-    expect(hoopersSizeFor("M")).toBe("Large");
+    expect(hoopersSizeFor("M")).toBe("Small eller Large");
     expect(hoopersSizeFor("L")).toBe("Large");
+    expect(hoopersSizeFor("XL")).toBe("Large");
+  });
+});
+
+describe("jumpHeightLabel (SAgiK 2022–2026 §4.5)", () => {
+  it("klass 1 använder undre halvan, klass 2–3 hela intervallet", () => {
+    expect(jumpHeightLabel("L", "Klass 1")).toBe("40–45 cm");
+    expect(jumpHeightLabel("L", "Klass 3")).toBe("40–50 cm");
+    expect(jumpHeightLabel("XL", "Klass 2")).toBe("50–60 cm");
+    expect(jumpHeightLabel("M", "Nollklass")).toBe("högst 30 cm");
   });
 });
 
@@ -150,7 +161,7 @@ describe("explainMatch", () => {
     expect(res.matches).toBe(true);
     expect(res.summary).toContain("Rio");
     expect(res.reasons.find((r) => r.key === "class")?.state).toBe("ok");
-    expect(res.reasons.find((r) => r.key === "size")?.detail).toContain("45 cm");
+    expect(res.reasons.find((r) => r.key === "size")?.detail).toContain("30–40 cm");
   });
 
   it("förklarar fel sport", () => {

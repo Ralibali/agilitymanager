@@ -13,6 +13,7 @@ import {
   AlignHorizontalDistributeCenter, AlignStartHorizontal, AlignStartVertical,
   AlignVerticalDistributeCenter, ChevronDown, ChevronUp, Lock, Minus, Plus, SlidersHorizontal,
 } from "lucide-react";
+import { TUNNEL_LENGTH_MAX_M, TUNNEL_LENGTH_MIN_M, tunnelLengthM } from "@/features/course-planner-v2/obstacleSize";
 import type { PlacedObstacle } from "@/lib/course";
 import type { AlignMode } from "@/features/course-planner-v2/editorOps";
 
@@ -104,7 +105,7 @@ export interface ObstacleInspectorProps {
   onPosition: (pos: { x?: number; y?: number }) => void;
   onRotation: (deg: number) => void;
   onNumber: (n: number) => void;
-  onTunnelCurve: (patch: Partial<{ curveDeg: number; curveSide: "left" | "right" }>) => void;
+  onTunnelCurve: (patch: Partial<{ curveDeg: number; curveSide: "left" | "right"; lengthM: number }>) => void;
   /** Flera markerade hinder. */
   multiCount: number;
   multiLockedCount: number;
@@ -123,15 +124,36 @@ export function ObstacleInspector(props: ObstacleInspectorProps) {
 
   // Tunnelböjningen är det man oftast justerar — den visas även när panelen
   // är hopfälld (standard i mobilen).
+  const tunnelLength = obstacle && obstacle.type === "tunnel" ? tunnelLengthM(obstacle) : 0;
+  // Längden visas i utfällt läge; hopfällt (standard i mobilen) hålls panelen
+  // låg så att den inte täcker planen.
   const tunnelControls = obstacle && obstacle.type === "tunnel" ? (
     <div>
+      {open && (
+        <>
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-ink/50">
+            Tunnellängd · {tunnelLength.toFixed(1).replace(".", ",")} m
+          </p>
+          <input
+            type="range"
+            min={TUNNEL_LENGTH_MIN_M}
+            max={TUNNEL_LENGTH_MAX_M}
+            step={0.5}
+            value={Math.round(tunnelLength * 2) / 2}
+            disabled={locked}
+            aria-label="Tunnelns längd i meter"
+            onChange={(e) => onTunnelCurve({ lengthM: Number(e.target.value) })}
+            className="mb-2 w-full accent-forest"
+          />
+        </>
+      )}
       <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-ink/50">
         Tunnelböjning · {obstacle.curveDeg ?? 0}°
       </p>
       <input
         type="range"
         min={0}
-        max={90}
+        max={180}
         step={5}
         value={obstacle.curveDeg ?? 0}
         disabled={locked}

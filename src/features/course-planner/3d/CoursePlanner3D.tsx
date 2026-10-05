@@ -20,6 +20,8 @@ export type Planner3DObstacle = {
   label?: string;
   curveDeg?: number;
   curveSide?: "left" | "right";
+  /** Tunnelns korda (ände–ände) i meter. */
+  lengthM?: number;
 };
 export type Planner3DPath = { id: string; points: { x: number; y: number }[]; color?: string };
 export type CoursePlanner3DProps = {
@@ -88,7 +90,7 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
   const [selectedTunnelId, setSelectedTunnelId] = useState<string | null>(null);
 
   const selectedTunnel = useMemo(() => obstacles.find((o) => o.id === selectedTunnelId && isTunnel(o.type)) ?? null, [obstacles, selectedTunnelId]);
-  const selectedTunnelCurve = selectedTunnel ? (curveOverrides[selectedTunnel.id] ?? { curveDeg: selectedTunnel.curveDeg ?? 0, curveSide: selectedTunnel.curveSide ?? "left" }) : null;
+  const selectedTunnelCurve = selectedTunnel ? (curveOverrides[selectedTunnel.id] ?? { curveDeg: selectedTunnel.curveDeg ?? 0, curveSide: selectedTunnel.curveSide ?? "right" }) : null;
 
   useEffect(() => {
     try { window.localStorage.setItem(TUNNEL_CURVE_KEY, JSON.stringify(curveOverrides)); } catch { /* ignore */ }
@@ -106,9 +108,9 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
   const updateTunnelCurve = (patch: Partial<TunnelCurve>) => {
     if (!selectedTunnel) return;
     setCurveOverrides((prev) => {
-      const current = prev[selectedTunnel.id] ?? { curveDeg: selectedTunnel.curveDeg ?? 0, curveSide: selectedTunnel.curveSide ?? "left" };
+      const current = prev[selectedTunnel.id] ?? { curveDeg: selectedTunnel.curveDeg ?? 0, curveSide: selectedTunnel.curveSide ?? "right" };
       const next = {
-        curveDeg: Math.max(0, Math.min(90, patch.curveDeg ?? current.curveDeg)),
+        curveDeg: Math.max(0, Math.min(180, patch.curveDeg ?? current.curveDeg)),
         curveSide: patch.curveSide ?? current.curveSide,
       };
       window.dispatchEvent(new CustomEvent("am:tunnel-curve-updated", { detail: { id: selectedTunnel.id, curve: next } }));
@@ -181,7 +183,7 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
             <div><div className="text-xs uppercase tracking-[0.12em] font-bold text-v3-text-tertiary">Tunnel</div><div className="text-base font-semibold">Böjning {selectedTunnelCurve.curveDeg}°</div></div>
             <button aria-label="Stäng tunnelpanelen" onClick={() => setSelectedTunnelId(null)} className="h-8 w-8 rounded-full bg-black/5 grid place-items-center"><X size={15} /></button>
           </div>
-          <input type="range" min={0} max={90} step={5} value={selectedTunnelCurve.curveDeg} onChange={(e) => updateTunnelCurve({ curveDeg: Number(e.target.value) })} className="w-full accent-[#173d2c]" />
+          <input type="range" min={0} max={180} step={5} value={selectedTunnelCurve.curveDeg} onChange={(e) => updateTunnelCurve({ curveDeg: Number(e.target.value) })} className="w-full accent-[#173d2c]" />
           <div className="mt-3 grid grid-cols-2 gap-2">
             <button onClick={() => updateTunnelCurve({ curveSide: "left" })} className={`h-10 rounded-full text-sm font-semibold ${selectedTunnelCurve.curveSide === "left" ? "bg-[#173d2c] text-white" : "bg-black/5 text-v3-text-secondary"}`}>Böj vänster</button>
             <button onClick={() => updateTunnelCurve({ curveSide: "right" })} className={`h-10 rounded-full text-sm font-semibold ${selectedTunnelCurve.curveSide === "right" ? "bg-[#173d2c] text-white" : "bg-black/5 text-v3-text-secondary"}`}>Böj höger</button>
@@ -197,8 +199,8 @@ export default function CoursePlanner3D({ obstacles, paths, widthMeters, heightM
           <Arena3D widthMeters={widthMeters} heightMeters={heightMeters} />
           {sceneObstacles.map((o) => {
             const numIdx = numbered.findIndex((n) => n.id === o.id);
-            const curve = curveOverrides[o.id] ?? { curveDeg: o.curveDeg ?? 0, curveSide: o.curveSide ?? "left" };
-            return <Obstacle3D key={o.id} type={o.type} x={o.x} z={o.z} rotationDeg={o.rotation} number={o.number} color={o.color} curveDeg={curve.curveDeg} curveSide={curve.curveSide} onSelect={() => { if (isTunnel(o.type)) setSelectedTunnelId(o.id); if (numIdx >= 0) { setCurrentIdx(numIdx); if (mode === "walk") setTeleportV((v) => v + 1); } }} highlight={mode === "walk" && numIdx >= 0 && numIdx === currentIdx} />;
+            const curve = curveOverrides[o.id] ?? { curveDeg: o.curveDeg ?? 0, curveSide: o.curveSide ?? "right" };
+            return <Obstacle3D key={o.id} type={o.type} x={o.x} z={o.z} rotationDeg={o.rotation} number={o.number} color={o.color} lengthM={o.lengthM} curveDeg={curve.curveDeg} curveSide={curve.curveSide} onSelect={() => { if (isTunnel(o.type)) setSelectedTunnelId(o.id); if (numIdx >= 0) { setCurrentIdx(numIdx); if (mode === "walk") setTeleportV((v) => v + 1); } }} highlight={mode === "walk" && numIdx >= 0 && numIdx === currentIdx} />;
           })}
           <PathLine3D paths={paths} widthMeters={widthMeters} heightMeters={heightMeters} />
           {mode === "view" ? <OrbitControls enablePan enableRotate enableZoom minDistance={3} maxDistance={Math.max(widthMeters, heightMeters) * 1.75} maxPolarAngle={Math.PI / 2 - 0.08} target={[0, 0.65, 0]} makeDefault /> : <><CameraTeleport pos={walkPose.pos} lookAt={walkPose.target} version={teleportV} /><WalkControls joystickRef={joystickRef} lookDeltaRef={lookDeltaRef} sprintRef={sprintRef} isMobile={isMobile} bounds={{ w: widthMeters, h: heightMeters }} /></>}

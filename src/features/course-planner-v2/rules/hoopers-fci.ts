@@ -115,6 +115,12 @@ export const HOOPERS_FCI_2026: RuleSet = {
       hoopers_fci_h2: 6.0,
       hoopers_fci_h3: 7.0,
     },
+    // VERIFIERAT §3.1 (övre gräns per klass): H1 8 m, H2 10 m, H3 12 m.
+    hoopersConsecutiveMaxMByClass: {
+      hoopers_fci_h1: 8.0,
+      hoopers_fci_h2: 10.0,
+      hoopers_fci_h3: 12.0,
+    },
     // VERIFIERAT §3.1: max avstånd från HA:s sida till närmsta delen av det
     // mest avlägsna hindret — Large-värden (Small: 12/18/25 m). Planeraren
     // approximerar med avstånd från HA-markörens centrum till hindercentrum.
@@ -122,6 +128,12 @@ export const HOOPERS_FCI_2026: RuleSet = {
       hoopers_fci_h1: 15,
       hoopers_fci_h2: 20,
       hoopers_fci_h3: 30,
+    },
+    // VERIFIERAT §3.1: Small-värdena (mankhöjd ≤ 40 cm).
+    hoopersMaxDistanceFromHandlerZoneMByClassSmall: {
+      hoopers_fci_h1: 12,
+      hoopers_fci_h2: 18,
+      hoopers_fci_h3: 25,
     },
     // VERIFIERAT §3.1: "The first and last obstacle of the course must be a hoop."
     hoopersStartEndHoopRequired: true,
@@ -151,7 +163,9 @@ export const HOOPERS_FCI_2026: RuleSet = {
   verifiedFields: [
     "safetyRules.hoopersMinM",
     "safetyRules.hoopersConsecutiveMinMByClass",
+    "safetyRules.hoopersConsecutiveMaxMByClass",
     "safetyRules.hoopersMaxDistanceFromHandlerZoneMByClass",
+    "safetyRules.hoopersMaxDistanceFromHandlerZoneMByClassSmall",
     "safetyRules.hoopersStartEndHoopRequired",
     "safetyRules.hoopersMinHoopShare",
     "safetyRules.arenaMinAreaM2",
@@ -160,8 +174,6 @@ export const HOOPERS_FCI_2026: RuleSet = {
     "classTemplates.obstacleRange",
   ],
   provisionalFields: [
-    // Large-värden används; Small-mappning (12/18/25 m) är inte implementerad.
-    "safetyRules.hoopersMaxDistanceFromHandlerZoneMByClass.smallCategory",
     "safetyRules.contactAfterTunnelMinM",
     "sizeClasses",
     "obstacleSpecs.dimensions",

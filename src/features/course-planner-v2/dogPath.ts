@@ -8,6 +8,7 @@
  */
 
 import { getObstacleDefV2, type ObstacleTypeV2 } from "./config";
+import { obstacleSizeM } from "./obstacleSize";
 import {
   normalizeCurveDeg,
   rotateDir,
@@ -26,6 +27,8 @@ export interface DogPathObstacle {
   curveDeg?: number;
   /** Tunnelsida ("left"/"right"). */
   curveSide?: "left" | "right";
+  /** Tunnelns fysiska längd (m). Saknas → standardtunnel. */
+  lengthM?: number;
 }
 
 export interface Vec2 { x: number; y: number }
@@ -160,7 +163,7 @@ export function getObstacleAnchors(ob: DogPathObstacle): ObstacleAnchors {
 
   if (axis === "width") {
     // Tunnel: exakt samma geometri som ritas i 2D/PDF/3D.
-    const geo = tunnelGeometryLocal(def.sizeM.w, normalizeCurveDeg(ob.curveDeg), ob.curveSide);
+    const geo = tunnelGeometryLocal(obstacleSizeM(ob).w, normalizeCurveDeg(ob.curveDeg), ob.curveSide);
     const innerPoints = geo.centerline.map((p) => toWorld(p, center.x, center.y, ob.rotation));
     return {
       obstacle: ob,
@@ -322,11 +325,32 @@ export function buildDogPath(
 }
 
 /**
- * Returnerar den verkliga, samplade hundvägen mellan varje två på varandra
- * följande hinder. För auto-genererad väg används exakt samma kurva som syns
- * i editorn. Med manuell override kan vi inte entydigt dela kontrollpunkterna
- * per hinderpar och faller därför tillbaka till exit→entry som konservativ
- * teknisk approximation.
+ * Var på hindret avstånd mäts ifrån (m in från entry/exit-kanten).
+ *
+ * Domare och banbyggare mäter hindrens avstånd längs hundens väg från
+ * PASSAGEPUNKTEN: ribban på ett hopp, muren, däckets ring och oxerns bommar.
+ * Tunnlar, slalom, långhopp och kontaktfältshinder mäts från sina ändar.
+ */
+export function passageInsetM(ob: DogPathObstacle): number {
+  switch (ob.type) {
+    case "jump":
+    case "wall":
+    case "tire":
+      return obstacleSizeM(ob).d / 2;
+    case "combo":
+      // Bommarna sitter på ±d/4 — mät från närmaste bom.
+      return obstacleSizeM(ob).d / 4;
+    default:
+      return 0;
+  }
+}
+
+/**
+ * Returnerar hundvägen mellan varje två på varandra följande hinder, mätt
+ * från passagepunkt till passagepunkt (`passageInsetM`). För auto-genererad
+ * väg används exakt samma kurva som syns i editorn. Med manuell override kan
+ * vi inte entydigt dela kontrollpunkterna per hinderpar och faller därför
+ * tillbaka till exit→entry som konservativ teknisk approximation.
  */
 export function computeDogPathPairDistances(
   obstacles: DogPathObstacle[],
@@ -334,6 +358,7 @@ export function computeDogPathPairDistances(
 ): DogPathPairDistance[] {
   const path = buildDogPath(obstacles, override);
   if (path.anchors.length < 2) return [];
+  const inset = (a: ObstacleAnchors) => passageInsetM(a.obstacle);
 
   if (override?.controlPoints && override.controlPoints.length >= 2) {
     return path.anchors.slice(0, -1).map((a, i) => {
@@ -343,7 +368,7 @@ export function computeDogPathPairDistances(
         toId: b.obstacle.id,
         fromNumber: a.obstacle.number as number,
         toNumber: b.obstacle.number as number,
-        distanceM: distance(a.exit, b.entry),
+        distanceM: distance(a.exit, b.entry) + inset(a) + inset(b),
       };
     });
   }
@@ -365,7 +390,7 @@ export function computeDogPathPairDistances(
       toId: b.obstacle.id,
       fromNumber: a.obstacle.number as number,
       toNumber: b.obstacle.number as number,
-      distanceM: segmentM,
+      distanceM: segmentM + inset(a) + inset(b),
     });
   }
   return result;

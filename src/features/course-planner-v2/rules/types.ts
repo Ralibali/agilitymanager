@@ -64,11 +64,21 @@ export interface SafetyRules {
    */
   hoopersConsecutiveMinMByClass?: Record<string, number>;
   /**
+   * Hoopers — MAX-avstånd (m) mellan på varandra följande hinder per klassmall
+   * (övre gränsen i regelverkets intervall, t.ex. SHoK 5–7 m → 7 m).
+   */
+  hoopersConsecutiveMaxMByClass?: Record<string, number>;
+  /**
    * Hoopers — MAX-avstånd (m) från dirigeringsområdet/handling area till det
    * mest avlägsna hindret, per klassmall. SHoK §2.3: 13/15/20/25 m.
    * FCI §3.1: 15/20/30 m för Large (Small: 12/18/25 m).
    */
   hoopersMaxDistanceFromHandlerZoneMByClass?: Record<string, number>;
+  /**
+   * Hoopers — samma maxavstånd för storlekskategori Small när regelverket
+   * skiljer på storlekar (FCI §3.1: 12/18/25 m). Saknas → samma som Large.
+   */
+  hoopersMaxDistanceFromHandlerZoneMByClassSmall?: Record<string, number>;
   /**
    * Hoopers — regelverket kräver att banan börjar och slutar med en hoop
    * (SHoK §4.4, FCI §3.1).
@@ -82,6 +92,25 @@ export interface SafetyRules {
   arenaMinShortSideM?: number;
   /** Hoopers — min-avstånd från dirigeringsområdet till närmsta hinder (m). */
   hoopersHandlerZoneMinM?: number;
+}
+
+/**
+ * Banstrukturregler för agility (SAgiK 2022–2026 §3.1). Gäller klassmallar
+ * med `courseRules` satt — fri planering kontrolleras inte mot dessa.
+ */
+export interface CourseStructureRules {
+  /** Max avstånd (m) mellan på varandra följande hinder, mätt som hundens väg. */
+  maxConsecutiveM: number;
+  /** Minsta antal hoppassager i en tävlingsbana. */
+  minJumpPassages: number;
+  /** Högsta antal slalompassager. */
+  maxWeavePassages: number;
+  /** Banan ska inledas och avslutas med ett hopphinder (sista får vara oxer). */
+  startEndJumpRequired: boolean;
+  /** Minsta avstånd (m) mellan hinder och banområdets gräns/vägg. */
+  minBorderClearanceM: number;
+  /** Minsta hundväg (m) från bankanten före första hindret och efter sista. */
+  minRunUpM: number;
 }
 
 /** Tidsmodell — hur referenstid och maxtid räknas fram. */
@@ -101,6 +130,11 @@ export interface TimeRules {
    * Om satt åsidosätter den maxTimeFactor-beräkningen.
    */
   fixedMaxCourseTimeS?: number;
+  /**
+   * Fast referenstid i sekunder oavsett banlängd (SHoK §4.3: 45 s i alla
+   * klasser). Om satt används den i stället för banlängd ÷ hastighet.
+   */
+  fixedRefTimeS?: number;
 }
 
 /** Ett versionerat regelverk. */
@@ -144,6 +178,8 @@ export interface RuleSet {
   obstacleSpecs: ObstacleDefV2[];
   /** Säkerhetsregler enligt "Säkra hinder"-anvisningar. */
   safetyRules: SafetyRules;
+  /** Banstrukturregler (agility). Saknas för hoopers. */
+  courseRules?: CourseStructureRules;
   /** Tidsregler för referens- och maxtid. */
   timeRules: TimeRules;
 

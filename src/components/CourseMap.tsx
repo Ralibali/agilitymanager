@@ -1,6 +1,6 @@
 import { useId } from "react";
 import type { Course } from "@/lib/course";
-import { smoothPath } from "@/lib/course";
+import { buildCoursePath, toSvgPathD } from "@/features/course-planner-v2/pathSampling";
 import { ObstacleGlyph } from "./ObstacleGlyph";
 
 interface CourseMapProps {
@@ -29,8 +29,8 @@ export function CourseMap({
   const dark = variant === "dark";
   const lineColor = dark ? "#FF6900" : "#006937";
   const stroke = dark ? "#F6F1E7" : "#161812";
-  const pts = course.obstacles.map((ob) => ({ x: ob.x, y: ob.y }));
-  const d = smoothPath(pts);
+  // Samma hundlinje som i banplaneraren — genom hindren, i nummerordning.
+  const d = toSvgPathD(buildCoursePath({ obstacles: course.obstacles }));
 
   return (
     <svg
@@ -79,10 +79,10 @@ export function CourseMap({
       )}
 
       {/* hinder */}
-      {course.obstacles.map((ob, i) => (
+      {course.obstacles.map((ob) => (
         <g key={ob.id} transform={`translate(${ob.x} ${ob.y}) rotate(${ob.rotation})`}>
-          <ObstacleGlyph type={ob.type} stroke={stroke} sw={0.09} curveDeg={ob.curveDeg} curveSide={ob.curveSide} />
-          {showNumbers && (
+          <ObstacleGlyph type={ob.type} stroke={stroke} sw={0.09} curveDeg={ob.curveDeg} curveSide={ob.curveSide} lengthM={ob.lengthM} />
+          {showNumbers && ob.number != null && (
             <g transform={`rotate(${-ob.rotation})`}>
               <circle cx="1.05" cy="-1.05" r="0.62" fill={dark ? "#FF6900" : "#161812"} />
               <text
@@ -94,7 +94,7 @@ export function CourseMap({
                 fill={dark ? "#161812" : "#F6F1E7"}
                 fontFamily="Archivo, sans-serif"
               >
-                {i + 1}
+                {ob.number}
               </text>
             </g>
           )}

@@ -1,4 +1,5 @@
-import { getObstacleDefV2, type ObstacleTypeV2 } from "@/features/course-planner-v2/config";
+import { type ObstacleTypeV2 } from "@/features/course-planner-v2/config";
+import { obstacleSizeM } from "@/features/course-planner-v2/obstacleSize";
 import {
   normalizeCurveDeg,
   tunnelEdgeD,
@@ -19,16 +20,17 @@ export function ObstacleGlyph({
   sw = 0.09,
   curveDeg = 0,
   curveSide = "right",
+  lengthM,
 }: {
   type: ObstacleTypeV2;
   stroke?: string;
   sw?: number;
   curveDeg?: number;
   curveSide?: "left" | "right";
+  /** Tunnelns fysiska längd (m). */
+  lengthM?: number;
 }) {
-  const def = getObstacleDefV2(type);
-  const w = def?.sizeM.w ?? 1;
-  const d = def?.sizeM.d ?? 1;
+  const { w, d } = obstacleSizeM({ type, lengthM, curveDeg });
   const s = {
     stroke,
     strokeWidth: sw,
@@ -132,30 +134,43 @@ export function ObstacleGlyph({
         </g>
       );
     }
-    case "aframe":
+    case "aframe": {
+      // Planvy: två ramper med toppen (ryggen) tvärs över mitten och
+      // kontaktfält (≈106 cm längs rampen ≈ 0,8 m på marken) i båda ändar.
+      const zone = 0.8;
       return (
         <g {...s}>
-          <polygon points={`${-w / 2},${d / 2} ${w / 2},${d / 2} 0,${-d / 2}`} strokeWidth={sw} fill={`${stroke}14`} />
-          <line x1="0" y1={-d / 2} x2="0" y2={d / 2} strokeWidth={sw * 0.8} strokeDasharray="0.12 0.12" />
-          <rect x={-w / 2} y={d / 2 - 0.42} width={w} height="0.42" fill={stroke} opacity="0.35" stroke="none" />
+          <rect x={-w / 2} y={-d / 2} width={w} height={d} strokeWidth={sw} fill={`${stroke}14`} />
+          <line x1={-w / 2} y1="0" x2={w / 2} y2="0" strokeWidth={sw * 1.4} />
+          <rect x={-w / 2} y={-d / 2} width={w} height={zone} fill={stroke} opacity="0.35" stroke="none" />
+          <rect x={-w / 2} y={d / 2 - zone} width={w} height={zone} fill={stroke} opacity="0.35" stroke="none" />
         </g>
       );
-    case "dogwalk":
+    }
+    case "dogwalk": {
+      // Tre plankor (ramp – topp – ramp) med 90 cm kontaktfält i ändarna.
+      const zone = 0.9;
       return (
         <g {...s}>
-          <rect x={-w / 2} y={-d / 2} width={w} height={d} strokeWidth={sw} fill="none" />
-          <rect x={-w / 2} y={-d / 2} width={w} height="0.6" fill={stroke} opacity="0.35" stroke="none" />
-          <rect x={-w / 2} y={d / 2 - 0.6} width={w} height="0.6" fill={stroke} opacity="0.35" stroke="none" />
-          <line x1={-w / 2} y1="0" x2={w / 2} y2="0" strokeWidth={sw * 0.7} />
+          <rect x={-w / 2} y={-d / 2} width={w} height={d} strokeWidth={sw} fill={`${stroke}0d`} />
+          <rect x={-w / 2} y={-d / 2} width={w} height={zone} fill={stroke} opacity="0.35" stroke="none" />
+          <rect x={-w / 2} y={d / 2 - zone} width={w} height={zone} fill={stroke} opacity="0.35" stroke="none" />
+          <line x1={-w / 2 - 0.12} y1={-d / 6} x2={w / 2 + 0.12} y2={-d / 6} strokeWidth={sw * 0.8} />
+          <line x1={-w / 2 - 0.12} y1={d / 6} x2={w / 2 + 0.12} y2={d / 6} strokeWidth={sw * 0.8} />
         </g>
       );
-    case "seesaw":
+    }
+    case "seesaw": {
+      const zone = 0.9;
       return (
         <g {...s}>
-          <rect x={-w / 2} y={-d / 2} width={w} height={d} strokeWidth={sw} fill="none" />
-          <polygon points={`${-0.28},0 ${0.28},0 0,${0.4}`} fill={stroke} stroke="none" />
+          <rect x={-w / 2} y={-d / 2} width={w} height={d} strokeWidth={sw} fill={`${stroke}0d`} />
+          <rect x={-w / 2} y={-d / 2} width={w} height={zone} fill={stroke} opacity="0.35" stroke="none" />
+          <rect x={-w / 2} y={d / 2 - zone} width={w} height={zone} fill={stroke} opacity="0.35" stroke="none" />
+          <polygon points={`${-w / 2 - 0.25},0.22 ${w / 2 + 0.25},0.22 0,-0.18`} fill={stroke} stroke="none" />
         </g>
       );
+    }
     case "table":
       return (
         <g {...s}>
@@ -219,9 +234,7 @@ export function ObstacleGlyph({
  * verkliga storlek så att även små hinder (hopp, däck) fyller ikonen.
  */
 export function ObstacleIcon({ type, className }: { type: ObstacleTypeV2; className?: string }) {
-  const def = getObstacleDefV2(type);
-  const w = def?.sizeM.w ?? 1;
-  const d = def?.sizeM.d ?? 1;
+  const { w, d } = obstacleSizeM({ type });
   const e = Math.max(w, d, 0.9) / 2 + 0.5;
   return (
     <svg viewBox={`${-e} ${-e} ${2 * e} ${2 * e}`} className={className} aria-hidden="true">

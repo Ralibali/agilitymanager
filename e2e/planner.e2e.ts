@@ -192,3 +192,24 @@ test("ångra återställer även inställningar och regelverk följer med", asyn
   await page.reload({ waitUntil: "domcontentloaded" });
   expect((await draft(page)).ruleSetId).toBe(start.ruleSetId);
 });
+
+test("surfplatta: hinderpaletten och baninställningarna går att nå", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobil", "Körs med egen surfplattebredd");
+  await page.setViewportSize({ width: 820, height: 1180 });
+  await openPlanner(page);
+
+  // Paletten finns i dockan även mellan mobil- och desktopbredd.
+  await expect(page.getByRole("button", { name: "Placera tunnel" })).toBeVisible();
+
+  // Sport, regelverk och klass kan väljas i inställningsbladet.
+  await page.getByRole("button", { name: "Bana", exact: true }).click();
+  const sheet = page.getByRole("dialog", { name: "Bana & regler" });
+  await expect(sheet).toBeVisible();
+  await sheet.getByRole("button", { name: "Hoopers", exact: true }).click();
+  await sheet.getByRole("button", { name: /FCI/ }).click();
+  await sheet.getByLabel("Klassmall").selectOption("hoopers_fci_h2");
+  await expect.poll(async () => {
+    const d = await draft(page);
+    return [d?.sport, d?.ruleSetId, d?.classTemplate];
+  }).toEqual(["hoopers", "hoopers-fci-2026", "hoopers_fci_h2"]);
+});

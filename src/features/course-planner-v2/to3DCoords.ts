@@ -5,6 +5,7 @@
  * procent (0–100) på vardera axel, så vi normaliserar här.
  */
 import type { ObstacleTypeV2 } from "./config";
+import { obstacleSizeM } from "./obstacleSize";
 import type { Planner3DObstacle } from "@/features/course-planner/3d/CoursePlanner3D";
 
 interface ObstacleV2Like {
@@ -16,6 +17,7 @@ interface ObstacleV2Like {
   number?: number;
   curveDeg?: number;
   curveSide?: "left" | "right";
+  lengthM?: number;
 }
 
 export function mapToObstacle3D(
@@ -37,6 +39,8 @@ export function mapToObstacle3D(
     label,
     curveDeg: obs.curveDeg,
     curveSide: obs.curveSide,
+    // 3D ritar tunneln från kordan — samma mått som 2D och hundvägen.
+    lengthM: obs.type === "tunnel" ? obstacleSizeM(obs).w : undefined,
   };
 }
 

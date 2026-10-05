@@ -7,8 +7,10 @@
  */
 import type jsPDF from "jspdf";
 import { getObstacleDefV2, type ObstacleTypeV2 } from "./config";
+import { obstacleSizeM } from "./obstacleSize";
 import type { ObstacleLite } from "./validation";
 import { normalizeCurveDeg, toWorld, tunnelEdgesLocal } from "./tunnelGeometry";
+import { buildDogPath } from "./dogPath";
 
 /** Färgpalett som matchar appens "Varm Sand"-tema. */
 export const PDF_BRAND = {
@@ -53,7 +55,10 @@ export interface ArenaRenderOpts {
   showDimensions?: boolean;
 }
 
-/** Returnerar de faktiska arena-måtten (mm) som ritades — användbart för layout. */
+/**
+ * Returnerar ritade mått i mm — `h` inkluderar linjalmarginalen ovanför
+ * banan, så att anroparen kan fortsätta direkt under bilden.
+ */
 export function drawArenaVector(doc: jsPDF, opts: ArenaRenderOpts): { w: number; h: number; mmPerM: number } {
   const { x: x0, y: y0, maxWidth, maxHeight, arenaWidthM, arenaHeightM, obstacles } = opts;
   const grid = opts.grid !== false;
@@ -104,17 +109,16 @@ export function drawArenaVector(doc: jsPDF, opts: ArenaRenderOpts): { w: number;
     }
   }
 
-  // Banlinje (numrerade hinder)
+  // Hundens väg — exakt samma linje som i editorn (genom hindren, i nummerordning).
   if (showPath) {
-    const numbered = obstacles
-      .filter((o) => o.number != null && !["start", "finish", "number"].includes(o.type))
-      .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
-    if (numbered.length > 1) {
+    const numbered = obstacles.filter((o) => o.number != null && !["start", "finish", "number", "handler_zone"].includes(o.type));
+    const path = buildDogPath(numbered);
+    if (path.points.length > 1) {
       doc.setDrawColor(...PDF_BRAND.secondary);
       doc.setLineWidth(0.6);
       doc.setLineDashPattern([1.5, 1], 0);
-      for (let i = 1; i < numbered.length; i++) {
-        const a = numbered[i - 1], b = numbered[i];
+      for (let i = 1; i < path.points.length; i++) {
+        const a = path.points[i - 1], b = path.points[i];
         doc.line(m2x(a.x), m2y(a.y), m2x(b.x), m2y(b.y));
       }
       doc.setLineDashPattern([], 0);
@@ -137,8 +141,9 @@ export function drawArenaVector(doc: jsPDF, opts: ArenaRenderOpts): { w: number;
     if (ob.number == null || ["start", "finish", "number"].includes(ob.type)) continue;
     const def = getObstacleDefV2(ob.type);
     if (!def) continue;
-    const offX = (def.sizeM.w / 2 + 0.4) * mmPerM;
-    const offY = (-def.sizeM.d / 2 - 0.4) * mmPerM;
+    const size = obstacleSizeM(ob);
+    const offX = (size.w / 2 + 0.4) * mmPerM;
+    const offY = (-size.d / 2 - 0.4) * mmPerM;
     const cx = m2x(ob.x) + offX;
     const cy = m2y(ob.y) + offY;
     doc.setFillColor(...PDF_BRAND.ink);
@@ -149,7 +154,7 @@ export function drawArenaVector(doc: jsPDF, opts: ArenaRenderOpts): { w: number;
     doc.text(String(ob.number), cx, cy + numberBadge * 0.45, { align: "center" });
   }
 
-  return { w, h, mmPerM };
+  return { w, h: h + dimMargin, mmPerM };
 }
 
 /** Ritar ett enskilt hinder vektorbaserat. Skala = mmPerM. */
@@ -164,8 +169,9 @@ function drawObstacleVector(
   if (!def) return;
   const cx = m2x(ob.x);
   const cy = m2y(ob.y);
-  const w = def.sizeM.w * mmPerM;
-  const d = def.sizeM.d * mmPerM;
+  const size = obstacleSizeM(ob);
+  const w = size.w * mmPerM;
+  const d = size.d * mmPerM;
 
   // Rotation kring center via matrix-transform genom doc.advancedAPI är tungt;
   // för korthetens skull ritar vi rotationsoberoende silhuett (rektangel/ellips)
@@ -408,6 +414,8 @@ export function drawFooterAllPages(
     authorName: string;
     /** PNG dataURL för QR-kod som ritas i nedre vänstra hörnet på sida 1. */
     qrDataUrl?: string;
+    /** Egen placering (mm, övre vänstra hörnet) för QR-koden på sida 1. */
+    qrAt?: { x: number; y: number };
     /** URL som QR-koden pekar på — samma URL används i den klickbara footer-länken. */
     qrUrl?: string;
     /** Premium-användare kan slå av byline-vattenmärket. Default = true. */
@@ -472,8 +480,8 @@ export function drawFooterAllPages(
     // QR-kod nere till vänster på sida 1
     if (i === 1 && opts.qrDataUrl) {
       const qrSize = 18; // mm
-      const qrX = PDF_PAGE.margin;
-      const qrY = PDF_PAGE.height - 3 - qrSize - 8; // ovanför footer-linjen
+      const qrX = opts.qrAt?.x ?? PDF_PAGE.margin;
+      const qrY = opts.qrAt?.y ?? PDF_PAGE.height - 3 - qrSize - 8; // ovanför footer-linjen
       try {
         doc.addImage(opts.qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize, undefined, "FAST");
         doc.setFont("helvetica", "normal");
@@ -555,4 +563,70 @@ export function drawArenaDimensions(
 /** Sanering av filnamn. */
 export function safeFileName(name: string): string {
   return (name || "bana").replace(/[^a-z0-9åäö_-]+/gi, "_");
+}
+
+/* ───────────── Teckensäker text ───────────── */
+
+/** Tecken som saknas i Helvetica/WinAnsi men har en läsbar ersättning. */
+const PDF_REPLACEMENTS: Array<[number, string]> = [
+  [0x2192, "->"], // högerpil
+  [0x2190, "<-"], // vänsterpil
+  [0x2265, ">="],
+  [0x2264, "<="],
+  [0x2300, "\u00D8"], // diameter
+  [0x2713, "OK"],
+  [0x2714, "OK"],
+  [0x26a0, "!"],
+  [0x2212, "-"], // minustecken
+];
+
+/** cp1252-tecken utanför Latin-1 (t.ex. –, —, …, ”, €). */
+const CP1252_EXTRA = new Set([
+  0x20ac, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021, 0x02c6, 0x2030, 0x0160, 0x2039, 0x0152, 0x017d,
+  0x2018, 0x2019, 0x201c, 0x201d, 0x2022, 0x2013, 0x2014, 0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, 0x017e, 0x0178,
+]);
+
+function isWinAnsi(cp: number): boolean {
+  return cp === 0x0a || (cp >= 0x20 && cp <= 0x7e) || (cp >= 0xa0 && cp <= 0xff) || CP1252_EXTRA.has(cp);
+}
+
+/**
+ * jsPDF:s inbyggda Helvetica klarar bara WinAnsi (cp1252). Allt annat — pilar
+ * i regelmeddelanden, emoji i bannamn — blir annars skräptecken i PDF:en.
+ */
+export function pdfSafeText(text: string): string {
+  let out = "";
+  for (const ch of text) {
+    const cp = ch.codePointAt(0) ?? 0;
+    const rep = PDF_REPLACEMENTS.find(([c]) => c === cp);
+    if (rep) out += rep[1];
+    else if (isWinAnsi(cp)) out += ch;
+  }
+  return out;
+}
+
+/** Låter alla text-anrop på dokumentet gå genom `pdfSafeText`. */
+export function installPdfTextSanitizer(doc: jsPDF): jsPDF {
+  const clean = (t: unknown) =>
+    typeof t === "string" ? pdfSafeText(t) : Array.isArray(t) ? t.map((x) => (typeof x === "string" ? pdfSafeText(x) : x)) : t;
+  const d = doc as unknown as Record<string, (...args: unknown[]) => unknown>;
+  for (const method of ["text", "splitTextToSize", "textWithLink", "getTextWidth"]) {
+    const original = d[method];
+    if (typeof original !== "function") continue;
+    d[method] = function patched(this: unknown, first: unknown, ...rest: unknown[]) {
+      return original.call(doc, clean(first), ...rest);
+    };
+  }
+  return doc;
+}
+
+/**
+ * Placering för QR-koden till höger om banbilden när det finns plats, så att
+ * den aldrig hamnar ovanpå hinderlistor eller banan.
+ */
+export function qrBesideArena(arenaTopY: number, arena: { w: number }): { x: number; y: number } | undefined {
+  const dimMargin = 8;
+  const right = PDF_PAGE.margin + dimMargin + arena.w + 8;
+  if (PDF_PAGE.width - PDF_PAGE.margin - right < 22) return undefined;
+  return { x: PDF_PAGE.width - PDF_PAGE.margin - 20, y: arenaTopY + dimMargin };
 }

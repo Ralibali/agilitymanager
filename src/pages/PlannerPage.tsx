@@ -5,7 +5,7 @@ import {
   ChevronDown, ChevronUp, ClipboardPaste, CloudCheck, Command, Copy, Download, Eraser, Footprints,
   Grid2x2, Keyboard, Link2, ListOrdered, Loader2, Lock, Lightbulb, Maximize, MoreHorizontal,
   MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler, RulerDimensionLine, Scissors,
-  Share2, ShieldCheck, SlidersHorizontal, Spline, SquareDashedMousePointer, Trash2, Undo2, Unlock,
+  Share2, ShieldCheck, SlidersHorizontal, Spline, SquareDashedMousePointer, Trash2, Undo2, Unlock, Cookie,
   X, ZoomIn, ZoomOut,
 } from "lucide-react";
 
@@ -24,12 +24,12 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  OBSTACLES_V2, CLASS_TEMPLATES, SIZE_CLASSES, ARENA_PRESETS,
-  getObstacleDefV2, getClassTemplate,
+  OBSTACLES_V2, CLASS_TEMPLATES,
+  getObstacleDefV2,
   type ClassTemplateKey, type ObstacleTypeV2, type SizeClassKey,
 } from "@/features/course-planner-v2/config";
 import {
-  getRuleSet, getDefaultRuleSetIdForSport,
+  getRuleSet, getDefaultRuleSetIdForSport, isRuleSetExpired,
 } from "@/features/course-planner-v2/rules";
 import {
   validateCourse, computeCourseTimes, type ValidationIssue,
@@ -52,7 +52,7 @@ import {
 import { useCoursePlayback } from "@/components/course-planner-v2/useCoursePlayback";
 import LazyCoursePlanner3D from "@/features/course-planner/3d/LazyCoursePlanner3D";
 import { mapAllToObstacle3D } from "@/features/course-planner-v2/to3DCoords";
-import { makeQrDataUrl } from "@/lib/qrDataUrl";
+import { makeQrDataUrl, QR_MAX_CHARS } from "@/lib/qrDataUrl";
 import { usePlannerProfile } from "@/lib/plannerProfile";
 import PlannerProfileDialog from "@/features/planner-social/PlannerProfileDialog";
 import SaveShareDialog from "@/features/planner-social/SaveShareDialog";
@@ -60,6 +60,7 @@ import FeedbackDialog from "@/features/planner-social/FeedbackDialog";
 import { CourseMenu } from "@/components/course-planner-v2/CourseMenu";
 import { OpenCourseDialog } from "@/components/course-planner-v2/OpenCourseDialog";
 import { track } from "@/lib/analytics";
+import { openCookieSettings } from "@/lib/privacyConsent";
 import { ConfirmDialog, NameCourseDialog } from "@/components/course-planner-v2/ConfirmDialog";
 import {
   saveLocalCourse, type LocalCourse,
@@ -79,6 +80,9 @@ import {
   type AlignMode, type ClipboardItem,
 } from "@/features/course-planner-v2/editorOps";
 import { ObstacleInspector } from "@/components/course-planner-v2/ObstacleInspector";
+import { PlannerSettings, type PlannerViewToggles } from "@/components/course-planner-v2/PlannerSettings";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { clampTunnelLengthM, tunnelLengthM } from "@/features/course-planner-v2/obstacleSize";
 
 // ── Banmodell (v2) ──────────────────────────────────────────────────────────
 
@@ -105,7 +109,7 @@ interface ViewState { zoom: number; panX: number; panY: number }
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
 /** Regelkontrollens avståndskoder — används för att färga avståndsetiketter. */
-const DISTANCE_ISSUE_CODES = new Set(["jump_too_close", "obstacles_close", "hoopers_too_close"]);
+const DISTANCE_ISSUE_CODES = new Set(["distance_too_short", "distance_too_long", "hoopers_too_close", "hoopers_too_far"]);
 
 const INSPECTOR_PREF_KEY = "am-planner-inspector-open";
 
@@ -165,6 +169,27 @@ function draftFromRawCourse(raw: unknown): Draft | null {
 
 // ── Delningslänkar: hela banan kodad i URL:en ───────────────────────────────
 
+/**
+ * Hinderlistans ordning är banordningen. Hinder från mallbanor bär med sig
+ * sina ursprungliga `number` — efter en omnumrering stämmer de inte längre.
+ * Allt som sparas eller delas stämplas därför om, annars sorterar
+ * `normalizeObstacles` tillbaka till den gamla ordningen vid inläsning.
+ */
+function withCurrentNumbers(d: Draft): Draft {
+  return { ...d, obstacles: withNumbers(d.obstacles) };
+}
+
+/** Kompakt hinderlista för delningslänkar — id:n återskapas vid inläsning. */
+function compactObstacles(obstacles: PlacedObstacle[]) {
+  return withNumbers(obstacles).map((ob) => {
+    const out: Partial<PlacedObstacle> = { ...ob };
+    delete out.id;
+    if (!out.zIndex) delete out.zIndex;
+    if (!out.locked) delete out.locked;
+    return out;
+  });
+}
+
 function encodeCourse(d: Draft): string {
   const json = JSON.stringify({
     v: 2,
@@ -174,7 +199,7 @@ function encodeCourse(d: Draft): string {
     arenaWidthM: d.arenaWidthM,
     arenaHeightM: d.arenaHeightM,
     classTemplate: d.classTemplate,
-    obstacles: d.obstacles,
+    obstacles: compactObstacles(d.obstacles),
     ruleSetId: d.ruleSetId,
   });
   return btoa(unescape(encodeURIComponent(json)))
@@ -325,6 +350,8 @@ export default function PlannerPage() {
   const [shareUrl, setShareUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [issuesOpen, setIssuesOpen] = useState(false);
+  /** Baninställningar som blad på surfplatta/mobil (sidopanelen syns från lg). */
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -355,6 +382,7 @@ export default function PlannerPage() {
     next: Draft;
     ids: { local?: string | null; social?: string | null };
   } | null>(null);
+  const [pendingImport, setPendingImport] = useState<{ next: Draft; warnings: string[] } | null>(null);
   const [pendingLibraryPick, setPendingLibraryPick] = useState<{
     kind: "prebuilt" | "saved";
     payload: PrebuiltCourse | LibraryCourse;
@@ -562,7 +590,7 @@ export default function PlannerPage() {
     isExternalCopy && !externalEditedRef.current && JSON.stringify(draft) === externalSnapshotRef.current;
 
   const persistDraft = useCallback((d: Draft) => {
-    const res = saveDraftToStorage(STORAGE_KEY, d);
+    const res = saveDraftToStorage(STORAGE_KEY, withCurrentNumbers(d));
     if (res.ok) {
       setSaveState("saved");
       setSaveError(null);
@@ -847,18 +875,21 @@ export default function PlannerPage() {
     if (!selected) return;
     applyObstacles(setRotation(obstacles, selected.id, deg));
   };
-  const setTunnelCurve = (patch: Partial<{ curveDeg: number; curveSide: "left" | "right" }>) => {
+  const setTunnelCurve = (patch: Partial<{ curveDeg: number; curveSide: "left" | "right"; lengthM: number }>) => {
     if (!selected || selected.type !== "tunnel" || selected.locked) return;
     setObstacles(
-      obstacles.map((ob) =>
-        ob.id === selected.id
-          ? {
-              ...ob,
-              curveDeg: clamp(patch.curveDeg ?? ob.curveDeg ?? 0, 0, 90),
-              curveSide: patch.curveSide ?? ob.curveSide ?? "right",
-            }
-          : ob
-      )
+      obstacles.map((ob) => {
+        if (ob.id !== selected.id) return ob;
+        // Första gången en äldre tunnel ändras får den en fysisk längd, så att
+        // en böjning därefter inte förlänger tunneln (riktig duk har fast längd).
+        const lengthM = clampTunnelLengthM(patch.lengthM ?? ob.lengthM ?? tunnelLengthM(ob));
+        return {
+          ...ob,
+          curveDeg: clamp(patch.curveDeg ?? ob.curveDeg ?? 0, 0, 180),
+          curveSide: patch.curveSide ?? ob.curveSide ?? "right",
+          ...(lengthM != null ? { lengthM } : {}),
+        };
+      })
     );
   };
   const reverseOrder = () => {
@@ -1225,18 +1256,26 @@ export default function PlannerPage() {
 
   // ── Klassmall / sport / arena ───────────────────────────────
   const applyClassTemplate = (key: ClassTemplateKey | null) => {
-    const tpl = key ? getClassTemplate(key) : null;
+    // Mallarna hör till det aktiva regelverket (FCI:s H1–H3 finns bara där).
+    const tpl = key ? ruleSet?.classTemplates.find((t) => t.key === key) ?? null : null;
+    const keepSize = sport === "hoopers" && (draft.sizeClass === "S" || draft.sizeClass === "L");
+    const nw = tpl?.arenaWidthM ?? draft.arenaWidthM;
+    const nh = tpl?.arenaHeightM ?? draft.arenaHeightM;
     commitDraft((d) => ({
       ...d,
       classTemplate: key,
-      sizeClass: tpl?.defaultSize ?? d.sizeClass,
-      arenaWidthM: tpl?.arenaWidthM ?? d.arenaWidthM,
-      arenaHeightM: tpl?.arenaHeightM ?? d.arenaHeightM,
+      sizeClass: tpl && !keepSize ? tpl.defaultSize : d.sizeClass,
+      arenaWidthM: nw,
+      arenaHeightM: nh,
+      obstacles: tpl
+        ? d.obstacles.map((ob) => ({ ...ob, x: clamp(ob.x, 0.5, nw - 0.5), y: clamp(ob.y, 0.5, nh - 0.5) }))
+        : d.obstacles,
     }));
     if (tpl) toast.success(`Klassmall: ${tpl.label}`, { description: tpl.description });
   };
 
   const switchSport = (s: Sport) => {
+    if (s === sport) return;
     const tpl = CLASS_TEMPLATES.find((t) => t.sport === s);
     const nw = tpl?.arenaWidthM ?? 30;
     const nh = tpl?.arenaHeightM ?? 40;
@@ -1244,6 +1283,10 @@ export default function PlannerPage() {
       ...d,
       sport: s,
       classTemplate: null,
+      // Hoopers har bara Small/Large — mappa agilityns fem klasser dit.
+      sizeClass: s === "hoopers"
+        ? (d.sizeClass === "XS" || d.sizeClass === "S" ? "S" : "L")
+        : d.sizeClass,
       arenaWidthM: nw,
       arenaHeightM: nh,
       ruleSetId: getDefaultRuleSetIdForSport(s),
@@ -1253,6 +1296,21 @@ export default function PlannerPage() {
     setPlacing(null);
     resetModes();
   };
+
+  const switchRuleSet = (id: string) => {
+    if (id === draft.ruleSetId) return;
+    const next = getRuleSet(id);
+    if (!next || next.sport !== sport) return;
+    commitDraft((d) => ({
+      ...d,
+      ruleSetId: id,
+      // En klassmall från ett annat regelverk gäller inte längre.
+      classTemplate: next.classTemplates.some((t) => t.key === d.classTemplate) ? d.classTemplate : null,
+    }));
+    toast.success(`Regelverk: ${next.name}`);
+  };
+
+  const setSizeClass = (size: SizeClassKey) => commitDraft((d) => ({ ...d, sizeClass: size }));
 
   const setArena = (width: number, height: number) => {
     commitDraft((d) => ({
@@ -1321,8 +1379,17 @@ export default function PlannerPage() {
     }
   };
 
-  const shareUrlForQr = () =>
+  const shareUrl_ = () =>
     `${window.location.origin}${window.location.pathname}?bana=${encodeCourse(draft)}`;
+  /**
+   * QR-koden i PDF:erna: hela banan i länken när den ryms, annars den
+   * publika banlänken (/bana/:id) om banan är delad.
+   */
+  const shareUrlForQr = () => {
+    const full = shareUrl_();
+    if (full.length <= QR_MAX_CHARS || !socialCourseId) return full;
+    return `${window.location.origin}/bana/${socialCourseId}`;
+  };
 
   const onJudgePdf = () =>
     runExport("Domar-PDF", async () => {
@@ -1371,18 +1438,35 @@ export default function PlannerPage() {
       setTimeout(() => URL.revokeObjectURL(a.href), 4000);
     });
   const onImportJson = () => fileInputRef.current?.click();
+  const applyImport = (next: Draft, warnings: string[]) => {
+    setDraft(next);
+    resetCourseIdentity(null);
+    setLocalCourseId(null);
+    setSavedSnapshot(null);
+    setLastSavedAt(null);
+    setPast([]);
+    resetModes();
+    setFuture([]);
+    setSelectedId(null);
+    resetView();
+    toast.success(`Importerade "${next.name}"`, warnings.length ? { description: warnings.join(" ") } : undefined);
+  };
   const handleJsonFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    if (file.size > MAX_IMPORT_JSON_CHARS * 4) {
+      toast.error("Filen är för stor för att vara en bana");
+      return;
+    }
     const text = await file.text();
     const result = parseCourseJson(text);
     if (!result.ok) {
-      toast.error("Ogiltig bafil", { description: result.error });
+      toast.error("Ogiltig banfil", { description: result.error });
       return;
     }
     const c = result.course;
-    setDraft({
+    const next: Draft = {
       ...defaultDraft(c.sport),
       name: c.name || "Importerad bana",
       sport: c.sport,
@@ -1392,13 +1476,13 @@ export default function PlannerPage() {
       classTemplate: c.classTemplate ?? null,
       ruleSetId: c.ruleSetId,
       obstacles: normalizeObstacles(c.obstacles.map((ob) => ({ ...ob, id: uid() }))),
-    });
-    resetCourseIdentity(null);
-    setPast([]);
-    resetModes();
-    setFuture([]);
-    setSelectedId(null);
-    toast.success(`Importerade "${c.name || "bana"}"`);
+    };
+    // Importen ersätter banan som är öppen — fråga först om det finns något att förlora.
+    if (obstacles.length > 0) {
+      setPendingImport({ next, warnings: result.warnings });
+      return;
+    }
+    applyImport(next, result.warnings);
   };
 
   const exportPNG = () => {
@@ -1439,7 +1523,7 @@ export default function PlannerPage() {
   // ── Dela ────────────────────────────────────────────────────
   const openShare = () => {
     track("course_shared");
-    setShareUrl(shareUrlForQr());
+    setShareUrl(shareUrl_());
     setCopied(false);
     setShareOpen(true);
   };
@@ -1472,8 +1556,8 @@ export default function PlannerPage() {
         id: opts?.asNew ? null : localCourseId,
         name: targetName,
         sport: nextDraft.sport,
-        obstacleCount: nextDraft.obstacles.length,
-        data: nextDraft,
+        obstacleCount: nextDraft.obstacles.filter(isCompeting).length,
+        data: withCurrentNumbers(nextDraft),
       });
       setLocalCourseId(id);
       setSavedSnapshot(JSON.stringify(nextDraft));
@@ -1781,6 +1865,44 @@ export default function PlannerPage() {
   const selectedDef = selected ? getObstacleDefV2(selected.type) : null;
   const selectedNumbered = selected ? numbered.find((ob) => ob.id === selected.id) : null;
 
+  const viewToggles: PlannerViewToggles = { showLine, showNumbers, showGrid, showRulers, showDistances };
+  const toggleView = (key: keyof PlannerViewToggles) => {
+    const setters: Record<keyof PlannerViewToggles, (fn: (v: boolean) => boolean) => void> = {
+      showLine: setShowLine,
+      showNumbers: setShowNumbers,
+      showGrid: setShowGrid,
+      showRulers: setShowRulers,
+      showDistances: setShowDistances,
+    };
+    setters[key]((v) => !v);
+  };
+  const settingsProps = {
+    sport,
+    ruleSet,
+    classTemplate: draft.classTemplate,
+    sizeClass: draft.sizeClass,
+    arenaWidthM: w,
+    arenaHeightM: h,
+    onSport: switchSport,
+    onRuleSet: switchRuleSet,
+    onClassTemplate: applyClassTemplate,
+    onSizeClass: setSizeClass,
+    onArena: setArena,
+  };
+  const settingsPanel = <PlannerSettings {...settingsProps} />;
+
+  /** Tider enligt aktivt regelverk — aldrig "0 s" när en tid saknas. */
+  const timesText = (() => {
+    if (!times) return null;
+    if (!times.refTimeIsEstimate) {
+      const ref = times.refTimeS != null ? `Referenstid ${times.refTimeS} s` : "Ingen referenstid";
+      return times.maxTimeS != null ? `${ref} · Maxtid ${times.maxTimeS} s` : ref;
+    }
+    if (!draft.classTemplate || times.refTimeS == null) return null;
+    return `Uppskattad referenstid ca ${times.refTimeS} s · Maxtid ca ${times.maxTimeS ?? "–"} s`;
+  })();
+  const ruleSetExpired = ruleSet ? isRuleSetExpired(ruleSet) : false;
+
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-paper text-ink">
       <AffiliateBanner compact />
@@ -1886,9 +2008,22 @@ export default function PlannerPage() {
                   <Keyboard className="mr-2 h-4 w-4" /> Tangentbordsgenvägar
                   <span className="ml-auto text-xs text-ink/40">?</span>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator className="sm:hidden" />
+                <DropdownMenuItem onSelect={openShare} disabled={!obstacles.length} className="min-h-11 font-semibold sm:hidden">
+                  <Share2 className="mr-2 h-4 w-4" /> Dela via länk
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setProfileOpen(true)} className="min-h-11 font-semibold sm:hidden">
+                  <span className="mr-2 grid h-4 w-4 place-items-center rounded-full bg-forest text-[9px] text-paper">
+                    {plannerProfile ? plannerProfile.name.trim().charAt(0).toUpperCase() : "?"}
+                  </span>
+                  {plannerProfile ? "Din banprofil" : "Skapa banprofil"}
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => setFeedbackOpen(true)} className="min-h-11 font-semibold">
                   <Lightbulb className="mr-2 h-4 w-4" /> Skicka förslag & material
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={openCookieSettings} className="min-h-11 font-semibold">
+                  <Cookie className="mr-2 h-4 w-4" /> Cookieinställningar
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -1919,7 +2054,7 @@ export default function PlannerPage() {
             <button
               onClick={openShare}
               disabled={!obstacles.length}
-              className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-tang px-3 text-sm font-bold text-ink disabled:opacity-40 sm:h-11 sm:px-3.5 xl:px-5"
+              className="pressable shadow-hard-sm hidden h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-tang px-3 text-sm font-bold text-ink disabled:opacity-40 sm:inline-flex sm:h-11 sm:px-3.5 xl:px-5"
               title={obstacles.length ? "Skapa en länk med hela banan — mottagaren behöver inget konto" : "Placera minst ett hinder först"}
               aria-label="Dela banan via länk"
             >
@@ -1928,7 +2063,7 @@ export default function PlannerPage() {
             <button
               onClick={() => setProfileOpen(true)}
               title={plannerProfile ? `Inloggad som ${plannerProfile.name}` : "Skapa din banprofil (namn + e-post)"}
-              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-paper px-2.5 text-sm font-bold transition-colors hover:bg-cream sm:h-11 sm:px-3"
+              className="hidden h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-paper px-2.5 text-sm font-bold transition-colors hover:bg-cream sm:inline-flex sm:h-11 sm:px-3"
               aria-label={plannerProfile ? "Din banprofil" : "Skapa banprofil"}
             >
               <span className="grid h-6 w-6 place-items-center rounded-full bg-forest text-xs text-paper">
@@ -1971,79 +2106,7 @@ export default function PlannerPage() {
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* ── Vänster sidopanel (desktop) ── */}
         <aside className="hidden w-80 shrink-0 flex-col gap-5 overflow-y-auto border-r-2 border-ink/10 bg-paper p-5 lg:flex">
-          {/* Sport */}
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink/50">Sport</p>
-            <div className="grid grid-cols-2 gap-2">
-              {(["agility", "hoopers"] as Sport[]).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => switchSport(s)}
-                  className={`h-11 rounded-xl border-2 text-sm font-bold capitalize transition-all ${
-                    sport === s ? "border-ink bg-forest text-paper shadow-hard-sm" : "border-ink/15 bg-white text-ink/60 hover:border-ink"
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Klassmall */}
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink/50">Klassmall</p>
-            <select
-              value={draft.classTemplate ?? ""}
-              onChange={(e) => applyClassTemplate((e.target.value || null) as ClassTemplateKey | null)}
-              className="h-11 w-full rounded-xl border-2 border-ink/15 bg-white px-3 text-sm font-semibold outline-none focus:border-ink"
-            >
-              <option value="">Fri planering</option>
-              {CLASS_TEMPLATES.filter((t) => t.sport === sport).map((t) => (
-                <option key={t.key} value={t.key}>{t.label}</option>
-              ))}
-            </select>
-            {draft.classTemplate && (
-              <p className="mt-1.5 text-xs leading-relaxed text-ink/50">
-                {getClassTemplate(draft.classTemplate)?.description}
-              </p>
-            )}
-          </div>
-
-          {/* Storleksklass */}
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink/50">Storleksklass</p>
-            <div className="flex gap-1.5">
-              {SIZE_CLASSES.map((sc) => (
-                <button
-                  key={sc.key}
-                  onClick={() => commitDraft((d) => ({ ...d, sizeClass: sc.key }))}
-                  className={`h-9 flex-1 rounded-lg border-2 text-xs font-bold transition-all ${
-                    draft.sizeClass === sc.key ? "border-ink bg-tang text-ink shadow-hard-sm" : "border-ink/15 bg-white text-ink/60 hover:border-ink"
-                  }`}
-                >
-                  {sc.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Banstorlek */}
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink/50">Banstorlek</p>
-            <div className="grid grid-cols-2 gap-1.5">
-              {ARENA_PRESETS.filter((p) => p.sport.includes(sport)).map((p) => (
-                <button
-                  key={p.label}
-                  onClick={() => setArena(p.width, p.height)}
-                  className={`h-9 rounded-lg border-2 text-xs font-bold transition-all ${
-                    w === p.width && h === p.height ? "border-ink bg-ink text-paper" : "border-ink/15 bg-white text-ink/60 hover:border-ink"
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          {settingsPanel}
 
           {/* Hinderpalett */}
           <div className="flex-1">
@@ -2180,6 +2243,7 @@ export default function PlannerPage() {
                           sw={0.1 * detail}
                           curveDeg={ob.curveDeg}
                           curveSide={ob.curveSide}
+                          lengthM={ob.lengthM}
                         />
                       </g>
                       {ob.locked && (
@@ -2195,13 +2259,14 @@ export default function PlannerPage() {
                 {/* avstånd mellan hinder i banordning */}
                 {segmentLabels.map((lab) => {
                   const level = distanceIssueLevel.get(lab.toId);
-                  const text = formatMeters(lab.centerDistanceM);
+                  // Agility mäts längs hundens väg (SAgiK §3.1), hoopers mitt–mitt.
+                  const text = formatMeters(sport === "agility" ? lab.pathDistanceM : lab.centerDistanceM);
                   const fs = 0.5 * detail;
                   const pillW = text.length * fs * 0.56 + fs * 0.9;
                   const pillH = fs * 1.55;
                   return (
                     <g key={`d-${lab.fromId}-${lab.toId}`} transform={`translate(${lab.lx} ${lab.ly})`} pointerEvents="none" data-distance-label>
-                      <title>{`Hinder ${lab.fromNumber}→${lab.toNumber}: ${formatMeters(lab.centerDistanceM, 2)} mitt–mitt · ${formatMeters(lab.pathDistanceM)} längs hundlinjen`}</title>
+                      <title>{`Hinder ${lab.fromNumber}→${lab.toNumber}: ${formatMeters(lab.pathDistanceM, 2)} längs hundens väg · ${formatMeters(lab.centerDistanceM, 2)} mitt–mitt`}</title>
                       <rect
                         x={-pillW / 2} y={-pillH / 2} width={pillW} height={pillH} rx={pillH / 2}
                         fill={level === "error" ? "#E24C00" : level === "warning" ? "#FFB020" : "#FFFFFF"}
@@ -2367,10 +2432,22 @@ export default function PlannerPage() {
                     ×
                   </button>
                 </div>
-                {draft.classTemplate && times && (
-                  <p className="mb-3 rounded-xl bg-cream px-3 py-2 text-xs font-semibold text-ink/70">
-                    Referenstid ca {(times.refTimeS ?? 0).toFixed(0)} s · Maxtid {(times.maxTimeS ?? 0).toFixed(0)} s
-                    {` · Banlängd ~${times.lengthAlongPathM.toFixed(0)} m`}
+                {ruleSetExpired && ruleSet && (
+                  <p className="mb-3 rounded-xl border-2 border-tang bg-tang/10 px-3 py-2 text-xs font-semibold leading-relaxed text-ink/80">
+                    {ruleSet.name} gällde t.o.m. {ruleSet.validTo}. Kontrollera banan mot den senaste
+                    utgåvan hos {ruleSet.organization ?? ruleSet.authority} innan du använder den i tävling.
+                  </p>
+                )}
+                {(timesText || times.lengthAlongPathM > 0) && (
+                  <p className="mb-3 rounded-xl bg-cream px-3 py-2 text-xs font-semibold leading-relaxed text-ink/70">
+                    {timesText}
+                    {timesText && times.lengthAlongPathM > 0 && " · "}
+                    {times.lengthAlongPathM > 0 && `Banlängd ~${times.lengthAlongPathM.toFixed(0)} m längs hundens väg`}
+                    {times.refTimeIsEstimate && timesText && (
+                      <span className="mt-0.5 block font-normal text-ink/50">
+                        Domaren fastställer referenstiden på tävlingsdagen — maxtiden är 2 × referenstiden.
+                      </span>
+                    )}
                   </p>
                 )}
                 {issues.length === 0 ? (
@@ -2392,6 +2469,16 @@ export default function PlannerPage() {
                           </span>
                           {issue.message}
                         </button>
+                        {issue.basis === "official_rule" && issue.sourceUrl && (
+                          <a
+                            href={issue.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-3 mt-0.5 inline-block text-[11px] font-semibold text-ink/50 underline-offset-2 hover:text-ink hover:underline"
+                          >
+                            Läs regeln{issue.ruleClause ? ` (${issue.ruleClause})` : ""} ↗
+                          </a>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -2651,7 +2738,7 @@ export default function PlannerPage() {
           </div>
 
           {/* ── Verktygsrad (desktop) ── */}
-          <div className="hidden items-center justify-center gap-1.5 border-t-2 border-ink/10 bg-paper px-4 py-2.5 sm:flex">
+          <div className="hidden items-center justify-center gap-1.5 border-t-2 border-ink/10 bg-paper px-4 py-2.5 lg:flex">
             <ToolButton
               onClick={undo}
               label={past.length ? `Ångra (Ctrl+Z) — ${past.length} steg att ångra` : "Ångra (Ctrl+Z) — inget att ångra ännu"}
@@ -2713,18 +2800,28 @@ export default function PlannerPage() {
             <span className="hidden text-xs font-semibold text-ink/50 md:block">
               {numbered.filter((o) => o.number != null).length} hinder
               {coursePath.points.length >= 2 && ` · ~${coursePath.total.toFixed(0)} m`}
-              {draft.classTemplate && times && ` · ref ${(times.refTimeS ?? 0).toFixed(0)} s`}
+              {times?.refTimeS != null && (draft.classTemplate || !times.refTimeIsEstimate) && ` · ref ${times.refTimeIsEstimate ? "~" : ""}${times.refTimeS} s`}
             </span>
           </div>
 
           {/* ── Mobildocka ── */}
-          <div className="border-t-2 border-ink bg-paper p-2.5 sm:hidden">
+          <div className="border-t-2 border-ink bg-paper p-2.5 lg:hidden">
             <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-ink/50">
+              <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wider text-ink/50">
                 {numbered.filter((o) => o.number != null).length} hinder
                 {coursePath.points.length >= 2 && ` · ~${coursePath.total.toFixed(0)} m`}
+                <span className="hidden sm:inline">
+                  {` · ${ruleSet?.classTemplates.find((t) => t.key === draft.classTemplate)?.label ?? "Fri planering"}`}
+                </span>
               </span>
               <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setSettingsOpen(true)}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full border-2 border-ink bg-tang px-3 text-xs font-bold text-ink"
+                  aria-haspopup="dialog"
+                >
+                  <SlidersHorizontal className="h-3.5 w-3.5" /> Bana
+                </button>
                 <button
                   onClick={() => zoomStep(-1)}
                   disabled={zoom <= ZOOM_MIN + 0.001}
@@ -2821,6 +2918,19 @@ export default function PlannerPage() {
         </main>
       </div>
 
+      {/* ── Baninställningar (surfplatta/mobil) ── */}
+      <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto rounded-t-3xl border-t-2 border-ink bg-paper px-5 pb-8 pt-6">
+          <SheetHeader className="mb-4 p-0 text-left">
+            <SheetTitle className="font-display text-2xl uppercase tracking-wide">Bana & regler</SheetTitle>
+            <SheetDescription className="text-ink/60">
+              Sport, regelverk, klass, storlek och banmått. Ändringar kan ångras.
+            </SheetDescription>
+          </SheetHeader>
+          <PlannerSettings {...settingsProps} view={viewToggles} onToggleView={toggleView} />
+        </SheetContent>
+      </Sheet>
+
       {/* ── Dela-dialog (direktlänk — ingen e-postgrind) ── */}
       <Dialog open={shareOpen} onOpenChange={setShareOpen}>
         <DialogContent className="border-2 border-ink bg-paper sm:max-w-lg">
@@ -2911,6 +3021,17 @@ export default function PlannerPage() {
           setPendingLibraryPick(null);
         }}
       />
+      <ConfirmDialog
+        open={pendingImport !== null}
+        onOpenChange={(v) => { if (!v) setPendingImport(null); }}
+        title={`Importera "${pendingImport?.next.name ?? ""}"?`}
+        description="Banan som är öppen nu ersätts. Spara den först i bana-menyn om du vill behålla den."
+        confirmLabel="Importera banan"
+        onConfirm={() => {
+          if (pendingImport) applyImport(pendingImport.next, pendingImport.warnings);
+          setPendingImport(null);
+        }}
+      />
       <NameCourseDialog
         open={saveAsOpen}
         onOpenChange={setSaveAsOpen}
@@ -2962,7 +3083,9 @@ export default function PlannerPage() {
       {view3D && (
         <LazyCoursePlanner3D
           obstacles={mapAllToObstacle3D(numbered, w, h, (t) => getObstacleDefV2(t)?.label)}
-          paths={[]}
+          paths={coursePath.points.length >= 2
+            ? [{ id: "dog", color: "#FF6900", points: coursePath.points.map((p) => ({ x: (p.x / w) * 100, y: (p.y / h) * 100 })) }]
+            : []}
           widthMeters={w}
           heightMeters={h}
           courseName={name}

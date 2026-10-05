@@ -66,7 +66,7 @@ describe("courseSafety — fientlig bandata", () => {
       expect(o.y).toBeLessThanOrEqual(arenaH);
       expect(Math.abs(o.rotation)).toBeLessThanOrEqual(360);
       if (o.number != null) expect(o.number).toBeLessThanOrEqual(999);
-      if (o.curveDeg != null) expect(o.curveDeg).toBeLessThanOrEqual(90);
+      if (o.curveDeg != null) expect(o.curveDeg).toBeLessThanOrEqual(180);
       expect(o.curveSide).not.toBe("up");
       expect(o.id.length).toBeLessThanOrEqual(64);
     }

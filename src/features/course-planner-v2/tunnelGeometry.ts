@@ -47,6 +47,17 @@ export function tunnelPathLengthM(w: number, curveDeg: number): number {
   return (w * (theta / 2)) / Math.sin(theta / 2);
 }
 
+/**
+ * Omvändningen av `tunnelPathLengthM`: kordan (ände–ände) för en tunnel med
+ * fysisk längd `lengthM` som böjs `curveDeg` grader. En riktig tunnelduk
+ * behåller sin längd — när den böjs kommer ändarna närmare varandra.
+ */
+export function tunnelChordFromLengthM(lengthM: number, curveDeg: number): number {
+  const theta = (normalizeCurveDeg(curveDeg) * Math.PI) / 180;
+  if (theta < (STRAIGHT_EPS_DEG * Math.PI) / 180) return lengthM;
+  return (lengthM * Math.sin(theta / 2)) / (theta / 2);
+}
+
 interface ArcSpec {
   /** Cirkelcentrum i lokala koordinater. */
   c: Vec2;

@@ -1,3 +1,4 @@
+import { clampTunnelLengthM } from "@/features/course-planner-v2/obstacleSize";
 import { OBSTACLES_V2, type ObstacleTypeV2 } from "@/features/course-planner-v2/config";
 import type { PlacedObstacle } from "@/lib/course";
 
@@ -57,7 +58,11 @@ export function sanitizePreviewObstacles(
       obstacle.number = Math.min(999, Math.round(raw.number));
     }
     if (typeof raw.curveDeg === "number" && Number.isFinite(raw.curveDeg)) {
-      obstacle.curveDeg = clampNumber(raw.curveDeg, 0, 90, 0);
+      obstacle.curveDeg = clampNumber(raw.curveDeg, 0, 180, 0);
+    }
+    if (type === "tunnel") {
+      const lengthM = clampTunnelLengthM(raw.lengthM);
+      if (lengthM != null) obstacle.lengthM = lengthM;
     }
     if (raw.curveSide === "left" || raw.curveSide === "right") obstacle.curveSide = raw.curveSide;
     if (raw.locked === true) obstacle.locked = true;

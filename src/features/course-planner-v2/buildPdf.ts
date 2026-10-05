@@ -8,7 +8,7 @@ import {
   type ClassTemplateKey, type ObstacleTypeV2, type SizeClassKey, type Sport,
 } from "./config";
 import { validateCourse, type ObstacleLite } from "./validation";
-import { PDF_BRAND, PDF_PAGE, drawArenaVector, drawHeaderBand, drawFooterAllPages, safeFileName } from "./pdfHelpers";
+import { PDF_BRAND, PDF_PAGE, drawArenaVector, drawHeaderBand, drawFooterAllPages, safeFileName, installPdfTextSanitizer } from "./pdfHelpers";
 
 export interface BuildPdfInput {
   name: string;
@@ -26,7 +26,7 @@ export interface BuildPdfInput {
 }
 
 export async function exportBuildPdf(input: BuildPdfInput) {
-  const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+  const doc = installPdfTextSanitizer(new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" }));
   const margin = PDF_PAGE.margin;
   const pageW = PDF_PAGE.width;
   const pageH = PDF_PAGE.height;
@@ -51,7 +51,8 @@ export async function exportBuildPdf(input: BuildPdfInput) {
   const arenaResult = drawArenaVector(doc, {
     x: margin, y: 32,
     maxWidth: pageW - margin * 2,
-    maxHeight: pageH - 32 - 12,
+    // Lämna plats längst ned för QR-koden och sidfoten.
+    maxHeight: pageH - 32 - 40,
     arenaWidthM: input.arenaWidthM,
     arenaHeightM: input.arenaHeightM,
     obstacles: input.obstacles,
@@ -164,7 +165,7 @@ export async function exportBuildPdf(input: BuildPdfInput) {
   doc.setFontSize(9);
   if (issues.length === 0) {
     doc.setTextColor(...PDF_BRAND.primary);
-    doc.text("✓ Inga regelproblem hittades.", margin, y);
+    doc.text("Förhandskontrollen hittade inga anmärkningar.", margin, y);
     y += 6;
   } else {
     const sections: { title: string; items: typeof issues; color: [number, number, number] }[] = [

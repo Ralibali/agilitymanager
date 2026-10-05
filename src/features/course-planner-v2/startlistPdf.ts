@@ -3,6 +3,7 @@
  * Komprimerad numrerad lista över hinder för domare/bandomare.
  */
 import jsPDF from "jspdf";
+import { installPdfTextSanitizer } from "./pdfHelpers";
 import { CLASS_TEMPLATES, SIZE_CLASSES, getObstacleDefV2,
   type ClassTemplateKey, type ObstacleTypeV2, type Sport, type SizeClassKey } from "./config";
 import { computeCourseTimes } from "./validation";
@@ -22,7 +23,7 @@ interface Args {
 }
 
 export function exportStartlistPdf(a: Args) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = installPdfTextSanitizer(new jsPDF({ unit: "mm", format: "a4" }));
   const W = 210; const M = 12;
   const tpl = a.classTemplate ? CLASS_TEMPLATES.find((t) => t.key === a.classTemplate) : null;
   const sizeDef = SIZE_CLASSES.find((s) => s.key === a.sizeClass);
@@ -46,9 +47,9 @@ export function exportStartlistPdf(a: Args) {
   const meta = [
     `Sport: ${a.sport === "agility" ? "Agility" : "Hoopers"}`,
     `Storleksklass: ${sizeDef?.label ?? "—"}`,
-    `Hinder: ${a.obstacles.length}`,
-    `Banlängd: ${times.lengthM.toFixed(1)} m`,
-    times.refTimeS != null ? `Referenstid: ${times.refTimeS} s` : null,
+    `Hinder: ${a.obstacles.filter((o) => !["start", "finish", "number", "handler_zone"].includes(o.type)).length}`,
+    `Banlängd: ${times.lengthAlongPathM.toFixed(1)} m`,
+    times.refTimeS != null ? `Referenstid: ${times.refTimeIsEstimate ? "ca " : ""}${times.refTimeS} s` : null,
     times.maxTimeS != null ? `Maxtid: ${times.maxTimeS} s` : null,
   ].filter(Boolean).join("    ·    ");
   doc.text(meta, M, 34);

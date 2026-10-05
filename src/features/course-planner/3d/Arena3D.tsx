@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { useMemo } from "react";
-import { Text } from "@react-three/drei";
+import { CanvasText } from "./CanvasText";
 
 type Props = { widthMeters: number; heightMeters: number; wallHeight?: number; showGrid?: boolean };
 
@@ -87,33 +87,27 @@ function WallBanner({ text, sub, position, rotation, width, accent = "green" }: 
         <circleGeometry args={[0.25, 32]} />
         <meshBasicMaterial color={accentColor} />
       </mesh>
-      <Text
+      <CanvasText
         position={[0.14, 0.16, 0.07]}
         fontSize={Math.min(0.34, width / 10.5)}
         color="#102d22"
-        anchorX="center"
-        anchorY="middle"
         outlineWidth={0.006}
         outlineColor="#fffaf0"
         maxWidth={width - 1.05}
-        textAlign="center"
         renderOrder={4}
       >
         {text}
-      </Text>
+      </CanvasText>
       {sub && (
-        <Text
+        <CanvasText
           position={[0.14, -0.23, 0.07]}
           fontSize={Math.min(0.15, width / 20)}
           color="#526059"
-          anchorX="center"
-          anchorY="middle"
           maxWidth={width - 1.1}
-          textAlign="center"
           renderOrder={4}
         >
           {sub}
-        </Text>
+        </CanvasText>
       )}
     </group>
   );
@@ -121,9 +115,9 @@ function WallBanner({ text, sub, position, rotation, width, accent = "green" }: 
 
 function DimensionLabel({ text, position, rotation }: { text: string; position: [number, number, number]; rotation: [number, number, number] }) {
   return (
-    <Text position={position} rotation={rotation} fontSize={0.32} color="#ffffff" anchorX="center" anchorY="middle" outlineWidth={0.028} outlineColor="#31542b">
+    <CanvasText position={position} rotation={rotation} fontSize={0.32} color="#ffffff" outlineWidth={0.028} outlineColor="#31542b">
       {text}
-    </Text>
+    </CanvasText>
   );
 }
 

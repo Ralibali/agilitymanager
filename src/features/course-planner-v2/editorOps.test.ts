@@ -263,8 +263,9 @@ describe("computeSegmentLabels", () => {
     // Etiketten ligger mellan hindren, på hundlinjen.
     expect(labels[0].x).toBeGreaterThan(5);
     expect(labels[0].x).toBeLessThan(11);
-    expect(labels[0].pathDistanceM).toBeGreaterThan(0);
-    expect(labels[0].pathDistanceM).toBeLessThan(6);
+    // Mätt från ribba till ribba längs hundlinjen: minst mitt–mitt-avståndet.
+    expect(labels[0].pathDistanceM).toBeGreaterThan(5.9);
+    expect(labels[0].pathDistanceM).toBeLessThan(8);
   });
 
   it("returnerar inget för färre än två numrerade hinder", () => {

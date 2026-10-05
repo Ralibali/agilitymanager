@@ -98,38 +98,42 @@ export interface ObstacleDefV2 {
 
 export const OBSTACLES_V2: ObstacleDefV2[] = [
   // Hopphinder
-  { type: "jump",     label: "Hopp",       category: "Hopphinder", sport: ["agility"], sizeM: { w: 1.4, d: 0.4 }, allowedInJumpClass: true,  description: "Enkel ribba mellan två stolpar" },
+  { type: "jump",     label: "Hopp",       category: "Hopphinder", sport: ["agility"], sizeM: { w: 1.4, d: 0.4 }, allowedInJumpClass: true,  description: "Hopphinder — ribba mellan två stolpar" },
   { type: "wall",     label: "Mur",        category: "Hopphinder", sport: ["agility"], sizeM: { w: 1.4, d: 0.5 }, allowedInJumpClass: true,  description: "Mur / viadukt" },
-  { type: "longjump", label: "Långhopp",   category: "Hopphinder", sport: ["agility"], sizeM: { w: 1.4, d: 1.5 }, allowedInJumpClass: true,  description: "Sluttande plankor, antal styrs av storleksklass" },
-  { type: "tire",     label: "Däck",       category: "Hopphinder", sport: ["agility"], sizeM: { w: 1.0, d: 1.0 }, allowedInJumpClass: true,  description: "Däck med innerdiameter 45–60 cm" },
-  { type: "combo",    label: "Kombination", category: "Hopphinder", sport: ["agility"], sizeM: { w: 1.4, d: 0.6 }, allowedInJumpClass: true, description: "Oxer / dubbelhopp (två bommar) — tillåts endast i klass 2–3 (SAgiK 2022–2026 §3.1)" },
+  { type: "longjump", label: "Långhopp",   category: "Hopphinder", sport: ["agility"], sizeM: { w: 1.4, d: 1.5 }, allowedInJumpClass: true,  description: "Långhopp — antal delar och längd styrs av storleksklass" },
+  { type: "tire",     label: "Däck",       category: "Hopphinder", sport: ["agility"], sizeM: { w: 1.0, d: 1.0 }, allowedInJumpClass: true,  description: "Däck, ringens innerdiameter 45–60 cm" },
+  { type: "combo",    label: "Oxer",       category: "Hopphinder", sport: ["agility"], sizeM: { w: 1.4, d: 0.6 }, allowedInJumpClass: true, description: "Oxer (två bommar) — tillåts endast i klass 2–3 (SAgiK 2022–2026 §3.1)" },
 
-  // Tunnlar
-  { type: "tunnel",   label: "Tunnel",     category: "Tunnlar",    sport: ["agility", "hoopers"], sizeM: { w: 3.0, d: 0.6 }, allowedInJumpClass: true, description: "Böjbar tunnel, 0–180°" },
+  // Tunnlar — standardlängd 3 m, ställbar 2–6 m i egenskapspanelen (SAgiK: 3–6 m).
+  { type: "tunnel",   label: "Tunnel",     category: "Tunnlar",    sport: ["agility", "hoopers"], sizeM: { w: 3.0, d: 0.6 }, allowedInJumpClass: true, description: "Tunnel, 3–6 m lång, kan böjas 0–180°" },
 
-  // Slalom
-  { type: "weave_8",  label: "Slalom 8",   category: "Slalom", sport: ["agility"], sizeM: { w: 0.4, d: 4.2 }, allowedInJumpClass: false, description: "Slalom med 8 pinnar" },
-  { type: "weave_10", label: "Slalom 10",  category: "Slalom", sport: ["agility"], sizeM: { w: 0.4, d: 5.4 }, allowedInJumpClass: false, description: "Slalom med 10 pinnar" },
-  { type: "weave_12", label: "Slalom 12",  category: "Slalom", sport: ["agility"], sizeM: { w: 0.4, d: 6.6 }, allowedInJumpClass: false, description: "Slalom med 12 pinnar (standard)" },
+  // Slalom — 60 cm mellan pinnarna. Tävlingsslalom har ALLTID 12 pinnar
+  // (SAgiK 2022–2026); 8 och 10 pinnar finns kvar för träningsbanor.
+  { type: "weave_8",  label: "Slalom 8",   category: "Slalom", sport: ["agility"], sizeM: { w: 0.4, d: 4.2 }, allowedInJumpClass: false, description: "Träningsslalom med 8 pinnar — inte tillåtet i tävling" },
+  { type: "weave_10", label: "Slalom 10",  category: "Slalom", sport: ["agility"], sizeM: { w: 0.4, d: 5.4 }, allowedInJumpClass: false, description: "Träningsslalom med 10 pinnar — inte tillåtet i tävling" },
+  { type: "weave_12", label: "Slalom 12",  category: "Slalom", sport: ["agility"], sizeM: { w: 0.4, d: 6.6 }, allowedInJumpClass: false, description: "Slalom med 12 pinnar (tävlingsstandard)" },
 
-  // Balans (kontaktfält)
-  { type: "aframe",   label: "A-hinder",   category: "Balans", sport: ["agility"], sizeM: { w: 0.9, d: 2.7 }, allowedInJumpClass: false, hasContactZone: true, description: "A-hinder, sidor 270 cm" },
-  { type: "dogwalk",  label: "Balansbom",  category: "Balans", sport: ["agility"], sizeM: { w: 0.3, d: 3.6 }, allowedInJumpClass: false, hasContactZone: true, description: "Tre sektioner, kontaktfält i ändarna" },
-  { type: "seesaw",   label: "Gungbräda",  category: "Balans", sport: ["agility"], sizeM: { w: 0.3, d: 3.6 }, allowedInJumpClass: false, hasContactZone: true, description: "Vippbräda, kontaktfält i ändarna" },
+  // Balans (kontaktfält). Djupet är fotavtrycket i planvy:
+  //  - A-hinder: två ramper à ca 2,7 m med toppen 1,70 m → ≈4,2 m på marken.
+  //  - Balansbom: tre plankor à 3,6–3,8 m, höjd 1,20–1,30 m → ≈10,7 m.
+  //  - Gungbräda: 3,65–4,25 m lång planka, 30 cm bred.
+  { type: "aframe",   label: "A-hinder",   category: "Balans", sport: ["agility"], sizeM: { w: 0.9, d: 4.2 }, allowedInJumpClass: false, hasContactZone: true, description: "A-hinder — två ramper à ca 2,7 m, kontaktfält i båda ändar" },
+  { type: "dogwalk",  label: "Balansbom",  category: "Balans", sport: ["agility"], sizeM: { w: 0.3, d: 10.7 }, allowedInJumpClass: false, hasContactZone: true, description: "Balansbom — tre plankor à 3,6–3,8 m, kontaktfält i båda ändar" },
+  { type: "seesaw",   label: "Gungbräda",  category: "Balans", sport: ["agility"], sizeM: { w: 0.3, d: 3.7 }, allowedInJumpClass: false, hasContactZone: true, description: "Gungbräda, ca 3,7 m — kontaktfält i båda ändar" },
 
-  // Bord
-  { type: "table",    label: "Bord",       category: "Bord",   sport: ["agility"], sizeM: { w: 1.0, d: 1.0 }, allowedInJumpClass: false, description: "Bord 90–120 cm sida" },
+  // Bord — togs bort ur svenska tävlingsregler 2017; finns kvar för träning.
+  { type: "table",    label: "Bord",       category: "Bord",   sport: ["agility"], sizeM: { w: 1.0, d: 1.0 }, allowedInJumpClass: false, description: "Bord — används inte i svenska tävlingar sedan 2017 (träning)" },
 
   // Bankontroll
   { type: "start",    label: "Start",      category: "Bankontroll", sport: ["agility", "hoopers"], sizeM: { w: 1.2, d: 0.2 }, allowedInJumpClass: true, description: "Startlinje" },
   { type: "finish",   label: "Mål",        category: "Bankontroll", sport: ["agility", "hoopers"], sizeM: { w: 1.2, d: 0.2 }, allowedInJumpClass: true, description: "Mållinje" },
   { type: "number",   label: "Nummer",     category: "Bankontroll", sport: ["agility", "hoopers"], sizeM: { w: 0.3, d: 0.3 }, allowedInJumpClass: true, description: "Numreringspunkt fristående från hinder" },
 
-  // Hoopers (data finns men palett exponeras i Sprint 3)
-  { type: "hoop",         label: "Hoop",            category: "Hoopers",  sport: ["hoopers"], sizeM: { w: 0.9, d: 0.4 }, allowedInJumpClass: true, description: "Båge, 88 cm bred" },
-  { type: "barrel",       label: "Tunna",           category: "Hoopers",  sport: ["hoopers"], sizeM: { w: 0.6, d: 0.6 }, allowedInJumpClass: true, description: "Tunna, ~60 cm diameter" },
-  { type: "fence",        label: "Staket",          category: "Hoopers",  sport: ["hoopers"], sizeM: { w: 1.2, d: 0.1 }, allowedInJumpClass: true, description: "Staket / grind, passeras bakom" },
-  { type: "handler_zone", label: "Dirigeringsområde", category: "Områden", sport: ["hoopers"], sizeM: { w: 4.0, d: 4.0 }, allowedInJumpClass: true, description: "Förarens dirigeringsområde" },
+  // Hoopers
+  { type: "hoop",         label: "Hoop",            category: "Hoopers",  sport: ["hoopers"], sizeM: { w: 0.9, d: 0.4 }, allowedInJumpClass: true, description: "Båge, 80–100 cm bred" },
+  { type: "barrel",       label: "Tunna",           category: "Hoopers",  sport: ["hoopers"], sizeM: { w: 0.6, d: 0.6 }, allowedInJumpClass: true, description: "Tunna, ⌀45–70 cm — hunden rundar den" },
+  { type: "fence",        label: "Staket",          category: "Hoopers",  sport: ["hoopers"], sizeM: { w: 1.2, d: 0.1 }, allowedInJumpClass: true, description: "Staket / grind — hunden passerar bakom" },
+  { type: "handler_zone", label: "Dirigeringsområde", category: "Områden", sport: ["hoopers"], sizeM: { w: 4.0, d: 4.0 }, allowedInJumpClass: true, description: "Förarens dirigeringsområde (DO)" },
 ];
 
 export function getObstacleDefV2(type: ObstacleTypeV2): ObstacleDefV2 | undefined {
@@ -171,40 +175,55 @@ export interface ClassTemplate {
   /** Maxtid faktor relativt referenstid. */
   maxTimeFactor: number;
   description: string;
+  /**
+   * Vilken uppsättning banregler som gäller för mallen:
+   *  - "sagik_competition": officiell svensk tävlingsklass (SAgiK 2022–2026 §3.1)
+   *  - "sagik_nollklass": SAgiK:s Nollklass (inofficiell startklass, 12–14 passager)
+   * Saknas fältet görs bara de generella kontrollerna.
+   */
+  courseRules?: "sagik_competition" | "sagik_nollklass";
+  /** Fler godkända banmått utöver arenaWidthM × arenaHeightM (t.ex. Nollklass 15×30 m). */
+  alternativeArenaSizesM?: Array<[number, number]>;
 }
 
 const CONTACT_TYPES: ObstacleTypeV2[] = ["aframe", "dogwalk", "seesaw"];
+/** Slalom med färre än 12 pinnar och bordet används inte i svensk tävling. */
+const NOT_IN_SWEDISH_COMPETITION: ObstacleTypeV2[] = ["weave_8", "weave_10", "table"];
 
 // VERIFIERAT 2026-07 mot officiella dokument:
 //  - Agility (SAgiK/SKK 2022–2026 §3.1, §3.4): banan ska ha 15–22
 //    hinderpassager; banområdet bör vara 30×40 m; oxer får EJ användas i
-//    klass 1; maxtiden är 2 × referenstiden. Referenstiden sätts av domaren
-//    per bana — refSpeedMs nedan är en uppskattning för planering, inte en
-//    regelparameter.
+//    klass 1; slalom har alltid 12 pinnar; bordet togs bort 2017; maxtiden
+//    är 2 × referenstiden. Referenstiden sätts av domaren per bana —
+//    refSpeedMs nedan är en uppskattning för planering, inte en regelparameter.
+//  - Nollklass (SAgiK 2026): 25×30 eller 15×30 m, 12–14 hinder: hopp och
+//    tunnlar plus ETT specialhinder (mur/långhopp, slalom eller balansbom).
 //  - Hoopers (SHoK 2025-11-01): startklass 10–15 hinder (5–7 m), klass 1
 //    13–20 (6–8 m), klass 2 17–22 (6–9 m), klass 3 20–24 (6–9 m).
-//    Referenstiden är 45 s i alla klasser, maxtid 90 s (faktor 2.0).
+//    Referenstiden är 45 s i alla klasser, maxtid 90 s.
 //    Banområdet bör vara 30×30 m. Banan börjar och slutar alltid med hoop.
+const HOOPERS_TYPES: ObstacleTypeV2[] = ["hoop", "tunnel", "barrel", "fence", "handler_zone", "start", "finish", "number"];
+
 export const CLASS_TEMPLATES: ClassTemplate[] = [
   // Hoppklasser — inga balanshinder; oxer ("combo") ej tillåten i klass 1
-  { key: "agility_hopp_1", sport: "agility", label: "Hoppklass 1", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 22], defaultSize: "L", forbiddenTypes: [...CONTACT_TYPES, "table", "combo"], refSpeedMs: 3.5, maxTimeFactor: 2.0, description: "Endast hopp, tunnel och slalom" },
-  { key: "agility_hopp_2", sport: "agility", label: "Hoppklass 2", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 22], defaultSize: "L", forbiddenTypes: [...CONTACT_TYPES, "table"], refSpeedMs: 4.0, maxTimeFactor: 2.0, description: "Hopp, tunnel, slalom" },
-  { key: "agility_hopp_3", sport: "agility", label: "Hoppklass 3", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 22], defaultSize: "L", forbiddenTypes: [...CONTACT_TYPES, "table"], refSpeedMs: 4.5, maxTimeFactor: 2.0, description: "Hopp, tunnel, slalom — högsta nivån" },
-  // Agilityklasser — alla hinder; oxer ("combo") ej tillåten i klass 1
-  { key: "agility_1", sport: "agility", label: "Agilityklass 1", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 22], defaultSize: "L", forbiddenTypes: ["combo"], refSpeedMs: 2.5, maxTimeFactor: 2.0, description: "Alla hindertyper (oxer ej tillåten i klass 1)" },
-  { key: "agility_2", sport: "agility", label: "Agilityklass 2", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 22], defaultSize: "L", refSpeedMs: 3.0, maxTimeFactor: 2.0, description: "Alla hindertyper, högre tempo" },
-  { key: "agility_3", sport: "agility", label: "Agilityklass 3", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 22], defaultSize: "L", refSpeedMs: 3.5, maxTimeFactor: 2.0, description: "Alla hindertyper, högsta nivån" },
+  { key: "agility_hopp_1", sport: "agility", label: "Hoppklass 1", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 22], defaultSize: "L", forbiddenTypes: [...CONTACT_TYPES, ...NOT_IN_SWEDISH_COMPETITION, "combo"], refSpeedMs: 3.5, maxTimeFactor: 2.0, courseRules: "sagik_competition", description: "Hopp, tunnel och slalom — oxer ej tillåten i klass 1" },
+  { key: "agility_hopp_2", sport: "agility", label: "Hoppklass 2", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 22], defaultSize: "L", forbiddenTypes: [...CONTACT_TYPES, ...NOT_IN_SWEDISH_COMPETITION], refSpeedMs: 4.0, maxTimeFactor: 2.0, courseRules: "sagik_competition", description: "Hopp, oxer, tunnel och slalom" },
+  { key: "agility_hopp_3", sport: "agility", label: "Hoppklass 3", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 22], defaultSize: "L", forbiddenTypes: [...CONTACT_TYPES, ...NOT_IN_SWEDISH_COMPETITION], refSpeedMs: 4.5, maxTimeFactor: 2.0, courseRules: "sagik_competition", description: "Hopp, oxer, tunnel och slalom — högsta nivån" },
+  // Agilityklasser — alla tävlingshinder; oxer ("combo") ej tillåten i klass 1
+  { key: "agility_1", sport: "agility", label: "Agilityklass 1", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 22], defaultSize: "L", forbiddenTypes: [...NOT_IN_SWEDISH_COMPETITION, "combo"], refSpeedMs: 2.5, maxTimeFactor: 2.0, courseRules: "sagik_competition", description: "Alla tävlingshinder inkl. balanshinder — oxer ej tillåten i klass 1" },
+  { key: "agility_2", sport: "agility", label: "Agilityklass 2", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 22], defaultSize: "L", forbiddenTypes: [...NOT_IN_SWEDISH_COMPETITION], refSpeedMs: 3.0, maxTimeFactor: 2.0, courseRules: "sagik_competition", description: "Alla tävlingshinder, högre tempo" },
+  { key: "agility_3", sport: "agility", label: "Agilityklass 3", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 22], defaultSize: "L", forbiddenTypes: [...NOT_IN_SWEDISH_COMPETITION], refSpeedMs: 3.5, maxTimeFactor: 2.0, courseRules: "sagik_competition", description: "Alla tävlingshinder, högsta nivån" },
   // Hopplagklass
-  { key: "agility_hopplag", sport: "agility", label: "Hopplagklass", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 22], defaultSize: "L", forbiddenTypes: [...CONTACT_TYPES, "table"], refSpeedMs: 4.0, maxTimeFactor: 2.0, description: "Lagklass utan balanshinder" },
-  // Nollklass (inofficiell träningsklass — mallvärden, ej regelstyrda)
-  { key: "noll_slalom", sport: "agility", label: "Nollklass — slalom", arenaWidthM: 25, arenaHeightM: 30, obstacleRange: [12, 14], defaultSize: "L", allowedTypes: ["jump", "wall", "tunnel", "weave_8", "weave_10", "weave_12", "start", "finish", "number"], refSpeedMs: 2.5, maxTimeFactor: 1.8, description: "Tränings­klass med fokus på slalom" },
-  { key: "noll_balans", sport: "agility", label: "Nollklass — balansbom", arenaWidthM: 25, arenaHeightM: 30, obstacleRange: [12, 14], defaultSize: "L", allowedTypes: ["jump", "tunnel", "dogwalk", "start", "finish", "number"], refSpeedMs: 2.0, maxTimeFactor: 1.8, description: "Tränings­klass med fokus på balansbom" },
-  { key: "noll_mur",    sport: "agility", label: "Nollklass — mur/långhopp", arenaWidthM: 25, arenaHeightM: 30, obstacleRange: [12, 14], defaultSize: "L", allowedTypes: ["jump", "wall", "longjump", "tunnel", "start", "finish", "number"], refSpeedMs: 2.5, maxTimeFactor: 1.8, description: "Tränings­klass med fokus på hopptyper" },
+  { key: "agility_hopplag", sport: "agility", label: "Hopplagklass", arenaWidthM: 30, arenaHeightM: 40, obstacleRange: [15, 22], defaultSize: "L", forbiddenTypes: [...CONTACT_TYPES, ...NOT_IN_SWEDISH_COMPETITION], refSpeedMs: 4.0, maxTimeFactor: 2.0, courseRules: "sagik_competition", description: "Lagklass utan balanshinder" },
+  // Nollklass (SAgiK:s inofficiella startklass): hopp + tunnel + ETT specialhinder.
+  { key: "noll_slalom", sport: "agility", label: "Nollklass — slalom", arenaWidthM: 25, arenaHeightM: 30, alternativeArenaSizesM: [[15, 30]], obstacleRange: [12, 14], defaultSize: "L", allowedTypes: ["jump", "tunnel", "weave_12", "start", "finish", "number"], refSpeedMs: 2.5, maxTimeFactor: 2.0, courseRules: "sagik_nollklass", description: "Hopp och tunnlar plus en slalom (12 pinnar)" },
+  { key: "noll_balans", sport: "agility", label: "Nollklass — balansbom", arenaWidthM: 25, arenaHeightM: 30, alternativeArenaSizesM: [[15, 30]], obstacleRange: [12, 14], defaultSize: "L", allowedTypes: ["jump", "tunnel", "dogwalk", "start", "finish", "number"], refSpeedMs: 2.0, maxTimeFactor: 2.0, courseRules: "sagik_nollklass", description: "Hopp och tunnlar plus en balansbom" },
+  { key: "noll_mur",    sport: "agility", label: "Nollklass — mur/långhopp", arenaWidthM: 25, arenaHeightM: 30, alternativeArenaSizesM: [[15, 30]], obstacleRange: [12, 14], defaultSize: "L", allowedTypes: ["jump", "wall", "longjump", "tunnel", "start", "finish", "number"], refSpeedMs: 2.5, maxTimeFactor: 2.0, courseRules: "sagik_nollklass", description: "Hopp och tunnlar plus en mur eller ett långhopp" },
   // Hoopers — VERIFIERAT mot SHoK 2025-11-01: hinderantal per klass.
-  { key: "hoopers_1", sport: "hoopers", label: "Hoopers startklass", arenaWidthM: 30, arenaHeightM: 30, obstacleRange: [10, 15], defaultSize: "L", allowedTypes: ["hoop", "tunnel", "barrel", "fence", "handler_zone", "start", "finish", "number"], refSpeedMs: 2.0, maxTimeFactor: 2.0, description: "Inledande klass — hinder 5–7 m isär" },
-  { key: "hoopers_2", sport: "hoopers", label: "Hoopers klass 1", arenaWidthM: 30, arenaHeightM: 30, obstacleRange: [13, 20], defaultSize: "L", allowedTypes: ["hoop", "tunnel", "barrel", "fence", "handler_zone", "start", "finish", "number"], refSpeedMs: 2.2, maxTimeFactor: 2.0, description: "Hinder 6–8 m isär" },
-  { key: "hoopers_3", sport: "hoopers", label: "Hoopers klass 2", arenaWidthM: 30, arenaHeightM: 30, obstacleRange: [17, 22], defaultSize: "L", allowedTypes: ["hoop", "tunnel", "barrel", "fence", "handler_zone", "start", "finish", "number"], refSpeedMs: 2.4, maxTimeFactor: 2.0, description: "Hinder 6–9 m isär, fler riktningsbyten" },
-  { key: "hoopers_4", sport: "hoopers", label: "Hoopers klass 3", arenaWidthM: 30, arenaHeightM: 30, obstacleRange: [20, 24], defaultSize: "L", allowedTypes: ["hoop", "tunnel", "barrel", "fence", "handler_zone", "start", "finish", "number"], refSpeedMs: 2.6, maxTimeFactor: 2.0, description: "Högsta klassen — hinder 6–9 m isär" },
+  { key: "hoopers_1", sport: "hoopers", label: "Hoopers startklass", arenaWidthM: 30, arenaHeightM: 30, obstacleRange: [10, 15], defaultSize: "L", allowedTypes: HOOPERS_TYPES, refSpeedMs: 2.0, maxTimeFactor: 2.0, description: "Inledande klass — hinder 5–7 m isär, max 13 m från DO" },
+  { key: "hoopers_2", sport: "hoopers", label: "Hoopers klass 1", arenaWidthM: 30, arenaHeightM: 30, obstacleRange: [13, 20], defaultSize: "L", allowedTypes: HOOPERS_TYPES, refSpeedMs: 2.2, maxTimeFactor: 2.0, description: "Hinder 6–8 m isär, max 15 m från DO" },
+  { key: "hoopers_3", sport: "hoopers", label: "Hoopers klass 2", arenaWidthM: 30, arenaHeightM: 30, obstacleRange: [17, 22], defaultSize: "L", allowedTypes: HOOPERS_TYPES, refSpeedMs: 2.4, maxTimeFactor: 2.0, description: "Hinder 6–9 m isär, max 20 m från DO" },
+  { key: "hoopers_4", sport: "hoopers", label: "Hoopers klass 3", arenaWidthM: 30, arenaHeightM: 30, obstacleRange: [20, 24], defaultSize: "L", allowedTypes: HOOPERS_TYPES, refSpeedMs: 2.6, maxTimeFactor: 2.0, description: "Högsta klassen — hinder 6–9 m isär, max 25 m från DO" },
 ];
 
 export function getClassTemplate(key: ClassTemplateKey): ClassTemplate | undefined {
@@ -231,11 +250,13 @@ export const ARENA_PRESETS: ArenaPreset[] = [
   { label: "25 × 30 m", width: 25, height: 30, sport: ["agility"] },
   { label: "30 × 40 m", width: 30, height: 40, sport: ["agility"] },
   { label: "40 × 30 m", width: 40, height: 30, sport: ["agility"] },
-  // Hoopers (SHoK: typiskt 25–35 m, kvadratiskt)
+  // Hoopers (SHoK: 30×30 m rekommenderat; FCI: minst 800 m², kortsida ≥ 20 m)
   { label: "20 × 20 m", width: 20, height: 20, sport: ["hoopers"] },
   { label: "25 × 25 m", width: 25, height: 25, sport: ["hoopers"] },
   { label: "30 × 30 m", width: 30, height: 30, sport: ["hoopers"] },
   { label: "35 × 35 m", width: 35, height: 35, sport: ["hoopers"] },
+  { label: "20 × 40 m", width: 20, height: 40, sport: ["hoopers"] },
+  { label: "30 × 40 m", width: 30, height: 40, sport: ["hoopers"] },
 ];
 
 export function getArenaPresetsBySport(sport: Sport): ArenaPreset[] {

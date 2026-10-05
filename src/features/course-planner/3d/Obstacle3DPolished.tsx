@@ -1,10 +1,14 @@
 import { useMemo } from "react";
-import { Billboard, Text } from "@react-three/drei";
+import { Billboard } from "@react-three/drei";
+import { CanvasText } from "./CanvasText";
 import * as THREE from "three";
 import { normalizeCurveDeg, tunnelGeometryLocal } from "@/features/course-planner-v2/tunnelGeometry";
 
 export type Obstacle3DProps = {
+  /** Banplanerarens hindertyp (t.ex. "aframe", "weave_12") — äldre 3D-namn stöds också. */
   type: string;
+  /** Tunnelns korda (ände–ände) i meter. */
+  lengthM?: number;
   x: number;
   z: number;
   rotationDeg: number;
@@ -39,7 +43,7 @@ function NumberPlate({ number, height = 1.2, highlight = false }: { number?: num
       {highlight && <mesh renderOrder={998}><ringGeometry args={[0.45, 0.55, 40]} /><meshBasicMaterial color="#fde68a" transparent opacity={0.62} depthTest={false} /></mesh>}
       <mesh renderOrder={999}><circleGeometry args={[radius, 32]} /><meshBasicMaterial color={highlight ? "#f59e0b" : "#1d6f3c"} depthTest={false} /></mesh>
       <mesh position={[0, 0, 0.003]} renderOrder={1000}><ringGeometry args={[radius, radius + 0.055, 32]} /><meshBasicMaterial color="#ffffff" depthTest={false} /></mesh>
-      <Text position={[0, 0, 0.012]} fontSize={highlight ? 0.4 : 0.32} color="white" anchorX="center" anchorY="middle" outlineWidth={0.025} outlineColor="#0b3a1f" renderOrder={1001}>{String(number)}</Text>
+      <CanvasText position={[0, 0, 0.012]} fontSize={highlight ? 0.4 : 0.32} color="white" outlineWidth={0.025} outlineColor="#0b3a1f" renderOrder={1001} depthTest={false}>{String(number)}</CanvasText>
     </Billboard>
   );
 }
@@ -60,7 +64,7 @@ function Jump({ color }: { color?: string }) {
   return <group><Shadow w={1.7} d={0.9} /><AdjustablePost x={-0.64} /><AdjustablePost x={0.64} /><group position={[0, 0.58 + EPS, 0]}><StripedBar main={color && color !== WHITE ? color : BLUE} accent={YELLOW} /></group><mesh position={[0, 0.18, -0.22]} receiveShadow><boxGeometry args={[1.34, 0.04, 0.06]} /><meshStandardMaterial color="#d1d5db" roughness={0.58} /></mesh></group>;
 }
 function Oxer({ color }: { color?: string }) { return <group><Shadow w={1.8} d={1.3} /><group position={[0, 0, -0.25]}><Jump color={color || BLUE} /></group><group position={[0, 0.08, 0.25]}><Jump color={ORANGE} /></group></group>; }
-function LongJump() { return <group rotation={[0, Math.PI / 2, 0]}><Shadow w={1.65} d={1.4} />{[-0.58, -0.18, 0.22, 0.62].map((z, i) => <mesh key={i} position={[0, 0.08 + i * 0.035 + EPS, z]} castShadow receiveShadow><boxGeometry args={[1.48, 0.085, 0.18]} /><meshStandardMaterial color={i % 2 === 0 ? WHITE : YELLOW} roughness={0.42} /></mesh>)}{[[-0.84, -0.78], [0.84, -0.78], [-0.84, 0.86], [0.84, 0.86]].map(([x, z], i) => <mesh key={i} position={[x, 0.16, z]} castShadow><cylinderGeometry args={[0.035, 0.035, 0.32, 10]} /><meshStandardMaterial color={ORANGE} /></mesh>)}</group>; }
+function LongJump() { return <group><Shadow w={1.65} d={1.6} />{[-0.58, -0.18, 0.22, 0.62].map((z, i) => <mesh key={i} position={[0, 0.08 + i * 0.035 + EPS, z]} castShadow receiveShadow><boxGeometry args={[1.38, 0.085, 0.18]} /><meshStandardMaterial color={i % 2 === 0 ? WHITE : YELLOW} roughness={0.42} /></mesh>)}{[[-0.74, -0.74], [0.74, -0.74], [-0.74, 0.74], [0.74, 0.74]].map(([x, z]) => <mesh key={`${x}-${z}`} position={[x, 0.32 + EPS, z]} castShadow><boxGeometry args={[0.05, 0.64, 0.05]} /><meshStandardMaterial color={WHITE} roughness={0.4} /></mesh>)}</group>; }
 function Wall({ color = RED }: { color?: string }) { return <group><Shadow w={1.7} d={0.75} /><mesh position={[0, 0.42 + EPS, 0]} castShadow receiveShadow><boxGeometry args={[1.48, 0.82, 0.32]} /><meshStandardMaterial color={color || RED} roughness={0.55} /></mesh>{[-0.48, 0, 0.48].map((x) => <mesh key={x} position={[x, 0.42, 0.166]}><boxGeometry args={[0.025, 0.78, 0.012]} /><meshBasicMaterial color="#ffffff" transparent opacity={0.45} /></mesh>)}{[0.26, 0.52, 0.78].map((y) => <mesh key={y} position={[0, y, 0.168]}><boxGeometry args={[1.42, 0.022, 0.012]} /><meshBasicMaterial color="#ffffff" transparent opacity={0.42} /></mesh>)}</group>; }
 
 function makeTunnelPath(length: number, curveDeg = 0, curveSide: "left" | "right" = "left") {
@@ -85,44 +89,57 @@ function Tunnel({ color = BLUE, length = 3.05, radius = 0.42, curveDeg = 0, curv
 }
 function HoopersTunnel(props: { curveDeg?: number; curveSide?: "left" | "right" }) { return <Tunnel color={ORANGE} length={2.4} radius={0.45} {...props} />; }
 
-function AFrame() { const apexH = 1.65, half = 1.42, hyp = Math.sqrt(apexH * apexH + half * half), angle = Math.PI / 2 - Math.atan2(apexH, half), w = 1.05; return <group rotation={[0, Math.PI / 2, 0]}><Shadow w={1.35} d={3.2} />{[-1, 1].map((side) => <group key={side}><mesh position={[0, apexH / 2, (side * half) / 2]} rotation={[side * angle, 0, 0]} castShadow receiveShadow><boxGeometry args={[w, 0.08, hyp]} /><meshStandardMaterial color={YELLOW} roughness={0.46} /></mesh><mesh position={[0, 0.42, (side * half) / 2 + side * 0.78]} rotation={[side * angle, 0, 0]}><boxGeometry args={[w + 0.01, 0.065, 0.62]} /><meshStandardMaterial color={CONTACT} roughness={0.46} /></mesh>{[-0.5, 0, 0.5].map((offset) => <mesh key={offset} position={[0, apexH / 2 + 0.04, (side * half) / 2 + side * offset]} rotation={[side * angle, 0, 0]} castShadow><boxGeometry args={[w + 0.04, 0.035, 0.045]} /><meshStandardMaterial color="#8b5e34" roughness={0.7} /></mesh>)}</group>)}<mesh position={[0, apexH + 0.025, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.045, 0.045, w + 0.08, 14]} /><meshStandardMaterial color={DARK} /></mesh></group>; }
-function DogWalk() { const top = 1.08, horiz = 1.65, ramp = 1.7, w = 0.36, rampHoriz = Math.sqrt(Math.max(ramp * ramp - top * top, 0.01)), a = Math.atan2(top, rampHoriz); return <group rotation={[0, Math.PI / 2, 0]}><Shadow w={0.9} d={5.2} /><mesh position={[0, top + EPS, 0]} castShadow receiveShadow><boxGeometry args={[w, 0.07, horiz]} /><meshStandardMaterial color={WHITE} roughness={0.48} /></mesh>{[-1, 1].map((side) => <group key={side}><mesh position={[0, top / 2, side * (horiz / 2 + rampHoriz / 2)]} rotation={[side * a, 0, 0]} castShadow receiveShadow><boxGeometry args={[w, 0.07, ramp]} /><meshStandardMaterial color={YELLOW} roughness={0.48} /></mesh><mesh position={[0, 0.22, side * (horiz / 2 + rampHoriz - 0.34)]} rotation={[side * a, 0, 0]}><boxGeometry args={[w + 0.02, 0.075, 0.62]} /><meshStandardMaterial color={CONTACT} /></mesh></group>)}{[-0.6, 0.6].map((z) => <mesh key={z} position={[0, top / 2, z]} castShadow><boxGeometry args={[0.08, top, 0.08]} /><meshStandardMaterial color="#4b5563" /></mesh>)}</group>; }
-function Seesaw() { return <group rotation={[0, Math.PI / 2, 0]}><Shadow w={0.9} d={3.9} /><mesh position={[0, 0.43 + EPS, 0]} rotation={[0.055, 0, 0]} castShadow receiveShadow><boxGeometry args={[0.38, 0.075, 3.65]} /><meshStandardMaterial color={YELLOW} roughness={0.48} /></mesh>{[-1.25, 1.25].map((z) => <mesh key={z} position={[0, 0.32, z]} rotation={[0.055, 0, 0]}><boxGeometry args={[0.4, 0.08, 0.5]} /><meshStandardMaterial color={CONTACT} /></mesh>)}<mesh position={[0, 0.19 + EPS, 0]} castShadow receiveShadow><boxGeometry args={[0.55, 0.38, 0.34]} /><meshStandardMaterial color="#4b5563" roughness={0.6} /></mesh></group>; }
-function Weave() { const count = 12, spacing = 0.5; return <group rotation={[0, Math.PI / 2, 0]}><Shadow w={0.55} d={6.2} /><group position={[0, 0, -((count - 1) * spacing) / 2]}>{Array.from({ length: count }).map((_, i) => <group key={i} position={[0, 0, i * spacing]}><mesh position={[0, 0.54 + EPS, 0]} castShadow><cylinderGeometry args={[0.03, 0.03, 1.02, 14]} /><meshStandardMaterial color={i % 2 === 0 ? WHITE : RED} roughness={0.36} /></mesh><mesh position={[0, 0.035, 0]} receiveShadow><cylinderGeometry args={[0.11, 0.11, 0.055, 18]} /><meshStandardMaterial color={ORANGE} roughness={0.55} /></mesh></group>)}</group></group>; }
+function AFrame() { const apexH = 1.7, half = 2.1, hyp = Math.hypot(apexH, half), angle = Math.atan2(apexH, half), w = 0.95, zone = 1.06; return <group><Shadow w={1.3} d={4.6} />{[-1, 1].map((side) => <group key={side} position={[0, apexH / 2, (side * half) / 2]} rotation={[side * angle, 0, 0]}><mesh castShadow receiveShadow><boxGeometry args={[w, 0.08, hyp]} /><meshStandardMaterial color={YELLOW} roughness={0.46} /></mesh><mesh position={[0, 0.045, side * (hyp / 2 - zone / 2)]}><boxGeometry args={[w + 0.01, 0.02, zone]} /><meshStandardMaterial color={CONTACT} roughness={0.46} /></mesh>{[-0.6, -0.15, 0.3].map((offset) => <mesh key={offset} position={[0, 0.06, side * offset]} castShadow><boxGeometry args={[w + 0.02, 0.03, 0.04]} /><meshStandardMaterial color="#8b5e34" roughness={0.7} /></mesh>)}</group>)}<mesh position={[0, apexH + 0.025, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.045, 0.045, w + 0.08, 14]} /><meshStandardMaterial color={DARK} /></mesh></group>; }
+function DogWalk() { const top = 1.25, plank = 3.7, w = 0.3, zone = 0.9, rampHoriz = Math.sqrt(plank * plank - top * top), a = Math.atan2(top, rampHoriz); return <group><Shadow w={0.8} d={plank + 2 * rampHoriz + 0.4} /><mesh position={[0, top + EPS, 0]} castShadow receiveShadow><boxGeometry args={[w, 0.07, plank]} /><meshStandardMaterial color={WHITE} roughness={0.48} /></mesh>{[-1, 1].map((side) => <group key={side} position={[0, top / 2, side * (plank / 2 + rampHoriz / 2)]} rotation={[side * a, 0, 0]}><mesh castShadow receiveShadow><boxGeometry args={[w, 0.07, plank]} /><meshStandardMaterial color={YELLOW} roughness={0.48} /></mesh><mesh position={[0, 0.04, side * (plank / 2 - zone / 2)]}><boxGeometry args={[w + 0.02, 0.02, zone]} /><meshStandardMaterial color={CONTACT} /></mesh></group>)}{[-plank / 2 + 0.25, plank / 2 - 0.25].map((z) => <mesh key={z} position={[0, top / 2, z]} castShadow><boxGeometry args={[0.08, top, 0.08]} /><meshStandardMaterial color="#4b5563" /></mesh>)}</group>; }
+function Seesaw() { const len = 3.7, zone = 0.9, tilt = Math.atan2(0.6, len); return <group><Shadow w={0.8} d={len + 0.3} /><group position={[0, 0.34 + EPS, 0]} rotation={[tilt, 0, 0]}><mesh castShadow receiveShadow><boxGeometry args={[0.3, 0.075, len]} /><meshStandardMaterial color={YELLOW} roughness={0.48} /></mesh>{[-1, 1].map((side) => <mesh key={side} position={[0, 0.045, side * (len / 2 - zone / 2)]}><boxGeometry args={[0.32, 0.02, zone]} /><meshStandardMaterial color={CONTACT} /></mesh>)}</group><mesh position={[0, 0.16 + EPS, 0]} castShadow receiveShadow><boxGeometry args={[0.55, 0.32, 0.34]} /><meshStandardMaterial color="#4b5563" roughness={0.6} /></mesh></group>; }
+function Weave({ count = 12 }: { count?: number }) { const spacing = 0.6; return <group><Shadow w={0.55} d={(count - 1) * spacing + 0.6} /><group position={[0, 0, -((count - 1) * spacing) / 2]}>{Array.from({ length: count }).map((_, i) => <group key={i} position={[0, 0, i * spacing]}><mesh position={[0, 0.54 + EPS, 0]} castShadow><cylinderGeometry args={[0.03, 0.03, 1.02, 14]} /><meshStandardMaterial color={i % 2 === 0 ? WHITE : RED} roughness={0.36} /></mesh><mesh position={[0, 0.035, 0]} receiveShadow><cylinderGeometry args={[0.11, 0.11, 0.055, 18]} /><meshStandardMaterial color={ORANGE} roughness={0.55} /></mesh></group>)}</group></group>; }
 function Tire() { return <group><Shadow w={1.7} d={0.95} />{[-0.68, 0.68].map((x) => <group key={x}><mesh position={[x, 0.72 + EPS, 0]} castShadow><boxGeometry args={[0.075, 1.44, 0.075]} /><meshStandardMaterial color={WHITE} roughness={0.42} /></mesh><Foot x={x} color={YELLOW} /></group>)}<mesh position={[0, 0.86 + EPS, 0]} castShadow><torusGeometry args={[0.45, 0.085, 16, 36]} /><meshStandardMaterial color={ORANGE} roughness={0.42} /></mesh><mesh position={[0, 0.86 + EPS, 0]} castShadow><torusGeometry args={[0.31, 0.018, 12, 30]} /><meshStandardMaterial color={WHITE} roughness={0.35} /></mesh></group>; }
-function Hoop() { return <group rotation={[0, Math.PI / 2, 0]}><Shadow w={1.45} d={0.95} /><mesh position={[0, 0.74 + EPS, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow><torusGeometry args={[0.54, 0.045, 12, 36]} /><meshStandardMaterial color={ORANGE} roughness={0.42} /></mesh><mesh position={[0, 0.08 + EPS, 0]} receiveShadow><boxGeometry args={[1.18, 0.12, 0.34]} /><meshStandardMaterial color={YELLOW} roughness={0.5} /></mesh>{[-0.5, 0.5].map((x) => <mesh key={x} position={[x, 0.36, 0]} castShadow><boxGeometry args={[0.06, 0.62, 0.06]} /><meshStandardMaterial color={WHITE} /></mesh>)}</group>; }
+function Hoop() { return <group><Shadow w={1.3} d={0.7} /><mesh position={[0, EPS, 0]} castShadow><torusGeometry args={[0.45, 0.04, 12, 36, Math.PI]} /><meshStandardMaterial color={ORANGE} roughness={0.42} /></mesh>{[-0.45, 0.45].map((x) => <mesh key={x} position={[x, 0.03 + EPS, 0]} receiveShadow><boxGeometry args={[0.14, 0.06, 0.5]} /><meshStandardMaterial color={YELLOW} roughness={0.5} /></mesh>)}</group>; }
 function Barrel() { return <group><Shadow w={0.9} d={0.9} /><mesh position={[0, 0.46 + EPS, 0]} castShadow receiveShadow><cylinderGeometry args={[0.34, 0.34, 0.92, 32]} /><meshStandardMaterial color={BLUE} roughness={0.5} /></mesh>{[0.18, 0.72].map((y) => <mesh key={y} position={[0, y, 0]}><torusGeometry args={[0.345, 0.018, 8, 32]} /><meshStandardMaterial color={ORANGE} /></mesh>)}</group>; }
 function Gate({ color = WHITE }: { color?: string }) { const c = color || WHITE; return <group><Shadow w={1.55} d={0.75} />{[-0.62, 0.62].map((x) => <mesh key={x} position={[x, 0.44 + EPS, 0]} castShadow><boxGeometry args={[0.07, 0.88, 0.07]} /><meshStandardMaterial color={c} roughness={0.42} /></mesh>)}{[0.42, 0.7].map((y) => <mesh key={y} position={[0, y + EPS, 0]} castShadow><boxGeometry args={[1.22, 0.08, 0.055]} /><meshStandardMaterial color={y > 0.5 ? ORANGE : c} roughness={0.42} /></mesh>)}<Foot x={-0.62} color={YELLOW} /><Foot x={0.62} color={YELLOW} /></group>; }
+function Table() { return <group><Shadow w={1.2} d={1.2} /><mesh position={[0, 0.62 + EPS, 0]} castShadow receiveShadow><boxGeometry args={[1, 0.06, 1]} /><meshStandardMaterial color={CONTACT} roughness={0.55} /></mesh>{[[-0.42, -0.42], [0.42, -0.42], [-0.42, 0.42], [0.42, 0.42]].map(([x, z]) => <mesh key={`${x}-${z}`} position={[x, 0.3, z]} castShadow><boxGeometry args={[0.06, 0.6, 0.06]} /><meshStandardMaterial color="#4b5563" /></mesh>)}</group>; }
 function HandlerZone() { return <group><mesh position={[0, EPS, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[2, 2]} /><meshStandardMaterial color="#ffffff" transparent opacity={0.18} /></mesh><mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[0.95, 1, 4]} /><meshBasicMaterial color={ORANGE} transparent opacity={0.82} /></mesh></group>; }
-function StartGate() { return <group><Gate color="#22c55e" /><mesh position={[0, 1.04 + EPS, 0.03]} castShadow><boxGeometry args={[0.88, 0.26, 0.055]} /><meshStandardMaterial color="#22c55e" /></mesh><Text position={[0, 1.04, 0.065]} fontSize={0.18} color="white" anchorX="center" outlineWidth={0.01} outlineColor="#0b3a1f">START</Text></group>; }
-function FinishGate() { return <group><Gate color={NAVY} /><mesh position={[0, 1.04 + EPS, 0.03]} castShadow><boxGeometry args={[0.88, 0.26, 0.055]} /><meshStandardMaterial color={NAVY} /></mesh><Text position={[0, 1.04, 0.065]} fontSize={0.18} color="white" anchorX="center" outlineWidth={0.01} outlineColor="#0b1939">MÅL</Text></group>; }
+function StartGate() { return <group><Gate color="#22c55e" /><mesh position={[0, 1.04 + EPS, 0.03]} castShadow><boxGeometry args={[0.88, 0.26, 0.055]} /><meshStandardMaterial color="#22c55e" /></mesh><CanvasText position={[0, 1.04, 0.065]} fontSize={0.18} color="white" outlineWidth={0.01} outlineColor="#0b3a1f">START</CanvasText></group>; }
+function FinishGate() { return <group><Gate color={NAVY} /><mesh position={[0, 1.04 + EPS, 0.03]} castShadow><boxGeometry args={[0.88, 0.26, 0.055]} /><meshStandardMaterial color={NAVY} /></mesh><CanvasText position={[0, 1.04, 0.065]} fontSize={0.18} color="white" outlineWidth={0.01} outlineColor="#0b1939">MÅL</CanvasText></group>; }
 
-export function Obstacle3D({ type, x, z, rotationDeg, number, color, onSelect, highlight = false, curveDeg = 0, curveSide = "left" }: Obstacle3DProps) {
-  const rotY = useMemo(() => (rotationDeg * Math.PI) / 180, [rotationDeg]);
+export function Obstacle3D({ type, x, z, rotationDeg, number, color, onSelect, highlight = false, curveDeg = 0, curveSide = "right", lengthM }: Obstacle3DProps) {
+  // SVG roterar medurs (y nedåt), three.js moturs runt +y sett ovanifrån —
+  // vinkeln speglas så att 3D-vyn blir identisk med 2D-planen.
+  const rotY = useMemo(() => (-rotationDeg * Math.PI) / 180, [rotationDeg]);
   const renderModel = () => {
     switch (type) {
       case "jump": return <Jump color={color} />;
+      case "combo":
       case "oxer": return <Oxer color={color} />;
+      case "longjump":
       case "long_jump": return <LongJump />;
       case "wall": return <Wall color={color || RED} />;
-      case "tunnel": return <Tunnel curveDeg={curveDeg} curveSide={curveSide} />;
+      case "tunnel": return <Tunnel length={lengthM ?? 3} curveDeg={curveDeg} curveSide={curveSide} />;
+      case "aframe":
       case "a_frame": return <AFrame />;
+      case "dogwalk":
       case "dog_walk":
       case "balance": return <DogWalk />;
       case "seesaw": return <Seesaw />;
-      case "weave": return <Weave />;
+      case "weave_8": return <Weave count={8} />;
+      case "weave_10": return <Weave count={10} />;
+      case "weave_12":
+      case "weave": return <Weave count={12} />;
       case "tire": return <Tire />;
+      case "table": return <Table />;
       case "hoop": return <Hoop />;
       case "hoopers_tunnel": return <HoopersTunnel curveDeg={curveDeg} curveSide={curveSide} />;
       case "barrel": return <Barrel />;
+      case "fence":
       case "gate": return <Gate color={color} />;
       case "handler_zone": return <HandlerZone />;
       case "start": return <StartGate />;
       case "finish": return <FinishGate />;
+      case "number": return null;
       default: return <Jump color={color} />;
     }
   };
-  const heightMap: Record<string, number> = { jump: 1, oxer: 1.08, long_jump: 0.55, wall: 1, tunnel: 1.05, a_frame: 1.9, dog_walk: 1.52, balance: 1.52, seesaw: 0.92, weave: 1.2, tire: 1.75, hoop: 1.34, hoopers_tunnel: 1.16, barrel: 1.12, gate: 1.04, handler_zone: 0.42, start: 1.45, finish: 1.45 };
+  const heightMap: Record<string, number> = { jump: 1, oxer: 1.08, combo: 1.08, long_jump: 0.55, longjump: 0.55, wall: 1, tunnel: 1.05, a_frame: 1.9, aframe: 1.9, dog_walk: 1.52, dogwalk: 1.52, balance: 1.52, seesaw: 0.92, weave: 1.2, weave_8: 1.2, weave_10: 1.2, weave_12: 1.2, tire: 1.75, table: 0.8, hoop: 0.7, hoopers_tunnel: 1.16, barrel: 1.12, gate: 1.04, fence: 1.04, handler_zone: 0.42, start: 1.45, finish: 1.45 };
   const hit = heightMap[type] ?? 1;
   return (
     <group position={[x, 0, z]} rotation={[0, rotY, 0]}>

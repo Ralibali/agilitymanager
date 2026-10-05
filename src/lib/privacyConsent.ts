@@ -19,3 +19,14 @@ export function readPrivacyConsent(key: string): PrivacyConsent | null {
 export function storePrivacyConsent(key: string, analytics: boolean): void {
   try { localStorage.setItem(key, JSON.stringify({ version: 2, analytics, updatedAt: new Date().toISOString() })); } catch { /* The runtime can remember a choice for this session. */ }
 }
+
+export const COOKIE_SETTINGS_EVENT = 'am:open-cookie-settings';
+
+/**
+ * Öppnar samtyckesrutan igen. Anropas från sidfoten, cookiesidan och
+ * banplanerarens meny — så att valet alltid går att ändra utan att en
+ * flytande knapp ligger över appens egna kontroller.
+ */
+export function openCookieSettings(): void {
+  window.dispatchEvent(new Event(COOKIE_SETTINGS_EVENT));
+}

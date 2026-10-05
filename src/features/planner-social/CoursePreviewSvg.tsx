@@ -44,7 +44,13 @@ export function CoursePreviewSvg({
 
       {obstacles.map((ob, i) => (
         <g key={ob.id ?? i} transform={`translate(${ob.x} ${ob.y}) rotate(${ob.rotation ?? 0})`}>
-          <ObstacleGlyph type={ob.type} stroke="currentColor" />
+          <ObstacleGlyph
+            type={ob.type}
+            stroke="#161812"
+            curveDeg={ob.curveDeg}
+            curveSide={ob.curveSide}
+            lengthM={ob.lengthM}
+          />
         </g>
       ))}
 

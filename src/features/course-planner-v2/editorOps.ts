@@ -14,9 +14,10 @@
  *  - Positioner hålls inom ytan med en marginal (samma som vid dragning).
  */
 import { uid, type PlacedObstacle } from "@/lib/course";
-import { buildDogPath, type DogPathObstacle } from "./dogPath";
-import { getObstacleDefV2, type ObstacleTypeV2 } from "./config";
+import { buildDogPath, passageInsetM, type DogPathObstacle } from "./dogPath";
+import { type ObstacleTypeV2 } from "./config";
 import { normalizeCurveDeg, tunnelGeometryLocal } from "./tunnelGeometry";
+import { obstacleSizeM } from "./obstacleSize";
 
 export const NON_COMPETING = new Set<ObstacleTypeV2>(["start", "finish", "number", "handler_zone"]);
 
@@ -49,10 +50,8 @@ export interface LocalBounds {
  * Hindrets fotavtryck i lokala (oroterade) meter kring mittpunkten — samma
  * mått som ritas. Böjda tunnlar följer sin verkliga båge.
  */
-export function obstacleLocalBounds(ob: Pick<PlacedObstacle, "type" | "curveDeg" | "curveSide">): LocalBounds {
-  const def = getObstacleDefV2(ob.type);
-  const w = def?.sizeM.w ?? 1;
-  const d = def?.sizeM.d ?? 1;
+export function obstacleLocalBounds(ob: Pick<PlacedObstacle, "type" | "curveDeg" | "curveSide" | "lengthM">): LocalBounds {
+  const { w, d } = obstacleSizeM(ob);
   const bend = ob.type === "tunnel" ? normalizeCurveDeg(ob.curveDeg ?? 0) : 0;
   if (bend >= 1) {
     const pts = tunnelGeometryLocal(w, bend, ob.curveSide).centerline;
@@ -388,9 +387,12 @@ export interface SegmentLabel {
   toId: string;
   fromNumber: number;
   toNumber: number;
-  /** Rakt avstånd mitt–mitt (samma mått som regelkontrollen använder). */
+  /** Rakt avstånd mitt–mitt. */
   centerDistanceM: number;
-  /** Längs den beräknade hundlinjen, exit → entry. */
+  /**
+   * Längs den beräknade hundlinjen, från passagepunkt till passagepunkt
+   * (ribba/ring/hinderände) — samma mått som regelkontrollen använder.
+   */
   pathDistanceM: number;
   /** Etikettens position: mitt på hundlinjens luftsegment. */
   x: number;
@@ -419,6 +421,7 @@ export function computeSegmentLabels(numbered: PlacedObstacle[]): SegmentLabel[]
       number: o.number ?? null,
       curveDeg: o.curveDeg,
       curveSide: o.curveSide,
+      lengthM: o.lengthM,
     })),
   );
   const ranges = path.airRanges ?? [];
@@ -465,7 +468,7 @@ export function computeSegmentLabels(numbered: PlacedObstacle[]): SegmentLabel[]
       fromNumber: a.number as number,
       toNumber: b.number as number,
       centerDistanceM: Math.hypot(b.x - a.x, b.y - a.y),
-      pathDistanceM,
+      pathDistanceM: pathDistanceM + passageInsetM(a) + passageInsetM(b),
       x,
       y,
       nx: -ty / (Math.hypot(tx, ty) || 1),

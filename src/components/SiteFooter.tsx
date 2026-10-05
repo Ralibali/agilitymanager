@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { Paw } from "./Marquee";
+import { openCookieSettings } from "@/lib/privacyConsent";
 
 const COLS: { title: string; links: { to: string; label: string }[] }[] = [
   {
@@ -100,8 +101,11 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-paper/10 pt-6 text-sm text-paper/45 sm:flex-row sm:items-center">
-          <p>© 2026 AgilityManager</p>
+          <p>© {new Date().getFullYear()} AgilityManager</p>
           <a href="mailto:info@auroramedia.se" className="underline hover:text-tang">info@auroramedia.se</a>
+          <button type="button" onClick={openCookieSettings} className="underline hover:text-tang">
+            Cookieinställningar
+          </button>
           <p className="text-paper/35">Byggt för svensk agility och hoopers</p>
         </div>
       </div>

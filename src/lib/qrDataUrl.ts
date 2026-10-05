@@ -7,8 +7,16 @@ import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { QRCodeCanvas } from "qrcode.react";
 
+/**
+ * Största innehåll en QR-kod rymmer (byte-läge, version 40): 2 331 tecken med
+ * felkorrigering M och 2 953 med L. Längre värden ger ingen QR-kod alls i
+ * stället för ett renderingsfel.
+ */
+export const QR_MAX_CHARS = 2900;
+
 export async function makeQrDataUrl(value: string, size = 256): Promise<string> {
   if (typeof document === "undefined") return "";
+  if (!value || value.length > QR_MAX_CHARS) return "";
   const container = document.createElement("div");
   container.style.position = "fixed";
   container.style.left = "-9999px";
@@ -21,7 +29,8 @@ export async function makeQrDataUrl(value: string, size = 256): Promise<string> 
     createElement(QRCodeCanvas, {
       value,
       size,
-      level: "M",
+      // Långa länkar får lägre felkorrigering för att rymmas.
+      level: value.length > 2000 ? "L" : "M",
       includeMargin: true,
       // hög kontrast så det scannar även i tryck
       fgColor: "#000000",

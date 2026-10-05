@@ -1,8 +1,9 @@
 import type { ObstacleTypeV2 } from "./config";
 import type { PrebuiltCourse, PrebuiltObstacle } from "./templates";
 
-type SeqItem = { type: ObstacleTypeV2; x: number; y: number; curveDeg?: number; curveSide?: "left" | "right" };
-type Point = readonly [number, number];
+type SeqItem = { type: ObstacleTypeV2; x: number; y: number; rotation?: number; curveDeg?: number; curveSide?: "left" | "right" };
+/** [x, y] i meter, ev. med explicit rotation (annars följer hindret färdriktningen). */
+type Point = readonly [number, number, number?];
 type NollKind = "mur" | "slalom" | "balans";
 type NollSize = "large" | "compact";
 
@@ -28,7 +29,7 @@ function buildObstacles(sequence: SeqItem[]): PrebuiltObstacle[] {
     const prev = sequence[index - 1];
     const next = sequence[index + 1];
     const travel = prev ? angleDeg(prev, item) : next ? angleDeg(item, next) : 0;
-    return { ...item, rotation: rotationFor(item.type, travel), number: index + 1 };
+    return { ...item, rotation: item.rotation ?? rotationFor(item.type, travel), number: index + 1 };
   });
 
   const first = sequence[0];
@@ -76,6 +77,8 @@ const BALANS_TYPES: ObstacleTypeV2[] = [
  * Koordinater i meter. Varje layout är separat optimerad mot V2:s faktiska
  * Catmull-Rom-hundlinje — inte bara centrumavstånd — och hålls isär så att
  * slalom/balans/långhopp får rätt fysiskt utrymme för sina olika footprint.
+ * Balanslayouterna är omlagda för balansbommens verkliga längd (≈10,7 m) och
+ * har därför explicita rotationer.
  */
 const POINTS: Record<NollSize, Record<NollKind, readonly Point[]>> = {
   large: {
@@ -90,9 +93,19 @@ const POINTS: Record<NollSize, Record<NollKind, readonly Point[]>> = {
       [2.70, 10.44], [7.40, 5.40], [13.79, 2.73],
     ],
     balans: [
-      [6.50, 22.50], [13.20, 22.20], [20.30, 18.00], [20.40, 9.40], [13.10, 5.20],
-      [5.20, 6.60], [3.20, 14.20], [7.00, 20.30], [13.50, 20.20], [9.74, 13.05],
-      [10.46, 18.46], [16.66, 21.70], [15.81, 15.00],
+      [9.44, 22.83, -183],
+      [16.12, 24.60, 89],
+      [21.96, 17.72, -55],
+      [22.19, 10.54, -270],
+      [11.73, 5.41, -247],
+      [7.96, 10.04, 99],
+      [2.19, 15.73, 279],
+      [6.24, 22.97, -231],
+      [13.43, 20.50, -81],
+      [7.44, 14.37, -130],
+      [11.71, 16.35, 175],
+      [17.26, 21.04, -30],
+      [14.33, 15.11, -246],
     ],
   },
   compact: {
@@ -107,15 +120,25 @@ const POINTS: Record<NollSize, Record<NollKind, readonly Point[]>> = {
       [10.74, 13.11], [5.29, 8.73], [4.00, 15.50],
     ],
     balans: [
-      [7.50, 22.80], [7.21, 15.71], [9.84, 7.72], [3.76, 4.24], [11.69, 2.66],
-      [12.96, 9.02], [5.26, 11.66], [5.89, 18.74], [3.96, 25.63], [11.48, 22.76],
-      [10.57, 15.87], [7.34, 9.62], [4.00, 15.50],
+      [6.55, 24.37, -413],
+      [6.68, 18.40, 260],
+      [7.78, 10.55, -80],
+      [1.60, 12.51, -461],
+      [9.17, 4.46, -126],
+      [12.28, 8.97, 179],
+      [4.31, 10.19, 164],
+      [3.90, 17.06, -182],
+      [2.75, 24.03, 827],
+      [10.54, 20.71, -40],
+      [7.05, 15.42, 224],
+      [12.46, 10.65, 355],
+      [9.80, 16.33, 24],
     ],
   },
 };
 
 function seq(points: readonly Point[], types: ObstacleTypeV2[]): SeqItem[] {
-  return points.map(([x, y], i) => ({ type: types[i], x, y }));
+  return points.map(([x, y, rotation], i) => ({ type: types[i], x, y, ...(rotation != null ? { rotation } : {}) }));
 }
 
 function course(size: NollSize, type: NollKind): PrebuiltCourse {

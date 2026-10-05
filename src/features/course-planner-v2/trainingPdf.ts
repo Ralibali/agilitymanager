@@ -5,7 +5,7 @@
 import jsPDF from "jspdf";
 import { CLASS_TEMPLATES, SIZE_CLASSES, type ClassTemplateKey, type SizeClassKey, type Sport } from "./config";
 import type { ObstacleLite } from "./validation";
-import { PDF_BRAND, PDF_PAGE, drawArenaVector, drawHeaderBand, drawFooterAllPages, safeFileName } from "./pdfHelpers";
+import { PDF_BRAND, PDF_PAGE, drawArenaVector, drawHeaderBand, drawFooterAllPages, safeFileName, installPdfTextSanitizer, qrBesideArena } from "./pdfHelpers";
 
 export interface TrainingPdfInput {
   name: string;
@@ -23,7 +23,7 @@ export interface TrainingPdfInput {
 }
 
 export async function exportTrainingPdf(input: TrainingPdfInput) {
-  const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+  const doc = installPdfTextSanitizer(new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" }));
   const margin = PDF_PAGE.margin;
   const pageW = PDF_PAGE.width;
   const pageH = PDF_PAGE.height;
@@ -70,6 +70,7 @@ export async function exportTrainingPdf(input: TrainingPdfInput) {
 
   /* Banbild — fyller halva sidan */
   const arenaH = (pageH - y - 130);
+  const arenaTopY = y;
   const arenaResult = drawArenaVector(doc, {
     x: margin, y,
     maxWidth: pageW - margin * 2,
@@ -138,6 +139,6 @@ export async function exportTrainingPdf(input: TrainingPdfInput) {
     y += 6;
   }
 
-  drawFooterAllPages(doc, { authorName: input.authorName ?? "", qrDataUrl: input.qrDataUrl, showWatermark: input.showWatermark });
+  drawFooterAllPages(doc, { authorName: input.authorName ?? "", qrDataUrl: input.qrDataUrl, qrAt: qrBesideArena(arenaTopY, arenaResult), showWatermark: input.showWatermark });
   doc.save(`${safeFileName(input.name)}_traning.pdf`);
 }

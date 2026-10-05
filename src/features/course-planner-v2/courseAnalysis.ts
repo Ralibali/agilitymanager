@@ -102,7 +102,7 @@ export function computeApproachIssues(
   const issues: ValidationIssue[] = [];
   const dogObs: DogPathObstacle[] = obstacles.map((o) => ({
     id: o.id, type: o.type, x: o.x, y: o.y, rotation: o.rotation,
-    number: o.number, curveDeg: o.curveDeg, curveSide: o.curveSide,
+    number: o.number, curveDeg: o.curveDeg, curveSide: o.curveSide, lengthM: o.lengthM,
   }));
   const path = buildDogPath(dogObs, override);
   if (path.anchors.length < 2) return issues;
@@ -263,7 +263,7 @@ export function analyzeCourse(
 ): CourseAnalysis {
   const dogObs: DogPathObstacle[] = obstacles.map((o) => ({
     id: o.id, type: o.type, x: o.x, y: o.y, rotation: o.rotation,
-    number: o.number, curveDeg: o.curveDeg, curveSide: o.curveSide,
+    number: o.number, curveDeg: o.curveDeg, curveSide: o.curveSide, lengthM: o.lengthM,
   }));
   const path = buildDogPath(dogObs, override);
   const pts = path.points;

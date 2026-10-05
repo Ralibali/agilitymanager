@@ -10,10 +10,12 @@
  * Allt här är rena funktioner utan UI-beroenden så de kan testas/återanvändas.
  */
 import {
-  CLASS_TEMPLATES, SIZE_CLASSES, getObstacleDefV2,
-  type ClassTemplateKey, type ObstacleTypeV2, type SizeClassKey, type Sport,
+  CLASS_TEMPLATES, getObstacleDefV2,
+  type ClassTemplate, type ClassTemplateKey, type ObstacleTypeV2, type SizeClassKey, type Sport,
 } from "./config";
-import { buildDogPath, type CourseDogPathOverride } from "./dogPath";
+import {
+  buildDogPath, computeDogPathPairDistances, type CourseDogPathOverride,
+} from "./dogPath";
 import { computeApproachIssues } from "./courseAnalysis";
 import {
   getRuleSet,
@@ -23,6 +25,7 @@ import {
 } from "./rules";
 import { rotatedAabb, edgesOutsideArena, aabbsOverlap, type AABB } from "./geometry";
 import { normalizeCurveDeg, tunnelWorldAabb } from "./tunnelGeometry";
+import { obstacleSizeM } from "./obstacleSize";
 
 export type IssueLevel = "error" | "warning" | "info";
 
@@ -67,6 +70,8 @@ export interface ObstacleLite {
   curveDeg?: number;
   /** Riktning på böjningen. Default "right". */
   curveSide?: "left" | "right";
+  /** Tunnelns fysiska längd i meter (2–6). Saknas → standardtunnel. */
+  lengthM?: number;
   /** Låst hinder kan inte flyttas, roteras eller raderas förrän upplåst. */
   locked?: boolean;
   /** Z-order för render-sortering (default 0). Sorteras stigande. */
@@ -109,9 +114,7 @@ function resolveRuleSet(course: CourseLite): RuleSet {
  * på en liten default så vi inte kraschar validation.
  */
 function obstacleAabb(ob: ObstacleLite) {
-  const def = getObstacleDefV2(ob.type);
-  const w = def?.sizeM.w ?? 0.4;
-  const d = def?.sizeM.d ?? 0.4;
+  const { w, d } = obstacleSizeM(ob, 0.4);
   // Böjd tunnel: bågen buktar utanför den raka rektangeln — använd
   // tunnelns faktiska geometri så att bounds-kontrollen stämmer.
   if (ob.type === "tunnel" && normalizeCurveDeg(ob.curveDeg) > 0) {
@@ -163,9 +166,15 @@ export interface CourseTimes {
   maxTimeFactor: number | null;
   /**
    * Fast maxtid (s) när regelverket anger det istället för en faktor
-   * (FCI Hoopers: 180 s, ingen referenstid). Null annars.
+   * (FCI Hoopers: 180 s, SHoK: 90 s). Null annars.
    */
   fixedMaxCourseTimeS: number | null;
+  /**
+   * True när referenstiden är vår uppskattning (banlängd ÷ hastighet) —
+   * t.ex. agility, där domaren fastställer referenstiden per bana (SAgiK
+   * §3.4). False när regelverket anger en fast referenstid (SHoK 45 s).
+   */
+  refTimeIsEstimate: boolean;
   /**
    * True om regelverket bakom siffrorna inte är verifierat mot officiellt
    * dokument. UI:t ska då kalla värdet "beräknad tid", inte officiell referenstid.
@@ -186,17 +195,19 @@ export function computeCourseTimes(course: CourseLite): CourseTimes {
   const isProvisional = rs.verificationStatus !== "verified";
 
   const classKey = course.classTemplate;
-  const refSpeed = classKey
+  const fixedRef = rs.timeRules.fixedRefTimeS ?? null;
+  const fixedMax = rs.timeRules.fixedMaxCourseTimeS ?? null;
+  // Med fast referenstid finns ingen hastighetsmodell att visa.
+  const refSpeed = classKey && fixedRef == null && fixedMax == null
     ? (rs.timeRules.refSpeedMsByClass[classKey] ??
         CLASS_TEMPLATES.find((t) => t.key === classKey)?.refSpeedMs ??
         null)
     : null;
-  const maxFactor = classKey
+  const maxFactor = classKey && fixedMax == null
     ? (rs.timeRules.maxTimeFactorByClass[classKey] ??
         CLASS_TEMPLATES.find((t) => t.key === classKey)?.maxTimeFactor ??
         null)
     : null;
-  const fixedMax = rs.timeRules.fixedMaxCourseTimeS ?? null;
 
   const base = {
     lengthM,
@@ -210,20 +221,23 @@ export function computeCourseTimes(course: CourseLite): CourseTimes {
     ruleSetStatus: rs.verificationStatus,
   };
 
-  // Fast maxtid (t.ex. FCI Hoopers 180 s) behöver varken banlängd eller
-  // referenshastighet. FCI har ingen referenstid — refTimeS blir null.
-  if (fixedMax != null) {
-    const refTimeS =
-      refSpeed && lengthAlongPathM > 0 ? Math.round(lengthAlongPathM / refSpeed) : null;
-    return { ...base, refTimeS, maxTimeS: fixedMax };
+  // Fasta tider (SHoK 45/90 s, FCI –/180 s) gäller oavsett banlängd. FCI
+  // har ingen referenstid alls — refTimeS blir då null.
+  if (fixedRef != null || fixedMax != null) {
+    return {
+      ...base,
+      refTimeS: fixedRef,
+      maxTimeS: fixedMax ?? (fixedRef != null && maxFactor ? Math.round(fixedRef * maxFactor) : null),
+      refTimeIsEstimate: false,
+    };
   }
 
   if (!refSpeed || !maxFactor || lengthAlongPathM <= 0) {
-    return { ...base, refTimeS: null, maxTimeS: null };
+    return { ...base, refTimeS: null, maxTimeS: null, refTimeIsEstimate: true };
   }
   const refTimeS = Math.round(lengthAlongPathM / refSpeed);
   const maxTimeS = Math.round(refTimeS * maxFactor);
-  return { ...base, refTimeS, maxTimeS };
+  return { ...base, refTimeS, maxTimeS, refTimeIsEstimate: true };
 }
 
 /* ───────────── Validering ───────────── */
@@ -344,6 +358,240 @@ function safetyMessagePrefix(rs: RuleSet): string {
   return "förhandskontrollens gräns";
 }
 
+/** Tolerans för avståndsgränser — sparade koordinater har cm-precision. */
+const DISTANCE_TOLERANCE_M = 0.05;
+
+/** "6,4" — svensk decimal med en decimal. */
+function formatM(m: number): string {
+  return m.toFixed(1).replace(".", ",");
+}
+
+const JUMP_PASSAGE_TYPES = new Set<ObstacleTypeV2>(["jump", "wall", "longjump", "tire", "combo"]);
+/** Nollklassens hoppassager: vanliga hopp plus mur/långhopp (inga däck/oxrar). */
+const NOLL_JUMP_PASSAGE_TYPES = new Set<ObstacleTypeV2>(["jump", "wall", "longjump"]);
+const WEAVE_TYPES = new Set<ObstacleTypeV2>(["weave_8", "weave_10", "weave_12"]);
+/** Nollklassens specialhinder per variant — exakt en passage ska finnas. */
+const NOLL_SPECIAL: Partial<Record<ClassTemplateKey, { types: ObstacleTypeV2[]; label: string }>> = {
+  noll_slalom: { types: ["weave_12"], label: "en slalom" },
+  noll_balans: { types: ["dogwalk"], label: "en balansbom" },
+  noll_mur: { types: ["wall", "longjump"], label: "en mur eller ett långhopp" },
+};
+
+/** Varför en hindertyp är förbjuden i en klassmall — visas i regelkontrollen. */
+function forbiddenReason(type: ObstacleTypeV2, classKey: ClassTemplateKey): string | undefined {
+  if (type === "weave_8" || type === "weave_10") return "tävlingsslalom har alltid 12 pinnar";
+  if (type === "table") return "bordet används inte i svenska tävlingar sedan 2017";
+  if (type === "combo" && classKey.endsWith("_1")) return "oxer får inte användas i klass 1";
+  if (CONTACT_TYPES.includes(type)) return "hoppklasser har inga balanshinder";
+  return undefined;
+}
+
+function obstacleName(ob: ObstacleLite): string {
+  const label = getObstacleDefV2(ob.type)?.label ?? ob.type;
+  return ob.number != null ? `hinder ${ob.number} (${label.toLowerCase()})` : label.toLowerCase();
+}
+
+/** Avstånd från `point` längs `dir` till banområdets kant (m). */
+function rayDistanceToBoundary(
+  point: { x: number; y: number },
+  dir: { x: number; y: number },
+  width: number,
+  height: number,
+): number {
+  const hits: number[] = [];
+  if (Math.abs(dir.x) > 1e-9) {
+    for (const x of [0, width]) {
+      const t = (x - point.x) / dir.x;
+      if (t >= 0) hits.push(t);
+    }
+  }
+  if (Math.abs(dir.y) > 1e-9) {
+    for (const y of [0, height]) {
+      const t = (y - point.y) / dir.y;
+      if (t >= 0) hits.push(t);
+    }
+  }
+  return hits.length ? Math.min(...hits) : 0;
+}
+
+/**
+ * Agility: avstånd mellan följdhinder mätt längs hundens väg (från ribba,
+ * ring eller hinderände — samma sätt som domare mäter) samt banstrukturen i
+ * SAgiK/SKK 2022–2026 §3.1 för klassmallar med `courseRules`.
+ *
+ * Fri planering får bara mjuka varningar för korta avstånd — där kan
+ * avsiktligt täta träningsövningar förekomma.
+ */
+function validateAgilityCourse(
+  course: CourseLite,
+  rs: RuleSet,
+  tpl: ClassTemplate | null,
+  sequence: ObstacleLite[],
+): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const mode = tpl?.courseRules;
+  const strict = mode != null;
+  const rules = rs.courseRules;
+  const minM = rs.safetyRules.minSafeM;
+  const maxM = rules?.maxConsecutiveM;
+  const minRef = ruleRef(rs, "safetyRules.minSafeM", "§3.1");
+  const maxRef = ruleRef(rs, "courseRules.maxConsecutiveM", "§3.1");
+  const range = maxM != null ? `${formatM(minM)}–${formatM(maxM)} m` : `minst ${formatM(minM)} m`;
+
+  // a) Avstånd mellan följdhinder längs hundens väg.
+  const pairs = computeDogPathPairDistances(sequence, course.dogPath);
+  for (const pair of pairs) {
+    const d = pair.distanceM;
+    if (d < minM - DISTANCE_TOLERANCE_M) {
+      issues.push({
+        level: strict ? "error" : "warning",
+        code: "distance_too_short",
+        message: strict
+          ? `Hinder ${pair.fromNumber}→${pair.toNumber}: ${formatM(d)} m längs hundens väg (${minRef.prefix}: ${range})`
+          : `Hinder ${pair.fromNumber}→${pair.toNumber}: ${formatM(d)} m längs hundens väg — kortare än tävlingsbanornas ${formatM(minM)} m`,
+        obstacleId: pair.toId,
+        basis: minRef.basis,
+        ruleClause: minRef.ruleClause,
+        sourceUrl: minRef.sourceUrl,
+      });
+    } else if (strict && maxM != null && d > maxM + DISTANCE_TOLERANCE_M) {
+      issues.push({
+        level: "warning",
+        code: "distance_too_long",
+        message: `Hinder ${pair.fromNumber}→${pair.toNumber}: ${formatM(d)} m längs hundens väg (${maxRef.prefix}: ${range})`,
+        obstacleId: pair.toId,
+        basis: maxRef.basis,
+        ruleClause: maxRef.ruleClause,
+        sourceUrl: maxRef.sourceUrl,
+      });
+    }
+  }
+
+  // b) Kontaktfält direkt efter tunnel — konservativ säkerhetsheuristik.
+  for (const pair of pairs) {
+    const from = sequence.find((o) => o.id === pair.fromId);
+    const to = sequence.find((o) => o.id === pair.toId);
+    if (!from || !to || from.type !== "tunnel" || !CONTACT_TYPES.includes(to.type)) continue;
+    if (pair.distanceM < rs.safetyRules.contactAfterTunnelMinM) {
+      const contactRef = ruleRef(rs, "safetyRules.contactAfterTunnelMinM");
+      issues.push({
+        level: "warning",
+        code: "contact_after_tunnel",
+        message: `Kontaktfältshinder direkt efter tunnel (${formatM(pair.distanceM)} m < ${formatM(rs.safetyRules.contactAfterTunnelMinM)} m, ${contactRef.prefix})`,
+        obstacleId: to.id,
+        basis: contactRef.basis,
+        ruleClause: contactRef.ruleClause,
+        sourceUrl: contactRef.sourceUrl,
+      });
+    }
+  }
+
+  if (!strict || !rules || !tpl) return issues;
+
+  // c) Banstruktur enligt klassmallens regler.
+  const ref = (field: string) => ruleRef(rs, field, "§3.1");
+  const push = (
+    level: IssueLevel,
+    code: string,
+    message: string,
+    field: string,
+    obstacleId?: string,
+  ) => {
+    const r = ref(field);
+    issues.push({
+      level, code, obstacleId,
+      message: `${message} (${r.prefix})`,
+      basis: r.basis, ruleClause: r.ruleClause, sourceUrl: r.sourceUrl,
+    });
+  };
+
+  if (rules.startEndJumpRequired && sequence.length >= 2) {
+    const first = sequence[0];
+    const last = sequence[sequence.length - 1];
+    const lastOk = mode === "sagik_nollklass" ? last.type === "jump" : last.type === "jump" || last.type === "combo";
+    if (first.type !== "jump") {
+      push("error", "start_not_jump", `Banan ska inledas med ett hopphinder — ${obstacleName(first)} är först`, "courseRules.startEndJumpRequired", first.id);
+    }
+    if (!lastOk) {
+      push(
+        "error", "finish_not_jump",
+        `Banan ska avslutas med ${mode === "sagik_nollklass" ? "ett hopphinder" : "ett hopphinder eller en oxer"} — ${obstacleName(last)} är sist`,
+        "courseRules.startEndJumpRequired", last.id,
+      );
+    }
+  }
+
+  const jumpTypes = mode === "sagik_nollklass" ? NOLL_JUMP_PASSAGE_TYPES : JUMP_PASSAGE_TYPES;
+  const jumpPassages = sequence.filter((o) => jumpTypes.has(o.type)).length;
+  if (sequence.length > 0 && jumpPassages < rules.minJumpPassages) {
+    push("warning", "too_few_jump_passages", `Banan har ${jumpPassages} hoppassager — minst ${rules.minJumpPassages} krävs`, "courseRules.minJumpPassages");
+  }
+
+  const weaves = sequence.filter((o) => WEAVE_TYPES.has(o.type));
+  if (weaves.length > rules.maxWeavePassages) {
+    push("error", "too_many_weaves", `Banan har ${weaves.length} slalompassager — högst ${rules.maxWeavePassages} är tillåten`, "courseRules.maxWeavePassages", weaves[weaves.length - 1].id);
+  }
+
+  if (mode === "sagik_nollklass") {
+    const special = NOLL_SPECIAL[tpl.key];
+    if (special && sequence.length > 0) {
+      const count = sequence.filter((o) => special.types.includes(o.type)).length;
+      if (count !== 1) {
+        issues.push({
+          level: "warning",
+          code: "noll_special_count",
+          message: `${tpl.label} ska innehålla exakt ${special.label} — banan har ${count}`,
+          basis: "official_rule",
+          ruleClause: "Nollklass",
+        });
+      }
+    }
+  } else {
+    // FCI:s säkerhetsanvisningar avråder från kontaktfält direkt efter varandra.
+    for (let i = 1; i < sequence.length; i++) {
+      if (CONTACT_TYPES.includes(sequence[i - 1].type) && CONTACT_TYPES.includes(sequence[i].type)) {
+        issues.push({
+          level: "warning",
+          code: "consecutive_contacts",
+          message: `Kontaktfältshinder ${sequence[i - 1].number} och ${sequence[i].number} ligger direkt efter varandra — undvik det i en tävlingsbana`,
+          obstacleId: sequence[i].id,
+          basis: "safety_heuristic",
+        });
+      }
+    }
+  }
+
+  // d) Avstånd till bankanten (hinder som sticker ut rapporteras separat).
+  for (const ob of sequence) {
+    const box = obstacleAabb(ob);
+    const clearance = Math.min(box.minX, box.minY, course.arenaWidthM - box.maxX, course.arenaHeightM - box.maxY);
+    if (clearance >= 0 && clearance < rules.minBorderClearanceM - DISTANCE_TOLERANCE_M / 5) {
+      push(
+        "warning", "border_clearance",
+        `${obstacleName(ob).replace(/^h/, "H")} ligger ${formatM(clearance)} m från bankanten — minst ${formatM(rules.minBorderClearanceM)} m krävs`,
+        "courseRules.minBorderClearanceM", ob.id,
+      );
+    }
+  }
+
+  // e) Ansats före första och utgång efter sista hindret, rakt mot bankanten.
+  const path = buildDogPath(sequence, course.dogPath);
+  if (path.anchors.length >= 1) {
+    const first = path.anchors[0];
+    const last = path.anchors[path.anchors.length - 1];
+    const before = rayDistanceToBoundary(first.entry, { x: -first.entryDir.x, y: -first.entryDir.y }, course.arenaWidthM, course.arenaHeightM);
+    const after = rayDistanceToBoundary(last.exit, last.exitDir, course.arenaWidthM, course.arenaHeightM);
+    if (before < rules.minRunUpM - DISTANCE_TOLERANCE_M) {
+      push("warning", "start_runup_short", `Ansatsen före första hindret är ${formatM(before)} m till bankanten — minst ${formatM(rules.minRunUpM)} m krävs`, "courseRules.minRunUpM", first.obstacle.id);
+    }
+    if (path.anchors.length >= 2 && after < rules.minRunUpM - DISTANCE_TOLERANCE_M) {
+      push("warning", "finish_runout_short", `Utgången efter sista hindret är ${formatM(after)} m till bankanten — minst ${formatM(rules.minRunUpM)} m krävs`, "courseRules.minRunUpM", last.obstacle.id);
+    }
+  }
+
+  return issues;
+}
+
 export function validateCourse(course: CourseLite): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const rs = resolveRuleSet(course);
@@ -355,8 +603,6 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
         CLASS_TEMPLATES.find((t) => t.key === course.classTemplate) ??
         null)
     : null;
-  const sizeDef = SIZE_CLASSES.find((s) => s.key === course.sizeClass);
-
   const safety = rs.safetyRules;
   const prefix = safetyMessagePrefix(rs);
 
@@ -392,11 +638,16 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
         });
       }
       if (tpl.forbiddenTypes?.includes(ob.type)) {
+        const reason = forbiddenReason(ob.type, tpl.key);
+        const ref = ruleRef(rs, "classTemplates.forbiddenTypes", "§3.1");
         issues.push({
           level: "error",
           code: "type_forbidden",
-          message: `${def.label} är förbjuden i ${tpl.label}`,
+          message: `${def.label} är inte tillåten i ${tpl.label}${reason ? ` — ${reason}` : ""}`,
           obstacleId: ob.id,
+          basis: ref.basis,
+          ruleClause: ref.ruleClause,
+          sourceUrl: ref.sourceUrl,
         });
       }
     }
@@ -425,12 +676,16 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
       });
     }
 
-    // Banstorlek matchar mall?
-    if (course.arenaWidthM !== tpl.arenaWidthM || course.arenaHeightM !== tpl.arenaHeightM) {
+    // Banstorlek matchar mall (eller ett av mallens alternativa mått)?
+    const sizes: Array<[number, number]> = [[tpl.arenaWidthM, tpl.arenaHeightM], ...(tpl.alternativeArenaSizesM ?? [])];
+    const sameSize = sizes.some(([sw, sh]) =>
+      (course.arenaWidthM === sw && course.arenaHeightM === sh) ||
+      (course.arenaWidthM === sh && course.arenaHeightM === sw));
+    if (!sameSize) {
       issues.push({
         level: "info",
         code: "arena_size_differs",
-        message: `Mallens rekommenderade banstorlek är ${tpl.arenaWidthM}×${tpl.arenaHeightM} m`,
+        message: `Mallens rekommenderade banstorlek är ${sizes.map(([sw, sh]) => `${sw}×${sh}`).join(" eller ")} m`,
       });
     }
   }
@@ -518,85 +773,9 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
     }
   }
 
-  // 5) Säkerhet — avstånd mellan hinder (agility)
-  if (sizeDef && course.sport === "agility") {
-    const minSafe = safety.minSafeM;
-    const minCombo = safety.minComboMBySize[course.sizeClass] ?? sizeDef.comboDistanceM;
-    const comboRef = ruleRef(rs, "safetyRules.minComboMBySize", "§3.1");
-    const safeRef = ruleRef(rs, "safetyRules.minSafeM", "§3.1");
-
-    // Följdpar bedöms i NUMMERORDNING — inte array-ordning. Vi jämför både
-    // (n, n+1)-par (adjacent numbers) och alla numrerade hinderpar för
-    // säkerhet, exakt som förr, men på en sorterad lista.
-    for (let i = 0; i < numberedByNumber.length; i++) {
-      for (let j = i + 1; j < numberedByNumber.length; j++) {
-        const a = numberedByNumber[i];
-        const b = numberedByNumber[j];
-        // Följd = |n - n±1| = 1
-        if ((b.number as number) - (a.number as number) !== 1) continue;
-        const d = dist(a, b);
-        const aDef = getObstacleDefV2(a.type);
-        const bDef = getObstacleDefV2(b.type);
-        if (!aDef || !bDef) continue;
-        const jumpish = ["jump", "wall", "longjump", "tire", "combo"];
-        const aIsJumpish = jumpish.includes(a.type);
-        const bIsJumpish = jumpish.includes(b.type);
-        const tooCloseForJumps = aIsJumpish && bIsJumpish && d < minCombo;
-        if (tooCloseForJumps) {
-          issues.push({
-            level: "error",
-            code: "jump_too_close",
-            message: `Hinder ${a.number}→${b.number}: ${d.toFixed(1)} m < ${minCombo} m (${comboRef.prefix} för ${sizeDef.label})`,
-            obstacleId: b.id,
-            basis: comboRef.basis,
-            ruleClause: comboRef.ruleClause,
-            sourceUrl: comboRef.sourceUrl,
-          });
-        } else if (d < minCombo) {
-          issues.push({
-            level: "warning",
-            code: "obstacles_close",
-            message: `Hinder ${a.number}→${b.number}: ${d.toFixed(1)} m är mycket nära (under ${minCombo} m)`,
-            obstacleId: b.id,
-            basis: comboRef.basis,
-            ruleClause: comboRef.ruleClause,
-            sourceUrl: comboRef.sourceUrl,
-          });
-        } else if (d < minSafe) {
-          issues.push({
-            level: "warning",
-            code: "obstacles_close",
-            message: `Hinder ${a.number}→${b.number}: ${d.toFixed(1)} m är ovanligt nära`,
-            obstacleId: b.id,
-            basis: safeRef.basis,
-            ruleClause: safeRef.ruleClause,
-            sourceUrl: safeRef.sourceUrl,
-          });
-        }
-      }
-    }
-
-    // Kontaktfält direkt efter tunnel — riskvarning (nummerordning)
-    for (let i = 1; i < numberedByNumber.length; i++) {
-      const prev = numberedByNumber[i - 1];
-      const cur = numberedByNumber[i];
-      if ((cur.number as number) - (prev.number as number) !== 1) continue;
-      if (prev.type === "tunnel" && CONTACT_TYPES.includes(cur.type)) {
-        const d = dist(prev, cur);
-        if (d < safety.contactAfterTunnelMinM) {
-          const contactRef = ruleRef(rs, "safetyRules.contactAfterTunnelMinM");
-          issues.push({
-            level: "warning",
-            code: "contact_after_tunnel",
-            message: `Kontaktfält direkt efter tunnel (${d.toFixed(1)} m < ${safety.contactAfterTunnelMinM} m, ${contactRef.prefix})`,
-            obstacleId: cur.id,
-            basis: contactRef.basis,
-            ruleClause: contactRef.ruleClause,
-            sourceUrl: contactRef.sourceUrl,
-          });
-        }
-      }
-    }
+  // 5) Agility — avstånd längs hundens väg och banstruktur (SAgiK §3.1)
+  if (course.sport === "agility") {
+    issues.push(...validateAgilityCourse(course, rs, tpl, numberedByNumber));
   }
 
   // 5b) Hoopers-specifika regler — styrs av aktivt RuleSet (SHoK eller FCI).
@@ -667,6 +846,31 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
         message: "Förhandskontrollen saknar ett verifierat gränsvärde för min-avstånd mellan hoopershinder. Kontrollera aktuellt regelverk.",
         basis: "safety_heuristic",
       });
+    }
+
+    // Max-avstånd mellan följdhinder (SHoK §2.3: 7/8/9/9 m, FCI §3.1: 8/10/12 m).
+    const consecutiveMax = course.classTemplate
+      ? safety.hoopersConsecutiveMaxMByClass?.[course.classTemplate]
+      : undefined;
+    if (typeof consecutiveMax === "number") {
+      const maxRef = ruleRef(rs, "safetyRules.hoopersConsecutiveMaxMByClass", rs.organization === "FCI" ? "§3.1" : "§2.3");
+      for (let i = 1; i < numberedByNumber.length; i++) {
+        const a = numberedByNumber[i - 1];
+        const b = numberedByNumber[i];
+        if ((b.number as number) - (a.number as number) !== 1) continue;
+        const d = dist(a, b);
+        if (d > consecutiveMax + DISTANCE_TOLERANCE_M) {
+          issues.push({
+            level: "warning",
+            code: "hoopers_too_far",
+            message: `Hinder ${a.number}→${b.number}: ${formatM(d)} m > ${formatM(consecutiveMax)} m (${maxRef.prefix})`,
+            obstacleId: b.id,
+            basis: maxRef.basis,
+            ruleClause: maxRef.ruleClause,
+            sourceUrl: maxRef.sourceUrl,
+          });
+        }
+      }
     }
 
     // Min-avstånd mellan hinder som INTE följer på varandra i nummerföljden
@@ -799,11 +1003,21 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
     // mäter centrum-till-centrum; regelverken mäter till hindrets kant —
     // därför warning, inte error.
     const zone = course.obstacles.find((o) => o.type === "handler_zone");
+    // Storlekskategori Small (FCI ≤ 40 cm) har kortare maxavstånd när
+    // regelverket anger det. XS/S räknas som Small, övriga som Large.
+    const isSmall = course.sizeClass === "XS" || course.sizeClass === "S";
+    const smallTable = isSmall ? safety.hoopersMaxDistanceFromHandlerZoneMByClassSmall : undefined;
     const maxZoneDistance = course.classTemplate
-      ? safety.hoopersMaxDistanceFromHandlerZoneMByClass?.[course.classTemplate]
+      ? (smallTable?.[course.classTemplate] ?? safety.hoopersMaxDistanceFromHandlerZoneMByClass?.[course.classTemplate])
       : undefined;
     if (zone && typeof maxZoneDistance === "number") {
-      const maxRef = ruleRef(rs, "safetyRules.hoopersMaxDistanceFromHandlerZoneMByClass", rs.organization === "FCI" ? "§3.1" : "§2.3");
+      const maxRef = ruleRef(
+        rs,
+        smallTable?.[course.classTemplate ?? ""] != null
+          ? "safetyRules.hoopersMaxDistanceFromHandlerZoneMByClassSmall"
+          : "safetyRules.hoopersMaxDistanceFromHandlerZoneMByClass",
+        rs.organization === "FCI" ? "§3.1" : "§2.3",
+      );
       for (const ob of competing) {
         const d = dist(zone, ob);
         if (d > maxZoneDistance) {

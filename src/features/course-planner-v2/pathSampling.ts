@@ -27,6 +27,7 @@ export interface CoursePathInput {
     rotation?: number;
     curveDeg?: number;
     curveSide?: "left" | "right";
+    lengthM?: number;
   }>;
 }
 
@@ -65,6 +66,7 @@ export function buildCoursePath(course: CoursePathInput): SampledPath {
           number: o.number ?? null,
           curveDeg: o.curveDeg,
           curveSide: o.curveSide,
+          lengthM: o.lengthM,
         })),
     );
     return { points: dp.points, cum: dp.cum, total: dp.total };

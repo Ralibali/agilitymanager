@@ -161,7 +161,9 @@ describe("hundvägen genom tunneln", () => {
     const path = buildDogPath(obstacles);
     expect(pairs).toHaveLength(2);
     const sum = pairs.reduce((a, p) => a + p.distanceM, 0);
-    expect(sum).toBeCloseTo(path.airM, 6);
+    // Hopp mäts från ribban (halva hindrets djup, 0,2 m) — tunneln från
+    // mynningen. Två hopp ger alltså 2 × 0,2 m utöver luftsegmenten.
+    expect(sum).toBeCloseTo(path.airM + 0.4, 6);
     for (const p of pairs) expect(p.distanceM).toBeGreaterThan(0);
   });
 

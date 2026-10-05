@@ -14,6 +14,7 @@ import type { RuleSet } from "./types";
 export type {
   RuleSet,
   SafetyRules,
+  CourseStructureRules,
   TimeRules,
   SourceDocument,
   RuleSetVerificationStatus,
@@ -46,6 +47,15 @@ export function getActiveRuleSets(date: Date = new Date()): RuleSet[] {
     if (rs.validTo && rs.validTo < iso) return false;
     return true;
   });
+}
+
+/**
+ * Har regelverket passerat sitt slutdatum? Då ska UI:t tala om att en nyare
+ * utgåva kan gälla (t.ex. SAgiK:s regelrevidering 2027).
+ */
+export function isRuleSetExpired(rs: RuleSet, date: Date = new Date()): boolean {
+  if (!rs.validTo) return false;
+  return rs.validTo < date.toISOString().slice(0, 10);
 }
 
 /** Default-regelverk per sport — används som fallback för gamla banor. */

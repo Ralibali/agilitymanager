@@ -76,6 +76,13 @@ export const HOOPERS_SHS_2022: RuleSet = {
       hoopers_3: 6.0,
       hoopers_4: 6.0,
     },
+    // VERIFIERAT §2.3: övre gränsen per klass (5–7 / 6–8 / 6–9 / 6–9 m).
+    hoopersConsecutiveMaxMByClass: {
+      hoopers_1: 7.0,
+      hoopers_2: 8.0,
+      hoopers_3: 9.0,
+      hoopers_4: 9.0,
+    },
     // VERIFIERAT §2.3: max avstånd från dirigeringsområdet till utsidan av
     // det mest avlägsna hindret (13/15/20/25 m). För klass 1–2 gäller
     // maxavståndet endast om BO/UL inte används.
@@ -95,9 +102,11 @@ export const HOOPERS_SHS_2022: RuleSet = {
 
   timeRules: {
     // VERIFIERAT §4.3: referenstiden är 45 s i alla klasser och maxtiden 90 s —
-    // en fast tid, ingen hastighetsmodell. refSpeedMs är en
-    // planeringsuppskattning av banlängd/tid, inte en regelparameter.
-    model: "fixed_speed",
+    // en fast tid, ingen hastighetsmodell. refSpeedMs används bara för
+    // uppspelningens tempo, aldrig som referenstid.
+    model: "class_specific",
+    fixedRefTimeS: 45,
+    fixedMaxCourseTimeS: 90,
     refSpeedMsByClass: Object.fromEntries(
       CLASS_TEMPLATES.filter((t) => t.sport === "hoopers")
         .map((t) => [t.key, t.refSpeedMs]),
@@ -116,9 +125,12 @@ export const HOOPERS_SHS_2022: RuleSet = {
     "safetyRules.minComboMBySize",
     "safetyRules.hoopersMinM",
     "safetyRules.hoopersConsecutiveMinMByClass",
+    "safetyRules.hoopersConsecutiveMaxMByClass",
     "safetyRules.hoopersMaxDistanceFromHandlerZoneMByClass",
     "safetyRules.hoopersStartEndHoopRequired",
     "timeRules.maxTimeFactorByClass",
+    "timeRules.fixedRefTimeS",
+    "timeRules.fixedMaxCourseTimeS",
     "classTemplates.obstacleRange",
     "classTemplates.arenaSize",
     "validTo",

@@ -22,6 +22,7 @@ import {
   type Sport, type SizeClassKey, type ObstacleTypeV2, type ClassTemplateKey,
 } from "./config";
 import { getDefaultRuleSetIdForSport, getRuleSet } from "./rules";
+import { clampTunnelLengthM } from "./obstacleSize";
 
 export interface ImportedObstacle {
   id: string;
@@ -32,6 +33,7 @@ export interface ImportedObstacle {
   number?: number;
   curveDeg?: number;
   curveSide?: "left" | "right";
+  lengthM?: number;
   locked?: boolean;
   zIndex?: number;
 }
@@ -216,6 +218,10 @@ export function parseCourseJson(text: string): ImportResult {
     }
     if (ob.curveSide === "left" || ob.curveSide === "right") {
       imported.curveSide = ob.curveSide;
+    }
+    if (type === "tunnel") {
+      const lengthM = clampTunnelLengthM(ob.lengthM);
+      if (lengthM != null) imported.lengthM = lengthM;
     }
     if (ob.locked === true) imported.locked = true;
     if (typeof ob.zIndex === "number" && Number.isFinite(ob.zIndex)) {

@@ -13,7 +13,7 @@ import {
 import { computeCourseTimes, computeCourseLength, computeCourseLengthAlongPath, validateCourse, type ObstacleLite } from "./validation";
 import { analyzeCourse } from "./courseAnalysis";
 import { getRuleSet, getDefaultRuleSetIdForSport } from "./rules";
-import { PDF_BRAND, PDF_PAGE, drawArenaVector, drawHeaderBand, drawFooterAllPages, safeFileName } from "./pdfHelpers";
+import { PDF_BRAND, PDF_PAGE, drawArenaVector, drawHeaderBand, drawFooterAllPages, safeFileName, installPdfTextSanitizer, qrBesideArena } from "./pdfHelpers";
 
 export interface JudgePdfInput {
   name: string;
@@ -36,13 +36,15 @@ export interface JudgePdfInput {
 }
 
 export async function exportJudgePdf(input: JudgePdfInput) {
-  const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+  const doc = installPdfTextSanitizer(new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" }));
   const margin = PDF_PAGE.margin;
   const pageW = PDF_PAGE.width;
   const pageH = PDF_PAGE.height;
 
+  const ruleSetForTpl = getRuleSet(input.ruleSetId ?? getDefaultRuleSetIdForSport(input.sport));
   const tpl = input.classTemplate
-    ? CLASS_TEMPLATES.find((t) => t.key === input.classTemplate)
+    ? (ruleSetForTpl?.classTemplates.find((t) => t.key === input.classTemplate) ??
+        CLASS_TEMPLATES.find((t) => t.key === input.classTemplate))
     : null;
   const sizeDef = SIZE_CLASSES.find((s) => s.key === input.sizeClass)!;
   const times = computeCourseTimes({
@@ -72,12 +74,21 @@ export async function exportJudgePdf(input: JudgePdfInput) {
 
   /* Meta-rutor */
   let y = 30;
-  const competingCount = input.obstacles.filter((o) => !["start", "finish", "number"].includes(o.type)).length;
+  const competingCount = input.obstacles.filter((o) => !["start", "finish", "number", "handler_zone"].includes(o.type)).length;
+  const fixedTimes = !times.refTimeIsEstimate;
   const cols = [
-    { label: "Hinder", value: `${competingCount}`, sub: tpl ? `mål ${tpl.obstacleRange[0]}–${tpl.obstacleRange[1]}` : "" },
-    { label: "Banlängd", value: `${times.lengthM.toFixed(1)} m`, sub: "mellan numrerade" },
-    { label: "Referenstid", value: times.refTimeS != null ? `${times.refTimeS} s` : "—", sub: times.refSpeedMs ? `${times.refSpeedMs} m/s` : "" },
-    { label: "Maxtid", value: times.maxTimeS != null ? `${times.maxTimeS} s` : "—", sub: times.maxTimeFactor ? `× ${times.maxTimeFactor}` : "" },
+    { label: "Hinder", value: `${competingCount}`, sub: tpl ? `klassen: ${tpl.obstacleRange[0]}–${tpl.obstacleRange[1]}` : "" },
+    { label: "Banlängd", value: `${times.lengthAlongPathM.toFixed(1)} m`, sub: "längs hundens väg" },
+    {
+      label: fixedTimes ? "Referenstid" : "Ref.tid (uppsk.)",
+      value: times.refTimeS != null ? `${times.refTimeS} s` : "—",
+      sub: fixedTimes ? (times.refTimeS != null ? "fast enligt regelverket" : "ingen referenstid") : "domaren fastställer",
+    },
+    {
+      label: "Maxtid",
+      value: times.maxTimeS != null ? `${times.maxTimeS} s` : "—",
+      sub: times.fixedMaxCourseTimeS != null ? "fast enligt regelverket" : times.maxTimeFactor ? `${times.maxTimeFactor} × referenstid` : "",
+    },
   ];
   const colW = (pageW - margin * 2) / cols.length;
   cols.forEach((c, i) => {
@@ -103,6 +114,7 @@ export async function exportJudgePdf(input: JudgePdfInput) {
   y += 24;
 
   /* Banbild (vektor) */
+  const arenaTopY = y;
   const arenaResult = drawArenaVector(doc, {
     x: margin, y,
     maxWidth: pageW - margin * 2,
@@ -185,15 +197,16 @@ export async function exportJudgePdf(input: JudgePdfInput) {
   const warns = issues.filter((i) => i.level === "warning").length;
   const statusY = pageH - 18;
   doc.setFontSize(8);
+  // Förhandskontrollen ersätter inte domarens bedömning — formulera därefter.
   if (errs > 0) {
     doc.setTextColor(...PDF_BRAND.error);
-    doc.text(`⚠ ${errs} regelfel · ${warns} varningar`, margin, statusY);
+    doc.text(`Förhandskontroll: ${errs} fel och ${warns} varningar — se bygg-PDF:en`, margin, statusY);
   } else if (warns > 0) {
     doc.setTextColor(...PDF_BRAND.warning);
-    doc.text(`${warns} varningar — banan är godkänd att bygga`, margin, statusY);
+    doc.text(`Förhandskontroll: inga fel, ${warns} varningar att se över`, margin, statusY);
   } else {
     doc.setTextColor(...PDF_BRAND.primary);
-    doc.text(`✓ Banan uppfyller regelverket`, margin, statusY);
+    doc.text("Förhandskontroll: inga anmärkningar", margin, statusY);
   }
   doc.setTextColor(0);
 
@@ -223,55 +236,70 @@ export async function exportJudgePdf(input: JudgePdfInput) {
   doc.text(`Antal numrerade hinder: ${numbered.length}`, margin, sy);
   sy += 8;
 
-  /* SCT per storleksklass */
+  /* Tider per storleksklass */
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.text("Standard Course Time (SCT) per storleksklass", margin, sy);
+  doc.text(fixedTimes ? "Tider enligt regelverket" : "Uppskattad referenstid per storleksklass", margin, sy);
   sy += 6;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
 
-  // SCT-tabell — använder mallens refSpeedMs som bas och skalfaktorer per storlek
-  const sctScale: Record<SizeClassKey, number> = { XS: 0.65, S: 0.78, M: 0.9, L: 1.0, XL: 1.0 };
-  const baseSpeed = tpl?.refSpeedMs ?? 3.5;
-  const tableX = margin;
-  const tableY = sy;
-  const colWidths = [22, 36, 36, 36, 36, 36];
-  const headers = ["Klass", "Hastighet (m/s)", "Banlängd (m)", "SCT (s)", "Maxtid (s)", "Status"];
+  let ry = sy;
+  if (fixedTimes) {
+    // SHoK: 45/90 s i alla klasser. FCI: ingen referenstid, maxtid 180 s.
+    doc.text(
+      `Referenstid: ${times.refTimeS != null ? `${times.refTimeS} s` : "ingen (resultatet avgörs av fel)"} · Maxtid: ${times.maxTimeS != null ? `${times.maxTimeS} s` : "—"} — samma för alla storlekar.`,
+      margin, ry + 4,
+    );
+    ry += 8;
+  } else {
+    // Planeringsstöd: domaren fastställer referenstiden på tävlingsdagen
+    // (SAgiK §3.4). Hastigheterna nedan är AgilityManagers uppskattning.
+    const sctScale: Record<SizeClassKey, number> = { XS: 0.65, S: 0.78, M: 0.9, L: 1.0, XL: 1.0 };
+    const baseSpeed = tpl?.refSpeedMs ?? 3.5;
+    const tableX = margin;
+    // Summerar till sidans innerbredd (210 − 2 × 12 mm).
+    const colWidths = [20, 30, 34, 30, 30, 42];
+    const headers = ["Klass", "Uppsk. m/s", "Banlängd (m)", "Ref.tid (s)", "Maxtid (s)", ""];
 
-  doc.setFillColor(...PDF_BRAND.primary);
-  doc.rect(tableX, tableY, colWidths.reduce((a, b) => a + b, 0), 6, "F");
-  doc.setTextColor(255);
-  doc.setFont("helvetica", "bold");
-  let cx = tableX + 2;
-  headers.forEach((h, i) => { doc.text(h, cx, tableY + 4); cx += colWidths[i]; });
+    doc.setFillColor(...PDF_BRAND.primary);
+    doc.rect(tableX, ry, colWidths.reduce((a, b) => a + b, 0), 6, "F");
+    doc.setTextColor(255);
+    doc.setFont("helvetica", "bold");
+    let cx = tableX + 2;
+    headers.forEach((h, i) => { doc.text(h, cx, ry + 4); cx += colWidths[i]; });
 
-  let ry = tableY + 6;
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...PDF_BRAND.ink);
-  for (const sc of SIZE_CLASSES) {
-    const speed = baseSpeed * sctScale[sc.key];
-    // SCT räknas från hundens väg (Prompt B).
-    const sct = lengthAlongPathM > 0 ? Math.round(lengthAlongPathM / speed) : null;
-    const maxT = sct != null && tpl ? Math.round(sct * tpl.maxTimeFactor) : null;
-    const isCurrent = sc.key === input.sizeClass;
-    if (isCurrent) {
-      doc.setFillColor(245, 240, 230);
-      doc.rect(tableX, ry, colWidths.reduce((a, b) => a + b, 0), 5.5, "F");
+    ry += 6;
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...PDF_BRAND.ink);
+    for (const sc of SIZE_CLASSES) {
+      const speed = baseSpeed * sctScale[sc.key];
+      const sct = lengthAlongPathM > 0 ? Math.round(lengthAlongPathM / speed) : null;
+      const maxT = sct != null && tpl ? Math.round(sct * tpl.maxTimeFactor) : null;
+      const isCurrent = sc.key === input.sizeClass;
+      if (isCurrent) {
+        doc.setFillColor(245, 240, 230);
+        doc.rect(tableX, ry, colWidths.reduce((a, b) => a + b, 0), 5.5, "F");
+      }
+      cx = tableX + 2;
+      const cells = [
+        sc.label,
+        speed.toFixed(2),
+        lengthAlongPathM.toFixed(1),
+        sct != null ? `${sct}` : "—",
+        maxT != null ? `${maxT}` : "—",
+        isCurrent ? "vald storlek" : "",
+      ];
+      if (isCurrent) doc.setFont("helvetica", "bold");
+      cells.forEach((c, i) => { doc.text(c, cx, ry + 4); cx += colWidths[i]; });
+      if (isCurrent) doc.setFont("helvetica", "normal");
+      ry += 5.5;
     }
-    cx = tableX + 2;
-    const cells = [
-      sc.label,
-      speed.toFixed(2),
-      lengthAlongPathM.toFixed(1),
-      sct != null ? `${sct}` : "—",
-      maxT != null ? `${maxT}` : "—",
-      isCurrent ? "← vald" : "",
-    ];
-    if (isCurrent) doc.setFont("helvetica", "bold");
-    cells.forEach((c, i) => { doc.text(c, cx, ry + 4); cx += colWidths[i]; });
-    if (isCurrent) doc.setFont("helvetica", "normal");
-    ry += 5.5;
+    doc.setFontSize(7);
+    doc.setTextColor(...PDF_BRAND.muted);
+    doc.text("Planeringsstöd: domaren fastställer referenstiden per bana. Maxtiden är 2 × referenstiden (SAgiK §3.4).", tableX, ry + 4);
+    doc.setTextColor(...PDF_BRAND.ink);
+    ry += 6;
   }
   sy = ry + 8;
 
@@ -401,12 +429,12 @@ export async function exportJudgePdf(input: JudgePdfInput) {
     margin, protoY,
   );
   doc.text(
-    `Regelverk: ${ruleSet?.name ?? ruleSetId} (giltigt ${ruleSet?.validFrom ?? "?"}${ruleSet?.validTo ? "–" + ruleSet.validTo : "→"})`,
+    `Regelverk: ${ruleSet?.name ?? ruleSetId} (giltigt ${ruleSet?.validFrom ?? "?"}${ruleSet?.validTo ? "–" + ruleSet.validTo : " och tills vidare"})`,
     margin, protoY + 4,
   );
 
   /* Footer på alla sidor */
-  drawFooterAllPages(doc, { authorName: input.authorName ?? "", qrDataUrl: input.qrDataUrl, showWatermark: input.showWatermark });
+  drawFooterAllPages(doc, { authorName: input.authorName ?? "", qrDataUrl: input.qrDataUrl, qrAt: qrBesideArena(arenaTopY, arenaResult), showWatermark: input.showWatermark });
 
   doc.save(`${safeFileName(input.name)}_domarbana.pdf`);
 }

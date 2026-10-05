@@ -1,38 +1,13 @@
 import { useMemo } from "react";
 import { buildDogPath } from "./dogPath";
 import { analyzeCourse } from "./courseAnalysis";
-import { getObstacleDefV2 } from "./config";
+import { ObstacleGlyph } from "@/components/ObstacleGlyph";
 import { clampArenaM, gridTicks } from "@/lib/courseSafety";
 import type { CourseBankEntry } from "./courseBank";
 import type { ObstacleLite } from "./validation";
 
 interface Props {
   course: CourseBankEntry;
-}
-
-function obstacleShape(type: string, widthM: number, depthM: number) {
-  if (type === "tunnel") {
-    return <rect x={-widthM / 2} y={-depthM / 2} width={widthM} height={depthM} rx={depthM / 2} className="fill-none stroke-current" strokeWidth={0.22} />;
-  }
-  if (type === "weave_8" || type === "weave_10" || type === "weave_12") {
-    return <line x1={0} y1={-depthM / 2} x2={0} y2={depthM / 2} className="stroke-current" strokeWidth={0.22} strokeDasharray="0.35 0.28" />;
-  }
-  if (type === "aframe" || type === "dogwalk" || type === "seesaw") {
-    return <rect x={-widthM / 2} y={-depthM / 2} width={widthM} height={depthM} rx={0.12} className="fill-current opacity-35 stroke-current" strokeWidth={0.12} />;
-  }
-  if (type === "tire") {
-    return <circle r={Math.max(0.35, widthM * 0.24)} className="fill-none stroke-current" strokeWidth={0.2} />;
-  }
-  if (type === "longjump" || type === "combo") {
-    return <rect x={-widthM / 2} y={-Math.max(0.18, depthM / 2)} width={widthM} height={Math.max(0.36, depthM)} className="fill-none stroke-current" strokeWidth={0.18} />;
-  }
-  if (type === "hoop") {
-    return <path d="M -0.5 0 Q 0 -0.8 0.5 0" className="fill-none stroke-current" strokeWidth={0.2} />;
-  }
-  if (type === "barrel") {
-    return <circle r={Math.max(0.3, widthM / 2)} className="fill-none stroke-current" strokeWidth={0.18} />;
-  }
-  return <line x1={-widthM / 2} y1={0} x2={widthM / 2} y2={0} className="stroke-current" strokeWidth={0.2} />;
 }
 
 export default function CourseLibraryPreview({ course }: Props) {
@@ -86,16 +61,18 @@ export default function CourseLibraryPreview({ course }: Props) {
         )}
 
         <g className="text-foreground">
-          {course.obstacles.filter((obstacle) => obstacle.number != null).map((obstacle, index) => {
-            const def = getObstacleDefV2(obstacle.type);
-            const widthM = def?.sizeM.w ?? 1.2;
-            const depthM = def?.sizeM.d ?? 0.2;
-            return (
-              <g key={`${obstacle.number}-${index}`} transform={`translate(${obstacle.x} ${obstacle.y}) rotate(${obstacle.rotation})`}>
-                {obstacleShape(obstacle.type, widthM, depthM)}
-              </g>
-            );
-          })}
+          {course.obstacles.filter((obstacle) => obstacle.number != null).map((obstacle, index) => (
+            <g key={`${obstacle.number}-${index}`} transform={`translate(${obstacle.x} ${obstacle.y}) rotate(${obstacle.rotation})`}>
+              <ObstacleGlyph
+                type={obstacle.type}
+                stroke="#161812"
+                sw={0.14}
+                curveDeg={obstacle.curveDeg}
+                curveSide={obstacle.curveSide}
+                lengthM={obstacle.lengthM}
+              />
+            </g>
+          ))}
         </g>
 
         <g className="text-foreground">

@@ -9,7 +9,9 @@
  *  - §3.1 Banområde: 30×40 m rekommenderat; 15–22 hinderpassager;
  *    hinderavstånd 6–8 m (hundens väg); minst 6 m före första/efter sista
  *    hindret; minst 1 m hinder–vägg; minst 7 hoppassager; max ett slalom;
- *    oxer får inte användas i klass 1.
+ *    banan inleds och avslutas med hopphinder (sista får vara oxer); oxer
+ *    får inte användas i klass 1; slalom har alltid 12 pinnar.
+ *  - Bordet togs bort ur de svenska reglerna 2017.
  *  - §3.4 Tidtagning: referenstiden sätts av domaren per bana; maxtiden är
  *    2 × referenstiden. Det finns alltså INGEN fast m/s-modell i regelverket
  *    — refSpeedMs används här endast som planeringsuppskattning.
@@ -82,6 +84,16 @@ export const SKK_AGILITY_2023: RuleSet = {
     contactAfterTunnelMinM: 5.0,
   },
 
+  // VERIFIERAT §3.1 (samtliga värden citerade i filhuvudet).
+  courseRules: {
+    maxConsecutiveM: 8.0,
+    minJumpPassages: 7,
+    maxWeavePassages: 1,
+    startEndJumpRequired: true,
+    minBorderClearanceM: 1.0,
+    minRunUpM: 6.0,
+  },
+
   timeRules: {
     // VERIFIERAT §3.4: referenstiden sätts av domaren per bana — ingen fast
     // m/s-modell i regelverket. "fixed_speed"-värdena nedan är
@@ -113,6 +125,13 @@ export const SKK_AGILITY_2023: RuleSet = {
     "timeRules.maxTimeFactorByClass",
     "classTemplates.arenaSize",
     "classTemplates.obstacleRange",
+    "classTemplates.forbiddenTypes",
+    "courseRules.maxConsecutiveM",
+    "courseRules.minJumpPassages",
+    "courseRules.maxWeavePassages",
+    "courseRules.startEndJumpRequired",
+    "courseRules.minBorderClearanceM",
+    "courseRules.minRunUpM",
   ],
   provisionalFields: [
     "safetyRules.contactAfterTunnelMinM",

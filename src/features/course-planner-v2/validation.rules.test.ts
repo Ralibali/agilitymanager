@@ -351,16 +351,39 @@ describe("tidsberäkning per regelverk", () => {
     expect(times.isProvisional).toBe(true); // partially_verified
   });
 
-  it("SHoK: maxtid = 2 × referenstid (45/90-modellen)", () => {
-    const times = computeCourseTimes(baseCourse({
-      classTemplate: "hoopers_1",
-      ruleSetId: "hoopers-shs-2022",
-      obstacles,
-    }));
-    expect(times.fixedMaxCourseTimeS).toBeNull();
-    expect(times.refTimeS).not.toBeNull();
-    expect(times.maxTimeS).toBe(Math.round((times.refTimeS as number) * 2.0));
-    expect(times.ruleSetId).toBe("hoopers-shs-2022");
+  it("SHoK §4.3: fast referenstid 45 s och maxtid 90 s oavsett banlängd", () => {
+    for (const classTemplate of ["hoopers_1", "hoopers_4"] as const) {
+      const times = computeCourseTimes(baseCourse({
+        classTemplate,
+        ruleSetId: "hoopers-shs-2022",
+        obstacles,
+      }));
+      expect(times.refTimeS).toBe(45);
+      expect(times.maxTimeS).toBe(90);
+      expect(times.fixedMaxCourseTimeS).toBe(90);
+      expect(times.refTimeIsEstimate).toBe(false);
+      expect(times.refSpeedMs).toBeNull();
+      expect(times.ruleSetId).toBe("hoopers-shs-2022");
+    }
+  });
+
+  it("SAgiK: referenstiden är en uppskattning (domaren sätter den), maxtid = 2 × ref", () => {
+    const times = computeCourseTimes({
+      sport: "agility",
+      sizeClass: "L",
+      arenaWidthM: 30,
+      arenaHeightM: 40,
+      classTemplate: "agility_2",
+      ruleSetId: "skk-agility-2023",
+      obstacles: [
+        { id: "a", type: "jump", number: 1, x: 5, y: 10, rotation: 90 },
+        { id: "b", type: "jump", number: 2, x: 12, y: 10, rotation: 90 },
+        { id: "c", type: "jump", number: 3, x: 19, y: 10, rotation: 90 },
+      ],
+    });
+    expect(times.refTimeIsEstimate).toBe(true);
+    expect(times.refTimeS).toBeGreaterThan(0);
+    expect(times.maxTimeS).toBe(Math.round((times.refTimeS as number) * 2));
   });
 
   it("okänt ruleSetId faller tillbaka på sportens default", () => {

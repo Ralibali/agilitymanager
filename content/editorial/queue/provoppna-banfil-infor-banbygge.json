@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "content_id": "editorial-20261006-provoppna-banfil-infor-banbygge",
+  "author": "ChatGPT",
+  "status": "draft",
+  "written_at": "2026-10-06T07:48:50.887546+00:00",
+  "sources_checked_at": "2026-10-06T07:48:50.887546+00:00",
+  "search_intent": "Kontrollera läsbarhet och åtkomst till den redan valda banfilen på den enhet eller utskrift som ska användas vid bygget; skilt från ritningens utformning och materiallistan.",
+  "source_urls": [
+    "https://agilitymanager.se/banplanerare"
+  ],
+  "slug": "provoppna-banfil-infor-banbygge",
+  "title": "Provöppna banfilen innan gruppen ska bygga",
+  "description": "Kontrollera att rätt banritning går att hitta, öppna och läsa där den ska användas. En praktisk kontroll inför gruppens gemensamma banbygge.",
+  "category": "Verktyg",
+  "readingMinutes": 4,
+  "related": [
+    "banfiler-innehallslista-traningsgrupp",
+    "materiallista-gemensamt-banbygge"
+  ],
+  "cta": {
+    "heading": "Förbered gruppens byggunderlag",
+    "text": "Öppna banplaneraren och kontrollera det underlag ni väljer att använda.",
+    "label": "Öppna banplaneraren",
+    "to": "/banplanerare"
+  },
+  "blocks": [
+    {
+      "type": "p",
+      "text": "En banfil kan fungera på datorn där den skapades och ändå vara svår att använda när gruppen samlas. Fel version, en oläsbar utskrift eller en länk som kräver en annan inloggning upptäcks helst innan byggtillfället. Gör därför en liten provöppning av det underlag ni redan har valt.\n\nKontrollen gäller åtkomst och läsbarhet. Den ersätter inte instruktörens bedömning av banans utformning, träningens lämplighet eller anläggningens regler. Ett tydligt dokument är ett arbetsunderlag, inte ett besked om att banan är säker."
+    },
+    {
+      "type": "h2",
+      "text": "Utgå från den beslutade versionen"
+    },
+    {
+      "type": "p",
+      "text": "Be ansvarig peka ut vilken fil som ska användas och vilket tillfälle den hör till. Skriv ned filnamn, versionsdatum och var originalet finns. Välj inte automatiskt den fil som senast laddades ned; den kan vara en äldre kopia som öppnats på nytt."
+    },
+    {
+      "type": "p",
+      "text": "Ta hjälp av gruppens [innehållslista över banfiler](/blogg/banfiler-innehallslista-traningsgrupp). Om två dokument verkar aktuella behöver ansvarig avgöra vilket som gäller innan gruppen börjar kontrollera kopiorna. Låt den frågan stå öppen tills ett besked finns."
+    },
+    {
+      "type": "h2",
+      "text": "Prova på det sätt filen ska användas"
+    },
+    {
+      "type": "p",
+      "text": "Öppna underlaget på den enhet som ni tänker ha tillgänglig vid bygget. Om någon annan ska visa ritningen, låt den personen själv följa länken eller hitta filen. Då märker ni om åtkomsten råkar bygga på skaparens konto eller en plats som bara en person känner till."
+    },
+    {
+      "type": "p",
+      "text": "Om ni behöver en utskrift, prova en faktisk utskrift i det format ni tänker använda. Kontrollera att rubrik, kanter och förklaringar inte klipps bort. Förutsätt inte att en snygg förhandsvisning blir lika läsbar när papperets storlek eller orientering ändras."
+    },
+    {
+      "type": "h2",
+      "text": "Kontrollera läsbarheten utan att ändra banan"
+    },
+    {
+      "type": "p",
+      "text": "Går det att läsa de beteckningar och förklaringar som finns i originalet? Syns hela ritningen, och är skillnaden mellan olika markeringar begriplig? Kontrollera dokumentets presentation utan att själv flytta, tolka om eller komplettera hinderuppgifter. Saknas något behöver frågan gå tillbaka till ansvarig."
+    },
+    {
+      "type": "p",
+      "text": "Om ni använder både skärm och papper, jämför att de visar samma version. Skriv gärna versionsnamnet på den tillhörande arbetslistan. En beskuren detaljbild behöver en tydlig hänvisning till hela ritningen så att gruppen vet vilket sammanhang den hör till."
+    },
+    {
+      "type": "h2",
+      "text": "Bestäm vad som händer om filen inte går att nå"
+    },
+    {
+      "type": "p",
+      "text": "Skriv vem som kontaktas om länken slutar fungera eller enheten inte kan öppna filen. Om ert verktyg tillåter att ni sparar en lokal kopia kan ansvarig bedöma om det är lämpligt. Guiden utlovar ingen offlinefunktion eller viss exportmöjlighet i ett särskilt verktyg."
+    },
+    {
+      "type": "p",
+      "text": "Lägg inte lösenord i gruppens byggunderlag. Behöver en person åtkomst ska den ordnas av behörig ägare genom verktygets vanliga väg. En misslyckad provöppning är en konkret fråga att lösa, inte ett skäl att dela privata konton."
+    },
+    {
+      "type": "h2",
+      "text": "Spara ett kort kontrollbesked"
+    },
+    {
+      "type": "p",
+      "text": "Notera vilken version som provades, på vilket sätt den öppnades, datumet och eventuella kvarstående frågor. Upprepa kontrollen om den valda versionen byts eller om ni ändrar hur underlaget ska visas."
+    },
+    {
+      "type": "p",
+      "text": "Öppna [AgilityManagers banplanerare](/banplanerare) för arbetet med ritningen och behåll åtkomstkontrollen i gruppens vanliga underlag. AI-assisterad originalguide med en praktisk arbetsrutin; den beskriver ingen automatisk filkontroll eller bedömning av banans säkerhet."
+    }
+  ],
+  "not_before": "2026-10-08"
+}

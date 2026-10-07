@@ -1,3 +1,5 @@
+import autoTable from "jspdf-autotable";
+import { measureCourse, roundedSections } from "./courseMeasurements";
 /**
  * Banplaneraren v2 — Sprint 6 (DEL 3)
  * Polerad domar-PDF — VEKTOR-rendering, sida 2 statistik, footer på alla sidor.
@@ -16,6 +18,8 @@ import { getRuleSet, getDefaultRuleSetIdForSport } from "./rules";
 import { PDF_BRAND, PDF_PAGE, drawArenaVector, drawHeaderBand, drawFooterAllPages, safeFileName, installPdfTextSanitizer, qrBesideArena } from "./pdfHelpers";
 
 export interface JudgePdfInput {
+  targetLengthM?: number;
+  planningSpeedMs?: number;
   name: string;
   sport: Sport;
   sizeClass: SizeClassKey;
@@ -51,13 +55,13 @@ export async function exportJudgePdf(input: JudgePdfInput) {
     sport: input.sport, sizeClass: input.sizeClass,
     arenaWidthM: input.arenaWidthM, arenaHeightM: input.arenaHeightM,
     classTemplate: input.classTemplate, obstacles: input.obstacles,
-    ruleSetId: input.ruleSetId,
+    ruleSetId: input.ruleSetId, targetLengthM: input.targetLengthM, planningSpeedMs: input.planningSpeedMs,
   });
   const issues = validateCourse({
     sport: input.sport, sizeClass: input.sizeClass,
     arenaWidthM: input.arenaWidthM, arenaHeightM: input.arenaHeightM,
     classTemplate: input.classTemplate, obstacles: input.obstacles,
-    ruleSetId: input.ruleSetId,
+    ruleSetId: input.ruleSetId, targetLengthM: input.targetLengthM, planningSpeedMs: input.planningSpeedMs,
   });
 
   /* ─── SIDA 1 ─────────────────────────────── */
@@ -80,7 +84,7 @@ export async function exportJudgePdf(input: JudgePdfInput) {
     { label: "Hinder", value: `${competingCount}`, sub: tpl ? `klassen: ${tpl.obstacleRange[0]}–${tpl.obstacleRange[1]}` : "" },
     { label: "Banlängd", value: `${times.lengthAlongPathM.toFixed(1)} m`, sub: "längs hundens väg" },
     {
-      label: fixedTimes ? "Referenstid" : "Ref.tid (uppsk.)",
+      label: fixedTimes ? "Referenstid" : "Standardtid (uppsk.)",
       value: times.refTimeS != null ? `${times.refTimeS} s` : "—",
       sub: fixedTimes ? (times.refTimeS != null ? "fast enligt regelverket" : "ingen referenstid") : "domaren fastställer",
     },
@@ -255,8 +259,6 @@ export async function exportJudgePdf(input: JudgePdfInput) {
   } else {
     // Planeringsstöd: domaren fastställer referenstiden på tävlingsdagen
     // (SAgiK §3.4). Hastigheterna nedan är AgilityManagers uppskattning.
-    const sctScale: Record<SizeClassKey, number> = { XS: 0.65, S: 0.78, M: 0.9, L: 1.0, XL: 1.0 };
-    const baseSpeed = tpl?.refSpeedMs ?? 3.5;
     const tableX = margin;
     // Summerar till sidans innerbredd (210 − 2 × 12 mm).
     const colWidths = [20, 30, 34, 30, 30, 42];
@@ -273,9 +275,10 @@ export async function exportJudgePdf(input: JudgePdfInput) {
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...PDF_BRAND.ink);
     for (const sc of SIZE_CLASSES) {
-      const speed = baseSpeed * sctScale[sc.key];
-      const sct = lengthAlongPathM > 0 ? Math.round(lengthAlongPathM / speed) : null;
-      const maxT = sct != null && tpl ? Math.round(sct * tpl.maxTimeFactor) : null;
+      const rowTimes = computeCourseTimes({ ...input, sizeClass: sc.key });
+      const speed = rowTimes.refSpeedMs;
+      const sct = rowTimes.refTimeS;
+      const maxT = rowTimes.maxTimeS;
       const isCurrent = sc.key === input.sizeClass;
       if (isCurrent) {
         doc.setFillColor(245, 240, 230);
@@ -284,7 +287,7 @@ export async function exportJudgePdf(input: JudgePdfInput) {
       cx = tableX + 2;
       const cells = [
         sc.label,
-        speed.toFixed(2),
+        speed?.toFixed(2) ?? "—",
         lengthAlongPathM.toFixed(1),
         sct != null ? `${sct}` : "—",
         maxT != null ? `${maxT}` : "—",
@@ -434,6 +437,24 @@ export async function exportJudgePdf(input: JudgePdfInput) {
   );
 
   /* Footer på alla sidor */
+  doc.addPage();
+  drawHeaderBand(doc, { title: "Kontroll av banlängd", subtitle: input.name, badge: "MÄTPROTOKOLL" });
+  const measurements = measureCourse(input.obstacles);
+  const notes = [
+    input.targetLengthM ? `Mål för banlängd: ${input.targetLengthM} m (tolerans 5 %, minst 1 m).` : null,
+    measurements.startM == null ? "Startmarkör saknas: sträckan fram till första hindret ingår inte." : null,
+    measurements.finishM == null ? "Målmarkör saknas: sträckan efter sista hindret ingår inte." : null,
+  ].filter((note): note is string => !!note);
+  doc.setFontSize(8);
+  notes.forEach((note, i) => doc.text(note, margin, 27 + i * 4));
+  autoTable(doc, {
+    startY: 32 + notes.length * 4, margin: { top: 20, bottom: 22, left: margin, right: margin },
+    head: [["Delsträcka längs hundens väg", { content: "Meter", styles: { halign: "right" } }]],
+    body: roundedSections(measurements.sections).map(s => [s.label, s.distanceM.toFixed(1)]),
+    foot: [["Summa", { content: measurements.path.total.toFixed(1), styles: { halign: "right" } }]],
+    showFoot: "lastPage", styles: { fontSize: 8 }, columnStyles: { 1: { halign: "right" } },
+    headStyles: { fillColor: PDF_BRAND.primary }, footStyles: { fillColor: PDF_BRAND.primary },
+  });
   drawFooterAllPages(doc, { authorName: input.authorName ?? "", qrDataUrl: input.qrDataUrl, qrAt: qrBesideArena(arenaTopY, arenaResult), showWatermark: input.showWatermark });
 
   doc.save(`${safeFileName(input.name)}_domarbana.pdf`);

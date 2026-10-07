@@ -59,6 +59,9 @@ jobs:
       - name: Full test suite
         run: npm test
 
+      - name: Course versioning and database access rules
+        run: npm run test:planner-db
+
       - name: Typecheck and production build
         run: npm run build
 

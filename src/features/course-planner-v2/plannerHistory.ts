@@ -10,6 +10,8 @@ import type { PlacedObstacle } from "@/lib/course";
 import type { ClassTemplateKey, SizeClassKey, Sport } from "./config";
 
 export interface DraftLike {
+  targetLengthM?: number;
+  planningSpeedMs?: number;
   name: string;
   sport: Sport;
   sizeClass: SizeClassKey;
@@ -27,6 +29,8 @@ export const HISTORY_LIMIT = 50;
 
 export function snapshotDraft(d: DraftLike): DraftSnapshot {
   return {
+    targetLengthM: d.targetLengthM,
+    planningSpeedMs: d.planningSpeedMs,
     sport: d.sport,
     sizeClass: d.sizeClass,
     arenaWidthM: d.arenaWidthM,

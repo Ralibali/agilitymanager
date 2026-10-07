@@ -20,6 +20,7 @@ interface Props {
   /** ISO-tid för senaste explicita sparning. */
   lastSavedAt: string | null;
   saving?: boolean;
+  destination?: string;
 }
 
 function timeLabel(iso: string | null) {
@@ -31,9 +32,9 @@ function timeLabel(iso: string | null) {
   }
 }
 
-export function CourseMenu({ onSave, onSaveAs, onOpen, onNew, dirty, lastSavedAt, saving }: Props) {
+export function CourseMenu({ onSave, onSaveAs, onOpen, onNew, dirty, lastSavedAt, saving, destination = "i webbläsaren" }: Props) {
   const t = timeLabel(lastSavedAt);
-  const status = saving ? "Sparar…" : dirty ? "Osparade ändringar" : t ? `Sparad ${t}` : "Inte sparad än";
+  const status = saving ? "Sparar…" : dirty ? "Osparade ändringar" : t ? `Sparad ${destination} ${t}` : "Inte sparad än";
 
   return (
     <DropdownMenu>
@@ -55,11 +56,11 @@ export function CourseMenu({ onSave, onSaveAs, onOpen, onNew, dirty, lastSavedAt
         <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-ink/50">
           {status}
         </DropdownMenuLabel>
-        <DropdownMenuItem onSelect={onSave} aria-keyshortcuts="Control+S" className="min-h-11 font-semibold">
+        <DropdownMenuItem onSelect={onSave} disabled={saving} aria-keyshortcuts="Control+S" className="min-h-11 font-semibold">
           <Save className="mr-2 h-4 w-4" /> Spara bana
           <span className="ml-auto text-xs text-ink/40" aria-hidden="true">Ctrl+S</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={onSaveAs} className="min-h-11 font-semibold">
+        <DropdownMenuItem onSelect={onSaveAs} disabled={saving} className="min-h-11 font-semibold">
           <SaveAll className="mr-2 h-4 w-4" /> Spara som…
         </DropdownMenuItem>
         <DropdownMenuSeparator />

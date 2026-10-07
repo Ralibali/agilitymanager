@@ -10,6 +10,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:planner-db": "node supabase/tests/planner-versions.mjs",
     "test:watch": "vitest",
     "preview": "vite preview",
     "editorial:check": "node scripts/editorial-check.mjs",

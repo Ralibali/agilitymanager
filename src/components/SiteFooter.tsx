@@ -100,8 +100,9 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-paper/10 pt-6 text-sm text-paper/45 sm:flex-row sm:items-center">
+        <div className="mt-8 flex flex-col flex-wrap items-start justify-between gap-4 border-t border-paper/10 pt-6 text-sm text-paper/45 sm:flex-row sm:items-center">
           <p>© {new Date().getFullYear()} AgilityManager</p>
+          <nav aria-label="Om tjänsten" className="flex flex-wrap gap-4 underline"><Link to="/villkor">Villkor</Link><Link to="/integritet">Integritet</Link><Link to="/om-oss">Om oss</Link></nav>
           <a href="mailto:info@auroramedia.se" className="underline hover:text-tang">info@auroramedia.se</a>
           <button type="button" onClick={openCookieSettings} className="underline hover:text-tang">
             Cookieinställningar

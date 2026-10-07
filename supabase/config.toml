@@ -2,3 +2,14 @@ project_id = "rcubbmnosawdtaupixnm"
 
 [functions.planner-social]
 verify_jwt = false
+
+# Hosted Auth: apply these settings in the connected Lovable/Supabase project.
+# A frontend deployment alone does not update hosted Auth configuration.
+[auth]
+site_url = "https://agilitymanager.se"
+additional_redirect_urls = ["https://agilitymanager.se/auth/bekrafta", "https://www.agilitymanager.se/auth/bekrafta"]
+minimum_password_length = 8
+
+[auth.email.template.confirmation]
+subject = "Bekräfta ditt konto hos AgilityManager"
+content_path = "./supabase/templates/confirmation.html"

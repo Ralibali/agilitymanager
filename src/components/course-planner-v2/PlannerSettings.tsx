@@ -42,6 +42,9 @@ interface Props {
   sizeClass: SizeClassKey;
   arenaWidthM: number;
   arenaHeightM: number;
+  targetLengthM?: number;
+  planningSpeedMs?: number;
+  onPlanning: (values: { targetLengthM?: number; planningSpeedMs?: number }) => void;
   onSport: (sport: Sport) => void;
   onRuleSet: (ruleSetId: string) => void;
   onClassTemplate: (key: ClassTemplateKey | null) => void;
@@ -56,6 +59,7 @@ const sectionLabel = "mb-2 text-xs font-bold uppercase tracking-wider text-ink/5
 
 export function PlannerSettings({
   sport, ruleSet, classTemplate, sizeClass, arenaWidthM, arenaHeightM,
+  targetLengthM, planningSpeedMs, onPlanning,
   onSport, onRuleSet, onClassTemplate, onSizeClass, onArena, view, onToggleView,
 }: Props) {
   // Komponenten renderas både i sidopanelen och i bladet — unika id:n krävs
@@ -161,6 +165,17 @@ export function PlannerSettings({
             ? template.description
             : "Välj en klass för att kontrollera banan mot tävlingsreglerna för den klassen."}
         </p>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-xs font-bold">Mål för banlängd (m)
+          <input aria-label="Mål för banlängd" type="number" min="1" max="2000" value={targetLengthM ?? ""} placeholder="Valfritt" onChange={e => onPlanning({ targetLengthM: e.target.value ? Math.min(2000, Math.max(1, Number(e.target.value))) : undefined })} className="mt-1 h-9 w-full rounded-lg border-2 border-ink/15 bg-white px-2" />
+        </label>
+        <p className="text-xs text-ink/50">Varnar vid mer än 5 % avvikelse, minst 1 m.</p>
+        {ruleSet?.timeRules.fixedRefTimeS == null && ruleSet?.timeRules.fixedMaxCourseTimeS == null && <label className="block text-xs font-bold">Planeringshastighet (m/s)
+          <input aria-label="Planeringshastighet" type="number" min="0.5" max="12" step="0.1" value={planningSpeedMs ?? ""} placeholder={template?.refSpeedMs ? `${template.refSpeedMs} (klassens förslag)` : "Välj hastighet"} onChange={e => onPlanning({ planningSpeedMs: e.target.value ? Math.min(12, Math.max(0.5, Number(e.target.value))) : undefined })} className="mt-1 h-9 w-full rounded-lg border-2 border-ink/15 bg-white px-2" />
+          <span className="mt-1 block font-normal text-ink/50">Ger en uppskattad standardloppstid. Domaren fastställer referenstiden.</span>
+        </label>}
       </div>
 
       {/* Storleksklass */}

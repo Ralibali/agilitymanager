@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from 'react-router';
 import { SiteNav } from '@/components/SiteNav';
 import { SiteFooter } from '@/components/SiteFooter';
@@ -5,7 +6,8 @@ import { Seo } from '@/components/Seo';
 import { PAGE_SEO, seoProps } from '@/lib/pageSeo';
 import { openCookieSettings } from '@/lib/privacyConsent';
 
-export default function CookieInformationPage() {
+export default function CookieInformationPage({ openSettings = false }: { openSettings?: boolean }) {
+  useEffect(() => { if (openSettings) openCookieSettings(); }, [openSettings]);
   return (
     <>
       <Seo {...seoProps(PAGE_SEO.cookies)} />

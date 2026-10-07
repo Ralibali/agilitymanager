@@ -1,3 +1,4 @@
+import { authCallbackError } from "@/lib/authMessages";
 import AnalyticsConsent from './components/AnalyticsConsent';
 import { lazy, Suspense, useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router";
@@ -29,6 +30,8 @@ const BlogIndexPage = lazy(() => import("./pages/BlogIndexPage"));
 const BlogArticlePage = lazy(() => import("./pages/BlogArticlePage"));
 const DogInsurancePage = lazy(() => import("./pages/DogInsurancePage"));
 const CookieInformationPage = lazy(() => import("./pages/CookieInformationPage"));
+const AuthConfirmPage = lazy(() => import("./pages/AuthConfirmPage"));
+const InformationPage = lazy(() => import("./pages/InformationPage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
 const NotFound = lazy(() => import("./pages/NotFound").then((m) => ({ default: m.NotFound })));
 
@@ -51,6 +54,11 @@ function RouteFallback() {
 }
 
 export default function App() {
+  const location = useLocation();
+  const callbackError = authCallbackError(location.search, location.hash);
+  if (location.pathname !== "/auth/bekrafta" && callbackError) {
+    return <Navigate to={`/auth/bekrafta?error_code=${encodeURIComponent(callbackError)}`} replace />;
+  }
   return (
     <>
       <ScrollToTop />
@@ -60,6 +68,11 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/cookies" element={<CookieInformationPage />} />
+          <Route path="/cookieinstallningar" element={<CookieInformationPage openSettings />} />
+          <Route path="/villkor" element={<InformationPage kind="terms" />} />
+          <Route path="/integritet" element={<InformationPage kind="privacy" />} />
+          <Route path="/om-oss" element={<InformationPage kind="about" />} />
+          <Route path="/auth/bekrafta" element={<AuthConfirmPage />} />
 
           {/* Kunskapsbanken: blogg/guider */}
           <Route path="/blogg" element={<BlogIndexPage />} />

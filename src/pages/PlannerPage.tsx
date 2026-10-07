@@ -1,3 +1,8 @@
+import { useAuth } from "@/hooks/useAuth";
+import { AuthDialog } from "@/components/AuthDialog";
+import { saveCloudCourse, type CloudCourse, type CloudCourseRef, type CourseVersion } from "@/features/course-planner-v2/cloudCourses";
+import { readEditorSession, type EditorSession } from "@/features/course-planner-v2/editorSession";
+import { measureCourse, roundedSections } from "@/features/course-planner-v2/courseMeasurements";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import {
@@ -88,6 +93,8 @@ import { clampTunnelLengthM, tunnelLengthM } from "@/features/course-planner-v2/
 // ── Banmodell (v2) ──────────────────────────────────────────────────────────
 
 interface Draft {
+  targetLengthM?: number;
+  planningSpeedMs?: number;
   name: string;
   sport: Sport;
   sizeClass: SizeClassKey;
@@ -164,7 +171,9 @@ function draftFromRawCourse(raw: unknown): Draft | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   let json = "";
   try {
-    json = JSON.stringify(raw);
+    const course = { ...(raw as Record<string, unknown>) };
+    delete course._editor;
+    json = JSON.stringify(course);
   } catch {
     return null;
   }
@@ -178,6 +187,8 @@ function draftFromRawCourse(raw: unknown): Draft | null {
 
   return {
     ...base,
+    targetLengthM: parsed.course.targetLengthM,
+    planningSpeedMs: parsed.course.planningSpeedMs,
     name: parsed.course.name,
     sport: parsed.course.sport,
     sizeClass: parsed.course.sizeClass,
@@ -201,6 +212,14 @@ function withCurrentNumbers(d: Draft): Draft {
   return { ...d, obstacles: withNumbers(d.obstacles) };
 }
 
+/** Property insertion order must not turn a restored, saved course dirty. */
+function draftFingerprint(d: Draft): string {
+  return JSON.stringify({ ...d, obstacles: normalizeObstacles(withNumbers(d.obstacles)) }, (_key, value) =>
+    value && typeof value === "object" && !Array.isArray(value)
+      ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)))
+      : value);
+}
+
 /** Kompakt hinderlista för delningslänkar — id:n återskapas vid inläsning. */
 function compactObstacles(obstacles: PlacedObstacle[]) {
   return withNumbers(obstacles).map((ob) => {
@@ -215,6 +234,8 @@ function compactObstacles(obstacles: PlacedObstacle[]) {
 function encodeCourse(d: Draft): string {
   const json = JSON.stringify({
     v: 2,
+    targetLengthM: d.targetLengthM,
+    planningSpeedMs: d.planningSpeedMs,
     name: d.name,
     sport: d.sport,
     sizeClass: d.sizeClass,
@@ -308,10 +329,13 @@ function loadInitial(search: URLSearchParams): Draft {
 }
 
 export default function PlannerPage() {
-  const [search] = useSearchParams();
+  const [search, setSearch] = useSearchParams();
   const { profile: plannerProfile } = usePlannerProfile();
+  const { user, loading: authLoading } = useAuth();
+  const [authOpen, setAuthOpen] = useState(false);
   const isExternalCopy = search.has("bana") || search.has("template") || search.has("delad");
   const [draft, setDraft] = useState<Draft>(() => loadInitial(search));
+  const [restored] = useState(() => isExternalCopy ? null : readEditorSession(STORAGE_KEY, draftFromRawCourse));
   // Externa kopior (?bana=/?template=/?delad=) får aldrig skriva över
   // användarens egen autosparade bana förrän hen faktiskt redigerar kopian.
   // Referensen håller exakt det innehåll som kom utifrån.
@@ -337,7 +361,7 @@ export default function PlannerPage() {
   const [measureMode, setMeasureMode] = useState(false);
   const [measure, setMeasure] = useState<{ a: { x: number; y: number }; b: { x: number; y: number } } | null>(null);
   const [marquee, setMarquee] = useState<{ a: { x: number; y: number }; b: { x: number; y: number } } | null>(null);
-  const [showDistances, setShowDistances] = useState(false);
+  const [showDistances, setShowDistances] = useState(restored?.showDistances ?? false);
   const [inspectorOpen, setInspectorOpenState] = useState<boolean>(() => {
     try {
       const v = localStorage.getItem(INSPECTOR_PREF_KEY);
@@ -354,17 +378,17 @@ export default function PlannerPage() {
     try { localStorage.setItem(INSPECTOR_PREF_KEY, open ? "1" : "0"); } catch { /* ignorera */ }
   }, []);
   const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null);
-  const [showLine, setShowLine] = useState(true);
-  const [showNumbers, setShowNumbers] = useState(true);
-  const [showGrid, setShowGrid] = useState(true);
-  const [showRulers, setShowRulers] = useState(true);
-  const [view, setView] = useState<ViewState>({ zoom: 1, panX: 0, panY: 0 });
+  const [showLine, setShowLine] = useState(restored?.showLine ?? true);
+  const [showNumbers, setShowNumbers] = useState(restored?.showNumbers ?? true);
+  const [showGrid, setShowGrid] = useState(restored?.showGrid ?? true);
+  const [showRulers, setShowRulers] = useState(restored?.showRulers ?? true);
+  const [view, setView] = useState<ViewState>(restored?.view ?? { zoom: 1, panX: 0, panY: 0 });
   const zoom = view.zoom;
   // håll en färsk referens till draft för pointer-/historikhantering
   const draftRef = useRef(draft);
   draftRef.current = draft;
-  const [past, setPast] = useState<DraftSnapshot[]>([]);
-  const [future, setFuture] = useState<DraftSnapshot[]>([]);
+  const [past, setPast] = useState<DraftSnapshot[]>(restored?.past ?? []);
+  const [future, setFuture] = useState<DraftSnapshot[]>(restored?.future ?? []);
   const [saveState, setSaveState] = useState<DraftSaveState>("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveAttempt, setSaveAttempt] = useState(0);
@@ -393,16 +417,20 @@ export default function PlannerPage() {
   });
   const [canvasPx, setCanvasPx] = useState({ w: 800, h: 600 });
   const [openCourseOpen, setOpenCourseOpen] = useState(false);
-  const [localCourseId, setLocalCourseId] = useState<string | null>(null);
-  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
-  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
+  const [localCourseId, setLocalCourseId] = useState<string | null>(restored?.localCourseId ?? null);
+  const [cloudCourse, setCloudCourse] = useState<CloudCourseRef | null>(restored?.cloudCourse ?? null);
+  const [cloudSaving, setCloudSaving] = useState(false);
+  const savingRef = useRef(false);
+  const courseGenerationRef = useRef(0);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(restored?.lastSavedAt ?? null);
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(restored?.savedSnapshot ?? null);
   // Bekräftelsedialoger (ersätter window.confirm/prompt för a11y + tydlighet)
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [confirmNewOpen, setConfirmNewOpen] = useState(false);
   const [saveAsOpen, setSaveAsOpen] = useState(false);
   const [pendingOpenDraft, setPendingOpenDraft] = useState<{
     next: Draft;
-    ids: { local?: string | null; social?: string | null };
+    ids: { local?: string | null; social?: string | null; cloud?: CloudCourseRef; restoredVersion?: boolean };
   } | null>(null);
   const [pendingImport, setPendingImport] = useState<{ next: Draft; warnings: string[] } | null>(null);
   const [pendingLibraryPick, setPendingLibraryPick] = useState<{
@@ -443,6 +471,11 @@ export default function PlannerPage() {
   // Banidentitet = vilken community-bana (planner-social) som en ev.
   // "Spara & dela" ska uppdatera. Delade länkar/mallar är alltid nya kopior.
   const resetCourseIdentity = useCallback((nextSocialId: string | null = null) => {
+    courseGenerationRef.current += 1;
+    setCloudCourse(null);
+    setLocalCourseId(null);
+    setSavedSnapshot(null);
+    setLastSavedAt(null);
     setSocialCourseId(nextSocialId);
     try {
       if (nextSocialId) localStorage.setItem(SOCIAL_ID_KEY, nextSocialId);
@@ -528,16 +561,18 @@ export default function PlannerPage() {
       validateCourse({
         sport, sizeClass: draft.sizeClass, arenaWidthM: w, arenaHeightM: h,
         classTemplate: draft.classTemplate, obstacles: numbered, ruleSetId: draft.ruleSetId,
+        targetLengthM: draft.targetLengthM, planningSpeedMs: draft.planningSpeedMs,
       }),
-    [sport, draft.sizeClass, w, h, draft.classTemplate, numbered, draft.ruleSetId]
+    [sport, draft.sizeClass, w, h, draft.classTemplate, numbered, draft.ruleSetId, draft.targetLengthM, draft.planningSpeedMs]
   );
   const times = useMemo(
     () =>
       computeCourseTimes({
         sport, sizeClass: draft.sizeClass, arenaWidthM: w, arenaHeightM: h,
         classTemplate: draft.classTemplate, obstacles: numbered, ruleSetId: draft.ruleSetId,
+        targetLengthM: draft.targetLengthM, planningSpeedMs: draft.planningSpeedMs,
       }),
-    [sport, draft.sizeClass, w, h, draft.classTemplate, numbered, draft.ruleSetId]
+    [sport, draft.sizeClass, w, h, draft.classTemplate, numbered, draft.ruleSetId, draft.targetLengthM, draft.planningSpeedMs]
   );
   const issueCounts = useMemo(() => ({
     error: issues.filter((i) => i.level === "error").length,
@@ -548,6 +583,7 @@ export default function PlannerPage() {
   // Hundens väg (samma motor som uppspelningen)
   const pathInput = useMemo(() => ({ obstacles: numbered }), [numbered]);
   const coursePath = useMemo(() => buildCoursePath(pathInput), [pathInput]);
+  const measurements = useMemo(() => measureCourse(numbered), [numbered]);
   const runLineD = useMemo(() => (coursePath.points.length >= 2 ? toSvgPathD(coursePath) : ""), [coursePath]);
 
   const playback = useCoursePlayback(pathInput, playbackActive);
@@ -582,11 +618,12 @@ export default function PlannerPage() {
   const commitDraft = useCallback((updater: (d: Draft) => Draft) => {
     // Ta ögonblicksbilden NU — inuti en state-updater körs koden först vid
     // omritningen, då draftRef redan pekar på det nya läget (inget att ångra).
+    if (isExternalCopy) setSearch({}, { replace: true });
     const before = snapshotDraft(draftRef.current);
     setPast((p) => pushHistory(p, before));
     setFuture([]);
     setDraft(updater);
-  }, []);
+  }, [isExternalCopy, setSearch]);
 
 
   const setObstacles = useCallback(
@@ -611,8 +648,16 @@ export default function PlannerPage() {
   const isExternalUnedited =
     isExternalCopy && !externalEditedRef.current && JSON.stringify(draft) === externalSnapshotRef.current;
 
+  useEffect(() => {
+    if (isExternalCopy && !isExternalUnedited && !loadingShared) setSearch({}, { replace: true });
+  }, [isExternalCopy, isExternalUnedited, loadingShared, setSearch]);
+
+  const sessionRef = useRef<EditorSession | null>(null);
+  sessionRef.current = { past, future, view, showLine, showNumbers, showGrid, showRulers, showDistances,
+    localCourseId, cloudCourse, savedSnapshot, lastSavedAt };
+
   const persistDraft = useCallback((d: Draft) => {
-    const res = saveDraftToStorage(STORAGE_KEY, withCurrentNumbers(d));
+    const res = saveDraftToStorage(STORAGE_KEY, { ...withCurrentNumbers(d), _editor: sessionRef.current });
     if (res.ok) {
       setSaveState("saved");
       setSaveError(null);
@@ -630,7 +675,7 @@ export default function PlannerPage() {
     setSaveState((s) => (s === "error" ? s : "saving"));
     const saveTimer = setTimeout(() => persistDraft(draftRef.current), 600);
     return () => clearTimeout(saveTimer);
-  }, [draft, isExternalUnedited, persistDraft, saveAttempt]);
+  }, [draft, isExternalUnedited, persistDraft, saveAttempt, past, future, view, showLine, showNumbers, showGrid, showRulers, showDistances, localCourseId, cloudCourse, savedSnapshot, lastSavedAt]);
 
   // Skriv direkt när sidan göms/stängs, så att ändringar inom debouncefönstret
   // inte tappas om användaren lämnar sidan.
@@ -1023,6 +1068,8 @@ export default function PlannerPage() {
   const startPlacing = (type: ObstacleTypeV2 | null) => {
     setPlacing(type);
     if (type) {
+      setGhost(null);
+      toast(`${getObstacleDefV2(type)?.label ?? "Hinder"} vald — klicka på banan för att placera`, { id: "placing", duration: 2500 });
       setNumbering(null);
       setMeasureMode(false);
       setMeasure(null);
@@ -1074,7 +1121,7 @@ export default function PlannerPage() {
       return;
     }
     const pt = toField(e.clientX, e.clientY);
-    if (placing) {
+    if (placing && e.button === 0) {
       const ob: PlacedObstacle = { id: uid(), type: placing, x: snapM(pt.x), y: snapM(pt.y), rotation: 0 };
       setObstacles([...obstacles, ob]);
       setSelectedId(ob.id);
@@ -1380,7 +1427,7 @@ export default function PlannerPage() {
 
   // ── Exporter ────────────────────────────────────────────────
   const pdfBase = () => ({
-    name, sport, sizeClass: draft.sizeClass,
+    name, sport, sizeClass: draft.sizeClass, targetLengthM: draft.targetLengthM, planningSpeedMs: draft.planningSpeedMs,
     arenaWidthM: w, arenaHeightM: h,
     classTemplate: draft.classTemplate,
     obstacles: numbered,
@@ -1402,15 +1449,11 @@ export default function PlannerPage() {
   };
 
   const shareUrl_ = () =>
-    `${window.location.origin}${window.location.pathname}?bana=${encodeCourse(draft)}`;
-  /**
-   * QR-koden i PDF:erna: hela banan i länken när den ryms, annars den
-   * publika banlänken (/bana/:id) om banan är delad.
-   */
+    `${window.location.origin}${window.location.pathname}?bana=${encodeCourse(draftRef.current)}`;
+  /** QR visar samma ögonblicksbild som PDF:en; utelämnas när den inte ryms. */
   const shareUrlForQr = () => {
     const full = shareUrl_();
-    if (full.length <= QR_MAX_CHARS || !socialCourseId) return full;
-    return `${window.location.origin}/bana/${socialCourseId}`;
+    return full.length <= QR_MAX_CHARS ? full : "";
   };
 
   const onJudgePdf = () =>
@@ -1491,6 +1534,7 @@ export default function PlannerPage() {
     const next: Draft = {
       ...defaultDraft(c.sport),
       name: c.name || "Importerad bana",
+      targetLengthM: c.targetLengthM, planningSpeedMs: c.planningSpeedMs,
       sport: c.sport,
       sizeClass: c.sizeClass ?? "L",
       arenaWidthM: c.arenaWidthM ?? 30,
@@ -1507,40 +1551,41 @@ export default function PlannerPage() {
     applyImport(next, result.warnings);
   };
 
-  const exportPNG = () => {
+  const exportPNG = () => runExport("Bild", () => new Promise<void>((resolve, reject) => {
     const svg = svgRef.current;
-    if (!svg) return;
+    if (!svg) { reject(new Error("Ingen bana att exportera")); return; }
     const clone = svg.cloneNode(true) as SVGSVGElement;
     clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     clone.setAttribute("viewBox", `0 0 ${w} ${h}`);
     clone.setAttribute("width", String(w * 60));
     clone.setAttribute("height", String(h * 60));
-    clone.querySelectorAll("[data-ui]").forEach((n) => n.remove());
-    const data = new XMLSerializer().serializeToString(clone);
-    const blob = new Blob([data], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
+    clone.querySelectorAll("[data-ui]").forEach(n => n.remove());
+    const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)], { type: "image/svg+xml;charset=utf-8" }));
     const img = new Image();
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Bilden kunde inte skapas")); };
     img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = w * 60;
-      canvas.height = h * 60;
-      const ctx = canvas.getContext("2d")!;
-      ctx.fillStyle = "#FCFAF4";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       URL.revokeObjectURL(url);
-      canvas.toBlob((png) => {
-        if (!png) return;
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(png);
-        a.download = `${name || "bana"}.png`;
-        a.click();
-        track("course_exported", { format: "png" });
-        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-      }, "image/png");
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = w * 60; canvas.height = h * 60;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Bilden kunde inte skapas");
+        ctx.fillStyle = "#FCFAF4";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(png => {
+          if (!png) { reject(new Error("Bilden kunde inte skapas")); return; }
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(png); a.download = `${name || "bana"}.png`; a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+          track("course_exported", { format: "png" });
+          toast.success("Banbilden är klar — PNG-nedladdningen har startat");
+          resolve();
+        }, "image/png");
+      } catch (error) { reject(error); }
     };
     img.src = url;
-  };
+  }));
 
   // ── Dela ────────────────────────────────────────────────────
   const openShare = () => {
@@ -1551,11 +1596,13 @@ export default function PlannerPage() {
   };
 
   const copyShare = async () => {
+    const currentUrl = shareUrl_();
+    setShareUrl(currentUrl);
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(currentUrl);
     } catch {
       const ta = document.createElement("textarea");
-      ta.value = shareUrl;
+      ta.value = currentUrl;
       document.body.appendChild(ta);
       ta.select();
       document.execCommand("copy");
@@ -1566,28 +1613,47 @@ export default function PlannerPage() {
   };
 
   // ── Spara / öppna banor (meny) ──────────────────────────────
-  const draftSnapshot = useMemo(() => JSON.stringify(draft), [draft]);
+  const draftSnapshot = useMemo(() => draftFingerprint(draft), [draft]);
   const dirty = savedSnapshot !== draftSnapshot;
 
   const persistCourse = async (opts?: { asNew?: boolean; name?: string }) => {
-    const targetName = (opts?.name ?? name).trim() || "Min bana";
-    const nextDraft: Draft = { ...draftRef.current, name: targetName };
-    if (targetName !== name) setDraft((d) => ({ ...d, name: targetName }));
+    if (savingRef.current) return;
+    if (authLoading) { toast("Väntar på inloggningen — försök strax igen"); return; }
+    const originalName = draftRef.current.name;
+    const targetName = (opts?.name ?? originalName).trim() || "Min bana";
+    const nextDraft = withCurrentNumbers({ ...draftRef.current, name: targetName });
+    const generation = courseGenerationRef.current;
+    savingRef.current = true;
+    setCloudSaving(true);
     try {
-      const id = saveLocalCourse({
-        id: opts?.asNew ? null : localCourseId,
-        name: targetName,
-        sport: nextDraft.sport,
-        obstacleCount: nextDraft.obstacles.filter(isCompeting).length,
-        data: withCurrentNumbers(nextDraft),
-      });
-      setLocalCourseId(id);
-      setSavedSnapshot(JSON.stringify(nextDraft));
-      setLastSavedAt(new Date().toISOString());
-      toast.success(`"${targetName}" sparad i den här webbläsaren`);
-    } catch {
-      toast.error('Banan kunde inte sparas. Exportera den som JSON för att behålla ditt arbete.');
-    }
+      let savedAt = new Date().toISOString();
+      if (user) {
+        const previous = opts?.asNew || cloudCourse?.userId !== user.id ? null : cloudCourse;
+        const saved = await saveCloudCourse(user.id, { name: targetName, data: nextDraft }, previous);
+        savedAt = saved.updated_at;
+        if (generation === courseGenerationRef.current) {
+          setCloudCourse({ id: saved.id, userId: user.id, revision: saved.revision });
+          setLocalCourseId(null);
+        }
+        toast.success(`"${targetName}" v${saved.revision} sparad på ditt konto`);
+      } else {
+        const id = saveLocalCourse({ id: opts?.asNew ? null : localCourseId, name: targetName,
+          sport: nextDraft.sport, obstacleCount: nextDraft.obstacles.filter(isCompeting).length, data: nextDraft });
+        if (generation === courseGenerationRef.current) { setLocalCourseId(id); setCloudCourse(null); }
+        toast.success(`"${targetName}" sparad i den här webbläsaren`, {
+          description: "Logga in för att spara på kontot och öppna banan på andra enheter.",
+          action: { label: "Logga in", onClick: () => setAuthOpen(true) },
+        });
+      }
+      if (generation === courseGenerationRef.current) {
+        // Edits made during a slow save remain dirty and are never overwritten.
+        if (draftRef.current.name === originalName) setDraft(d => ({ ...d, name: targetName }));
+        setSavedSnapshot(draftFingerprint(nextDraft));
+        setLastSavedAt(savedAt);
+      }
+    } catch (error) {
+      toast.error(user && error instanceof Error ? error.message : 'Banan kunde inte sparas. Exportera den som JSON för att behålla ditt arbete.');
+    } finally { savingRef.current = false; setCloudSaving(false); }
   };
 
   const handleSaveAs = () => setSaveAsOpen(true);
@@ -1614,23 +1680,24 @@ export default function PlannerPage() {
     doNewCourse();
   };
 
-  const doApplyOpenedDraft = (next: Draft, ids: { local?: string | null; social?: string | null }) => {
+  const doApplyOpenedDraft = (next: Draft, ids: { local?: string | null; social?: string | null; cloud?: CloudCourseRef; restoredVersion?: boolean }) => {
     setDraft(next);
     setPast([]);
     resetModes();
     setFuture([]);
     setSelectedId(null);
     setPlacing(null);
-    setLocalCourseId(ids.local ?? null);
     resetCourseIdentity(ids.social ?? null);
-    setSavedSnapshot(JSON.stringify(next));
+    setLocalCourseId(ids.local ?? null);
+    setCloudCourse(ids.cloud ?? null);
+    setSavedSnapshot(ids.restoredVersion ? null : draftFingerprint(next));
     setLastSavedAt(new Date().toISOString());
     setOpenCourseOpen(false);
     resetView();
     toast.success(`Öppnade "${next.name}"`);
   };
 
-  const applyOpenedDraft = (next: Draft, ids: { local?: string | null; social?: string | null }) => {
+  const applyOpenedDraft = (next: Draft, ids: { local?: string | null; social?: string | null; cloud?: CloudCourseRef; restoredVersion?: boolean }) => {
     if (dirty && obstacles.length) {
       setPendingOpenDraft({ next, ids });
       return;
@@ -1639,8 +1706,8 @@ export default function PlannerPage() {
   };
 
   const openLocalCourse = (c: LocalCourse) => {
-    const data = c.data as Draft | null;
-    if (!data || !Array.isArray(data.obstacles)) {
+    const data = draftFromRawCourse(c.data);
+    if (!data) {
       toast.error("Kunde inte läsa den sparade banan");
       return;
     }
@@ -1659,9 +1726,16 @@ export default function PlannerPage() {
   };
 
 
+  const openCloudCourse = (course: CloudCourse, version?: CourseVersion) => {
+    const next = draftFromLibraryCourse(version ? { ...course, name: version.name, course_data: version.course_data } : course);
+    if (!next) { toast.error("Kunde inte läsa banan"); return; }
+    applyOpenedDraft(next, { cloud: { id: course.id, userId: course.user_id, revision: course.revision }, restoredVersion: !!version });
+  };
+
   // ── Lättviktsprofil: spara & dela ───────────────────────────
   const socialCourseData = () => ({
     version: 2,
+    targetLengthM: draft.targetLengthM, planningSpeedMs: draft.planningSpeedMs,
     sport,
     sizeClass: draft.sizeClass,
     arenaWidthM: w,
@@ -1730,7 +1804,7 @@ export default function PlannerPage() {
     { id: "json", label: "Exportera JSON", group: "Exportera", run: onJson, disabled: !hasObstacles },
     { id: "help", label: "Tangentbordsgenvägar", group: "Hjälp", shortcut: ["?"], run: () => setHelpOpen(true) },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ], [undo, redo, showLine, showNumbers, showGrid, showRulers, showDistances, selected, selectionIds, obstacles, draft, numbered, exporting, past.length, future.length, hasSelection, canPlay, hasObstacles, plannerProfile, numbering, measureMode, multiMode, competingCount, inspectorOpen, clipboardCount]);
+  ], [undo, redo, showLine, showNumbers, showGrid, showRulers, showDistances, selected, selectionIds, obstacles, draft, numbered, exporting, past.length, future.length, hasSelection, canPlay, hasObstacles, plannerProfile, numbering, measureMode, multiMode, competingCount, inspectorOpen, clipboardCount, user, authLoading, cloudCourse, cloudSaving, localCourseId]);
 
   // ── Tangentbord ─────────────────────────────────────────────
   useEffect(() => {
@@ -1910,6 +1984,8 @@ export default function PlannerPage() {
     onClassTemplate: applyClassTemplate,
     onSizeClass: setSizeClass,
     onArena: setArena,
+    targetLengthM: draft.targetLengthM, planningSpeedMs: draft.planningSpeedMs,
+    onPlanning: (values: { targetLengthM?: number; planningSpeedMs?: number }) => commitDraft(d => ({ ...d, ...values })),
   };
   const settingsPanel = <PlannerSettings {...settingsProps} />;
 
@@ -1920,8 +1996,8 @@ export default function PlannerPage() {
       const ref = times.refTimeS != null ? `Referenstid ${times.refTimeS} s` : "Ingen referenstid";
       return times.maxTimeS != null ? `${ref} · Maxtid ${times.maxTimeS} s` : ref;
     }
-    if (!draft.classTemplate || times.refTimeS == null) return null;
-    return `Uppskattad referenstid ca ${times.refTimeS} s · Maxtid ca ${times.maxTimeS ?? "–"} s`;
+    if (times.refTimeS == null) return "Välj klassmall eller planeringshastighet för att beräkna tider.";
+    return `Standardloppstid (uppsk.) ${times.refTimeS} s · Maxtid (uppsk.) ${times.maxTimeS ?? "–"} s · ${times.refSpeedMs} m/s`;
   })();
   const ruleSetExpired = ruleSet ? isRuleSetExpired(ruleSet) : false;
 
@@ -1964,6 +2040,8 @@ export default function PlannerPage() {
               onNew={handleNewCourse}
               dirty={dirty}
               lastSavedAt={lastSavedAt}
+              saving={cloudSaving}
+              destination={cloudCourse && cloudCourse.userId === user?.id ? `på kontot · v${cloudCourse.revision}` : "i webbläsaren"}
             />
             <span
               role="status"
@@ -2033,13 +2111,15 @@ export default function PlannerPage() {
                 <DropdownMenuItem onSelect={openShare} disabled={!obstacles.length} className="min-h-11 font-semibold sm:hidden">
                   <Share2 className="mr-2 h-4 w-4" /> Dela via länk
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setProfileOpen(true)} className="min-h-11 font-semibold sm:hidden">
+                <DropdownMenuItem onSelect={() => setProfileOpen(true)} className="min-h-11 font-semibold">
                   <span className="mr-2 grid h-4 w-4 place-items-center rounded-full bg-forest text-[9px] text-paper">
                     {plannerProfile ? plannerProfile.name.trim().charAt(0).toUpperCase() : "?"}
                   </span>
-                  {plannerProfile ? "Din banprofil" : "Skapa banprofil"}
+                  {plannerProfile ? "Din banprofil" : "Banprofil för communityn (valfritt)"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => setAuthOpen(true)} className="min-h-11 font-semibold">{user ? "Inloggad på kontot" : "Logga in för molnsparning"}</DropdownMenuItem>
+                <DropdownMenuItem onSelect={openSaveShare} disabled={!obstacles.length} className="min-h-11 font-semibold"><Share2 className="mr-2 h-4 w-4" /> Publicera i communityn (valfritt)</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => setFeedbackOpen(true)} className="min-h-11 font-semibold">
                   <Lightbulb className="mr-2 h-4 w-4" /> Skicka förslag & material
                 </DropdownMenuItem>
@@ -2063,14 +2143,14 @@ export default function PlannerPage() {
               />
             </div>
             <button
-              onClick={openSaveShare}
-              disabled={!obstacles.length}
+              onClick={() => void persistCourse()}
+              disabled={!obstacles.length || cloudSaving || authLoading}
               className="pressable shadow-hard-sm inline-flex h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-forest px-3 text-sm font-bold text-paper disabled:opacity-40 sm:h-11 sm:px-3.5 xl:px-5"
-              title={obstacles.length ? "Spara banan på din profil och välj publik eller privat" : "Placera minst ett hinder först"}
-              aria-label="Spara och dela banan på din profil"
+              title={user ? "Spara privat på ditt konto" : "Spara i webbläsaren — logga in för molnsparning"}
+              aria-label="Spara bana"
             >
               <CloudCheck className="h-4 w-4" />{" "}
-              <span className="hidden xl:inline">Spara & dela</span>
+              <span className="hidden xl:inline">Spara bana</span>
             </button>
             <button
               onClick={openShare}
@@ -2081,19 +2161,7 @@ export default function PlannerPage() {
             >
               <Share2 className="h-4 w-4" /> <span className="hidden xl:inline">Dela bana</span>
             </button>
-            <button
-              onClick={() => setProfileOpen(true)}
-              title={plannerProfile ? `Inloggad som ${plannerProfile.name}` : "Skapa din banprofil (namn + e-post)"}
-              className="hidden h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-paper px-2.5 text-sm font-bold transition-colors hover:bg-cream sm:inline-flex sm:h-11 sm:px-3"
-              aria-label={plannerProfile ? "Din banprofil" : "Skapa banprofil"}
-            >
-              <span className="grid h-6 w-6 place-items-center rounded-full bg-forest text-xs text-paper">
-                {plannerProfile ? plannerProfile.name.trim().charAt(0).toUpperCase() : "?"}
-              </span>
-              <span className="hidden max-w-[8rem] truncate 2xl:inline">
-                {plannerProfile ? plannerProfile.name : "Din profil"}
-              </span>
-            </button>
+
 
           </div>
         </div>
@@ -2280,8 +2348,8 @@ export default function PlannerPage() {
                 {/* avstånd mellan hinder i banordning */}
                 {segmentLabels.map((lab) => {
                   const level = distanceIssueLevel.get(lab.toId);
-                  // Agility mäts längs hundens väg (SAgiK §3.1), hoopers mitt–mitt.
-                  const text = formatMeters(sport === "agility" ? lab.pathDistanceM : lab.centerDistanceM);
+                  // SAgiK/SHoK: hundens väg. FCI Hoopers: mitt–mitt.
+                  const text = `${lab.fromNumber === "Start" ? "Start: " : lab.toNumber === "Mål" ? "Mål: " : ""}${formatMeters(sport === "agility" || ruleSet?.organization !== "FCI" ? lab.pathDistanceM : lab.centerDistanceM)}`;
                   const fs = 0.5 * detail;
                   const pillW = text.length * fs * 0.56 + fs * 0.9;
                   const pillH = fs * 1.55;
@@ -2418,13 +2486,7 @@ export default function PlannerPage() {
             <button
               onClick={() => setIssuesOpen((v) => !v)}
               aria-expanded={issuesOpen}
-              aria-label={
-                issueCounts.error > 0
-                  ? `Regelkontroll — ${issueCounts.error} fel, visa lista`
-                  : issueCounts.warning > 0
-                    ? `Regelkontroll — ${issueCounts.warning} varningar, visa lista`
-                    : "Regelkontroll — inga anmärkningar"
-              }
+              aria-label={`Regelkontroll — ${issueCounts.error} fel · ${issueCounts.warning} varningar, visa lista`}
               className={`absolute right-3 ${placing || numbering || measureMode || multiMode ? "top-[4.6rem] sm:top-[2.2rem]" : showRulers ? "top-[2.2rem]" : "top-3"} z-30 inline-flex items-center gap-2 rounded-full border-2 px-3.5 py-2 text-xs font-bold shadow-hard-sm transition-all ${
                 issueCounts.error > 0
                   ? "border-ink bg-ember text-paper"
@@ -2434,11 +2496,9 @@ export default function PlannerPage() {
               }`}
             >
               <ShieldCheck className="h-4 w-4" />
-              {issueCounts.error > 0
-                ? `${issueCounts.error} fel`
-                : issueCounts.warning > 0
-                  ? `${issueCounts.warning} varningar`
-                  : "Regelkontroll ✓"}
+              {issueCounts.error || issueCounts.warning
+                ? `${issueCounts.error} fel · ${issueCounts.warning} varningar`
+                : "Regelkontroll ✓"}
             </button>
 
             {/* Regelkontroll-panel */}
@@ -2471,6 +2531,15 @@ export default function PlannerPage() {
                     )}
                   </p>
                 )}
+                <details className="mb-3 rounded-xl border border-ink/15 p-3 text-xs" data-testid="course-measurements">
+                  <summary className="cursor-pointer font-bold">Kontrollera banlängden · {measurements.path.total.toFixed(1)} m</summary>
+                  <table className="mt-2 w-full"><caption className="sr-only">Alla delsträckor längs hundens väg</caption><thead><tr><th className="text-left">Delsträcka</th><th className="text-right">Meter</th></tr></thead><tbody>
+                    {roundedSections(measurements.sections).map(section => <tr key={section.key}><td>{section.label}</td><td className="text-right tabular-nums">{section.distanceM.toFixed(1)}</td></tr>)}
+                  </tbody><tfoot><tr className="border-t font-bold"><td>Summa</td><td className="text-right">{measurements.path.total.toFixed(1)}</td></tr></tfoot></table>
+                  <p className="mt-2 text-ink/60">Längden genom tunnlar, slalom och kontaktfält ingår. Avstånd mellan hinder mäts från passagepunkt till passagepunkt. Delsträckorna avrundas tillsammans till summan.</p>
+                  {measurements.startM == null && <p>Start → första hindret saknas: placera en startlinje.</p>}
+                  {measurements.finishM == null && <p>Sista hindret → mål saknas: placera en mållinje.</p>}
+                </details>
                 {issues.length === 0 ? (
                   <p className="flex items-center gap-2 rounded-xl bg-forest/10 px-3 py-2.5 text-sm font-semibold text-forest">
                     <Check className="h-4 w-4" /> Inga anmärkningar — snyggt jobbat!
@@ -2985,7 +3054,7 @@ export default function PlannerPage() {
               <Share2 className="h-4 w-4" /> Dela publikt till communityn (betyg & kommentarer)
             </button>
             <p className="text-xs leading-relaxed text-ink/50">
-              Länken fungerar direkt. Delar du publikt kan andra hitta banan på
+              Länken innehåller {competingCount} hinder och {obstacles.length - competingCount} markörer (t.ex. start och mål). Den visar banan som den ser ut nu. Delar du publikt kan andra hitta banan på
               sidan Delade banor, betygsätta och bygga vidare på den.
             </p>
           </div>
@@ -2995,10 +3064,13 @@ export default function PlannerPage() {
       {/* ── Bibliotek och sparade banor ── */}
       <CourseLibraryDialog open={libraryOpen} onOpenChange={setLibraryOpen} onPick={pickFromLibrary} />
       <OpenCourseDialog
+        key={user?.id ?? "guest"}
         open={openCourseOpen}
         onOpenChange={setOpenCourseOpen}
         onPickLocal={openLocalCourse}
         onPickShared={openSavedSharedCourse}
+        onPickCloud={openCloudCourse}
+        onLogin={() => setAuthOpen(true)}
       />
 
       {/* ── Bekräftelser och namngivning (ersätter window.confirm/prompt) ── */}
@@ -3062,6 +3134,8 @@ export default function PlannerPage() {
         confirmLabel="Spara kopia"
         onSubmit={(newName) => void persistCourse({ asNew: true, name: newName })}
       />
+
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
 
       <PlannerProfileDialog
         open={profileOpen}

@@ -1,3 +1,4 @@
+import { measureCourse } from "./courseMeasurements";
 /**
  * Sprint 2 — Realtidsvalidering för Banplaneraren v2.
  *
@@ -79,6 +80,8 @@ export interface ObstacleLite {
 }
 
 export interface CourseLite {
+  targetLengthM?: number;
+  planningSpeedMs?: number;
   sport: Sport;
   sizeClass: SizeClassKey;
   arenaWidthM: number;
@@ -152,7 +155,7 @@ export function computeCourseLengthAlongPath(
   obstacles: ObstacleLite[],
   override?: CourseDogPathOverride,
 ): number {
-  return buildDogPath(obstacles, override).total;
+  return measureCourse(obstacles, override).path.total;
 }
 
 export interface CourseTimes {
@@ -198,15 +201,15 @@ export function computeCourseTimes(course: CourseLite): CourseTimes {
   const fixedRef = rs.timeRules.fixedRefTimeS ?? null;
   const fixedMax = rs.timeRules.fixedMaxCourseTimeS ?? null;
   // Med fast referenstid finns ingen hastighetsmodell att visa.
-  const refSpeed = classKey && fixedRef == null && fixedMax == null
-    ? (rs.timeRules.refSpeedMsByClass[classKey] ??
+  const refSpeed = fixedRef == null && fixedMax == null
+    ? (course.planningSpeedMs && course.planningSpeedMs >= 0.5 && course.planningSpeedMs <= 12 ? course.planningSpeedMs : classKey ? (rs.timeRules.refSpeedMsByClass[classKey] ??
         CLASS_TEMPLATES.find((t) => t.key === classKey)?.refSpeedMs ??
-        null)
+        null) : null)
     : null;
-  const maxFactor = classKey && fixedMax == null
-    ? (rs.timeRules.maxTimeFactorByClass[classKey] ??
+  const maxFactor = fixedMax == null
+    ? (classKey ? rs.timeRules.maxTimeFactorByClass[classKey] ??
         CLASS_TEMPLATES.find((t) => t.key === classKey)?.maxTimeFactor ??
-        null)
+        null : (course.sport === "agility" ? 2 : null))
     : null;
 
   const base = {
@@ -1113,6 +1116,15 @@ export function validateCourse(course: CourseLite): ValidationIssue[] {
   // 7) Ansatsvinkel-validering (Prompt C) — bygger på hundens väg
   if (course.sport === "agility") {
     issues.push(...computeApproachIssues(course.obstacles, course.dogPath));
+  }
+
+  if (course.targetLengthM && Number.isFinite(course.targetLengthM) && course.targetLengthM > 0) {
+    const length = computeCourseLengthAlongPath(course.obstacles, course.dogPath);
+    const tolerance = Math.max(1, course.targetLengthM * 0.05);
+    if (Math.abs(length - course.targetLengthM) > tolerance) {
+      issues.push({ level: "warning", code: "target_length", basis: "coaching_analysis",
+        message: `Banlängden ${length.toFixed(1)} m avviker från ditt mål ${course.targetLengthM} m (tolerans ±${tolerance.toFixed(1)} m).` });
+    }
   }
 
   // Alla issues bär aktivt regelverks id så UI kan visa källa utan att slå

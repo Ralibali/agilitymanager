@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="sv"><body style="font-family:Arial,sans-serif;color:#173328;line-height:1.6">
+<h1>Bekräfta din e-postadress</h1>
+<p>Välkommen till AgilityManager! Bekräfta din e-postadress för att börja använda kontot.</p>
+<p><a href="{{ .SiteURL }}/auth/bekrafta?token_hash={{ .TokenHash }}&amp;type=email">Bekräfta mitt konto</a></p>
+<p>Om knappen inte fungerar kan du kopiera den här adressen till webbläsaren:</p>
+<p>{{ .SiteURL }}/auth/bekrafta?token_hash={{ .TokenHash }}&amp;type=email</p>
+<p>Länken kan användas en gång. Om den har gått ut kan du begära en ny på AgilityManager.</p>
+<p>Har du inte skapat ett konto behöver du inte göra något.</p>
+<p>AgilityManager · <a href="mailto:info@auroramedia.se">info@auroramedia.se</a></p>
+</body></html>

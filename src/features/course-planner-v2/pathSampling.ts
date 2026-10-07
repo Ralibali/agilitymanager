@@ -8,13 +8,14 @@
  * mittpunkter (bakåtkompatibelt).
  */
 import {
-  buildDogPath,
   dogPathToSvgD,
   dogPathToSvgDUntil,
   sampleDogPathAt,
   type DogPath,
   type DogPathObstacle,
 } from "./dogPath";
+
+import { measureCourse } from "./courseMeasurements";
 
 /** Minimal subset av en bana vi behöver — undviker cirkulär import. */
 export interface CoursePathInput {
@@ -55,9 +56,8 @@ export function buildCoursePath(course: CoursePathInput): SampledPath {
     (o) => o.type != null && typeof o.rotation === "number",
   );
   if (hasGeometry && course.obstacles.length > 0) {
-    const dp: DogPath = buildDogPath(
+    const dp: DogPath = measureCourse(
       course.obstacles
-        .filter((o) => o.number != null)
         .map((o) => ({
           type: o.type as DogPathObstacle["type"],
           x: o.x,
@@ -68,7 +68,7 @@ export function buildCoursePath(course: CoursePathInput): SampledPath {
           curveSide: o.curveSide,
           lengthM: o.lengthM,
         })),
-    );
+    ).path;
     return { points: dp.points, cum: dp.cum, total: dp.total };
   }
   // Fallback: raklinje mellan numrerade mittpunkter.

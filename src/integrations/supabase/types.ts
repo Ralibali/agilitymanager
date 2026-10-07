@@ -2141,6 +2141,7 @@ export type Database = {
       }
       saved_courses: {
         Row: {
+          revision: number
           canvas_height: number
           canvas_width: number
           course_data: Json
@@ -2154,6 +2155,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          revision?: number
           canvas_height?: number
           canvas_width?: number
           course_data?: Json
@@ -2167,6 +2169,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          revision?: number
           canvas_height?: number
           canvas_width?: number
           course_data?: Json
@@ -2180,6 +2183,12 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      saved_course_versions: {
+        Row: { course_id: string; revision: number; name: string; course_data: Json; created_at: string }
+        Insert: { course_id: string; revision: number; name: string; course_data: Json; created_at?: string }
+        Update: { course_id?: string; revision?: number; name?: string; course_data?: Json; created_at?: string }
+        Relationships: [{ foreignKeyName: "saved_course_versions_course_id_fkey"; columns: ["course_id"]; isOneToOne: false; referencedRelation: "saved_courses"; referencedColumns: ["id"] }]
       }
       shared_courses: {
         Row: {

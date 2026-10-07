@@ -170,10 +170,11 @@ test("markeringsruta, måttband och avståndsetiketter", async ({ page }, testIn
   await page.keyboard.press("Escape");
   await expect(measureBanner).toHaveCount(0);
 
-  // Avstånd mellan hinder i banordning: 4 par, 6 m mellan hopp på rad.
+  // Fyra hinderpar och den tidigare saknade startsträckan.
   await page.keyboard.press("d");
-  await expect(page.locator("[data-distance-label]")).toHaveCount(4);
+  await expect(page.locator("[data-distance-label]")).toHaveCount(5);
   await expect(page.locator("[data-distance-label]").first()).toContainText("6,0 m");
+  await expect(page.locator("[data-distance-label]").filter({ hasText: "Start:" })).toHaveCount(1);
 });
 
 test("egenskaper: exakt position, vinkel och plats i banordningen", async ({ page }, testInfo) => {

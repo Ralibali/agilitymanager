@@ -78,7 +78,7 @@ export type ObstacleTypeV2 =
   | "hoop" | "barrel" | "fence" | "handler_zone";
 
 export type ObstacleCategory =
-  | "Hopphinder" | "Tunnlar" | "Slalom" | "Balans" | "Bord"
+  | "Hopphinder" | "Tunnlar" | "Slalom" | "Balans" | "Träningshinder"
   | "Bankontroll" | "Hoopers" | "Områden";
 
 export interface ObstacleDefV2 {
@@ -122,7 +122,7 @@ export const OBSTACLES_V2: ObstacleDefV2[] = [
   { type: "seesaw",   label: "Gungbräda",  category: "Balans", sport: ["agility"], sizeM: { w: 0.3, d: 3.7 }, allowedInJumpClass: false, hasContactZone: true, description: "Gungbräda, ca 3,7 m — kontaktfält i båda ändar" },
 
   // Bord — togs bort ur svenska tävlingsregler 2017; finns kvar för träning.
-  { type: "table",    label: "Bord",       category: "Bord",   sport: ["agility"], sizeM: { w: 1.0, d: 1.0 }, allowedInJumpClass: false, description: "Bord — används inte i svenska tävlingar sedan 2017 (träning)" },
+  { type: "table",    label: "Bord",       category: "Träningshinder",   sport: ["agility"], sizeM: { w: 1.0, d: 1.0 }, allowedInJumpClass: false, description: "Bord — används inte i svenska tävlingar sedan 2017 (träning)" },
 
   // Bankontroll
   { type: "start",    label: "Start",      category: "Bankontroll", sport: ["agility", "hoopers"], sizeM: { w: 1.2, d: 0.2 }, allowedInJumpClass: true, description: "Startlinje" },

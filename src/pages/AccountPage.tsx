@@ -79,11 +79,9 @@ export default function AccountPage() {
           <span className="grid h-11 w-11 place-items-center rounded-xl bg-tang text-ink">
             <UserRound className="h-5 w-5" />
           </span>
-          <h2 className="mt-4 font-display text-3xl leading-tight">Banprofil</h2>
+          <h2 className="mt-4 font-display text-3xl leading-tight">Banprofil (valfritt)</h2>
           <p className="mt-3 leading-relaxed text-ink/70">
-            Namn och e-post räcker för att spara banor på en profil, dela dem och få
-            kommentarer. Inget lösenord behövs. E-posten visas aldrig för andra och
-            används inte till utskick.
+            Banprofilen används för communityn och kommentarer. Den är separat från ditt konto och behövs inte för att rita eller molnspara banor. Äldre banprofilers åtkomst är knuten till den här webbläsaren.
           </p>
           <p className="mt-4 text-sm font-semibold text-ink/60">
             {profile ? `Inloggad som ${profile.name}` : "Ingen banprofil i den här webbläsaren."}
@@ -91,7 +89,7 @@ export default function AccountPage() {
           <div className="mt-5 flex flex-wrap gap-3">
             <button
               onClick={() => setProfileOpen(true)}
-              className="pressable shadow-hard-sm inline-flex items-center gap-2 rounded-full bg-tang px-5 py-3 text-sm font-bold text-ink"
+              className="inline-flex items-center gap-2 rounded-full border border-ink/25 px-5 py-3 text-sm font-semibold text-ink"
             >
               {profile ? "Ändra profil" : "Skapa banprofil"} <ArrowRight className="h-4 w-4" />
             </button>

@@ -1,3 +1,5 @@
+import { authErrorMessage, confirmationRedirect } from "@/lib/authMessages";
+import { ResendConfirmation } from "@/components/ResendConfirmation";
 import { useState } from "react";
 import { LogIn, Mail, Lock, UserPlus, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +26,7 @@ export function AuthDialog({
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resendOpen, setResendOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent) => {
@@ -38,7 +41,8 @@ export function AuthDialog({
         onOpenChange(false);
         onDone?.();
       } else {
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (password.length < 8) { setError("Välj ett lösenord med minst 8 tecken."); return; }
+        const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: confirmationRedirect() } });
         if (error) throw error;
         // Supabase can return an empty identities array for an existing account.
         if (data.user && data.user.identities?.length !== 0) track("account_created");
@@ -46,7 +50,7 @@ export function AuthDialog({
         setMode("login");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Något gick fel — försök igen.");
+      setError(authErrorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -72,6 +76,7 @@ export function AuthDialog({
             </span>
             <input
               type="email"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -86,16 +91,17 @@ export function AuthDialog({
             <input
               type="password"
               required
-              minLength={6}
+              minLength={mode === "signup" ? 8 : undefined}
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Minst 6 tecken"
+              placeholder={mode === "signup" ? "Minst 8 tecken" : "Ditt lösenord"}
               className="h-12 w-full rounded-xl border-2 border-ink/20 bg-white px-4 outline-none transition-colors focus:border-ink"
             />
           </label>
 
           {error && (
-            <p className="rounded-xl border-2 border-ember/40 bg-ember/10 px-3 py-2 text-sm font-semibold text-ember">
+            <p role="alert" className="rounded-xl border-2 border-ember/40 bg-ember/10 px-3 py-2 text-sm font-semibold text-ember">
               {error}
             </p>
           )}
@@ -132,6 +138,8 @@ export function AuthDialog({
             {mode === "login" ? "Inget konto? Skapa ett här" : "Har du redan ett konto? Logga in"}
           </button>
         </form>
+        <button type="button" className="text-sm underline" onClick={() => setResendOpen(v => !v)}>Saknar du bekräftelsemejlet?</button>
+        {resendOpen && <ResendConfirmation key={email} initialEmail={email} />}
       </DialogContent>
     </Dialog>
   );

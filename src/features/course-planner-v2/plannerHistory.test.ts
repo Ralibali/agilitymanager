@@ -23,7 +23,7 @@ describe("ångra-historik för hela utkastet", () => {
   it("snapshot omfattar ytmått, storlek, klass och regelverk", () => {
     const snap = snapshotDraft(base);
     expect(Object.keys(snap).sort()).toEqual([
-      "arenaHeightM", "arenaWidthM", "classTemplate", "obstacles", "ruleSetId", "sizeClass", "sport",
+      "arenaHeightM", "arenaWidthM", "classTemplate", "obstacles", "planningSpeedMs", "ruleSetId", "sizeClass", "sport", "targetLengthM",
     ]);
   });
 

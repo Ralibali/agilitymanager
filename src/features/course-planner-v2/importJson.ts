@@ -39,6 +39,8 @@ export interface ImportedObstacle {
 }
 
 export interface ImportedCourse {
+  targetLengthM?: number;
+  planningSpeedMs?: number;
   name: string;
   sport: Sport;
   sizeClass: SizeClassKey;
@@ -244,6 +246,8 @@ export function parseCourseJson(text: string): ImportResult {
   return {
     ok: true,
     warnings,
-    course: { name, sport, sizeClass, arenaWidthM, arenaHeightM, classTemplate, obstacles, ruleSetId },
+    course: { name, sport, sizeClass, arenaWidthM, arenaHeightM, classTemplate, obstacles, ruleSetId,
+      targetLengthM: typeof r.targetLengthM === "number" && Number.isFinite(r.targetLengthM) && r.targetLengthM >= 1 && r.targetLengthM <= 2000 ? r.targetLengthM : undefined,
+      planningSpeedMs: typeof r.planningSpeedMs === "number" && Number.isFinite(r.planningSpeedMs) && r.planningSpeedMs >= 0.5 && r.planningSpeedMs <= 12 ? r.planningSpeedMs : undefined },
   };
 }

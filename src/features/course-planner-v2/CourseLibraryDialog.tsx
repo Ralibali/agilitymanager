@@ -2,8 +2,7 @@
  * Banbibliotek för den riktiga V2-planeraren.
  *
  * Färdiga banor är gratis och kan filtreras/sökas utan konto. Egna sparade
- * banor öppnas via OpenCourseDialog (lokalt + planner-social-profilen) —
- * det finns ingen molnflik och ingen klubbflik här längre.
+ * banor öppnas via OpenCourseDialog (kontot, lokalt och äldre banprofil).
  */
 import { useMemo, useState } from "react";
 import { BookOpen, CheckCircle2, Search, ShieldCheck, X } from "lucide-react";
@@ -53,13 +52,15 @@ function matchesClassFilter(course: PrebuiltCourse, filter: ClassFilter): boolea
 
 export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Props) {
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState("default");
+  const [page, setPage] = useState(0);
   const [sport, setSport] = useState<SportFilter>("all");
   const [courseClass, setCourseClass] = useState<ClassFilter>("all");
   const [layout, setLayout] = useState<LayoutFilter>("all");
 
   const filteredPrebuilt = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("sv-SE");
-    return COURSE_BANK.filter((course) => {
+    const filtered = COURSE_BANK.filter((course) => {
       if (sport !== "all" && course.sport !== sport) return false;
       if (!matchesClassFilter(course, courseClass)) return false;
       if (layout !== "all" && course.bankKind !== layout) return false;
@@ -74,7 +75,10 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
       ].join(" ").toLocaleLowerCase("sv-SE");
       return haystack.includes(needle);
     });
-  }, [query, sport, courseClass, layout]);
+    return sort === "name" ? filtered.sort((a, b) => a.label.localeCompare(b.label, "sv")) : sort === "obstacles" ? filtered.sort((a, b) => numberedCount(a) - numberedCount(b)) : filtered;
+  }, [query, sport, courseClass, layout, sort]);
+  const pages = Math.max(1, Math.ceil(filteredPrebuilt.length / 12));
+  const currentPage = Math.min(page, pages - 1);
 
   if (!open) return null;
 
@@ -104,7 +108,8 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
                 <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  aria-label="Sök i banbiblioteket"
+                  onChange={(e) => { setQuery(e.target.value); setPage(0); }}
                   placeholder="Sök slalom, Nollklass, kontaktfält, 15×30, flow, spegel…"
                   className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
                 />
@@ -113,7 +118,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
                 {(["all", "agility", "hoopers"] as SportFilter[]).map((value) => (
                   <button
                     key={value}
-                    onClick={() => setSport(value)}
+                    onClick={() => { setSport(value); setPage(0); }}
                     className={cn(
                       "h-10 shrink-0 rounded-xl border px-3 text-xs font-semibold transition",
                       sport === value ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground hover:text-foreground",
@@ -130,7 +135,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
               {(["all", "noll", "1", "2", "3"] as ClassFilter[]).map((value) => (
                 <button
                   key={value}
-                  onClick={() => setCourseClass(value)}
+                  onClick={() => { setCourseClass(value); setPage(0); }}
                   className={cn(
                     "h-8 rounded-full border px-3 text-xs font-semibold transition",
                     courseClass === value ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground",
@@ -143,7 +148,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
               {(["all", "original", "mirror"] as LayoutFilter[]).map((value) => (
                 <button
                   key={value}
-                  onClick={() => setLayout(value)}
+                  onClick={() => { setLayout(value); setPage(0); }}
                   className={cn(
                     "h-8 rounded-full border px-3 text-xs font-semibold transition",
                     layout === value ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground",
@@ -152,14 +157,15 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
                   {value === "all" ? "Alla" : value === "original" ? "Original" : "Spegel"}
                 </button>
               ))}
-              <span className="ml-auto text-xs text-muted-foreground">{filteredPrebuilt.length} banor</span>
+              <select aria-label="Sortera banbiblioteket" value={sort} onChange={e => { setSort(e.target.value); setPage(0); }} className="rounded-lg border p-2 text-xs"><option value="default">Rekommenderad ordning</option><option value="name">Namn A–Ö</option><option value="obstacles">Antal hinder</option></select>
+              <span className="ml-auto text-xs text-muted-foreground">{filteredPrebuilt.length} av {COURSE_BANK.length} banor</span>
             </div>
 
             {filteredPrebuilt.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">Inga banor matchar filtren.</div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {filteredPrebuilt.map((p: CourseBankEntry) => {
+                {filteredPrebuilt.slice(currentPage * 12, currentPage * 12 + 12).map((p: CourseBankEntry) => {
                   const cls = classNumber(p);
                   const noll = isNollklass(p);
                   const verified = p.qualityLabel?.startsWith("Kontrollerad") ?? false;
@@ -198,6 +204,7 @@ export default function CourseLibraryDialog({ open, onOpenChange, onPick }: Prop
                 })}
               </div>
             )}
+            <nav aria-label="Sidor i banbiblioteket" className="flex items-center justify-between text-sm"><button className="min-h-10 disabled:opacity-40" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Föregående</button><span>Sida {currentPage + 1} av {pages}</span><button className="min-h-10 disabled:opacity-40" disabled={currentPage + 1 >= pages} onClick={() => setPage(currentPage + 1)}>Nästa</button></nav>
           </div>
         </div>
       </div>

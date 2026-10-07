@@ -25,6 +25,9 @@ function classOf(key: string): ClassFilter {
 export default function CoursesPage() {
   const [sport, setSport] = useState<SportFilter>("alla");
   const [klass, setKlass] = useState<ClassFilter>("alla");
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState("default");
+  const [page, setPage] = useState(0);
 
   const entries = useMemo(
     () =>
@@ -32,10 +35,13 @@ export default function CoursesPage() {
         (c) =>
           c.bankKind === "original" &&
           (sport === "alla" || c.sport === sport) &&
-          (klass === "alla" || classOf(c.classTemplate) === klass)
-      ),
-    [sport, klass]
+          (klass === "alla" || classOf(c.classTemplate) === klass) &&
+          [c.label, c.description, c.sport, getClassTemplate(c.classTemplate)?.label, ...(c.focus ?? [])].join(" ").toLocaleLowerCase("sv-SE").includes(query.trim().toLocaleLowerCase("sv-SE"))
+      ).sort((a, b) => sort === "name" ? a.label.localeCompare(b.label, "sv") : sort === "obstacles" ? a.obstacles.filter(o => o.number != null).length - b.obstacles.filter(o => o.number != null).length : 0),
+    [sport, klass, query, sort]
   );
+  const pages = Math.max(1, Math.ceil(entries.length / 12));
+  const currentPage = Math.min(page, pages - 1);
 
   return (
     <div className="min-h-screen bg-paper text-ink">
@@ -51,11 +57,18 @@ export default function CoursesPage() {
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
         <Reveal>
+          <div className="mb-5 flex flex-wrap gap-3">
+            <input aria-label="Sök i banbiblioteket" placeholder="Sök namn, klass eller träningsfokus…" value={query} onChange={e => { setQuery(e.target.value); setPage(0); }} className="h-12 min-w-0 flex-1 rounded-xl border-2 border-ink/20 bg-white px-4" />
+            <select aria-label="Sortera banbiblioteket" value={sort} onChange={e => { setSort(e.target.value); setPage(0); }} className="h-12 rounded-xl border-2 border-ink/20 bg-white px-3">
+              <option value="default">Rekommenderad ordning</option><option value="name">Namn A–Ö</option><option value="obstacles">Antal hinder</option>
+            </select>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             {(["alla", "agility", "hoopers"] as SportFilter[]).map((f) => (
               <button
                 key={f}
-                onClick={() => setSport(f)}
+                onClick={() => { setSport(f); setPage(0); }}
+                aria-pressed={sport === f}
                 className={`rounded-full border-2 px-5 py-2.5 text-sm font-bold capitalize transition-all ${
                   sport === f ? "border-ink bg-ink text-paper shadow-hard-sm" : "border-ink/15 bg-paper text-ink/60 hover:border-ink"
                 }`}
@@ -67,7 +80,8 @@ export default function CoursesPage() {
             {(["alla", "1", "2", "3", "noll"] as ClassFilter[]).map((f) => (
               <button
                 key={f}
-                onClick={() => setKlass(f)}
+                onClick={() => { setKlass(f); setPage(0); }}
+                aria-pressed={klass === f}
                 className={`rounded-full border-2 px-4 py-2 text-xs font-bold transition-all ${
                   klass === f ? "border-ink bg-forest text-paper shadow-hard-sm" : "border-ink/15 bg-paper text-ink/60 hover:border-ink"
                 }`}
@@ -76,10 +90,11 @@ export default function CoursesPage() {
               </button>
             ))}
           </div>
+          <p className="mt-4 text-sm text-ink/60" role="status">{entries.length} banor · {entries.length ? `visar ${currentPage * 12 + 1}–${Math.min(entries.length, (currentPage + 1) * 12)}` : "inga träffar"}</p>
         </Reveal>
 
         <div className="mt-10 grid min-w-0 gap-6 sm:grid-cols-2">
-          {entries.map((entry, i) => {
+          {entries.slice(currentPage * 12, currentPage * 12 + 12).map((entry, i) => {
             const c = courseFromBankEntry(entry);
             return (
               <Reveal key={entry.key} delay={Math.min(i, 6) * 80} className="min-w-0">
@@ -122,6 +137,11 @@ export default function CoursesPage() {
             Inga banor matchar filtren — prova en annan kombination.
           </p>
         )}
+        <nav aria-label="Sidor i banbiblioteket" className="mt-8 flex items-center justify-between gap-3 text-sm font-semibold">
+          <button className="min-h-11 rounded-lg border-2 px-4 disabled:opacity-40" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Föregående</button>
+          <span>Sida {currentPage + 1} av {pages}</span>
+          <button className="min-h-11 rounded-lg border-2 px-4 disabled:opacity-40" disabled={currentPage + 1 >= pages} onClick={() => setPage(currentPage + 1)}>Nästa</button>
+        </nav>
 
         <Reveal className="mt-16 text-center">
           <h2 className="mx-auto max-w-2xl font-display text-5xl leading-[1.02] sm:text-6xl">

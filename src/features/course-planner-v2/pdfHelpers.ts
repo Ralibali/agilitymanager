@@ -1,3 +1,4 @@
+import { measureCourse } from "./courseMeasurements";
 /**
  * Banplaneraren v2 — Sprint 6 (DEL 3)
  * Delade vektor-renderingsfunktioner för Domar-/Tränings-/Bygg-PDF.
@@ -10,7 +11,6 @@ import { getObstacleDefV2, type ObstacleTypeV2 } from "./config";
 import { obstacleSizeM } from "./obstacleSize";
 import type { ObstacleLite } from "./validation";
 import { normalizeCurveDeg, toWorld, tunnelEdgesLocal } from "./tunnelGeometry";
-import { buildDogPath } from "./dogPath";
 
 /** Färgpalett som matchar appens "Varm Sand"-tema. */
 export const PDF_BRAND = {
@@ -111,8 +111,7 @@ export function drawArenaVector(doc: jsPDF, opts: ArenaRenderOpts): { w: number;
 
   // Hundens väg — exakt samma linje som i editorn (genom hindren, i nummerordning).
   if (showPath) {
-    const numbered = obstacles.filter((o) => o.number != null && !["start", "finish", "number", "handler_zone"].includes(o.type));
-    const path = buildDogPath(numbered);
+    const path = measureCourse(obstacles).path;
     if (path.points.length > 1) {
       doc.setDrawColor(...PDF_BRAND.secondary);
       doc.setLineWidth(0.6);

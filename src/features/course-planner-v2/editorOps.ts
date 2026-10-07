@@ -385,8 +385,8 @@ export function nearestObstacle(
 export interface SegmentLabel {
   fromId: string;
   toId: string;
-  fromNumber: number;
-  toNumber: number;
+  fromNumber: number | "Start";
+  toNumber: number | "Mål";
   /** Rakt avstånd mitt–mitt. */
   centerDistanceM: number;
   /**
@@ -410,7 +410,7 @@ export function computeSegmentLabels(numbered: PlacedObstacle[]): SegmentLabel[]
   const competing = numbered
     .filter((o) => o.number != null)
     .sort((a, b) => (a.number as number) - (b.number as number));
-  if (competing.length < 2) return [];
+  if (competing.length === 0) return [];
   const path = buildDogPath(
     competing.map<DogPathObstacle>((o) => ({
       id: o.id,
@@ -475,6 +475,18 @@ export function computeSegmentLabels(numbered: PlacedObstacle[]): SegmentLabel[]
       ny: tx / (Math.hypot(tx, ty) || 1),
     });
   }
+  const start = numbered.find(o => o.type === "start");
+  const finish = numbered.find(o => o.type === "finish");
+  const first = path.anchors[0];
+  const last = path.anchors.at(-1)!;
+  const addBoundary = (a: { x: number; y: number }, b: { x: number; y: number }, fromId: string, toId: string, fromNumber: SegmentLabel["fromNumber"], toNumber: SegmentLabel["toNumber"], inset: number) => {
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const d = Math.hypot(dx, dy);
+    labels.push({ fromId, toId, fromNumber, toNumber, pathDistanceM: d + inset, centerDistanceM: d + inset,
+      x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, nx: -dy / (d || 1), ny: dx / (d || 1) });
+  };
+  if (start) addBoundary(start, first.entry, start.id, competing[0].id, "Start", competing[0].number!, passageInsetM(competing[0]));
+  if (finish) addBoundary(last.exit, finish, competing.at(-1)!.id, finish.id, competing.at(-1)!.number!, "Mål", passageInsetM(competing.at(-1)!));
   return labels;
 }
 

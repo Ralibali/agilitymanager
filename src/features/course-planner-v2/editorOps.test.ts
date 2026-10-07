@@ -256,7 +256,8 @@ describe("computeSegmentLabels", () => {
       ob("c", 11, 26, { rotation: 0 }),
     ]);
     const labels = computeSegmentLabels(list);
-    expect(labels).toHaveLength(2);
+    expect(labels).toHaveLength(3);
+    expect(labels[2]).toMatchObject({ fromNumber: "Start", toNumber: 1 });
     expect(labels[0]).toMatchObject({ fromId: "a", toId: "b", fromNumber: 1, toNumber: 2 });
     expect(labels[0].centerDistanceM).toBeCloseTo(6);
     expect(labels[1].centerDistanceM).toBeCloseTo(6);

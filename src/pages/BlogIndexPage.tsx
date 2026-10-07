@@ -61,7 +61,7 @@ export default function BlogIndexPage() {
                   >
                     {a.category}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-ink/50">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-ink/75">
                     <Clock3 className="h-3.5 w-3.5" aria-hidden /> {a.readingMinutes} min
                   </span>
                 </div>
@@ -72,7 +72,7 @@ export default function BlogIndexPage() {
                 </h2>
                 <p className="mt-3 flex-1 leading-relaxed text-ink/65">{a.description}</p>
                 <div className="mt-5 flex items-center justify-between border-t border-ink/10 pt-4">
-                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink/50">
+                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink/75">
                     <CalendarDays className="h-4 w-4" aria-hidden /> {fmtDate(a.publishedAt)}
                   </span>
                   <Link

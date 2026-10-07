@@ -90,6 +90,20 @@ export function stripHtml(input: string | null | undefined): string {
     .trim();
 }
 
+/** Deduplicate repeated scraper labels without merging different judges. */
+export function normalizeJudges(values: (string | null | undefined)[]): string[] {
+  const names = values.flatMap(value => (value || '').split(/[,;\n]+/)).map(stripHtml).filter(Boolean).map(name => {
+    let previous = '';
+    while (previous !== name) {
+      previous = name;
+      // A repeated full name, e.g. "Malin Lindskog Malin Lindskog".
+      name = name.replace(/^(.+?\s+.+?)\s+\1$/i, '$1');
+    }
+    return name;
+  });
+  return names.filter((name, index) => names.findIndex(other => other.toLocaleLowerCase('sv') === name.toLocaleLowerCase('sv')) === index);
+}
+
 export function agilityToUnified(c: AgilityCompetition): UnifiedCompetition {
   const name = stripHtml(c.competition_name) || "Agilitytävling";
   const club = stripHtml(c.club_name);
@@ -106,7 +120,7 @@ export function agilityToUnified(c: AgilityCompetition): UnifiedCompetition {
     dateEnd: c.date_end,
     registrationCloses: c.last_registration_date,
     classes: [...(c.classes_agility ?? []), ...(c.classes_hopp ?? []), ...(c.classes_other ?? [])],
-    judges: (c.judges ?? []).map(stripHtml).filter(Boolean),
+    judges: normalizeJudges(c.judges ?? []),
     status: c.status,
     sourceUrl: c.source_url,
     path: `/tavlingar/${encodeURIComponent(c.id)}/${buildCompetitionSlug({
@@ -134,7 +148,7 @@ export function hoopersToUnified(c: HoopersCompetition): UnifiedCompetition {
     dateEnd: c.date,
     registrationCloses: c.registration_closes,
     classes: c.classes ?? [],
-    judges: c.judge ? [stripHtml(c.judge)] : [],
+    judges: normalizeJudges([c.judge]),
     status: c.registration_status,
     sourceUrl: c.source_url,
     path: `/tavlingar/hoopers/${encodeURIComponent(c.competition_id)}/${buildCompetitionSlug({

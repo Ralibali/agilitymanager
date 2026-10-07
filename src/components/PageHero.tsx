@@ -11,7 +11,7 @@ export function PageHero({
   children?: ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden border-b-2 border-ink pt-[6.5rem]">
+    <section className="relative overflow-hidden border-b-2 border-ink pt-[4.25rem]">
       <div className="field-grid pointer-events-none absolute inset-0 [background-size:56px_56px]" aria-hidden />
       <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-14 sm:px-6 lg:pb-20 lg:pt-24">
         <Reveal>

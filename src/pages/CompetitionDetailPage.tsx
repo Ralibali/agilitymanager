@@ -67,7 +67,7 @@ export default function CompetitionDetailPage() {
 
   if (state === "loading") {
     return (
-      <div className="grid min-h-screen place-items-center bg-paper text-ink/60">Laddar tävling…</div>
+      <div className="grid min-h-screen place-items-center bg-paper text-ink/75">Laddar tävling…</div>
     );
   }
 
@@ -77,7 +77,7 @@ export default function CompetitionDetailPage() {
         <SiteNav />
         <div className="mx-auto max-w-3xl px-4 py-40 text-center">
           <h1 className="font-display text-6xl">Tävlingen hittades inte</h1>
-          <p className="mt-4 text-ink/60">
+          <p className="mt-4 text-ink/75">
             Den kan ha tagits bort från källan eller redan varit genomförd.
           </p>
           <Link

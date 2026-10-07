@@ -8,12 +8,14 @@ import { openCookieSettings } from '@/lib/privacyConsent';
 export default function CookieInformationPage() {
   return (
     <>
-      <Seo {...seoProps(PAGE_SEO.cookies)} />
+      <Seo {...seoProps(PAGE_SEO.cookies)} title="Integritetspolicy och cookies | AgilityManager" canonicalPath="/integritet" />
       <SiteNav />
-      <main id="main" className="mx-auto max-w-3xl space-y-5 px-4 py-14 leading-relaxed text-ink/80 sm:px-6 sm:py-20">
+      <main id="main" className="mx-auto max-w-3xl space-y-5 px-4 pb-14 pt-28 leading-relaxed text-ink/80 sm:px-6 sm:pt-32">
         <p className="text-xs font-bold uppercase tracking-[0.22em] text-forest">Integritet</p>
-        <h1 className="font-display text-4xl uppercase tracking-wide text-ink sm:text-5xl">Cookies och lokal lagring</h1>
-        <p className="text-sm text-ink/50">AgilityManager · uppdaterad 5 oktober 2026.</p>
+        <h1 className="font-display text-4xl uppercase tracking-wide text-ink sm:text-5xl">Integritet, cookies och lokal lagring</h1>
+        <p className="text-sm text-ink/75">AgilityManager · uppdaterad 7 oktober 2026.</p>
+        <p>AgilityManager drivs av Aurora Media AB, org.nr 559272-0220. Frågor om dina uppgifter skickas till info@auroramedia.se.</p>
+        <p>Namn och e-post används för din banprofil och för de kontofunktioner du väljer. Ditt profilnamn visas vid delade banor och kommentarer; e-postadressen visas inte publikt. Banor, hundprofiler, resultat och träningsanteckningar lagras när du använder dessa funktioner. Du väljer själv om en sparad bana ska vara publik.</p>
         <p>Vi använder nödvändig lokal lagring för inloggning och för att komma ihåg de val och det innehåll du sparar i tjänsten. Inloggningslagring från Supabase (sb-*-auth-token) finns kvar tills du loggar ut eller rensar den. Sparade banutkast och inställningar finns kvar tills du tar bort dem eller rensar webbplatsens lagring.</p>
         <p>Ditt cookieval sparas under agilitymanager_ga4_consent_v2 i högst 365 dagar. Nödvändig lagring behövs för funktioner du har begärt.</p>
         <h2 className="pt-4 font-display text-2xl uppercase tracking-wide text-ink">Valfri statistik</h2>

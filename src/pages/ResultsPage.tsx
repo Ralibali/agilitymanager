@@ -25,7 +25,7 @@ import { fmtDate } from "@/lib/format";
 
 const inputClass =
   "w-full rounded-2xl border-2 border-ink/15 bg-paper px-4 py-2.5 text-sm font-bold text-ink transition-colors hover:border-ink focus:border-ink focus:outline-none";
-const labelClass = "mb-1.5 block text-xs font-bold uppercase tracking-wider text-ink/45";
+const labelClass = "mb-1.5 block text-xs font-bold uppercase tracking-wider text-ink/75";
 
 const RULES_URL = "https://agilityklubben.se/regler/";
 
@@ -115,9 +115,9 @@ function parseNum(value: string): number | null {
 function StatTile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="rounded-3xl border-2 border-ink bg-[#FCFAF4] p-5 shadow-hard-sm">
-      <p className="text-xs font-extrabold uppercase tracking-wider text-ink/45">{label}</p>
+      <p className="text-xs font-extrabold uppercase tracking-wider text-ink/75">{label}</p>
       <p className="mt-1 font-display text-5xl leading-none tracking-wide">{value}</p>
-      {sub && <p className="mt-1 text-sm font-semibold text-ink/55">{sub}</p>}
+      {sub && <p className="mt-1 text-sm font-semibold text-ink/75">{sub}</p>}
     </div>
   );
 }
@@ -259,7 +259,7 @@ export default function ResultsPage() {
         <Reveal className="mt-10">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <h2 className="font-display text-4xl tracking-wide">Mot nästa klass</h2>
-            <label className="flex items-center gap-2 text-sm font-semibold text-ink/60">
+            <label className="flex items-center gap-2 text-sm font-semibold text-ink/75">
               Meriter för uppflyttning
               <select
                 value={store.meritTarget}
@@ -272,7 +272,7 @@ export default function ResultsPage() {
               </select>
             </label>
           </div>
-          <p className="mt-2 max-w-2xl text-sm font-semibold text-ink/55">
+          <p className="mt-2 max-w-2xl text-sm font-semibold text-ink/75">
             Markera ett lopp som merit när det gav en pinne. Kraven kan ändras mellan regelversioner — kontrollera
             alltid i{" "}
             <a href={RULES_URL} target="_blank" rel="noopener noreferrer" className="text-forest underline hover:text-tang">
@@ -281,7 +281,7 @@ export default function ResultsPage() {
             .
           </p>
           {progress.length === 0 ? (
-            <p className="mt-4 rounded-3xl border-2 border-dashed border-ink/20 bg-cream/50 p-6 text-sm font-semibold text-ink/55">
+            <p className="mt-4 rounded-3xl border-2 border-dashed border-ink/20 bg-cream/50 p-6 text-sm font-semibold text-ink/75">
               Här visas meriterna per klass när {dogName} har loggade lopp i klass 1 eller 2 (startklass–klass 2 i
               hoopers).
             </p>
@@ -295,7 +295,7 @@ export default function ResultsPage() {
                     <div className="flex items-center justify-between gap-3">
                       <p className="font-bold">
                         {disciplineLabel(p.discipline)} · {p.level}
-                        {next && <span className="text-ink/45"> → {next}</span>}
+                        {next && <span className="text-ink/75"> → {next}</span>}
                       </p>
                       {p.reached && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-forest px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-paper">
@@ -313,7 +313,7 @@ export default function ResultsPage() {
                     >
                       <div className="h-full rounded-full bg-forest transition-all" style={{ width: `${pct * 100}%` }} />
                     </div>
-                    <p className="mt-2 text-sm font-semibold text-ink/60">
+                    <p className="mt-2 text-sm font-semibold text-ink/75">
                       {p.reached
                         ? `${p.merits} meriter — dags att flytta upp${next ? ` till ${next}` : ""}!`
                         : `${p.merits} av ${p.target} meriter — ${p.target - p.merits} kvar`}
@@ -351,7 +351,7 @@ export default function ResultsPage() {
                 type="button"
                 onClick={() => setDraft(null)}
                 aria-label="Stäng formuläret"
-                className="grid h-11 w-11 place-items-center rounded-full text-ink/60 hover:bg-ink/5 hover:text-ink"
+                className="grid h-11 w-11 place-items-center rounded-full text-ink/75 hover:bg-ink/5 hover:text-ink"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -491,7 +491,7 @@ export default function ResultsPage() {
               <button
                 type="button"
                 onClick={() => setDraft(null)}
-                className="inline-flex min-h-11 items-center rounded-full border-2 border-ink/15 px-5 py-2.5 text-sm font-bold text-ink/60 hover:border-ink hover:text-ink"
+                className="inline-flex min-h-11 items-center rounded-full border-2 border-ink/15 px-5 py-2.5 text-sm font-bold text-ink/75 hover:border-ink hover:text-ink"
               >
                 Avbryt
               </button>
@@ -502,7 +502,7 @@ export default function ResultsPage() {
         {runs.length === 0 && !draft ? (
           <div className="mt-6 rounded-3xl border-2 border-dashed border-ink/20 bg-cream/50 p-10 text-center">
             <Medal className="mx-auto h-8 w-8 text-forest" />
-            <p className="mx-auto mt-3 max-w-md text-sm font-semibold leading-relaxed text-ink/55">
+            <p className="mx-auto mt-3 max-w-md text-sm font-semibold leading-relaxed text-ink/75">
               Inga lopp loggade för {dogName} än. Logga första loppet här, eller tryck på "Logga resultat" på en
               tävling i{" "}
               <Link to="/tavlingar" className="text-forest underline hover:text-tang">tävlingskalendern</Link>.
@@ -517,7 +517,7 @@ export default function ResultsPage() {
               >
                 <div className="min-w-0 flex-1">
                   <p className="font-bold [overflow-wrap:anywhere]">{r.competitionName}</p>
-                  <p className="text-sm font-semibold text-ink/55">
+                  <p className="text-sm font-semibold text-ink/75">
                     {fmtDate(r.date)} · {disciplineLabel(r.discipline)} {r.level}
                     {r.judge ? ` · ${r.judge}` : ""}
                   </p>
@@ -554,7 +554,7 @@ export default function ResultsPage() {
                     type="button"
                     onClick={() => setDraft(draftFromRun(r))}
                     aria-label={`Ändra loppet ${r.competitionName} ${r.date}`}
-                    className="grid h-11 w-11 place-items-center rounded-full text-ink/55 hover:bg-ink/5 hover:text-ink"
+                    className="grid h-11 w-11 place-items-center rounded-full text-ink/75 hover:bg-ink/5 hover:text-ink"
                   >
                     <Pencil className="h-4 w-4" />
                   </button>
@@ -567,7 +567,7 @@ export default function ResultsPage() {
                       }
                     }}
                     aria-label={`Ta bort loppet ${r.competitionName} ${r.date}`}
-                    className="grid h-11 w-11 place-items-center rounded-full text-ink/55 hover:bg-ember/10 hover:text-ember"
+                    className="grid h-11 w-11 place-items-center rounded-full text-ink/75 hover:bg-ember/10 hover:text-ember"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

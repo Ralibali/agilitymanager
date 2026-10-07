@@ -1,3 +1,4 @@
+import { useBottomInset } from "@/hooks/useBottomInset";
 import { COOKIE_SETTINGS_EVENT, readPrivacyConsent, storePrivacyConsent } from '@/lib/privacyConsent';
 import { useEffect, useState } from 'react';
 import { setAnalyticsConsent } from '@/lib/ga4Runtime';
@@ -20,13 +21,14 @@ export default function AnalyticsConsent() {
     setOpen(false);
   };
 
+  const bannerRef = useBottomInset(open);
   if (!open) return null;
   return (
-    <section
+    <div ref={bannerRef} className="fixed inset-x-0 bottom-0 z-50 p-3"><section
       role="dialog"
       aria-labelledby="analytics-consent-title"
       aria-describedby="analytics-consent-text"
-      className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-lg rounded-2xl border-2 border-ink bg-paper p-4 text-ink shadow-hard sm:bottom-5 sm:p-5"
+      className="mx-auto max-w-4xl rounded-2xl border-2 border-ink bg-paper p-4 text-ink shadow-hard sm:p-5"
     >
       <h2 id="analytics-consent-title" className="font-display text-xl uppercase tracking-wide">Valfri statistik</h2>
       <p id="analytics-consent-text" className="my-2 text-sm leading-relaxed text-ink/75">
@@ -50,6 +52,6 @@ export default function AnalyticsConsent() {
           Acceptera statistik
         </button>
       </div>
-    </section>
+    </section></div>
   );
 }

@@ -4,8 +4,8 @@ import type { UnifiedCompetition } from "@/lib/competitionData";
 const TIER_STYLE: Record<MatchTier, string> = {
   strong: "border-ink bg-forest text-paper",
   likely: "border-ink bg-tang text-ink",
-  weak: "border-ink/20 bg-paper text-ink/60",
-  none: "border-ink/15 bg-ink/5 text-ink/45",
+  weak: "border-ink/20 bg-paper text-ink/75",
+  none: "border-ink/15 bg-ink/5 text-ink/75",
 };
 
 /** Liten etikett som rangordnar hur väl tävlingen matchar aktiv hundprofil. */

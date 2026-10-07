@@ -60,7 +60,7 @@ export function RisingWords({
   startDelay?: number;
 }) {
   return (
-    <span className={className} aria-label={text}>
+    <span className={className} role="group" aria-label={text}>
       {text.split(" ").map((word, i) => (
         <span key={i} className="word-mask" aria-hidden>
           <span style={{ animationDelay: `${startDelay + i * stagger}ms` }}>

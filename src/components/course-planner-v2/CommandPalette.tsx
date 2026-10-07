@@ -149,10 +149,10 @@ export function CommandPalette({
             onChange={(e) => { setQuery(e.target.value); setActiveIdx(0); }}
             onKeyDown={onKeyDown}
             placeholder="Sök kommando… t.ex. spara, PDF, 3D, rutnät"
-            className="flex-1 bg-transparent text-sm font-semibold outline-none placeholder:text-ink/35"
+            className="flex-1 bg-transparent text-sm font-semibold outline-none placeholder:text-ink/75"
             aria-label="Sök kommando"
           />
-          <kbd className="hidden items-center rounded-lg border border-ink/15 bg-cream px-1.5 py-0.5 font-mono text-[10px] text-ink/50 sm:inline-flex">
+          <kbd className="hidden items-center rounded-lg border border-ink/15 bg-cream px-1.5 py-0.5 font-mono text-[10px] text-ink/75 sm:inline-flex">
             Esc
           </kbd>
         </div>
@@ -161,12 +161,12 @@ export function CommandPalette({
           {flattened.length === 0 ? (
             <div className="px-4 py-10 text-center" role="status">
               <p className="text-sm font-bold text-ink">Inga kommandon matchade “{query}”</p>
-              <p className="mt-1 text-xs text-ink/45">Prova ett funktionsnamn som spara, exportera, zoom eller 3D.</p>
+              <p className="mt-1 text-xs text-ink/75">Prova ett funktionsnamn som spara, exportera, zoom eller 3D.</p>
             </div>
           ) : (
             grouped.map(({ group, items, recent }) => (
               <div key={group} className="mb-1" role="group" aria-label={group}>
-                <div className="flex items-center gap-1.5 px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-ink/40" aria-hidden="true">
+                <div className="flex items-center gap-1.5 px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-ink/75" aria-hidden="true">
                   {recent && <Clock3 className="h-3 w-3" />}
                   {group}
                 </div>
@@ -184,27 +184,27 @@ export function CommandPalette({
                     className={[
                       "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors",
                       cmd.disabled
-                        ? "cursor-not-allowed text-ink/35"
+                        ? "cursor-not-allowed text-ink/75"
                         : idx === activeIdx
                           ? "bg-tang/20 text-ink"
                           : "text-ink/80 hover:bg-cream/70",
                     ].join(" ")}
                   >
                     {cmd.icon && (
-                      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${cmd.disabled ? "bg-cream/60 text-ink/30" : idx === activeIdx ? "bg-tang text-ink" : "bg-cream text-ink/55"}`}>
+                      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${cmd.disabled ? "bg-cream/60 text-ink/30" : idx === activeIdx ? "bg-tang text-ink" : "bg-cream text-ink/75"}`}>
                         {cmd.icon}
                       </span>
                     )}
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-semibold">{cmd.label}</div>
-                      {cmd.hint && <div className="truncate text-xs text-ink/45">{cmd.hint}</div>}
+                      {cmd.hint && <div className="truncate text-xs text-ink/75">{cmd.hint}</div>}
                     </div>
                     {cmd.shortcut && (
                       <span className="flex shrink-0 items-center gap-1">
                         {cmd.shortcut.map((key, i) => (
                           <kbd
                             key={`${key}-${i}`}
-                            className="inline-flex items-center rounded-md border border-ink/15 bg-white px-1.5 py-0.5 font-mono text-[10px] text-ink/45"
+                            className="inline-flex items-center rounded-md border border-ink/15 bg-white px-1.5 py-0.5 font-mono text-[10px] text-ink/75"
                           >
                             {key}
                           </kbd>
@@ -218,7 +218,7 @@ export function CommandPalette({
           )}
         </div>
 
-        <div className="flex items-center justify-between border-t-2 border-ink/10 px-4 py-2 text-[10px] font-semibold text-ink/45">
+        <div className="flex items-center justify-between border-t-2 border-ink/10 px-4 py-2 text-[10px] font-semibold text-ink/75">
           <span className="flex items-center gap-1.5"><kbd className="rounded border border-ink/15 bg-cream px-1 py-0.5 font-mono">↑↓</kbd> navigera</span>
           <span className="flex items-center gap-1.5"><kbd className="rounded border border-ink/15 bg-cream px-1 py-0.5 font-mono">↵</kbd> kör</span>
           <span aria-live="polite">{flattened.length} kommandon</span>

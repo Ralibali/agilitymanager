@@ -105,7 +105,7 @@ export default function Home() {
       <SiteNav />
 
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden pt-[6.5rem]">
+      <section className="relative overflow-hidden pt-[4.25rem]">
         <div className="field-grid pointer-events-none absolute inset-0 [background-size:56px_56px]" aria-hidden />
         <div className="pointer-events-none absolute -right-40 -top-40 h-[34rem] w-[34rem] rounded-full bg-forest/10 blur-3xl" aria-hidden />
         <div className="pointer-events-none absolute -left-52 top-72 h-[26rem] w-[26rem] rounded-full bg-tang/10 blur-3xl" aria-hidden />
@@ -152,7 +152,7 @@ export default function Home() {
               </div>
             </Reveal>
             <Reveal delay={900}>
-              <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-ink/60">
+              <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-ink/75">
                 {["Svensk tävlingskalender", "Agility + Hoopers", "Regelkontroll", "PDF, PNG & delningslänk"].map((x) => (
                   <span key={x} className="flex items-center gap-1.5">
                     <Check className="h-4 w-4 text-forest" strokeWidth={3} /> {x}
@@ -169,7 +169,7 @@ export default function Home() {
               <div className="flex items-center justify-between px-2 pb-3 pt-1">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-tang" />
-                  <span className="text-xs font-bold uppercase tracking-[0.18em] text-ink/60">
+                  <span className="text-xs font-bold uppercase tracking-[0.18em] text-ink/75">
                     Live bankarta · Agility
                   </span>
                 </div>
@@ -190,7 +190,7 @@ export default function Home() {
                 ].map(([v, l]) => (
                   <div key={l} className="rounded-xl bg-cream/70 px-2 py-2.5">
                     <b className="block font-display text-2xl leading-none tracking-wide">{v}</b>
-                    <span className="text-[0.7rem] font-semibold uppercase tracking-wider text-ink/50">{l}</span>
+                    <span className="text-[0.7rem] font-semibold uppercase tracking-wider text-ink/75">{l}</span>
                   </div>
                 ))}
               </div>
@@ -249,7 +249,7 @@ export default function Home() {
                     <span className={`font-display text-6xl leading-none ${i === 2 ? "text-tang" : "text-forest"}`}>{s.n}</span>
                     <ArrowRight className={`mt-2 h-6 w-6 transition-transform duration-300 group-hover:translate-x-1.5 ${i === 2 ? "text-tang" : "text-ink"}`} />
                   </div>
-                  <span className={`mt-7 text-[0.7rem] font-extrabold uppercase tracking-[0.18em] ${i === 2 ? "text-paper/55" : "text-ink/45"}`}>
+                  <span className={`mt-7 text-[0.7rem] font-extrabold uppercase tracking-[0.18em] ${i === 2 ? "text-paper/55" : "text-ink/75"}`}>
                     {s.eyebrow}
                   </span>
                   <h3 className="mt-2 text-2xl font-extrabold tracking-tight">{s.title}</h3>
@@ -335,7 +335,7 @@ export default function Home() {
                   <div className="flex items-center justify-between border-t-2 border-ink px-5 py-4">
                     <div>
                       <h3 className="text-lg font-extrabold tracking-tight">{c.name}</h3>
-                      <p className="text-sm font-semibold text-ink/50">{c.level}</p>
+                      <p className="text-sm font-semibold text-ink/75">{c.level}</p>
                     </div>
                     <span className="grid h-10 w-10 place-items-center rounded-full bg-forest text-paper transition-colors duration-300 group-hover:bg-tang group-hover:text-ink">
                       <ArrowRight className="h-5 w-5" />
@@ -420,7 +420,7 @@ export default function Home() {
                     <h3 className="mt-3 text-xl font-extrabold leading-snug tracking-tight group-hover:underline">
                       {a.title}
                     </h3>
-                    <p className="mt-3 flex-1 text-[0.95rem] leading-relaxed text-ink/60">{a.description}</p>
+                    <p className="mt-3 flex-1 text-[0.95rem] leading-relaxed text-ink/75">{a.description}</p>
                     <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-forest">
                       Läs guiden <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                     </span>
@@ -512,7 +512,7 @@ export default function Home() {
                 Öppna banplaneraren <ArrowRight className="h-6 w-6" />
               </Link>
             </div>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-bold uppercase tracking-wider text-ink/60">
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-bold uppercase tracking-wider text-ink/75">
               <span className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Hitta tävling</span>
               <span className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> Lär & välj bana</span>
               <span className="flex items-center gap-2"><NotebookPen className="h-4 w-4" /> Rita & dela</span>

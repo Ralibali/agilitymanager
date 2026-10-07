@@ -28,7 +28,7 @@ export function TrainingHistory({
           key={report.id}
           className="rounded-2xl border border-ink/15 bg-white p-4 space-y-3"
         >
-          <p className="text-xs text-ink/60">
+          <p className="text-xs text-ink/75">
             Rapport {new Date(report.created_at).toLocaleString("sv-SE")} ·{" "}
             {report.completed
               ? "Eleven har markerat uppgiften genomförd"

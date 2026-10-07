@@ -1,3 +1,4 @@
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { ArrowRight, CalendarPlus, Heart, LocateFixed, MapPin, RefreshCw, Search } from "lucide-react";
@@ -50,6 +51,7 @@ export default function CompetitionsPage() {
   const [userPos, setUserPos] = useState<GeoPoint | null>(null);
   const [onlyFavorites, setOnlyFavorites] = useState(initialPrefs.onlyFavorites);
   const [matchOn, setMatchOn] = useState(initialPrefs.matchOn);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [sortMode, setSortMode] = useState<"datum" | "match">("datum");
 
   useEffect(() => {
@@ -173,8 +175,8 @@ export default function CompetitionsPage() {
 
   /** Tävlingar som hamnar i iCal-filen: matchande inom nuvarande filter. */
   const icsList = useMemo(
-    () => (matchOn ? filtered : filterMatching(filtered, dogProfile)),
-    [matchOn, filtered, dogProfile],
+    () => filtered,
+    [filtered],
   );
   const icsCount = useMemo(() => icsFeedCount(icsList), [icsList]);
 
@@ -182,9 +184,9 @@ export default function CompetitionsPage() {
   const exportIcsFeed = () => {
     if (icsList.length === 0) return;
     downloadIcs(
-      icsFeedFilename(dogProfile.name),
+      icsFeedFilename(matchOn ? dogProfile.name : "tavlingar"),
       buildIcsFeed(icsList, {
-        calendarName: `AgilityManager – tävlingar för ${dogProfile.name.trim() || "din hund"}`,
+        calendarName: matchOn ? `AgilityManager – tävlingar för ${dogProfile.name.trim() || "din hund"}` : "AgilityManager – valda tävlingar",
         siteUrl: SITE_URL,
       }),
     );
@@ -229,13 +231,23 @@ export default function CompetitionsPage() {
         {...calendarSeo()}
       />
       <SiteNav />
+      <main>
       <PageHero kicker="Tävlingskalender" title="Hitta er nästa start.">
         Agility och hoopers över hela landet — med anmälningsstatus, klasser,
         domare och plats. Uppdateras automatiskt från arrangörernas källor.
       </PageHero>
 
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
-        <Reveal className="mb-8">
+      <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
+        <div className="grid grid-cols-[1fr_auto] items-center gap-2 sm:flex sm:flex-wrap">
+          <label className="relative min-w-0 sm:flex-1"><Search className="absolute left-4 top-3.5 h-4 w-4 text-ink/70" aria-hidden /><input aria-label="Sök klubb, ort eller domare" value={query} onChange={event => setQuery(event.target.value)} placeholder="Sök klubb, ort eller domare" className="min-h-11 w-full rounded-full border-2 border-ink/30 bg-paper pl-11 pr-4 text-sm" /></label>
+          <button onClick={() => setFiltersOpen(true)} className="min-h-11 rounded-full border-2 border-ink px-5 text-sm font-bold">Filter</button>
+          <button onClick={() => setFiltersOpen(true)} className="min-h-11 rounded-full border-2 border-ink px-3 text-sm font-bold">{matchOn ? `Matchar ${dogProfile.name || 'din hund'}` : 'Matcha mot din hund'}</button>
+          <button onClick={exportIcsFeed} disabled={icsCount === 0} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-ink bg-ink px-3 text-sm font-bold text-paper disabled:opacity-50"><CalendarPlus className="h-4 w-4" />Lägg i kalendern</button>
+        </div>
+        <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+          <SheetContent className="w-full overflow-y-auto border-l-2 border-ink bg-paper text-ink sm:max-w-2xl">
+            <SheetHeader><SheetTitle className="font-display text-3xl uppercase">Filter och hundmatchning</SheetTitle><SheetDescription>Listan visas utan hundfilter tills du aktiverar matchning. Välj hundens klass och storlek innan du slår på filtret.</SheetDescription></SheetHeader>
+            <div className="mt-6">        <div className="mb-8">
           <DogMatchPanel
             profile={dogProfile}
             profiles={dogProfiles}
@@ -267,10 +279,10 @@ export default function CompetitionsPage() {
                   ? "Kunde inte synka profilerna just nu — de sparas ändå i den här webbläsaren."
                   : "Profilerna sparas i den här webbläsaren. Logga in för att synka dem mellan enheter."}
           </p>
-        </Reveal>
+        </div>
 
 
-        <Reveal className="mb-6">
+        <div className="mb-6">
           <ProfileQuickSwitch
             profiles={dogProfiles}
             activeId={dogProfileId}
@@ -288,9 +300,9 @@ export default function CompetitionsPage() {
             }}
             loading={loading && all.length === 0}
           />
-        </Reveal>
+        </div>
 
-        <Reveal className="mb-6">
+        <div className="mb-6">
           <FriendProfilesPanel
             state={friendsState}
             owners={friendOwners}
@@ -303,9 +315,9 @@ export default function CompetitionsPage() {
             onEdit={updateFriendProfile}
             onRefresh={refreshFriendProfiles}
           />
-        </Reveal>
+        </div>
 
-        <Reveal>
+        <div>
 
           <div className="flex flex-wrap items-center gap-2">
             {(["alla", "agility", "hoopers"] as SportFilter[]).map((f) => (
@@ -315,7 +327,7 @@ export default function CompetitionsPage() {
                 className={`rounded-full border-2 px-5 py-2.5 text-sm font-bold capitalize transition-all ${
                   sport === f
                     ? "border-ink bg-ink text-paper shadow-hard-sm"
-                    : "border-ink/15 bg-paper text-ink/60 hover:border-ink"
+                    : "border-ink/15 bg-paper text-ink/75 hover:border-ink"
                 }`}
               >
                 {f === "alla" ? "Alla sporter" : f}
@@ -329,7 +341,7 @@ export default function CompetitionsPage() {
                   onClick={() => setSortMode(m)}
                   aria-pressed={sortMode === m}
                   className={`px-4 py-2.5 text-sm font-bold transition-colors ${
-                    sortMode === m ? "bg-ink text-paper" : "bg-paper text-ink/60 hover:text-ink"
+                    sortMode === m ? "bg-ink text-paper" : "bg-paper text-ink/75 hover:text-ink"
                   }`}
                 >
                   {m === "datum" ? "Datum" : "Matchstyrka"}
@@ -342,7 +354,7 @@ export default function CompetitionsPage() {
               className={`rounded-full border-2 px-5 py-2.5 text-sm font-bold transition-all ${
                 onlyOpen
                   ? "border-ink bg-forest text-paper shadow-hard-sm"
-                  : "border-ink/15 bg-paper text-ink/60 hover:border-ink"
+                  : "border-ink/15 bg-paper text-ink/75 hover:border-ink"
               }`}
             >
               Bara öppen anmälan
@@ -368,7 +380,7 @@ export default function CompetitionsPage() {
               className={`inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold transition-all ${
                 onlyFavorites
                   ? "border-ink bg-ember text-paper shadow-hard-sm"
-                  : "border-ink/15 bg-paper text-ink/60 hover:border-ink"
+                  : "border-ink/15 bg-paper text-ink/75 hover:border-ink"
               }`}
             >
               <Heart className={`h-4 w-4 ${onlyFavorites ? "fill-current" : ""}`} />
@@ -377,19 +389,10 @@ export default function CompetitionsPage() {
 
             <Link
               to="/tavlingar/favoriter"
-              className="inline-flex items-center gap-2 rounded-full border-2 border-ink/15 px-5 py-2.5 text-sm font-bold text-ink/60 transition-colors hover:border-ink hover:text-ink"
+              className="inline-flex items-center gap-2 rounded-full border-2 border-ink/15 px-5 py-2.5 text-sm font-bold text-ink/75 transition-colors hover:border-ink hover:text-ink"
             >
               Öppna favoritlistan <ArrowRight className="h-4 w-4" />
             </Link>
-
-            <button
-              onClick={exportIcsFeed}
-              disabled={icsCount === 0}
-              className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-tang px-5 py-2.5 text-sm font-bold text-ink shadow-hard-sm transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:border-ink/15 disabled:bg-paper disabled:text-ink/35 disabled:shadow-none"
-            >
-              <CalendarPlus className="h-4 w-4" />
-              Lägg matchande i kalendern{icsCount > 0 ? ` (${icsCount})` : ""}
-            </button>
 
             <button
               onClick={locateMe}
@@ -399,19 +402,16 @@ export default function CompetitionsPage() {
               {geoState === "locating" ? "Söker position…" : "Nära dig"}
             </button>
 
-            <label className="relative ml-auto w-full sm:w-72">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Sök klubb, ort eller domare"
-                className="w-full rounded-full border-2 border-ink/15 bg-paper py-2.5 pl-11 pr-4 text-sm font-semibold placeholder:text-ink/35 focus:border-ink focus:outline-none"
-              />
-            </label>
+
           </div>
 
+</div></div>
+            <button onClick={() => setFiltersOpen(false)} className="sticky bottom-0 mt-6 min-h-11 w-full rounded-full border-2 border-ink bg-ink px-5 font-bold text-paper">Visa {filtered.length} tävlingar</button>
+          </SheetContent>
+        </Sheet>
+        <Reveal>
           <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-            <p aria-live="polite" className="text-sm font-semibold text-ink/45">
+            <p aria-live="polite" className="text-sm font-semibold text-ink/75">
               {loading && all.length === 0
                 ? "Hämtar tävlingar…"
                 : `${filtered.length} av ${all.length} kommande tävlingar · ${openCount} med öppen anmälan`}
@@ -425,7 +425,7 @@ export default function CompetitionsPage() {
             <button
               onClick={() => loadCompetitions("refresh")}
               disabled={refreshing}
-              className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 py-1 text-xs font-bold text-ink/60 transition-colors hover:border-ink hover:text-ink disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 py-1 text-xs font-bold text-ink/75 transition-colors hover:border-ink hover:text-ink disabled:opacity-50"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
               Uppdatera listan
@@ -438,7 +438,7 @@ export default function CompetitionsPage() {
           <Reveal className="mt-10">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <h2 className="font-display text-4xl tracking-wide">Nära dig</h2>
-              <p className="text-sm font-semibold text-ink/45">
+              <p className="text-sm font-semibold text-ink/75">
                 {nearby.length} tävlingar på kartan · närmast {formatDistance(nearby[0].distanceKm)} bort
               </p>
             </div>
@@ -459,7 +459,7 @@ export default function CompetitionsPage() {
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-ember" />
                   <span>
                     <span className="block text-sm font-bold text-ink">{c.name}</span>
-                    <span className="block text-xs font-semibold text-ink/55">
+                    <span className="block text-xs font-semibold text-ink/75">
                       {c.location || c.county} · {formatDistance(c.distanceKm)}
                       {c.approximate ? " (ungefärligt)" : ""}
                     </span>
@@ -473,7 +473,7 @@ export default function CompetitionsPage() {
 
 
         {!loading && groups.length === 0 && (
-          <p className="mt-16 text-lg font-semibold text-ink/50">
+          <p className="mt-16 text-lg font-semibold text-ink/75">
             {onlyFavorites && favoriteCount === 0
               ? "Du har inga favoriter än — tryck på hjärtat på en tävling för att spara den."
               : matchOn
@@ -485,10 +485,10 @@ export default function CompetitionsPage() {
 
 
         {sortMode === "match" && ranked.length > 0 && (
-          <div className="mt-14">
+          <div className="mt-8">
             <Reveal>
               <h2 className="font-display text-5xl tracking-wide">Bäst match först</h2>
-              <p className="mt-2 text-sm font-semibold text-ink/45">
+              <p className="mt-2 text-sm font-semibold text-ink/75">
                 Rangordnat mot {dogProfile.name.trim() || "din hund"} — sport, klass och storlek.
               </p>
               <div className="mt-3 h-0.5 w-full bg-ink/10" />
@@ -496,7 +496,7 @@ export default function CompetitionsPage() {
             <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
               {ranked.map((c, i) => (
                 <Reveal key={c.key} delay={Math.min(i, 6) * 70}>
-                  <CompetitionCard comp={c} />
+                  <CompetitionCard comp={c} showMatch={matchOn} />
                 </Reveal>
               ))}
             </div>
@@ -504,7 +504,7 @@ export default function CompetitionsPage() {
         )}
 
         {sortMode === "datum" && groups.map(([month, comps]) => (
-          <div key={month} className="mt-14">
+          <div key={month} className="mt-8">
             <Reveal>
               <h2 className="font-display text-5xl capitalize tracking-wide">{month}</h2>
               <div className="mt-3 h-0.5 w-full bg-ink/10" />
@@ -512,7 +512,7 @@ export default function CompetitionsPage() {
             <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
               {comps.map((c, i) => (
                 <Reveal key={c.key} delay={Math.min(i, 6) * 70}>
-                  <CompetitionCard comp={c} />
+                  <CompetitionCard comp={c} showMatch={matchOn} />
                 </Reveal>
               ))}
             </div>
@@ -521,7 +521,7 @@ export default function CompetitionsPage() {
 
         <Reveal className="mt-20">
           <h2 className="font-display text-4xl tracking-wide">Tävlingar län för län</h2>
-          <p className="mt-2 text-sm font-semibold text-ink/45">
+          <p className="mt-2 text-sm font-semibold text-ink/75">
             Egen sida per län med kommande agility- och hooperstävlingar.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
@@ -569,6 +569,7 @@ export default function CompetitionsPage() {
         <PartnerAdCard className="mt-16" />
       </section>
 
+      </main>
       <SiteFooter />
     </div>
   );

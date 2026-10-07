@@ -57,7 +57,7 @@ function NumField({
 
   return (
     <label className="block min-w-0">
-      <span className={hideLabel ? "sr-only" : "mb-1 block text-[10px] font-bold uppercase tracking-wider text-ink/50"}>{label}</span>
+      <span className={hideLabel ? "sr-only" : "mb-1 block text-[10px] font-bold uppercase tracking-wider text-ink/75"}>{label}</span>
       <span className="flex h-9 items-center rounded-lg border-2 border-ink/15 bg-white pr-1.5 focus-within:border-ink">
         <input
           inputMode="decimal"
@@ -73,7 +73,7 @@ function NumField({
           }}
           className="h-full w-full min-w-0 bg-transparent px-2 text-sm font-bold tabular-nums outline-none disabled:opacity-40"
         />
-        <span className="shrink-0 text-[11px] font-bold text-ink/40">{suffix}</span>
+        <span className="shrink-0 text-[11px] font-bold text-ink/75">{suffix}</span>
       </span>
     </label>
   );
@@ -131,7 +131,7 @@ export function ObstacleInspector(props: ObstacleInspectorProps) {
     <div>
       {open && (
         <>
-          <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-ink/50">
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-ink/75">
             Tunnellängd · {tunnelLength.toFixed(1).replace(".", ",")} m
           </p>
           <input
@@ -147,7 +147,7 @@ export function ObstacleInspector(props: ObstacleInspectorProps) {
           />
         </>
       )}
-      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-ink/50">
+      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-ink/75">
         Tunnelböjning · {obstacle.curveDeg ?? 0}°
       </p>
       <input
@@ -172,7 +172,7 @@ export function ObstacleInspector(props: ObstacleInspectorProps) {
             className={`h-8 rounded-lg border-2 text-xs font-bold disabled:opacity-40 ${
               (obstacle.curveSide ?? "right") === side
                 ? "border-ink bg-forest text-paper"
-                : "border-ink/15 bg-white text-ink/60"
+                : "border-ink/15 bg-white text-ink/75"
             }`}
           >
             {side === "left" ? "Böj vänster" : "Böj höger"}
@@ -195,7 +195,7 @@ export function ObstacleInspector(props: ObstacleInspectorProps) {
         aria-label={open ? "Dölj egenskaper" : "Visa egenskaper"}
         className={`flex w-full items-center justify-between gap-2 text-left ${open ? "mb-2.5" : ""}`}
       >
-        <span className="flex min-w-0 items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/60">
+        <span className="flex min-w-0 items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/75">
           <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">
             {multi
@@ -204,7 +204,7 @@ export function ObstacleInspector(props: ObstacleInspectorProps) {
           </span>
           {locked && <Lock className="h-3.5 w-3.5 shrink-0 text-ember" aria-label="Låst" />}
           {!open && (
-            <span className="shrink-0 font-semibold normal-case tracking-normal text-ink/45">
+            <span className="shrink-0 font-semibold normal-case tracking-normal text-ink/75">
               · {multi ? "justera" : "mått & ordning"}
             </span>
           )}
@@ -227,7 +227,7 @@ export function ObstacleInspector(props: ObstacleInspectorProps) {
 
           {number != null && (
     <div>
-              <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-ink/50">
+              <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-ink/75">
                 Plats i banordningen
               </span>
               <div className="flex items-center gap-1.5">
@@ -243,7 +243,7 @@ export function ObstacleInspector(props: ObstacleInspectorProps) {
                   onClick={() => onNumber(number + 1)} aria-label="Senare i banordningen">
                   <Plus className="h-4 w-4" />
                 </button>
-                <span className="text-xs font-semibold text-ink/45">av {competingCount}</span>
+                <span className="text-xs font-semibold text-ink/75">av {competingCount}</span>
               </div>
             </div>
           )}
@@ -251,7 +251,7 @@ export function ObstacleInspector(props: ObstacleInspectorProps) {
           {obstacle.type === "tunnel" && tunnelControls}
 
           {locked && (
-            <p className="rounded-lg bg-cream px-2.5 py-1.5 text-xs font-semibold text-ink/60">
+            <p className="rounded-lg bg-cream px-2.5 py-1.5 text-xs font-semibold text-ink/75">
               Hindret är låst. Lås upp (L) för att flytta eller vrida det.
             </p>
           )}
@@ -263,7 +263,7 @@ export function ObstacleInspector(props: ObstacleInspectorProps) {
       {open && multi && (
         <div className="space-y-3">
           <div>
-            <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-ink/50">Justera mittpunkter</p>
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-ink/75">Justera mittpunkter</p>
             <div className="grid grid-cols-6 gap-1">
               {ALIGN_BUTTONS.map(({ mode, label, Icon }) => (
                 <button key={mode} type="button" className={iconBtn} disabled={movable < 2}
@@ -274,7 +274,7 @@ export function ObstacleInspector(props: ObstacleInspectorProps) {
             </div>
           </div>
           <div>
-            <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-ink/50">Fördela jämnt</p>
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-ink/75">Fördela jämnt</p>
             <div className="grid grid-cols-2 gap-1">
               <button type="button" className={`${iconBtn} gap-1.5 px-2 text-xs font-bold`} disabled={movable < 3}
                 onClick={() => onDistribute("x")} aria-label="Fördela vågrätt">
@@ -286,7 +286,7 @@ export function ObstacleInspector(props: ObstacleInspectorProps) {
               </button>
             </div>
           </div>
-          <p className="text-[11px] font-semibold leading-snug text-ink/50">
+          <p className="text-[11px] font-semibold leading-snug text-ink/75">
             Dra ett markerat hinder för att flytta hela gruppen. Piltangenter flyttar 0,25 m (Shift = 1 m).
             {multiLockedCount > 0 && ` ${multiLockedCount} låsta hinder ligger still.`}
           </p>

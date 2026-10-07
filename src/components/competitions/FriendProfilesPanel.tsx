@@ -53,7 +53,7 @@ export function FriendProfilesPanel({ state, owners, countFor, onUse, onEdit, on
   return (
     <div className="rounded-3xl border-2 border-ink/15 bg-card p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-ink/45">
+        <span className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-ink/75">
           <Users className="h-4 w-4 text-forest" aria-hidden="true" /> Vänners hundprofiler
         </span>
         <button
@@ -74,7 +74,7 @@ export function FriendProfilesPanel({ state, owners, countFor, onUse, onEdit, on
       )}
 
       {state !== "error" && owners.length === 0 && (
-        <p className="mt-3 text-sm font-semibold text-ink/60">
+        <p className="mt-3 text-sm font-semibold text-ink/75">
           {state === "loading"
             ? "Hämtar vänners profiler …"
             : "Inga delade profiler ännu — när du och en vän är kopplade syns varandras hundprofiler här, på alla era enheter."}
@@ -98,7 +98,7 @@ export function FriendProfilesPanel({ state, owners, countFor, onUse, onEdit, on
                         <Dog className="mt-0.5 h-5 w-5 shrink-0 text-ink/70" aria-hidden="true" />
                         <span className="leading-tight">
                           <span className="block text-sm font-bold text-ink">{label}</span>
-                          <span className="block text-xs font-semibold text-ink/60">
+                          <span className="block text-xs font-semibold text-ink/75">
                             {summary(p)}
                             <span className="ml-2 inline-flex items-center rounded-full bg-ink/10 px-2 py-0.5 text-xs font-extrabold text-ink">
                               {countFor(p)}
@@ -111,7 +111,7 @@ export function FriendProfilesPanel({ state, owners, countFor, onUse, onEdit, on
                         type="button"
                         onClick={() => setEditing(isEditing ? null : p.id)}
                         aria-label={`${isEditing ? "Stäng redigering av" : "Redigera"} ${owner.name}s profil ${label}`}
-                        className="grid min-h-11 min-w-11 place-items-center rounded-full text-ink/60 transition-colors hover:bg-ink/10 hover:text-ink"
+                        className="grid min-h-11 min-w-11 place-items-center rounded-full text-ink/75 transition-colors hover:bg-ink/10 hover:text-ink"
                       >
                         {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
                       </button>
@@ -162,7 +162,7 @@ export function FriendProfilesPanel({ state, owners, countFor, onUse, onEdit, on
                             </option>
                           ))}
                         </select>
-                        <p className="sm:col-span-3 text-xs font-semibold text-ink/55" aria-live="polite">
+                        <p className="sm:col-span-3 text-xs font-semibold text-ink/75" aria-live="polite">
                           {saving === p.id
                             ? "Sparar hos vännen …"
                             : "Ändringar sparas direkt och syns för er båda på alla enheter."}

@@ -59,6 +59,7 @@ export default function App() {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/integritet" element={<CookieInformationPage />} />
           <Route path="/cookies" element={<CookieInformationPage />} />
 
           {/* Kunskapsbanken: blogg/guider */}

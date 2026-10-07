@@ -182,7 +182,7 @@ export default function TrainingPage() {
           Välj bana, planera vad ni ska öva och skriv ner vad som fungerade.
           Nästa pass börjar där det förra slutade.
         </p>
-        <p className="mt-3 max-w-2xl text-sm text-ink/60">
+        <p className="mt-3 max-w-2xl text-sm text-ink/75">
           Sparas i den här webbläsaren utan konto. Exportera en säkerhetskopia
           för att flytta passen till en annan enhet. Film delas bara som länk.
         </p>
@@ -326,7 +326,7 @@ export default function TrainingPage() {
                   key={s.id}
                   className="rounded-2xl border-2 border-ink bg-white p-5 shadow-hard-sm"
                 >
-                  <p className="text-sm text-ink/60">
+                  <p className="text-sm text-ink/75">
                     {s.date}
                     {s.dog && ` · ${s.dog}`} ·{" "}
                     {s.completed ? "Genomfört" : "Planerat"}
@@ -403,7 +403,7 @@ export default function TrainingPage() {
                   ? "Ditt träningspass"
                   : "Planera ett pass"}
               </h2>
-              <p role="status" className="mt-2 text-sm text-ink/60">
+              <p role="status" className="mt-2 text-sm text-ink/75">
                 {dirty
                   ? "Osparade ändringar"
                   : sessions.some((s) => s.id === draft.id)

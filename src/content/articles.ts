@@ -35,6 +35,10 @@ export interface BlogArticle {
   publishedAt: string;
   updatedAt: string;
   readingMinutes: number;
+  author?: string;
+  authorRole?: string;
+  rulesReviewedAt?: string;
+  rulesSources?: { label: string; url: string }[];
   blocks: ArticleBlock[];
   related: string[];
   cta: BlogCta;
@@ -50,6 +54,8 @@ export const ARTICLES: BlogArticle[] = [
     category: "Banbyggande",
     publishedAt: "2025-11-04",
     updatedAt: "2026-10-05",
+    rulesReviewedAt: "2026-10-07",
+    rulesSources: [{ label: "SAgiK:s agilityregler 2022–2026", url: "https://agilityklubben.se/regler/" }],
     readingMinutes: 6,
     blocks: [
       {
@@ -109,6 +115,8 @@ export const ARTICLES: BlogArticle[] = [
     category: "Hoopers",
     publishedAt: "2025-11-18",
     updatedAt: "2026-10-05",
+    rulesReviewedAt: "2026-10-07",
+    rulesSources: [{ label: "SHoK:s regler 2025–2028", url: "https://www.svenskahoopersklubben.se/filarkiv/" }],
     readingMinutes: 6,
     blocks: [
       {
@@ -223,6 +231,8 @@ export const ARTICLES: BlogArticle[] = [
     category: "Regler",
     publishedAt: "2025-12-16",
     updatedAt: "2026-10-05",
+    rulesReviewedAt: "2026-10-07",
+    rulesSources: [{ label: "SAgiK:s agilityregler 2022–2026", url: "https://agilityklubben.se/regler/" }, { label: "SHoK:s regler 2025–2028", url: "https://www.svenskahoopersklubben.se/filarkiv/" }],
     readingMinutes: 6,
     blocks: [
       {
@@ -232,7 +242,7 @@ export const ARTICLES: BlogArticle[] = [
       { type: "h2", text: "Vem sätter reglerna?" },
       {
         type: "p",
-        text: "I Sverige administreras agility inom Svenska Kennelklubbens (SKK) paraply, med Svenska Agilityklubben (SAgiK) som specialklubb. De gällande tävlingsreglerna (2022-01-01–2026-12-31) finns på agilityklubben.se, och en regelrevidering pågår inför 2027 — kontrollera alltid vilken utgåva som gäller på tävlingsdagen. Sedan 1 november 2025 är hoopers en officiell hundsport inom SKK med Svenska Hoopersklubben (SHoK) som ansvarig klubb; reglerna (2025-11-01–2028-10-31) publiceras på svenskahoopersklubben.se.",
+        text: "I Sverige administreras agility inom Svenska Kennelklubbens (SKK) paraply, med Svenska Agilityklubben (SAgiK) som verksamhetsklubb. De gällande tävlingsreglerna (2022-01-01–2026-12-31) finns på agilityklubben.se, och en regelrevidering pågår inför 2027 — kontrollera alltid vilken utgåva som gäller på tävlingsdagen. Sedan 1 november 2025 är hoopers en officiell hundsport inom SKK med Svenska Hoopersklubben (SHoK) som ansvarig klubb; reglerna (2025-11-01–2028-10-31) publiceras på svenskahoopersklubben.se.",
       },
       {
         type: "p",

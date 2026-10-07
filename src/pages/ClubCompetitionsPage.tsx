@@ -80,16 +80,16 @@ export default function ClubCompetitionsPage() {
             {club && (
               <dl className="grid grid-cols-1 gap-4 rounded-3xl border-2 border-ink/15 bg-cream/40 p-6 sm:grid-cols-3">
                 <div>
-                  <dt className="text-xs font-extrabold uppercase tracking-wider text-ink/45">Tävlar i</dt>
+                  <dt className="text-xs font-extrabold uppercase tracking-wider text-ink/75">Tävlar i</dt>
                   <dd className="mt-1 font-bold [overflow-wrap:anywhere]">{club.locations.join(", ") || "Okänd ort"}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-extrabold uppercase tracking-wider text-ink/45">Sporter</dt>
+                  <dt className="text-xs font-extrabold uppercase tracking-wider text-ink/75">Sporter</dt>
                   <dd className="mt-1 font-bold capitalize">{club.sports.join(" & ")}</dd>
                 </div>
                 {judges.length > 0 && (
                   <div>
-                    <dt className="text-xs font-extrabold uppercase tracking-wider text-ink/45">Domare</dt>
+                    <dt className="text-xs font-extrabold uppercase tracking-wider text-ink/75">Domare</dt>
                     <dd className="mt-1 font-bold [overflow-wrap:anywhere]">{judges.slice(0, 6).join(", ")}</dd>
                   </div>
                 )}

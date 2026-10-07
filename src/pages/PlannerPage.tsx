@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
 import {
-  ArrowLeft, ArrowLeftRight, ArrowUpDown, BookOpen, Box, Check,
+  ArrowLeftRight, ArrowUpDown, BookOpen, Box, Check,
   ChevronDown, ChevronUp, ClipboardPaste, CloudCheck, Command, Copy, Download, Eraser, Footprints,
   Grid2x2, Keyboard, Link2, ListOrdered, Loader2, Lock, Lightbulb, Maximize, MoreHorizontal,
   MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler, RulerDimensionLine, Scissors,
@@ -14,8 +14,7 @@ import { Seo } from "@/components/Seo";
 import { PAGE_SEO, seoProps } from "@/lib/pageSeo";
 import { uid, type PlacedObstacle, type Sport } from "@/lib/course";
 import { ObstacleGlyph, ObstacleIcon } from "@/components/ObstacleGlyph";
-import { Logo } from "@/components/SiteNav";
-import { AffiliateBanner } from "@/components/AffiliateBanner";
+import { SiteNav } from "@/components/SiteNav";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
@@ -1926,8 +1925,8 @@ export default function PlannerPage() {
   const ruleSetExpired = ruleSet ? isRuleSetExpired(ruleSet) : false;
 
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-paper text-ink">
-      <AffiliateBanner compact />
+    <div className="flex h-[calc(100dvh-var(--cookie-banner-height,0px))] flex-col overflow-hidden bg-paper text-ink">
+      <SiteNav /><div className="h-[4.25rem] shrink-0" />
       <Seo
         {...seoProps(PAGE_SEO.planner)}
         jsonLd={PLANNER_JSON_LD}
@@ -1935,28 +1934,16 @@ export default function PlannerPage() {
       <h1 className="sr-only">Banplanerare för agility och hoopers</h1>
       {/* ── Topprad ── */}
       <header className="z-40 shrink-0 border-b-2 border-ink bg-paper/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-[110rem] items-center gap-1.5 px-2 sm:gap-3 sm:px-5">
+        <div className="mx-auto flex min-h-16 max-w-[110rem] flex-wrap items-center gap-1.5 px-2 py-2 sm:h-16 sm:flex-nowrap sm:gap-3 sm:px-5 sm:py-0">
 
-          <Link
-            to="/"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-ink bg-paper transition-colors hover:bg-cream sm:h-11 sm:w-11"
-            aria-label="Tillbaka till startsidan"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-
-          <div className="hidden 2xl:block">
-            <Logo />
-          </div>
-          <div className="mx-1 hidden h-8 w-px bg-ink/15 2xl:block" />
           <input
             value={name}
             onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-            className="w-0 min-w-0 flex-1 truncate rounded-xl border-2 border-transparent bg-transparent px-1.5 py-2 font-display text-base tracking-wide outline-none transition-colors hover:border-ink/15 focus:border-ink sm:px-2 sm:text-2xl md:max-w-md"
+            className="w-full min-w-0 flex-auto truncate rounded-xl sm:w-0 sm:flex-1 border-2 border-transparent bg-transparent px-1.5 py-2 font-display text-base tracking-wide outline-none transition-colors hover:border-ink/15 focus:border-ink sm:px-2 sm:text-2xl md:max-w-md"
             aria-label="Banans namn"
           />
 
-          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+          <div className="ml-auto flex w-full shrink-0 items-center justify-between gap-1 sm:w-auto sm:justify-end sm:gap-2">
             <CourseMenu
               onSave={() => void persistCourse()}
               onSaveAs={handleSaveAs}
@@ -1973,7 +1960,7 @@ export default function PlannerPage() {
                   ? "bg-red-600 text-white"
                   : saveState === "saved"
                     ? "bg-forest text-paper"
-                    : "bg-cream text-ink/50"
+                    : "bg-cream text-ink/75"
               }`}
             >
               {/* På små skärmar finns bara en prick — texten läses ändå upp
@@ -2000,12 +1987,12 @@ export default function PlannerPage() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64 border-2 border-ink bg-paper">
-                <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-ink/50">
+                <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-ink/75">
                   Visa banan
                 </DropdownMenuLabel>
                 <DropdownMenuItem onSelect={() => setView3D("view")} className="min-h-11 font-semibold">
                   <Box className="mr-2 h-4 w-4" /> 3D-vy
-                  <span className="ml-auto text-xs text-ink/40">3</span>
+                  <span className="ml-auto text-xs text-ink/75">3</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => setView3D("walk")} className="min-h-11 font-semibold">
                   <Footprints className="mr-2 h-4 w-4" /> Gå banan
@@ -2018,16 +2005,16 @@ export default function PlannerPage() {
                   <Play className="mr-2 h-4 w-4" /> Spela upp hundens väg
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-ink/50">
+                <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-ink/75">
                   Hjälp
                 </DropdownMenuLabel>
                 <DropdownMenuItem onSelect={() => setPaletteOpen(true)} className="min-h-11 font-semibold">
                   <Command className="mr-2 h-4 w-4" /> Kommandopalett
-                  <span className="ml-auto text-xs text-ink/40">Ctrl+K</span>
+                  <span className="ml-auto text-xs text-ink/75">Ctrl+K</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => setHelpOpen(true)} className="min-h-11 font-semibold">
                   <Keyboard className="mr-2 h-4 w-4" /> Tangentbordsgenvägar
-                  <span className="ml-auto text-xs text-ink/40">?</span>
+                  <span className="ml-auto text-xs text-ink/75">?</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="sm:hidden" />
                 <DropdownMenuItem onSelect={openShare} disabled={!obstacles.length} className="min-h-11 font-semibold sm:hidden">
@@ -2084,14 +2071,14 @@ export default function PlannerPage() {
             <button
               onClick={() => setProfileOpen(true)}
               title={plannerProfile ? `Inloggad som ${plannerProfile.name}` : "Skapa din banprofil (namn + e-post)"}
-              className="hidden h-10 shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-paper px-2.5 text-sm font-bold transition-colors hover:bg-cream sm:inline-flex sm:h-11 sm:px-3"
+              className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border-2 border-ink bg-paper px-2.5 text-sm font-bold transition-colors hover:bg-cream sm:px-3"
               aria-label={plannerProfile ? "Din banprofil" : "Skapa banprofil"}
             >
               <span className="grid h-6 w-6 place-items-center rounded-full bg-forest text-xs text-paper">
                 {plannerProfile ? plannerProfile.name.trim().charAt(0).toUpperCase() : "?"}
               </span>
-              <span className="hidden max-w-[8rem] truncate 2xl:inline">
-                {plannerProfile ? plannerProfile.name : "Din profil"}
+              <span className="max-w-[5rem] truncate sm:hidden 2xl:inline 2xl:max-w-[8rem]">
+                {plannerProfile ? plannerProfile.name : "Banprofil"}
               </span>
             </button>
 
@@ -2131,7 +2118,7 @@ export default function PlannerPage() {
 
           {/* Hinderpalett */}
           <div className="flex-1">
-            <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/50">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/75">
               <MousePointerClick className="h-3.5 w-3.5" /> Klicka för att placera
             </p>
             <div className="space-y-4">
@@ -2465,7 +2452,7 @@ export default function PlannerPage() {
                     {timesText && times.lengthAlongPathM > 0 && " · "}
                     {times.lengthAlongPathM > 0 && `Banlängd ~${times.lengthAlongPathM.toFixed(0)} m längs hundens väg`}
                     {times.refTimeIsEstimate && timesText && (
-                      <span className="mt-0.5 block font-normal text-ink/50">
+                      <span className="mt-0.5 block font-normal text-ink/75">
                         Domaren fastställer referenstiden på tävlingsdagen — maxtiden är 2 × referenstiden.
                       </span>
                     )}
@@ -2495,7 +2482,7 @@ export default function PlannerPage() {
                             href={issue.sourceUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="ml-3 mt-0.5 inline-block text-[11px] font-semibold text-ink/50 underline-offset-2 hover:text-ink hover:underline"
+                            className="ml-3 mt-0.5 inline-block text-[11px] font-semibold text-ink/75 underline-offset-2 hover:text-ink hover:underline"
                           >
                             Läs regeln{issue.ruleClause ? ` (${issue.ruleClause})` : ""} ↗
                           </a>
@@ -2535,14 +2522,14 @@ export default function PlannerPage() {
                   {selected ? (
                     <>
                       {selectedNumbered?.number != null && `#${selectedNumbered.number} `}{selectedDef?.label}
-                      <span className="block font-semibold text-ink/45">
+                      <span className="block font-semibold text-ink/75">
                         {selected.x.toFixed(2).replace(".", ",")} × {selected.y.toFixed(2).replace(".", ",")} m · {Math.round(((selected.rotation % 360) + 360) % 360)}°
                       </span>
                     </>
                   ) : (
                     <>
                       {selectionIds.length} hinder
-                      <span className="block font-semibold text-ink/45">
+                      <span className="block font-semibold text-ink/75">
                         {selectionLockedCount > 0 ? `${selectionLockedCount} låsta` : "Dra för att flytta gruppen"}
                       </span>
                     </>
@@ -2646,7 +2633,7 @@ export default function PlannerPage() {
                     {measure
                       ? <>Avstånd <span className="tabular-nums">{formatMeters(Math.hypot(measure.b.x - measure.a.x, measure.b.y - measure.a.y), 2)}</span></>
                       : "Dra mellan två punkter för att mäta"}
-                    <span className="hidden font-semibold text-ink/50 sm:inline"> · snäpper mot hindrens mitt</span>
+                    <span className="hidden font-semibold text-ink/75 sm:inline"> · snäpper mot hindrens mitt</span>
                   </span>
                   <button
                     type="button"
@@ -2668,7 +2655,7 @@ export default function PlannerPage() {
                   <SquareDashedMousePointer className="h-4 w-4 shrink-0 text-ember" />
                   <span className="text-xs font-bold leading-tight">
                     Tryck på hinder eller dra en ruta
-                    <span className="font-semibold text-ink/50"> · {selectionIds.length} markerade</span>
+                    <span className="font-semibold text-ink/75"> · {selectionIds.length} markerade</span>
                   </span>
                   <button
                     type="button"
@@ -2729,7 +2716,7 @@ export default function PlannerPage() {
                       <BookOpen className="h-4 w-4" /> Färdiga banor
                     </button>
                   </div>
-                  <p className="mt-3 text-xs font-semibold text-ink/45">
+                  <p className="mt-3 text-xs font-semibold text-ink/75">
                     Allt autosparas lokalt — du kan börja om när du vill.
                   </p>
                 </div>
@@ -2818,7 +2805,7 @@ export default function PlannerPage() {
               <Eraser className="h-5 w-5" />
             </ToolButton>
             <div className="mx-1.5 hidden h-8 w-px bg-ink/15 md:block" />
-            <span className="hidden text-xs font-semibold text-ink/50 md:block">
+            <span className="hidden text-xs font-semibold text-ink/75 md:block">
               {numbered.filter((o) => o.number != null).length} hinder
               {coursePath.points.length >= 2 && ` · ~${coursePath.total.toFixed(0)} m`}
               {times?.refTimeS != null && (draft.classTemplate || !times.refTimeIsEstimate) && ` · ref ${times.refTimeIsEstimate ? "~" : ""}${times.refTimeS} s`}
@@ -2828,7 +2815,7 @@ export default function PlannerPage() {
           {/* ── Mobildocka ── */}
           <div className="border-t-2 border-ink bg-paper p-2.5 lg:hidden">
             <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
-              <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wider text-ink/50">
+              <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wider text-ink/75">
                 {numbered.filter((o) => o.number != null).length} hinder
                 {coursePath.points.length >= 2 && ` · ~${coursePath.total.toFixed(0)} m`}
                 <span className="hidden sm:inline">
@@ -2838,10 +2825,10 @@ export default function PlannerPage() {
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setSettingsOpen(true)}
-                  className="inline-flex h-9 items-center gap-1.5 rounded-full border-2 border-ink bg-tang px-3 text-xs font-bold text-ink"
+                  className="inline-flex h-11 items-center gap-1.5 rounded-full border-2 border-ink bg-tang px-3 text-xs font-bold text-ink"
                   aria-haspopup="dialog"
                 >
-                  <SlidersHorizontal className="h-3.5 w-3.5" /> Bana
+                  <SlidersHorizontal className="h-3.5 w-3.5" /> Bana & regler
                 </button>
                 <button
                   onClick={() => zoomStep(-1)}
@@ -2944,7 +2931,7 @@ export default function PlannerPage() {
         <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto rounded-t-3xl border-t-2 border-ink bg-paper px-5 pb-8 pt-6">
           <SheetHeader className="mb-4 p-0 text-left">
             <SheetTitle className="font-display text-2xl uppercase tracking-wide">Bana & regler</SheetTitle>
-            <SheetDescription className="text-ink/60">
+            <SheetDescription className="text-ink/75">
               Sport, regelverk, klass, storlek och banmått. Ändringar kan ångras.
             </SheetDescription>
           </SheetHeader>
@@ -2957,7 +2944,7 @@ export default function PlannerPage() {
         <DialogContent className="border-2 border-ink bg-paper sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-display text-3xl uppercase tracking-wide">Dela din bana</DialogTitle>
-            <DialogDescription className="text-ink/60">
+            <DialogDescription className="text-ink/75">
               Hela banan kodas i länken — mottagaren behöver varken konto eller app.
             </DialogDescription>
           </DialogHeader>
@@ -2984,7 +2971,7 @@ export default function PlannerPage() {
             >
               <Share2 className="h-4 w-4" /> Dela publikt till communityn (betyg & kommentarer)
             </button>
-            <p className="text-xs leading-relaxed text-ink/50">
+            <p className="text-xs leading-relaxed text-ink/75">
               Länken fungerar direkt. Delar du publikt kan andra hitta banan på
               sidan Delade banor, betygsätta och bygga vidare på den.
             </p>

@@ -33,7 +33,7 @@ function ClubCard({ club }: { club: ClubSummary }) {
         )}
       </div>
       {club.locations.length > 0 && (
-        <p className="mt-2 flex items-start gap-1.5 text-sm font-semibold text-ink/55 [overflow-wrap:anywhere]">
+        <p className="mt-2 flex items-start gap-1.5 text-sm font-semibold text-ink/75 [overflow-wrap:anywhere]">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-forest" aria-hidden />
           {club.locations.slice(0, 3).join(", ")}
           {club.locations.length > 3 ? ` +${club.locations.length - 3}` : ""}
@@ -48,12 +48,12 @@ function ClubCard({ club }: { club: ClubSummary }) {
             {s}
           </span>
         ))}
-        <span className="text-ink/50">
+        <span className="text-ink/75">
           {club.upcoming} {club.upcoming === 1 ? "tävling" : "tävlingar"}
           {club.openRegistration > 0 ? ` · ${club.openRegistration} öppna` : ""}
         </span>
         <ArrowRight
-          className="ml-auto h-4 w-4 text-ink/40 transition-transform group-hover:translate-x-1 group-hover:text-ink"
+          className="ml-auto h-4 w-4 text-ink/75 transition-transform group-hover:translate-x-1 group-hover:text-ink"
           aria-hidden
         />
       </div>
@@ -115,7 +115,7 @@ export default function ClubsPage() {
         <Reveal>
           <label className="relative block max-w-xl">
             <span className="sr-only">Sök klubb, ort eller län</span>
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink/40" aria-hidden />
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink/75" aria-hidden />
             <input
               type="search"
               value={query}
@@ -124,7 +124,7 @@ export default function ClubsPage() {
               className="w-full rounded-full border-2 border-ink/15 bg-paper py-3 pl-12 pr-5 text-base font-bold text-ink transition-colors hover:border-ink focus:border-ink focus:outline-none"
             />
           </label>
-          <p className="mt-4 text-sm font-semibold text-ink/45" aria-live="polite">
+          <p className="mt-4 text-sm font-semibold text-ink/75" aria-live="polite">
             {loading
               ? "Hämtar klubbar…"
               : query.trim()
@@ -134,7 +134,7 @@ export default function ClubsPage() {
         </Reveal>
 
         {!loading && visible.length === 0 && (
-          <p className="mt-12 text-lg font-semibold text-ink/50">
+          <p className="mt-12 text-lg font-semibold text-ink/75">
             {clubs.length === 0
               ? "Tävlingsdatan kunde inte hämtas just nu. Försök igen om en stund."
               : "Ingen klubb matchar sökningen."}

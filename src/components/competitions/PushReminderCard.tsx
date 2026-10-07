@@ -54,7 +54,7 @@ export function PushReminderCard({ competitionKeys }: Props) {
   if (!supported) {
     return (
       <div className="rounded-3xl border-2 border-ink/15 bg-cream/60 p-6">
-        <p className="text-sm font-semibold text-ink/60">
+        <p className="text-sm font-semibold text-ink/75">
           Din webbläsare stödjer tyvärr inte push-notiser. Öppna sidan i Chrome, Edge, Firefox eller
           Safari så kan du få påminnelser när anmälan öppnar och stänger.
         </p>
@@ -70,12 +70,12 @@ export function PushReminderCard({ competitionKeys }: Props) {
             <Bell className="h-5 w-5 text-ember" />
             <h2 className="font-display text-2xl tracking-wide">Påminn mig om anmälan</h2>
           </div>
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-ink/60">
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-ink/75">
             Få en notis när anmälan öppnar och när den snart stänger (7, 3 och 1 dag före samt sista
             dagen) för dina sparade tävlingar. Inget konto behövs.
           </p>
           {needsInstall && (
-            <p className="mt-3 flex items-start gap-2 text-xs font-bold text-ink/55">
+            <p className="mt-3 flex items-start gap-2 text-xs font-bold text-ink/75">
               <Smartphone className="mt-0.5 h-4 w-4 shrink-0" />
               På iPhone: lägg först till sidan på hemskärmen via Dela → Lägg till på hemskärmen.
             </p>
@@ -106,7 +106,7 @@ export function PushReminderCard({ competitionKeys }: Props) {
         </button>
       </div>
       {!enabled && competitionKeys.length === 0 && (
-        <p className="mt-3 text-xs font-bold text-ink/45">
+        <p className="mt-3 text-xs font-bold text-ink/75">
           Spara minst en tävling med hjärtat för att kunna slå på påminnelser.
         </p>
       )}

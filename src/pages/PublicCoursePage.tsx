@@ -1,6 +1,8 @@
+import { SiteNav } from "@/components/SiteNav";
+import { SiteFooter } from "@/components/SiteFooter";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { ArrowLeft, Loader2, MessageSquare, Star, UserRound } from "lucide-react";
+import { Loader2, MessageSquare, Star, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Seo } from "@/components/Seo";
 import { supabase } from "@/integrations/supabase/client";
@@ -160,14 +162,7 @@ export default function PublicCoursePage() {
         description={`${course.sport === "hoopers" ? "Hoopers" : "Agility"}bana delad av ${course.author_name}. Öppna och bygg vidare i banplaneraren.`}
         noIndex
       />
-      <header className="border-b border-border px-4 py-3">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">
-          <Link to="/banplanerare" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Banplaneraren
-          </Link>
-          <Button asChild size="sm"><Link to="/banplanerare">Rita en egen bana</Link></Button>
-        </div>
-      </header>
+      <SiteNav /><div className="h-[4.25rem]" />
 
       <main className="mx-auto max-w-4xl space-y-6 p-4">
         <section>
@@ -271,6 +266,7 @@ export default function PublicCoursePage() {
           else if (typeof action === "number") void rate(action);
         }}
       />
+      <SiteFooter />
     </div>
   );
 }

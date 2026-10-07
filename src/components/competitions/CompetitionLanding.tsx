@@ -105,11 +105,11 @@ export function CompetitionLanding({
         <Reveal>
           <Link
             to="/tavlingar"
-            className="inline-flex items-center gap-2 text-sm font-bold text-ink/60 transition-colors hover:text-ink"
+            className="inline-flex items-center gap-2 text-sm font-bold text-ink/75 transition-colors hover:text-ink"
           >
             <ArrowLeft className="h-4 w-4" /> Alla tävlingar i Sverige
           </Link>
-          <p className="mt-4 text-sm font-semibold text-ink/45">
+          <p className="mt-4 text-sm font-semibold text-ink/75">
             {loading
               ? "Hämtar tävlingar…"
               : `${comps.length} kommande ${comps.length === 1 ? "tävling" : "tävlingar"} · ${openCount} med öppen anmälan`}
@@ -117,7 +117,7 @@ export function CompetitionLanding({
         </Reveal>
 
         {!loading && comps.length === 0 && (
-          <p className="mt-12 text-lg font-semibold text-ink/50">{text(emptyText)}</p>
+          <p className="mt-12 text-lg font-semibold text-ink/75">{text(emptyText)}</p>
         )}
 
         {groups.map(([month, list]) => (

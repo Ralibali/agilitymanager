@@ -85,7 +85,7 @@ export default function AccountPage() {
             kommentarer. Inget lösenord behövs. E-posten visas aldrig för andra och
             används inte till utskick.
           </p>
-          <p className="mt-4 text-sm font-semibold text-ink/60">
+          <p className="mt-4 text-sm font-semibold text-ink/75">
             {profile ? `Inloggad som ${profile.name}` : "Ingen banprofil i den här webbläsaren."}
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
@@ -120,7 +120,7 @@ export default function AccountPage() {
             Med ett konto (e-post och lösenord) kan banor sparas i molnet, kommenteras
             och delas med klubben — och följa med mellan dina enheter.
           </p>
-          <p className="mt-4 text-sm font-semibold text-ink/60">
+          <p className="mt-4 text-sm font-semibold text-ink/75">
             {loading ? "Kontrollerar…" : user ? `Inloggad som ${user.email}` : "Inte inloggad."}
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
@@ -143,7 +143,7 @@ export default function AccountPage() {
               </button>
             )}
           </div>
-          <p className="mt-5 flex items-start gap-2 text-xs leading-relaxed text-ink/55">
+          <p className="mt-5 flex items-start gap-2 text-xs leading-relaxed text-ink/75">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-forest" />
             Banan du ritar just nu sparas alltid lokalt i din webbläsare, med eller utan konto.
           </p>

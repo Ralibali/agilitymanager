@@ -1,3 +1,4 @@
+import ContentToc from "@/components/ContentToc";
 import type { ReactNode } from "react";
 import { Link, useParams } from "react-router";
 import { ArrowLeft, ArrowRight, CalendarDays, Clock3, RefreshCw } from "lucide-react";
@@ -64,6 +65,7 @@ export default function BlogArticlePage() {
 
   if (!article) return <NotFound />;
 
+  const author = { name: article.author && article.author !== "ChatGPT" ? article.author : "AgilityManagers redaktion", role: article.authorRole || (article.author === "ChatGPT" ? "Aurora Media AB · AI-assisterat textunderlag" : "Guider och banplanering · Aurora Media AB") };
   const related = article.related
     .map(getArticle)
     .filter((a): a is NonNullable<typeof a> => Boolean(a));
@@ -86,16 +88,17 @@ export default function BlogArticlePage() {
           dateModified: article.updatedAt,
           inLanguage: "sv-SE",
           mainEntityOfPage: `${SITE_URL}${blogArticlePath(article.slug)}`,
-          author: { "@type": "Organization", name: "AgilityManager" },
+          author: { "@type": "Organization", name: author.name, url: SITE_URL },
+          ...(article.rulesReviewedAt ? { lastReviewed: article.rulesReviewedAt, citation: article.rulesSources?.map(source => source.url) } : {}),
           publisher: { "@type": "Organization", name: "AgilityManager" },
         }}
       />
       <SiteNav />
 
-      <article className="mx-auto max-w-3xl px-4 pb-20 pt-[9.5rem] sm:px-6">
+      <main className="mx-auto max-w-6xl px-4 pb-20 pt-[7.25rem] sm:px-6"><article>
         <Link
           to="/blogg"
-          className="inline-flex items-center gap-2 text-sm font-bold text-ink/60 transition-colors hover:text-ink"
+          className="inline-flex items-center gap-2 text-sm font-bold text-ink/75 transition-colors hover:text-ink"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden /> Alla artiklar
         </Link>
@@ -107,7 +110,8 @@ export default function BlogArticlePage() {
           <h1 className="mt-5 font-display text-5xl leading-[1.02] tracking-[0.01em] sm:text-6xl">
             {article.title}
           </h1>
-          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-ink/55">
+          <p className="mt-5 text-sm font-semibold text-ink">Av {author.name} <span className="font-normal text-ink/80">· {author.role}</span></p>
+          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-ink/75">
             <span className="inline-flex items-center gap-1.5">
               <CalendarDays className="h-4 w-4" aria-hidden />
               Publicerad <time dateTime={article.publishedAt}>{fmtDate(article.publishedAt)}</time>
@@ -124,17 +128,20 @@ export default function BlogArticlePage() {
           </div>
         </header>
 
-        <div className="mt-8">
+        <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
+        <div id="agility-article" className="min-w-0">
+          {article.rulesReviewedAt && <p className="rounded-xl border-2 border-ink/20 bg-cream p-4 text-sm text-ink/80">Senast granskad mot SAgiK/SHoK-regler: <time dateTime={article.rulesReviewedAt}>{fmtDate(article.rulesReviewedAt)}</time>. Källor: {article.rulesSources?.map((source, index) => <span key={source.url}>{index > 0 && ' · '}<a href={source.url} className="font-semibold underline" target="_blank" rel="noreferrer">{source.label}</a></span>)}</p>}
           {article.blocks.map((block, i) => (
             <Block key={i} block={block} />
           ))}
         </div>
 
+        <div className="order-first self-start lg:order-none lg:sticky lg:top-28"><ContentToc target="#agility-article" /></div></div>
         {/* Kontextuell CTA in till planeraren */}
         <div className="mt-14 rounded-3xl border-2 border-ink bg-forest p-7 text-paper shadow-hard sm:p-9">
-          <p className="text-xs font-bold uppercase tracking-[0.24em] text-tang">Testa i praktiken</p>
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-paper">Testa i praktiken</p>
           <h2 className="mt-3 font-display text-4xl leading-[1.02] sm:text-5xl">{article.cta.heading}</h2>
-          <p className="mt-4 max-w-xl leading-relaxed text-paper/75">{article.cta.text}</p>
+          <p className="mt-4 max-w-xl leading-relaxed text-paper/90">{article.cta.text}</p>
           <Link
             to={article.cta.to}
             className="pressable pressable-light shadow-hard-paper mt-6 inline-flex h-14 items-center gap-2 rounded-full bg-tang px-8 text-lg font-bold text-ink"
@@ -163,7 +170,7 @@ export default function BlogArticlePage() {
         )}
 
         <PartnerAdCard className="mt-14" />
-      </article>
+      </article></main>
 
       <SiteFooter />
     </div>

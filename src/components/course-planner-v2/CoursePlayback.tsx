@@ -300,7 +300,7 @@ export function CoursePlaybackControls({
           </span>
           <div className="min-w-0">
             <p className="truncate text-xs font-black uppercase tracking-wider text-ink">Banvandring Pro</p>
-            <p className="text-[10px] font-semibold text-ink/50">Framförhållning · sekvensnavigator · coachprofil</p>
+            <p className="text-[10px] font-semibold text-ink/75">Framförhållning · sekvensnavigator · coachprofil</p>
           </div>
         </div>
 
@@ -359,7 +359,7 @@ export function CoursePlaybackControls({
 
       <div className="mt-2.5 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
         <div className="min-w-0">
-          <div className="mb-1.5 flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-wider text-ink/50">
+          <div className="mb-1.5 flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-wider text-ink/75">
             <span aria-live="polite">
               {current ? `Passage #${current.number}` : "Start"}
               {next && next !== current ? ` → #${next.number} · ${nextDistanceM.toFixed(1)} m` : " → mål"}
@@ -385,7 +385,7 @@ export function CoursePlaybackControls({
               type="button"
               onClick={() => setSpeed(s)}
               className={`h-7 rounded-lg px-2 transition ${
-                speed === s ? "bg-ink text-paper" : "text-ink/50 hover:bg-cream hover:text-ink"
+                speed === s ? "bg-ink text-paper" : "text-ink/75 hover:bg-cream hover:text-ink"
               }`}
               aria-pressed={speed === s}
               title={`${s}× visualiseringshastighet`}
@@ -399,8 +399,8 @@ export function CoursePlaybackControls({
       {checkpoints.length > 1 && (
         <div className="mt-2 rounded-xl border border-ink/10 bg-white/70 p-2">
           <div className="mb-1.5 flex items-center justify-between gap-2 px-0.5">
-            <span className="text-[9px] font-black uppercase tracking-wider text-ink/45">Sekvensnavigator</span>
-            <span className="text-[9px] font-semibold text-ink/35">Tryck på ett hinder för att hoppa dit</span>
+            <span className="text-[9px] font-black uppercase tracking-wider text-ink/75">Sekvensnavigator</span>
+            <span className="text-[9px] font-semibold text-ink/75">Tryck på ett hinder för att hoppa dit</span>
           </div>
           <div className="flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:thin]">
             {checkpoints.map((checkpoint, index) => {
@@ -418,7 +418,7 @@ export function CoursePlaybackControls({
                       ? "border-ink bg-ink text-paper shadow-hard-sm"
                       : isDone
                         ? "border-forest/25 bg-forest/10 text-forest"
-                        : "border-ink/10 bg-paper text-ink/55 hover:border-ink/30 hover:text-ink",
+                        : "border-ink/10 bg-paper text-ink/75 hover:border-ink/30 hover:text-ink",
                   ].join(" ")}
                   aria-current={isActive ? "step" : undefined}
                   aria-label={`Hoppa till hinder ${checkpoint.number}${isHotspot ? ", coach-hotspot" : ""}`}
@@ -437,24 +437,24 @@ export function CoursePlaybackControls({
 
       <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
         <div className="rounded-xl bg-cream px-2.5 py-2">
-          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Eye size={11} /> Sträcka</div>
+          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/75"><Eye size={11} /> Sträcka</div>
           <div className="mt-0.5 text-xs font-black tabular-nums text-ink">{(t * path.total).toFixed(0)} / {path.total.toFixed(0)} m</div>
-          <div className="mt-0.5 text-[9px] font-semibold text-ink/40">{formatSeconds(elapsedSeconds)} / {formatSeconds(totalSeconds)}</div>
+          <div className="mt-0.5 text-[9px] font-semibold text-ink/75">{formatSeconds(elapsedSeconds)} / {formatSeconds(totalSeconds)}</div>
         </div>
         <div className="rounded-xl bg-cream px-2.5 py-2">
-          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Activity size={11} /> Svårighet</div>
+          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/75"><Activity size={11} /> Svårighet</div>
           <div className="mt-0.5 text-xs font-black tabular-nums text-ink">{analysis.difficultyLabel} · {analysis.difficultyScore}</div>
-          <div className="mt-0.5 text-[9px] font-semibold text-ink/40">0–100 i coachpoäng</div>
+          <div className="mt-0.5 text-[9px] font-semibold text-ink/75">0–100 i coachpoäng</div>
         </div>
         <div className="rounded-xl bg-cream px-2.5 py-2">
-          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Route size={11} /> Flow</div>
+          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/75"><Route size={11} /> Flow</div>
           <div className="mt-0.5 text-xs font-black tabular-nums text-ink">{analysis.flowScore} / 100</div>
-          <div className="mt-0.5 text-[9px] font-semibold text-ink/40">{turnBalance}</div>
+          <div className="mt-0.5 text-[9px] font-semibold text-ink/75">{turnBalance}</div>
         </div>
         <div className="rounded-xl bg-cream px-2.5 py-2">
-          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/45"><Gauge size={11} /> Nästa</div>
+          <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-ink/75"><Gauge size={11} /> Nästa</div>
           <div className="mt-0.5 text-xs font-black text-ink">{next && next !== current ? `#${next.number} · ${nextDistanceM.toFixed(1)} m` : "Mål"}</div>
-          <div className="mt-0.5 text-[9px] font-semibold text-ink/40">{analysis.paceChanges} tempoväxlingar</div>
+          <div className="mt-0.5 text-[9px] font-semibold text-ink/75">{analysis.paceChanges} tempoväxlingar</div>
         </div>
       </div>
 
@@ -464,7 +464,7 @@ export function CoursePlaybackControls({
             <Sparkles size={13} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-black uppercase tracking-wider text-ink/55">Coachens fokus {hotspotSequence ? `· ${hotspotSequence}` : ""}</p>
+            <p className="text-[10px] font-black uppercase tracking-wider text-ink/75">Coachens fokus {hotspotSequence ? `· ${hotspotSequence}` : ""}</p>
             <p className="mt-0.5 text-xs font-semibold leading-relaxed text-ink/75">
               {topHotspot.reasons.slice(0, 2).join(" · ")}. Testa särskilt fart, linje och handling genom sekvensen.
             </p>
@@ -481,7 +481,7 @@ export function CoursePlaybackControls({
         </div>
       )}
 
-      <p className="mt-2 text-[10px] font-semibold leading-relaxed text-ink/45">
+      <p className="mt-2 text-[10px] font-semibold leading-relaxed text-ink/75">
         Visningshastighet, Flow och svårighet är AgilityManagers planeringsstöd — inte officiell referenstid eller klassning.
       </p>
 

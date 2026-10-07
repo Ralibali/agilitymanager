@@ -22,6 +22,9 @@ const ALL_FREE = [
 ];
 
 const FAQ = [
+  { q: "Kan vår klubb använda banplaneraren?", a: "Ja. Klubbens tränare kan rita, skriva ut och dela träningsbanor gratis. En banprofil behövs för att spara och hantera delade banor. Ni behöver ingen betald klubblicens för de funktionerna." },
+  { q: "Vad ger en banprofil eller ett konto?", a: "En gratis banprofil knyter sparade och delade banor till ditt namn. Ett konto ger tillgång till dina hundprofiler, resultat och träningshistorik. Börja på Mitt AgilityManager och välj de funktioner du behöver." },
+  { q: "Finns det en betalnivå i dag?", a: "Ingen betalnivå säljs på den här sidan. Eventuella framtida Premium-funktioner får egna tydliga priser innan du väljer dem." },
   {
     q: "Vad kostar banplaneraren?",
     a: "Ingenting. Hela banplaneraren — alla hinder, mallar, exporten, delningen, banbiblioteket och tävlingskalendern — använder du gratis. Du behöver varken konto eller kort för att komma igång.",
@@ -65,7 +68,7 @@ export default function GratisPage() {
       />
       <SiteNav />
       <PageHero kicker="Priser" title="Banplaneraren är gratis.">
-        Ingen provperiod, inget konto och inget kort för att rita, exportera och dela.
+        Ingen provperiod, inget konto och inget kort för att rita och exportera. En gratis banprofil behövs för att spara och dela.
         Framöver kan AgilityManager få Premium-funktioner för exempelvis avancerad
         träning, synk och instruktörsverktyg — banplaneraren förblir gratis.
       </PageHero>
@@ -74,7 +77,7 @@ export default function GratisPage() {
       <section className="border-b-2 border-ink bg-forest text-paper">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:py-28">
           <Reveal>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-tang">Gratis — det du får i dag</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-paper">Gratis — det du får i dag</p>
             <p className="mt-4 font-display text-[10rem] leading-none sm:text-[14rem]">
               0 <span className="text-6xl sm:text-8xl">kr</span>
             </p>
@@ -101,6 +104,13 @@ export default function GratisPage() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-7xl px-4 pt-14 sm:px-6">
+        <h2 className="font-display text-4xl uppercase">Välj hur du vill använda AgilityManager</h2>
+        <div className="mt-6 grid gap-5 md:grid-cols-3">
+          {[['Utan konto · 0 kr', 'Rita banor, exportera bilder och sök tävlingar. Utkastet sparas i din webbläsare.'], ['Gratis banprofil & konto', 'Spara och dela banor med din profil. Använd kontot för hundprofiler, resultat och träningshistorik.'], ['Framtida Premium', 'Ingen betalnivå säljs här i dag. Nya betalfunktioner får tydliga villkor och priser innan du väljer dem.']].map(([title, text]) => <article key={title} className="rounded-2xl border-2 border-ink bg-paper p-6 shadow-hard-sm"><h3 className="font-display text-2xl uppercase">{title}</h3><p className="mt-3 leading-relaxed text-ink/80">{text}</p></article>)}
+        </div>
+        <Link to="/mitt-agilitymanager" className="mt-6 inline-flex min-h-11 items-center rounded-full border-2 border-ink px-6 font-bold">Skapa gratis banprofil eller konto</Link>
+      </section>
       {/* Varför gratis + e-post */}
       <section className="mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:py-28">
         <Reveal>

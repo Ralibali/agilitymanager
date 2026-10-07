@@ -128,7 +128,7 @@ test("autosparfel visas och försök igen sparar banan", async ({ page }) => {
   await expect(page.getByRole("status").filter({ hasText: "Sparad i den här webbläsaren" })).toBeVisible();
 });
 
-test("tunnel: placera, böj, dra, ångra och ladda om", async ({ page }) => {
+test("tunnel: placera, böj, dra, ångra och ladda om", async ({ page }, testInfo) => {
   await openPlanner(page);
   const box = await canvasBox(page);
 
@@ -140,15 +140,24 @@ test("tunnel: placera, böj, dra, ångra och ladda om", async ({ page }) => {
   // Markera tunneln (där den faktiskt ritas) och böj den.
   const tunnel = page.locator("[data-obstacle-id]").first();
   await tunnel.click();
+  if (testInfo.project.name === "mobil") await page.getByRole("button", { name: "Egenskaper", exact: true }).click();
   const slider = page.locator("input[type=range]").last();
   await slider.waitFor();
   await slider.fill("75");
   await slider.dispatchEvent("change");
   await expect.poll(async () => (await draft(page))?.obstacles?.[0]?.curveDeg).toBe(75);
+  if (testInfo.project.name === "mobil") {
+    await page.getByRole("button", { name: "Klar – tillbaka till banan", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Hindrets egenskaper" })).toBeHidden();
+  }
 
   // Dragning ska ge exakt ett ångra-steg och flytta hindret.
   const before = (await draft(page)).obstacles[0];
   const tb = (await tunnel.boundingBox())!;
+  expect(await tunnel.evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    return element.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+  })).toBe(true);
   await page.mouse.move(tb.x + tb.width / 2, tb.y + tb.height / 2);
   await page.mouse.down();
   await page.mouse.move(box.x + box.width * 0.62, box.y + box.height * 0.3, { steps: 12 });
@@ -202,7 +211,7 @@ test("surfplatta: hinderpaletten och baninställningarna går att nå", async ({
   await expect(page.getByRole("button", { name: "Placera tunnel" })).toBeVisible();
 
   // Sport, regelverk och klass kan väljas i inställningsbladet.
-  await page.getByRole("button", { name: "Bana", exact: true }).click();
+  await page.getByRole("button", { name: "Bana & regler", exact: true }).click();
   const sheet = page.getByRole("dialog", { name: "Bana & regler" });
   await expect(sheet).toBeVisible();
   await sheet.getByRole("button", { name: "Hoopers", exact: true }).click();

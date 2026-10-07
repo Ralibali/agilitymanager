@@ -15,6 +15,7 @@ import { PAGE_SEO, seoProps } from "@/lib/pageSeo";
 import { uid, type PlacedObstacle, type Sport } from "@/lib/course";
 import { ObstacleGlyph, ObstacleIcon } from "@/components/ObstacleGlyph";
 import { SiteNav } from "@/components/SiteNav";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
@@ -307,6 +308,7 @@ function loadInitial(search: URLSearchParams): Draft {
 }
 
 export default function PlannerPage() {
+  const isMobile = useIsMobile();
   const [search] = useSearchParams();
   const { profile: plannerProfile } = usePlannerProfile();
   const isExternalCopy = search.has("bana") || search.has("template") || search.has("delad");
@@ -346,7 +348,7 @@ export default function PlannerPage() {
       /* ignorera */
     }
     // Standard: utfälld på dator, hopfälld i mobilen (där ytan är liten).
-    return typeof window === "undefined" || window.innerWidth >= 640;
+    return typeof window === "undefined" || window.innerWidth >= 768;
   });
   const setInspectorOpen = useCallback((open: boolean) => {
     setInspectorOpenState(open);
@@ -1911,6 +1913,23 @@ export default function PlannerPage() {
     onArena: setArena,
   };
   const settingsPanel = <PlannerSettings {...settingsProps} />;
+  const inspectorProps = {
+    open: inspectorOpen,
+    onOpenChange: setInspectorOpen,
+    obstacle: selected,
+    obstacleLabel: selectedDef?.label,
+    number: selectedNumbered?.number ?? null,
+    competingCount,
+    arena,
+    onPosition: setSelectedPosition,
+    onRotation: setSelectedRotation,
+    onNumber: setSelectedNumber,
+    onTunnelCurve: setTunnelCurve,
+    multiCount: selectionIds.length,
+    multiLockedCount: selectionLockedCount,
+    onAlign: alignSelection,
+    onDistribute: distributeSelection,
+  };
 
   /** Tider enligt aktivt regelverk — aldrig "0 s" när en tid saknas. */
   const timesText = (() => {
@@ -2538,6 +2557,9 @@ export default function PlannerPage() {
                 <span className="px-1 text-xs font-black text-ink/70 sm:hidden" aria-hidden>
                   {selectionIds.length > 1 ? selectionIds.length : selectedNumbered?.number != null ? `#${selectedNumbered.number}` : ""}
                 </span>
+                {isMobile && <ToolButton onClick={() => setInspectorOpen(true)} label="Egenskaper">
+                  <SlidersHorizontal className="h-4 w-4" />
+                </ToolButton>}
                 <ToolButton onClick={() => rotateBy(-45)} label="Rotera 45° moturs (Shift+R)" disabled={selectionMovable === 0}>
                   <RotateCcw className="h-4 w-4" />
                 </ToolButton>
@@ -2571,28 +2593,14 @@ export default function PlannerPage() {
             )}
 
             {/* Egenskaper: exakta mått, banordning, tunnelböjning, justering */}
-            {hasSelection && !playbackActive && !numbering && (
+            {hasSelection && !playbackActive && !numbering && !isMobile && (
               <ObstacleInspector
                 className={`absolute inset-x-3 z-30 max-h-[45%] overflow-y-auto sm:inset-x-auto sm:left-3 sm:w-72 ${
                   // Mobil: under regelkontrollknappen (och ev. statusbanner),
                   // så att mitten av planen och åtgärdsraden syns.
                   placing || multiMode ? "top-[7.4rem]" : "top-[4.6rem]"
                 } ${showRulers ? "sm:top-[2.2rem]" : "sm:top-3"}`}
-                open={inspectorOpen}
-                onOpenChange={setInspectorOpen}
-                obstacle={selected}
-                obstacleLabel={selectedDef?.label}
-                number={selectedNumbered?.number ?? null}
-                competingCount={competingCount}
-                arena={arena}
-                onPosition={setSelectedPosition}
-                onRotation={setSelectedRotation}
-                onNumber={setSelectedNumber}
-                onTunnelCurve={setTunnelCurve}
-                multiCount={selectionIds.length}
-                multiLockedCount={selectionLockedCount}
-                onAlign={alignSelection}
-                onDistribute={distributeSelection}
+                {...inspectorProps}
               />
             )}
 
@@ -2925,6 +2933,17 @@ export default function PlannerPage() {
           </div>
         </main>
       </div>
+
+      <Sheet open={isMobile && hasSelection && !playbackActive && !numbering && inspectorOpen} onOpenChange={setInspectorOpen}>
+        <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto rounded-t-3xl border-t-2 border-ink bg-paper px-5 pb-8 pt-6">
+          <SheetHeader className="mb-4 p-0 text-left">
+            <SheetTitle className="font-display text-2xl uppercase tracking-wide">Hindrets egenskaper</SheetTitle>
+            <SheetDescription className="text-ink/75">Justera mått och tunnelböjning. Stäng panelen för att fortsätta rita.</SheetDescription>
+          </SheetHeader>
+          <ObstacleInspector {...inspectorProps} open={true} />
+          <button type="button" onClick={() => setInspectorOpen(false)} className="mt-4 min-h-11 w-full rounded-full border-2 border-ink bg-forest px-5 py-2 font-bold text-white shadow-hard-sm">Klar – tillbaka till banan</button>
+        </SheetContent>
+      </Sheet>
 
       {/* ── Baninställningar (surfplatta/mobil) ── */}
       <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>

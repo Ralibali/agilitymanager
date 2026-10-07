@@ -67,7 +67,7 @@ export default function InstructorPage() {
           </header>
           {profile ? (
             <>
-              <p className="text-sm text-ink/60">
+              <p className="text-sm text-ink/75">
                 Profil: {profile.name}. Åtkomsten följer din banplanerarprofil i
                 den här webbläsaren. Grupperna sparas i molnet.
               </p>
@@ -271,7 +271,7 @@ function GroupWorkspace({
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-display text-4xl">{board.group.name}</h2>
-          <p className="text-sm text-ink/60">
+          <p className="text-sm text-ink/75">
             {board.students.filter((s) => s.active).length} aktiva elever ·{" "}
             {board.assignments.filter((a) => !a.archived).length} öppna
             uppgifter
@@ -294,7 +294,7 @@ function GroupWorkspace({
       )}
       <section className="rounded-3xl border-2 border-ink bg-white p-5 space-y-4">
         <h3 className="font-display text-3xl">Elever och åtkomst</h3>
-        <p className="text-sm text-ink/60">
+        <p className="text-sm text-ink/75">
           Varje elev får en personlig länk som gäller i 180 dagar. Dela den
           direkt med rätt elev. En ny länk stänger den gamla.
         </p>
@@ -352,7 +352,7 @@ function GroupWorkspace({
           </label>
         </div>
         {!board.assignments.length && (
-          <p className="text-sm text-ink/60">
+          <p className="text-sm text-ink/75">
             Inga uppgifter ännu. Börja med ett tydligt träningsmål.
           </p>
         )}
@@ -399,7 +399,7 @@ function GroupWorkspace({
                         {s.name}
                         {s.dog ? ` & ${s.dog}` : ""}
                       </strong>
-                      <span className="mt-1 block text-xs text-ink/60">
+                      <span className="mt-1 block text-xs text-ink/75">
                         {progressFor(s.id, a.id, board.progress)}
                       </span>
                     </summary>
@@ -499,7 +499,7 @@ function GroupWorkspace({
         </button>
       )}
       {board.next_cursor && (
-        <p className="text-sm text-ink/60">
+        <p className="text-sm text-ink/75">
           De senaste rapporterna visas. Elevstatusen bygger på samtliga
           rapporter.
         </p>
@@ -591,7 +591,7 @@ function StudentAccess({
         {student.name}
         {student.dog ? ` & ${student.dog}` : ""}
       </p>
-      <p className="text-xs text-ink/60">
+      <p className="text-xs text-ink/75">
         {!student.active
           ? "Åtkomst stängd"
           : expired
@@ -756,7 +756,7 @@ function AssignmentForm({
   return (
     <section className="rounded-3xl border-2 border-ink bg-tang/10 p-5">
       <h3 className="font-display text-3xl">Ge en träningsuppgift</h3>
-      <p className="mt-2 text-sm text-ink/60">
+      <p className="mt-2 text-sm text-ink/75">
         Uppgiften sparas med sitt innehåll. Stäng den och skapa en ny om målet
         behöver ändras.
       </p>

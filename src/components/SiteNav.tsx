@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router";
 import { Menu, X, ArrowRight, ChevronDown, UserRound } from "lucide-react";
 import { Paw } from "./Marquee";
-import { AffiliateBanner } from "./AffiliateBanner";
-import { AFFILIATE_PARTNERS } from "@/lib/affiliate";
 
 /**
  * Huvudnavigationen är grupperad i fyra produktområden plus kontoytan, så att
@@ -75,6 +73,9 @@ export function Logo({ dark = false }: { dark?: boolean }) {
 function DesktopGroup({ group, active }: { group: NavGroup; active: boolean }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
+  const hoverOpened = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -82,7 +83,7 @@ function DesktopGroup({ group, active }: { group: NavGroup; active: boolean }) {
       if (!ref.current?.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") { setOpen(false); trigger.current?.focus(); }
     };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
@@ -96,14 +97,20 @@ function DesktopGroup({ group, active }: { group: NavGroup; active: boolean }) {
     <div
       ref={ref}
       className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={() => { hoverOpened.current = true; setOpen(true); }}
+      onMouseLeave={() => { hoverOpened.current = false; if (!ref.current?.contains(document.activeElement)) setOpen(false); }}
+      onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false); }}
     >
       <button
+        ref={trigger}
         type="button"
+        aria-controls={menuId}
         aria-expanded={open}
         aria-haspopup="true"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => { if (hoverOpened.current) { setOpen(true); hoverOpened.current = false; } else setOpen(v => !v); }}
+        onKeyDown={(event) => {
+          if (event.key === 'ArrowDown') { event.preventDefault(); setOpen(true); requestAnimationFrame(() => ref.current?.querySelector('a')?.focus()); }
+        }}
         className={`flex items-center gap-1 rounded-full px-3.5 py-2 text-sm font-semibold transition-colors ${
           active ? "bg-ink text-paper" : "text-ink/70 hover:bg-ink/5 hover:text-ink"
         }`}
@@ -113,7 +120,7 @@ function DesktopGroup({ group, active }: { group: NavGroup; active: boolean }) {
       </button>
       {open ? (
         <div className="absolute left-0 top-full w-[19rem] pt-2">
-          <ul className="overflow-hidden rounded-2xl border-2 border-ink bg-paper p-1.5 shadow-hard">
+          <ul id={menuId} className="overflow-hidden rounded-2xl border-2 border-ink bg-paper p-1.5 shadow-hard">
             {group.links.map((l) => (
               <li key={l.to}>
                 <Link
@@ -122,7 +129,7 @@ function DesktopGroup({ group, active }: { group: NavGroup; active: boolean }) {
                   className="block rounded-xl px-3.5 py-2.5 transition-colors hover:bg-ink/5"
                 >
                   <span className="block text-sm font-bold text-ink">{l.label}</span>
-                  {l.text ? <span className="block text-xs text-ink/55">{l.text}</span> : null}
+                  {l.text ? <span className="block text-xs text-ink/75">{l.text}</span> : null}
                 </Link>
               </li>
             ))}
@@ -136,6 +143,8 @@ function DesktopGroup({ group, active }: { group: NavGroup; active: boolean }) {
 export function SiteNav() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const mobileMenu = useRef<HTMLDivElement>(null);
+  const mobileTrigger = useRef<HTMLButtonElement>(null);
   const location = useLocation();
 
   // Stäng mobilmenyn vid navigation — state-justering under render
@@ -154,8 +163,27 @@ export function SiteNav() {
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
+    if (!open) return;
+    const focusable = () => Array.from(mobileMenu.current?.querySelectorAll<HTMLElement>('a[href], button') || []);
+    focusable()[1]?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setOpen(false);
+        mobileTrigger.current?.focus();
+      }
+      if (event.key === 'Tab') {
+        const items = focusable();
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
+    };
+    document.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = "";
+      document.removeEventListener('keydown', onKey);
     };
   }, [open]);
 
@@ -165,21 +193,11 @@ export function SiteNav() {
   return (
     <>
       <header className="fixed inset-x-0 top-0 z-50 transition-all duration-300">
-        {AFFILIATE_PARTNERS.length && location.pathname !== "/" ? <AffiliateBanner compact /> : (
-        <Link
-          to="/banplanerare"
-          className="group flex h-10 items-center justify-center gap-2 border-b-2 border-ink bg-tang px-3 text-center text-[0.8rem] font-extrabold uppercase tracking-[0.12em] text-ink transition-colors hover:bg-ember hover:text-paper sm:text-[0.85rem]"
-        >
-          <Paw className="h-4 w-4 shrink-0" />
-          <span>Banplaneraren är gratis — börja rita utan konto</span>
-          <ArrowRight className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1.5" />
-        </Link>
-        )}
         <div
           className={`border-b transition-all duration-300 ${
             scrolled
-              ? "border-ink/10 bg-paper/90 backdrop-blur-md"
-              : "border-transparent bg-paper/60 backdrop-blur-sm"
+              ? "border-ink/10 bg-paper backdrop-blur-md"
+              : "border-transparent bg-paper backdrop-blur-sm"
           }`}
         >
           <div className="mx-auto flex h-[4.25rem] max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6">
@@ -188,6 +206,7 @@ export function SiteNav() {
             {NAV_GROUPS.map((g) => (
               <DesktopGroup key={g.label} group={g} active={isGroupActive(g)} />
             ))}
+            <NavLink to="/priser" className="rounded-full px-3 py-2 text-sm font-semibold text-ink/80">Priser</NavLink>
             <NavLink
               to={ACCOUNT_LINK.to}
               className={({ isActive }) =>
@@ -202,14 +221,17 @@ export function SiteNav() {
           <div className="flex items-center gap-2.5">
             <Link
               to="/banplanerare"
-              className="pressable shadow-hard-sm hidden items-center gap-2 rounded-full bg-tang whitespace-nowrap px-4 py-2.5 text-[0.84rem] font-bold text-ink sm:inline-flex"
+              className={`pressable shadow-hard-sm hidden items-center gap-2 rounded-full border-2 border-ink whitespace-nowrap px-4 py-2.5 text-[0.84rem] font-bold text-ink sm:inline-flex ${location.pathname.startsWith("/tavlingar") ? "bg-paper" : "bg-tang"}`}
             >
               Rita gratis <ArrowRight className="h-4 w-4" />
             </Link>
             <button
+              ref={mobileTrigger}
               onClick={() => setOpen(true)}
               className="grid h-11 w-11 place-items-center rounded-full border-2 border-ink bg-paper lg:hidden"
               aria-label="Öppna meny"
+              aria-expanded={open}
+              aria-controls="mobile-site-menu"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -220,6 +242,8 @@ export function SiteNav() {
 
       {/* Mobil fullskärmsmeny — grupperad, ett fåtal huvudval */}
       <div
+        ref={mobileMenu}
+        id="mobile-site-menu"
         className={`fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-ink text-paper transition-all duration-500 lg:hidden ${
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}

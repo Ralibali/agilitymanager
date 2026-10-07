@@ -208,8 +208,11 @@ test("mobil: välj flera med tryck och numrera från dockan", async ({ page }, t
   await badge(page, a).click();
   await badge(page, d).click();
   await expect(page.getByRole("status").filter({ hasText: "2 markerade" })).toBeVisible();
+  await page.getByRole("button", { name: "Egenskaper", exact: true }).click();
   const inspector = page.getByRole("region", { name: "Egenskaper för markerade hinder" });
   await expect(inspector).toContainText("2 hinder markerade");
+  await page.getByRole("button", { name: "Klar – tillbaka till banan", exact: true }).click();
+  await expect(inspector).toBeHidden();
   // Ett tryck på ett markerat hinder tar bort det ur markeringen …
   await badge(page, a).click();
   await expect(page.getByRole("status").filter({ hasText: "1 markerade" })).toBeVisible();

@@ -1,3 +1,4 @@
+import { AffiliateBanner } from "./AffiliateBanner";
 import { Link } from "react-router";
 import { Paw } from "./Marquee";
 import { openCookieSettings } from "@/lib/privacyConsent";
@@ -8,6 +9,8 @@ const COLS: { title: string; links: { to: string; label: string }[] }[] = [
     links: [
       { to: "/banplanerare", label: "Banplaneraren" },
       { to: "/funktioner", label: "Funktioner" },
+      { to: "/priser", label: "Priser" },
+      { to: "/integritet", label: "Integritetspolicy" },
       { to: "/banor", label: "Banbibliotek" },
       { to: "/delade-banor", label: "Delade banor" },
     ],
@@ -47,6 +50,8 @@ const COLS: { title: string; links: { to: string; label: string }[] }[] = [
 
 export function SiteFooter() {
   return (
+    <>
+    <AffiliateBanner />
     <footer className="relative overflow-hidden bg-ink text-paper">
       <div className="mx-auto max-w-7xl px-4 pb-10 pt-16 sm:px-6 sm:pt-20">
         <div className="grid gap-12 lg:grid-cols-[1.2fr_2fr]">
@@ -74,7 +79,7 @@ export function SiteFooter() {
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
             {COLS.map((col) => (
               <div key={col.title}>
-                <h3 className="text-xs font-bold uppercase tracking-[0.22em] text-paper/40">
+                <h3 className="text-xs font-bold uppercase tracking-[0.22em] text-paper/75">
                   {col.title}
                 </h3>
                 <ul className="mt-4 space-y-2.5">
@@ -94,21 +99,21 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-16 select-none overflow-hidden" aria-hidden>
-          <div className="whitespace-nowrap font-display text-[19vw] leading-[0.85] tracking-[0.02em] text-paper/[0.07] lg:text-[13rem]">
+        <div className="mt-16 select-none overflow-hidden" aria-hidden="true">
+          <div className="whitespace-nowrap font-display text-[19vw] leading-[0.85] tracking-[0.02em] text-paper/75 lg:text-[13rem]">
             AGILITYMANAGER
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-paper/10 pt-6 text-sm text-paper/45 sm:flex-row sm:items-center">
-          <p>© {new Date().getFullYear()} AgilityManager</p>
+        <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-paper/10 pt-6 text-sm text-paper/75 sm:flex-row sm:items-center">
+          <p>© {new Date().getFullYear()} AgilityManager<br />Aurora Media AB · Org.nr 559272-0220</p>
           <a href="mailto:info@auroramedia.se" className="underline hover:text-tang">info@auroramedia.se</a>
           <button type="button" onClick={openCookieSettings} className="underline hover:text-tang">
             Cookieinställningar
           </button>
-          <p className="text-paper/35">Byggt för svensk agility och hoopers</p>
+          <p className="text-paper/75">Byggt för svensk agility och hoopers</p>
         </div>
       </div>
-    </footer>
+    </footer></>
   );
 }

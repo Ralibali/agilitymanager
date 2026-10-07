@@ -71,12 +71,12 @@ export default function FavoriteCompetitionsPage() {
             {count > 0 && (
               <button
                 onClick={clear}
-                className="inline-flex items-center gap-2 rounded-full border-2 border-ink/15 px-5 py-2.5 text-sm font-bold text-ink/60 transition-colors hover:border-ink hover:text-ink"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-ink/15 px-5 py-2.5 text-sm font-bold text-ink/75 transition-colors hover:border-ink hover:text-ink"
               >
                 <Trash2 className="h-4 w-4" /> Töm listan
               </button>
             )}
-            <span className="text-sm font-semibold text-ink/45">
+            <span className="text-sm font-semibold text-ink/75">
               {loading ? "Hämtar tävlingar…" : `${favorites.length} sparade tävlingar`}
             </span>
           </div>
@@ -91,7 +91,7 @@ export default function FavoriteCompetitionsPage() {
             <div className="rounded-3xl border-2 border-dashed border-ink/20 bg-cream/50 p-10 text-center">
               <Heart className="mx-auto h-8 w-8 text-ember" />
               <h2 className="mt-4 font-display text-3xl tracking-wide">Inga favoriter än</h2>
-              <p className="mx-auto mt-3 max-w-md text-sm font-semibold leading-relaxed text-ink/55">
+              <p className="mx-auto mt-3 max-w-md text-sm font-semibold leading-relaxed text-ink/75">
                 {count > 0
                   ? "Dina sparade tävlingar har passerat eller finns inte längre i kalendern."
                   : "Tryck på hjärtat på en tävling i kalendern så samlas den här."}

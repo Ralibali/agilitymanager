@@ -91,7 +91,7 @@ export default function FeaturesPage() {
                   >
                     <it.icon className={`h-7 w-7 ${gi === 0 ? "text-forest" : "text-tang"}`} strokeWidth={2.2} />
                     <h3 className="mt-5 text-lg font-extrabold tracking-tight">{it.t}</h3>
-                    <p className={`mt-2 text-[0.95rem] leading-relaxed ${gi === 0 ? "text-ink/60" : "text-paper/60"}`}>
+                    <p className={`mt-2 text-[0.95rem] leading-relaxed ${gi === 0 ? "text-ink/75" : "text-paper/60"}`}>
                       {it.d}
                     </p>
                   </article>

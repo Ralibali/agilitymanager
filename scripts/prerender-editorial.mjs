@@ -8,14 +8,17 @@ const template=await readFile('dist/index.html','utf8');
 const esc=(v)=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const inline=(text)=>esc(text).replace(/\[([^\]]+)\]\(([^)]+)\)/g,(_,label,href)=>`<a href="${href}">${label}</a>`);
 for(const a of ARTICLES){
+ const author = a.author && a.author !== 'ChatGPT' ? a.author : 'AgilityManagers redaktion';
+ const role = a.authorRole || (a.author === 'ChatGPT' ? 'Aurora Media AB · AI-assisterat textunderlag' : 'Guider och banplanering · Aurora Media AB');
+ const reviewed = a.rulesReviewedAt ? `<p>Senast granskad mot SAgiK/SHoK-regler: <time datetime="${esc(a.rulesReviewedAt)}">${esc(a.rulesReviewedAt)}</time>. ${(a.rulesSources || []).map(s => `<a href="${esc(s.url)}">${esc(s.label)}</a>`).join(' · ')}</p>` : '';
  const canonical=`https://agilitymanager.se/blogg/${a.slug}`;
- const schema=JSON.stringify({'@context':'https://schema.org','@type':'BlogPosting',headline:a.title,description:a.description,datePublished:a.publishedAt,dateModified:a.updatedAt,inLanguage:'sv-SE',mainEntityOfPage:canonical,author:{'@type':'Organization',name:'AgilityManager'}}).replace(/</g,'\\u003c');
+ const schema=JSON.stringify({'@context':'https://schema.org','@type':'BlogPosting',headline:a.title,description:a.description,datePublished:a.publishedAt,dateModified:a.updatedAt,inLanguage:'sv-SE',mainEntityOfPage:canonical,author:{'@type':'Organization',name:author,url:'https://agilitymanager.se'},...(a.rulesReviewedAt?{lastReviewed:a.rulesReviewedAt,citation:a.rulesSources?.map(s=>s.url)}:{})}).replace(/</g,'\\u003c');
  // Behåll og:image, og:site_name, og:locale och twitter:card från mallen —
  // de är samma för alla sidor och behövs för länkförhandsvisningar.
  let html=template.replace(/<title>[\s\S]*?<\/title>/i,'').replace(/<meta\b[^>]*(?:name="(?:description|robots)"|property="og:(?:title|description|url|type)")[^>]*>/gi,'').replace(/<link\b[^>]*rel="canonical"[^>]*>/gi,'').replace(/<script[^>]*type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/gi,'');
  html=html.replace('</head>',`<title>${esc(a.title)} | AgilityManager</title><meta name="description" content="${esc(a.description)}"><meta name="robots" content="index,follow"><link rel="canonical" href="${canonical}"><meta property="og:type" content="article"><meta property="og:title" content="${esc(a.title)}"><meta property="og:description" content="${esc(a.description)}"><meta property="og:url" content="${canonical}"><meta property="article:published_time" content="${esc(a.publishedAt)}"><meta property="article:modified_time" content="${esc(a.updatedAt)}"><script type="application/ld+json">${schema}</script></head>`);
  const body=a.blocks.map(b=>b.type==='ul'?`<ul>${b.items.map(t=>`<li>${inline(t)}</li>`).join('')}</ul>`:b.type==='h2'?`<h2>${esc(b.text)}</h2>`:`<p>${inline(b.text)}</p>`).join('');
- html=html.replace('<div id="root"></div>',`<div id="root"><main class="mx-auto max-w-3xl px-6 py-16"><a href="/blogg">Alla artiklar</a><article class="prose"><h1>${esc(a.title)}</h1><p>${esc(a.description)}</p><time datetime="${a.publishedAt}">${a.publishedAt}</time>${body}<h2>${esc(a.cta.heading)}</h2><p>${esc(a.cta.text)}</p><a href="${esc(a.cta.to)}">${esc(a.cta.label)}</a></article></main></div>`);
+ html=html.replace('<div id="root"></div>',`<div id="root"><main class="mx-auto max-w-3xl px-6 py-16"><a href="/blogg">Alla artiklar</a><article class="prose"><h1>${esc(a.title)}</h1><p>${esc(a.description)}</p><p>Av ${esc(author)} · ${esc(role)}</p>${reviewed}<time datetime="${a.publishedAt}">${a.publishedAt}</time>${body}<h2>${esc(a.cta.heading)}</h2><p>${esc(a.cta.text)}</p><a href="${esc(a.cta.to)}">${esc(a.cta.label)}</a></article></main></div>`);
  await mkdir(`dist/blogg/${a.slug}`,{recursive:true}); await writeFile(`dist/blogg/${a.slug}/index.html`,html);
 }
 console.log(`Prerendered ${ARTICLES.length} complete blog articles.`);

@@ -70,7 +70,7 @@ export function CompetitionMap({ center, competitions, className }: Props) {
           >
             <Popup>
               <span className="block text-sm font-bold text-ink">{c.name}</span>
-              <span className="block text-xs font-semibold text-ink/60">
+              <span className="block text-xs font-semibold text-ink/75">
                 {c.location || c.county || "Plats saknas"} · {formatDistance(c.distanceKm)}
                 {c.approximate ? " (ungefärligt läge)" : ""}
               </span>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daysUntil, deadlineInfo } from "./competitionData";
+import { daysUntil, deadlineInfo, normalizeJudges, agilityToUnified, type AgilityCompetition } from "./competitionData";
 import { localIsoDate } from "./format";
 
 describe("datum i lokal tid", () => {
@@ -20,5 +20,17 @@ describe("datum i lokal tid", () => {
   it("en anmälan som stängde i går visas som stängd strax efter midnatt", () => {
     expect(deadlineInfo("2026-10-05", justAfterMidnight).tone).toBe("closed");
     expect(deadlineInfo("2026-10-06", justAfterMidnight).label).toBe("Sista anmälningsdag i dag");
+  });
+});
+
+
+describe('domarnamn från tävlingskällor', () => {
+  it('deduplicerar den upprepade källetiketten på tävling 10144', () => {
+    const comp = agilityToUnified({ id: '10144', judges: ['Malin Lindskog Malin Lindskog'] } as AgilityCompetition);
+    expect(comp.judges).toEqual(['Malin Lindskog']);
+  });
+  it('rensar HTML, whitespace och dubletter men bevarar olika domare', () => {
+    expect(normalizeJudges(['<b>Malin Lindskog</b>', ' malin  lindskog ', 'Anna Svensson; Anna Andersson'])).toEqual(['Malin Lindskog', 'Anna Svensson', 'Anna Andersson']);
+    expect(normalizeJudges([null, ''])).toEqual([]);
   });
 });

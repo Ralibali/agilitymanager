@@ -40,7 +40,7 @@ export function ConfirmDialog({
             {title}
           </AlertDialogTitle>
           {description && (
-            <AlertDialogDescription className="text-ink/60">{description}</AlertDialogDescription>
+            <AlertDialogDescription className="text-ink/75">{description}</AlertDialogDescription>
           )}
         </AlertDialogHeader>
         <AlertDialogFooter>

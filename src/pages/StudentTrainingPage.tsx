@@ -67,7 +67,7 @@ function StudentWorkspace({ token }: { token: string }) {
               {data.student.dog ? ` & ${data.student.dog}` : ""}
             </p>
           )}
-          <p className="mt-3 text-sm text-ink/60">
+          <p className="mt-3 text-sm text-ink/75">
             Länken är personlig. Rapporter och videolänkar delas med din
             instruktör.
           </p>
@@ -175,7 +175,7 @@ function StudentWorkspace({ token }: { token: string }) {
               feedback={data.feedback}
             />
             {!data.submissions.some((s) => s.assignment_id === a.id) && (
-              <p className="text-sm text-ink/60">
+              <p className="text-sm text-ink/75">
                 Ingen träningsrapport inlämnad ännu.
               </p>
             )}
@@ -259,7 +259,7 @@ function ReportForm({
               }}
             />
           </label>
-          <p className="text-xs text-ink/60">
+          <p className="text-xs text-ink/75">
             Använd en video du får dela och se till att instruktören har
             åtkomst. Videon öppnas på den tjänst du väljer.
           </p>

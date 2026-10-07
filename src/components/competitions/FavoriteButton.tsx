@@ -48,7 +48,7 @@ export function FavoriteButton({
       aria-label={label}
       title={label}
       className={`grid h-10 w-10 place-items-center rounded-full border-2 transition-colors ${
-        active ? "border-ink bg-ember text-paper" : "border-ink/15 bg-paper text-ink/45 hover:border-ink hover:text-ink"
+        active ? "border-ink bg-ember text-paper" : "border-ink/15 bg-paper text-ink/75 hover:border-ink hover:text-ink"
       } ${className}`}
     >
       <Heart className={`h-4 w-4 ${active ? "fill-current" : ""}`} />

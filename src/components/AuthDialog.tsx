@@ -59,7 +59,7 @@ export function AuthDialog({
           <DialogTitle className="font-display text-3xl uppercase tracking-wide">
             {mode === "login" ? "Logga in" : "Skapa konto"}
           </DialogTitle>
-          <DialogDescription className="text-ink/60">
+          <DialogDescription className="text-ink/75">
             Kontot är gratis och behövs bara för att spara banor i molnet,
             kommentera och dela med din klubb.
           </DialogDescription>
@@ -67,7 +67,7 @@ export function AuthDialog({
 
         <form onSubmit={submit} className="mt-2 space-y-3">
           <label className="block">
-            <span className="mb-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/60">
+            <span className="mb-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/75">
               <Mail className="h-3.5 w-3.5" /> E-post
             </span>
             <input
@@ -80,7 +80,7 @@ export function AuthDialog({
             />
           </label>
           <label className="block">
-            <span className="mb-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/60">
+            <span className="mb-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/75">
               <Lock className="h-3.5 w-3.5" /> Lösenord
             </span>
             <input
@@ -127,7 +127,7 @@ export function AuthDialog({
               setError(null);
               setNotice(null);
             }}
-            className="w-full text-center text-sm font-semibold text-ink/60 underline-offset-4 hover:text-ink hover:underline"
+            className="w-full text-center text-sm font-semibold text-ink/75 underline-offset-4 hover:text-ink hover:underline"
           >
             {mode === "login" ? "Inget konto? Skapa ett här" : "Har du redan ett konto? Logga in"}
           </button>

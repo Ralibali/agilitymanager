@@ -72,7 +72,7 @@ export function ProfileQuickSwitch({
     <>
       <div className="rounded-3xl border-2 border-ink/15 bg-card p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 pr-1 text-xs font-extrabold uppercase tracking-wider text-ink/45">
+          <span className="inline-flex items-center gap-1.5 pr-1 text-xs font-extrabold uppercase tracking-wider text-ink/75">
             <Zap className="h-3.5 w-3.5 text-forest" /> Snabbväxla hund
           </span>
 
@@ -141,7 +141,7 @@ export function ProfileQuickSwitch({
                           </span>
                         )}
                       </span>
-                      <span className={`block text-xs font-semibold ${isActive ? "text-paper/90" : "text-ink/60"}`}>
+                      <span className={`block text-xs font-semibold ${isActive ? "text-paper/90" : "text-ink/75"}`}>
                         {summary(p)}
                         {!loading && (
                           <span
@@ -169,7 +169,7 @@ export function ProfileQuickSwitch({
                         aria-label={`Hantera profil ${label}`}
                         aria-describedby="profile-switch-description"
                         className={`flex min-h-11 min-w-11 items-center justify-center rounded-r-full py-2 pl-1 pr-3 transition-colors ${
-                          isActive ? "text-paper/90 hover:text-paper" : "text-ink/60 hover:text-ink"
+                          isActive ? "text-paper/90 hover:text-paper" : "text-ink/75 hover:text-ink"
                         }`}
                       >
                         <MoreVertical className="h-4 w-4" aria-hidden="true" />
@@ -203,7 +203,7 @@ export function ProfileQuickSwitch({
               <button
                 type="button"
                 onClick={onAdd}
-                className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border-2 border-dashed border-ink/25 bg-paper px-4 py-2 text-sm font-bold text-ink/60 transition-all hover:border-ink hover:text-ink"
+                className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border-2 border-dashed border-ink/25 bg-paper px-4 py-2 text-sm font-bold text-ink/75 transition-all hover:border-ink hover:text-ink"
               >
                 <Plus className="h-4 w-4" aria-hidden="true" /> Ny profil
               </button>
@@ -214,7 +214,7 @@ export function ProfileQuickSwitch({
             const idx = profiles.findIndex((p) => p.id === activeId);
             const current = idx >= 0 ? profiles[idx] : undefined;
             return (
-              <p id="profile-switch-description" aria-live="polite" className="w-full text-xs font-semibold text-ink/60">
+              <p id="profile-switch-description" aria-live="polite" className="w-full text-xs font-semibold text-ink/75">
                 {active && current
                   ? `Visar ${counts[current.id] ?? 0} tävlingar som matchar ${profileLabel(current, idx)}.`
                   : "Ingen hundprofil styr filtret just nu — tryck på en hund för att bara se matchande tävlingar."}

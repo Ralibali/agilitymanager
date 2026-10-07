@@ -11,7 +11,7 @@ const STATE_ICON: Record<ReasonState, typeof Check> = {
 
 const STATE_STYLE: Record<ReasonState, string> = {
   ok: "bg-forest text-paper",
-  no: "bg-ink/15 text-ink/60",
+  no: "bg-ink/15 text-ink/75",
   unknown: "bg-tang text-ink",
 };
 
@@ -46,11 +46,11 @@ export function MatchExplainer({
           Varför matchar den?
         </span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-ink/50 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 shrink-0 text-ink/75 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
 
-      <p className="mt-1.5 text-sm font-semibold text-ink/60">{explanation.summary}</p>
+      <p className="mt-1.5 text-sm font-semibold text-ink/75">{explanation.summary}</p>
 
       {open && (
         <>
@@ -75,7 +75,7 @@ export function MatchExplainer({
 
           {profiles.length > 1 && (
             <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t-2 border-ink/10 pt-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-ink/45">Profil</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-ink/75">Profil</span>
               {profiles.map((p, i) => (
                 <button
                   key={p.id}
@@ -85,7 +85,7 @@ export function MatchExplainer({
                   className={`rounded-full border-2 px-3 py-1 text-xs font-bold transition-colors ${
                     p.id === activeId
                       ? "border-ink bg-forest text-paper"
-                      : "border-ink/15 bg-paper text-ink/60 hover:border-ink"
+                      : "border-ink/15 bg-paper text-ink/75 hover:border-ink"
                   }`}
                 >
                   {profileLabel(p, i)}

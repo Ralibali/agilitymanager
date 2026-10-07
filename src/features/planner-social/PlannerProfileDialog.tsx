@@ -58,12 +58,12 @@ export function PlannerProfileDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="rounded-3xl border-2 border-ink bg-paper text-ink shadow-hard-sm sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 font-display text-3xl uppercase tracking-wide">
             <UserRound className="h-5 w-5" /> Din banprofil
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-ink/75">
             {reason ?? "Ange namn och e-post så kan du spara, dela och få kommentarer på dina banor."}
             {" "}Inget lösenord behövs och profilen är gratis.
           </DialogDescription>
@@ -72,7 +72,7 @@ export function PlannerProfileDialog({
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="planner-profile-name">Namn</Label>
-            <Input
+            <Input className="min-h-11 rounded-xl border-2 border-ink/40 bg-paper"
               id="planner-profile-name"
               value={name}
               maxLength={80}
@@ -83,7 +83,7 @@ export function PlannerProfileDialog({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="planner-profile-email">E-post</Label>
-            <Input
+            <Input className="min-h-11 rounded-xl border-2 border-ink/40 bg-paper"
               id="planner-profile-email"
               type="email"
               value={email}
@@ -97,7 +97,7 @@ export function PlannerProfileDialog({
               Den används för din profil, inte för utskick.
             </p>
           </div>
-          <Button type="submit" className="w-full" disabled={saving}>
+          <Button type="submit" className="min-h-11 w-full rounded-full border-2 border-ink bg-ink font-bold text-paper shadow-hard-sm hover:bg-forest" disabled={saving}>
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {profile ? "Uppdatera profil" : "Skapa profil"}
           </Button>

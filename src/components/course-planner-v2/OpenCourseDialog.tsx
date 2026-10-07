@@ -143,7 +143,7 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
         </DialogHeader>
 
         {loading && (
-          <p className="flex items-center gap-2 text-sm font-semibold text-ink/60" role="status">
+          <p className="flex items-center gap-2 text-sm font-semibold text-ink/75" role="status">
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Hämtar banor…
           </p>
         )}
@@ -164,14 +164,14 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
         )}
 
         {empty && (
-          <p className="rounded-xl border-2 border-dashed border-ink/20 p-4 text-sm font-semibold text-ink/60">
+          <p className="rounded-xl border-2 border-dashed border-ink/20 p-4 text-sm font-semibold text-ink/75">
             Du har inga sparade banor än. Bygg klart en bana och välj <strong>Spara</strong> i bana-menyn.
           </p>
         )}
 
         {local.length > 0 && (
           <section>
-            <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/50">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/75">
               <HardDrive className="h-3.5 w-3.5" aria-hidden="true" /> På den här enheten
             </p>
             <ul className="space-y-2">
@@ -182,7 +182,7 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
                     className="min-h-11 flex-1 rounded-xl border-2 border-ink/15 bg-white px-3 py-2 text-left transition-colors hover:border-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
                   >
                     <span className="block text-sm font-bold">{c.name}</span>
-                    <span className="block text-xs font-semibold text-ink/60">
+                    <span className="block text-xs font-semibold text-ink/75">
                       {c.obstacleCount} hinder · {c.sport} · {when(c.updatedAt)}
                     </span>
                   </button>
@@ -197,7 +197,7 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
                       <button
                         onClick={() => setConfirmDeleteId(null)}
                         aria-label={`Behåll ${c.name}`}
-                        className="min-h-11 rounded-xl border-2 border-ink/15 px-3 text-xs font-bold text-ink/60 hover:border-ink"
+                        className="min-h-11 rounded-xl border-2 border-ink/15 px-3 text-xs font-bold text-ink/75 hover:border-ink"
                       >
                         Behåll
                       </button>
@@ -207,7 +207,7 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
                       onClick={() => setConfirmDeleteId(c.id)}
                       aria-label={`Ta bort ${c.name}`}
                       title={`Ta bort ${c.name}`}
-                      className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border-2 border-ink/15 text-ink/60 transition-colors hover:border-ember hover:text-ember focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border-2 border-ink/15 text-ink/75 transition-colors hover:border-ember hover:text-ember focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
                     >
                       <Trash2 className="h-4 w-4" aria-hidden="true" />
                     </button>
@@ -220,7 +220,7 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
 
         {shared.length > 0 && (
           <section>
-            <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/50">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/75">
               <CloudCheck className="h-3.5 w-3.5" aria-hidden="true" /> På din profil
             </p>
             <ul className="space-y-2">
@@ -233,12 +233,12 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
                     <span className="flex items-center gap-2 text-sm font-bold">
                       <span className="truncate">{c.name}</span>
                       {!c.is_public && (
-                        <span className="shrink-0 rounded-full border border-ink/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink/50">
+                        <span className="shrink-0 rounded-full border border-ink/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink/75">
                           Privat
                         </span>
                       )}
                     </span>
-                    <span className="block text-xs font-semibold text-ink/60">
+                    <span className="block text-xs font-semibold text-ink/75">
                       {c.sport} · {when(c.updated_at)}
                     </span>
                   </button>
@@ -253,7 +253,7 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
                       <button
                         onClick={() => setConfirmDeleteSharedId(null)}
                         aria-label={`Behåll ${c.name}`}
-                        className="min-h-11 rounded-xl border-2 border-ink/15 px-3 text-xs font-bold text-ink/60 hover:border-ink"
+                        className="min-h-11 rounded-xl border-2 border-ink/15 px-3 text-xs font-bold text-ink/75 hover:border-ink"
                       >
                         Behåll
                       </button>
@@ -263,7 +263,7 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
                       onClick={() => setConfirmDeleteSharedId(c.id)}
                       aria-label={`Ta bort ${c.name}`}
                       title={`Ta bort ${c.name}`}
-                      className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border-2 border-ink/15 text-ink/60 transition-colors hover:border-ember hover:text-ember focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border-2 border-ink/15 text-ink/75 transition-colors hover:border-ember hover:text-ember focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
                     >
                       <Trash2 className="h-4 w-4" aria-hidden="true" />
                     </button>
@@ -275,7 +275,7 @@ export function OpenCourseDialog({ open, onOpenChange, onPickLocal, onPickShared
         )}
 
         {!profile && !loading && (
-          <p className="rounded-xl border-2 border-ink/10 bg-cream/40 p-3 text-xs font-semibold leading-5 text-ink/60">
+          <p className="rounded-xl border-2 border-ink/10 bg-cream/40 p-3 text-xs font-semibold leading-5 text-ink/75">
             Med en profil kan du även spara banor här och dela dem publikt — välj <strong>Spara &amp; dela</strong> i verktygsraden.
           </p>
         )}

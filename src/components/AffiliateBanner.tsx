@@ -54,7 +54,7 @@ export function PartnerAdCard({ className = "" }: { className?: string }) {
                 className="block h-auto w-56 sm:w-64"
               />
             </a>
-            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-ink/40">
+            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-ink/75">
               Annons
             </span>
           </div>

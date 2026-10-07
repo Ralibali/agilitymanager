@@ -22,8 +22,8 @@ import { slugify } from "@/lib/competitionSlug";
 const TONE_STYLE: Record<string, string> = {
   open: "bg-forest text-paper",
   urgent: "bg-tang text-ink",
-  closed: "bg-ink/10 text-ink/50",
-  unknown: "bg-ink/10 text-ink/55",
+  closed: "bg-amber-100 text-amber-950",
+  unknown: "bg-ink/10 text-ink/80",
 };
 
 export interface DetailFact {
@@ -75,12 +75,12 @@ export function CompetitionDetailView({
     <div className="min-h-screen bg-paper text-ink">
       <SiteNav />
 
-      <section className="relative overflow-hidden border-b-2 border-ink pt-[6.5rem]">
+      <section className="relative overflow-hidden border-b-2 border-ink pt-[4.25rem]">
         <div className="field-grid pointer-events-none absolute inset-0 [background-size:56px_56px]" aria-hidden />
         <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-10 sm:px-6 lg:pb-16">
           <Link
             to="/tavlingar"
-            className="inline-flex items-center gap-2 text-sm font-bold text-ink/60 transition-colors hover:text-ink"
+            className="inline-flex items-center gap-2 text-sm font-bold text-ink/75 transition-colors hover:text-ink"
           >
             <ArrowLeft className="h-4 w-4" /> Alla tävlingar
           </Link>
@@ -97,7 +97,7 @@ export function CompetitionDetailView({
               {comp.sport}
             </span>
             {provisional && (
-              <span className="rounded-full border-2 border-ink/20 px-3 py-1 text-[0.72rem] font-extrabold uppercase tracking-wider text-ink/55">
+              <span className="rounded-full border-2 border-ink/20 px-3 py-1 text-[0.72rem] font-extrabold uppercase tracking-wider text-ink/75">
                 Ej fastställd — status “{comp.status}”
               </span>
             )}
@@ -166,7 +166,7 @@ export function CompetitionDetailView({
             )}
           </div>
 
-          <p className="mt-5 flex items-center gap-2 text-sm font-semibold text-ink/45">
+          <p className="mt-5 flex items-center gap-2 text-sm font-semibold text-ink/75">
             <RefreshCw className="h-4 w-4" /> {relativeUpdated(updatedAt)} · data hämtas automatiskt från arrangörens källa
           </p>
         </div>
@@ -180,7 +180,7 @@ export function CompetitionDetailView({
               <dl className="mt-6 grid gap-x-8 gap-y-5 sm:grid-cols-2">
                 {facts.map((f) => (
                   <div key={f.label} className="border-t-2 border-dashed border-ink/10 pt-3">
-                    <dt className="text-[0.72rem] font-extrabold uppercase tracking-wider text-ink/45">{f.label}</dt>
+                    <dt className="text-[0.72rem] font-extrabold uppercase tracking-wider text-ink/75">{f.label}</dt>
                     <dd className="mt-1 text-base font-semibold leading-snug">{f.value}</dd>
                   </div>
                 ))}
@@ -188,7 +188,7 @@ export function CompetitionDetailView({
 
               {comp.classes.length > 0 && (
                 <div className="mt-8">
-                  <h3 className="text-[0.72rem] font-extrabold uppercase tracking-wider text-ink/45">Klasser</h3>
+                  <h3 className="text-[0.72rem] font-extrabold uppercase tracking-wider text-ink/75">Klasser</h3>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {comp.classes.map((c) => (
                       <span key={c} className="rounded-full border-2 border-ink/15 px-3 py-1 text-sm font-bold">

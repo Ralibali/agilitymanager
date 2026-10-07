@@ -75,7 +75,7 @@ export function DogMatchPanel({
             </span>
             <div>
               <h2 className="font-display text-2xl tracking-wide">Matcha mot din hund</h2>
-              <p className="mt-1 text-sm font-semibold text-ink/55">
+              <p className="mt-1 text-sm font-semibold text-ink/75">
                 Ställ in klass och storlek så visas bara tävlingar din hund får starta i.
               </p>
             </div>
@@ -97,7 +97,7 @@ export function DogMatchPanel({
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-ink/45">Profiler</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-ink/75">Profiler</span>
           {profiles.map((p, i) => {
             const isActive = p.id === activeId;
             const label = profileLabel(p, i);
@@ -130,7 +130,7 @@ export function DogMatchPanel({
                   <button
                     onClick={() => setPendingDeleteId(p.id)}
                     aria-label={`Ta bort ${label}`}
-                    className="grid min-h-8 min-w-8 place-items-center rounded-full text-ink/60 transition-colors hover:bg-ink/10 hover:text-ink"
+                    className="grid min-h-8 min-w-8 place-items-center rounded-full text-ink/75 transition-colors hover:bg-ink/10 hover:text-ink"
                   >
                     <X className="h-4 w-4" aria-hidden="true" />
                   </button>
@@ -142,13 +142,13 @@ export function DogMatchPanel({
             <>
               <button
                 onClick={onAdd}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-full border-2 border-dashed border-ink/25 px-3 py-1.5 text-sm font-bold text-ink/60 transition-all hover:border-ink hover:text-ink"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full border-2 border-dashed border-ink/25 px-3 py-1.5 text-sm font-bold text-ink/75 transition-all hover:border-ink hover:text-ink"
               >
                 <Plus className="h-4 w-4" aria-hidden="true" /> Ny profil
               </button>
               <button
                 onClick={() => onDuplicate(activeId)}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 py-1.5 text-sm font-bold text-ink/60 transition-all hover:border-ink hover:text-ink"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 py-1.5 text-sm font-bold text-ink/75 transition-all hover:border-ink hover:text-ink"
               >
                 <Copy className="h-4 w-4" aria-hidden="true" /> Duplicera
               </button>
@@ -158,7 +158,7 @@ export function DogMatchPanel({
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-ink/45">
+            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-ink/75">
               Hundens namn
             </span>
             <input
@@ -170,7 +170,7 @@ export function DogMatchPanel({
           </label>
 
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-ink/45">
+            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-ink/75">
               Sport
             </span>
             <select
@@ -184,7 +184,7 @@ export function DogMatchPanel({
           </label>
 
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-ink/45">
+            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-ink/75">
               Klass
             </span>
             <select
@@ -207,7 +207,7 @@ export function DogMatchPanel({
           </label>
 
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-ink/45">
+            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-ink/75">
               Storleksklass
             </span>
             <select
@@ -224,7 +224,7 @@ export function DogMatchPanel({
           </label>
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-2 border-t-2 border-ink/10 pt-4 text-xs font-bold text-ink/60">
+        <div className="mt-5 flex flex-wrap items-center gap-2 border-t-2 border-ink/10 pt-4 text-xs font-bold text-ink/75">
           <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 py-1.5">
             <Ruler className="h-3.5 w-3.5" />
             {profile.sport === "agility"
@@ -236,7 +236,7 @@ export function DogMatchPanel({
               ? "Hämtar tävlingar…"
               : `${matchCount} tävlingar matchar ${profile.name.trim() || "din hund"}`}
           </span>
-          <span className="text-ink/40">
+          <span className="text-ink/75">
             Klassmatchningen bygger på arrangörernas klasslistor. Storlek påverkar hopphöjd och
             hoopersklass — svenska tävlingar tar emot alla storlekar.
           </span>

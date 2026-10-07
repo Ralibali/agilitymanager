@@ -57,7 +57,7 @@ export default function CoursesPage() {
                 key={f}
                 onClick={() => setSport(f)}
                 className={`rounded-full border-2 px-5 py-2.5 text-sm font-bold capitalize transition-all ${
-                  sport === f ? "border-ink bg-ink text-paper shadow-hard-sm" : "border-ink/15 bg-paper text-ink/60 hover:border-ink"
+                  sport === f ? "border-ink bg-ink text-paper shadow-hard-sm" : "border-ink/15 bg-paper text-ink/75 hover:border-ink"
                 }`}
               >
                 {f === "alla" ? "Alla sporter" : f}
@@ -69,7 +69,7 @@ export default function CoursesPage() {
                 key={f}
                 onClick={() => setKlass(f)}
                 className={`rounded-full border-2 px-4 py-2 text-xs font-bold transition-all ${
-                  klass === f ? "border-ink bg-forest text-paper shadow-hard-sm" : "border-ink/15 bg-paper text-ink/60 hover:border-ink"
+                  klass === f ? "border-ink bg-forest text-paper shadow-hard-sm" : "border-ink/15 bg-paper text-ink/75 hover:border-ink"
                 }`}
               >
                 {f === "alla" ? "Alla klasser" : f === "noll" ? "Nollklass" : `Klass ${f}`}
@@ -98,10 +98,10 @@ export default function CoursesPage() {
                   <div className="flex flex-1 items-center justify-between gap-4 p-6">
                     <div>
                       <h3 className="text-2xl font-extrabold tracking-tight">{c.name}</h3>
-                      <p className="mt-1 text-sm font-semibold text-ink/50">
+                      <p className="mt-1 text-sm font-semibold text-ink/75">
                         {getClassTemplate(entry.classTemplate)?.label} · {c.field[0]}×{c.field[1]} m
                       </p>
-                      <p className="mt-1 line-clamp-2 text-sm text-ink/60">{entry.description}</p>
+                      <p className="mt-1 line-clamp-2 text-sm text-ink/75">{entry.description}</p>
                     </div>
                     <Link
                       to={`/banplanerare?template=${entry.key}`}
@@ -118,7 +118,7 @@ export default function CoursesPage() {
         </div>
 
         {entries.length === 0 && (
-          <p className="mt-12 text-center text-lg font-semibold text-ink/50">
+          <p className="mt-12 text-center text-lg font-semibold text-ink/75">
             Inga banor matchar filtren — prova en annan kombination.
           </p>
         )}

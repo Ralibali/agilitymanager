@@ -62,7 +62,7 @@ export default function HoopersCompetitionDetailPage() {
   const unified = useMemo(() => (row ? hoopersToUnified(row) : null), [row]);
 
   if (state === "loading") {
-    return <div className="grid min-h-screen place-items-center bg-paper text-ink/60">Laddar tävling…</div>;
+    return <div className="grid min-h-screen place-items-center bg-paper text-ink/75">Laddar tävling…</div>;
   }
 
   if (state === "missing" || !row || !unified) {
@@ -71,7 +71,7 @@ export default function HoopersCompetitionDetailPage() {
         <SiteNav />
         <div className="mx-auto max-w-3xl px-4 py-40 text-center">
           <h1 className="font-display text-6xl">Tävlingen hittades inte</h1>
-          <p className="mt-4 text-ink/60">Den kan ha tagits bort från källan eller redan varit genomförd.</p>
+          <p className="mt-4 text-ink/75">Den kan ha tagits bort från källan eller redan varit genomförd.</p>
           <Link
             to="/tavlingar"
             className="mt-8 inline-flex rounded-full border-2 border-ink bg-ink px-6 py-3 font-bold text-paper shadow-hard-sm"

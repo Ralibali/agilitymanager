@@ -37,7 +37,7 @@ test("insurance comparison loads from its alias and filters without losing sourc
   expect(errors).toEqual([]);
 });
 
-test("ads use only approved site links and do not cover the planner", async ({ page }, testInfo) => {
+test("ads use only approved site links and do not cover the planner", async ({ page }) => {
   // Intercept only the development data module. No test advertiser is saved to production data.
   const partner = {
     id: "lassie", name: "Testpartner", channelId: "2103592373", programId: "fixture",
@@ -54,9 +54,8 @@ test("ads use only approved site links and do not cover the planner", async ({ p
     await page.goto(path);
     await expect(page.locator('meta[name="robots"]')).toHaveCount(1);
     const ad = page.getByRole("complementary", { name: "Annons från våra partners" });
-    // The current homepage deliberately has no partner banner. Content and
-    // planner routes still filter ads by this site's approved channel.
-    if (path === "/") {
+    // Ads now sit before the public footer. The canvas has no ad row.
+    if (path === "/banplanerare") {
       await expect(ad).toHaveCount(0);
       continue;
     }
@@ -70,14 +69,12 @@ test("ads use only approved site links and do not cover the planner", async ({ p
         await expect(page.getByRole("link", { name: /Se pris hos Lassie/ })).toHaveAttribute("href", partner.insuranceUrl);
         await expect(page.getByRole("link", { name: /Se pris hos Lassie/ })).toHaveAttribute("rel", /sponsored/);
       }
-      if (path === "/banplanerare") {
-        const adBox = await ad.boundingBox();
-        const headerBox = await page.locator("header").boundingBox();
-        expect(adBox).not.toBeNull();
-        expect(headerBox).not.toBeNull();
-        expect(adBox!.y + adBox!.height).toBeLessThanOrEqual(headerBox!.y + 1);
-        await page.screenshot({ path: testInfo.outputPath("planner-with-test-ad.png") });
-      }
+      const adBox = await ad.boundingBox();
+      const footerBox = await page.locator("footer").boundingBox();
+      expect(adBox).not.toBeNull();
+      expect(footerBox).not.toBeNull();
+      expect(adBox!.y + adBox!.height).toBeLessThanOrEqual(footerBox!.y + 1);
+      expect(await ad.evaluate(element => getComputedStyle(element).position)).not.toMatch(/fixed|sticky/);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   }
 });

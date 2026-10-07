@@ -26,7 +26,7 @@ export default function DogInsurancePage() {
             <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[1.05] sm:text-6xl lg:text-7xl">{insurance.title}</h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink/70">Från vardagspromenaden till nästa start. Få en överblick över skyddet och jämför det som spelar roll när din hund behöver vård.</p>
             <a href="#jamforelse" className="pressable shadow-hard-sm mt-7 inline-flex items-center gap-2 rounded-full bg-tang px-6 py-3.5 font-bold">Jämför försäkringarna <ArrowRight aria-hidden="true" className="h-4 w-4" /></a>
-            <p className="mt-5 text-sm text-ink/60">Uppgifter kontrollerade <time dateTime={insurance.checkedAt}>{sourceDate}</time>.</p>
+            <p className="mt-5 text-sm text-ink/75">Uppgifter kontrollerade <time dateTime={insurance.checkedAt}>{sourceDate}</time>.</p>
           </div>
           <div className="self-center rounded-3xl border-2 border-ink bg-cream p-6 shadow-hard sm:p-8">
             <ShieldCheck aria-hidden="true" className="h-10 w-10 text-forest" />
@@ -42,7 +42,7 @@ export default function DogInsurancePage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-forest">Sida vid sida</p><h2 className="mt-2 font-display text-4xl">Jämför innehållet.</h2></div>
-              <p className="max-w-lg text-sm leading-relaxed text-ink/60">Ett urval av tre aktörer, i alfabetisk ordning. Översikten är ingen rangordning och täcker inte hela marknaden.</p>
+              <p className="max-w-lg text-sm leading-relaxed text-ink/75">Ett urval av tre aktörer, i alfabetisk ordning. Översikten är ingen rangordning och täcker inte hela marknaden.</p>
             </div>
             {hasInsuranceAds ? <p className="mt-6 rounded-xl border border-forest/20 bg-forest/5 p-4 text-sm"><strong>Annonsinformation:</strong> Länkar märkta ”Annonslänk” kan ge AgilityManager ersättning om du tecknar försäkring. Ersättningen ändrar inte den alfabetiska ordningen.</p> : null}
             <fieldset className="mt-7">
@@ -57,7 +57,7 @@ export default function DogInsurancePage() {
               {visible.map((provider) => {
                 const partner = insuranceAffiliate(provider.id);
                 return <article key={provider.id} aria-label={provider.name} className="flex flex-col overflow-hidden rounded-2xl border-2 border-ink/15 bg-paper">
-                  <div className="border-b border-ink/10 p-6"><h3 className="font-display text-3xl">{provider.name}</h3><p className="mt-1 min-h-10 text-sm text-ink/60">{provider.product}</p><p className="mt-5 text-xs font-bold uppercase tracking-wider text-forest">Veterinärvård</p><p className="mt-1 text-xl font-extrabold">{provider.veterinary}</p><p className="mt-2 text-sm leading-relaxed text-ink/65">{provider.levels}</p></div>
+                  <div className="border-b border-ink/10 p-6"><h3 className="font-display text-3xl">{provider.name}</h3><p className="mt-1 min-h-10 text-sm text-ink/75">{provider.product}</p><p className="mt-5 text-xs font-bold uppercase tracking-wider text-forest">Veterinärvård</p><p className="mt-1 text-xl font-extrabold">{provider.veterinary}</p><p className="mt-2 text-sm leading-relaxed text-ink/65">{provider.levels}</p></div>
                   <dl className="flex-1 space-y-5 p-6 text-sm leading-relaxed">
                     <div><dt className="font-bold">Självrisk</dt><dd className="mt-1 text-ink/70">{provider.deductible}</dd></div>
                     <div><dt className="font-bold">Självriskperiod</dt><dd className="mt-1 text-ink/70">{provider.period}</dd></div>
@@ -72,7 +72,7 @@ export default function DogInsurancePage() {
                 </article>;
               })}
             </div>
-            <p className="mt-6 max-w-4xl text-sm leading-relaxed text-ink/60">Beloppen är ersättningsgränser, inte garanterade utbetalningar. Självrisk, delbelopp och undantag påverkar ersättningen. Översikten ersätter inte bolagets aktuella förköpsinformation, villkor och ditt försäkringsbrev.</p>
+            <p className="mt-6 max-w-4xl text-sm leading-relaxed text-ink/75">Beloppen är ersättningsgränser, inte garanterade utbetalningar. Självrisk, delbelopp och undantag påverkar ersättningen. Översikten ersätter inte bolagets aktuella förköpsinformation, villkor och ditt försäkringsbrev.</p>
           </div>
         </section>
 

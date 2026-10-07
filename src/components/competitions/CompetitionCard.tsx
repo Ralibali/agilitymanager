@@ -8,11 +8,11 @@ import { MatchScoreBadge } from "./MatchScoreBadge";
 const TONE_STYLE: Record<string, string> = {
   open: "bg-forest text-paper",
   urgent: "bg-tang text-ink",
-  closed: "bg-ink/10 text-ink/45",
-  unknown: "bg-ink/10 text-ink/55",
+  closed: "bg-amber-100 text-amber-950",
+  unknown: "bg-ink/10 text-ink/80",
 };
 
-export function CompetitionCard({ comp }: { comp: UnifiedCompetition }) {
+export function CompetitionCard({ comp, showMatch = true }: { comp: UnifiedCompetition; showMatch?: boolean }) {
   const deadline = deadlineInfo(comp.registrationCloses);
   const d = shortDate(comp.dateStart);
 
@@ -27,7 +27,7 @@ export function CompetitionCard({ comp }: { comp: UnifiedCompetition }) {
           >
             {deadline.label}
           </span>
-          <MatchScoreBadge comp={comp} className="ml-2 align-middle" />
+          {showMatch && <MatchScoreBadge comp={comp} className="ml-2 align-middle" />}
           <h3 className="mt-3 text-2xl font-extrabold leading-tight tracking-tight [overflow-wrap:anywhere]">{comp.name}</h3>
         </div>
         <span className="grid h-16 w-14 shrink-0 place-items-center rounded-2xl border-2 border-ink bg-cream text-center font-display leading-none">
@@ -38,7 +38,7 @@ export function CompetitionCard({ comp }: { comp: UnifiedCompetition }) {
         </span>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1.5 text-sm font-semibold text-ink/55 [overflow-wrap:anywhere]">
+      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1.5 text-sm font-semibold text-ink/75 [overflow-wrap:anywhere]">
         {comp.location && (
           <span className="flex items-center gap-1.5">
             <MapPin className="h-4 w-4 text-forest" /> {comp.location}
@@ -52,12 +52,12 @@ export function CompetitionCard({ comp }: { comp: UnifiedCompetition }) {
         )}
       </div>
 
-      <div className="relative z-20 mt-4">
+      {showMatch && <div className="relative z-20 mt-4">
         <MatchExplainer comp={comp} />
-      </div>
+      </div>}
 
       <div className="mt-auto flex items-center justify-between gap-3 border-t-2 border-dashed border-ink/10 pt-4 pr-12">
-        <span className="text-sm font-bold text-ink/60">
+        <span className="text-sm font-bold text-ink/75">
           {comp.classes.length ? comp.classes.join(" · ") : "Klasser ej angivna"}
         </span>
         <span

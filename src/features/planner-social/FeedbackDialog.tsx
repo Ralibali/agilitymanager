@@ -174,7 +174,7 @@ export default function FeedbackDialog({ open, onOpenChange, courseData }: Props
             {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             Skicka förslag
           </button>
-          <p className="flex items-center gap-1.5 text-xs text-ink/55">
+          <p className="flex items-center gap-1.5 text-xs text-ink/75">
             <Sparkles className="h-3.5 w-3.5" /> Vi använder ditt material bara för att
             utveckla banbyggaren.
           </p>

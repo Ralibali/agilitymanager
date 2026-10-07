@@ -6,8 +6,8 @@ Den här ändringen kräver en databasmigration och inställningar i projektets 
 
 1. Använd projektet `rcubbmnosawdtaupixnm` som webbappen redan är ansluten till. Kontrollera att det är rätt Lovable/Supabase-miljö innan något appliceras.
 2. Applicera `supabase/migrations/20261007090204_planner_cloud_versions.sql` med den befintliga migrationsprocessen. Om projektet hanteras via Lovable Cloud måste migrationen appliceras där. Migrationen lägger till revisioner, privata historikposter och skrivskydd via RLS. Den behåller befintliga banor och deras synlighet, och skapar en första historikpost för dem.
-3. Uppdatera den driftade Auth-konfigurationen enligt nedan. `supabase/config.toml` dokumenterar samma värden men ändrar inte den driftade tjänsten genom en frontendpublicering.
-4. Publicera webbappen. Gör kontrollen nedan med ett eget testkonto.
+3. Publicera webbappen och kontrollera att `/auth/bekrafta` fungerar innan mejlmallen ändras.
+4. Uppdatera den driftade Auth-konfigurationen enligt nedan och gör kontrollen med ett eget testkonto. `supabase/config.toml` dokumenterar samma värden men ändrar inte den driftade tjänsten genom en frontendpublicering. Aktivera den nya mejlmallen först när bekräftelsesidan är tillgänglig.
 
 Ingen produktionsmigration, publicering av banor, mejlsändning eller ändring av driftad Auth-konfiguration gjordes när den här PR:en skapades. Den tillgängliga Supabase-anslutningen gav inte åtkomst till målprojektet. Banan ”TEST Hark” har inte öppnats eller ändrats.
 

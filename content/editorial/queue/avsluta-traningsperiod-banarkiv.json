@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "content_id": "editorial-20261008-avsluta-traningsperiod-banarkiv",
+  "author": "ChatGPT",
+  "status": "draft",
+  "written_at": "2026-10-08T07:55:27.143533+00:00",
+  "sources_checked_at": "2026-10-08T07:55:27.143533+00:00",
+  "search_intent": "Avsluta och avgränsa ett historiskt underlag för en träningsperiod, skilt från löpande filindex, återkoppling och byte av samordnare.",
+  "source_urls": [
+    "https://agilitymanager.se/banplanerare"
+  ],
+  "slug": "avsluta-traningsperiod-banarkiv",
+  "title": "Avsluta träningsperioden med ett begripligt banarkiv",
+  "description": "Gör gruppens avslutade träningsperiod lätt att hitta tillbaka till. Spara beslutade versioner, användning och öppna frågor utan att blanda ihop dem.",
+  "category": "Verktyg",
+  "readingMinutes": 4,
+  "related": [
+    "provoppna-banfil-infor-banbygge",
+    "banfiler-innehallslista-traningsgrupp"
+  ],
+  "cta": {
+    "heading": "Förbered nästa periods banritningar",
+    "text": "Öppna banplaneraren när gruppen går vidare med nya ritningar.",
+    "label": "Öppna banplaneraren",
+    "to": "/banplanerare"
+  },
+  "blocks": [
+    {
+      "type": "p",
+      "text": "När en träningsperiod är avslutad behöver gruppen inte behålla alla arbetsfiler som om de fortfarande vore aktuella. Samtidigt kan ritningar och praktiska anteckningar vara värdefulla nästa gång ni planerar en liknande period. En kort avslutning hjälper er att skilja historik från pågående arbete.\n\nUtgå från gruppens egna underlag och tillåtna lagringsplats. Guiden beskriver ordning i dokumentationen. Den bedömer inte hundars träning, banornas säkerhet eller vilka övningar som ska återanvändas. Det är frågor för ansvarig instruktör och verksamhetens egna rutiner."
+    },
+    {
+      "type": "h2",
+      "text": "Bestäm vilken period arkivet omfattar"
+    },
+    {
+      "type": "p",
+      "text": "Skriv periodens namn och de datum den avser. Ange om sammanställningen gäller hela gruppens planering eller bara vissa träningstillfällen. En rubrik som ”hösten” blir svår att tolka om mappar från flera år ligger tillsammans eller om två grupper använde samma anläggning."
+    },
+    {
+      "type": "p",
+      "text": "Bestäm också vilket datum ni avslutar sammanställningen. Senare kompletteringar kan fortfarande göras, men ska gå att känna igen som tillägg. Den som öppnar arkivet ska kunna förstå vilket underlag som fanns vid periodens slut och vad som dokumenterades först efteråt."
+    },
+    {
+      "type": "h2",
+      "text": "Peka ut de versioner som hör till genomförda tillfällen"
+    },
+    {
+      "type": "p",
+      "text": "Utgå från de besked gruppen faktiskt sparade om vilken version som skulle användas. Om ni vet att ritningen ändrades inför ett visst tillfälle, ange den kopplingen. En fil som råkar heta slutlig är inte ensam ett bevis på att just den versionen användes."
+    },
+    {
+      "type": "p",
+      "text": "Skilj sådant som var planerat från sådant som går att bekräfta. Om användningen är okänd kan filen sparas som planeringsunderlag med den noteringen. Undvik att döpa om ett osäkert utkast till genomförd bana bara för att få en obruten följd i arkivet."
+    },
+    {
+      "type": "h2",
+      "text": "Lägg en kort läsanvisning överst"
+    },
+    {
+      "type": "p",
+      "text": "Skriv var beslutade ritningar finns, hur tillfällena identifieras och vilka benämningar gruppen har använt. Hänvisa till er [innehållslista över banfiler](/blogg/banfiler-innehallslista-traningsgrupp) om en sådan redan finns. Läsanvisningen behöver förklara sammanhanget, inte upprepa varje filnamn i ännu ett långt dokument."
+    },
+    {
+      "type": "p",
+      "text": "Beskriv också vad som inte ingår. Kanske saknas underlag från ett inställt tillfälle eller från en planering som aldrig lämnades över. En tydlig lucka hjälper nästa läsare att förstå materialets gränser utan att behöva gissa varför något inte går att hitta."
+    },
+    {
+      "type": "h2",
+      "text": "Samla öppna frågor utan att göra dem till beslut"
+    },
+    {
+      "type": "p",
+      "text": "Flytta inte olösta frågor direkt till nästa periods beslutade plan. Spara dem som frågor med en kort bakgrund och vem som kan hjälpa till att reda ut dem. En kommentar om att något bör provas är ett förslag, även om den har följt med mellan flera dokument."
+    },
+    {
+      "type": "p",
+      "text": "Ta bara med personuppgifter och individuella anteckningar som hör till sammanställningens syfte och får delas med mottagarna. Gruppens praktiska banarkiv behöver inte bli en kopia av privata samtal. Följ verksamhetens befintliga ansvar för åtkomst och bevarande."
+    },
+    {
+      "type": "h2",
+      "text": "Prova att hitta ett äldre tillfälle"
+    },
+    {
+      "type": "p",
+      "text": "Välj ett datum och försök hitta tillhörande ritning, status och eventuell förklaring utan hjälp från den som skapade arkivet. Kontrollera också att länkarna fungerar för de personer som ska använda materialet. Justera läsanvisningen om någon måste kunna ett internt smeknamn för att komma rätt."
+    },
+    {
+      "type": "p",
+      "text": "Använd [AgilityManagers banplanerare](/banplanerare) när nästa periods ritningar ska tas fram, och håll historiken begriplig i gruppens valda dokumentation. AI-assisterad originalguide med en manuell arbetsmall. Den utlovar ingen automatisk arkivering eller återställning av tidigare banversioner."
+    }
+  ],
+  "not_before": "2026-10-10"
+}

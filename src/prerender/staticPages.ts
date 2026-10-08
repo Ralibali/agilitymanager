@@ -9,7 +9,7 @@ import { COURSE_BANK } from "@/features/course-planner-v2/courseBank";
 import { getClassTemplate } from "@/features/course-planner-v2/config";
 import { calendarSeo, clubsSeo } from "@/lib/competitionSeo";
 import { SITE_ORIGIN } from "@/lib/firstByteSeo";
-import { PAGE_SEO, type StaticPageSeo } from "@/lib/pageSeo";
+import { PAGE_SEO, HOME_JSON_LD, type StaticPageSeo } from "@/lib/pageSeo";
 import { blogArticlePath } from "@/lib/routes";
 import { COUNTIES } from "@/lib/swedishCounties";
 import { esc, type PrerenderedPage } from "./competitionPages";
@@ -75,6 +75,12 @@ function competitionFallbacks(now: Date): PrerenderedPage[] {
 
 export function buildStaticPages(now = new Date()): PrerenderedPage[] {
   return [
+    page(PAGE_SEO.home, `<section><h2>Hitta nästa mål</h2><p>Sök bland svenska agility- och hooperstävlingar, filtrera på län och klass och spara favoriter för säsongen.</p><a href="/tavlingar">Hitta nästa tävling</a></section>
+      <section><h2>Välj vad ni ska träna</h2><p>Utgå från en färdig agility- eller hoopersbana i banbiblioteket. Justera hinder och linjer för träningsgruppen i banplaneraren.</p><a href="/banor">Välj en träningsbana</a></section>
+      <section><h2>Bygg. Analysera. Dela.</h2><p>Rita i meterskala, se hundens linje, exportera banan och dela upplägget. Banplaneraren är gratis utan konto. Konto behövs för synk mellan enheter.</p><a href="/banplanerare">Öppna banplaneraren</a></section>
+      <h2>Guider för träning och tävling</h2>${links([...ARTICLES].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)).slice(0, 6).map(a => [blogArticlePath(a.slug), a.title]))}
+      ${links([["/priser", "Priser och vad konto ger"], ["/klubbar", "Hitta klubbar"], ["/resultat", "Samla dina resultat"]])}
+      <footer>Aurora Media AB · Org.nr 559272-0220 · <a href="/cookies">Integritet och cookies</a></footer>`, HOME_JSON_LD),
     page(PAGE_SEO.planner, links([
       ["/funktioner", "Alla funktioner i banplaneraren"],
       ["/banor", "Färdiga banor att börja från"],

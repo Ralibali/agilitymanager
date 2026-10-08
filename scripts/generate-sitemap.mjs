@@ -42,6 +42,13 @@ if (staticRoutes.length === 0 || articles.length === 0) {
 
 const url = (loc, extra = "") => `  <url>\n    <loc>${SITE}${loc}</loc>\n${extra}  </url>`;
 
+// Preserve a genuine date embedded in legacy editor timestamps; never use the build date.
+function lastmod(value) {
+  const date = String(value || '').match(/\b(\d{4}-\d{2}-\d{2})\b/)?.[1];
+  if (!date || !Number.isFinite(Date.parse(date)) || new Date(date).toISOString().slice(0, 10) !== date) return '';
+  return `    <lastmod>${date}</lastmod>\n`;
+}
+
 const entries = [
   ...staticRoutes.map((r) =>
     url(
@@ -50,7 +57,7 @@ const entries = [
     ),
   ),
   ...articles.map((a) =>
-    url(`/blogg/${a.slug}`, `    <lastmod>${a.updatedAt}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n`),
+    url(`/blogg/${a.slug}`, `${lastmod(a.updatedAt)}    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n`),
   ),
 ];
 

@@ -1,13 +1,151 @@
 {
   "redirects": [
-    { "source": "/blogg/agility-regler-sverige", "destination": "/blogg/regelverk-agility-hoopers-sverige", "permanent": true },
-    { "source": "/blogg/hoopers-hund", "destination": "/blogg/hoopers-for-nyborjare", "permanent": true },
-    { "source": "/blogg/borja-med-hoopers", "destination": "/blogg/hoopers-for-nyborjare", "permanent": true }
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.agilitymanager.se"
+        }
+      ],
+      "destination": "https://agilitymanager.se/:path*",
+      "statusCode": 301
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/gratis",
+      "destination": "/priser",
+      "statusCode": 301
+    },
+    {
+      "source": "/auth",
+      "destination": "/mitt-agilitymanager",
+      "statusCode": 301
+    },
+    {
+      "source": "/konto",
+      "destination": "/mitt-agilitymanager",
+      "statusCode": 301
+    },
+    {
+      "source": "/logga-in",
+      "destination": "/mitt-agilitymanager",
+      "statusCode": 301
+    },
+    {
+      "source": "/integritet",
+      "destination": "/cookies",
+      "statusCode": 301
+    },
+    {
+      "source": "/blogg/agility-regler-sverige",
+      "destination": "/blogg/regelverk-agility-hoopers-sverige",
+      "permanent": true
+    },
+    {
+      "source": "/blogg/hoopers-hund",
+      "destination": "/blogg/hoopers-for-nyborjare",
+      "permanent": true
+    },
+    {
+      "source": "/blogg/borja-med-hoopers",
+      "destination": "/blogg/hoopers-for-nyborjare",
+      "permanent": true
+    }
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/bana/:id",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/tavlingar/:id(\\d+)/:slug*",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/tavlingar/hoopers/:id(\\d+)/:slug*",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/tavlingar/favoriter",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/mitt-agilitymanager",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/traning",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/instruktor",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/elev",
+      "destination": "/app.html"
+    }
+  ],
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "headers": [
+    {
+      "source": "/bana/:id",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/tavlingar/favoriter",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/mitt-agilitymanager",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/traning",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/instruktor",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/elev",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
     }
   ]
 }

@@ -3,9 +3,9 @@
   "site": "agilitymanager",
   "content_id": "editorial-20261008-avsluta-traningsperiod-banarkiv",
   "author": "ChatGPT",
-  "status": "draft",
+  "status": "ready",
   "written_at": "2026-10-08T07:55:27.143533+00:00",
-  "sources_checked_at": "2026-10-08T07:55:27.143533+00:00",
+  "sources_checked_at": "2026-10-10T08:12:05.798291+00:00",
   "search_intent": "Avsluta och avgränsa ett historiskt underlag för en träningsperiod, skilt från löpande filindex, återkoppling och byte av samordnare.",
   "source_urls": [
     "https://agilitymanager.se/banplanerare"
@@ -91,5 +91,6 @@
       "text": "Använd [AgilityManagers banplanerare](/banplanerare) när nästa periods ritningar ska tas fram, och håll historiken begriplig i gruppens valda dokumentation. AI-assisterad originalguide med en manuell arbetsmall. Den utlovar ingen automatisk arkivering eller återställning av tidigare banversioner."
     }
   ],
-  "not_before": "2026-10-10"
+  "publishedAt": "2026-10-10T08:12:05.798291+00:00",
+  "updatedAt": "2026-10-10T08:12:05.798291+00:00"
 }

@@ -3,9 +3,9 @@
   "site": "agilitymanager",
   "content_id": "editorial-20261010-arbetsfordelning-gemensamt-banbygge",
   "author": "ChatGPT",
-  "status": "draft",
+  "status": "ready",
   "written_at": "2026-10-10T08:50:49.988416+00:00",
-  "sources_checked_at": "2026-10-10T08:50:49.988416+00:00",
+  "sources_checked_at": "2026-10-14T13:27:13.208658+00:00",
   "search_intent": "Organisera människornas arbetsfördelning under ett gemensamt banbygge, skilt från materialinventering, banritning och överlämning av planeringsansvar.",
   "source_urls": [
     "https://agilitymanager.se/banplanerare"
@@ -79,5 +79,6 @@
       "text": "Spara kort vad som underlättade arbetet och vilken uppgift som var otydlig inför nästa gång. Använd [AgilityManagers banplanerare](/banplanerare) när ritningarna förbereds. AI-assisterad originalguide för en manuell arbetsfördelning. Den beskriver ingen inbyggd uppgiftstilldelning eller automatisk säkerhetskontroll i banplaneraren."
     }
   ],
-  "not_before": "2026-10-12"
+  "publishedAt": "2026-10-14T13:27:13.208658+00:00",
+  "updatedAt": "2026-10-14T13:27:13.208658+00:00"
 }

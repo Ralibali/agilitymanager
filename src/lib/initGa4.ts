@@ -10,6 +10,7 @@ initGa4({
     "/konto",
     "/mitt-agilitymanager",
     "/instruktor",
+    "/kurser",
     "/traning",
     "/resultat",
     "/tavlingar/favoriter",

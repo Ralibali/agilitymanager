@@ -13,9 +13,13 @@ export default function CookieInformationPage() {
       <main id="main" className="mx-auto max-w-3xl space-y-5 px-4 pb-14 pt-28 leading-relaxed text-ink/80 sm:px-6 sm:pt-32">
         <p className="text-xs font-bold uppercase tracking-[0.22em] text-forest">Integritet</p>
         <h1 className="font-display text-4xl uppercase tracking-wide text-ink sm:text-5xl">Integritet, cookies och lokal lagring</h1>
-        <p className="text-sm text-ink/75">AgilityManager · uppdaterad 7 oktober 2026.</p>
+        <p className="text-sm text-ink/75">AgilityManager · uppdaterad 15 oktober 2026.</p>
         <p>AgilityManager drivs av Aurora Media AB, org.nr 559272-0220. Frågor om dina uppgifter skickas till info@auroramedia.se.</p>
         <p>Namn och e-post används för din banprofil och för de kontofunktioner du väljer. Ditt profilnamn visas vid delade banor och kommentarer; e-postadressen visas inte publikt. Banor, hundprofiler, resultat och träningsanteckningar lagras när du använder dessa funktioner. Du väljer själv om en sparad bana ska vara publik.</p>
+        <h2 className="pt-4 font-display text-2xl uppercase tracking-wide text-ink">Kursanmälningar</h2>
+        <p>När du anmäler dig till en instruktörsledd kurs sparar vi ditt namn, dina kontaktuppgifter, vald hund, kurs och anmälningsstatus. Uppgifterna visas för dig och kursens instruktör så att instruktören kan hantera platser, väntelista, praktisk information och betalning. Andra deltagare och besökare kan inte läsa deltagarlistan.</p>
+        <p>Kursavgifter betalas direkt till instruktören enligt kursens betalningsinformation. Instruktören kan registrera om betalningen har tagits emot; vi sparar även vem som gjorde markeringen och när. AgilityManager tar inte emot kortuppgifter i detta kursflöde. Avbokningar och eventuella återbetalningar hanteras med instruktören.</p>
+        <p>Din profil har en privat åtkomstnyckel som sparas i webbläsarens lokala lagring. Förvara eventuella säkerhetskopior av profilen säkert och dela dem inte. Kursens publika delningslänk visar inte deltagarnas kontaktuppgifter. Kontakta oss om du vill få tillgång till eller radera kursuppgifter som inte finns i kontots export.</p>
         <p>Vi använder nödvändig lokal lagring för inloggning och för att komma ihåg de val och det innehåll du sparar i tjänsten. Inloggningslagring från Supabase (sb-*-auth-token) finns kvar tills du loggar ut eller rensar den. Sparade banutkast och inställningar finns kvar tills du tar bort dem eller rensar webbplatsens lagring.</p>
         <p>Ditt cookieval sparas under agilitymanager_ga4_consent_v2 i högst 365 dagar. Nödvändig lagring behövs för funktioner du har begärt.</p>
         <h2 className="pt-4 font-display text-2xl uppercase tracking-wide text-ink">Valfri statistik</h2>

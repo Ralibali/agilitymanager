@@ -28,3 +28,20 @@ describe('acquisition and interaction context', () => {
     expect(gtag).not.toHaveBeenCalled();
   });
 });
+
+
+describe('course data privacy', () => {
+  it('excludes course URLs and personal query strings from analytics', async () => {
+    vi.stubGlobal('window', {
+      location: { hostname: 'example.test', origin: 'https://example.test', href: 'https://example.test/kurser?vy=anmalningar', search: '?vy=anmalningar' },
+      history: { pushState: vi.fn(), replaceState: vi.fn() }, addEventListener: vi.fn(),
+    });
+    vi.stubGlobal('document', { addEventListener: vi.fn() });
+    vi.stubGlobal('localStorage', { getItem: () => null });
+    const { initGa4, cleanAnalyticsUrl } = await import('./ga4Runtime');
+    initGa4({ measurementId: 'G-TEST123', hosts: ['example.test'], excluded: ['/kurser'], consentKey: 'test' });
+    expect(cleanAnalyticsUrl('/kurser?email=private@example.test')).toBe('');
+    expect(cleanAnalyticsUrl('/kurser/00000000-0000-4000-8000-000000000001')).toBe('');
+    expect(cleanAnalyticsUrl('/traning?token=secret')).toBe('https://example.test/traning');
+  });
+});

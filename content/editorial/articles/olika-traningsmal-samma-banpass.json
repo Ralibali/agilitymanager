@@ -3,9 +3,9 @@
   "site": "agilitymanager",
   "content_id": "editorial-20261014-olika-traningsmal-samma-banpass",
   "author": "ChatGPT",
-  "status": "draft",
+  "status": "ready",
   "written_at": "2026-10-14T14:11:00.287414+00:00",
-  "sources_checked_at": "2026-10-14T14:11:00.287414+00:00",
+  "sources_checked_at": "2026-10-22T18:57:55.958097+00:00",
   "search_intent": "Avgränsa olika deltagares träningsfrågor till ett gemensamt agilitypass, med tydliga val före banritningen och utan individuella tränings- eller hälsolöften.",
   "source_urls": [
     "https://agilitymanager.se/banplanerare"
@@ -79,5 +79,6 @@
       "text": "Samla bara de slutsatser som är användbara för nästa planering. Om ni också behöver fördela arbetet med själva uppställningen finns guiden om [arbetsfördelning vid gemensamt banbygge](/blogg/arbetsfordelning-gemensamt-banbygge). Träningsfrågorna bestämmer vad ni vill undersöka; arbetsfördelningen bestämmer hur gruppen förbereder det överenskomna upplägget."
     }
   ],
-  "not_before": "2026-10-16"
+  "publishedAt": "2026-10-22T18:57:55.958097+00:00",
+  "updatedAt": "2026-10-22T18:57:55.958097+00:00"
 }

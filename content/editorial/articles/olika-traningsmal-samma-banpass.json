@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "content_id": "editorial-20261014-olika-traningsmal-samma-banpass",
+  "author": "ChatGPT",
+  "status": "ready",
+  "written_at": "2026-10-14T14:11:00.287414+00:00",
+  "sources_checked_at": "2026-10-22T18:57:55.958097+00:00",
+  "search_intent": "Avgränsa olika deltagares träningsfrågor till ett gemensamt agilitypass, med tydliga val före banritningen och utan individuella tränings- eller hälsolöften.",
+  "source_urls": [
+    "https://agilitymanager.se/banplanerare"
+  ],
+  "slug": "olika-traningsmal-samma-banpass",
+  "title": "Planera ett gemensamt banpass med olika träningsmål",
+  "description": "Samla gruppens träningsfrågor innan banan ritas. Välj ett gemensamt upplägg utan att alla behöver öva samma sak eller jämföra resultat.",
+  "category": "Verktyg",
+  "readingMinutes": 4,
+  "related": [
+    "arbetsfordelning-gemensamt-banbygge",
+    "fran-banide-till-traningspass"
+  ],
+  "cta": {
+    "heading": "Planera gruppens nästa pass",
+    "text": "Öppna banplaneraren när ni har valt vad det gemensamma passet ska handla om.",
+    "label": "Öppna banplaneraren",
+    "to": "/banplanerare"
+  },
+  "blocks": [
+    {
+      "type": "p",
+      "text": "En träningsgrupp kan vilja använda samma bana men ha olika saker att arbeta med. En deltagare vill pröva en planerad väg, en annan vill få återkoppling på sin förberedelse och en tredje vill titta på hur en viss passage presenteras. Om önskemålen kommer först när banan är byggd blir det svårt att välja ett gemensamt upplägg.\n\nBörja därför med frågorna som passet ska hjälpa er att undersöka. Den här mallen handlar om gruppens planering. Den ersätter inte instruktörens bedömning av lämpliga övningar, hundens förutsättningar, hinderhöjder eller säkerheten på plats."
+    },
+    {
+      "type": "h2",
+      "text": "Be varje deltagare formulera en fråga"
+    },
+    {
+      "type": "p",
+      "text": "Skriv en kort mening per deltagare om vad personen vill kunna ta ställning till efter passet. Det kan vara en fråga om hur en tänkt sekvens ser ut på ritningen eller vad personen vill få återkoppling på. En fråga är lättare att diskutera än ett allmänt önskemål om att träna allt."
+    },
+    {
+      "type": "p",
+      "text": "Undvik att koppla målet till ett visst resultat innan ni har valt övning och pratat med ansvarig instruktör. Skriv också om någon främst vill observera. Gruppen behöver inte lägga samma tid på varje moment eller göra samma sak för att planeringen ska vara gemensam och begriplig."
+    },
+    {
+      "type": "h2",
+      "text": "Välj det som ryms i samma upplägg"
+    },
+    {
+      "type": "p",
+      "text": "Läs frågorna tillsammans och markera vilka som går att arbeta med inom ett gemensamt upplägg. Lägg andra önskemål i en separat lista för senare planering. Den listan är inte ett misslyckande; den visar vilka val ni faktiskt har gjort för dagens tillfälle."
+    },
+    {
+      "type": "p",
+      "text": "Ett fiktivt exempel är att två önskemål använder samma del av ritningen medan ett tredje kräver ett helt annat hinderarrangemang. Då kan gruppen välja en huvuduppgift och spara den andra till ett separat pass. Låt instruktören bedöma vad som är lämpligt i praktiken innan ni börjar bygga eller träna."
+    },
+    {
+      "type": "h2",
+      "text": "Knyt frågorna till en gemensam ritning"
+    },
+    {
+      "type": "p",
+      "text": "Öppna [AgilityManagers banplanerare](/banplanerare) för att arbeta med en gemensam ritning. Spara en kort planeringsanteckning vid sidan av ritningen med passets huvudfråga, vilka delar som ska diskuteras och vem som samordnar återkopplingen. Beskriv anteckningen som gruppens manuella underlag, inte som en särskild produktfunktion."
+    },
+    {
+      "type": "p",
+      "text": "Kontrollera att alla utgår från samma version. Om en ändring behövs, prata först om vilken fråga den ska hjälpa er att besvara. Det gör det lättare att skilja en motiverad ändring från en ny idé som egentligen hör till nästa pass. Både den gamla och den nya versionen kan behövas när ni följer upp beslutet."
+    },
+    {
+      "type": "h2",
+      "text": "Avsluta med vad ni vill göra nästa gång"
+    },
+    {
+      "type": "p",
+      "text": "Efter passet kan varje deltagare skriva vad som blev tydligare, vilken fråga som återstår och vilket underlag som behövs nästa gång. Håll isär observation och tolkning. Att en viss sak inträffade under ett pass räcker inte för att fastställa varför den inträffade eller vad som alltid kommer att fungera."
+    },
+    {
+      "type": "p",
+      "text": "Samla bara de slutsatser som är användbara för nästa planering. Om ni också behöver fördela arbetet med själva uppställningen finns guiden om [arbetsfördelning vid gemensamt banbygge](/blogg/arbetsfordelning-gemensamt-banbygge). Träningsfrågorna bestämmer vad ni vill undersöka; arbetsfördelningen bestämmer hur gruppen förbereder det överenskomna upplägget."
+    }
+  ],
+  "publishedAt": "2026-10-22T18:57:55.958097+00:00",
+  "updatedAt": "2026-10-22T18:57:55.958097+00:00"
+}

@@ -15,6 +15,7 @@ AgilityManager samlar:
 - **Banbibliotek & delade banor** — färdiga agility- och hoopersbanor att utgå från.
 - **Tävlingskalender** — svenska agility- och hooperstävlingar med filter, favoriter och hundmatchning.
 - **Träning** — träningsplaner, historik samt instruktörs- och elevflöden med uppgifter och feedback.
+- **Kurser** — instruktörsledda kurser med datum, platsantal, hundanmälan, väntelista och privat administration. Gratis eller manuell betalning direkt till instruktören; se `docs/courses-payments.md`.
 - **Kunskapsbank** — blogg och guider om bandesign, regler och träningsupplägg.
 - **Mitt AgilityManager** — konto, banprofil och de personliga ytorna på ett ställe.
 
@@ -97,6 +98,7 @@ med Vitest och i webbläsaren (`e2e/planner-tools.e2e.ts`).
 | `/banplanerare` | Banplaneraren |
 | `/banor`, `/delade-banor`, `/bana/:id` | Banbibliotek och delade banor |
 | `/tavlingar`, `/tavlingar/:id`, `/tavlingar/favoriter` | Tävlingskalender |
+| `/kurser`, `/kurser/:id` | Kurskatalog, anmälningar och instruktörens kursadministration |
 | `/traning`, `/instruktor`, `/elev` | Träning, instruktör och elev |
 | `/blogg`, `/blogg/:slug`, `/jamfor-hundforsakring` | Kunskapsbank |
 | `/funktioner`, `/priser` | Produkt och priser |
@@ -133,3 +135,28 @@ npm test
 npm run build
 npm run test:e2e
 ```
+
+## AgilityManager Courses
+
+Kursmodulen lägger till schemalagda instruktörskurser. Den återanvänder
+banprofilens ägarnyckel och lokala hundprofiler; en hund i anmälan är en
+godkänd ögonblicksbild, ingen ny hunddatabas. Banbiblioteket och befintliga
+träningsgrupper behåller sina egna arbetsflöden.
+
+Backendändringen ligger i `supabase/migrations/20261015133218_training_courses_mvp.sql`.
+Migreringen ska köras mot projektet i `supabase/config.toml` före publicering
+av frontend. Webbläsaren använder tre avgränsade RPC:er. Tabellerna har RLS
+och ger ingen direkt läs- eller skrivåtkomst till `anon`/`authenticated`.
+Privilegierad logik ligger i ett separat schema med explicita ägarkontroller.
+
+Verifiering omfattar verklig SQL i PGlite och webbläsartester med samma SQL
+bakom API-anropen. Browserproven körs på dator och mobil. De kopplar aldrig
+upp sig mot produktionsdata för att skapa provkurser. Kör projektets vanliga
+lint-, test-, build- och e2e-kommandon före release.
+
+Platsfördelning och kö använder ett gemensamt radlås på kursen och FIFO.
+Deltagaren måste godkänna delning av namn, e-post och vald hund till instruktören.
+Kursdatum, plats och betalningsvillkor låses när kursen har aktiva anmälningar.
+Väntelistans status visas i Mina anmälningar; automatiska mejl ingår inte i MVP:n.
+Kurssidorna är undantagna från statistik. Befintlig mobilapp är en separat
+produkt; den här ändringen gäller webbappen.

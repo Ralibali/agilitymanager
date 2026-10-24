@@ -9,19 +9,28 @@ const TEMPLATE = `<!doctype html><html lang="sv"><head><title>Start</title><meta
 describe("förrenderade statiska sidor", () => {
   const pages = buildStaticPages(new Date("2026-10-05"));
 
-  it("varje sida har egen canonical och titel — ingen pekar på startsidan", () => {
+  it("varje sida har egen canonical och titel", () => {
     const paths = pages.map((p) => p.canonicalPath);
     expect(new Set(paths).size).toBe(paths.length);
-    expect(paths).not.toContain("/");
+    expect(paths).toContain("/");
     for (const p of pages) expect(p.title).toMatch(/AgilityManager/);
   });
 
   it("täcker alla publika routes utom de som förrenderas på annat sätt", () => {
-    const prerenderedElsewhere = new Set(["/", "/jamfor-hundforsakring"]);
+    const prerenderedElsewhere = new Set(["/jamfor-hundforsakring"]);
     const paths = new Set(pages.map((p) => p.canonicalPath));
     for (const r of PUBLIC_ROUTES) {
       if (!prerenderedElsewhere.has(r.path)) expect(paths.has(r.path), r.path).toBe(true);
     }
+  });
+
+  it("startsidan innehåller rubrik, navigation, strukturdata och egen og:url utan JavaScript", () => {
+    const html = renderPage(TEMPLATE, pages.find(p => p.canonicalPath === "/")!);
+    expect(html).toContain("<h1>Hitta tävlingen. Bygg träningen.</h1>");
+    expect(html).toContain('property="og:url" content="https://agilitymanager.se/"');
+    expect(html).toContain('"@type":"Organization"');
+    expect(html).toContain('"@type":"WebSite"');
+    expect(html.match(/<a href=/g)!.length).toBeGreaterThan(10);
   });
 
   it("bloggindexet länkar till varje artikel", () => {

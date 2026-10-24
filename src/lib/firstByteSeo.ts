@@ -10,7 +10,7 @@ export type FirstByteRoute = {
 export const FIRST_BYTE_ROUTES: Record<FirstByteRoute["path"], FirstByteRoute> = {
   "/": {
     path: "/",
-    title: "AgilityManager — planera, träna och tävla i agility och hoopers",
+    title: "AgilityManager.se – svensk banplanerare",
     description:
       "Rita banor gratis i meterskala, planera träningen, följ instruktörens uppgifter och hitta svenska agility- och hooperstävlingar. Banplaneraren är gratis, konto behövs bara för synk.",
   },

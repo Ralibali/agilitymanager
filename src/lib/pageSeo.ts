@@ -19,7 +19,7 @@ export const PAGE_SEO = {
     title: FIRST_BYTE_ROUTES["/"].title,
     description: FIRST_BYTE_ROUTES["/"].description,
     canonicalPath: "/",
-    h1: "Hitta tävlingen. Rita banan. Träna smartare.",
+    h1: "Hitta tävlingen. Bygg träningen.",
     intro: "AgilityManager samlar banplanerare, tävlingskalender, träning och kunskapsbank för agility och hoopers i Sverige.",
   },
   planner: {
@@ -84,3 +84,12 @@ export const PAGE_SEO = {
 export function seoProps(page: StaticPageSeo) {
   return { title: page.title, description: page.description, canonicalPath: page.canonicalPath };
 }
+
+/** Shared by the rendered home page and its first-byte HTML. Verified identities only. */
+export const HOME_JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "Organization", "@id": "https://agilitymanager.se/#organization", name: "Aurora Media AB", url: "https://agilitymanager.se/", identifier: "559272-0220" },
+    { "@type": "WebSite", "@id": "https://agilitymanager.se/#website", name: "AgilityManager.se", url: "https://agilitymanager.se/", inLanguage: "sv-SE", description: PAGE_SEO.home.description, publisher: { "@id": "https://agilitymanager.se/#organization" } },
+  ],
+};

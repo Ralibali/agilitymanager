@@ -9,8 +9,8 @@ import { Marquee } from "@/components/Marquee";
 import { Reveal, RisingWords } from "@/components/Reveal";
 import { CourseMap } from "@/components/CourseMap";
 import { RotatingBadge } from "@/components/RotatingBadge";
-import { Seo, SITE_URL } from "@/components/Seo";
-import { PAGE_SEO, seoProps } from "@/lib/pageSeo";
+import { Seo } from "@/components/Seo";
+import { PAGE_SEO, HOME_JSON_LD, seoProps } from "@/lib/pageSeo";
 import { courseFromBankEntry, type Course } from "@/lib/course";
 import { COURSE_BANK } from "@/features/course-planner-v2/courseBank";
 import { ARTICLES } from "@/content/articles";
@@ -93,14 +93,7 @@ export default function Home() {
     <div className="min-h-screen bg-paper text-ink">
       <Seo
         {...seoProps(PAGE_SEO.home)}
-        jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          name: "AgilityManager",
-          url: SITE_URL,
-          inLanguage: "sv-SE",
-          description: "Banplanerare, träningsplanering, tävlingskalender och kunskapsbank för agility och hoopers.",
-        }}
+        jsonLd={HOME_JSON_LD}
       />
       <SiteNav />
 

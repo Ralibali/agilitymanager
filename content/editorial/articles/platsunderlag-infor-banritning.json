@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "content_id": "editorial-20261022-platsunderlag-infor-banritning",
+  "author": "ChatGPT",
+  "status": "ready",
+  "written_at": "2026-10-22T19:25:24.280565+00:00",
+  "sources_checked_at": "2026-10-24T07:24:24.850365+00:00",
+  "search_intent": "Dokumentera den tillgängliga träningsytans förutsättningar före banritningen, skilt från materiallista, träningsmål och praktisk arbetsfördelning.",
+  "source_urls": [
+    "https://agilitymanager.se/banplanerare"
+  ],
+  "slug": "platsunderlag-infor-banritning",
+  "title": "Samla platsens förutsättningar innan du ritar agilitybanan",
+  "description": "Gör ett enkelt platsunderlag med bekräftade mått, begränsningar och öppna frågor innan gruppen börjar arbeta med sin banritning.",
+  "category": "Verktyg",
+  "readingMinutes": 4,
+  "related": [
+    "arbetsfordelning-gemensamt-banbygge",
+    "olika-traningsmal-samma-banpass"
+  ],
+  "cta": {
+    "heading": "Börja med platsens förutsättningar",
+    "text": "Öppna banplaneraren när ni har samlat ert underlag.",
+    "label": "Öppna banplaneraren",
+    "to": "/banplanerare"
+  },
+  "blocks": [
+    {
+      "type": "p",
+      "text": "En banidé kan se tydlig ut på skärmen men ändå utgå från fel förutsättningar för platsen där gruppen ska träna. Innan ni börjar rita behöver ni veta vilken yta som faktiskt får användas och vilka frågor den platsansvariga behöver besvara. Ett litet platsunderlag hjälper er att hålla bekräftade uppgifter skilda från antaganden.\n\nDet här är en dokumentationsmall, inte en säkerhetsbedömning eller instruktion för hinderplacering. Ansvarig instruktör och anläggning behöver bedöma övningar, underlag, avstånd och säkerhet på plats. En ritning eller ett mått i ett dokument ersätter inte den kontrollen."
+    },
+    {
+      "type": "h2",
+      "text": "Identifiera vilken yta ni menar"
+    },
+    {
+      "type": "p",
+      "text": "Skriv platsens namn, vilken del av anläggningen det gäller och datumet för det planerade passet. Ett namn som stora planen kan vara otillräckligt om flera grupper använder olika delar av samma område. Be platsansvarig bekräfta att ni beskriver rätt yta."
+    },
+    {
+      "type": "p",
+      "text": "Ange vem uppgifterna kommer från och när de kontrollerades. Om ett gammalt dokument gäller hela hallen men gruppen bara får använda en del ska det framgå. Kopiera inte gamla mått till en ny ritning utan att först kontrollera vad måtten avser."
+    },
+    {
+      "type": "h2",
+      "text": "Skilj bekräftade mått från uppskattningar"
+    },
+    {
+      "type": "p",
+      "text": "Samla de mått som platsansvarig har bekräftat. Skriv enhet, vilken sträcka måttet beskriver och hur uppgiften togs fram. Markera en uppskattning uttryckligen som osäker. Om en uppgift saknas är en tydlig fråga mer användbar än en siffra som ser exakt ut."
+    },
+    {
+      "type": "p",
+      "text": "Undvik att utgå från ett fotografis perspektiv för att bestämma avstånd. Fotot kan däremot hjälpa er att förstå vilken del av platsen en anteckning gäller. Be om tillstånd innan ni delar bilder och välj material utan personer eller privata uppgifter när det räcker för uppgiften."
+    },
+    {
+      "type": "h2",
+      "text": "Samla begränsningar som behöver diskuteras"
+    },
+    {
+      "type": "p",
+      "text": "Notera sådant platsansvarig beskriver som relevant för planeringen, exempelvis avgränsade områden, entréer eller ytor som andra grupper använder. Ange vad som är ett bekräftat villkor och vad som fortfarande är en fråga. Beskriv inte en yta som godkänd bara för att den finns på en skiss."
+    },
+    {
+      "type": "p",
+      "text": "Skriv frågor om förvaring, uppställning och återställning separat från själva banidén. Då kan ansvarig person besvara dem utan att behöva tolka hela ritningen. Bestäm också vem i gruppen som samlar svaren, så att flera personer inte arbetar med olika besked."
+    },
+    {
+      "type": "h2",
+      "text": "Använd underlaget när ni börjar rita"
+    },
+    {
+      "type": "p",
+      "text": "Öppna [AgilityManagers banplanerare](/banplanerare) när ni har ett tillräckligt tydligt underlag för att diskutera banidén. Förvara platsuppgifterna vid sidan av ritningen och hänvisa till samma daterade version i gruppens planering. Det är en manuell arbetsrutin; guiden förutsätter ingen automatisk import eller kontroll av anläggningsdata."
+    },
+    {
+      "type": "p",
+      "text": "Gå igenom vilka frågor ritningen fortfarande lämnar öppna. En instruktion om hur platsen får användas ska inte försvinna när en ny banversion skapas. Om förutsättningarna ändras behöver ansvarig person bedöma vad som måste göras om före träningen."
+    },
+    {
+      "type": "h2",
+      "text": "Gör en sista avstämning inför passet"
+    },
+    {
+      "type": "p",
+      "text": "Be platsansvarig bekräfta uppgifter som kan ha ändrats sedan planeringen. Skriv datumet för avstämningen och vad som fortfarande återstår att kontrollera på plats. Låt en annan deltagare läsa underlaget och återberätta vilken yta och vilka villkor gruppen utgår från."
+    },
+    {
+      "type": "p",
+      "text": "När platsen och banidén är tillräckligt klara kan ni använda guiden om [arbetsfördelning vid gemensamt banbygge](/blogg/arbetsfordelning-gemensamt-banbygge). Ta bara med de uppgifter som hjälper gruppen genomföra det överenskomna passet. Spara sedan bekräftade förändringar inför nästa planering."
+    }
+  ],
+  "publishedAt": "2026-10-24T07:24:24.850365+00:00",
+  "updatedAt": "2026-10-24T07:24:24.850365+00:00"
+}

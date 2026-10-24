@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "content_id": "editorial-20261024-provskriv-banritning-lasbar-utskrift",
+  "author": "ChatGPT",
+  "status": "draft",
+  "written_at": "2026-10-24T07:57:02.890182+00:00",
+  "sources_checked_at": "2026-10-24T07:57:02.890182+00:00",
+  "search_intent": "Kontrollera läsbarhet och identifiering på en fysisk provutskrift av banritningen, skilt från filöppning, banritningens innehåll och säkerhetsbedömning.",
+  "source_urls": [
+    "https://agilitymanager.se/banplanerare"
+  ],
+  "slug": "provskriv-banritning-lasbar-utskrift",
+  "title": "Provskriv banritningen innan träningsgruppen behöver den",
+  "description": "Kontrollera att en utskriven banritning går att läsa och identifiera på papper. En enkel genomgång av beskärning, text och rätt version.",
+  "category": "Verktyg",
+  "readingMinutes": 4,
+  "related": [
+    "platsunderlag-infor-banritning",
+    "arbetsfordelning-gemensamt-banbygge"
+  ],
+  "cta": {
+    "heading": "Arbeta vidare med banritningen",
+    "text": "Öppna banplaneraren och kontrollera vilken version gruppen ska använda.",
+    "label": "Öppna banplaneraren",
+    "to": "/banplanerare"
+  },
+  "blocks": [
+    {
+      "type": "p",
+      "text": "En banritning som ser tydlig ut på en stor skärm kan bli svårläst när den skrivs ut. Gör därför en provutskrift med samma papper och skrivare som gruppen tänker använda. Syftet är att kontrollera läsbarhet och version, inte att godkänna banans säkerhet eller tävlingsmässighet."
+    },
+    {
+      "type": "p",
+      "text": "Den här arbetsmallen är skriven med AI-stöd av ChatGPT. Den beskriver en manuell kontroll och lovar inte att banplaneraren eller skrivaren automatiskt upptäcker fel."
+    },
+    {
+      "type": "h2",
+      "text": "Välj vilken ritning ni faktiskt ska använda"
+    },
+    {
+      "type": "p",
+      "text": "Börja med att skilja originalet från kopior som ligger i mejl, nedladdningar eller en gruppchatt. Anteckna filnamn, datum och vem som bekräftar att ritningen är den avsedda. Om två filer verkar lika, kontrollera den del som senast ändrades innan någon skriver ut flera exemplar."
+    },
+    {
+      "type": "p",
+      "text": "Bestäm också vilken information som behöver följa med på papperet. Ett versionsnamn eller en kort notering på baksidan kan hjälpa gruppen hålla ihop exemplaren. Använd inte en ny utskrift som bevis för att innehållet är en ny version; samma gamla fil kan ha skrivits ut igen."
+    },
+    {
+      "type": "h2",
+      "text": "Titta på hela arket först"
+    },
+    {
+      "type": "p",
+      "text": "Lägg utskriften framför dig utan att samtidigt ha skärmen som facit. Syns hela den avsedda ritningen? Kontrollera kanter, hörn, numrering och text som ligger nära sidans ytterkant. En beskuren detalj kan vara lätt att missa om resten av banan ser välbekant ut."
+    },
+    {
+      "type": "p",
+      "text": "Om något saknas, gå tillbaka till utskriftens förhandsvisning och kontrollera papper, orientering och skalning. Ändra en inställning i taget så att du vet vad som gjorde skillnad. Anteckna inställningen som fungerade med just den skrivaren; anta inte att samma val fungerar överallt."
+    },
+    {
+      "type": "h2",
+      "text": "Prova det som är svårast att läsa"
+    },
+    {
+      "type": "p",
+      "text": "Välj några detaljer som ligger tätt, har liten text eller skiljs åt med färg. Be en annan person beskriva vad hen ser på papperet. Om svaret kräver att du pekar på skärmen finns ett läsbarhetsproblem att lösa före gruppens genomgång."
+    },
+    {
+      "type": "p",
+      "text": "Ska vissa exemplar skrivas ut i svartvitt behöver även en sådan kopia provas. Information som bara skiljs åt genom färg kan bli svårare att tolka. Dokumentera vad som är oklart och välj en tydligare presentation eller kompletterande förklaring där det behövs."
+    },
+    {
+      "type": "h2",
+      "text": "Skilj papperskontroll från kontroll av banan"
+    },
+    {
+      "type": "p",
+      "text": "Att linjer och nummer går att läsa säger inget i sig om hinderplacering, avstånd eller lämplighet för hundarna som ska träna. Den bedömningen behöver göras separat av ansvarig person med de förutsättningar som gäller för passet."
+    },
+    {
+      "type": "p",
+      "text": "Mät inte ett avstånd på utskriften och behandla det som ett verkligt avstånd utan att skala och utskriftsinställningar är fastställda. Papperet är ett kommunikationsunderlag. Det ersätter inte kontroll på plats eller tillämpliga regler för den aktivitet ni planerar."
+    },
+    {
+      "type": "h2",
+      "text": "Spara det som gruppen har kommit överens om"
+    },
+    {
+      "type": "p",
+      "text": "När provutskriften fungerar, skriv upp vilken fil och vilka inställningar som användes. Låt personen som delar ut kopiorna kontrollera att samma version används. Håll äldre provtryck åtskilda från exemplaren för passet så att ingen råkar arbeta från fel underlag."
+    },
+    {
+      "type": "p",
+      "text": "Efter träningen kan ni samla de läsbarhetsproblem som faktiskt uppstod: exempelvis en otydlig siffra eller en detalj nära kanten. Rätta det konkreta problemet inför nästa utskrift. I AgilityManagers banplanerare kan ni arbeta vidare med ritningen; kontrollera den nya versionen på papper igen om presentationen ändras."
+    }
+  ],
+  "not_before": "2026-10-26",
+  "publication_gate": "Tidigast 2026-10-26 och minst två kalenderdagar i Europe/Stockholm efter senaste verkliga originalpublicering. Kontrollera tidigare läsflöde, aktuell main, hela inventeringen, källor och produkt igen. Utkastet har inget publiceringsdatum och får inte importeras i den publika samlingen."
+}

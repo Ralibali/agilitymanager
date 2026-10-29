@@ -38,7 +38,7 @@ permissions:
 
 jobs:
   verify-planner:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -101,3 +101,4 @@ jobs:
 
       - name: Typecheck planner-social Edge Function
         run: deno check supabase/functions/planner-social/index.ts
+

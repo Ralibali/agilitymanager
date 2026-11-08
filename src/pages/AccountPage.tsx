@@ -1,3 +1,4 @@
+import { courseInstructor, courseParticipant } from "@/features/courses/courses";
 import { downloadAccountData } from '@/lib/accountExport';
 import { useState } from "react";
 import { Link } from "react-router";
@@ -27,6 +28,7 @@ const SHORTCUTS = [
   { to: "/tavlingar/favoriter", icon: CalendarDays, title: "Favorittävlingar", text: "Tävlingarna du sparat i kalendern." },
   { to: "/resultat", icon: Trophy, title: "Resultat & meriter", text: "Dina lopp, felfria, placeringar och meriter." },
   { to: "/traning", icon: NotebookPen, title: "Träning", text: "Träningsplaner, pass och historik." },
+  { to: "/kurser", icon: CalendarDays, title: "Kurser & anmälan", text: "Boka en kurs med din hund eller skapa och administrera egna kurser." },
   { to: "/instruktor", icon: Users, title: "Instruktör", text: "Grupper, elever, uppgifter och feedback." },
 ];
 
@@ -43,12 +45,20 @@ export default function AccountPage() {
   };
   const [profileBusy, setProfileBusy] = useState(false);
   const profileData = async (remove: boolean) => {
-    if (remove && !window.confirm('Radera banprofilen och dess banor, kommentarer och betyg? Detta kan inte ångras.')) return;
+    if (remove && !window.confirm('Radera banprofilen och dess banor, kommentarer och betyg? Hantera först dina kurser och kursanmälningar i Kurser. Detta kan inte ångras.')) return;
     setProfileBusy(true);
     try {
       if (remove) { await plannerApi('delete-profile'); forgetProfile(); setExportMessage('Banprofilen har raderats.'); }
       else {
-        const data = await plannerApi('export-profile');
+        const data = await plannerApi<Record<string, unknown>>('export-profile');
+        const courseResults = await Promise.allSettled([courseInstructor('export'), courseParticipant('export')]);
+        const courseData = {
+          instructor: courseResults[0].status === 'fulfilled' ? courseResults[0].value : null,
+          registrations: courseResults[1].status === 'fulfilled' ? courseResults[1].value : null,
+          unavailable: courseResults.flatMap((result, index) => result.status === 'rejected' ? [index === 0 ? 'instructor' : 'registrations'] : []),
+        };
+        data.training_courses = courseData;
+        setExportMessage(courseData.unavailable.length ? 'Exporten är hämtad. Kursuppgifter kunde inte hämtas; försök igen från Kurser eller kontakta oss.' : 'Exporten inklusive kursuppgifter är hämtad.');
         const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
         const link = document.createElement('a'); link.href = url; link.download = 'min-banprofil.json'; link.click();
         window.setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -82,8 +92,8 @@ export default function AccountPage() {
           <h2 className="mt-4 font-display text-3xl leading-tight">Banprofil</h2>
           <p className="mt-3 leading-relaxed text-ink/70">
             Namn och e-post räcker för att spara banor på en profil, dela dem och få
-            kommentarer. Inget lösenord behövs. E-posten visas aldrig för andra och
-            används inte till utskick.
+            kommentarer. Inget lösenord behövs. E-posten visas inte offentligt. Vid
+            kursanmälan delar du namn och e-post med den kursens instruktör.
           </p>
           <p className="mt-4 text-sm font-semibold text-ink/75">
             {profile ? `Inloggad som ${profile.name}` : "Ingen banprofil i den här webbläsaren."}

@@ -39,6 +39,7 @@ const NAV_GROUPS: NavGroup[] = [
     to: "/traning",
     links: [
       { to: "/traning", label: "Min träning", text: "Planera pass och följ historiken" },
+      { to: "/kurser", label: "Kurser & anmälan", text: "Hitta kurser eller administrera dina egna" },
       { to: "/instruktor", label: "Instruktör", text: "Grupper, uppgifter och feedback" },
       { to: "/elev", label: "Elev", text: "Dina uppgifter från instruktören" },
     ],

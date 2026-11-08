@@ -18,11 +18,13 @@ export function PlannerProfileDialog({
   onOpenChange,
   onReady,
   reason,
+  emailHint,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onReady?: () => void;
   reason?: string;
+  emailHint?: string;
 }) {
   const { profile } = usePlannerProfile();
   const [name, setName] = useState("");
@@ -93,8 +95,7 @@ export function PlannerProfileDialog({
               onChange={(e) => setEmail(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              E-posten visas aldrig för andra – bara ditt namn syns vid banor och kommentarer.
-              Den används för din profil, inte för utskick.
+              {emailHint ?? "E-posten visas inte offentligt. Vid kursanmälan delar du namn och e-post med den kursens instruktör."}
             </p>
           </div>
           <Button type="submit" className="min-h-11 w-full rounded-full border-2 border-ink bg-ink font-bold text-paper shadow-hard-sm hover:bg-forest" disabled={saving}>

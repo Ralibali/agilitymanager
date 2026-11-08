@@ -65,6 +65,7 @@ export default function InstructorPage() {
               Till mina egna träningsplaner
             </Link>
           </header>
+          <Link to="/kurser?vy=instruktor" className="inline-flex rounded-full border-2 border-ink bg-tang px-5 py-3 text-sm font-bold">Kurser, platser och anmälningar</Link>
           {profile ? (
             <>
               <p className="text-sm text-ink/75">

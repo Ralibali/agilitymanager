@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "content_id": "editorial-20261029-tidplan-agilitytraning-banbyte",
+  "author": "ChatGPT",
+  "status": "draft",
+  "written_at": "2026-10-29T21:54:08.914127+00:00",
+  "sources_checked_at": "2026-10-29T21:54:08.914127+00:00",
+  "search_intent": "Fördela ett bokat träningspass mellan bygge, träning, banbyte och återställning; skilt från ansvarsfördelning och val av träningsmål.",
+  "source_urls": [
+    "https://agilitymanager.se/banplanerare"
+  ],
+  "slug": "tidplan-agilitytraning-banbyte",
+  "title": "Gör en tidplan för agilitypasset när banan behöver ändras",
+  "description": "Räkna bakifrån från sluttiden och välj vad som får plats i agilitypasset. En arbetsmall för banbyten, gemensam genomgång och återställning.",
+  "category": "Träning",
+  "readingMinutes": 4,
+  "related": [
+    "arbetsfordelning-gemensamt-banbygge",
+    "olika-traningsmal-samma-banpass"
+  ],
+  "cta": {
+    "heading": "Förbered banan för passet",
+    "text": "Använd banplaneraren som ritunderlag och håll tidplanen separat.",
+    "label": "Öppna banplaneraren",
+    "to": "/banplanerare"
+  },
+  "blocks": [
+    {
+      "type": "p",
+      "text": "När en träningsgrupp bokar en yta är hela tiden sällan tillgänglig för att träna. Banan ska byggas, deltagarna behöver förstå upplägget och utrustningen ska lämnas enligt platsens rutiner. Den här arbetsmallen är skriven med AI-stöd av ChatGPT och hjälper gruppen att planera tiden. Den ger inga generella gränser för hur länge en hund bör arbeta eller vila."
+    },
+    {
+      "type": "h2",
+      "text": "Börja med tiden då platsen ska vara lämnad"
+    },
+    {
+      "type": "p",
+      "text": "Skriv upp när gruppen får tillgång till ytan och när den ska vara återställd. Fråga den som ansvarar för platsen vad återställningen omfattar. Att träningen slutar vid en viss tid betyder inte automatiskt att gruppen får fortsätta plocka undan efteråt."
+    },
+    {
+      "type": "p",
+      "text": "Räkna bakifrån: först slutkontroll och undanplockning, därefter sista träningsdelen. Låt en del av tiden vara obokad i planeringen. Det är en marginal för sådant ni inte kunnat uppskatta, ingen anledning att hoppa över pauser eller kontroller."
+    },
+    {
+      "type": "h2",
+      "text": "Beskriv momenten som faktiskt tar tid"
+    },
+    {
+      "type": "p",
+      "text": "Dela upp passet i ankomst och förberedelser, bygge, gemensam genomgång, träning, eventuellt banbyte och återställning. Lägg inte hela förberedelsetiden på den första deltagaren. Gruppen behöver veta om den ska vara på plats vid bokningens början eller vid en senare överenskommen tid."
+    },
+    {
+      "type": "p",
+      "text": "Om ni har anteckningar från ett liknande pass kan de ge ett underlag. Skriv vad som var annorlunda då, exempelvis antal deltagare eller hur långt utrustningen behövde bäras. En uppskattning ska stå som uppskattning tills ni har prövat den."
+    },
+    {
+      "type": "h2",
+      "text": "Välj vad som ska ändras mellan delarna"
+    },
+    {
+      "type": "p",
+      "text": "Jämför om ni behöver bygga om hela banan eller om passet kan genomföras med färre förändringar. Beslut om övningarnas innehåll och lämplighet behöver tas av den som leder träningen. Tidplanen ersätter inte den bedömningen."
+    },
+    {
+      "type": "p",
+      "text": "Skriv en kort lista över de delar som ska flyttas och vem som leder bytet. Märk vilken banversion som gäller före och efter ändringen. Bestäm också hur gruppen får besked om att bytet är klart och att genomgången kan börja."
+    },
+    {
+      "type": "h2",
+      "text": "Bestäm vad som utgår om passet blir försenat"
+    },
+    {
+      "type": "p",
+      "text": "Välj i förväg vilken del som kan tas bort. Det kan vara ett extra planerat banalternativ, om träningsledaren bedömer att huvudsyftet ändå uppnås. Då slipper gruppen försöka pressa in varje planerad aktivitet i en kortare tid."
+    },
+    {
+      "type": "p",
+      "text": "Gör ingen generell regel om att alla ekipage ska hinna lika många försök. Anpassningar för hund och förare behöver göras av ansvarig träningsledare. Om tidplanen kräver att någon skyndar förbi en viktig kontroll är upplägget för omfattande."
+    },
+    {
+      "type": "h2",
+      "text": "Ta med en enkel tidrad till nästa pass"
+    },
+    {
+      "type": "p",
+      "text": "Skriv ner planerad start för varje del och lämna en tom ruta för den faktiska starten. Efter passet räcker det att markera den största avvikelsen och dess orsak. Syftet är att göra nästa planering bättre, inte att bedöma deltagarnas prestationer."
+    },
+    {
+      "type": "p",
+      "text": "Rita det valda upplägget i [AgilityManagers banplanerare](/banplanerare) och håll tidraden i gruppens vanliga dokument. Den här guiden påstår inte att banplaneraren skapar scheman, räknar pauser eller avgör när en hund är redo att träna. Stäm av planeringen med gruppen innan nästa bokning."
+    }
+  ],
+  "publication_gate": "Opublicerat utkast. Kontrollera aktuell main, hela inventeringen, källor och föregående läsflöde före publicering. Minst två kalenderdagar i Europe/Stockholm efter senaste verkliga originalpublicering."
+}

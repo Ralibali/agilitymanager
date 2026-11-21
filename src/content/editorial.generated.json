@@ -520,6 +520,105 @@
   },
   {
     "schema_version": 1,
+    "site": "agilitymanager",
+    "content_id": "editorial-20261118-installt-agilitypass-gemensamt-besked",
+    "author": "ChatGPT",
+    "status": "ready",
+    "written_at": "2026-11-18T10:15:22.218848+00:00",
+    "sources_checked_at": "2026-11-21T13:26:51.732111+00:00",
+    "search_intent": "Samordna beslut och deltagarbesked vid inställt eller flyttat träningspass, skilt från tidplan för genomförd träning.",
+    "source_urls": [
+      "https://agilitymanager.se/banplanerare"
+    ],
+    "slug": "installt-agilitypass-gemensamt-besked",
+    "title": "När agilitypasset ställs in: samla ett gemensamt besked",
+    "description": "En praktisk mall för träningsgruppen när ett agilitypass flyttas eller ställs in. Håll beslut, deltagarbesked och banunderlag samlade.",
+    "category": "Träning",
+    "readingMinutes": 3,
+    "related": [
+      "tidplan-agilitytraning-banbyte"
+    ],
+    "cta": {
+      "heading": "Förbered nästa träningspass",
+      "text": "Anpassa ritningen när det nya passets förutsättningar är bekräftade.",
+      "label": "Öppna banplaneraren",
+      "to": "/banplanerare"
+    },
+    "blocks": [
+      {
+        "type": "p",
+        "text": "När ett träningspass inte kan genomföras behöver gruppen veta vilket besked som gäller. Ett meddelande i en lång diskussion kan vara lätt att missa. Förbered därför vem som fattar beslutet och hur deltagarna får veta vad de ska göra. Texten är skriven med AI-stöd av ChatGPT."
+      },
+      {
+        "type": "h2",
+        "text": "Skriv vad beslutet gäller"
+      },
+      {
+        "type": "p",
+        "text": "Ange datum, tid och plats för passet som ändras. Skriv tydligt om det är inställt, flyttat eller om gruppen fortfarande väntar på beslut. Håll orsaken kort och lämna bort andra deltagares privata förhållanden."
+      },
+      {
+        "type": "p",
+        "text": "Om platsens ansvariga har lämnat ett besked, återge det korrekt. Mallen avgör inte om underlag, väder eller en hunds förutsättningar är lämpliga för träning. Den frågan behöver hanteras av den som ansvarar för passet."
+      },
+      {
+        "type": "h2",
+        "text": "Använd en tydlig väg till det senaste beskedet"
+      },
+      {
+        "type": "p",
+        "text": "Bestäm vilken av gruppens befintliga kontaktvägar som ska bära det gällande beskedet. Hänvisa dit om diskussionen fortsätter på andra ställen. Ange när meddelandet uppdaterades så att en gammal skärmbild inte ser ut som ett nytt beslut."
+      },
+      {
+        "type": "p",
+        "text": "Tänk på dem som redan kan vara på väg. Be deltagarna bekräfta att de har sett ändringen enligt gruppens vanliga rutin och följ upp dem som saknas. Den här arbetsmallen förutsätter ingen viss meddelandefunktion i AgilityManager."
+      },
+      {
+        "type": "h2",
+        "text": "Skilj avbokningen från en ny träningstid"
+      },
+      {
+        "type": "p",
+        "text": "Skriv vem som kontrollerar bokningen med anläggningen och vilka villkor som gäller för just ert pass. Ett meddelande till träningsgruppen ändrar inte i sig en bokning hos platsens ansvariga."
+      },
+      {
+        "type": "p",
+        "text": "Om ni diskuterar en ersättningstid, märk den som förslag tills plats och ansvar är bekräftade. Kopiera inte hela den gamla inbjudan med nya datum innan de praktiska förutsättningarna är klara. Kontrollera också att utrustning och planerat upplägg fortfarande passar den nya situationen."
+      },
+      {
+        "type": "h2",
+        "text": "Behåll banunderlaget men märk vad som ändrats"
+      },
+      {
+        "type": "p",
+        "text": "Spara ritningen så att den kan användas vid ett senare tillfälle. Lägg en kort anteckning till gruppens planering om varför den inte användes och vad som måste kontrolleras före nästa pass. Undvik att skriva över en äldre ritning när ni egentligen gör en ny version."
+      },
+      {
+        "type": "p",
+        "text": "När ett nytt pass är bestämt kan ni öppna banplaneraren och anpassa underlaget. Skicka sedan en ny sammanhängande inbjudan med rätt version. Låt inte deltagarna behöva kombinera delar från flera gamla meddelanden."
+      },
+      {
+        "type": "h2",
+        "text": "En beskedsmall att fylla i"
+      },
+      {
+        "type": "p",
+        "text": "Skriv meddelandet i fem korta rader: vilket pass det gäller, vilket beslut som är fattat, vad deltagaren behöver göra, var nästa besked finns och vem som följer upp. Lägg datum och klockslag för uppdateringen sist. Läs sedan meddelandet som om du bara såg det fristående i telefonen. Går det att förstå utan att läsa den tidigare diskussionen?"
+      },
+      {
+        "type": "p",
+        "text": "Gör en separat avstämning för det praktiska arbetet. Vem kontaktar anläggningen, vem informerar den som skulle ta med utrustning och vem kontrollerar att alla har fått besked? En uppgift är färdig när ansvarig har återkopplat, inte enbart när frågan har skickats vidare. Spara bara de anteckningar gruppen behöver för uppföljningen."
+      },
+      {
+        "type": "p",
+        "text": "När ersättningspasset är bekräftat hjälper guiden om tidplan och banbyte er att planera tiden. Den finns bland de relaterade artiklarna. Banplaneraren är kontrollerad som ritverktyg på agilitymanager.se/banplanerare; använd gruppens befintliga kontaktväg för deltagarbesked."
+      }
+    ],
+    "publishedAt": "2026-11-21",
+    "updatedAt": "2026-11-21"
+  },
+  {
+    "schema_version": 1,
     "content_id": "editorial-20260906-jamfora-banversioner-agility",
     "author": "ChatGPT",
     "status": "ready",

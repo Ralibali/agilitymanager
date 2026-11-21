@@ -90,6 +90,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://agilitymanager.se/blogg/installt-agilitypass-gemensamt-besked</loc>
+    <lastmod>2026-11-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://agilitymanager.se/blogg/jamfora-banversioner-agility</loc>
     <lastmod>2026-09-10</lastmod>
     <changefreq>monthly</changefreq>
@@ -120,8 +126,26 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://agilitymanager.se/blogg/platsunderlag-infor-banritning</loc>
+    <lastmod>2026-10-24T07:24:24.850365+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://agilitymanager.se/blogg/provoppna-banfil-infor-banbygge</loc>
     <lastmod>2026-10-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/provskriv-banritning-lasbar-utskrift</loc>
+    <lastmod>2026-10-29T21:26:31.385637+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://agilitymanager.se/blogg/tidplan-agilitytraning-banbyte</loc>
+    <lastmod>2026-11-08T20:59:56.944014+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

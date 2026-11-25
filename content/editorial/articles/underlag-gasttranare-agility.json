@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "site": "agilitymanager",
+  "content_id": "editorial-20261121-underlag-gasttranare-agility",
+  "author": "ChatGPT",
+  "status": "ready",
+  "written_at": "2026-11-21T13:52:08.517352+00:00",
+  "sources_checked_at": "2026-11-25T16:23:43.325913+00:00",
+  "search_intent": "Ge en gästande tränare ett begripligt gruppunderlag innan passet planeras; skilt från att besöka annan anläggning eller lämna över samordnaransvar.",
+  "source_urls": [
+    "https://agilitymanager.se/banplanerare"
+  ],
+  "slug": "underlag-gasttranare-agility",
+  "title": "Inför gästtränaren: skriv ett kort underlag om agilitygruppen",
+  "description": "Samla träningsmål, platsförutsättningar och frågor i ett underlag till en gästande agilitytränare. Skilj önskemål från bekräftat upplägg.",
+  "category": "Träning",
+  "readingMinutes": 3,
+  "related": [
+    "olika-traningsmal-samma-banpass",
+    "platsunderlag-infor-banritning"
+  ],
+  "cta": {
+    "heading": "Gör ritningen begriplig för gästande tränare",
+    "text": "Samla först de bekräftade förutsättningarna och rita sedan underlaget.",
+    "label": "Öppna banplaneraren",
+    "to": "/banplanerare"
+  },
+  "blocks": [
+    {
+      "type": "p",
+      "text": "En gästande tränare behöver förstå både gruppens önskemål och platsens praktiska förutsättningar. Ett kort, samlat underlag gör de obesvarade frågorna synliga innan någon ritar eller bygger banan. Texten är skriven med AI-stöd av ChatGPT."
+    },
+    {
+      "type": "h2",
+      "text": "Börja med uppdraget för just det här passet"
+    },
+    {
+      "type": "p",
+      "text": "Skriv varför gruppen har bjudit in tränaren och vad deltagarna vill kunna arbeta vidare med efteråt. Håll er till några få konkreta frågor. Formuleringen vi vill bli bättre säger mindre än att gruppen vill få hjälp att välja mellan två sätt att lägga upp en viss träningsövning. Låt tränaren bedöma vilket upplägg som är lämpligt."
+    },
+    {
+      "type": "p",
+      "text": "Skilj gruppens önskemål från det som redan är överenskommet. En idé i underlaget är inte automatiskt ett löfte om vad tränaren ska hinna med. Markera vilka frågor ni behöver få svar på innan ni skickar den slutliga informationen till deltagarna."
+    },
+    {
+      "type": "h2",
+      "text": "Beskriv gruppen utan onödiga privata uppgifter"
+    },
+    {
+      "type": "p",
+      "text": "Ange vilka träningsförutsättningar som faktiskt är relevanta för planeringen, exempelvis antal ekipage, hur tiden ska fördelas och om gruppen behöver olika uppgifter på samma bana. Undvik att rangordna deltagarna med oklara etiketter. Beskriv hellre vad gruppen har övat på och vilka frågor som fortfarande är öppna."
+    },
+    {
+      "type": "p",
+      "text": "Be deltagarna ta individuella frågor direkt med ansvarig när det behövs. Samla inte känsliga personuppgifter i ett allmänt gruppdokument. Den här mallen ger inget besked om en hunds eller förares lämplighet att delta; sådana frågor behöver bedömas av rätt person i den konkreta situationen."
+    },
+    {
+      "type": "h2",
+      "text": "Skicka ett platsunderlag som går att lita på"
+    },
+    {
+      "type": "p",
+      "text": "Ange bekräftad plats, tillgänglig yta och vilken utrustning som faktiskt finns där. Skilj uppgifter från anläggningen från sådant ni ännu antar. Skriv när ni kontrollerade informationen och vem som kan besvara praktiska frågor. Om ni skickar en skiss, förklara vad måtten avser."
+    },
+    {
+      "type": "p",
+      "text": "Lägg inte en tidigare banritning i underlaget utan förklaring. Skriv om den visar ett förslag, ett tidigare genomfört pass eller enbart exempel på utrustningen. Gästtränaren ska kunna avgöra vilket material som går att använda och vad som måste kontrolleras innan en ny ritning tas fram."
+    },
+    {
+      "type": "h2",
+      "text": "Samla praktiska besked hos en kontaktperson"
+    },
+    {
+      "type": "p",
+      "text": "Utse någon som samlar svar om ankomst, tillträde, byggtid och det som ska vara klart före starten. Om flera personer hjälper till, skriv vem som gör vad. Det är lättare att följa upp en namngiven uppgift än en rad om att gruppen ordnar resten."
+    },
+    {
+      "type": "p",
+      "text": "Bestäm också var den aktuella versionen av underlaget finns. Skicka en sammanhängande uppdatering när en förutsättning ändras och markera vad som är nytt. Undvik att be tränaren pussla ihop en ritning från ett meddelande och nya mått från ett annat."
+    },
+    {
+      "type": "h2",
+      "text": "Avsluta med tre frågor att bekräfta"
+    },
+    {
+      "type": "p",
+      "text": "Läs igenom underlaget med tre kontrollfrågor: vilket mål är överenskommet, vilka praktiska förutsättningar är bekräftade och vilka beslut återstår? Be om besked på de öppna punkterna innan gruppen behandlar förslaget som ett färdigt pass. Spara den bekräftade versionen tillsammans med ritningen."
+    },
+    {
+      "type": "p",
+      "text": "När förutsättningarna är klara kan ni använda banplaneraren på agilitymanager.se/banplanerare för ritunderlaget. Relaterade guider om olika träningsmål och platsunderlag hjälper till med förberedelserna. Kommunikation med tränaren sker genom den kontaktväg ni redan använder; mallen förutsätter ingen särskild meddelande- eller bokningsfunktion i AgilityManager."
+    }
+  ],
+  "quality_checked_at": "2026-11-25T16:23:43.325913+00:00",
+  "publishedAt": "2026-11-25",
+  "updatedAt": "2026-11-25"
+}

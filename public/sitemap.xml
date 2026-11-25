@@ -150,6 +150,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://agilitymanager.se/blogg/underlag-gasttranare-agility</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://agilitymanager.se/blogg/uppfoljning-tavlingsdag-agility</loc>
     <lastmod>2026-09-20T12:42:21.351536+00:00</lastmod>
     <changefreq>monthly</changefreq>

@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import {
-  ArrowRight, BookOpen, FileDown, LayoutGrid, Medal,
-  MousePointer2, NotebookPen, Ruler, ShieldCheck, Smartphone, Spline, Users,
+  ArrowRight, BookOpen, FileDown, LayoutGrid, Magnet, Medal,
+  MousePointer2, NotebookPen, Route, Ruler, ShieldCheck, Smartphone, Sparkles, Spline, Users,
 } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -21,6 +21,17 @@ const GROUPS = [
       { icon: Ruler, t: "Meterskala & verkliga mått", d: "Valfria banmått med meterrutnät, 0,25 m-snäpp och hinder i verklig storlek — balansbom, A-hinder och slalom tar den plats de tar på planen." },
       { icon: Spline, t: "Hundens väg live", d: "Hundens linje ritas genom hindren i nummerordning med avstånd och banlängd — samma linje i 2D, 3D och PDF." },
       { icon: ShieldCheck, t: "Regelkontroll", d: "Kontrollera banan mot SAgiK:s agilityregler, Nollklass, SHoK och FCI hoopers: avstånd, hinderantal, start och mål, bankant och klassens tillåtna hinder." },
+    ],
+  },
+  {
+    kicker: "Planera passet",
+    title: "Hela banan — inte halva.",
+    text: "Ritar du bara hundens väg har du ritat halva banan. Planera föraren, bygg flera övningar på samma uppställning och låt generatorn ge dig en regelriktig start.",
+    items: [
+      { icon: Sparkles, t: "Generera bana", d: "Välj klass, antal hinder och stil — få en bana som klarar regelkontrollen för agility, nollklass och hoopers (SHoK och FCI). Förhandsvisa, slumpa ny och bygg vidare." },
+      { icon: Users, t: "Förarplan", d: "Rita förarens linje och markera framförbyte, bakombyte, blindbyte, förarposition, belöning och anteckningar. Planeraren visar var du korsar hundens linje." },
+      { icon: Route, t: "Övningar på samma uppställning", d: "Tre nivåer av samma tema utan att flytta ett hinder. Ett hinder får tas flera gånger, varje övning får egen hundlinje, förarplan och sida i tränings-PDF:en." },
+      { icon: Magnet, t: "Smarta stödlinjer", d: "Hinder snäpper i linje med varandra och mot banans mittlinjer när du drar dem — och avståndet till föregående och nästa hinder syns medan du flyttar." },
     ],
   },
   {

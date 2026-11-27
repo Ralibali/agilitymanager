@@ -52,10 +52,20 @@ const SECTIONS: Section[] = [
   {
     title: "Banbyggarverktyg",
     items: [
-      { keys: ["N"], label: "Numrera — klicka hindren i ordning" },
+      { keys: ["G"], label: "Generera en regelriktig bana för vald klass" },
+      { keys: ["N"], label: "Numrera — klicka hindren i ordning (i en övning: bygg övningen)" },
       { keys: ["M"], label: "Måttband — dra mellan två punkter" },
       { keys: ["D"], label: "Visa / dölj avstånd mellan hinder" },
       { keys: ["Shift", "Dra handtag"], label: "Rotera fritt i hela grader" },
+      { keys: ["Alt", "Dra"], label: "Flytta utan stödlinjer och snäpp" },
+    ],
+  },
+  {
+    title: "Förarplan",
+    items: [
+      { keys: ["P"], label: "Rita förarlinje (tryck igen för att avsluta)" },
+      { keys: ["Delete"], label: "Ta bort vald markering" },
+      { keys: ["Dubbelklick"], label: "Redigera en anteckning" },
     ],
   },
   {

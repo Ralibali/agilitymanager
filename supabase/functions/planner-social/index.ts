@@ -43,6 +43,109 @@ function clampNum(v: unknown, min: number, max: number, fallback: number): numbe
   return Math.max(min, Math.min(max, n));
 }
 
+/* ── Förarplan och övningar — speglar src/features/course-planner-v2/courseExtras.ts ── */
+const MARKUP_MAX_STROKES = 40;
+const MARKUP_MAX_POINTS_PER_STROKE = 300;
+const MARKUP_MAX_TOTAL_POINTS = 3000;
+const MARKUP_MAX_CUES = 80;
+const MARKUP_NOTE_CHARS = 140;
+const MAX_EXERCISES = 12;
+const MAX_EXERCISE_STEPS = 60;
+const CUE_KINDS = new Set(["handler", "front_cross", "rear_cross", "blind_cross", "reward", "note"]);
+// Radbrytningar är tillåtna i anteckningar — övriga styrtecken tas bort.
+// eslint-disable-next-line no-control-regex
+const NOTE_CONTROL_CHARS_RE = /[\u0000-\u0009\u000B-\u001F\u007F-\u009F]/g;
+
+function roundCm(v: number): number {
+  return Math.round(v * 100) / 100;
+}
+
+function readPoint(raw: unknown, w: number, h: number): [number, number] | null {
+  let x: unknown;
+  let y: unknown;
+  if (Array.isArray(raw)) {
+    x = raw[0];
+    y = raw[1];
+  } else if (raw && typeof raw === "object") {
+    x = (raw as Record<string, unknown>).x;
+    y = (raw as Record<string, unknown>).y;
+  } else {
+    return null;
+  }
+  if (typeof x !== "number" || typeof y !== "number" || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+  return [roundCm(clampNum(x, 0, w, 0)), roundCm(clampNum(y, 0, h, 0))];
+}
+
+function sanitizeMarkup(raw: unknown, w: number, h: number): Record<string, unknown> | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const r = raw as Record<string, unknown>;
+  const strokes: Array<{ points: Array<[number, number]> }> = [];
+  let total = 0;
+  if (Array.isArray(r.strokes)) {
+    for (const s of r.strokes.slice(0, MARKUP_MAX_STROKES)) {
+      if (!s || typeof s !== "object") continue;
+      const rawPoints = (s as Record<string, unknown>).points;
+      if (!Array.isArray(rawPoints)) continue;
+      const budget = Math.min(MARKUP_MAX_POINTS_PER_STROKE, MARKUP_MAX_TOTAL_POINTS - total);
+      if (budget < 2) break;
+      const points: Array<[number, number]> = [];
+      for (const p of rawPoints.slice(0, budget)) {
+        const pt = readPoint(p, w, h);
+        if (pt) points.push(pt);
+      }
+      if (points.length < 2) continue;
+      total += points.length;
+      strokes.push({ points });
+    }
+  }
+  const cues: Array<Record<string, unknown>> = [];
+  if (Array.isArray(r.cues)) {
+    for (const c of r.cues.slice(0, MARKUP_MAX_CUES)) {
+      if (!c || typeof c !== "object") continue;
+      const cr = c as Record<string, unknown>;
+      if (typeof cr.kind !== "string" || !CUE_KINDS.has(cr.kind)) continue;
+      const pt = readPoint(cr, w, h);
+      if (!pt) continue;
+      const cue: Record<string, unknown> = { kind: cr.kind, x: pt[0], y: pt[1] };
+      if (cr.kind === "note") {
+        const text = typeof cr.text === "string" ? cr.text.replace(NOTE_CONTROL_CHARS_RE, "").trim().slice(0, MARKUP_NOTE_CHARS) : "";
+        if (!text) continue;
+        cue.text = text;
+      }
+      cues.push(cue);
+    }
+  }
+  if (strokes.length === 0 && cues.length === 0) return undefined;
+  const out: Record<string, unknown> = {};
+  if (strokes.length) out.strokes = strokes;
+  if (cues.length) out.cues = cues;
+  return out;
+}
+
+function sanitizeExercises(raw: unknown, obstacleIds: Set<string>, w: number, h: number): Array<Record<string, unknown>> | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: Array<Record<string, unknown>> = [];
+  for (const e of raw.slice(0, MAX_EXERCISES)) {
+    if (!e || typeof e !== "object" || Array.isArray(e)) continue;
+    const er = e as Record<string, unknown>;
+    const steps: string[] = [];
+    if (Array.isArray(er.steps)) {
+      for (const ref of er.steps.slice(0, MAX_EXERCISE_STEPS * 2)) {
+        // I molnet refererar stegen alltid till hindrens id.
+        if (typeof ref !== "string" || !obstacleIds.has(ref)) continue;
+        if (steps[steps.length - 1] === ref) continue;
+        steps.push(ref);
+        if (steps.length >= MAX_EXERCISE_STEPS) break;
+      }
+    }
+    const exercise: Record<string, unknown> = { name: cleanText(er.name, 60) || `Övning ${out.length + 1}`, steps };
+    const markup = sanitizeMarkup(er.markup, w, h);
+    if (markup) exercise.markup = markup;
+    out.push(exercise);
+  }
+  return out.length ? out : undefined;
+}
+
 /**
  * Bygger upp course_data fält för fält. Okända fält, extrema arena-mått,
  * ogiltiga hindertyper och extrema koordinater når aldrig databasen —
@@ -90,9 +193,14 @@ function sanitizeCourseData(input: Record<string, unknown>): Record<string, unkn
       ob.number = Math.min(999, Math.round(r.number));
     }
     if (typeof r.curveDeg === "number" && Number.isFinite(r.curveDeg)) {
-      ob.curveDeg = clampNum(r.curveDeg, 0, 90, 0);
+      // Tunnlar kan böjas till U (180°) i planeraren.
+      ob.curveDeg = clampNum(r.curveDeg, 0, 180, 0);
     }
     if (r.curveSide === "left" || r.curveSide === "right") ob.curveSide = r.curveSide;
+    if (r.type === "tunnel" && typeof r.lengthM === "number" && Number.isFinite(r.lengthM)) {
+      // Tunnelns fysiska längd (2–6 m) — annars blir delade tunnlar 3 m.
+      ob.lengthM = roundCm(clampNum(r.lengthM, 2, 6, 3));
+    }
     if (r.locked === true) ob.locked = true;
     if (typeof r.zIndex === "number" && Number.isFinite(r.zIndex)) {
       ob.zIndex = Math.round(clampNum(r.zIndex, -1000, 1000, 0));
@@ -100,6 +208,12 @@ function sanitizeCourseData(input: Record<string, unknown>): Record<string, unkn
     obstacles.push(ob);
   }
   data.obstacles = obstacles;
+
+  const markup = sanitizeMarkup(input.markup, arenaWidthM, arenaHeightM);
+  if (markup) data.markup = markup;
+  const ids = new Set(obstacles.map((o) => o.id as string));
+  const exercises = sanitizeExercises(input.exercises, ids, arenaWidthM, arenaHeightM);
+  if (exercises) data.exercises = exercises;
   return data;
 }
 

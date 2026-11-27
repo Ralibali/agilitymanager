@@ -18,7 +18,7 @@ export const FIRST_BYTE_ROUTES: Record<FirstByteRoute["path"], FirstByteRoute> =
     path: "/banplanerare",
     title: "Banplanerare — rita agility- och hoopersbanor gratis | AgilityManager",
     description:
-      "Rita banor i meterskala direkt i webbläsaren. Hindereditor, live banlinje, PNG-export och delningslänkar för agility och hoopers — gratis, utan konto.",
+      "Rita agility- och hoopersbanor i meterskala eller generera en regelriktig bana direkt. Förarlinje, övningar, regelkontroll och PDF – gratis, utan konto.",
   },
 };
 

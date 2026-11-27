@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import {
   ArrowLeftRight, ArrowUpDown, BookOpen, Box, Check,
   ChevronDown, ChevronUp, ClipboardPaste, CloudCheck, Command, Copy, Download, Eraser, Footprints,
   Grid2x2, Keyboard, Link2, ListOrdered, Loader2, Lock, Lightbulb, Maximize, MoreHorizontal,
   MousePointerClick, Play, Redo2, RotateCcw, RotateCw, Ruler, RulerDimensionLine, Scissors,
-  Share2, ShieldCheck, SlidersHorizontal, Spline, SquareDashedMousePointer, Trash2, Undo2, Unlock, Cookie,
-  X, ZoomIn, ZoomOut,
+  Route, Share2, ShieldCheck, SlidersHorizontal, Spline, SquareDashedMousePointer, Trash2, Undo2, Unlock, Cookie,
+  Sparkles, X, ZoomIn, ZoomOut,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -84,6 +84,27 @@ import { ObstacleInspector } from "@/components/course-planner-v2/ObstacleInspec
 import { PlannerSettings, type PlannerViewToggles } from "@/components/course-planner-v2/PlannerSettings";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { clampTunnelLengthM, tunnelLengthM } from "@/features/course-planner-v2/obstacleSize";
+import {
+  EMPTY_MARKUP, EXERCISE_LIMITS, MARKUP_LIMITS, clampMarkup, exerciseNumbersById, exerciseSequence, finalizeStroke,
+  getCueDef, isMarkupEmpty, liveSteps, markupStats, nearestMarkupItem, nextExerciseName, serializeExtras, toggleExerciseStep,
+  type CourseCue, type CourseExercise, type CourseMarkup, type Vec2,
+} from "@/features/course-planner-v2/courseExtras";
+import { computeAlignmentSnap, type GuideLine } from "@/features/course-planner-v2/snapGuides";
+import { CueGlyph, HANDLER_COLOR, MarkupCues, MarkupStrokes } from "@/components/course-planner-v2/MarkupLayer";
+import {
+  ExercisesPanel, HandlerPlanPanel, HandlerToolIcon, LayerTabs, type ExerciseRowInfo,
+} from "@/components/course-planner-v2/LayerPanels";
+import {
+  HANDLER_TOOLS, isToolActive, toolBannerText, type MarkupTool, type PlannerLayer,
+} from "@/components/course-planner-v2/layerTools";
+import { NoteDialog } from "@/components/course-planner-v2/NoteDialog";
+import type { GeneratedCourse } from "@/features/course-planner-v2/generator";
+import type { GenerateSettings } from "@/components/course-planner-v2/GenerateCourseDialog";
+
+// Generatorns dialog laddas först när den öppnas — den behövs inte för att rita.
+const GenerateCourseDialog = lazy(() =>
+  import("@/components/course-planner-v2/GenerateCourseDialog").then((m) => ({ default: m.GenerateCourseDialog })),
+);
 
 // ── Banmodell (v2) ──────────────────────────────────────────────────────────
 
@@ -96,6 +117,10 @@ interface Draft {
   classTemplate: ClassTemplateKey | null;
   obstacles: PlacedObstacle[];
   ruleSetId?: string;
+  /** Förarplan för huvudbanan: förarlinje och markeringar. */
+  markup?: CourseMarkup;
+  /** Övningar på samma uppställning. */
+  exercises?: CourseExercise[];
 }
 
 /** Strukturerad data för banplaneraren — konstant så att <Seo> inte byter skript vid varje omrendering. */
@@ -111,8 +136,12 @@ const PLANNER_JSON_LD = {
   offers: { "@type": "Offer", price: "0", priceCurrency: "SEK" },
   featureList: [
     "Banor i meterskala för agility och hoopers",
+    "Bangenerator: regelriktig bana för vald klass på en sekund",
     "Regelkontroll enligt SAgiK, SHoK och FCI",
     "Hundens väg, avstånd och banlängd",
+    "Förarlinje, framför-, bakom- och blindbyten och anteckningar",
+    "Övningar på samma uppställning med egen hundlinje",
+    "Smarta stödlinjer och live-avstånd när hinder flyttas",
     "3D-vy och banvandring",
     "PDF-export för domare och banbyggare",
     "Delningslänkar utan konto",
@@ -144,6 +173,15 @@ function normalizeObstacles(obstacles: PlacedObstacle[]): PlacedObstacle[] {
     ? [...competing].sort((a, b) => (a.number ?? 0) - (b.number ?? 0))
     : competing;
   return [...ordered, ...rest].map((ob) => ({ ...ob, id: ob.id || uid() }));
+}
+
+/** Förarplan och övningarnas förarplaner hålls inom nya banmått. */
+function clampLayers(d: Draft, width: number, height: number): Pick<Draft, "markup" | "exercises"> {
+  const arena = { width, height };
+  return {
+    markup: clampMarkup(d.markup, arena),
+    exercises: d.exercises?.map((e) => (e.markup ? { ...e, markup: clampMarkup(e.markup, arena) } : e)),
+  };
 }
 
 function defaultDraft(sport: Sport): Draft {
@@ -186,6 +224,8 @@ function draftFromRawCourse(raw: unknown): Draft | null {
     classTemplate: parsed.course.classTemplate,
     obstacles: normalizeObstacles(parsed.course.obstacles),
     ruleSetId,
+    ...(parsed.course.markup ? { markup: parsed.course.markup } : {}),
+    ...(parsed.course.exercises ? { exercises: parsed.course.exercises } : {}),
   };
 }
 
@@ -223,6 +263,9 @@ function encodeCourse(d: Draft): string {
     classTemplate: d.classTemplate,
     obstacles: compactObstacles(d.obstacles),
     ruleSetId: d.ruleSetId,
+    // Hinder-id:n följer inte med i länken — övningarna pekar därför på
+    // hindrens plats i listan (samma ordning som `obstacles` ovan).
+    ...serializeExtras(d, "indices"),
   });
   return btoa(unescape(encodeURIComponent(json)))
     .replace(/\+/g, "-")
@@ -361,6 +404,21 @@ export default function PlannerPage() {
   const [showRulers, setShowRulers] = useState(true);
   const [view, setView] = useState<ViewState>({ zoom: 1, panX: 0, panY: 0 });
   const zoom = view.zoom;
+  // ── Lager: hinder, förarplan och övningar ──
+  const [layer, setLayer] = useState<PlannerLayer>("obstacles");
+  const [markupTool, setMarkupTool] = useState<MarkupTool>(null);
+  const [selectedCueId, setSelectedCueId] = useState<string | null>(null);
+  const [showMarkup, setShowMarkup] = useState(true);
+  const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
+  const [exerciseEditing, setExerciseEditing] = useState(false);
+  /** Anteckningsdialogen: ny anteckning på (x, y) eller befintlig (cueId). */
+  const [noteEditor, setNoteEditor] = useState<{ cueId: string | null; x: number; y: number; text: string } | null>(null);
+  const [liveStroke, setLiveStroke] = useState<Vec2[] | null>(null);
+  const [confirmClearMarkupOpen, setConfirmClearMarkupOpen] = useState(false);
+  const [renameExerciseId, setRenameExerciseId] = useState<string | null>(null);
+  // ── Smarta stödlinjer och live-avstånd under dragning ──
+  const [guides, setGuides] = useState<GuideLine[]>([]);
+  const [draggingIds, setDraggingIds] = useState<string[] | null>(null);
   // håll en färsk referens till draft för pointer-/historikhantering
   const draftRef = useRef(draft);
   draftRef.current = draft;
@@ -376,6 +434,7 @@ export default function PlannerPage() {
   /** Baninställningar som blad på surfplatta/mobil (sidopanelen syns från lg). */
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [generateOpen, setGenerateOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -427,6 +486,11 @@ export default function PlannerPage() {
     toggleOffOnTap?: string;
   } | null>(null);
   const measureRef = useRef<{ id: number } | null>(null);
+  const strokeRef = useRef<{ id: number; points: Vec2[] } | null>(null);
+  const eraseRef = useRef<{ id: number; start: DraftSnapshot; changed: boolean } | null>(null);
+  const cueDragRef = useRef<{ id: string; grabDx: number; grabDy: number; moved: boolean; start: DraftSnapshot } | null>(null);
+  /** Övningsbygget slås ihop till ETT ångra-steg (som numreringsläget). */
+  const exerciseEditCommittedRef = useRef(false);
   const marqueeRef = useRef<{ id: number; base: string[]; a: { x: number; y: number }; b: { x: number; y: number } } | null>(null);
   const clipboardRef = useRef<ClipboardItem[]>([]);
   const [clipboardCount, setClipboardCount] = useState(0);
@@ -547,7 +611,16 @@ export default function PlannerPage() {
   }), [issues]);
 
   // Hundens väg (samma motor som uppspelningen)
-  const pathInput = useMemo(() => ({ obstacles: numbered }), [numbered]);
+  // Aktiv sekvens: huvudbanan eller vald övning. Hundlinje, avstånd,
+  // uppspelning och 3D följer den aktiva sekvensen; regelkontrollen gäller
+  // alltid huvudbanan.
+  const exercises = useMemo(() => draft.exercises ?? [], [draft.exercises]);
+  const activeExercise = activeExerciseId ? exercises.find((e) => e.id === activeExerciseId) ?? null : null;
+  const exerciseSeq = useMemo(
+    () => (activeExercise ? exerciseSequence(activeExercise.steps, obstacles) : null),
+    [activeExercise, obstacles],
+  );
+  const pathInput = useMemo(() => ({ obstacles: exerciseSeq ?? numbered }), [exerciseSeq, numbered]);
   const coursePath = useMemo(() => buildCoursePath(pathInput), [pathInput]);
   const runLineD = useMemo(() => (coursePath.points.length >= 2 ? toSvgPathD(coursePath) : ""), [coursePath]);
 
@@ -597,6 +670,44 @@ export default function PlannerPage() {
     },
     [commitDraft]
   );
+
+  // ── Förarplan och övningar ─────────────────────────────────
+  const activeExerciseIdRef = useRef(activeExerciseId);
+  activeExerciseIdRef.current = activeExerciseId && exercises.some((e) => e.id === activeExerciseId) ? activeExerciseId : null;
+  const activeMarkup = activeExercise ? activeExercise.markup : draft.markup;
+
+  /** Aktuell förarplan direkt ur utkastet (för pekarhändelser). */
+  const currentMarkup = useCallback((): CourseMarkup | undefined => {
+    const d = draftRef.current;
+    const exId = activeExerciseIdRef.current;
+    return exId ? d.exercises?.find((e) => e.id === exId)?.markup : d.markup;
+  }, []);
+
+  /** Ändra förarplanen för aktiv sekvens (huvudbanan eller vald övning). */
+  const updateMarkup = useCallback((fn: (m: CourseMarkup) => CourseMarkup, commit = true) => {
+    const exId = activeExerciseIdRef.current;
+    const tidy = (m: CourseMarkup) => (isMarkupEmpty(m) ? undefined : m);
+    const apply = (d: Draft): Draft => {
+      if (exId) {
+        return {
+          ...d,
+          exercises: (d.exercises ?? []).map((e) => (e.id === exId ? { ...e, markup: tidy(fn(e.markup ?? EMPTY_MARKUP)) } : e)),
+        };
+      }
+      return { ...d, markup: tidy(fn(d.markup ?? EMPTY_MARKUP)) };
+    };
+    if (commit) commitDraft(apply);
+    else setDraft(apply);
+  }, [commitDraft]);
+
+  const updateExercises = useCallback((fn: (list: CourseExercise[]) => CourseExercise[], commit = true) => {
+    const apply = (d: Draft): Draft => {
+      const next = fn(d.exercises ?? []);
+      return { ...d, exercises: next.length ? next : undefined };
+    };
+    if (commit) commitDraft(apply);
+    else setDraft(apply);
+  }, [commitDraft]);
 
   // ── Autosparning (lokalt i webbläsaren) ─────────────────────
   // Sparar bara det som verkligen gick att spara: misslyckas lagringen visar
@@ -784,6 +895,8 @@ export default function PlannerPage() {
     setPast((p) => p.slice(0, -1));
     setSelectedId(null);
     setNumbering(null);
+    setExerciseEditing(false);
+    setSelectedCueId(null);
   }, [past, setSelectedId]);
   const redo = useCallback(() => {
     if (!future.length) return;
@@ -794,6 +907,8 @@ export default function PlannerPage() {
     setFuture((f) => f.slice(1));
     setSelectedId(null);
     setNumbering(null);
+    setExerciseEditing(false);
+    setSelectedCueId(null);
   }, [future, setSelectedId]);
 
 
@@ -801,6 +916,8 @@ export default function PlannerPage() {
   const arena = useMemo(() => ({ width: w, height: h }), [w, h]);
   // Markeringen rensas från hinder som inte längre finns (ångra, rensa, öppna).
   const obstacleIds = useMemo(() => new Set(obstacles.map((ob) => ob.id)), [obstacles]);
+  const obstacleIdSetRef = useRef(obstacleIds);
+  obstacleIdSetRef.current = obstacleIds;
   const selectionIds = useMemo(() => selection.filter((id) => obstacleIds.has(id)), [selection, obstacleIds]);
   const selectionSet = useMemo(() => new Set(selectionIds), [selectionIds]);
   const selectedId = selectionIds.length === 1 ? selectionIds[0] : null;
@@ -934,6 +1051,14 @@ export default function PlannerPage() {
     setMultiMode(false);
     marqueeRef.current = null;
     measureRef.current = null;
+    setMarkupTool(null);
+    setSelectedCueId(null);
+    setExerciseEditing(false);
+    setActiveExerciseId(null);
+    setLiveStroke(null);
+    strokeRef.current = null;
+    eraseRef.current = null;
+    cueDragRef.current = null;
   }, []);
   const startNumbering = () => {
     if (competingCount < 2) {
@@ -955,7 +1080,16 @@ export default function PlannerPage() {
     });
     setSelection([]);
   };
-  const toggleNumbering = () => (numbering ? stopNumbering() : startNumbering());
+  // I en övning bygger "Numrera" övningens sekvens i stället för huvudbanans.
+  const toggleNumbering = () => {
+    if (activeExercise) {
+      if (exerciseEditing) setExerciseEditing(false);
+      else startExerciseEditing();
+      return;
+    }
+    if (numbering) stopNumbering();
+    else startNumbering();
+  };
 
   const numberingClick = (id: string) => {
     if (!numbering) return;
@@ -1028,8 +1162,171 @@ export default function PlannerPage() {
       setMeasureMode(false);
       setMeasure(null);
       setMultiMode(false);
+      setMarkupTool(null);
+      setExerciseEditing(false);
     }
   };
+
+  // ── Lager ───────────────────────────────────────────────────
+  const switchLayer = (next: PlannerLayer) => {
+    setLayer(next);
+    if (next !== "handler") {
+      setMarkupTool(null);
+      setSelectedCueId(null);
+    }
+    if (next !== "exercises") setExerciseEditing(false);
+    if (next !== "obstacles") {
+      setPlacing(null);
+      setMultiMode(false);
+    }
+    setNumbering(null);
+    setMeasureMode(false);
+    setMeasure(null);
+  };
+
+  const chooseMarkupTool = (tool: MarkupTool) => {
+    if (tool) {
+      setLayer("handler");
+      setPlacing(null);
+      setNumbering(null);
+      setMeasureMode(false);
+      setMeasure(null);
+      setMultiMode(false);
+      setExerciseEditing(false);
+      setPlaybackActive(false);
+      setSelection([]);
+      if (!showMarkup) setShowMarkup(true);
+    }
+    setMarkupTool(tool);
+    setSelectedCueId(null);
+  };
+
+  const deleteCue = (id: string) => {
+    updateMarkup((m) => ({ ...m, cues: m.cues.filter((c) => c.id !== id) }));
+    setSelectedCueId(null);
+  };
+
+  const saveNote = (text: string) => {
+    if (!noteEditor) return;
+    if (noteEditor.cueId) {
+      const id = noteEditor.cueId;
+      updateMarkup((m) => ({ ...m, cues: m.cues.map((c) => (c.id === id ? { ...c, text } : c)) }));
+    } else {
+      const cue: CourseCue = { id: uid(), kind: "note", x: Math.round(noteEditor.x * 100) / 100, y: Math.round(noteEditor.y * 100) / 100, text };
+      updateMarkup((m) => ({ ...m, cues: [...m.cues, cue].slice(0, MARKUP_LIMITS.cues) }));
+      setSelectedCueId(cue.id);
+    }
+    setNoteEditor(null);
+  };
+
+  const clearMarkup = () => {
+    updateMarkup(() => EMPTY_MARKUP);
+    setSelectedCueId(null);
+    toast.success("Förarplanen rensad", { description: "Ångra med Ctrl+Z." });
+  };
+
+  // ── Övningar ────────────────────────────────────────────────
+  const startExerciseEditing = () => {
+    if (!activeExercise) return;
+    setPlacing(null);
+    setNumbering(null);
+    setMeasureMode(false);
+    setMeasure(null);
+    setMultiMode(false);
+    setMarkupTool(null);
+    setPlaybackActive(false);
+    setSelection([]);
+    exerciseEditCommittedRef.current = false;
+    setExerciseEditing(true);
+  };
+
+  const selectExercise = (id: string | null) => {
+    setActiveExerciseId(id);
+    setExerciseEditing(false);
+    setSelectedCueId(null);
+    setPlaybackActive(false);
+    setNumbering(null);
+  };
+
+  const addExercise = () => {
+    if (exercises.length >= EXERCISE_LIMITS.exercises) return;
+    if (competingCount < 2) {
+      toast("Placera minst två hinder först", { description: "En övning byggs av hinder som redan står på banan." });
+      return;
+    }
+    const ex: CourseExercise = { id: uid(), name: nextExerciseName(exercises), steps: [] };
+    updateExercises((list) => [...list, ex]);
+    setLayer("exercises");
+    setActiveExerciseId(ex.id);
+    setPlacing(null);
+    setNumbering(null);
+    setMeasureMode(false);
+    setMultiMode(false);
+    setMarkupTool(null);
+    setSelection([]);
+    // Det nya steget hör till samma ångra-steg som skapandet.
+    exerciseEditCommittedRef.current = true;
+    setExerciseEditing(true);
+  };
+
+  const renameExercise = (id: string, name: string) =>
+    updateExercises((list) => list.map((e) => (e.id === id ? { ...e, name: name.trim().slice(0, EXERCISE_LIMITS.nameChars) || e.name } : e)));
+
+  const duplicateExercise = (id: string) => {
+    if (exercises.length >= EXERCISE_LIMITS.exercises) return;
+    const src = exercises.find((e) => e.id === id);
+    if (!src) return;
+    const copy: CourseExercise = { ...src, id: uid(), name: `${src.name} (kopia)`.slice(0, EXERCISE_LIMITS.nameChars) };
+    updateExercises((list) => {
+      const i = list.findIndex((e) => e.id === id);
+      return [...list.slice(0, i + 1), copy, ...list.slice(i + 1)];
+    });
+    selectExercise(copy.id);
+  };
+
+  const deleteExercise = (id: string) => {
+    const ex = exercises.find((e) => e.id === id);
+    updateExercises((list) => list.filter((e) => e.id !== id));
+    if (activeExerciseId === id) selectExercise(null);
+    toast.success(`${ex?.name ?? "Övningen"} borttagen`, { description: "Ångra med Ctrl+Z." });
+  };
+
+  const editExercise = (id: string) => {
+    if (activeExerciseId === id && exerciseEditing) {
+      setExerciseEditing(false);
+      return;
+    }
+    setActiveExerciseId(id);
+    setSelectedCueId(null);
+    exerciseEditCommittedRef.current = false;
+    setPlacing(null);
+    setNumbering(null);
+    setMeasureMode(false);
+    setMultiMode(false);
+    setMarkupTool(null);
+    setPlaybackActive(false);
+    setSelection([]);
+    setExerciseEditing(true);
+  };
+
+  const setActiveSteps = (fn: (steps: string[]) => string[]) => {
+    const exId = activeExerciseIdRef.current;
+    if (!exId) return;
+    const commit = !exerciseEditCommittedRef.current;
+    exerciseEditCommittedRef.current = true;
+    updateExercises((list) => list.map((e) => (e.id === exId ? { ...e, steps: fn(liveSteps(e.steps, obstacleIdSetRef.current)) } : e)), commit);
+  };
+
+  const exerciseClick = (id: string) => {
+    const ob = obstacles.find((o) => o.id === id);
+    if (!ob || !isCompeting(ob)) {
+      toast("Start, mål och områden ingår inte i övningar");
+      return;
+    }
+    setActiveSteps((steps) => toggleExerciseStep(steps, id));
+  };
+  const exerciseBack = () => setActiveSteps((steps) => steps.slice(0, -1));
+  const exerciseRestart = () => setActiveSteps(() => []);
 
   // ── Pointer-hantering ───────────────────────────────────────
   /** Snäppradie mot hindrens mittpunkter för måttbandet (m). */
@@ -1064,6 +1361,62 @@ export default function PlannerPage() {
     };
   }, []);
 
+  /** Sudda förardrag och markeringar under punkten (utan eget ångra-steg). */
+  const eraseAt = (pt: Vec2) => {
+    const m = currentMarkup();
+    if (!m) return;
+    const radius = clamp(16 / (pxPerMeterRef.current || 20), 0.3, 1.2);
+    const hit = nearestMarkupItem(m, pt, radius);
+    if (!hit) return;
+    updateMarkup((mm) => (hit.kind === "stroke"
+      ? { ...mm, strokes: mm.strokes.filter((s) => s.id !== hit.id) }
+      : { ...mm, cues: mm.cues.filter((c) => c.id !== hit.id) }), false);
+    if (eraseRef.current) eraseRef.current.changed = true;
+    if (hit.kind === "cue" && hit.id === selectedCueId) setSelectedCueId(null);
+  };
+
+  /**
+   * Förarplanens verktyg (penna, sudd, markeringar). Returnerar true när
+   * tryckningen hanterades — då ska varken hinder väljas eller planen panoreras.
+   */
+  const markupPointerDown = (e: React.PointerEvent, captureEl: Element, pt: Vec2): boolean => {
+    if (!markupTool) return false;
+    if (markupTool.kind === "pen") {
+      captureEl.setPointerCapture?.(e.pointerId);
+      strokeRef.current = { id: e.pointerId, points: [pt] };
+      setLiveStroke([pt]);
+      setSelectedCueId(null);
+      return true;
+    }
+    if (markupTool.kind === "eraser") {
+      captureEl.setPointerCapture?.(e.pointerId);
+      eraseRef.current = { id: e.pointerId, start: snapshotDraft(draftRef.current), changed: false };
+      eraseAt(pt);
+      return true;
+    }
+    if (markupTool.cue === "note") {
+      setNoteEditor({ cueId: null, x: pt.x, y: pt.y, text: "" });
+      return true;
+    }
+    const cue: CourseCue = { id: uid(), kind: markupTool.cue, x: Math.round(pt.x * 100) / 100, y: Math.round(pt.y * 100) / 100 };
+    updateMarkup((m) => ({ ...m, cues: [...m.cues, cue].slice(0, MARKUP_LIMITS.cues) }));
+    setSelectedCueId(cue.id);
+    return true;
+  };
+
+  const onCuePointerDown = (e: React.PointerEvent, cue: CourseCue) => {
+    e.stopPropagation();
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (startPinchIfTwo()) return;
+    const pt = toField(e.clientX, e.clientY);
+    // Penna och sudd arbetar ovanpå markeringarna.
+    if (markupTool && markupTool.kind !== "cue" && markupPointerDown(e, e.currentTarget as Element, pt)) return;
+    setSelectedCueId(cue.id);
+    setSelection([]);
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    cueDragRef.current = { id: cue.id, grabDx: cue.x - pt.x, grabDy: cue.y - pt.y, moved: false, start: snapshotDraft(draftRef.current) };
+  };
+
   const onSvgPointerDown = (e: React.PointerEvent) => {
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     // Två fingrar = nyp-zoom + panorering
@@ -1075,6 +1428,8 @@ export default function PlannerPage() {
       return;
     }
     const pt = toField(e.clientX, e.clientY);
+    if (markupTool && markupPointerDown(e, e.currentTarget as Element, pt)) return;
+    if (selectedCueId) setSelectedCueId(null);
     if (placing) {
       const ob: PlacedObstacle = { id: uid(), type: placing, x: snapM(pt.x), y: snapM(pt.y), rotation: 0 };
       setObstacles([...obstacles, ob]);
@@ -1110,16 +1465,22 @@ export default function PlannerPage() {
       panRef.current = { id: e.pointerId, lastX: e.clientX, lastY: e.clientY, moved: false };
       return;
     }
+    if (markupTool && markupPointerDown(e, e.target as Element, toField(e.clientX, e.clientY))) return;
     if (measureMode) {
       (e.target as Element).setPointerCapture?.(e.pointerId);
       measureRef.current = { id: e.pointerId };
       setMeasure({ a: { x: ob.x, y: ob.y }, b: { x: ob.x, y: ob.y } });
       return;
     }
+    if (exerciseEditing && activeExercise) {
+      exerciseClick(ob.id);
+      return;
+    }
     if (numbering) {
       numberingClick(ob.id);
       return;
     }
+    if (selectedCueId) setSelectedCueId(null);
     setPlacing(null);
     const modifier = e.shiftKey || e.ctrlKey || e.metaKey;
     // Shift/Ctrl-klick växlar alltid. I "välj flera" läggs omarkerade hinder
@@ -1188,7 +1549,30 @@ export default function PlannerPage() {
       if (panRef.current.moved) return;
     }
     const pt = toField(e.clientX, e.clientY);
-    if (placing) setGhost(pt);
+    if (placing || markupTool?.kind === "cue") setGhost(pt);
+    if (strokeRef.current && strokeRef.current.id === e.pointerId) {
+      const pts = strokeRef.current.points;
+      const last = pts[pts.length - 1];
+      if (Math.hypot(pt.x - last.x, pt.y - last.y) >= 0.12 && pts.length < 2000) {
+        pts.push(pt);
+        setLiveStroke(pts.slice());
+      }
+      return;
+    }
+    if (eraseRef.current && eraseRef.current.id === e.pointerId) {
+      eraseAt(pt);
+      return;
+    }
+    if (cueDragRef.current) {
+      const drag = cueDragRef.current;
+      const x = Math.round(clamp(pt.x + drag.grabDx, 0, w) * 100) / 100;
+      const y = Math.round(clamp(pt.y + drag.grabDy, 0, h) * 100) / 100;
+      const cue = currentMarkup()?.cues.find((c) => c.id === drag.id);
+      if (!cue || (!drag.moved && Math.hypot(cue.x - x, cue.y - y) < 0.05)) return;
+      drag.moved = true;
+      updateMarkup((m) => ({ ...m, cues: m.cues.map((c) => (c.id === drag.id ? { ...c, x, y } : c)) }), false);
+      return;
+    }
     if (measureRef.current && measureRef.current.id === e.pointerId) {
       const snap = nearestObstacle(obstacles, pt, measureSnapM());
       const b = snap ? { x: snap.x, y: snap.y } : pt;
@@ -1204,11 +1588,25 @@ export default function PlannerPage() {
       const drag = dragRef.current;
       const anchorStart = drag.items.get(drag.anchorId);
       if (!anchorStart) return; // ankaret är låst — inget flyttas
-      const tx = snapM(clamp(pt.x + drag.grabDx, 0.5, w - 0.5));
-      const ty = snapM(clamp(pt.y + drag.grabDy, 0.5, h - 0.5));
+      const rawX = clamp(pt.x + drag.grabDx, 0.5, w - 0.5);
+      const rawY = clamp(pt.y + drag.grabDy, 0.5, h - 0.5);
+      let tx = snapM(rawX);
+      let ty = snapM(rawY);
+      // Smarta stödlinjer: snäpp mot andra hinders mitt och banans mittlinjer
+      // (Alt = fri placering).
+      let nextGuides: GuideLine[] = [];
+      if (!e.altKey) {
+        const targets = draftRef.current.obstacles.filter((o) => !drag.items.has(o.id)).map((o) => ({ x: o.x, y: o.y }));
+        const snap = computeAlignmentSnap({ x: rawX, y: rawY }, targets, clamp(7 / (pxPerMeterRef.current || 20), 0.08, 0.45), arena);
+        if (snap.snappedX) tx = snap.x;
+        if (snap.snappedY) ty = snap.y;
+        nextGuides = snap.guides;
+      }
       const delta = clampGroupDelta([...drag.items.values()], tx - anchorStart.x, ty - anchorStart.y, arena);
       if (!drag.moved && Math.abs(delta.dx) < 1e-9 && Math.abs(delta.dy) < 1e-9) return;
+      if (!drag.moved) setDraggingIds([...drag.items.keys()]);
       drag.moved = true;
+      setGuides((g) => (JSON.stringify(g) === JSON.stringify(nextGuides) ? g : nextGuides));
       setDraft((d) => ({
         ...d,
         obstacles: d.obstacles.map((ob) => {
@@ -1240,10 +1638,41 @@ export default function PlannerPage() {
   const onPointerUp = (e?: React.PointerEvent) => {
     if (e) pointersRef.current.delete(e.pointerId);
     if (pointersRef.current.size < 2) pinchRef.current = null;
+    if (strokeRef.current && (!e || strokeRef.current.id === e.pointerId)) {
+      const pts = strokeRef.current.points;
+      strokeRef.current = null;
+      setLiveStroke(null);
+      const finished = finalizeStroke(pts, arena);
+      if (finished) {
+        if ((currentMarkup()?.strokes.length ?? 0) >= MARKUP_LIMITS.strokes) {
+          toast("Max 40 förardrag per förarplan", { description: "Sudda ett drag för att rita ett nytt." });
+        } else {
+          updateMarkup((m) => ({ ...m, strokes: [...m.strokes, { id: uid(), points: finished }] }));
+        }
+      }
+    }
+    if (eraseRef.current && (!e || eraseRef.current.id === e.pointerId)) {
+      const { start, changed } = eraseRef.current;
+      eraseRef.current = null;
+      if (changed && !snapshotsEqual(start, snapshotDraft(draftRef.current))) {
+        setPast((p) => pushHistory(p, start));
+        setFuture([]);
+      }
+    }
+    if (cueDragRef.current) {
+      const { start, moved } = cueDragRef.current;
+      cueDragRef.current = null;
+      if (moved && !snapshotsEqual(start, snapshotDraft(draftRef.current))) {
+        setPast((p) => pushHistory(p, start));
+        setFuture([]);
+      }
+    }
+    if (guides.length) setGuides([]);
+    if (draggingIds) setDraggingIds(null);
     if (panRef.current && (!e || panRef.current.id === e.pointerId)) {
       const wasClick = !panRef.current.moved;
       panRef.current = null;
-      if (wasClick && !placing && !numbering) setSelection([]);
+      if (wasClick && !placing && !numbering && !exerciseEditing) setSelection([]);
     }
     if (measureRef.current && (!e || measureRef.current.id === e.pointerId)) {
       measureRef.current = null;
@@ -1293,6 +1722,7 @@ export default function PlannerPage() {
       obstacles: tpl
         ? d.obstacles.map((ob) => ({ ...ob, x: clamp(ob.x, 0.5, nw - 0.5), y: clamp(ob.y, 0.5, nh - 0.5) }))
         : d.obstacles,
+      ...clampLayers(d, nw, nh),
     }));
     if (tpl) toast.success(`Klassmall: ${tpl.label}`, { description: tpl.description });
   };
@@ -1314,6 +1744,7 @@ export default function PlannerPage() {
       arenaHeightM: nh,
       ruleSetId: getDefaultRuleSetIdForSport(s),
       obstacles: d.obstacles.map((ob) => ({ ...ob, x: clamp(ob.x, 1, nw - 1), y: clamp(ob.y, 1, nh - 1) })),
+      ...clampLayers(d, nw, nh),
     }));
     setSelectedId(null);
     setPlacing(null);
@@ -1341,6 +1772,7 @@ export default function PlannerPage() {
       arenaWidthM: width,
       arenaHeightM: height,
       obstacles: d.obstacles.map((ob) => ({ ...ob, x: clamp(ob.x, 1, width - 1), y: clamp(ob.y, 1, height - 1) })),
+      ...clampLayers(d, width, height),
     }));
   };
 
@@ -1350,8 +1782,10 @@ export default function PlannerPage() {
   };
 
   const doClearAll = () => {
-    setObstacles([]);
+    // Förarplan och övningar hör till hindren — de rensas i samma ångra-steg.
+    commitDraft((d) => ({ ...d, obstacles: [], markup: undefined, exercises: undefined }));
     setSelectedId(null);
+    resetModes();
     toast.success("Banan rensad", { description: "Du kan ångra med Ctrl+Z." });
   };
 
@@ -1377,6 +1811,45 @@ export default function PlannerPage() {
       return;
     }
     applyLibraryPick(kind, payload, next);
+  };
+
+  // ── Bangenerator ───────────────────────────────────────────
+  const applyGenerated = (res: GeneratedCourse, s: GenerateSettings) => {
+    const tpl = getRuleSet(s.ruleSetId)?.classTemplates.find((t) => t.key === s.classTemplate);
+    commitDraft((d) => ({
+      ...d,
+      // Ett eget namn behålls — standardnamnet byts mot klassens.
+      name: !d.name.trim() || d.name === "Min bana" || d.name.endsWith(" · genererad")
+        ? `${tpl?.label ?? "Bana"} · genererad`
+        : d.name,
+      sport: s.sport,
+      ruleSetId: s.ruleSetId,
+      classTemplate: s.classTemplate,
+      sizeClass: s.sizeClass,
+      arenaWidthM: s.arenaWidthM,
+      arenaHeightM: s.arenaHeightM,
+      obstacles: res.obstacles,
+      // Förarplan och övningar hörde till den gamla banan (ångra tar tillbaka dem).
+      markup: undefined,
+      exercises: undefined,
+    }));
+    setGenerateOpen(false);
+    resetModes();
+    setSelectedId(null);
+    setPlacing(null);
+    setPlaybackActive(false);
+    // En genererad bana är en ny bana — "Spara" får inte skriva över den som var öppen.
+    setLocalCourseId(null);
+    setSavedSnapshot(null);
+    setLastSavedAt(null);
+    resetCourseIdentity(null);
+    resetView();
+    track("course_created", { method: "generator", template: s.classTemplate, style: res.style });
+    toast.success(`${tpl?.label ?? "Bana"} med ${res.obstacleCount} hinder`, {
+      description: res.issues.length === 0
+        ? "Regelkontrollen har inga anmärkningar. Ångra med Ctrl+Z."
+        : `${res.issues.length} anmärkningar att se över i regelkontrollen.`,
+    });
   };
 
   // ── Exporter ────────────────────────────────────────────────
@@ -1429,8 +1902,10 @@ export default function PlannerPage() {
         import("@/features/course-planner-v2/trainingPdf"),
         makeQrDataUrl(shareUrlForQr()).catch(() => ""),
       ]);
-      await exportTrainingPdf({ ...pdfBase(), qrDataUrl });
-      toast.success("Tränings-PDF nedladdad");
+      await exportTrainingPdf({ ...pdfBase(), qrDataUrl, markup: draft.markup, exercises: draft.exercises });
+      toast.success("Tränings-PDF nedladdad", {
+        description: exercises.length ? `Med ${exercises.length} ${exercises.length === 1 ? "övning" : "övningar"} — en sida per övning.` : undefined,
+      });
     });
   const onBuildPdf = () =>
     runExport("Bygg-PDF", async () => {
@@ -1453,7 +1928,8 @@ export default function PlannerPage() {
     });
   const onJson = () =>
     runExport("JSON", () => {
-      const blob = new Blob([JSON.stringify({ ...pdfBase(), version: 2 }, null, 2)], { type: "application/json" });
+      const payload = { ...pdfBase(), ...serializeExtras(draft, "ids"), version: 2 };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `${name || "bana"}.json`;
@@ -1489,6 +1965,8 @@ export default function PlannerPage() {
       return;
     }
     const c = result.course;
+    // Importens id:n är redan sanerade och unika — de behålls så att
+    // övningarnas steg fortsätter peka på rätt hinder.
     const next: Draft = {
       ...defaultDraft(c.sport),
       name: c.name || "Importerad bana",
@@ -1498,7 +1976,9 @@ export default function PlannerPage() {
       arenaHeightM: c.arenaHeightM ?? 40,
       classTemplate: c.classTemplate ?? null,
       ruleSetId: c.ruleSetId,
-      obstacles: normalizeObstacles(c.obstacles.map((ob) => ({ ...ob, id: uid() }))),
+      obstacles: normalizeObstacles(c.obstacles.map((ob) => ({ ...ob, id: ob.id || uid() }))),
+      ...(c.markup ? { markup: c.markup } : {}),
+      ...(c.exercises ? { exercises: c.exercises } : {}),
     };
     // Importen ersätter banan som är öppen — fråga först om det finns något att förlora.
     if (obstacles.length > 0) {
@@ -1670,6 +2150,7 @@ export default function PlannerPage() {
     classTemplate: draft.classTemplate,
     obstacles: numbered,
     ruleSetId: draft.ruleSetId,
+    ...serializeExtras(draft, "ids"),
   });
 
   const openSaveShare = () => {
@@ -1715,6 +2196,7 @@ export default function PlannerPage() {
     { id: "save-course-as", label: "Spara bana som…", group: "Bana", run: handleSaveAs, disabled: !hasObstacles, hint: hasObstacles ? undefined : "Lägg till hinder först" },
     { id: "open-course", label: "Öppna sparad bana", group: "Bana", shortcut: ["Ctrl", "O"], run: () => setOpenCourseOpen(true) },
     { id: "new-course", label: "Ny bana", group: "Bana", run: handleNewCourse },
+    { id: "generate", label: "Generera bana för vald klass", group: "Bana", shortcut: ["G"], icon: <Sparkles className="h-4 w-4" />, run: () => setGenerateOpen(true), hint: "Regelriktig bana med förhandsvisning" },
     { id: "issues", label: "Visa regelkontroll", group: "Granska", icon: <ShieldCheck className="h-4 w-4" />, run: () => setIssuesOpen(true) },
     { id: "library", label: "Öppna banbibliotek", group: "Bana", icon: <BookOpen className="h-4 w-4" />, run: () => setLibraryOpen(true) },
     { id: "share", label: "Dela bana via länk", group: "Bana", icon: <Share2 className="h-4 w-4" />, run: openShare, disabled: !hasObstacles, hint: hasObstacles ? undefined : "Lägg till hinder först" },
@@ -1729,9 +2211,23 @@ export default function PlannerPage() {
     { id: "pdf-build", label: "Exportera bygg-PDF", group: "Exportera", run: onBuildPdf, disabled: !hasObstacles },
     { id: "pdf-startlist", label: "Exportera startlista", group: "Exportera", run: onStartlistPdf, disabled: !hasObstacles },
     { id: "json", label: "Exportera JSON", group: "Exportera", run: onJson, disabled: !hasObstacles },
+    { id: "pen", label: markupTool?.kind === "pen" ? "Avsluta förarlinjen" : "Rita förarlinje", group: "Förarplan", shortcut: ["P"], icon: <Route className="h-4 w-4" />, run: () => chooseMarkupTool(markupTool?.kind === "pen" ? null : { kind: "pen" }), keywords: ["förare", "handler", "linje", "väg"] },
+    ...HANDLER_TOOLS.filter((t) => t.tool.kind === "cue").map((t) => ({
+      id: `cue-${t.key}`,
+      label: `Placera ${t.label.toLowerCase()}`,
+      group: "Förarplan",
+      run: () => chooseMarkupTool(t.tool),
+      hint: t.description,
+      keywords: ["markering", "byte", "förare"],
+    })),
+    { id: "markup-visible", label: showMarkup ? "Dölj förarplanen" : "Visa förarplanen", group: "Förarplan", run: () => setShowMarkup((v) => !v) },
+    { id: "markup-clear", label: "Rensa förarplanen", group: "Förarplan", run: () => setConfirmClearMarkupOpen(true), disabled: isMarkupEmpty(activeMarkup), hint: isMarkupEmpty(activeMarkup) ? "Förarplanen är tom" : undefined },
+    { id: "exercise-new", label: "Ny övning på samma uppställning", group: "Övningar", icon: <Route className="h-4 w-4" />, run: addExercise, disabled: exercises.length >= EXERCISE_LIMITS.exercises || competingCount < 2, hint: competingCount < 2 ? "Placera minst två hinder först" : "Tryck hindren i ordning — samma hinder får tas igen", keywords: ["övning", "sekvens", "träning", "variant"] },
+    { id: "exercise-main", label: "Visa huvudbanan", group: "Övningar", run: () => selectExercise(null), disabled: !activeExercise },
+    ...exercises.map((ex) => ({ id: `exercise-${ex.id}`, label: `Visa ${ex.name}`, group: "Övningar", run: () => { setLayer("exercises"); selectExercise(ex.id); } })),
     { id: "help", label: "Tangentbordsgenvägar", group: "Hjälp", shortcut: ["?"], run: () => setHelpOpen(true) },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ], [undo, redo, showLine, showNumbers, showGrid, showRulers, showDistances, selected, selectionIds, obstacles, draft, numbered, exporting, past.length, future.length, hasSelection, canPlay, hasObstacles, plannerProfile, numbering, measureMode, multiMode, competingCount, inspectorOpen, clipboardCount]);
+  ], [undo, redo, showLine, showNumbers, showGrid, showRulers, showDistances, selected, selectionIds, obstacles, draft, numbered, exporting, past.length, future.length, hasSelection, canPlay, hasObstacles, plannerProfile, numbering, measureMode, multiMode, competingCount, inspectorOpen, clipboardCount, markupTool, showMarkup, activeMarkup, exercises, activeExercise]);
 
   // ── Tangentbord ─────────────────────────────────────────────
   useEffect(() => {
@@ -1755,6 +2251,10 @@ export default function PlannerPage() {
       if (typing) return;
       if (e.key === "Escape") {
         if (playbackActive) { setPlaybackActive(false); return; }
+        if (strokeRef.current) { strokeRef.current = null; setLiveStroke(null); return; }
+        if (markupTool) { setMarkupTool(null); return; }
+        if (exerciseEditing) { setExerciseEditing(false); return; }
+        if (selectedCueId) { setSelectedCueId(null); return; }
         if (numbering) { setNumbering(null); return; }
         if (measureMode) { setMeasureMode(false); setMeasure(null); return; }
         if (multiMode) { setMultiMode(false); return; }
@@ -1794,6 +2294,10 @@ export default function PlannerPage() {
       if (e.metaKey || e.ctrlKey || e.altKey || overlay) return;
       // Ta bort och piltangenter fungerar även när fokus ligger kvar på en
       // verktygsknapp (de aktiverar aldrig knappar).
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedCueId && !hasSelection) {
+        deleteCue(selectedCueId);
+        return;
+      }
       if ((e.key === "Delete" || e.key === "Backspace") && hasSelection) {
         deleteSelected();
         return;
@@ -1807,6 +2311,8 @@ export default function PlannerPage() {
         return;
       }
       if (interactive) return;
+      if (key === "g") setGenerateOpen(true);
+      if (key === "p") chooseMarkupTool(markupTool?.kind === "pen" ? null : { kind: "pen" });
       if (key === "n") toggleNumbering();
       if (key === "m") toggleMeasure();
       if (key === "d") setShowDistances((v) => !v);
@@ -1835,15 +2341,44 @@ export default function PlannerPage() {
     () => new Set(issues.filter((i) => i.obstacleId && i.level !== "info").map((i) => i.obstacleId as string)),
     [issues]
   );
+  /** Stegnummer per hinder i vald övning (ett hinder kan tas flera gånger). */
+  const exerciseNumbers = useMemo(
+    () => (activeExercise ? exerciseNumbersById(activeExercise.steps, obstacleIds) : null),
+    [activeExercise, obstacleIds],
+  );
+  // Avstånd: alla när D är på, annars bara intill hindren som dras (live).
   const segmentLabels = useMemo(() => {
-    if (!showDistances) return [];
-    const labels = computeSegmentLabels(numbered);
+    if (!showDistances && !draggingIds) return [];
+    const sequence = exerciseSeq ?? numbered;
+    let labels = computeSegmentLabels(sequence);
+    if (!showDistances && draggingIds) {
+      const dragged = new Set(draggingIds);
+      const sourceOf = new Map(exerciseSeq ? exerciseSeq.map((o) => [o.id, o.sourceId]) : []);
+      const source = (id: string) => sourceOf.get(id) ?? id;
+      labels = labels.filter((l) => dragged.has(source(l.fromId)) || dragged.has(source(l.toId)));
+    }
     // Nummerbrickorna ritas överst — flytta etiketter som annars skyms.
     const badges = showNumbers
-      ? numbered.filter((o) => o.number != null).map((o) => ({ x: o.x + 1.0 * detail, y: o.y - 1.0 * detail }))
+      ? sequence.filter((o) => o.number != null).map((o) => ({ x: o.x + 1.0 * detail, y: o.y - 1.0 * detail }))
       : [];
     return placeLabelsAwayFrom(labels, badges, 1.45 * detail, 1.1 * detail);
-  }, [showDistances, showNumbers, numbered, detail]);
+  }, [showDistances, draggingIds, showNumbers, numbered, exerciseSeq, detail]);
+  const handlerStats = useMemo(
+    () => markupStats(showMarkup ? activeMarkup : undefined, coursePath.points),
+    [showMarkup, activeMarkup, coursePath.points],
+  );
+  const exerciseInfo = useMemo(() => {
+    const m = new Map<string, ExerciseRowInfo>();
+    for (const ex of exercises) {
+      const seq = exerciseSequence(ex.steps, obstacles);
+      m.set(ex.id, { steps: seq.length, lengthM: seq.length >= 2 ? buildCoursePath({ obstacles: seq }).total : 0 });
+    }
+    return m;
+  }, [exercises, obstacles]);
+  const mainLength = useMemo(() => buildCoursePath({ obstacles: numbered }).total, [numbered]);
+  const activeContextLabel = activeExercise ? activeExercise.name : "huvudbanan";
+  const selectedCue = selectedCueId ? activeMarkup?.cues.find((c) => c.id === selectedCueId) ?? null : null;
+  const toolMode = !!(placing || numbering || measureMode || multiMode || markupTool || exerciseEditing);
   /** Avståndsvarningar från regelkontrollen, per "till"-hinder. */
   const distanceIssueLevel = useMemo(() => {
     const m = new Map<string, "error" | "warning">();
@@ -2006,6 +2541,11 @@ export default function PlannerPage() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64 border-2 border-ink bg-paper">
+                <DropdownMenuItem onSelect={() => setGenerateOpen(true)} className="min-h-11 font-semibold">
+                  <Sparkles className="mr-2 h-4 w-4 text-forest" /> Generera bana…
+                  <span className="ml-auto text-xs text-ink/75">G</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-ink/75">
                   Visa banan
                 </DropdownMenuLabel>
@@ -2133,10 +2673,58 @@ export default function PlannerPage() {
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* ── Vänster sidopanel (desktop) ── */}
         <aside className="hidden w-80 shrink-0 flex-col gap-5 overflow-y-auto border-r-2 border-ink/10 bg-paper p-5 lg:flex">
-          {settingsPanel}
+          <LayerTabs
+            layer={layer}
+            onChange={switchLayer}
+            badges={{ exercises: exercises.length || undefined, handler: (activeMarkup?.strokes.length ?? 0) + (activeMarkup?.cues.length ?? 0) || undefined }}
+          />
+
+          {layer === "handler" && (
+            <HandlerPlanPanel
+              tool={markupTool}
+              onTool={chooseMarkupTool}
+              visible={showMarkup}
+              onToggleVisible={() => setShowMarkup((v) => !v)}
+              stats={handlerStats}
+              dogLengthM={coursePath.total}
+              contextLabel={activeContextLabel}
+              onClear={() => setConfirmClearMarkupOpen(true)}
+              canClear={!isMarkupEmpty(activeMarkup)}
+            />
+          )}
+
+          {layer === "exercises" && (
+            <ExercisesPanel
+              exercises={exercises}
+              activeId={activeExercise?.id ?? null}
+              editing={exerciseEditing}
+              mainInfo={{ steps: competingCount, lengthM: mainLength }}
+              info={exerciseInfo}
+              onSelect={selectExercise}
+              onAdd={addExercise}
+              onRename={renameExercise}
+              onDuplicate={duplicateExercise}
+              onDelete={deleteExercise}
+              onEdit={editExercise}
+              maxReached={exercises.length >= EXERCISE_LIMITS.exercises}
+            />
+          )}
+
+          {layer === "obstacles" && settingsPanel}
+
+          {layer === "obstacles" && (
+            <button
+              type="button"
+              onClick={() => setGenerateOpen(true)}
+              className="pressable shadow-hard-sm inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full border-2 border-ink bg-paper text-sm font-bold transition-colors hover:bg-cream"
+              title="Bygg en regelriktig bana för vald klass automatiskt (G)"
+            >
+              <Sparkles className="h-4 w-4 text-forest" /> Generera bana
+            </button>
+          )}
 
           {/* Hinderpalett */}
-          <div className="flex-1">
+          {layer === "obstacles" && <div className="flex-1">
             <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/75">
               <MousePointerClick className="h-3.5 w-3.5" /> Klicka för att placera
             </p>
@@ -2164,7 +2752,7 @@ export default function PlannerPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </div>}
         </aside>
 
         {/* ── Arbetsyta ── */}
@@ -2216,8 +2804,11 @@ export default function PlannerPage() {
 
                 {/* springlinje (hundens väg) */}
                 {showLine && runLineD && (
-                  <path d={runLineD} fill="none" stroke="#FF6900" strokeWidth={(0.24 * detail) / Math.sqrt(zoom)} strokeDasharray={`${(0.65 * detail) / Math.sqrt(zoom)} ${(0.45 * detail) / Math.sqrt(zoom)}`} strokeLinecap="round" opacity="0.85" />
+                  <path d={runLineD} fill="none" stroke="#FF6900" strokeWidth={(0.24 * detail) / Math.sqrt(zoom)} strokeDasharray={`${(0.65 * detail) / Math.sqrt(zoom)} ${(0.45 * detail) / Math.sqrt(zoom)}`} strokeLinecap="round" opacity="0.85" data-run-line={activeExercise ? "exercise" : "course"} />
                 )}
+
+                {/* förarlinje (under hindren, så att hindren går att träffa) */}
+                {showMarkup && <MarkupStrokes markup={activeMarkup} detail={detail} dimmed={layer !== "handler"} />}
 
                 {/* hinder — fotavtryck, markering och symbol */}
                 {numbered.map((ob) => {
@@ -2232,14 +2823,16 @@ export default function PlannerPage() {
                   const hitH = Math.max(bh + 0.8, hitMinM);
                   const pad = 0.3 * detail;
                   const pending = numberedDone && ob.number != null && !numberedDone.has(ob.id);
+                  // I en övning tonas hinder som inte ingår ned (de står kvar på planen).
+                  const unused = !!exerciseNumbers && isCompeting(ob) && !exerciseNumbers.has(ob.id);
                   return (
                     <g
                       key={ob.id}
                       data-obstacle-id={ob.id}
                       transform={`translate(${ob.x} ${ob.y}) rotate(${ob.rotation})`}
                       onPointerDown={(e) => onObstaclePointerDown(e, ob)}
-                      className={numbering ? "cursor-pointer" : measureMode ? "cursor-crosshair" : "cursor-grab active:cursor-grabbing"}
-                      opacity={ob.locked ? 0.75 : 1}
+                      className={numbering || exerciseEditing ? "cursor-pointer" : measureMode || markupTool ? "cursor-crosshair" : "cursor-grab active:cursor-grabbing"}
+                      opacity={unused ? 0.32 : ob.locked ? 0.75 : 1}
                     >
                       {/* träffyta — minst ~40 skärmpixlar så att hindret är lätt att träffa i mobilen */}
                       <rect x={cx - hitW / 2} y={cy - hitH / 2} width={hitW} height={hitH} fill="transparent" />
@@ -2309,8 +2902,34 @@ export default function PlannerPage() {
                   );
                 })}
 
+                {/* övningens stegnummer — ett hinder kan ha flera ("2·6") */}
+                {showNumbers && exerciseNumbers && obstacles.map((ob) => {
+                  const nums = exerciseNumbers.get(ob.id);
+                  if (!nums) return null;
+                  const text = nums.join("·");
+                  const off = 1.0 * detail;
+                  const r = 0.56 * detail;
+                  const width = Math.max(2 * r, text.length * 0.42 * detail + 0.5 * detail);
+                  const latest = activeExercise && activeExercise.steps.length > 0 && liveSteps(activeExercise.steps, obstacleIds).at(-1) === ob.id;
+                  return (
+                    <g
+                      key={`xn-${ob.id}`}
+                      transform={`translate(${ob.x + off} ${ob.y - off})`}
+                      onPointerDown={(e) => onObstaclePointerDown(e, ob)}
+                      className={exerciseEditing ? "cursor-pointer" : "cursor-grab"}
+                      data-exercise-badge={text}
+                      data-obstacle-ref={ob.id}
+                    >
+                      <rect x={-width / 2} y={-r} width={width} height={2 * r} rx={r} fill={exerciseEditing && latest ? "#006937" : "#1D4ED8"} stroke="#F6F1E7" strokeWidth={0.08 * detail} />
+                      <text y={0.25 * detail} textAnchor="middle" fontSize={0.66 * detail} fontWeight="800" fill="#F6F1E7" fontFamily="Archivo, sans-serif">
+                        {text}
+                      </text>
+                    </g>
+                  );
+                })}
+
                 {/* nummer — ritas överst så att de aldrig döljs av andra hinder */}
-                {showNumbers && numbered.map((ob) => {
+                {showNumbers && !exerciseNumbers && numbered.map((ob) => {
                   if (ob.number == null) return null;
                   const isSelected = selectionSet.has(ob.id);
                   const done = numberedDone ? numberedDone.has(ob.id) : null;
@@ -2343,8 +2962,24 @@ export default function PlannerPage() {
                   );
                 })}
 
+                {/* förarplanens markeringar och korsningar med hundens linje */}
+                {showMarkup && (
+                  <MarkupCues
+                    markup={activeMarkup}
+                    detail={detail}
+                    crossings={handlerStats.crossings}
+                    selectedCueId={selectedCueId}
+                    interactive={layer === "handler"}
+                    onCuePointerDown={onCuePointerDown}
+                    onCueDoubleClick={(cue) => {
+                      if (cue.kind === "note") setNoteEditor({ cueId: cue.id, x: cue.x, y: cue.y, text: cue.text ?? "" });
+                    }}
+                    dimmed={layer !== "handler"}
+                  />
+                )}
+
                 {/* rotationshandtag för ett markerat, olåst hinder */}
-                {selected && !selected.locked && !numbering && !measureMode && (() => {
+                {selected && !selected.locked && !numbering && !measureMode && !markupTool && !exerciseEditing && (() => {
                   const b = obstacleLocalBounds(selected);
                   const top = b.minY - 0.3 * detail;
                   const handleY = top - 1.2 * detail;
@@ -2408,6 +3043,45 @@ export default function PlannerPage() {
                   );
                 })()}
 
+                {/* förarlinjen som ritas just nu */}
+                {liveStroke && liveStroke.length > 1 && (
+                  <polyline
+                    points={liveStroke.map((p) => `${p.x},${p.y}`).join(" ")}
+                    fill="none"
+                    stroke={HANDLER_COLOR}
+                    strokeWidth={0.17 * detail}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    opacity="0.75"
+                    pointerEvents="none"
+                    data-ui
+                  />
+                )}
+
+                {/* smarta stödlinjer under dragning */}
+                {guides.map((g, i) => (
+                  <line
+                    key={`g${i}`}
+                    x1={g.axis === "x" ? g.value : g.from}
+                    y1={g.axis === "x" ? g.from : g.value}
+                    x2={g.axis === "x" ? g.value : g.to}
+                    y2={g.axis === "x" ? g.to : g.value}
+                    stroke={g.center ? "#006937" : "#E24C00"}
+                    strokeWidth={0.06 * detail}
+                    strokeDasharray={`${0.3 * detail} ${0.2 * detail}`}
+                    pointerEvents="none"
+                    data-ui
+                    data-guide={g.axis}
+                  />
+                ))}
+
+                {/* markering som placeras */}
+                {markupTool?.kind === "cue" && ghost && (
+                  <g transform={`translate(${ghost.x} ${ghost.y})`} opacity="0.55" pointerEvents="none" data-ui>
+                    <CueGlyph kind={markupTool.cue} text="Anteckning" detail={detail} />
+                  </g>
+                )}
+
                 {/* spökhinder vid placering */}
                 {placing && ghost && (
                   <g transform={`translate(${ghost.x} ${ghost.y})`} opacity="0.55" data-ui>
@@ -2431,7 +3105,7 @@ export default function PlannerPage() {
                     ? `Regelkontroll — ${issueCounts.warning} varningar, visa lista`
                     : "Regelkontroll — inga anmärkningar"
               }
-              className={`absolute right-3 ${placing || numbering || measureMode || multiMode ? "top-[4.6rem] sm:top-[2.2rem]" : showRulers ? "top-[2.2rem]" : "top-3"} z-30 inline-flex items-center gap-2 rounded-full border-2 px-3.5 py-2 text-xs font-bold shadow-hard-sm transition-all ${
+              className={`absolute right-3 ${toolMode || activeExercise ? "top-[4.6rem] sm:top-[2.2rem]" : showRulers ? "top-[2.2rem]" : "top-3"} z-30 inline-flex items-center gap-2 rounded-full border-2 px-3.5 py-2 text-xs font-bold shadow-hard-sm transition-all ${
                 issueCounts.error > 0
                   ? "border-ink bg-ember text-paper"
                   : issueCounts.warning > 0
@@ -2530,8 +3204,34 @@ export default function PlannerPage() {
               </div>
             )}
 
+            {/* Vald markering i förarplanen — åtgärdsrad */}
+            {selectedCue && layer === "handler" && !hasSelection && !playbackActive && (
+              <div
+                role="toolbar"
+                aria-label="Åtgärder för vald markering"
+                className="absolute bottom-24 left-1/2 z-30 flex max-w-[calc(100%-1.5rem)] -translate-x-1/2 items-center gap-1.5 rounded-2xl border-2 border-ink bg-paper p-1.5 shadow-hard sm:bottom-28"
+              >
+                <span className="flex items-center gap-2 px-2 text-xs font-bold text-ink/80">
+                  <svg viewBox="-1.1 -1.1 2.2 2.2" className="h-6 w-6" aria-hidden><CueGlyph kind={selectedCue.kind} text="T" detail={selectedCue.kind === "note" ? 0.75 : 1.3} /></svg>
+                  {getCueDef(selectedCue.kind).label}
+                </span>
+                {selectedCue.kind === "note" && (
+                  <button
+                    type="button"
+                    onClick={() => setNoteEditor({ cueId: selectedCue.id, x: selectedCue.x, y: selectedCue.y, text: selectedCue.text ?? "" })}
+                    className="h-10 rounded-xl border-2 border-ink/15 bg-paper px-3 text-xs font-bold hover:border-ink"
+                  >
+                    Redigera text
+                  </button>
+                )}
+                <ToolButton onClick={() => deleteCue(selectedCue.id)} label="Ta bort markeringen (Delete)">
+                  <Trash2 className="h-4 w-4" />
+                </ToolButton>
+              </div>
+            )}
+
             {/* Markerade hinder — åtgärdsrad */}
-            {hasSelection && !playbackActive && !numbering && (
+            {hasSelection && !playbackActive && !numbering && !exerciseEditing && (
               <div
                 role="toolbar"
                 aria-label="Åtgärder för markerade hinder"
@@ -2602,6 +3302,92 @@ export default function PlannerPage() {
                 } ${showRulers ? "sm:top-[2.2rem]" : "sm:top-3"}`}
                 {...inspectorProps}
               />
+            )}
+
+            {/* Förarplanens verktyg */}
+            {markupTool && (
+              <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3" role="status" aria-live="polite">
+                <div className="pointer-events-auto flex max-w-full items-center gap-2 rounded-full border-2 border-ink bg-[#1D4ED8] py-1.5 pl-3 pr-1.5 text-paper shadow-hard">
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-paper">
+                    <HandlerToolIcon toolKey={markupTool.kind === "cue" ? markupTool.cue : markupTool.kind} className="h-5 w-5" />
+                  </span>
+                  <span className="text-xs font-bold leading-tight">
+                    {toolBannerText(markupTool)}
+                    <span className="hidden font-semibold text-paper/75 sm:inline"> · {activeContextLabel}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => chooseMarkupTool(null)}
+                    className="h-8 shrink-0 rounded-full bg-paper px-3 text-xs font-bold text-[#1D4ED8]"
+                  >
+                    Klar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Övning: bygg sekvensen */}
+            {exerciseEditing && activeExercise && (
+              <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3" role="status" aria-live="polite">
+                <div className="pointer-events-auto flex max-w-full items-center gap-2 rounded-full border-2 border-ink bg-[#1D4ED8] py-1.5 pl-3 pr-1.5 text-paper shadow-hard">
+                  <Route className="h-4 w-4 shrink-0" />
+                  <span className="min-w-0 text-xs font-bold leading-tight">
+                    <span className="truncate">{activeExercise.name}</span>
+                    {" "}<span className="rounded bg-paper px-1.5 py-0.5 text-[#1D4ED8]">steg {liveSteps(activeExercise.steps, obstacleIds).length + 1}</span>
+                    <span className="hidden font-semibold text-paper/75 sm:inline"> · tryck hindren i ordning, samma hinder får tas igen</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={exerciseBack}
+                    disabled={liveSteps(activeExercise.steps, obstacleIds).length === 0}
+                    className="h-8 shrink-0 rounded-full bg-paper/20 px-3 text-xs font-bold transition-colors hover:bg-paper/35 disabled:opacity-40"
+                  >
+                    Backa
+                  </button>
+                  <button
+                    type="button"
+                    onClick={exerciseRestart}
+                    disabled={liveSteps(activeExercise.steps, obstacleIds).length === 0}
+                    className="hidden h-8 shrink-0 rounded-full bg-paper/20 px-3 text-xs font-bold transition-colors hover:bg-paper/35 disabled:opacity-40 sm:block"
+                  >
+                    Börja om
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExerciseEditing(false)}
+                    className="h-8 shrink-0 rounded-full bg-paper px-3 text-xs font-bold text-[#1D4ED8]"
+                  >
+                    Klar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Vald övning visas */}
+            {activeExercise && !exerciseEditing && !markupTool && !placing && !numbering && !measureMode && !multiMode && (
+              <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3" role="status" aria-live="polite">
+                <div className="pointer-events-auto flex max-w-full items-center gap-2 rounded-full border-2 border-ink bg-paper py-1.5 pl-3 pr-1.5 shadow-hard">
+                  <Route className="h-4 w-4 shrink-0 text-[#1D4ED8]" />
+                  <span className="min-w-0 truncate text-xs font-bold leading-tight">
+                    Visar {activeExercise.name}
+                    <span className="font-semibold text-ink/70"> · {exerciseInfo.get(activeExercise.id)?.steps ?? 0} steg · ~{(exerciseInfo.get(activeExercise.id)?.lengthM ?? 0).toFixed(0)} m</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => editExercise(activeExercise.id)}
+                    className="h-8 shrink-0 rounded-full bg-ink/10 px-3 text-xs font-bold transition-colors hover:bg-ink/20"
+                  >
+                    Bygg om
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => selectExercise(null)}
+                    className="h-8 shrink-0 rounded-full bg-ink px-3 text-xs font-bold text-paper"
+                  >
+                    Huvudbanan
+                  </button>
+                </div>
+              </div>
             )}
 
             {/* Numreringsläge */}
@@ -2723,6 +3509,12 @@ export default function PlannerPage() {
                     >
                       <BookOpen className="h-4 w-4" /> Färdiga banor
                     </button>
+                    <button
+                      onClick={() => setGenerateOpen(true)}
+                      className="pressable shadow-hard-sm pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full border-2 border-ink bg-paper px-5 text-sm font-bold"
+                    >
+                      <Sparkles className="h-4 w-4 text-forest" /> Generera bana
+                    </button>
                   </div>
                   <p className="mt-3 text-xs font-semibold text-ink/75">
                     Allt autosparas lokalt — du kan börja om när du vill.
@@ -2786,7 +3578,13 @@ export default function PlannerPage() {
               <ArrowLeftRight className="h-5 w-5" />
             </ToolButton>
             <div className="mx-1.5 h-8 w-px bg-ink/15" />
-            <ToolButton onClick={toggleNumbering} active={!!numbering} toggle label="Numrera — klicka hindren i ordning (N)" disabled={competingCount < 2 && !numbering}>
+            <ToolButton
+              onClick={toggleNumbering}
+              active={!!numbering || exerciseEditing}
+              toggle
+              label={activeExercise ? `Bygg ${activeExercise.name} — tryck hindren i ordning (N)` : "Numrera — klicka hindren i ordning (N)"}
+              disabled={competingCount < 2 && !numbering && !exerciseEditing}
+            >
               <ListOrdered className="h-5 w-5" />
             </ToolButton>
             <ToolButton onClick={toggleMeasure} active={measureMode} toggle label="Måttband — mät avstånd (M)">
@@ -2814,9 +3612,18 @@ export default function PlannerPage() {
             </ToolButton>
             <div className="mx-1.5 hidden h-8 w-px bg-ink/15 md:block" />
             <span className="hidden text-xs font-semibold text-ink/75 md:block">
-              {numbered.filter((o) => o.number != null).length} hinder
-              {coursePath.points.length >= 2 && ` · ~${coursePath.total.toFixed(0)} m`}
-              {times?.refTimeS != null && (draft.classTemplate || !times.refTimeIsEstimate) && ` · ref ${times.refTimeIsEstimate ? "~" : ""}${times.refTimeS} s`}
+              {activeExercise ? (
+                <>
+                  {activeExercise.name} · {exerciseSeq?.length ?? 0} steg
+                  {coursePath.points.length >= 2 && ` · ~${coursePath.total.toFixed(0)} m`}
+                </>
+              ) : (
+                <>
+                  {numbered.filter((o) => o.number != null).length} hinder
+                  {coursePath.points.length >= 2 && ` · ~${coursePath.total.toFixed(0)} m`}
+                  {times?.refTimeS != null && (draft.classTemplate || !times.refTimeIsEstimate) && ` · ref ${times.refTimeIsEstimate ? "~" : ""}${times.refTimeS} s`}
+                </>
+              )}
             </span>
           </div>
 
@@ -2824,7 +3631,7 @@ export default function PlannerPage() {
           <div className="border-t-2 border-ink bg-paper p-2.5 lg:hidden">
             <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
               <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wider text-ink/75">
-                {numbered.filter((o) => o.number != null).length} hinder
+                {activeExercise ? `${exerciseSeq?.length ?? 0} steg` : `${numbered.filter((o) => o.number != null).length} hinder`}
                 {coursePath.points.length >= 2 && ` · ~${coursePath.total.toFixed(0)} m`}
                 <span className="hidden sm:inline">
                   {` · ${ruleSet?.classTemplates.find((t) => t.key === draft.classTemplate)?.label ?? "Fri planering"}`}
@@ -2876,6 +3683,14 @@ export default function PlannerPage() {
                 </button>
               </div>
             </div>
+            <div className="mb-2">
+              <LayerTabs
+                compact
+                layer={layer}
+                onChange={switchLayer}
+                badges={{ exercises: exercises.length || undefined }}
+              />
+            </div>
             <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
               <button
                 onClick={undo}
@@ -2893,7 +3708,17 @@ export default function PlannerPage() {
               >
                 <Redo2 className="h-5 w-5" />
               </button>
-              {[
+              {layer === "obstacles" && (
+                <button
+                  onClick={() => setGenerateOpen(true)}
+                  className="flex w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-ink/15 bg-white"
+                  aria-label="Generera bana för vald klass"
+                >
+                  <Sparkles className="h-5 w-5 text-forest" />
+                  <span className="text-[9px] font-bold leading-tight">Generera</span>
+                </button>
+              )}
+              {layer === "obstacles" && [
                 { key: "number", label: "Numrera", Icon: ListOrdered, on: !!numbering, run: toggleNumbering, disabled: competingCount < 2 && !numbering },
                 { key: "measure", label: "Mät", Icon: RulerDimensionLine, on: measureMode, run: toggleMeasure, disabled: false },
                 { key: "dist", label: "Avstånd", Icon: ArrowLeftRight, on: showDistances, run: () => setShowDistances((v) => !v), disabled: false },
@@ -2913,7 +3738,7 @@ export default function PlannerPage() {
                 </button>
               ))}
               <div className="mx-0.5 w-px shrink-0 self-stretch bg-ink/15" aria-hidden />
-              {palette.map((def) => (
+              {layer === "obstacles" && palette.map((def) => (
                 <button
                   key={def.type}
                   onClick={() => startPlacing(placing === def.type ? null : def.type)}
@@ -2927,6 +3752,118 @@ export default function PlannerPage() {
                   <span className="text-[9px] font-bold leading-tight">{def.label}</span>
                 </button>
               ))}
+
+              {layer === "handler" && (
+                <>
+                  <div className="flex w-[5.5rem] shrink-0 flex-col justify-center rounded-xl bg-cream px-2 text-[9px] font-bold leading-tight text-ink/75" aria-label="Förarplanens statistik">
+                    <span>Förare {handlerStats.handlerLengthM > 0 ? `${handlerStats.handlerLengthM.toFixed(0)} m` : "–"}</span>
+                    <span>Korsar {handlerStats.crossings.length}</span>
+                    <span>Byten {handlerStats.crossCues}</span>
+                  </div>
+                  {HANDLER_TOOLS.map((t) => {
+                    const active = isToolActive(markupTool, t.key);
+                    return (
+                      <button
+                        key={t.key}
+                        onClick={() => chooseMarkupTool(active ? null : t.tool)}
+                        aria-pressed={active}
+                        aria-label={`${t.label} — ${t.description}`}
+                        className={`flex w-16 shrink-0 flex-col items-center gap-1 rounded-xl border-2 p-1.5 ${active ? "border-ink bg-tang" : "border-ink/10 bg-white"}`}
+                      >
+                        <HandlerToolIcon toolKey={t.key} className="h-8 w-8" />
+                        <span className="text-[9px] font-bold leading-tight">{t.label}</span>
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={() => setShowMarkup((v) => !v)}
+                    aria-pressed={showMarkup}
+                    className={`flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 ${showMarkup ? "border-ink/15 bg-white" : "border-ink bg-tang"}`}
+                  >
+                    <Spline className="h-5 w-5" />
+                    <span className="text-[9px] font-bold leading-tight">{showMarkup ? "Dölj" : "Visa"}</span>
+                  </button>
+                  <button
+                    onClick={() => setConfirmClearMarkupOpen(true)}
+                    disabled={isMarkupEmpty(activeMarkup)}
+                    className="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-ink/15 bg-white disabled:opacity-30"
+                  >
+                    <Eraser className="h-5 w-5" />
+                    <span className="text-[9px] font-bold leading-tight">Rensa</span>
+                  </button>
+                </>
+              )}
+
+              {layer === "exercises" && (
+                <>
+                  <button
+                    onClick={() => selectExercise(null)}
+                    aria-pressed={!activeExercise}
+                    className={`flex shrink-0 flex-col items-start justify-center rounded-xl border-2 px-2.5 text-left ${!activeExercise ? "border-ink bg-tang" : "border-ink/15 bg-white"}`}
+                  >
+                    <span className="text-[11px] font-black leading-tight">Huvudbanan</span>
+                    <span className="text-[9px] font-semibold leading-tight text-ink/70">{competingCount} hinder</span>
+                  </button>
+                  {exercises.map((ex) => {
+                    const active = ex.id === activeExercise?.id;
+                    const info = exerciseInfo.get(ex.id);
+                    return (
+                      <button
+                        key={ex.id}
+                        onClick={() => selectExercise(ex.id)}
+                        aria-pressed={active}
+                        className={`flex max-w-[8rem] shrink-0 flex-col items-start justify-center rounded-xl border-2 px-2.5 text-left ${active ? "border-ink bg-tang" : "border-ink/15 bg-white"}`}
+                      >
+                        <span className="w-full truncate text-[11px] font-black leading-tight">{ex.name}</span>
+                        <span className="text-[9px] font-semibold leading-tight text-ink/70">{info?.steps ?? 0} steg</span>
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={addExercise}
+                    disabled={exercises.length >= EXERCISE_LIMITS.exercises}
+                    className="flex w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-ink bg-forest text-paper disabled:opacity-30"
+                  >
+                    <Route className="h-5 w-5" />
+                    <span className="text-[9px] font-bold leading-tight">Ny övning</span>
+                  </button>
+                  {activeExercise && (
+                    <>
+                      <div className="mx-0.5 w-px shrink-0 self-stretch bg-ink/15" aria-hidden />
+                      <button
+                        onClick={() => editExercise(activeExercise.id)}
+                        aria-pressed={exerciseEditing}
+                        className={`flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 ${exerciseEditing ? "border-ink bg-tang" : "border-ink/15 bg-white"}`}
+                      >
+                        <ListOrdered className="h-5 w-5" />
+                        <span className="text-[9px] font-bold leading-tight">Bygg</span>
+                      </button>
+                      <button
+                        onClick={() => setRenameExerciseId(activeExercise.id)}
+                        className="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-ink/15 bg-white"
+                      >
+                        <SlidersHorizontal className="h-5 w-5" />
+                        <span className="text-[9px] font-bold leading-tight">Byt namn</span>
+                      </button>
+                      <button
+                        onClick={() => duplicateExercise(activeExercise.id)}
+                        disabled={exercises.length >= EXERCISE_LIMITS.exercises}
+                        className="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-ink/15 bg-white disabled:opacity-30"
+                      >
+                        <Copy className="h-5 w-5" />
+                        <span className="text-[9px] font-bold leading-tight">Kopiera</span>
+                      </button>
+                      <button
+                        onClick={() => deleteExercise(activeExercise.id)}
+                        className="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-ink/15 bg-white"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                        <span className="text-[9px] font-bold leading-tight">Ta bort</span>
+                      </button>
+                    </>
+                  )}
+                </>
+              )}
             </div>
             {/* Avbryt placering sker i bannern överst — ingen extra knapp här,
                 annars hoppar planen när dockan växer. */}
@@ -3000,6 +3937,22 @@ export default function PlannerPage() {
 
       {/* ── Bibliotek och sparade banor ── */}
       <CourseLibraryDialog open={libraryOpen} onOpenChange={setLibraryOpen} onPick={pickFromLibrary} />
+      {generateOpen && (
+        <Suspense fallback={null}>
+          <GenerateCourseDialog
+            open={generateOpen}
+            onOpenChange={setGenerateOpen}
+            sport={sport}
+            ruleSetId={draft.ruleSetId}
+            classTemplate={draft.classTemplate}
+            sizeClass={draft.sizeClass}
+            arenaWidthM={w}
+            arenaHeightM={h}
+            replacing={obstacles.length > 0}
+            onApply={applyGenerated}
+          />
+        </Suspense>
+      )}
       <OpenCourseDialog
         open={openCourseOpen}
         onOpenChange={setOpenCourseOpen}
@@ -3012,7 +3965,7 @@ export default function PlannerPage() {
         open={confirmClearOpen}
         onOpenChange={setConfirmClearOpen}
         title="Rensa hela banan?"
-        description={`Alla ${obstacles.length} hinder tas bort. Du kan ångra direkt efteråt med Ctrl+Z.`}
+        description={`Alla ${obstacles.length} hinder${draft.markup || exercises.length ? ", förarplanen och övningarna" : ""} tas bort. Du kan ångra direkt efteråt med Ctrl+Z.`}
         confirmLabel="Rensa banan"
         destructive
         onConfirm={doClearAll}
@@ -3067,6 +4020,33 @@ export default function PlannerPage() {
         initialName={`${name} (kopia)`}
         confirmLabel="Spara kopia"
         onSubmit={(newName) => void persistCourse({ asNew: true, name: newName })}
+      />
+
+      <NoteDialog
+        open={noteEditor !== null}
+        initialText={noteEditor?.text ?? ""}
+        isNew={!noteEditor?.cueId}
+        onOpenChange={(v) => { if (!v) setNoteEditor(null); }}
+        onSave={saveNote}
+        onDelete={() => { if (noteEditor?.cueId) deleteCue(noteEditor.cueId); setNoteEditor(null); }}
+      />
+      <ConfirmDialog
+        open={confirmClearMarkupOpen}
+        onOpenChange={setConfirmClearMarkupOpen}
+        title="Rensa förarplanen?"
+        description={`Förarlinjer, byten och anteckningar för ${activeContextLabel} tas bort. Hindren påverkas inte och du kan ångra med Ctrl+Z.`}
+        confirmLabel="Rensa förarplanen"
+        destructive
+        onConfirm={clearMarkup}
+      />
+      <NameCourseDialog
+        open={renameExerciseId !== null}
+        onOpenChange={(v) => { if (!v) setRenameExerciseId(null); }}
+        title="Byt namn på övningen"
+        description="Namnet syns i övningslistan och i tränings-PDF:en."
+        initialName={exercises.find((e) => e.id === renameExerciseId)?.name ?? ""}
+        confirmLabel="Spara namn"
+        onSubmit={(name) => { if (renameExerciseId) renameExercise(renameExerciseId, name); setRenameExerciseId(null); }}
       />
 
       <PlannerProfileDialog

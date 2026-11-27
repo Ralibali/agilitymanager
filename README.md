@@ -6,6 +6,13 @@ AgilityManager samlar:
 
 - **Banplaneraren** — rita banor i meterskala med regelkontroll, hundlinje, 3D-vy, PDF/PNG-export och delningslänkar.
   Gratis och utan konto. Fungerar på dator, surfplatta och mobil.
+  - **Generera bana**: regelriktig bana för vald klass (agility, Nollklass, hoopers SHoK och FCI) med stilval,
+    förhandsvisning och "slumpa ny". Varje förslag körs genom regelkontrollen innan det visas.
+  - **Förarplan**: rita förarlinjen och placera förarposition, framförbyte, bakombyte, blindbyte, belöning och
+    anteckningar. Korsningar med hundens linje markeras automatiskt.
+  - **Övningar**: flera sekvenser på samma uppställning (ett hinder får tas flera gånger) med egen hundlinje,
+    förarplan, uppspelning och en sida per övning i tränings-PDF:en.
+  - **Smarta stödlinjer** och live-avstånd när hinder dras (Alt = fri placering).
   - Regelkontroll mot SAgiK/SKK 2022–2026 (klass 1–3, hopp, lag och Nollklass), SHoK hoopers och FCI hoopers:
     6–8 m längs hundens väg, hinderantal, start och mål med hopp/hoop, slalom med 12 pinnar, bankant och ansats.
   - Hinder i verklig storlek (balansbom ≈ 10,7 m, A-hinder ≈ 4,2 m) och tunnlar 2–6 m som kan böjas till U.
@@ -88,6 +95,17 @@ den och kräver noll fel och varningar. Hindrens mått hämtas alltid via
 Redigeringslogiken (numrering, flerval, justering, urklipp, avståndsetiketter) ligger
 som rena funktioner i `src/features/course-planner-v2/editorOps.ts` och testas både
 med Vitest och i webbläsaren (`e2e/planner-tools.e2e.ts`).
+
+Proffsverktygen ligger också som rena, testade moduler:
+
+- `generator.ts` — bangeneratorn (recept → styrd slumpvandring längs samma hundlinje som
+  editorn → `validateCourse`). `generator.test.ts` kräver noll fel och varningar för varje
+  klassmall i varje regelverk. Körs i en Web Worker (`generator.worker.ts`) i appen.
+- `courseExtras.ts` — förarplan och övningar: sanering (fil, länk, moln), serialisering
+  (delningslänkar refererar hinder med index, filer och moln med id), förenkling av
+  frihandsdrag och korsningar med hundlinjen.
+- `snapGuides.ts` — stödlinjer vid dragning.
+- Webbläsartester: `e2e/planner-pro.e2e.ts`.
 
 ## Viktiga routes
 

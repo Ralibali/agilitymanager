@@ -20,11 +20,24 @@ const base: DraftLike = {
 };
 
 describe("ångra-historik för hela utkastet", () => {
-  it("snapshot omfattar ytmått, storlek, klass och regelverk", () => {
+  it("snapshot omfattar ytmått, storlek, klass, regelverk, förarplan och övningar", () => {
     const snap = snapshotDraft(base);
     expect(Object.keys(snap).sort()).toEqual([
-      "arenaHeightM", "arenaWidthM", "classTemplate", "obstacles", "ruleSetId", "sizeClass", "sport",
+      "arenaHeightM", "arenaWidthM", "classTemplate", "exercises", "markup", "obstacles", "ruleSetId", "sizeClass", "sport",
     ]);
+  });
+
+  it("ångra återställer förarplan och övningar", () => {
+    const before = snapshotDraft(base);
+    const drawn: DraftLike = {
+      ...base,
+      markup: { strokes: [{ id: "s1", points: [{ x: 1, y: 1 }, { x: 4, y: 3 }] }], cues: [] },
+      exercises: [{ id: "e1", name: "Övning A", steps: ["a"] }],
+    };
+    expect(snapshotsEqual(before, snapshotDraft(drawn))).toBe(false);
+    const restored = applySnapshot(drawn, before);
+    expect(restored.markup).toBeUndefined();
+    expect(restored.exercises).toBeUndefined();
   });
 
   it("ångra återställer inställningar, inte bara hinder", () => {

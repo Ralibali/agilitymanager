@@ -87,7 +87,8 @@ export interface CourseDogPathOverride {
   controlPoints?: Vec2[];
 }
 
-const SAMPLES_PER_AIR_SEGMENT = 18;
+/** Antal punkter per luftsegment — exporteras så att bangeneratorn mäter på samma kurva. */
+export const SAMPLES_PER_AIR_SEGMENT = 18;
 
 /* ───────────── Hjälpfunktioner ───────────── */
 
@@ -239,7 +240,7 @@ export function orientAnchorsToCourse(base: ObstacleAnchors[]): ObstacleAnchors[
 /* ───────────── Catmull-Rom sampling ───────────── */
 
 /** Centripetal Catmull-Rom genom 4 punkter. t ∈ [0,1]. */
-function catmullRom(p0: Vec2, p1: Vec2, p2: Vec2, p3: Vec2, t: number, alpha = 0.5): Vec2 {
+export function catmullRom(p0: Vec2, p1: Vec2, p2: Vec2, p3: Vec2, t: number, alpha = 0.5): Vec2 {
   const dist = (a: Vec2, b: Vec2) => Math.pow(Math.hypot(a.x - b.x, a.y - b.y), alpha);
   const t0 = 0;
   const t1 = t0 + Math.max(0.0001, dist(p0, p1));

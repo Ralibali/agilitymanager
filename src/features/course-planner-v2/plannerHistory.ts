@@ -4,10 +4,12 @@
  * Historiken sparar inte bara hinderlistan utan även de inställningar som
  * påverkar banan: ytmått, storleksklass, klassmall, sport och valt regelverk.
  * Banans namn hålls utanför, så att ett namnbyte inte rullas tillbaka när
- * användaren ångrar ett hinderdrag.
+ * användaren ångrar ett hinderdrag. Förarplan och övningar ingår — ett
+ * nyritat förardrag eller en ändrad övning ångras precis som ett hinder.
  */
 import type { PlacedObstacle } from "@/lib/course";
 import type { ClassTemplateKey, SizeClassKey, Sport } from "./config";
+import type { CourseExercise, CourseMarkup } from "./courseExtras";
 
 export interface DraftLike {
   name: string;
@@ -18,6 +20,8 @@ export interface DraftLike {
   classTemplate: ClassTemplateKey | null;
   obstacles: PlacedObstacle[];
   ruleSetId?: string;
+  markup?: CourseMarkup;
+  exercises?: CourseExercise[];
 }
 
 /** Allt som ångras — utkastet utan namnet. */
@@ -34,6 +38,8 @@ export function snapshotDraft(d: DraftLike): DraftSnapshot {
     classTemplate: d.classTemplate,
     obstacles: d.obstacles,
     ruleSetId: d.ruleSetId,
+    markup: d.markup,
+    exercises: d.exercises,
   };
 }
 

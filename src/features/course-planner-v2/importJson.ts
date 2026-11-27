@@ -23,6 +23,9 @@ import {
 } from "./config";
 import { getDefaultRuleSetIdForSport, getRuleSet } from "./rules";
 import { clampTunnelLengthM } from "./obstacleSize";
+import {
+  sanitizeExercises, sanitizeMarkup, type CourseExercise, type CourseMarkup,
+} from "./courseExtras";
 
 export interface ImportedObstacle {
   id: string;
@@ -52,6 +55,14 @@ export interface ImportedCourse {
    * varning) så att en bana aldrig kan blanda regelverk.
    */
   ruleSetId: string;
+  /** Förarplan för huvudbanan (förarlinje + markeringar). */
+  markup?: CourseMarkup;
+  /**
+   * Övningar på samma uppställning. Stegen pekar på hindrens id i den
+   * inlästa banan — källan får referera med id eller med index i sin
+   * hinderlista (delningslänkar saknar id:n).
+   */
+  exercises?: CourseExercise[];
 }
 
 export type ImportResult =
@@ -194,8 +205,12 @@ export function parseCourseJson(text: string): ImportResult {
     warnings.push(`Banan hade ${rawObstacles.length} hinder — bara de ${MAX_IMPORT_OBSTACLES} första importeras.`);
   }
   const obstacles: ImportedObstacle[] = [];
+  /** Källans index → importerat hinder (för övningarnas stegreferenser). */
+  const bySourceIndex = new Map<number, ImportedObstacle>();
   let skipped = 0;
-  for (const o of rawObstacles.slice(0, MAX_IMPORT_OBSTACLES)) {
+  const limited = rawObstacles.slice(0, MAX_IMPORT_OBSTACLES);
+  for (let sourceIndex = 0; sourceIndex < limited.length; sourceIndex++) {
+    const o = limited[sourceIndex];
     if (!o || typeof o !== "object") { skipped++; continue; }
     const ob = o as Record<string, unknown>;
     // Legacy v1: hindertypen kunde heta "kind".
@@ -228,22 +243,40 @@ export function parseCourseJson(text: string): ImportResult {
       imported.zIndex = Math.round(ob.zIndex);
     }
     obstacles.push(imported);
+    bySourceIndex.set(sourceIndex, imported);
   }
   if (skipped > 0) warnings.push(`${skipped} hinder hoppades över (okänd typ eller ogiltigt format).`);
   if (obstacles.length === 0) {
     return { ok: false, error: "Filen innehöll inga giltiga hinder." };
   }
 
-  // Säkerställ unika id:n (om filen har dubletter)
+  // Säkerställ unika id:n (om filen har dubletter). Källans id pekar på
+  // FÖRSTA hindret med id:t — samma tolkning som numreringen.
   const seen = new Set<string>();
+  const bySourceId = new Map<string, string>();
   for (const o of obstacles) {
+    const sourceId = o.id;
     if (seen.has(o.id)) o.id = uid();
     seen.add(o.id);
+    if (!bySourceId.has(sourceId)) bySourceId.set(sourceId, o.id);
   }
+
+  const arena = { width: arenaWidthM, height: arenaHeightM };
+  const resolveRef = (ref: unknown): string | null => {
+    if (typeof ref === "number" && Number.isInteger(ref)) return bySourceIndex.get(ref)?.id ?? null;
+    if (typeof ref === "string") return bySourceId.get(cleanText(ref, MAX_IMPORT_OBSTACLE_ID_CHARS)) ?? null;
+    return null;
+  };
+  const markup = sanitizeMarkup(r.markup, arena);
+  const exercises = sanitizeExercises(r.exercises, resolveRef, arena);
 
   return {
     ok: true,
     warnings,
-    course: { name, sport, sizeClass, arenaWidthM, arenaHeightM, classTemplate, obstacles, ruleSetId },
+    course: {
+      name, sport, sizeClass, arenaWidthM, arenaHeightM, classTemplate, obstacles, ruleSetId,
+      ...(markup ? { markup } : {}),
+      ...(exercises ? { exercises } : {}),
+    },
   };
 }

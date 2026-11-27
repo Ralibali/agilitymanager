@@ -27,7 +27,7 @@ export const PAGE_SEO = {
     description: FIRST_BYTE_ROUTES["/banplanerare"].description,
     canonicalPath: "/banplanerare",
     h1: "Banplanerare för agility och hoopers",
-    intro: "Rita banor i meterskala med regelkontroll enligt SAgiK, SHoK och FCI, hundens linje, 3D-vy, PDF-export och delningslänkar.",
+    intro: "Rita banor i meterskala eller generera en regelriktig bana för vald klass. Regelkontroll enligt SAgiK, SHoK och FCI, hundens och förarens linje, övningar på samma uppställning, 3D-vy, PDF-export och delningslänkar.",
   },
   features: {
     title: "Funktioner — allt banplaneraren kan | AgilityManager",

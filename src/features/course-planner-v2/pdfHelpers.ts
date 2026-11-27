@@ -11,6 +11,10 @@ import { obstacleSizeM } from "./obstacleSize";
 import type { ObstacleLite } from "./validation";
 import { normalizeCurveDeg, toWorld, tunnelEdgesLocal } from "./tunnelGeometry";
 import { buildDogPath } from "./dogPath";
+import {
+  CUE_DEFS, findPolylineCrossings, smoothStrokePoints, wrapNoteText,
+  type CourseMarkup, type CueKind, type Vec2,
+} from "./courseExtras";
 
 /** Färgpalett som matchar appens "Varm Sand"-tema. */
 export const PDF_BRAND = {
@@ -53,6 +57,15 @@ export interface ArenaRenderOpts {
   numberBadgeMm?: number;
   /** Visa banmått (yttre linjaler med tickmarks). Default true. */
   showDimensions?: boolean;
+  /**
+   * Egen sekvens (övning): hundlinjen ritas från den i stället för från
+   * hindrens nummer. Brickornas text kommer då från `badgeTexts`.
+   */
+  sequence?: ObstacleLite[];
+  /** Brickornas text per hinder-id (t.ex. "2·6" när ett hinder tas två gånger). */
+  badgeTexts?: Map<string, string>;
+  /** Förarplan (förarlinje + markeringar) att rita ovanpå banan. */
+  markup?: CourseMarkup;
 }
 
 /**
@@ -110,9 +123,9 @@ export function drawArenaVector(doc: jsPDF, opts: ArenaRenderOpts): { w: number;
   }
 
   // Hundens väg — exakt samma linje som i editorn (genom hindren, i nummerordning).
+  const pathSource = opts.sequence ?? obstacles.filter((o) => o.number != null && !["start", "finish", "number", "handler_zone"].includes(o.type));
+  const path = buildDogPath(pathSource);
   if (showPath) {
-    const numbered = obstacles.filter((o) => o.number != null && !["start", "finish", "number", "handler_zone"].includes(o.type));
-    const path = buildDogPath(numbered);
     if (path.points.length > 1) {
       doc.setDrawColor(...PDF_BRAND.secondary);
       doc.setLineWidth(0.6);
@@ -136,9 +149,15 @@ export function drawArenaVector(doc: jsPDF, opts: ArenaRenderOpts): { w: number;
     drawObstacleVector(doc, ob, m2x, m2y, mmPerM);
   }
 
+  // Förarlinjen ritas under brickorna men över hindren.
+  if (opts.markup) drawMarkupStrokes(doc, opts.markup, m2x, m2y, mmPerM);
+
   // Nummer-brickor
   for (const ob of obstacles) {
-    if (ob.number == null || ["start", "finish", "number"].includes(ob.type)) continue;
+    const text = opts.badgeTexts
+      ? opts.badgeTexts.get(ob.id)
+      : ob.number != null && !["start", "finish", "number"].includes(ob.type) ? String(ob.number) : undefined;
+    if (!text) continue;
     const def = getObstacleDefV2(ob.type);
     if (!def) continue;
     const size = obstacleSizeM(ob);
@@ -146,15 +165,193 @@ export function drawArenaVector(doc: jsPDF, opts: ArenaRenderOpts): { w: number;
     const offY = (-size.d / 2 - 0.4) * mmPerM;
     const cx = m2x(ob.x) + offX;
     const cy = m2y(ob.y) + offY;
-    doc.setFillColor(...PDF_BRAND.ink);
-    doc.circle(cx, cy, numberBadge, "F");
-    doc.setTextColor(255, 255, 255);
+    doc.setFillColor(...(opts.badgeTexts ? HANDLER_RGB : PDF_BRAND.ink));
     doc.setFont("helvetica", "bold");
     doc.setFontSize(numberBadge * 2.6);
-    doc.text(String(ob.number), cx, cy + numberBadge * 0.45, { align: "center" });
+    if (text.length <= 2) {
+      doc.circle(cx, cy, numberBadge, "F");
+    } else {
+      const bw = Math.max(numberBadge * 2, doc.getTextWidth(text) + numberBadge * 1.1);
+      doc.roundedRect(cx - bw / 2, cy - numberBadge, bw, numberBadge * 2, numberBadge, numberBadge, "F");
+    }
+    doc.setTextColor(255, 255, 255);
+    doc.text(text, cx, cy + numberBadge * 0.45, { align: "center" });
+  }
+
+  if (opts.markup) {
+    const crossings = opts.markup.strokes.flatMap((st) => findPolylineCrossings(smoothStrokePoints(st.points), path.points));
+    drawMarkupCues(doc, opts.markup, crossings, m2x, m2y, mmPerM);
   }
 
   return { w, h: h + dimMargin, mmPerM };
+}
+
+/* ───────────── Förarplan i PDF ───────────── */
+
+const HANDLER_RGB: [number, number, number] = [29, 78, 216];
+const CROSSING_RGB: [number, number, number] = [190, 18, 60];
+
+function drawPolyline(doc: jsPDF, pts: Array<{ x: number; y: number }>) {
+  for (let i = 1; i < pts.length; i++) doc.line(pts[i - 1].x, pts[i - 1].y, pts[i].x, pts[i].y);
+}
+
+function drawMarkupStrokes(
+  doc: jsPDF,
+  markup: CourseMarkup,
+  m2x: (m: number) => number,
+  m2y: (m: number) => number,
+  mmPerM: number,
+) {
+  doc.setDrawColor(...HANDLER_RGB);
+  doc.setFillColor(...HANDLER_RGB);
+  for (const stroke of markup.strokes) {
+    const smooth = smoothStrokePoints(stroke.points).map((p) => ({ x: m2x(p.x), y: m2y(p.y) }));
+    doc.setLineWidth(0.7);
+    drawPolyline(doc, smooth);
+    doc.circle(smooth[0].x, smooth[0].y, 0.8, "F");
+    // Riktningspilar var ~3 m.
+    let acc = 0;
+    let next = 3 * mmPerM * 0.6;
+    doc.setLineWidth(0.5);
+    for (let i = 1; i < smooth.length; i++) {
+      const a = smooth[i - 1];
+      const b = smooth[i];
+      const seg = Math.hypot(b.x - a.x, b.y - a.y);
+      while (seg > 0 && acc + seg >= next) {
+        const t = (next - acc) / seg;
+        const px = a.x + (b.x - a.x) * t;
+        const py = a.y + (b.y - a.y) * t;
+        const ang = Math.atan2(b.y - a.y, b.x - a.x);
+        const s = 1.1;
+        const back = (da: number) => ({ x: px - Math.cos(ang + da) * s, y: py - Math.sin(ang + da) * s });
+        const l = back(0.6);
+        const r = back(-0.6);
+        doc.line(l.x, l.y, px, py);
+        doc.line(r.x, r.y, px, py);
+        next += 3 * mmPerM;
+      }
+      acc += seg;
+    }
+  }
+}
+
+function drawStar(doc: jsPDF, cx: number, cy: number, r: number) {
+  const pts = Array.from({ length: 10 }, (_, i) => {
+    const rad = (Math.PI / 5) * i - Math.PI / 2;
+    const rr = i % 2 === 0 ? r : r * 0.45;
+    return { x: cx + Math.cos(rad) * rr, y: cy + Math.sin(rad) * rr };
+  });
+  const deltas = pts.slice(1).map((p, i) => [p.x - pts[i].x, p.y - pts[i].y]);
+  doc.lines(deltas, pts[0].x, pts[0].y, [1, 1], "FD", true);
+}
+
+/** En markering (bricka/stjärna/lapp) centrerad i (cx, cy) mm. */
+export function drawCueGlyphPdf(doc: jsPDF, kind: CueKind, cx: number, cy: number, r: number, text?: string) {
+  const def = CUE_DEFS.find((d) => d.kind === kind);
+  doc.setLineWidth(0.35);
+  switch (kind) {
+    case "reward":
+      doc.setFillColor(245, 179, 1);
+      doc.setDrawColor(...PDF_BRAND.text);
+      drawStar(doc, cx, cy, r * 1.15);
+      return;
+    case "note": {
+      const lines = wrapNoteText(text ?? "", 24, 4);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.5);
+      const width = Math.max(14, ...lines.map((l) => doc.getTextWidth(l))) + 3;
+      const height = lines.length * 2.8 + 2;
+      doc.setFillColor(255, 243, 176);
+      doc.setDrawColor(...PDF_BRAND.muted);
+      doc.roundedRect(cx - width / 2, cy - height / 2, width, height, 0.8, 0.8, "FD");
+      doc.setTextColor(...PDF_BRAND.text);
+      lines.forEach((line, i) => doc.text(line, cx - width / 2 + 1.5, cy - height / 2 + 1 + 2.3 + i * 2.8));
+      return;
+    }
+    default: {
+      const filled = kind !== "rear_cross";
+      doc.setDrawColor(...HANDLER_RGB);
+      if (kind === "blind_cross") doc.setFillColor(15, 23, 42);
+      else if (filled) doc.setFillColor(...HANDLER_RGB);
+      else doc.setFillColor(255, 255, 255);
+      doc.circle(cx, cy, r, "FD");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(r * 2.3);
+      doc.setTextColor(...(filled ? ([255, 255, 255] as [number, number, number]) : HANDLER_RGB));
+      doc.text(def?.short ?? "", cx, cy + r * 0.38, { align: "center" });
+    }
+  }
+}
+
+function drawMarkupCues(
+  doc: jsPDF,
+  markup: CourseMarkup,
+  crossings: Vec2[],
+  m2x: (m: number) => number,
+  m2y: (m: number) => number,
+  mmPerM: number,
+) {
+  const r = Math.max(1.6, Math.min(2.4, 0.55 * mmPerM));
+  doc.setLineWidth(0.4);
+  for (const c of crossings) {
+    const cx = m2x(c.x), cy = m2y(c.y);
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(...CROSSING_RGB);
+    doc.circle(cx, cy, r * 0.6, "FD");
+    const k = r * 0.32;
+    doc.line(cx - k, cy - k, cx + k, cy + k);
+    doc.line(cx + k, cy - k, cx - k, cy + k);
+  }
+  for (const cue of markup.cues) drawCueGlyphPdf(doc, cue.kind, m2x(cue.x), m2y(cue.y), r, cue.text);
+  doc.setTextColor(0);
+}
+
+/** Teckenförklaring för förarplanen — returnerar höjden i mm. */
+export function drawMarkupLegend(doc: jsPDF, x: number, y: number, maxWidth: number, markup: CourseMarkup): number {
+  const used = new Set(markup.cues.map((c) => c.kind));
+  const items: Array<{ draw: (cx: number, cy: number) => void; label: string }> = [];
+  if (markup.strokes.length) {
+    items.push({
+      label: "Förarlinje",
+      draw: (cx, cy) => {
+        doc.setDrawColor(...HANDLER_RGB);
+        doc.setLineWidth(0.7);
+        doc.line(cx - 3, cy, cx + 3, cy);
+      },
+    });
+    items.push({
+      label: "Korsar hundens linje",
+      draw: (cx, cy) => {
+        doc.setLineWidth(0.4);
+        doc.setFillColor(255, 255, 255);
+        doc.setDrawColor(...CROSSING_RGB);
+        doc.circle(cx, cy, 1.2, "FD");
+        doc.line(cx - 0.6, cy - 0.6, cx + 0.6, cy + 0.6);
+        doc.line(cx + 0.6, cy - 0.6, cx - 0.6, cy + 0.6);
+      },
+    });
+  }
+  for (const def of CUE_DEFS) {
+    if (!used.has(def.kind) || def.kind === "note") continue;
+    items.push({ label: def.label, draw: (cx, cy) => drawCueGlyphPdf(doc, def.kind, cx, cy, 1.7) });
+  }
+  if (items.length === 0) return 0;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  let cx = x;
+  let cy = y + 2.5;
+  for (const it of items) {
+    const wItem = 9 + doc.getTextWidth(it.label) + 5;
+    if (cx + wItem > x + maxWidth) { cx = x; cy += 6; }
+    it.draw(cx + 3.5, cy);
+    doc.setTextColor(...PDF_BRAND.text);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.text(it.label, cx + 8, cy + 1);
+    cx += wItem;
+  }
+  doc.setTextColor(0);
+  return cy - y + 4;
 }
 
 /** Ritar ett enskilt hinder vektorbaserat. Skala = mmPerM. */
